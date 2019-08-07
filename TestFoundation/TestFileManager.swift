@@ -340,7 +340,7 @@ class TestFileManager : XCTestCase {
                 let creationDate = attrs[.creationDate] as? Date
                 if ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion) {
                     XCTAssertNotNil(creationDate)
-                    XCTAssertGreaterThan(Date().timeIntervalSince1970, try creationDate.unwrapped().timeIntervalSince1970)
+                    XCTAssertGreaterThan(Date().timeIntervalSince1970, try XCTUnwrap(creationDate).timeIntervalSince1970)
                 } else {
                     XCTAssertNil(creationDate)
                 }
@@ -1564,7 +1564,7 @@ VIDEOS=StopgapVideos
         #endif
         
         do {
-            let components = try fm.componentsToDisplay(forPath: a.path).unwrapped()
+            let components = try XCTUnwrap(fm.componentsToDisplay(forPath: a.path))
             XCTAssertGreaterThanOrEqual(components.count, 2)
             XCTAssertEqual(components.last, "a")
         }
@@ -1572,10 +1572,10 @@ VIDEOS=StopgapVideos
         do {
             #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
             let components = try fm._overridingDisplayNameLanguages(with: ["it"]) {
-                return try fm.componentsToDisplay(forPath: a_Test.path).unwrapped()
+                return try XCTUnwrap(fm.componentsToDisplay(forPath: a_Test.path))
             }
             #else
-            let components = try fm.componentsToDisplay(forPath: a_Test.path).unwrapped()
+            let components = try XCTUnwrap(fm.componentsToDisplay(forPath: a_Test.path))
             #endif
             
             XCTAssertGreaterThanOrEqual(components.count, 3)
@@ -1589,10 +1589,10 @@ VIDEOS=StopgapVideos
         do {
             #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
             let components = try fm._overridingDisplayNameLanguages(with: ["en"]) {
-                return try fm.componentsToDisplay(forPath: a_Test_b.path).unwrapped()
+                return try XCTUnwrap(fm.componentsToDisplay(forPath: a_Test_b.path))
             }
             #else
-            let components = try fm.componentsToDisplay(forPath: a_Test_b.path).unwrapped()
+            let components = try XCTUnwrap(fm.componentsToDisplay(forPath: a_Test_b.path))
             #endif
             
             XCTAssertGreaterThanOrEqual(components.count, 4)
@@ -1696,7 +1696,7 @@ VIDEOS=StopgapVideos
                     XCTAssertNil(cAttributes)
                 }
                 
-                let newA = try result.unwrapped()
+                let newA = try XCTUnwrap(result)
 
                 let finalAttributes = try fm.attributesOfItem(atPath: newA.path)
                 XCTAssertEqual(initialAttributes[.creationDate] as? AnyHashable, finalAttributes[.creationDate] as? AnyHashable)

@@ -234,21 +234,21 @@ class TestCalendar: XCTestCase {
         // Check that date(from:) does not change the timeZone of the calendar
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
-        df.timeZone = try TimeZone(identifier: "UTC").unwrapped()
+        df.timeZone = try XCTUnwrap(TimeZone(identifier: "UTC"))
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = Locale(identifier: "en_US_POSIX")
-        calendar.timeZone = try TimeZone(secondsFromGMT: 0).unwrapped()
+        calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
 
         let calendarCopy = calendar
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
         XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
 
-        let dc = try calendarCopy.dateComponents(in: TimeZone(identifier: "America/New_York").unwrapped(), from: df.date(from: "2019-01-01").unwrapped())
+        let dc = try calendarCopy.dateComponents(in: XCTUnwrap(TimeZone(identifier: "America/New_York")), from: XCTUnwrap(df.date(from: "2019-01-01")))
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
         XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
 
-        let dt = try calendarCopy.date(from: dc).unwrapped()
+        let dt = try XCTUnwrap(calendarCopy.date(from: dc))
         XCTAssertEqual(dt.description, "2019-01-01 00:00:00 +0000")
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
         XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
@@ -498,7 +498,7 @@ class TestNSDateComponents: XCTestCase {
         let date3 = Date(timeIntervalSince1970: 46570600.45678)
 
         var calendar = Calendar.current
-        calendar.timeZone = try TimeZone(abbreviation: "UTC").unwrapped()
+        calendar.timeZone = try XCTUnwrap(TimeZone(abbreviation: "UTC"))
 
         let diff1 = calendar.dateComponents([.nanosecond], from: date1, to: date2)
         XCTAssertEqual(diff1.nanosecond, 1230003)

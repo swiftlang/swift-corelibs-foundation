@@ -107,14 +107,14 @@ class TestDateIntervalFormatter: XCTestCase {
         let result = formatter.string(from: date, to: date)
         result.assertContainsInOrder(requiresLastToBeAtEnd: true, "February 4", "2001", "5:20:00 PM",  "Greenwich Mean Time")
         
-        let firstFebruary = try result.range(of: "February").unwrapped()
+        let firstFebruary = try XCTUnwrap(result.range(of: "February"))
         XCTAssertNil(result[firstFebruary.upperBound...].range(of: "February")) // February appears only once.
     }
     
     func testStringFromDateIntervalAcrossThreeMillionSeconds() throws {
         let interval = DateInterval(start: Date(timeIntervalSinceReferenceDate: 0), duration: 3e6)
         
-        let result = try formatter.string(from: interval).unwrapped()
+        let result = try XCTUnwrap(formatter.string(from: interval))
         result.assertContainsInOrder("January 1",  "2001", "12:00:00 AM", "Greenwich Mean Time",
                                      "February 4", "2001", "5:20:00 PM",  "Greenwich Mean Time")
     }
@@ -195,7 +195,7 @@ class TestDateIntervalFormatter: XCTestCase {
             let result = formatter.string(from: older, to: newer)
             result.assertContainsInOrder(requiresLastToBeAtEnd: true, "January", "1", "2001", "12:00:00 AM", "5:00:00 AM", "GMT")
             
-            let firstJanuary = try result.range(of: "January").unwrapped()
+            let firstJanuary = try XCTUnwrap(result.range(of: "January"))
             XCTAssertNil(result[firstJanuary.upperBound...].range(of: "January")) // January appears only once.
         }
         
@@ -217,7 +217,7 @@ class TestDateIntervalFormatter: XCTestCase {
         let result = formatter.string(from: older, to: newer)
         result.assertContainsInOrder(requiresLastToBeAtEnd: true, "January", "1", "2001", "12:00:00 AM", "6:00:00 PM", "GMT")
         
-        let firstJanuary = try result.range(of: "January").unwrapped()
+        let firstJanuary = try XCTUnwrap(result.range(of: "January"))
         XCTAssertNil(result[firstJanuary.upperBound...].range(of: "January")) // January appears only once.
     }
     
@@ -229,8 +229,8 @@ class TestDateIntervalFormatter: XCTestCase {
         XCTAssertNotNil(lhs)
         XCTAssertNotNil(rhs)
         
-        let a = try lhs.unwrapped()
-        let b = try rhs.unwrapped()
+        let a = try XCTUnwrap(lhs)
+        let b = try XCTUnwrap(rhs)
         
         XCTAssertEqual(a.dateStyle, b.dateStyle, message())
         XCTAssertEqual(a.timeStyle, b.timeStyle, message())

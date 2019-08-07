@@ -284,7 +284,7 @@ class TestURLRequest : XCTestCase {
 
     func test_relativeURL() throws {
         let baseUrl = URL(string: "http://httpbin.org")
-        let url = try URL(string: "/get", relativeTo: baseUrl).unwrapped()
+        let url = try XCTUnwrap(URL(string: "/get", relativeTo: baseUrl))
 
         XCTAssertEqual(url.description, "/get -- http://httpbin.org")
         XCTAssertEqual(url.baseURL?.description, "http://httpbin.org")

@@ -1116,15 +1116,15 @@ class TestNSString: LoopbackServerTest {
         do {
             let string = NSString(string: "this is an external string that should be representable by data")
 
-            let UTF8Data = try string.data(using: String.Encoding.utf8.rawValue, allowLossyConversion: false).unwrapped() as NSData
+            let UTF8Data = try XCTUnwrap(string.data(using: String.Encoding.utf8.rawValue, allowLossyConversion: false)) as NSData
             let UTF8Length = UTF8Data.length
             XCTAssertEqual(UTF8Length, 63, "NSString should successfully produce an external UTF8 representation with a length of 63 but got \(UTF8Length) bytes")
 
-            let UTF16Data = try string.data(using: String.Encoding.utf16.rawValue, allowLossyConversion: false).unwrapped() as NSData
+            let UTF16Data = try XCTUnwrap(string.data(using: String.Encoding.utf16.rawValue, allowLossyConversion: false)) as NSData
             let UTF16Length = UTF16Data.length
             XCTAssertEqual(UTF16Length, 128, "NSString should successfully produce an external UTF16 representation with a length of 128 but got \(UTF16Length) bytes")
 
-            let ISOLatin1Data = try string.data(using: String.Encoding.isoLatin1.rawValue, allowLossyConversion: false).unwrapped() as NSData
+            let ISOLatin1Data = try XCTUnwrap(string.data(using: String.Encoding.isoLatin1.rawValue, allowLossyConversion: false)) as NSData
             let ISOLatin1Length = ISOLatin1Data.length
             XCTAssertEqual(ISOLatin1Length, 63, "NSString should successfully produce an external ISOLatin1 representation with a length of 63 but got \(ISOLatin1Length) bytes")
         }
@@ -1132,11 +1132,11 @@ class TestNSString: LoopbackServerTest {
         do {
             let string = NSString(string: "🐢 encoding all the way down. 🐢🐢🐢")
 
-            let UTF8Data = try string.data(using: String.Encoding.utf8.rawValue, allowLossyConversion: false).unwrapped() as NSData
+            let UTF8Data = try XCTUnwrap(string.data(using: String.Encoding.utf8.rawValue, allowLossyConversion: false)) as NSData
             let UTF8Length = UTF8Data.length
             XCTAssertEqual(UTF8Length, 44, "NSString should successfully produce an external UTF8 representation with a length of 44 but got \(UTF8Length) bytes")
 
-            let UTF16Data = try string.data(using: String.Encoding.utf16.rawValue, allowLossyConversion: false).unwrapped() as NSData
+            let UTF16Data = try XCTUnwrap(string.data(using: String.Encoding.utf16.rawValue, allowLossyConversion: false)) as NSData
             let UTF16Length = UTF16Data.length
             XCTAssertEqual(UTF16Length, 74, "NSString should successfully produce an external UTF16 representation with a length of 74 but got \(UTF16Length) bytes")
 

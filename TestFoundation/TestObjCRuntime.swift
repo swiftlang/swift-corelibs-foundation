@@ -65,7 +65,7 @@ class TestObjCRuntime: XCTestCase {
     func testClassesRenamedByAPINotes() throws {
         for entry in _NSClassesRenamedByObjCAPINotes {
             XCTAssert(NSClassFromString(NSStringFromClass(entry.class)) === entry.class)
-            XCTAssert(NSStringFromClass(try NSClassFromString(entry.objCName).unwrapped()) == entry.objCName)
+            XCTAssert(NSStringFromClass(try XCTUnwrap(NSClassFromString(entry.objCName))) == entry.objCName)
         }
     }
     #endif

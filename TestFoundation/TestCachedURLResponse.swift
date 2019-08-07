@@ -9,7 +9,7 @@
 
 class TestCachedURLResponse : XCTestCase {
     func test_copy() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -26,7 +26,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_initDefaultUserInfoAndStoragePolicy() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -39,7 +39,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_initDefaultUserInfo() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -53,7 +53,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_initWithoutDefaults() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -68,7 +68,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_equalWithTheSameInstance() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -80,7 +80,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_equalWithUnrelatedObject() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -92,7 +92,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_equalCheckingResponse() throws {
-        let url1 = try URL(string: "http://example.com/").unwrapped()
+        let url1 = try XCTUnwrap(URL(string: "http://example.com/"))
         let response1 = URLResponse(url: url1, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -100,11 +100,11 @@ class TestCachedURLResponse : XCTestCase {
         let storagePolicy = URLCache.StoragePolicy.allowedInMemoryOnly
         let cachedResponse1 = CachedURLResponse(response: response1, data: data, userInfo: userInfo, storagePolicy: storagePolicy)
 
-        let url2 = try URL(string: "http://example.com/second").unwrapped()
+        let url2 = try XCTUnwrap(URL(string: "http://example.com/second"))
         let response2 = URLResponse(url: url2, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let cachedResponse2 = CachedURLResponse(response: response2, data: data, userInfo: userInfo, storagePolicy: storagePolicy)
 
-        let url3 = try URL(string: "http://example.com/").unwrapped()
+        let url3 = try XCTUnwrap(URL(string: "http://example.com/"))
         let response3 = URLResponse(url: url3, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let cachedResponse3 = CachedURLResponse(response: response3, data: data, userInfo: userInfo, storagePolicy: storagePolicy)
 
@@ -115,7 +115,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_equalCheckingData() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes1: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data1 = Data(bytes: bytes1, count: bytes1.count)
@@ -138,7 +138,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_equalCheckingStoragePolicy() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://example.com/"))
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data = Data(bytes: bytes, count: bytes.count)
@@ -159,7 +159,7 @@ class TestCachedURLResponse : XCTestCase {
     }
 
     func test_hash() throws {
-        let url1 = try URL(string: "http://example.com/").unwrapped()
+        let url1 = try XCTUnwrap(URL(string: "http://example.com/"))
         let response1 = URLResponse(url: url1, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes1: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data1 = Data(bytes: bytes1, count: bytes1.count)
@@ -167,7 +167,7 @@ class TestCachedURLResponse : XCTestCase {
         let storagePolicy1 = URLCache.StoragePolicy.allowedInMemoryOnly
         let cachedResponse1 = CachedURLResponse(response: response1, data: data1, userInfo: userInfo1, storagePolicy: storagePolicy1)
 
-        let url2 = try URL(string: "http://example.com/").unwrapped()
+        let url2 = try XCTUnwrap(URL(string: "http://example.com/"))
         let response2 = URLResponse(url: url2, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes2: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let data2 = Data(bytes: bytes2, count: bytes2.count)
@@ -176,7 +176,7 @@ class TestCachedURLResponse : XCTestCase {
         let cachedResponse2 = CachedURLResponse(response: response2, data: data2, userInfo: userInfo2, storagePolicy: storagePolicy2)
 
         // Ideally, this cached response should have a different hash.
-        let url3 = try URL(string: "http://example.com/second").unwrapped()
+        let url3 = try XCTUnwrap(URL(string: "http://example.com/second"))
         let response3 = URLResponse(url: url3, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
         let bytes3: [UInt8] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
         let data3 = Data(bytes: bytes3, count: bytes3.count)

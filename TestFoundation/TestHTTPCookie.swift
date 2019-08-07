@@ -186,41 +186,41 @@ class TestHTTPCookie: XCTestCase {
     
     func test_cookiesWithResponseHeaderNoNameValue() throws {
         let header = ["Set-Cookie": ";attr1=value1"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 0)
     }
 
     func test_cookiesWithResponseHeaderNoName() throws {
         let header = ["Set-Cookie": "=value1;attr2=value2"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 0)
     }
 
     func test_cookiesWithResponseHeaderEmptyName() throws {
         let header = ["Set-Cookie": "   =value1;attr2=value2"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 0)
     }
 
     func test_cookiesWithResponseHeaderNoValue() throws {
         let header = ["Set-Cookie": "name;attr2=value2"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 0)
     }
 
     func test_cookiesWithResponseHeaderAttributeWithoutNameIsIgnored() throws {
         let header = ["Set-Cookie": "name=value;Comment=value1;   =value2;CommentURL=value3"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].name, "name")
         XCTAssertEqual(cookies[0].value, "value")
         XCTAssertEqual(cookies[0].comment, "value1")
-        XCTAssertEqual(cookies[0].commentURL, try URL(string: "value3").unwrapped())
+        XCTAssertEqual(cookies[0].commentURL, try XCTUnwrap(URL(string: "value3")))
     }
 
     func test_cookiesWithResponseHeaderValuelessAttributes() throws {
         let header = ["Set-Cookie": "name=value;Secure;Comment;Discard;CommentURL;HttpOnly"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].name, "name")
         XCTAssertEqual(cookies[0].value, "value")
@@ -235,7 +235,7 @@ class TestHTTPCookie: XCTestCase {
         // The attributes that do not need value will be ignored if they have
         // a value.
         let header = ["Set-Cookie": "name=value;Secure=1;Discard=TRUE;HttpOnly=Yes"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].name, "name")
         XCTAssertEqual(cookies[0].value, "value")
@@ -246,14 +246,14 @@ class TestHTTPCookie: XCTestCase {
 
     func test_cookiesWithResponseHeaderInvalidPath() throws {
         let header = ["Set-Cookie": "name=value;Path=This/is/not/a/valid/path"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].path, "/")
     }
 
     func test_cookiesWithResponseHeaderWithEqualsInValue() throws {
         let header = ["Set-Cookie": "name=v=a=l=u=e;attr1=value1;attr2=value2"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].name, "name")
         XCTAssertEqual(cookies[0].value, "v=a=l=u=e")
@@ -261,18 +261,18 @@ class TestHTTPCookie: XCTestCase {
 
     func test_cookiesWithResponseHeaderSecondCookieInvalidToken() throws {
         let header = ["Set-Cookie": "n=v; Comment=real value, tok@en=second; CommentURL=https://example.com/second"]
-        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try URL(string: "https://example.com").unwrapped())
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: try XCTUnwrap(URL(string: "https://example.com")))
         XCTAssertEqual(cookies.count, 1)
         XCTAssertEqual(cookies[0].name, "n")
         XCTAssertEqual(cookies[0].value, "v")
         XCTAssertEqual(cookies[0].comment, "real value, tok@en=second")
-        XCTAssertEqual(cookies[0].commentURL, try URL(string: "https://example.com/second").unwrapped())
+        XCTAssertEqual(cookies[0].commentURL, try XCTUnwrap(URL(string: "https://example.com/second")))
     }
 
     func test_cookiesWithExpiresAsLastAttribute() throws {
         let cookies = HTTPCookie.cookies(withResponseHeaderFields: [
             "Set-Cookie": "AAA=111; path=/; domain=.example.com; expires=Sun, 16-Aug-2025 22:39:54 GMT, BBB=222; path=/; domain=.example.com; HttpOnly; expires=Sat, 15-Feb-2014 22:39:54 GMT"
-        ], for: try URL(string: "http://www.example.com/").unwrapped())
+        ], for: try XCTUnwrap(URL(string: "http://www.example.com/")))
         XCTAssertEqual(cookies.count, 2)
         XCTAssertEqual(cookies[0].name, "AAA")
         XCTAssertEqual(cookies[0].value, "111")
@@ -284,7 +284,7 @@ class TestHTTPCookie: XCTestCase {
         do {
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: [
                 "Set-Cookie": "AAA =1; path=/; domain=.example.com; expires=Sun, 16-Aug-2025 22:39:54 GMT, BBB=2; path=/; domain=.example.com; HttpOnly; expires=Sat, 15-Feb-2014 22:39:54 GMT"
-            ], for: try URL(string: "http://www.example.com/").unwrapped())
+            ], for: try XCTUnwrap(URL(string: "http://www.example.com/")))
             XCTAssertEqual(cookies.count, 2)
             XCTAssertEqual(cookies[0].name, "AAA")
             XCTAssertEqual(cookies[0].value, "1")
@@ -295,7 +295,7 @@ class TestHTTPCookie: XCTestCase {
         do {
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: [
                 "Set-Cookie": " AAA=1; path=/; domain=.example.com; expires=Sun, 16-Aug-2025 22:39:54 GMT, BBB=2; path=/; domain=.example.com; HttpOnly; expires=Sat, 15-Feb-2014 22:39:54 GMT"
-            ], for: try URL(string: "http://www.example.com/").unwrapped())
+            ], for: try XCTUnwrap(URL(string: "http://www.example.com/")))
             XCTAssertEqual(cookies.count, 2)
             XCTAssertEqual(cookies[0].name, "AAA")
             XCTAssertEqual(cookies[0].value, "1")
@@ -309,7 +309,7 @@ class TestHTTPCookie: XCTestCase {
             let headers = [
                 "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=eXample.com"
             ]
-            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://eXample.com").unwrapped())
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try XCTUnwrap(URL(string: "http://eXample.com")))
             XCTAssertEqual(cookies.count, 1)
             XCTAssertEqual(cookies.first?.domain, ".example.com")
         }
@@ -318,7 +318,7 @@ class TestHTTPCookie: XCTestCase {
             let headers = [
                 "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=.eXample.com"
             ]
-            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://eXample.com").unwrapped())
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try XCTUnwrap(URL(string: "http://eXample.com")))
             XCTAssertEqual(cookies.count, 1)
             XCTAssertEqual(cookies.first?.domain, ".example.com")
         }
@@ -327,7 +327,7 @@ class TestHTTPCookie: XCTestCase {
             let headers = [
                 "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=a.eXample.com"
             ]
-            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://a.eXample.com").unwrapped())
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try XCTUnwrap(URL(string: "http://a.eXample.com")))
             XCTAssertEqual(cookies.count, 1)
             XCTAssertEqual(cookies.first?.domain, ".a.example.com")
         }
@@ -336,7 +336,7 @@ class TestHTTPCookie: XCTestCase {
             let headers = [
                 "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/"
             ]
-            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://a.eXample.com").unwrapped())
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try XCTUnwrap(URL(string: "http://a.eXample.com")))
             XCTAssertEqual(cookies.count, 1)
             XCTAssertEqual(cookies.first?.domain, "a.example.com")
         }
@@ -345,7 +345,7 @@ class TestHTTPCookie: XCTestCase {
             let headers = [
                 "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=1.2.3.4"
             ]
-            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://eXample.com").unwrapped())
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try XCTUnwrap(URL(string: "http://eXample.com")))
             XCTAssertEqual(cookies.count, 1)
             XCTAssertEqual(cookies.first?.domain, "1.2.3.4")
         }

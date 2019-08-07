@@ -419,12 +419,12 @@ class TestDateFormatter: XCTestCase {
         formatter.dateFormat = "yyyy-MM-dd"
 
         XCTAssertNil(formatter.date(from: "2018-03-09T10:25:16+01:00"))
-        let d1 = try formatter.date(from: "2018-03-09").unwrapped()
+        let d1 = try XCTUnwrap(formatter.date(from: "2018-03-09"))
         XCTAssertEqual(d1.description, "2018-03-09 00:00:00 +0000")
 
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
         XCTAssertNil(formatter.date(from: "2018-03-09"))
-        let d2 = try formatter.date(from: "2018-03-09T10:25:16+01:00").unwrapped()
+        let d2 = try XCTUnwrap(formatter.date(from: "2018-03-09T10:25:16+01:00"))
         XCTAssertEqual(d2.description, "2018-03-09 09:25:16 +0000")
     }
     
@@ -471,7 +471,7 @@ class TestDateFormatter: XCTestCase {
         let formatter = DateFormatter()
         formatter.timeZone = TimeZone(identifier: "CET")
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        let date = try formatter.date(from: "2019-05-05T12:52:10").unwrapped()
+        let date = try XCTUnwrap(formatter.date(from: "2019-05-05T12:52:10"))
 
         let applySettings: [(String, (DateFormatter) -> Void)] =
             [(".timeZone", {

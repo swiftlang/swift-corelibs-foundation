@@ -138,13 +138,9 @@ enum TestError: Error {
 }
 
 extension Optional {
+    @available(*, unavailable, message: "Use XCTUnwrap() instead")
     func unwrapped(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) throws -> Wrapped {
-        if let x = self {
-            return x
-        } else {
-            XCTFail("Tried to invoke .unwrapped() on nil in \(file):\(line):\(fn)")
-            throw TestError.unexpectedNil
-        }
+        return try XCTUnwrap(self, file: file, line: line)
     }
 }
 
@@ -232,7 +228,7 @@ func expectNoChanges<T: BinaryInteger>(_ check: @autoclosure () -> T, by differe
 
 extension Fixture where ValueType: NSObject & NSCoding {
     func loadEach(handler: (ValueType, FixtureVariant) throws -> Void) throws {
-        try self.loadEach(fixtureRepository: try testBundle().url(forResource: "Fixtures", withExtension: nil).unwrapped(), handler: handler)
+        try self.loadEach(fixtureRepository: try XCTUnwrap(testBundle().url(forResource: "Fixtures", withExtension: nil)), handler: handler)
     }
     
     func assertLoadedValuesMatch(_ matchHandler: (ValueType, ValueType) -> Bool = { $0 == $1 }) throws {
