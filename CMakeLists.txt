@@ -426,6 +426,28 @@ add_swift_executable(plutil
                        Foundation
                        CoreFoundation)
 
+add_swift_executable(GenerateTestFixtures
+                     SOURCES
+                       Tools/GenerateTestFixtures/GenerateTestFixtures/main.swift
+                       Tools/GenerateTestFixtures/GenerateTestFixtures/Utilities.swift
+                       TestFoundation/FixtureValues.swift
+                     TARGET
+                       ${CMAKE_C_COMPILER_TARGET}
+                     LINK_FLAGS
+                       ${libdispatch_ldflags}
+                       -L${CMAKE_CURRENT_BINARY_DIR}
+                       -lFoundation
+                       ${Foundation_INTERFACE_LIBRARIES}
+                     SWIFT_FLAGS
+                       -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
+                       -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                       -I;${ICU_INCLUDE_DIR}
+                       ${libdispatch_cflags}
+                       $<$<NOT:$<CONFIG:Debug>>:-O>
+                       ${swift_libc_flags}
+                     DEPENDS
+                       Foundation)
+
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        TARGET
