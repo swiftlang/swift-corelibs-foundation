@@ -396,3 +396,8 @@ internal enum _NSNonfileURLContentLoader {
         }
     }
 }
+
+public func _GetNSCFXMLBridge() -> _NSCFXMLBridge {
+  return __NSCFXMLBridge
+}
+

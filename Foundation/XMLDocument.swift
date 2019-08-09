@@ -76,6 +76,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document created from either XML or HTML, if the HTMLTidy option is set. Parse errors are returned in <tt>error</tt>.
     */
     public convenience init(xmlString string: String, options mask: XMLNode.Options = []) throws {
+        setupXMLParsing()
         guard let data = string.data(using: .utf8) else {
             // TODO: Throw an error
             fatalError("String: '\(string)' could not be converted to NSData using UTF-8 encoding")
@@ -89,6 +90,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
     public convenience init(contentsOf url: URL, options mask: XMLNode.Options = []) throws {
+        setupXMLParsing()
         let data = try Data(contentsOf: url, options: .mappedIfSafe)
 
         try self.init(data: data, options: mask)
@@ -99,6 +101,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document created from data. Parse errors are returned in <tt>error</tt>.
     */
     public init(data: Data, options mask: XMLNode.Options = []) throws {
+        setupXMLParsing()
         let docPtr = _CFXMLDocPtrFromDataWithOptions(unsafeBitCast(data as NSData, to: CFData.self), UInt32(mask.rawValue))
         super.init(ptr: _CFXMLNodePtr(docPtr))
 
@@ -112,6 +115,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document with a single child, the root element.
     */
     public init(rootElement element: XMLElement?) {
+        setupXMLParsing()
         precondition(element?.parent == nil)
 
         super.init(kind: .document, options: [])

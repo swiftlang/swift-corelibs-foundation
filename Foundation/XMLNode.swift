@@ -117,7 +117,8 @@ open class XMLNode: NSObject, NSCopying {
      @abstract Inits a node with fidelity options as description NSXMLNodeOptions.h
      */
     public init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
-        
+        setupXMLParsing()
+
         switch kind {
         case .document:
             let docPtr = _CFXMLNewDoc("1.0")
@@ -261,6 +262,7 @@ open class XMLNode: NSObject, NSCopying {
      @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
      */
     open class func dtdNode(withXMLString string: String) -> Any? {
+        setupXMLParsing()
         guard let node = _CFXMLParseDTDNode(string) else { return nil }
         
         return XMLDTDNode(ptr: node)
@@ -765,8 +767,8 @@ open class XMLNode: NSObject, NSCopying {
         }
         
         var result: [XMLNode] = []
-        for i in 0..<CFArrayGetCount(nodes) {
-            let nodePtr = CFArrayGetValueAtIndex(nodes, i)!
+        for i in 0..<_GetNSCFXMLBridge().CFArrayGetCount(nodes) {
+            let nodePtr = _GetNSCFXMLBridge().CFArrayGetValueAtIndex(nodes, i)!
             result.append(XMLNode._objectNodeForNode(_CFXMLNodePtr(mutating: nodePtr)))
         }
         
@@ -811,6 +813,7 @@ open class XMLNode: NSObject, NSCopying {
     }
     
     internal init(ptr: _CFXMLNodePtr) {
+        setupXMLParsing()
         precondition(_CFXMLNodeGetPrivateData(ptr) == nil, "Only one XMLNode per xmlNodePtr allowed")
         
         _xmlNode = ptr

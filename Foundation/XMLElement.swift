@@ -27,6 +27,7 @@ open class XMLElement: XMLNode {
         @abstract Returns an element <tt>&lt;name>&lt;/name></tt>.
     */
     public convenience init(name: String) {
+        setupXMLParsing()
         self.init(name: name, uri: nil)
     }
 
@@ -35,6 +36,7 @@ open class XMLElement: XMLNode {
         @abstract Returns an element whose full QName is specified.
     */
     public init(name: String, uri URI: String?) {
+        setupXMLParsing()
         super.init(kind: .element, options: [])
         self.uri = URI
         self.name = name
@@ -45,6 +47,7 @@ open class XMLElement: XMLNode {
         @abstract Returns an element with a single text node child <tt>&lt;name>string&lt;/name></tt>.
     */
     public convenience init(name: String, stringValue string: String?) {
+        setupXMLParsing()
         self.init(name: name, uri: nil)
         if let string = string {
             let child = _CFXMLNewTextNode(string)
@@ -57,6 +60,8 @@ open class XMLElement: XMLNode {
         @abstract Returns an element created from a string. Parse errors are collected in <tt>error</tt>.
     */
     public convenience init(xmlString string: String) throws {
+        setupXMLParsing()
+        
         // If we prepend the XML line to the string
         let docString = """
         <?xml version="1.0" encoding="utf-8" standalone="yes"?>\(string)
@@ -68,6 +73,7 @@ open class XMLElement: XMLNode {
     }
 
     public convenience override init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
+        setupXMLParsing()
         self.init(name: "", uri: nil)
     }
 

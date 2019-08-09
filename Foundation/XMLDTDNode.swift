@@ -83,11 +83,13 @@ open class XMLDTDNode: XMLNode {
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
     public init?(xmlString string: String) {
+        setupXMLParsing()
         guard let ptr = _CFXMLParseDTDNode(string) else { return nil }
         super.init(ptr: ptr)
     } //primitive
     
     public override init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
+        setupXMLParsing()
         let ptr: _CFXMLNodePtr
 
         switch kind {
