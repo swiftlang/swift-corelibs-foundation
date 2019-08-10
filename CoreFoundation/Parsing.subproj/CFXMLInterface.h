@@ -255,6 +255,8 @@ void _CFXMLFreeProperty(_CFXMLNodePtr prop);
 // Bridging
 
 struct _NSXMLParserBridge {
+    struct _NSCFXMLBridge CF;
+
     _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
     _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface /*interface*/, const char * /*url*/, const char * /*identifier*/, _CFXMLInterfaceParserContext /*context*/, _CFXMLInterfaceExternalEntityLoader /*originalLoaderFunction*/);
     
@@ -317,6 +319,7 @@ struct _NSXMLParserBridge {
 };
 
 CF_EXPORT struct _NSXMLParserBridge __CFSwiftXMLParserBridge;
+
 
 CF_EXTERN_C_END
 CF_ASSUME_NONNULL_END

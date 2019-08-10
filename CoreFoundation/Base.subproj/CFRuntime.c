@@ -1652,6 +1652,33 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 struct _CFSwiftBridge __CFSwiftBridge = { { NULL } };
 
+struct _NSCFXMLBridge __NSCFXMLBridge = {
+  CFArrayGetCount,
+  CFArrayGetValueAtIndex,
+  CFErrorCreate,
+  CFStringCreateWithCString,
+  CFStringCreateMutable,
+  CFStringAppend,
+  CFStringAppendCString,
+  CFStringGetLength,
+  CFStringGetMaximumSizeForEncoding,
+  CFStringGetCString,
+  CFDataCreateWithBytesNoCopy,
+  CFRelease,
+  CFStringCreateWithBytes,
+  CFArrayCreateMutable,
+  CFArrayAppendValue,
+  CFDataGetLength,
+  CFDataGetBytePtr,
+  CFDictionaryCreateMutable,
+  CFDictionarySetValue,
+  &kCFAllocatorSystemDefault,
+  &kCFAllocatorNull,
+  &kCFCopyStringDictionaryKeyCallBacks,
+  &kCFTypeDictionaryValueCallBacks,
+  &kCFErrorLocalizedDescriptionKey,
+};
+
 // Call out to the CF-level finalizer, because the object is going to go away.
 CF_CROSS_PLATFORM_EXPORT void _CFDeinit(CFTypeRef cf) {
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));

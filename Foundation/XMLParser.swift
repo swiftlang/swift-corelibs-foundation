@@ -408,6 +408,7 @@ open class XMLParser : NSObject {
     
     // initializes the parser with the specified URL.
     public convenience init?(contentsOf url: URL) {
+        setupXMLParsing()
         if url.isFileURL {
             if let stream = InputStream(url: url) {
                 self.init(stream: stream)
@@ -977,6 +978,7 @@ extension NSObject {
 func setupXMLParsing() {
     _CFSetupXMLInterface()
     _CFSetupXMLBridgeIfNeededUsingBlock {
+        __CFSwiftXMLParserBridge.CF = _GetNSCFXMLBridge()
         __CFSwiftXMLParserBridge.currentParser = _NSXMLParserCurrentParser
         __CFSwiftXMLParserBridge._xmlExternalEntityWithURL = _NSXMLParserExternalEntityWithURL
         __CFSwiftXMLParserBridge.getContext = _NSXMLParserGetContext

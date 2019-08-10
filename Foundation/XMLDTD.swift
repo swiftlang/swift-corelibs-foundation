@@ -30,6 +30,7 @@ open class XMLDTD : XMLNode {
     }
     
     public convenience init(contentsOf url: URL, options mask: XMLNode.Options = []) throws {
+        setupXMLParsing()
         let urlString = url.absoluteString
 
         guard let node = _CFXMLParseDTD(urlString) else {
@@ -40,6 +41,7 @@ open class XMLDTD : XMLNode {
     }
 
     public convenience init(data: Data, options mask: XMLNode.Options = []) throws {
+        setupXMLParsing()
         var unmanagedError: Unmanaged<CFError>? = nil
         
         guard let node = _CFXMLParseDTDFromData(unsafeBitCast(data as NSData, to: CFData.self), &unmanagedError) else {

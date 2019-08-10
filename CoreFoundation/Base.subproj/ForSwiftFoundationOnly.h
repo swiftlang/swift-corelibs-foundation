@@ -273,6 +273,35 @@ struct _CFSwiftBridge {
     struct _NSURLBridge NSURL;
 };
 
+struct _NSCFXMLBridge {
+  CFIndex (* _Nonnull CFArrayGetCount)(CFArrayRef);
+  const void * _Null_unspecified (* _Nonnull CFArrayGetValueAtIndex)(CFArrayRef, CFIndex);
+  _Null_unspecified CFErrorRef (* _Nonnull CFErrorCreate)(CFAllocatorRef _Nullable, CFStringRef, CFIndex, CFDictionaryRef _Nullable);
+  _Null_unspecified CFStringRef (* _Nonnull CFStringCreateWithCString)(CFAllocatorRef _Nullable, const char * _Null_unspecified, CFStringEncoding);
+  _Null_unspecified CFMutableStringRef (* _Nonnull CFStringCreateMutable)(CFAllocatorRef _Nullable, CFIndex);
+  void (* _Nonnull CFStringAppend)(CFMutableStringRef, CFStringRef);
+  void (* _Nonnull CFStringAppendCString)(CFMutableStringRef, const char * _Null_unspecified, CFStringEncoding);
+  CFIndex (* _Nonnull CFStringGetLength)(CFStringRef);
+  CFIndex (* _Nonnull CFStringGetMaximumSizeForEncoding)(CFIndex, CFStringEncoding);
+  Boolean (* _Nonnull CFStringGetCString)(CFStringRef, char *, CFIndex, CFStringEncoding);
+  _Null_unspecified CFDataRef (* _Nonnull CFDataCreateWithBytesNoCopy)(CFAllocatorRef _Nullable, const uint8_t *, CFIndex, CFAllocatorRef);
+  void (* _Nonnull CFRelease)(CFTypeRef);
+  _Null_unspecified CFStringRef (* _Nonnull CFStringCreateWithBytes)(CFAllocatorRef _Nullable, const UInt8 *, CFIndex, CFStringEncoding, Boolean);
+  _Null_unspecified CFMutableArrayRef (* _Nonnull CFArrayCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFArrayCallBacks *_Nullable);
+  void (* _Nonnull CFArrayAppendValue)(CFMutableArrayRef, const void *);
+  CFIndex (* _Nonnull CFDataGetLength)(CFDataRef);
+  uint8_t * _Null_unspecified (* _Nonnull CFDataGetBytePtr)(CFDataRef);
+  _Null_unspecified CFMutableDictionaryRef (* _Nonnull CFDictionaryCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFDictionaryKeyCallBacks *, const CFDictionaryValueCallBacks *);
+  void (* _Nonnull CFDictionarySetValue)(CFMutableDictionaryRef, const void * _Null_Unspecified, const void * _Null_unspecified);
+  _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorSystemDefault;
+  _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorNull;
+  CFDictionaryKeyCallBacks * _Nonnull kCFCopyStringDictionaryKeyCallBacks;
+  CFDictionaryValueCallBacks * _Nonnull kCFTypeDictionaryValueCallBacks;
+  _Null_unspecified const CFStringRef * _Nonnull kCFErrorLocalizedDescriptionKey;
+};
+
+CF_EXPORT struct _NSCFXMLBridge __NSCFXMLBridge;
+
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 
 CF_PRIVATE void *_Nullable _CFSwiftRetain(void *_Nullable t);
