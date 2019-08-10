@@ -450,7 +450,7 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
             }
 
             xmlSetNs(nodePtr, ns);
-            return;
+            break;
 
         case XML_DOCUMENT_NODE:
         {
@@ -459,7 +459,7 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
                 xmlFree((xmlChar*)doc->URL);
             }
             doc->URL = xmlStrdup(URI);
-            return;
+            break;
         }
         default:
             return;
