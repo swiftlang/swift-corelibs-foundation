@@ -9,6 +9,10 @@
 
 #include <CoreFoundation/CFAsmMacros.h>
 
+#if defined(__ELF__)
+.section .rodata
+#endif
+
     .global _C_LABEL(__CFCharacterSetBitmapData)
 _C_LABEL(__CFCharacterSetBitmapData):
     .incbin CF_CHARACTERSET_BITMAP

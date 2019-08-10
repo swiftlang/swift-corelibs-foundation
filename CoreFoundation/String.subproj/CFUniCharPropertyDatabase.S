@@ -9,6 +9,10 @@
 
 #include <CoreFoundation/CFAsmMacros.h>
 
+#if defined(__ELF__)
+.section .rodata
+#endif
+
     .global _C_LABEL(__CFUniCharPropertyDatabase)
 _C_LABEL(__CFUniCharPropertyDatabase):
     .incbin CF_CHARACTERSET_UNICHAR_DB
