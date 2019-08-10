@@ -459,8 +459,9 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
                 xmlFree((xmlChar*)doc->URL);
             }
             doc->URL = xmlStrdup(URI);
-            break;
         }
+            break;
+
         default:
             return;
     }
