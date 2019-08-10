@@ -470,7 +470,7 @@ void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data) {
     if (!node) {
         return;
     }
-	((xmlNodePtr)node)->_private = data;
+    ((xmlNodePtr)node)->_private = data;
 }
 
 void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node) {
