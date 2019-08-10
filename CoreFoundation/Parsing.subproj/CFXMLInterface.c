@@ -467,9 +467,10 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
 }
 
 void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data) {
-    if (node) {
-        ((xmlNodePtr)node)->_private = data;
+    if (!node) {
+        return;
     }
+	((xmlNodePtr)node)->_private = data;
 }
 
 void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node) {
