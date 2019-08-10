@@ -332,7 +332,7 @@ open class XMLNode: NSObject, NSCopying {
         set {
             if case .namespace = kind {
                 _CFXMLNamespaceSetPrefix(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
-            } else {
+            } else if .namespace != document {
                 if let newName = newValue {
                     _CFXMLNodeSetName(_xmlNode, newName)
                 } else {
