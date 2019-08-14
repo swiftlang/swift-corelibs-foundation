@@ -83,12 +83,21 @@ public protocol PortDelegate : class {
     func handle(_ message: PortMessage)
 }
 
-#if canImport(Glibc)
+#if canImport(Glibc) && !os(Android)
 import Glibc
 fileprivate let SOCK_STREAM = Int32(Glibc.SOCK_STREAM.rawValue)
 fileprivate let SOCK_DGRAM  = Int32(Glibc.SOCK_DGRAM.rawValue)
 fileprivate let IPPROTO_TCP = Int32(Glibc.IPPROTO_TCP)
 #endif
+
+#if canImport(Glibc) && os(Android)
+import Glibc
+fileprivate let SOCK_STREAM = Int32(Glibc.SOCK_STREAM)
+fileprivate let SOCK_DGRAM  = Int32(Glibc.SOCK_DGRAM)
+fileprivate let IPPROTO_TCP = Int32(Glibc.IPPROTO_TCP)
+fileprivate let INADDR_ANY: in_addr_t = 0
+#endif
+
 
 #if canImport(WinSock)
 import WinSock
@@ -440,7 +449,7 @@ open class SocketPort : Port {
         var address = sockaddr_in(settingLength: ())
         address.sin_family = sa_family_t(AF_INET)
         address.sin_port = in_port_t(port).bigEndian
-        address.sin_addr.s_addr = INADDR_ANY
+        address.sin_addr.s_addr = in_addr_t(INADDR_ANY).bigEndian
         
         let data = withUnsafeBytes(of: address) { Data($0) }
         
@@ -529,7 +538,7 @@ open class SocketPort : Port {
         var sinAddr = sockaddr_in(settingLength: ())
         sinAddr.sin_family = sa_family_t(AF_INET)
         sinAddr.sin_port = port.bigEndian
-        sinAddr.sin_addr.s_addr = INADDR_LOOPBACK.bigEndian
+        sinAddr.sin_addr.s_addr = in_addr_t(INADDR_LOOPBACK).bigEndian
 
         let data = withUnsafeBytes(of: sinAddr) { Data($0) }
         self.init(remoteWithProtocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
