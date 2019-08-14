@@ -19,7 +19,17 @@ class TestHTTPCookie: XCTestCase {
             ("test_cookiesWithResponseHeaderNoDomain", test_cookiesWithResponseHeaderNoDomain),
             ("test_cookiesWithResponseHeaderNoPathNoDomain", test_cookiesWithResponseHeaderNoPathNoDomain),
             ("test_cookieExpiresDateFormats", test_cookieExpiresDateFormats),
+            ("test_pathEndingWithSemicolonMustNotCrash", test_pathEndingWithSemicolonMustNotCrash),
         ]
+    }
+    
+    func test_pathEndingWithSemicolonMustNotCrash() throws {
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": "foo=bar;"], for: URL(string: "https://foo.bar")!)
+        XCTAssertEqual(cookies.count, 1)
+        let cookie = try cookies.first.unwrapped()
+        XCTAssertEqual(cookie.name, "foo")
+        XCTAssertEqual(cookie.value, "bar")
+        XCTAssertEqual(cookie.domain, "foo.bar")
     }
 
     func test_BasicConstruction() {
@@ -187,7 +197,7 @@ class TestHTTPCookie: XCTestCase {
         XCTAssertEqual(cookies.count, 3)
         cookies.forEach { cookie in
             XCTAssertEqual(cookie.expiresDate, testDate)
-            XCTAssertEqual(cookie.domain, "swift.org")
+            XCTAssertEqual(cookie.domain, ".swift.org")
             XCTAssertEqual(cookie.path, "/")
         }
     }
