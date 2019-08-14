@@ -99,8 +99,21 @@ fileprivate let INADDR_ANY: in_addr_t = 0
 #endif
 
 
-#if canImport(WinSock)
-import WinSock
+#if canImport(WinSDK)
+import WinSDK
+/*
+ // https://docs.microsoft.com/en-us/windows/win32/api/winsock/ns-winsock-sockaddr_in
+ typedef struct sockaddr_in {
+   short          sin_family;
+   u_short        sin_port;
+   struct in_addr sin_addr;
+   char           sin_zero[8];
+ } SOCKADDR_IN, *PSOCKADDR_IN, *LPSOCKADDR_IN;
+ */
+fileprivate typealias sa_family_t = ADDRESS_FAMILY
+fileprivate typealias in_port_t = USHORT
+fileprivate typealias in_addr_t = UInt32
+fileprivate let IPPROTO_TCP = Int32(WinSDK.IPPROTO_TCP.rawValue)
 #endif
 
 // MARK: Darwin representation of socket addresses
@@ -116,7 +129,7 @@ import WinSock
  - swift-corelibs-foundation clients across all platforms can interoperate between themselves and with Darwin as long as all the ports that are sent through SocketPort are AF_INET or AF_INET6;
  - otherwise, it is the implementor and deployer's responsibility to make sure all the clients are on the same platform. For sockets that do not leave the machine, like AF_UNIX, this is trivial.
  
- This allows us to special-case sockaddr_in and sockaddr_in6; when we transmit them, we will transmit them in a way that's binary-compatible with Darwin's version of those structure, and then we translate them into whatever version your platform uses, with the one exception that we assume that in6_addr is always representable as 16 contiguous bytes.
+ This allows us to special-case sockaddr_in and sockaddr_in6; when we transmit them, we will transmit them in a way that's binary-compatible with Darwin's version of those structure, and then we translate them into whatever version your platform uses, with the one exception that we assume that in_addr is always representable as 4 contiguous bytes, and similarly in6_addr as 16 contiguous bytes.
  
  Addresses are internally represented as LocalAddress enum cases; we use DarwinAddress as a type to denote a block of bytes that we type as being a sockaddr produced by Darwin or a Darwin-mimicking source; and the extensions on sockaddr_in and sockaddr_in6 paper over some platform differences and provide translations back and forth into DarwinAddresses for their specific types.
  
@@ -164,7 +177,9 @@ fileprivate extension sockaddr_in {
         self.init(settingLength: ())
         self.sin_family = sa_family_t(AF_INET)
         self.sin_port = in_port_t(port)
-        self.sin_addr.s_addr = in_addr_t(inAddr)
+        withUnsafeMutableBytes(of: &self.sin_addr) { (buffer) in
+            withUnsafeBytes(of: inAddr) { buffer.copyMemory(from: $0) }
+        }
     }
     
     var darwinAddress: DarwinAddress {
@@ -172,7 +187,7 @@ fileprivate extension sockaddr_in {
         withUnsafeBytes(of: darwinSockaddrInSize) { data.append(contentsOf: $0) }
         withUnsafeBytes(of: darwinAfInet) { data.append(contentsOf: $0) }
         withUnsafeBytes(of: UInt16(sin_port)) { data.append(contentsOf: $0) }
-        withUnsafeBytes(of: UInt32(sin_addr.s_addr)) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: sin_addr) { data.append(contentsOf: $0) }
         
         let padding: (Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8) =
             (0, 0, 0, 0, 0, 0, 0, 0)
@@ -449,7 +464,9 @@ open class SocketPort : Port {
         var address = sockaddr_in(settingLength: ())
         address.sin_family = sa_family_t(AF_INET)
         address.sin_port = in_port_t(port).bigEndian
-        address.sin_addr.s_addr = in_addr_t(INADDR_ANY).bigEndian
+        withUnsafeMutableBytes(of: &address.sin_addr) { (buffer) in
+            withUnsafeBytes(of: in_addr_t(INADDR_ANY).bigEndian) { buffer.copyMemory(from: $0) }
+        }
         
         let data = withUnsafeBytes(of: address) { Data($0) }
         
@@ -489,9 +506,9 @@ open class SocketPort : Port {
         context.info = Unmanaged.passUnretained(self).toOpaque()
         var s: CFSocket
         if type == SOCK_STREAM {
-            s = CFSocketCreateWithNative(nil, sock, CFOptionFlags(kCFSocketAcceptCallBack), __NSFireSocketAccept, &context)
+            s = CFSocketCreateWithNative(nil, CFSocketNativeHandle(sock), CFOptionFlags(kCFSocketAcceptCallBack), __NSFireSocketAccept, &context)
         } else {
-            s = CFSocketCreateWithNative(nil, sock, CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketDatagram, &context)
+            s = CFSocketCreateWithNative(nil, CFSocketNativeHandle(sock), CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketDatagram, &context)
         }
         
         createNonuniquedCore(from: s, protocolFamily: family, socketType: type, protocol: `protocol`)
@@ -538,8 +555,9 @@ open class SocketPort : Port {
         var sinAddr = sockaddr_in(settingLength: ())
         sinAddr.sin_family = sa_family_t(AF_INET)
         sinAddr.sin_port = port.bigEndian
-        sinAddr.sin_addr.s_addr = in_addr_t(INADDR_LOOPBACK).bigEndian
-
+        withUnsafeMutableBytes(of: &sinAddr.sin_addr) { (buffer) in
+            withUnsafeBytes(of: in_addr_t(INADDR_LOOPBACK).bigEndian) { buffer.copyMemory(from: $0) }
+        }
         let data = withUnsafeBytes(of: sinAddr) { Data($0) }
         self.init(remoteWithProtocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
     }
@@ -637,7 +655,7 @@ open class SocketPort : Port {
     }
     
     open var socket: SocketNativeHandle {
-        return CFSocketGetNative(core.receiver)
+        return SocketNativeHandle(CFSocketGetNative(core.receiver))
     }
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoop.Mode) {
@@ -720,7 +738,7 @@ open class SocketPort : Port {
         var context = CFSocketContext()
         context.info = Unmanaged.passUnretained(self).toOpaque()
         
-        guard let child = CFSocketCreateWithNative(nil, handle.pointee, CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketData, &context) else {
+        guard let child = CFSocketCreateWithNative(nil, CFSocketNativeHandle(handle.pointee), CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketData, &context) else {
             return
         }
         
