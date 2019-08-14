@@ -8,17 +8,6 @@
 //
 
 class TestRunLoop : XCTestCase {
-    static var allTests : [(String, (TestRunLoop) -> () throws -> Void)] {
-        return [
-            ("test_constants", test_constants),
-            ("test_runLoopInit", test_runLoopInit),
-            ("test_commonModes", test_commonModes),
-            // these tests do not work the same as Darwin https://bugs.swift.org/browse/SR-399
-//            ("test_runLoopRunMode", test_runLoopRunMode),
-//            ("test_runLoopLimitDate", test_runLoopLimitDate),
-        ]
-    }
-    
     func test_constants() {
         XCTAssertEqual(RunLoop.Mode.common.rawValue, "kCFRunLoopCommonModes",
                        "\(RunLoop.Mode.common.rawValue) is not equal to kCFRunLoopCommonModes")
@@ -91,5 +80,83 @@ class TestRunLoop : XCTestCase {
         runLoop.add(timer, forMode: .common)
         
         waitForExpectations(timeout: 10)
+    }
+    
+    func test_addingRemovingPorts() {
+        let runLoop = RunLoop.current
+        var didDeallocate = false
+        
+        do {
+            let port = TestPort {
+                didDeallocate = true
+            }
+            let customMode = RunLoop.Mode(rawValue: "Custom")
+            
+            XCTAssertEqual(port.scheduledModes, [])
+            
+            runLoop.add(port, forMode: .default)
+            XCTAssertEqual(port.scheduledModes, [.default])
+            
+            runLoop.add(port, forMode: .default)
+            XCTAssertEqual(port.scheduledModes, [.default])
+            
+            runLoop.add(port, forMode: customMode)
+            XCTAssertEqual(port.scheduledModes, [.default, customMode])
+            
+            runLoop.remove(port, forMode: customMode)
+            XCTAssertEqual(port.scheduledModes, [.default])
+            
+            runLoop.add(port, forMode: customMode)
+            XCTAssertEqual(port.scheduledModes, [.default, customMode])
+            
+            port.invalidate()
+        }
+        
+        XCTAssertTrue(didDeallocate)
+    }
+    
+    static var allTests : [(String, (TestRunLoop) -> () throws -> Void)] {
+        return [
+            ("test_constants", test_constants),
+            ("test_runLoopInit", test_runLoopInit),
+            ("test_commonModes", test_commonModes),
+            // these tests do not work the same as Darwin https://bugs.swift.org/browse/SR-399
+            // ("test_runLoopRunMode", test_runLoopRunMode),
+            // ("test_runLoopLimitDate", test_runLoopLimitDate),
+            ("test_addingRemovingPorts", test_addingRemovingPorts),
+        ]
+    }
+}
+
+class TestPort: Port {
+    let sentinel: () -> Void
+    init(sentinel: @escaping () -> Void) {
+        self.sentinel = sentinel
+        super.init()
+    }
+    
+    deinit {
+        invalidate()
+        sentinel()
+    }
+    
+    private var _isValid = true
+    open override var isValid: Bool { return _isValid }
+    
+    open override func invalidate() {
+        guard isValid else { return }
+        
+        _isValid = false
+        NotificationCenter.default.post(name: Port.didBecomeInvalidNotification, object: self)
+    }
+    
+    var scheduledModes: [RunLoop.Mode] = []
+    
+    open override func schedule(in runLoop: RunLoop, forMode mode: RunLoop.Mode) {
+        scheduledModes.append(mode)
+    }
+    
+    open override func remove(from runLoop: RunLoop, forMode mode: RunLoop.Mode) {
+        scheduledModes = scheduledModes.filter { $0 != mode }
     }
 }
