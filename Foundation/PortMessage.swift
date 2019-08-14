@@ -8,27 +8,24 @@
 //
 
 
-open class PortMessage : NSObject {
-    
+open class PortMessage : NSObject, NSCopying {
     public init(sendPort: Port?, receivePort replyPort: Port?, components: [AnyObject]?) {
-        NSUnimplemented()
+        self.sendPort = sendPort
+        self.receivePort = replyPort
+        self.components = components
     }
     
-    open var components: [AnyObject]? {
-        NSUnimplemented()
-    }
+    open var msgid: UInt32 = 0
     
-    open var receivePort: Port? {
-        NSUnimplemented()
-    }
-    
-    open var sendPort: Port? {
-        NSUnimplemented()
-    }
+    open private(set) var components: [AnyObject]?
+    open private(set) var receivePort: Port?
+    open private(set) var sendPort: Port?
     
     open func sendBeforeDate(_ date: Date) -> Bool {
-        NSUnimplemented()
+        return sendPort?.sendBeforeDate(date, msgid: Int(msgid), components: NSMutableArray(array: components ?? []), from: receivePort, reserved: 0) ?? false
     }
     
-    open var msgid: UInt32
+    public func copy(with zone: NSZone?) -> Any {
+        return self
+    }
 }

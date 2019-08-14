@@ -264,7 +264,6 @@ internal let _NSClassesRenamedByObjCAPINotesInNetworkingOrXML: [(swiftName: Stri
 internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: String)] = {
     var map: [(AnyClass, String)] = [
         (ProcessInfo.self, "NSProcessInfo"),
-        (MessagePort.self, "NSMessagePort"),
         (Port.self, "NSPort"),
         (PortMessage.self, "NSPortMessage"),
         (SocketPort.self, "NSSocketPort"),

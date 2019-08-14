@@ -74,6 +74,7 @@ var allTestCases = [
     testCase(TestRunLoop.allTests),
     testCase(TestScanner.allTests),
     testCase(TestNSSet.allTests),
+    testCase(TestSocketPort.allTests),
     testCase(TestStream.allTests),
     testCase(TestNSString.allTests),
     testCase(TestThread.allTests),

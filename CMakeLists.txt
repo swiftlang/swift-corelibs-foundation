@@ -530,6 +530,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestPropertyListSerialization.swift
                          TestFoundation/TestRunLoop.swift
                          TestFoundation/TestScanner.swift
+                         TestFoundation/TestSocketPort.swift
                          TestFoundation/TestStream.swift
                          TestFoundation/TestThread.swift
                          TestFoundation/TestTimer.swift
