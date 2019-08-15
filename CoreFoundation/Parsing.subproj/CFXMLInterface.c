@@ -495,6 +495,7 @@ static inline xmlChar* _getQName(xmlNodePtr node) {
     const xmlChar* ncname = node->name;
     
     switch (node->type) {
+        case XML_DOCUMENT_NODE:
         case XML_NOTATION_NODE:
         case XML_DTD_NODE:
         case XML_ELEMENT_DECL:
