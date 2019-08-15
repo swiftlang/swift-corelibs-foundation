@@ -327,6 +327,7 @@ add_swift_library(FoundationNetworking
                     ${Foundation_INTERFACE_LIBRARIES}
                     ${CFURLSessionInterface_LIBRARIES}
                     ${CURL_LIBRARIES}
+                    ${ZLIB_LIBRARY}
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
