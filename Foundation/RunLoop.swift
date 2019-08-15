@@ -85,15 +85,66 @@ open class RunLoop: NSObject {
     }
 
     open func add(_ timer: Timer, forMode mode: RunLoop.Mode) {
-        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfStringUniquingKnown)
+        CFRunLoopAddTimer(_cfRunLoop, timer._cfObject, mode._cfStringUniquingKnown)
     }
 
+    private let monitoredPortsWithModesLock = NSLock() // guards:
+    private var monitoredPortsWithModes: [Port: Set<RunLoop.Mode>] = [:]
+    private var monitoredPortObservers:  [Port: NSObjectProtocol]  = [:]
+    
     open func add(_ aPort: Port, forMode mode: RunLoop.Mode) {
-        NSUnimplemented()
+        var shouldSchedule = false
+        monitoredPortsWithModesLock.synchronized {
+            if monitoredPortsWithModes[aPort]?.contains(mode) != true {
+                monitoredPortsWithModes[aPort, default: []].insert(mode)
+                
+                let shouldStartMonitoring = monitoredPortObservers[aPort] == nil
+                if shouldStartMonitoring {
+                    monitoredPortObservers[aPort] = NotificationCenter.default.addObserver(forName: Port.didBecomeInvalidNotification, object: aPort, queue: nil, using: { [weak self] (notification) in
+                        self?.portDidInvalidate(aPort)
+                    })
+                }
+                
+                shouldSchedule = true
+            }
+        }
+        
+        if shouldSchedule {
+            aPort.schedule(in: self, forMode: mode)
+        }
+    }
+    
+    private func portDidInvalidate(_ aPort: Port) {
+        monitoredPortsWithModesLock.synchronized {
+            if let observer = monitoredPortObservers.removeValue(forKey: aPort) {
+                NotificationCenter.default.removeObserver(observer)
+            }
+            monitoredPortsWithModes.removeValue(forKey: aPort)
+        }
     }
 
     open func remove(_ aPort: Port, forMode mode: RunLoop.Mode) {
-        NSUnimplemented()
+        var shouldRemove = false
+        monitoredPortsWithModesLock.synchronized {
+            guard let modes = monitoredPortsWithModes[aPort], modes.contains(mode) else {
+                return
+            }
+            
+            shouldRemove = true
+            
+            if modes.count == 1 {
+                if let observer = monitoredPortObservers.removeValue(forKey: aPort) {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+                monitoredPortsWithModes.removeValue(forKey: aPort)
+            } else {
+                monitoredPortsWithModes[aPort]?.remove(mode)
+            }
+        }
+        
+        if shouldRemove {
+            aPort.remove(from: self, forMode: mode)
+        }
     }
 
     open func limitDate(forMode mode: RunLoop.Mode) -> Date? {
