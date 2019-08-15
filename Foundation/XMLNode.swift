@@ -96,12 +96,18 @@ open class XMLNode: NSObject, NSCopying {
         return copy(with: nil)
     }
     
-    internal let _xmlNode: _CFXMLNodePtr
+    internal let _xmlNode: _CFXMLNodePtr!
     internal var _xmlDocument: XMLDocument?
     
     open func copy(with zone: NSZone? = nil) -> Any {
         let newNode = _CFXMLCopyNode(_xmlNode, true)
         return XMLNode._objectNodeForNode(newNode)
+    }
+    
+    @available(*, deprecated, message: "On Darwin, this initializer creates nodes that are valid objects but crash your process if used. The same behavior is replicated in swift-corelibs-foundation, but you should not use this initializer on either platform; use one of the class methods or initializers instead to create a specific kind of code.")
+    public convenience override init() {
+        // Match the Darwin behavior.
+        self.init(kind: .invalid)
     }
     
     /*!
@@ -138,13 +144,15 @@ open class XMLNode: NSObject, NSCopying {
             _xmlNode = _CFXMLNewNamespace("", "")
             
         default:
-            fatalError("invalid node kind for this initializer")
+            _xmlNode = nil
         }
         
         super.init()
 
-        withOpaqueUnretainedReference {
-            _CFXMLNodeSetPrivateData(_xmlNode, $0)
+        if let node = _xmlNode {
+            withOpaqueUnretainedReference {
+                _CFXMLNodeSetPrivateData(node, $0)
+            }
         }
     }
     
@@ -795,6 +803,8 @@ open class XMLNode: NSObject, NSCopying {
     internal var _childNodes: Set<XMLNode> = []
     
     deinit {
+        guard _xmlNode != nil else { return }
+        
         for node in _childNodes {
             node.detach()
         }
@@ -882,7 +892,7 @@ open class XMLNode: NSObject, NSCopying {
             _CFXMLNodeAddPrevSibling(first, child._xmlNode)
         } else {
             let currChild = self.child(at: index - 1)!._xmlNode
-            _CFXMLNodeAddNextSibling(currChild, child._xmlNode)
+            _CFXMLNodeAddNextSibling(currChild!, child._xmlNode)
         }
     }
     
