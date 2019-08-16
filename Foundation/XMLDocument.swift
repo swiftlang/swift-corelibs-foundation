@@ -125,10 +125,6 @@ open class XMLDocument : XMLNode {
         }
     }
 
-    open class func replacementClass(for cls: AnyClass) -> AnyClass {
-        NSUnimplemented()
-    }
-
     /*!
         @method characterEncoding
         @abstract Sets the character encoding to an IANA type.
@@ -341,6 +337,7 @@ open class XMLDocument : XMLNode {
         @method objectByApplyingXSLT:arguments:error:
         @abstract Applies XSLT with arguments (NSString key/value pairs) to this document, returning a new document.
     */
+    @available(*, unavailable, message: "XSLT application is not currently supported in swift-corelibs-foundation")
     open func object(byApplyingXSLT xslt: Data, arguments: [String : String]?) throws -> Any {
         NSUnimplemented()
     }
@@ -349,6 +346,7 @@ open class XMLDocument : XMLNode {
         @method objectByApplyingXSLTString:arguments:error:
         @abstract Applies XSLT as expressed by a string with arguments (NSString key/value pairs) to this document, returning a new document.
     */
+    @available(*, unavailable, message: "XSLT application is not currently supported in swift-corelibs-foundation")
     open func object(byApplyingXSLTString xslt: String, arguments: [String : String]?) throws -> Any {
         NSUnimplemented()
     }
@@ -357,6 +355,7 @@ open class XMLDocument : XMLNode {
         @method objectByApplyingXSLTAtURL:arguments:error:
         @abstract Applies the XSLT at a URL with arguments (NSString key/value pairs) to this document, returning a new document. Error may contain a connection error from the URL.
     */
+    @available(*, unavailable, message: "XSLT application is not currently supported in swift-corelibs-foundation")
     open func objectByApplyingXSLT(at xsltURL: URL, arguments argument: [String : String]?) throws -> Any {
         NSUnimplemented()
     }
