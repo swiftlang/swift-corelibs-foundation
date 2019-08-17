@@ -52,7 +52,7 @@ public protocol URLAuthenticationChallengeSender : NSObjectProtocol {
     provides all the information about the challenge, and has a method
     to indicate when it's done.
 */
-open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
+open class URLAuthenticationChallenge : NSObject {
 
     private let _protectionSpace: URLProtectionSpace
     private let _proposedCredential: URLCredential?
@@ -60,19 +60,6 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
     private let _failureResponse: URLResponse?
     private let _error: Error?
     private let _sender: URLAuthenticationChallengeSender
-    
-    static public var supportsSecureCoding: Bool {
-        return true
-    }
-    
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
     
     /*!
      @method initWithProtectionSpace:proposedCredential:previousFailureCount:failureResponse:error:

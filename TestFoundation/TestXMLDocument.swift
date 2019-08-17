@@ -40,7 +40,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_optionPreserveAll", test_optionPreserveAll),
             ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
             ("test_nodeKinds", test_nodeKinds),
-             ("test_sr10776_documentName", test_sr10776_documentName),
+            ("test_sr10776_documentName", test_sr10776_documentName),
         ]
     }
 
@@ -524,7 +524,7 @@ class TestXMLDocument : LoopbackServerTest {
         do {
             try doc.validate()
         } catch {
-            XCTFail("\(error)")
+            XChttps://github.com/apple/swift-corelibs-foundation/pull/2453/conflict?name=TestFoundation%252FTestXMLDocument.swift&ancestor_oid=f51bd9de96b2ba008d560586ce1742854437931e&base_oid=c5ecbf64cdde4b340781f98aa322748e688b51d9&head_oid=ad8ea17cff29707342411d1e6598480d95b7d579TFail("\(error)")
         }
 
         let root = dtd?.elementDeclaration(forName:"root")
@@ -626,7 +626,7 @@ class TestXMLDocument : LoopbackServerTest {
 
         XCTAssertEqual(try? test(), "plans")
     }
-    
+
     func test_nodeKinds() {
         XCTAssertEqual(XMLDocument(rootElement: nil).kind, .document)
         XCTAssertEqual(XMLElement(name: "prefix:localName").kind, .element)
@@ -641,13 +641,14 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssertEqual(XMLDTDNode(xmlString: "<!ELEMENT E EMPTY>")?.kind, .elementDeclaration)
         XCTAssertEqual(XMLDTDNode(xmlString: #"<!NOTATION f SYSTEM "F">"#)?.kind, .notationDeclaration)
     }
-    func test_SR10776_documentName() {
-         let doc = XMLDocument(rootElement: nil)
-         XCTAssertNil(doc.name)
-
-          doc.name = "name"
-         XCTAssertNil(doc.name) // `name` of XMLDocument is always nil.
-     }
+  
+    func test_sr10776_documentName() {
+        let doc = XMLDocument(rootElement: nil)
+        XCTAssertNil(doc.name)
+        
+        doc.name = "name"
+        XCTAssertNil(doc.name) // `name` of XMLDocument is always nil.
+    }
 }
 
 fileprivate extension XMLNode {

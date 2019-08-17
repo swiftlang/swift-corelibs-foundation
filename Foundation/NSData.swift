@@ -8,10 +8,7 @@
 //
 
 import CoreFoundation
-
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
-#endif
 
 extension NSData {
     public struct ReadingOptions : OptionSet {
@@ -268,8 +265,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         } else if let data = value as? NSData {
             return isEqual(to: data._swiftObject)
         }
-        
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
+
         if let data = value as? DispatchData {
             if data.count != length {
                 return false
@@ -279,7 +275,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 return memcmp(bytes1, bytes2, length) == 0
             }
         }
-#endif
+
         return false
     }
 

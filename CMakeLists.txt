@@ -269,7 +269,6 @@ add_swift_library(Foundation
                   SWIFT_FLAGS
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                     -DDEPLOYMENT_RUNTIME_SWIFT
-                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -327,6 +326,7 @@ add_swift_library(FoundationNetworking
                     ${Foundation_INTERFACE_LIBRARIES}
                     ${CFURLSessionInterface_LIBRARIES}
                     ${CURL_LIBRARIES}
+                    ${ZLIB_LIBRARY}
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
@@ -334,7 +334,6 @@ add_swift_library(FoundationNetworking
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -376,7 +375,6 @@ add_swift_library(FoundationXML
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -425,6 +423,28 @@ add_swift_executable(plutil
                        uuid
                        Foundation
                        CoreFoundation)
+
+add_swift_executable(GenerateTestFixtures
+                     SOURCES
+                       Tools/GenerateTestFixtures/GenerateTestFixtures/main.swift
+                       Tools/GenerateTestFixtures/GenerateTestFixtures/Utilities.swift
+                       TestFoundation/FixtureValues.swift
+                     TARGET
+                       ${CMAKE_C_COMPILER_TARGET}
+                     LINK_FLAGS
+                       ${libdispatch_ldflags}
+                       -L${CMAKE_CURRENT_BINARY_DIR}
+                       -lFoundation
+                       ${Foundation_INTERFACE_LIBRARIES}
+                     SWIFT_FLAGS
+                       -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
+                       -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                       -I;${ICU_INCLUDE_DIR}
+                       ${libdispatch_cflags}
+                       $<$<NOT:$<CONFIG:Debug>>:-O>
+                       ${swift_libc_flags}
+                     DEPENDS
+                       Foundation)
 
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
@@ -530,6 +550,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestPropertyListSerialization.swift
                          TestFoundation/TestRunLoop.swift
                          TestFoundation/TestScanner.swift
+                         TestFoundation/TestSocketPort.swift
                          TestFoundation/TestStream.swift
                          TestFoundation/TestThread.swift
                          TestFoundation/TestTimer.swift

@@ -330,9 +330,14 @@ open class XMLNode: NSObject, NSCopying {
             return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
-            if case .namespace = kind {
+            switch kind {
+            case .document:
+                // As with Darwin, ignore the name when the node is document.
+                break
+            case .namespace:
                 _CFXMLNamespaceSetPrefix(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
-            } else if .namespace != document {
+
+            default:
                 if let newName = newValue {
                     _CFXMLNodeSetName(_xmlNode, newName)
                 } else {

@@ -56,7 +56,8 @@ class TestURLSession : LoopbackServerTest {
             ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
             ("test_getAllTasks", test_getAllTasks),
             ("test_getTasksWithCompletion", test_getTasksWithCompletion),
-            ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast", test_noDoubleCallbackWhenCancellingAndProtocolFailsFast),
+            /* ⚠️ */ ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast",
+            /* ⚠️ */      testExpectedToFail(test_noDoubleCallbackWhenCancellingAndProtocolFailsFast, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11310")),
             ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
         ]
     }
