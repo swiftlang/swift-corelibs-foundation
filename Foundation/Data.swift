@@ -635,7 +635,7 @@ internal class __NSSwiftData : NSData {
 #endif
 }
 
-@_fixed_layout
+@frozen
 public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessCollection, MutableCollection, RangeReplaceableCollection, MutableDataProtocol, ContiguousBytes {
     public typealias ReferenceType = NSData
 
@@ -651,7 +651,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     // A small inline buffer of bytes suitable for stack-allocation of small data.
     // Inlinability strategy: everything here should be inlined for direct operation on the stack wherever possible.
     @usableFromInline
-    @_fixed_layout
+    @frozen
     internal struct InlineData {
 #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
         @usableFromInline typealias Buffer = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
@@ -872,7 +872,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     // A buffer of bytes too large to fit in an InlineData, but still small enough to fit a storage pointer + range in two words.
     // Inlinability strategy: everything here should be easily inlinable as large _DataStorage methods should not inline into here.
     @usableFromInline
-    @_fixed_layout
+    @frozen
     internal struct InlineSlice {
         // ***WARNING***
         // These ivars are specifically laid out so that they cause the enum _Representation to be 16 bytes on 64 bit platforms. This means we _MUST_ have the class type thing last
@@ -1090,7 +1090,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     // A reference wrapper around a Range<Int> for when the range of a data buffer is too large to whole in a single word.
     // Inlinability strategy: everything should be inlinable as trivial.
     @usableFromInline
-    @_fixed_layout
     internal final class RangeReference {
         @usableFromInline var range: Range<Int>
 
@@ -1118,7 +1117,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     // A buffer of bytes whose range is too large to fit in a signle word. Used alongside a RangeReference to make it fit into _Representation's two-word size.
     // Inlinability strategy: everything here should be easily inlinable as large _DataStorage methods should not inline into here.
     @usableFromInline
-    @_fixed_layout
+    @frozen
     internal struct LargeSlice {
         // ***WARNING***
         // These ivars are specifically laid out so that they cause the enum _Representation to be 16 bytes on 64 bit platforms. This means we _MUST_ have the class type thing last
@@ -1294,7 +1293,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     // The actual storage for Data's various representations.
     // Inlinability strategy: almost everything should be inlinable as forwarding the underlying implementations. (Inlining can also help avoid retain-release traffic around pulling values out of enums.)
     @usableFromInline
-    @_frozen
+    @frozen
     internal enum _Representation {
         case empty
         case inline(InlineData)
