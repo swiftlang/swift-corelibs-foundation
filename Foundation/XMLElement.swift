@@ -237,7 +237,7 @@ open class XMLElement: XMLNode {
         }
 
         set {
-            if var nodes = newValue?.map({ $0._xmlNode }) {
+            if var nodes = newValue?.map({ $0._xmlNode! }) {
                 nodes.withUnsafeMutableBufferPointer({ (bufPtr) in
                     _CFXMLSetNamespaces(_xmlNode, bufPtr.baseAddress, bufPtr.count)
                 })

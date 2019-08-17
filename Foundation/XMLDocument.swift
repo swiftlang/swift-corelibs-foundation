@@ -67,8 +67,8 @@ open class XMLDocument : XMLNode {
         return _CFXMLDocPtr(_xmlNode)
     }
     
-    public init() {
-        NSUnimplemented()
+    public convenience init() {
+        self.init(rootElement: nil)
     }
     
     /*!
