@@ -1142,7 +1142,7 @@ open class OperationQueue : NSObject, ProgressReporting {
     }
     
     internal func _addOperations(_ ops: [Operation], barrier: Bool = false) {
-        if 0 == ops.count { return }
+        if ops.isEmpty { return }
         
         var failures = 0
         var successes = 0
