@@ -260,7 +260,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     /// Set options on the easy handle to match the given request.
     ///
     /// This performs a series of `curl_easy_setopt()` calls.
-    override func configureEasyHandle(for request: URLRequest) {
+    override func configureEasyHandle(for request: URLRequest, body: _Body) {
         // At this point we will call the equivalent of curl_easy_setopt()
         // to configure everything on the handle. Since we might be re-using
         // a handle, we must be sure to set everything and not rely on default
@@ -294,8 +294,8 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         easyHandle.setAllowedProtocolsToHTTPAndHTTPS()
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
-            switch (task?.body, try task?.body.getBodyLength()) {
-            case (nil, _):
+            switch (body, try body.getBodyLength()) {
+            case (.none, _):
                 set(requestBodyLength: .noBody)
             case (_, let length?):
                 set(requestBodyLength: .length(length))
@@ -509,11 +509,15 @@ fileprivate extension _HTTPURLProtocol {
     /// Any header values that should be removed from the ones set by libcurl
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
     var curlHeadersToRemove: [String] {
-        if task?.body == nil  {
-            return []
-        } else {
-            return ["Expect"]
+        if let task = task {
+            if task.knownBody == nil {
+                return []
+            } else if case .some(.none) = task.knownBody {
+                return []
+            }
         }
+        
+        return ["Expect"]
     }
 }
 

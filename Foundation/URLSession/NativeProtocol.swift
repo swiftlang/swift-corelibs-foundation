@@ -333,12 +333,9 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
     }
 
-    func createTransferState(url: URL, workQueue: DispatchQueue) -> _TransferState {
+    func createTransferState(url: URL, body: _Body, workQueue: DispatchQueue) -> _TransferState {
         let drain = createTransferBodyDataDrain()
-        guard let t = task else {
-            fatalError("Cannot create transfer state")
-        }
-        switch t.body {
+        switch body {
         case .none:
             return _TransferState(url: url, bodyDataDrain: drain)
         case .data(let data):
@@ -358,22 +355,19 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
 
     /// Start a new transfer
     func startNewTransfer(with request: URLRequest) {
-        guard let t = task else {
-            fatalError()
-        }
-        t.currentRequest = request
+        let task = self.task!
+        task.currentRequest = request
         guard let url = request.url else {
             fatalError("No URL in request.")
         }
 
-        self.internalState = .transferReady(createTransferState(url: url, workQueue: t.workQueue))
-        if let authRequest = task?.authRequest {
-            configureEasyHandle(for: authRequest)
-        } else {
-            configureEasyHandle(for: request)
-        }
-        if (t.suspendCount) < 1 {
-            resume()
+        task.getBody { (body) in
+            self.internalState = .transferReady(self.createTransferState(url: url, body: body, workQueue: task.workQueue))
+            let request = task.authRequest ?? request
+            self.configureEasyHandle(for: request, body: body)
+            if (task.suspendCount) < 1 {
+                self.resume()
+            }
         }
     }
 
@@ -427,7 +421,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
     }
 
-    func configureEasyHandle(for: URLRequest) {
+    func configureEasyHandle(for request: URLRequest, body: _Body) {
         NSRequiresConcreteImplementation()
     }
 }
@@ -624,37 +618,7 @@ extension _NativeProtocol._ResponseHeaderLines {
 }
 
 internal extension _NativeProtocol {
-    enum _Body {
-        case none
-        case data(DispatchData)
-        /// Body data is read from the given file URL
-        case file(URL)
-        case stream(InputStream)
-    }
-}
-
-fileprivate extension _NativeProtocol._Body {
-    enum _Error : Error {
-        case fileForBodyDataNotFound
-    }
-
-    /// - Returns: The body length, or `nil` for no body (e.g. `GET` request).
-    func getBodyLength() throws -> UInt64? {
-        switch self {
-        case .none:
-            return 0
-        case .data(let d):
-            return UInt64(d.count)
-        /// Body data is read from the given file URL
-        case .file(let fileURL):
-            guard let s = try FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? NSNumber else {
-                throw _Error.fileForBodyDataNotFound
-            }
-            return s.uint64Value
-        case .stream:
-            return nil
-        }
-    }
+    typealias _Body = URLSessionTask._Body
 }
 
 extension _NativeProtocol {
