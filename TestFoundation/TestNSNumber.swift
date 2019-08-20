@@ -1230,6 +1230,8 @@ class TestNSNumber : XCTestCase {
             XCTAssertEqual("i" /* 0x71 */, objCType(NSNumber(value: Int.max)))
             XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt(Int.max))))
             XCTAssertEqual("q" /* 0x51 */, objCType(NSNumber(value: UInt(Int.max) + 1)))
+        #else
+            #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
         #endif
 
         XCTAssertEqual("f" /* 0x66 */, objCType(NSNumber(value: Float.greatestFiniteMagnitude)))

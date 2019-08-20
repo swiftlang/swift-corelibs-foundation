@@ -718,6 +718,8 @@ open class NSNumber : NSValue {
             self.init(bytes: &value, numberType: kCFNumberSInt64Type)
         #elseif arch(i386) || arch(arm)
             self.init(bytes: &value, numberType: kCFNumberSInt32Type)
+        #else
+            #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
         #endif
     }
     
@@ -733,6 +735,8 @@ open class NSNumber : NSValue {
     #elseif arch(i386) || arch(arm)
         var value = Int64(value)
         self.init(bytes: &value, numberType: kCFNumberSInt64Type)
+    #else
+        #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
     #endif
     }
     
