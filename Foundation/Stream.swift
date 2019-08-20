@@ -62,7 +62,9 @@ extension Stream {
 open class Stream: NSObject {
 
     public override init() {
-
+        if type(of: self) == Stream.self {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     open func open() {
@@ -77,21 +79,19 @@ open class Stream: NSObject {
     // By default, a stream is its own delegate, and subclassers of InputStream and OutputStream must maintain this contract. [someStream setDelegate:nil] must restore this behavior. As usual, delegates are not retained.
     
     open func property(forKey key: PropertyKey) -> AnyObject? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 
-// Re-enable once run loop is compiled on all platforms
-
     open func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open var streamStatus: Status {
@@ -132,6 +132,10 @@ open class InputStream: Stream {
         return CFReadStreamHasBytesAvailable(_stream)
     }
     
+    fileprivate init(readStream: CFReadStream) {
+        _stream = readStream
+    }
+    
     public init(data: Data) {
         _stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, data._cfObject)
     }
@@ -159,6 +163,22 @@ open class InputStream: Stream {
     open override var streamError: Error? {
         return CFReadStreamCopyError(_stream)
     }
+    
+    open override func property(forKey key: PropertyKey) -> AnyObject? {
+        return CFReadStreamCopyProperty(_stream, key.rawValue._cfObject)
+    }
+    
+    open override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
+        return CFReadStreamSetProperty(_stream, key.rawValue._cfObject, property)
+    }
+    
+    open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
+        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+    }
+    
+    open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
+        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+    }
 }
 
 // OutputStream is an abstract class representing the base functionality of a write stream.
@@ -166,7 +186,7 @@ open class InputStream: Stream {
 // Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class OutputStream : Stream {
     
-    private  var _stream: CFWriteStream!
+    private var _stream: CFWriteStream!
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
@@ -177,6 +197,11 @@ open class OutputStream : Stream {
     open var hasSpaceAvailable: Bool {
         return CFWriteStreamCanAcceptBytes(_stream)
     }
+    
+    fileprivate init(writeStream: CFWriteStream) {
+        _stream = writeStream
+    }
+
     // NOTE: on Darwin this is     'open class func toMemory() -> Self'
     required public init(toMemory: ()) {
         _stream = CFWriteStreamCreateWithAllocatedBuffers(kCFAllocatorDefault, kCFAllocatorDefault)
@@ -216,12 +241,20 @@ open class OutputStream : Stream {
         return CFWriteStreamCopyProperty(_stream, key.rawValue._cfObject)
     }
     
-    open  override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
+    open override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
         return CFWriteStreamSetProperty(_stream, key.rawValue._cfObject, property)
     }
     
     open override var streamError: Error? {
         return CFWriteStreamCopyError(_stream)
+    }
+    
+    open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
+        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+    }
+    
+    open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
+        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
     }
 }
 
@@ -278,13 +311,13 @@ extension InputStream {
 #if false
 extension Stream {
     open class func getStreamsToHost(withName hostname: String, port: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<OutputStream?>?) {
-        NSUnimplemented()
+        NSUnsupported()
     }
 }
 
 extension Stream {
     open class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: AutoreleasingUnsafeMutablePointer<InputStream?>?, outputStream: AutoreleasingUnsafeMutablePointer<OutputStream?>?) {
-        NSUnimplemented()
+        NSUnsupported()
     }
 }
 #endif
