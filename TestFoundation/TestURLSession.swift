@@ -9,59 +9,6 @@
 
 class TestURLSession : LoopbackServerTest {
     
-    static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
-        return [
-            ("test_dataTaskWithURL", test_dataTaskWithURL),
-            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
-            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
-            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-            // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
-            ("test_gzippedDataTask", test_gzippedDataTask),
-            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
-            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
-            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-            ("test_gzippedDownloadTask", test_gzippedDownloadTask),
-            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
-            ("test_taskError", test_taskError),
-            ("test_taskCopy", test_taskCopy),
-            ("test_cancelTask", test_cancelTask),
-            ("test_taskTimeout", test_taskTimeout),
-            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
-            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
-            ("test_timeoutInterval", test_timeoutInterval),
-            ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
-            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
-            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
-            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
-            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
-            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
-            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
-            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
-            ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
-            // ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate), - Server needs modification
-            ("test_concurrentRequests", test_concurrentRequests),
-            ("test_disableCookiesStorage", test_disableCookiesStorage),
-            ("test_cookiesStorage", test_cookiesStorage),
-            ("test_cookieStorageForEphmeralConfiguration", test_cookieStorageForEphmeralConfiguration),
-            ("test_setCookies", test_setCookies),
-            ("test_dontSetCookies", test_dontSetCookies),
-            ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
-            ("test_basicAuthRequest", test_basicAuthRequest),
-            ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
-            ("test_postWithEmptyBody", test_postWithEmptyBody),
-            ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
-            ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
-            ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
-            ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
-            ("test_getAllTasks", test_getAllTasks),
-            ("test_getTasksWithCompletion", test_getTasksWithCompletion),
-            /* ⚠️ */ ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast",
-            /* ⚠️ */      testExpectedToFail(test_noDoubleCallbackWhenCancellingAndProtocolFailsFast, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11310")),
-            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
-        ]
-    }
-    
     func test_dataTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
@@ -200,7 +147,7 @@ class TestURLSession : LoopbackServerTest {
     func test_downloadTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = URL(string: urlString)!
-        let d = DownloadTask(with: expectation(description: "Download GET \(urlString): with a delegate"))
+        let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
@@ -208,7 +155,7 @@ class TestURLSession : LoopbackServerTest {
     func test_downloadTaskWithURLRequest() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
-        let d = DownloadTask(with: expectation(description: "Download GET \(urlString): with a delegate"))
+        let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
     }
@@ -256,7 +203,7 @@ class TestURLSession : LoopbackServerTest {
     func test_gzippedDownloadTask() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
         let url = URL(string: urlString)!
-        let d = DownloadTask(with: expectation(description: "GET \(urlString): gzipped response"))
+        let d = DownloadTask(testCase: self, description: "GET \(urlString): gzipped response")
         d.run(with: url)
         waitForExpectations(timeout: 12)
         if d.totalBytesWritten != "Hello World!".utf8.count {
@@ -1027,6 +974,104 @@ class TestURLSession : LoopbackServerTest {
 
         waitForExpectations(timeout: 1)
     }
+    func test_invalidResumeDataForDownloadTask() {
+        let done = expectation(description: "Invalid resume data for download task (with completion block)")
+        URLSession.shared.downloadTask(withResumeData: Data()) { (url, response, error) in
+            XCTAssertNil(url)
+            XCTAssertNil(response)
+            XCTAssert(error is URLError)
+            XCTAssertEqual((error as? URLError)?.errorCode, URLError.unsupportedURL.rawValue)
+            
+            done.fulfill()
+        }.resume()
+        waitForExpectations(timeout: 20)
+        
+        let d = DownloadTask(testCase: self, description: "Invalid resume data for download task")
+        d.run { (session) -> DownloadTask.Configuration in
+            return DownloadTask.Configuration(task: session.downloadTask(withResumeData: Data()),
+                                              errorExpectation:
+                { (error) in
+                    XCTAssert(error is URLError)
+                    XCTAssertEqual((error as? URLError)?.errorCode, URLError.unsupportedURL.rawValue)
+            })
+        }
+        waitForExpectations(timeout: 20)
+    }
+    
+    func test_simpleUploadWithDelegateProvidingInputStream() throws {
+        let delegate = HTTPUploadDelegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/upload"
+        var request = URLRequest(url: URL(string: urlString)!)
+        request.httpMethod = "PUT"
+        
+        delegate.uploadCompletedExpectation = expectation(description: "PUT \(urlString): Upload data")
+        
+        
+        let fileData = Data(count: 16*1024)
+        let stream = InputStream(data: fileData)
+        stream.open()
+        delegate.streamToProvideOnRequest = stream
+        
+        let task = session.uploadTask(withStreamedRequest: request)
+        task.resume()
+        waitForExpectations(timeout: 20)
+    }
+    
+    static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
+        return [
+            ("test_dataTaskWithURL", test_dataTaskWithURL),
+            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
+            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
+            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
+            // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
+            ("test_gzippedDataTask", test_gzippedDataTask),
+            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
+            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
+            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
+            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+            ("test_gzippedDownloadTask", test_gzippedDownloadTask),
+            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
+            ("test_taskError", test_taskError),
+            ("test_taskCopy", test_taskCopy),
+            ("test_cancelTask", test_cancelTask),
+            ("test_taskTimeout", test_taskTimeout),
+            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
+            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
+            ("test_timeoutInterval", test_timeoutInterval),
+            ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
+            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
+            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
+            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
+            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
+            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
+            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
+            ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
+            // ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate), - Server needs modification
+            ("test_concurrentRequests", test_concurrentRequests),
+            ("test_disableCookiesStorage", test_disableCookiesStorage),
+            ("test_cookiesStorage", test_cookiesStorage),
+            ("test_cookieStorageForEphmeralConfiguration", test_cookieStorageForEphmeralConfiguration),
+            ("test_setCookies", test_setCookies),
+            ("test_dontSetCookies", test_dontSetCookies),
+            ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
+            ("test_basicAuthRequest", test_basicAuthRequest),
+            ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
+            ("test_postWithEmptyBody", test_postWithEmptyBody),
+            ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
+            ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
+            ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
+            ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
+            ("test_getAllTasks", test_getAllTasks),
+            ("test_getTasksWithCompletion", test_getTasksWithCompletion),
+            ("test_invalidResumeDataForDownloadTask", test_invalidResumeDataForDownloadTask),
+            ("test_simpleUploadWithDelegateProvidingInputStream", test_simpleUploadWithDelegateProvidingInputStream),
+            ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast", test_noDoubleCallbackWhenCancellingAndProtocolFailsFast),
+            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
+        ]
+    }
+    
 }
 
 class SharedDelegate: NSObject {
@@ -1189,15 +1234,28 @@ extension DataTask : URLSessionTaskDelegate {
 
 class DownloadTask : NSObject {
     var totalBytesWritten: Int64 = 0
-    let dwdExpectation: XCTestExpectation!
+    var didDownloadExpectation: XCTestExpectation?
+    let didCompleteExpectation: XCTestExpectation
     var session: URLSession! = nil
     var task: URLSessionDownloadTask! = nil
+    var errorExpectation: ((Error) -> Void)?
+    weak var testCase: XCTestCase?
+    var expectationsDescription: String
     
-    init(with expectation: XCTestExpectation) {
-        dwdExpectation = expectation
+    init(testCase: XCTestCase, description: String) {
+        self.expectationsDescription = description
+        self.testCase = testCase
+        self.didCompleteExpectation = testCase.expectation(description: "Did complete \(description)")
+    }
+    
+    private func makeDownloadExpectation() {
+        guard didDownloadExpectation == nil else { return }
+        self.didDownloadExpectation = testCase!.expectation(description: "Did finish download: \(description)")
+        self.testCase = nil // No need for it any more here.
     }
     
     func run(with url: URL) {
+        makeDownloadExpectation()
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
@@ -1206,10 +1264,30 @@ class DownloadTask : NSObject {
     }
     
     func run(with urlRequest: URLRequest) {
+        makeDownloadExpectation()
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
         task = session.downloadTask(with: urlRequest)
+        task.resume()
+    }
+    
+    struct Configuration {
+        var task: URLSessionDownloadTask
+        var errorExpectation: ((Error) -> Void)?
+    }
+    
+    func run(configuration: (URLSession) -> Configuration) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        let taskConfiguration = configuration(session)
+        
+        task = taskConfiguration.task
+        errorExpectation = taskConfiguration.errorExpectation
+        if errorExpectation == nil {
+            makeDownloadExpectation()
+        }
         task.resume()
     }
 }
@@ -1222,24 +1300,61 @@ extension DownloadTask : URLSessionDownloadDelegate {
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        defer { didDownloadExpectation?.fulfill() }
+        
+        guard self.errorExpectation == nil else {
+            XCTFail("Expected an error, but got …didFinishDownloadingTo… from download task \(downloadTask) (at \(location))")
+            return
+        }
+        
         do {
             let attr = try FileManager.default.attributesOfItem(atPath: location.path)
             XCTAssertEqual((attr[.size]! as? NSNumber)!.int64Value, totalBytesWritten, "Size of downloaded file not equal to total bytes downloaded")
         } catch {
             XCTFail("Unable to calculate size of the downloaded file")
         }
-        dwdExpectation.fulfill()
     }
 }
 
 extension DownloadTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let e = error as? URLError else { return }
-        XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
-        dwdExpectation.fulfill()
+        defer { didCompleteExpectation.fulfill() }
+        
+        if let errorExpectation = self.errorExpectation {
+            if let error = error {
+                errorExpectation(error)
+            } else {
+                XCTFail("Expected an error, but got a completion without error from download task \(task)")
+            }
+        } else {
+            guard let e = error as? URLError else { return }
+            XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
+        }
     }
 }
 
+class FailFastProtocol: URLProtocol {
+    enum Error: Swift.Error {
+    case fastError
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        return request.url?.scheme == "failfast"
+    }
+
+    override class func canInit(with task: URLSessionTask) -> Bool {
+        guard let request = task.currentRequest else { return false }
+        return canInit(with: request)
+    }
+
+    override func startLoading() {
+        client?.urlProtocol(self, didFailWithError: Error.fastError)
+    }
+
+    override func stopLoading() {
+        // Intentionally blank
+    }
+}
 class HTTPRedirectionDataTask : NSObject {
     let dataTaskExpectation: XCTestExpectation!
     var session: URLSession! = nil
@@ -1305,12 +1420,21 @@ extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
 
 class HTTPUploadDelegate: NSObject {
     var uploadCompletedExpectation: XCTestExpectation!
+    var streamToProvideOnRequest: InputStream?
     var totalBytesSent: Int64 = 0
 }
 
 extension HTTPUploadDelegate: URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         self.totalBytesSent = totalBytesSent
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+        if streamToProvideOnRequest == nil {
+            XCTFail("This shouldn't have been invoked -- no stream was set.")
+        }
+        
+        completionHandler(self.streamToProvideOnRequest)
     }
 }
 
@@ -1321,25 +1445,3 @@ extension HTTPUploadDelegate: URLSessionDataDelegate {
     }
 }
 
-class FailFastProtocol: URLProtocol {
-    enum Error: Swift.Error {
-    case fastError
-    }
-
-    override class func canInit(with request: URLRequest) -> Bool {
-        return request.url?.scheme == "failfast"
-    }
-
-    override class func canInit(with task: URLSessionTask) -> Bool {
-        guard let request = task.currentRequest else { return false }
-        return canInit(with: request)
-    }
-
-    override func startLoading() {
-        client?.urlProtocol(self, didFailWithError: Error.fastError)
-    }
-
-    override func stopLoading() {
-        // Intentionally blank
-    }
-}
