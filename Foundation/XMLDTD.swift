@@ -26,7 +26,7 @@ open class XMLDTD : XMLNode {
     }
     
     public init() {
-        NSUnimplemented()
+        super.init(kind: .DTDKind, options: [])
     }
     
     public convenience init(contentsOf url: URL, options mask: XMLNode.Options = []) throws {
