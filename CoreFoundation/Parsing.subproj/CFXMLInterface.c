@@ -62,6 +62,7 @@ CFIndex _kCFXMLTypeAttribute = XML_ATTRIBUTE_NODE;
 CFIndex _kCFXMLTypeProcessingInstruction = XML_PI_NODE;
 CFIndex _kCFXMLTypeComment = XML_COMMENT_NODE;
 CFIndex _kCFXMLTypeText = XML_TEXT_NODE;
+CFIndex _kCFXMLTypeCDataSection = XML_CDATA_SECTION_NODE;
 CFIndex _kCFXMLTypeDTD = XML_DTD_NODE;
 CFIndex _kCFXMLDocTypeHTML = XML_DOC_HTML;
 CFIndex _kCFXMLTypeNamespace = 22; // libxml2 does not define namespaces as nodes, so we have to fake it

@@ -315,12 +315,17 @@ open class XMLNode: NSObject, NSCopying {
         case _kCFXMLTypeComment:
             return .comment
             
+        case _kCFXMLTypeCDataSection: fallthrough
         case _kCFXMLTypeText:
             return .text
             
         default:
             return .invalid
         }
+    }
+    
+    internal var isCData: Bool {
+        return _CFXMLNodeGetType(_xmlNode) == _kCFXMLTypeCDataSection
     }
     
     /*!
@@ -446,8 +451,8 @@ open class XMLNode: NSObject, NSCopying {
     internal func _removeAllChildren() {
         var nextChild = _CFXMLNodeGetFirstChild(_xmlNode)
         while let child = nextChild {
-            _CFXMLUnlinkNode(child)
             nextChild = _CFXMLNodeGetNextSibling(child)
+            _CFXMLUnlinkNode(child)
         }
         _childNodes.removeAll(keepingCapacity: true)
     }
@@ -558,10 +563,10 @@ open class XMLNode: NSObject, NSCopying {
     
     /*!
      @method childCount
-     @abstract The amount of children, relevant for documents, elements, and document type declarations. Use this instead of [[self children] count].
+     @abstract The amount of children, relevant for documents, elements, and document type declarations.
      */
     open var childCount: Int {
-        return _CFXMLNodeGetElementChildCount(_xmlNode)
+        return self.children?.count ?? 0
     }
     
     /*!
