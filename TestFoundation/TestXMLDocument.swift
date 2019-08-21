@@ -674,6 +674,17 @@ class TestXMLDocument : LoopbackServerTest {
         _ = XMLNode()
     }
     
+    func test_creatingAnEmptyDTD() {
+        let dtd = XMLDTD()
+        XCTAssertEqual(dtd.publicID, "")
+        XCTAssertEqual(dtd.systemID, "")
+        XCTAssertEqual(dtd.children ?? [], [])
+        
+        let plistDTDUrl = "https://www.apple.com/DTDs/PropertyList-1.0.dtd"
+        dtd.systemID = plistDTDUrl
+        XCTAssertEqual(dtd.systemID, plistDTDUrl)
+    }
+    
     static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
         return [
             ("test_basicCreation", test_basicCreation),
@@ -707,6 +718,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_nodeKinds", test_nodeKinds),
             ("test_nodeNames", test_nodeNames),
             ("test_creatingAnEmptyDocumentAndNode", test_creatingAnEmptyDocumentAndNode),
+            ("test_creatingAnEmptyDTD", test_creatingAnEmptyDTD),
         ]
     }
 }
