@@ -607,12 +607,66 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssertEqual(XMLDTDNode(xmlString: #"<!NOTATION f SYSTEM "F">"#)?.kind, .notationDeclaration)
     }
 
-    func test_sr10776_documentName() {
+    func test_nodeNames() throws {
         let doc = XMLDocument(rootElement: nil)
         XCTAssertNil(doc.name)
-        
         doc.name = "name"
         XCTAssertNil(doc.name) // `name` of XMLDocument is always nil.
+        
+        let element = try XMLElement(xmlString: #"<element xmlns="http://example.com/defaultNS" />"#)
+        XCTAssertEqual(element.name, "element")
+        element.name = "otherElement"
+        XCTAssertEqual(element.name, "otherElement")
+        
+        let attribute = try XCTUnwrap(XMLNode.attribute(withName: "name", stringValue: "value") as? XMLNode)
+        XCTAssertEqual(attribute.name, "name")
+        attribute.name = "otherName"
+        XCTAssertEqual(attribute.name, "otherName")
+        
+        let namespace = try XCTUnwrap(element.namespaces?.first)
+        XCTAssertEqual(namespace.name, "")
+        namespace.name = "namespacePrefix"
+        XCTAssertEqual(namespace.name, "namespacePrefix")
+        
+        let pi = try XCTUnwrap(XMLNode.processingInstruction(withName: "name", stringValue: "value") as? XMLNode)
+        XCTAssertEqual(pi.name, "name")
+        pi.name = "otherName"
+        XCTAssertEqual(pi.name, "otherName")
+        
+        let comment = try XCTUnwrap(XMLNode.comment(withStringValue: "comment") as? XMLNode)
+        XCTAssertNil(comment.name)
+        comment.name = "name"
+        XCTAssertNil(comment.name) // always nil
+        
+        let text = try XCTUnwrap(XMLNode.text(withStringValue: "text") as? XMLNode)
+        XCTAssertNil(text.name)
+        text.name = "name"
+        XCTAssertNil(text.name) // always nil
+        
+        let dtd = try XMLDTD(data: #"<!ENTITY a "A">"#.data(using: .utf8)!)
+        XCTAssertNil(dtd.name)
+        dtd.name = "root"
+        XCTAssertEqual(dtd.name, "root")
+        
+        let entityDecl = try XCTUnwrap(XMLDTDNode(xmlString: #"<!ENTITY b "B">"#))
+        XCTAssertEqual(entityDecl.name, "b")
+        entityDecl.name = "otherEntity"
+        XCTAssertEqual(entityDecl.name, "otherEntity")
+        
+        let attrDecl = try XCTUnwrap(XMLDTDNode(xmlString: "<!ATTLIST A B CDATA #IMPLIED>"))
+        XCTAssertEqual(attrDecl.name, "B")
+        attrDecl.name = "otherAttr"
+        XCTAssertEqual(attrDecl.name, "otherAttr")
+        
+        let elementDecl = try XCTUnwrap(XMLDTDNode(xmlString: "<!ELEMENT E EMPTY>"))
+        XCTAssertEqual(elementDecl.name, "E")
+        elementDecl.name = "otherElement"
+        XCTAssertEqual(elementDecl.name, "otherElement")
+        
+        let notationDecl = try XCTUnwrap(XMLDTDNode(xmlString: #"<!NOTATION f SYSTEM "F">"#))
+        XCTAssertEqual(notationDecl.name, "f")
+        notationDecl.name = "otherNotation"
+        XCTAssertEqual(notationDecl.name, "otherNotation")
     }
     
     func test_creatingAnEmptyDocumentAndNode() {
@@ -651,7 +705,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_optionPreserveAll", test_optionPreserveAll),
             ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
             ("test_nodeKinds", test_nodeKinds),
-            ("test_sr10776_documentName", test_sr10776_documentName),
+            ("test_nodeNames", test_nodeNames),
             ("test_creatingAnEmptyDocumentAndNode", test_creatingAnEmptyDocumentAndNode),
         ]
     }

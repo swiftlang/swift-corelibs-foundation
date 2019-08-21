@@ -531,8 +531,18 @@ CFStringRef _Nullable _CFXMLNodeCopyName(_CFXMLNodePtr node) {
     }
 }
 
+void _CFXMLNodeForceSetName(_CFXMLNodePtr node, const char* _Nullable name) {
+    xmlNodePtr xmlNode = (xmlNodePtr)node;
+    if (xmlNode->name) xmlFree((xmlChar*) xmlNode->name);
+    xmlNode->name = xmlStrdup((xmlChar*) name);
+}
+
 void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name) {
     xmlNodeSetName(node, (const xmlChar*)name);
+}
+
+Boolean _CFXMLNodeNameEqual(_CFXMLNodePtr node, const char* name) {
+    return (xmlStrcmp(((xmlNodePtr)node)->name, (xmlChar*)name) == 0) ? true : false;
 }
 
 CFStringRef _CFXMLNodeCopyContent(_CFXMLNodePtr node) {

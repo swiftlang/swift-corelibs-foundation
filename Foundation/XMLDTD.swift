@@ -51,7 +51,12 @@ open class XMLDTD : XMLNode {
             //TODO: throw a generic error?
             fatalError("parsing dtd from data failed")
         }
-
+        
+        // _CFXMLParseDTDFromData assigns "none" to DTD's name when there's no name for DTD.
+        if _CFXMLNodeNameEqual(node, "none") {
+            _CFXMLNodeForceSetName(node, nil)
+        }
+        
         self.init(ptr: node)
     }
     

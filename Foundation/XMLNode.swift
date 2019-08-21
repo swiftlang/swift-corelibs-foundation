@@ -329,19 +329,25 @@ open class XMLNode: NSObject, NSCopying {
      */
     open var name: String? {
         get {
-            if case .namespace = kind {
-                let returned = _CFXMLNamespaceCopyPrefix(_xmlNode)
-                return returned == nil ? "" : unsafeBitCast(returned!, to: NSString.self) as String
+            switch kind {
+            case .comment, .text:
+                // As with Darwin, name is always nil when the node is comment or text.
+                return nil
+            case .namespace:
+                return _CFXMLNamespaceCopyPrefix(_xmlNode).map({ unsafeBitCast($0, to: NSString.self) as String }) ?? ""
+            default:
+                return _CFXMLNodeCopyName(_xmlNode).map({ unsafeBitCast($0, to: NSString.self) as String })
             }
-            
-            let returned = _CFXMLNodeCopyName(_xmlNode)
-            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
             switch kind {
             case .document:
                 // As with Darwin, ignore the name when the node is document.
                 break
+            case .notationDeclaration:
+                // Use _CFXMLNodeForceSetName because
+                // _CFXMLNodeSetName ignores the new name when the node is notation declaration.
+                _CFXMLNodeForceSetName(_xmlNode, newValue)
             case .namespace:
                 _CFXMLNamespaceSetPrefix(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
             default:
