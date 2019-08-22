@@ -8,7 +8,10 @@
 //
 
 import CoreFoundation
+
+#if canImport(Darwin)
 import Darwin
+#endif
 
 extension Process {
     public enum TerminationReason : Int {
@@ -873,12 +876,16 @@ open class Process: NSObject {
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
-        #if os(macOS)
+        #if canImport(Darwin)
         var spawnAttrs: posix_spawnattr_t? = nil
         posix_spawnattr_init(&spawnAttrs)
         posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT))
         #else
-        for fd in 3..<getdtablesize() {
+        for fd in 3 ..< getdtablesize() {
+            guard adddup2[fd] == nil &&
+                  !addclose.contains(fd) else {
+                    continue // Do not double-close descriptors, or close those pertaining to Pipes or FileHandles we want inherited.
+            }
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
         #endif
