@@ -565,6 +565,25 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
     }
 
+    func test_fileDescriptorsAreNotInherited() throws {
+        let task = Process()
+        let clonedFD = dup(1)
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--print-open-file-descriptors"]
+        task.standardInput = FileHandle.nullDevice
+        let stdoutPipe = Pipe()
+        task.standardOutput = stdoutPipe.fileHandleForWriting
+        task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+
+        try task.run()
+        try stdoutPipe.fileHandleForWriting.close()
+        let stdoutData = try stdoutPipe.fileHandleForReading.readToEnd()
+        task.waitUntilExit()
+        print(String(decoding: stdoutData ?? Data(), as: Unicode.UTF8.self))
+        XCTAssertEqual("0\n1\n2\n", String(decoding: stdoutData ?? Data(), as: Unicode.UTF8.self))
+        close(clonedFD)
+    }
 
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
@@ -592,6 +611,7 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_null", test_redirect_all_using_null),
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
+            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
         ]
 
 #if !os(Windows)
