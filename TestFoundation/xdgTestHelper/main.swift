@@ -196,6 +196,15 @@ func cat(_ args: ArraySlice<String>.Iterator) {
     exit(exitCode)
 }
 
+func printOpenFileDescriptors() {
+    for fd in 0..<getdtablesize() {
+        if fcntl(fd, F_GETFD) != -1 {
+            print(fd)
+        }
+    }
+    exit(0)
+}
+
 // -----
 
 var arguments = ProcessInfo.processInfo.arguments.dropFirst().makeIterator()
@@ -255,7 +264,10 @@ case "--nspathfor":
 case "--signal-test":
     signalTest()
 #endif
-    
+
+case "--print-open-file-descriptors":
+    printOpenFileDescriptors()
+
 default:
     fatalError("These arguments are not recognized. Only run this from a unit test.")
 }

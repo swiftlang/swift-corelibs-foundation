@@ -750,6 +750,26 @@ class TestProcess : XCTestCase {
         }
     }
 
+    func test_fileDescriptorsAreNotInherited() throws {
+        let task = Process()
+        let clonedFD = dup(1)
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--print-open-file-descriptors"]
+        task.standardInput = FileHandle.nullDevice
+        let stdoutPipe = Pipe()
+        task.standardOutput = stdoutPipe.fileHandleForWriting
+        task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+
+        try task.run()
+        try stdoutPipe.fileHandleForWriting.close()
+        let stdoutData = try stdoutPipe.fileHandleForReading.readToEnd()
+        task.waitUntilExit()
+        print(String(decoding: stdoutData ?? Data(), as: Unicode.UTF8.self))
+        XCTAssertEqual("0\n1\n2\n", String(decoding: stdoutData ?? Data(), as: Unicode.UTF8.self))
+        close(clonedFD)
+    }
+
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
             ("test_exit0" , test_exit0),
@@ -779,6 +799,7 @@ class TestProcess : XCTestCase {
             ("test_currentDirectory", test_currentDirectory),
             ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
             ("test_multiProcesses", test_multiProcesses),
+            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
         ]
 
 #if !os(Windows)
