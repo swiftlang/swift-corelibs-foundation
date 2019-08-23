@@ -17,6 +17,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <stdbool.h>
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_ASSUME_NONNULL_BEGIN
@@ -254,6 +255,9 @@ void _CFXMLFreeNode(_CFXMLNodePtr node);
 void _CFXMLFreeDocument(_CFXMLDocPtr doc);
 void _CFXMLFreeDTD(_CFXMLDTDPtr dtd);
 void _CFXMLFreeProperty(_CFXMLNodePtr prop);
+
+const char *_Nullable _CFXMLSplitQualifiedName(const char *_Nonnull qname);
+bool _CFXMLGetLengthOfPrefixInQualifiedName(const char *_Nonnull qname, size_t *_Nonnull length);
 
 // Bridging
 

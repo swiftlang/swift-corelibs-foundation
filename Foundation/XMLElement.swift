@@ -252,7 +252,7 @@ open class XMLElement: XMLNode {
         @abstract Returns the namespace matching this prefix.
     */
     open func namespace(forPrefix name: String) -> XMLNode? {
-        NSUnimplemented()
+        return (namespaces ?? []).first { $0.name == name }
     }
 
     /*!
@@ -260,7 +260,30 @@ open class XMLElement: XMLNode {
         @abstract Returns the namespace who matches the prefix of the name given. Looks in the entire namespace chain.
     */
     open func resolveNamespace(forName name: String) -> XMLNode? {
-        NSUnimplemented()
+        // Legitimate question: why not use XMLNode's methods?
+        // Because Darwin does the split manually here, and we want to match that rather than asking libxml2.
+        let prefix: String
+        if let colon = name.firstIndex(of: ":") {
+            prefix = String(name[name.startIndex ..< colon])
+        } else {
+            prefix = ""
+        }
+        
+        var current: XMLElement? = self
+        while let examined = current {
+            if let namespace = examined.namespace(forPrefix: prefix) {
+                return namespace
+            }
+            
+            current = examined.parent as? XMLElement
+            guard current?.kind == .element else { break }
+        }
+        
+        if !prefix.isEmpty {
+            return XMLNode.predefinedNamespace(forPrefix: prefix)
+        }
+        
+        return nil
     }
 
     /*!
@@ -268,7 +291,21 @@ open class XMLElement: XMLNode {
         @abstract Returns the URI of this prefix. Looks in the entire namespace chain.
     */
     open func resolvePrefix(forNamespaceURI namespaceURI: String) -> String? {
-        NSUnimplemented()
+        var current: XMLElement? = self
+        while let examined = current {
+            if let namespace = (examined.namespaces ?? []).first(where: { $0.stringValue == namespaceURI }) {
+                return namespace.name
+            }
+            
+            current = examined.parent as? XMLElement
+            guard current?.kind == .element else { break }
+        }
+        
+        if let namespace = XMLNode._defaultNamespacesByURI[namespaceURI] {
+            return namespace.name
+        }
+        
+        return nil
     }
 
     /*!

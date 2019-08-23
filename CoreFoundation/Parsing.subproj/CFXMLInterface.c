@@ -1570,3 +1570,18 @@ void _CFXMLFreeDTD(_CFXMLDTDPtr dtd) {
 void _CFXMLFreeProperty(_CFXMLNodePtr prop) {
     xmlFreeProp(prop);
 }
+
+const char *_CFXMLSplitQualifiedName(const char *_Nonnull qname) {
+    int len = 0;
+    return (const char *)xmlSplitQName3((const xmlChar *)qname, &len);
+}
+
+bool _CFXMLGetLengthOfPrefixInQualifiedName(const char *_Nonnull qname, size_t *length) {
+    int len = 0;
+    if (xmlSplitQName3((const xmlChar *)qname, &len) != NULL) {
+        *length = len;
+        return true;
+    } else {
+        return false;
+    }
+}
