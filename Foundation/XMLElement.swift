@@ -323,7 +323,45 @@ open class XMLElement: XMLNode {
         @method normalizeAdjacentTextNodesPreservingCDATA:
         @abstract Adjacent text nodes are coalesced. If the node's value is the empty string, it is removed. This should be called with a value of NO before using XQuery or XPath.
     */
-    open func normalizeAdjacentTextNodesPreservingCDATA(_ preserve: Bool) { NSUnimplemented() }
+    open func normalizeAdjacentTextNodesPreservingCDATA(_ preserve: Bool) {
+        // Replicate Darwin behavior: no change occurs at all in this case.
+        guard childCount != 1 else { return }
+        
+        var text = ""
+        var index = 0
+        let count = childCount
+        var children: [XMLNode] = []
+        
+        while index < count {
+            let child = self.children![index]
+            let isText = child.kind == .text
+            let isCDataToPreserve = preserve ? (isText && child.isCData) : false
+                        
+            if isText && !isCDataToPreserve {
+                if let stringValue = child.stringValue {
+                    text.append(contentsOf: stringValue)
+                }
+            } else {
+                if !text.isEmpty {
+                    let mergedText = XMLNode.text(withStringValue: text) as! XMLNode
+                    children.append(mergedText)
+                    text = ""
+                }
+                if child.kind == .element, let child = child as? XMLElement {
+                    child.normalizeAdjacentTextNodesPreservingCDATA(preserve)
+                }
+                children.append(child)
+            }
+            
+            index += 1
+        }
+        
+        if !text.isEmpty {
+            children.append(XMLNode.text(withStringValue: text) as! XMLNode)
+        }
+        
+        self.setChildren(children)
+    }
 
     internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLElement {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeElement)

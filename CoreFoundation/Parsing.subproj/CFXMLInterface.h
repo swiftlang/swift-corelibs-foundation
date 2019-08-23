@@ -53,6 +53,7 @@ extern CFIndex _kCFXMLTypeAttribute;
 extern CFIndex _kCFXMLTypeProcessingInstruction;
 extern CFIndex _kCFXMLTypeComment;
 extern CFIndex _kCFXMLTypeText;
+extern CFIndex _kCFXMLTypeCDataSection;
 extern CFIndex _kCFXMLTypeDTD;
 extern CFIndex _kCFXMLDocTypeHTML;
 extern CFIndex _kCFXMLTypeNamespace;

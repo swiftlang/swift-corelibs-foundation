@@ -685,6 +685,42 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssertEqual(dtd.systemID, plistDTDUrl)
     }
     
+    func test_parsingCDataSections() throws {
+        let xmlString = """
+           <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+           <content>some text <![CDATA[Some verbatim content! <br> Yep, it's HTML, what are you going to do]]> some more text</content>
+           """
+        
+        do {
+            let doc = try XMLDocument(xmlString: xmlString, options: [])
+            
+            let root = try XCTUnwrap(doc.rootElement())
+            XCTAssertEqual(root.childCount, 3)
+            
+            root.normalizeAdjacentTextNodesPreservingCDATA(false)
+            XCTAssertEqual(root.childCount, 1)
+            XCTAssertEqual(root.children?.first?.stringValue, "some text Some verbatim content! <br> Yep, it's HTML, what are you going to do some more text")
+        }
+        
+        do {
+            let doc = try XMLDocument(xmlString: xmlString, options: [])
+            
+            let root = try XCTUnwrap(doc.rootElement())
+            XCTAssertEqual(root.childCount, 3)
+            
+            let prefix = XMLNode.text(withStringValue: "prefix! ") as! XMLNode
+            root.insertChild(prefix, at: 0)
+            print(root.children!.map { (name: $0.name, kind: $0.kind, stringValue: $0.stringValue ?? "") }.map { String(describing: $0) }.joined(separator: "\n"))
+            
+            root.normalizeAdjacentTextNodesPreservingCDATA(true)
+            XCTAssertEqual(root.childCount, 3)
+            let children = try XCTUnwrap(root.children)
+            XCTAssertEqual(children[0].stringValue, "prefix! some text ")
+            XCTAssertEqual(children[1].stringValue, "Some verbatim content! <br> Yep, it's HTML, what are you going to do")
+            XCTAssertEqual(children[2].stringValue, " some more text")
+        }
+    }
+    
     static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
         return [
             ("test_basicCreation", test_basicCreation),
@@ -719,6 +755,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_nodeNames", test_nodeNames),
             ("test_creatingAnEmptyDocumentAndNode", test_creatingAnEmptyDocumentAndNode),
             ("test_creatingAnEmptyDTD", test_creatingAnEmptyDTD),
+            ("test_parsingCDataSections", test_parsingCDataSections),
         ]
     }
 }

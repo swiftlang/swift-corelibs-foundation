@@ -98,6 +98,10 @@ open class XMLDTD : XMLNode {
         }
     }
 
+    open override var childCount: Int {
+        return _CFXMLNodeGetElementChildCount(_xmlNode)
+    }
+    
     /*!
         @method insertChild:atIndex:
         @abstract Inserts a child at a particular index.

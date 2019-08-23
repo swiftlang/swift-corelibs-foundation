@@ -267,6 +267,10 @@ open class XMLDocument : XMLNode {
 
         return XMLNode._objectNodeForNode(rootPtr) as? XMLElement
     }
+    
+    open override var childCount: Int {
+        return _CFXMLNodeGetElementChildCount(_xmlNode)
+    }
 
     /*!
         @method insertChild:atIndex:
