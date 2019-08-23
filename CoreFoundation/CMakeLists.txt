@@ -1,13 +1,10 @@
 
-cmake_minimum_required(VERSION 3.4.3)
-list(APPEND CMAKE_MODULE_PATH
-     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+cmake_minimum_required(VERSION 3.12)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
 project(CoreFoundation
-        VERSION
-          1338
-        LANGUAGES
-          ASM C)
+  VERSION 1338
+  LANGUAGES ASM C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED YES)
@@ -25,16 +22,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-if(CMAKE_VERSION VERSION_LESS 3.10)
-  if(CMAKE_CROSSCOMPILING)
-    if(NOT CMAKE_C_COMPILER_ID MATCHES Clang OR CMAKE_C_SIMULATE_ID STREQUAL MSVC)
-      set(THREADS_HAVE_PTHREAD_ARG FALSE)
-    else()
-      set(THREADS_HAVE_PTHREAD_ARG TRUE)
-    endif()
-  endif()
-endif()
 find_package(Threads)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  find_package(LibXml2 REQUIRED)
+  find_package(CURL REQUIRED)
+  find_package(ICU COMPONENTS uc i18n REQUIRED)
+endif()
 
 include(GNUInstallDirs)
 include(CoreFoundationAddFramework)
@@ -42,6 +36,73 @@ include(CoreFoundationAddFramework)
 option(CF_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source")
 option(CF_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build")
 option(CF_DEPLOYMENT_SWIFT "Build for swift" NO)
+
+if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+else()
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-include$<SEMICOLON>${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+endif()
+
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-fblocks>)
+
+if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:/EHsc>)
+else()
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-fexceptions>)
+endif()
+
+if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-fconstant-cfstrings>)
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-fdollars-in-identifiers>)
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-fno-common>)
+endif()
+
+if(CF_DEPLOYMENT_SWIFT)
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:$<$<STREQUAL:${CMAKE_C_SIMULATE_ID},MSVC>:/clang:>-fcf-runtime-abi=swift>)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:_GNU_SOURCE>)
+
+  if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    include(CheckSymbolExists)
+    include(CheckIncludeFile)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
+    check_include_file("sched.h" HAVE_SCHED_H)
+    if(HAVE_SCHED_H)
+      check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
+      if(HAVE_SCHED_GETAFFINITY)
+        add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_SCHED_GETAFFINITY>)
+      endif()
+    endif()
+  endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # NOTE(compnerd) we only support building with the dynamic CRT as using the
+  # static CRT causes problems for users of the library.
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:_DLL>)
+  if(BUILD_SHARED_LIBS)
+    add_compile_definitions($<$<COMPILE_LANGUAGE:C>:_WINDLL)
+  endif()
+endif()
+
+add_compile_definitions($<$<COMPILE_LANGUAGE:C>:U_SHOW_DRAFT_API>)
+add_compile_definitions($<$<COMPILE_LANGUAGE:C>:CF_BUILDING_CF>)
+
+if(CF_DEPLOYMENT_SWIFT)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:DEPLOYMENT_RUNTIME_SWIFT>)
+else()
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:DEPLOYMENT_RUNTIME_C>)
+endif()
+
+# TODO(compnerd) ensure that the compiler supports the warning flag
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-shorten-64-to-32>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-deprecated-declarations>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-unreachable-code>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-conditional-uninitialized>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-unused-variable>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-int-conversion>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-unused-function>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-microsoft-enum-forward-reference>)
 
 if(BUILD_SHARED_LIBS)
   set(FRAMEWORK_LIBRARY_TYPE SHARED)
@@ -312,6 +373,25 @@ add_framework(CoreFoundation
                 URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c)
+target_compile_definitions(CoreFoundation
+                           PRIVATE
+                             $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_BITMAP="CharacterSets/CFCharacterSetBitmaps.bitmap">
+                             $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICHAR_DB="CharacterSets/CFUniCharPropertyDatabase.data">
+                             $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_B="CharacterSets/CFUnicodeData-B.mapping">
+                             $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping">)
+target_include_directories(CoreFoundation
+                           PRIVATE
+                             ${PROJECT_SOURCE_DIR}
+                             ${ICU_INCLUDE_DIR})
+target_link_libraries(CoreFoundation
+                      PRIVATE
+                        Threads::Threads
+                        ${CMAKE_DL_LIBS})
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+  target_link_libraries(CoreFoundation
+                        PRIVATE
+                          log)
+endif()
 
 add_framework(CFURLSessionInterface
                 ${FRAMEWORK_LIBRARY_TYPE}
@@ -326,6 +406,17 @@ add_framework(CFURLSessionInterface
               SOURCES
                 URL.subproj/CFURLSessionInterface.c)
 add_dependencies(CFURLSessionInterface CoreFoundation)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_compile_definitions(CFURLSessionInterface
+                             PRIVATE
+                               CURL_STATICLIB)
+endif()
+target_include_directories(CFURLSessionInterface
+                           PRIVATE
+                             ${CURL_INCLUDE_DIRS})
+target_link_libraries(CFURLSessionInterface
+                      PRIVATE
+                        ${CURL_LIBRARIES})
 
 add_framework(CFXMLInterface
                 ${FRAMEWORK_LIBRARY_TYPE}
@@ -340,6 +431,12 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
+target_include_directories(CFXMLInterface
+                           PRIVATE
+                             ${LIBXML2_INCLUDE_DIR})
+target_link_libraries(CFXMLInterface
+                      PRIVATE
+                        ${LIBXML2_LIBRARIES})
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   add_library(CoreFoundationResources OBJECT
@@ -358,130 +455,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     OlsonWindowsMapping.plist)
   add_dependencies(CoreFoundation CoreFoundationWindowsTimeZonesPLists)
 endif()
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -D_GNU_SOURCE)
-  target_compile_definitions(CFURLSessionInterface
-                             PRIVATE
-                               -D_GNU_SOURCE)
-  target_compile_definitions(CFXMLInterface
-                             PRIVATE
-                               -D_GNU_SOURCE)
 
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    include(CheckSymbolExists)
-    include(CheckIncludeFile)
-    list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
-    check_include_file("sched.h" HAVE_SCHED_H)
-    if(HAVE_SCHED_H)
-      check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
-    endif()
-  endif()
-
-  if(HAVE_SCHED_GETAFFINITY)
-    target_compile_definitions(CoreFoundation
-                               PRIVATE
-                                 -DHAVE_SCHED_GETAFFINITY)
-    target_compile_definitions(CFURLSessionInterface
-                               PRIVATE
-                                 -DHAVE_SCHED_GETAFFINITY)
-    target_compile_definitions(CFXMLInterface
-                               PRIVATE
-                                 -DHAVE_SCHED_GETAFFINITY)
-  endif()
-elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
-  # NOTE(compnerd) we only support building with the dynamic CRT as using the
-  # static CRT causes problems for users of the library.
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -D_DLL)
-  target_compile_definitions(CFURLSessionInterface
-                             PRIVATE
-                               -D_DLL)
-  target_compile_definitions(CFXMLInterface
-                             PRIVATE
-                               -D_DLL)
-  if(BUILD_SHARED_LIBS)
-    target_compile_definitions(CoreFoundation
-                               PRIVATE
-                                 -D_WINDLL)
-    target_compile_definitions(CFURLSessionInterface
-                               PRIVATE
-                                 -D_WINDLL)
-    target_compile_definitions(CFXMLInterface
-                               PRIVATE
-                                 -D_WINDLL)
-  endif()
-  target_compile_definitions(CFURLSessionInterface
-                             PRIVATE
-                               -DCURL_STATICLIB)
-endif()
-target_compile_definitions(CoreFoundation
-                           PRIVATE
-                             -DU_SHOW_DRAFT_API
-                             -DCF_BUILDING_CF)
-target_compile_definitions(CFURLSessionInterface
-                           PRIVATE
-                             -DU_SHOW_DRAFT_API
-                             -DCF_BUILDING_CF)
-target_compile_definitions(CFXMLInterface
-                           PRIVATE
-                             -DU_SHOW_DRAFT_API
-                             -DCF_BUILDING_CF)
-if(CF_DEPLOYMENT_SWIFT)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_RUNTIME_SWIFT)
-  target_compile_definitions(CFURLSessionInterface
-                             PRIVATE
-                               -DDEPLOYMENT_RUNTIME_SWIFT)
-  target_compile_definitions(CFXMLInterface
-                             PRIVATE
-                               -DDEPLOYMENT_RUNTIME_SWIFT)
-else()
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_RUNTIME_C)
-  target_compile_definitions(CFURLSessionInterface
-                             PRIVATE
-                               -DDEPLOYMENT_RUNTIME_C)
-  target_compile_definitions(CFXMLInterface
-                             PRIVATE
-                               -DDEPLOYMENT_RUNTIME_C)
-endif()
-target_compile_definitions(CoreFoundation
-                           PRIVATE
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_BITMAP="CharacterSets/CFCharacterSetBitmaps.bitmap">
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICHAR_DB="CharacterSets/CFUniCharPropertyDatabase.data">
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_B="CharacterSets/CFUnicodeData-B.mapping">
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping">)
-
-target_include_directories(CoreFoundation
-                           PRIVATE
-                             ${PROJECT_SOURCE_DIR})
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  find_package(LibXml2 REQUIRED)
-  target_include_directories(CFXMLInterface
-                             PRIVATE
-                               ${LIBXML2_INCLUDE_DIR})
-  find_package(CURL CONFIG)
-  if(NOT CURL_FOUND)
-    find_package(CURL REQUIRED)
-    if(NOT TARGET CURL::libcurl)
-      add_library(CURL::libcurl UNKNOWN IMPORTED)
-      set_target_properties(CURL::libcurl PROPERTIES
-        IMPORTED_LOCATION ${CURL_LIBRARIES})
-    endif()
-  endif()
-  target_include_directories(CFURLSessionInterface
-                             PRIVATE
-                               ${CURL_INCLUDE_DIRS})
-  find_package(ICU COMPONENTS uc i18n REQUIRED)
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               ${ICU_INCLUDE_DIR})
-endif()
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${CF_PATH_TO_LIBDISPATCH_SOURCE}
@@ -506,136 +480,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                                ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
 endif()
 
-if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
-  target_compile_options(CoreFoundation
-                         PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-  target_compile_options(CFURLSessionInterface
-                         PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-  target_compile_options(CFXMLInterface
-                         PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-else()
-  target_compile_options(CoreFoundation
-                         PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:-include;${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-  target_compile_options(CFURLSessionInterface
-                         PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:-include;${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-  target_compile_options(CFXMLInterface
-                         PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:-include;${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-endif()
-
-if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
-  target_compile_options(CoreFoundation
-                         PRIVATE
-                           -fblocks
-                           /EHsc)
-  target_compile_options(CFURLSessionInterface
-                         PRIVATE
-                           -fblocks
-                           /EHsc)
-  target_compile_options(CFXMLInterface
-                         PRIVATE
-                           -fblocks
-                           /EHsc)
-else()
-  target_compile_options(CoreFoundation
-                         PRIVATE
-                           -fblocks
-                           -fconstant-cfstrings
-                           -fdollars-in-identifiers
-                           -fexceptions
-                           -fno-common)
-  target_compile_options(CFURLSessionInterface
-                         PRIVATE
-                           -fblocks
-                           -fconstant-cfstrings
-                           -fdollars-in-identifiers
-                           -fexceptions
-                           -fno-common)
-  target_compile_options(CFXMLInterface
-                         PRIVATE
-                           -fblocks
-                           -fconstant-cfstrings
-                           -fdollars-in-identifiers
-                           -fexceptions
-                           -fno-common)
-endif()
-if(CF_DEPLOYMENT_SWIFT)
-  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
-    target_compile_options(CoreFoundation
-                           PRIVATE
-                             /clang:-fcf-runtime-abi=swift)
-    target_compile_options(CFURLSessionInterface
-                           PRIVATE
-                             /clang:-fcf-runtime-abi=swift)
-    target_compile_options(CFXMLInterface
-                           PRIVATE
-                             /clang:-fcf-runtime-abi=swift)
-  else()
-    target_compile_options(CoreFoundation
-                           PRIVATE
-                             -fcf-runtime-abi=swift)
-    target_compile_options(CFURLSessionInterface
-                           PRIVATE
-                             -fcf-runtime-abi=swift)
-    target_compile_options(CFXMLInterface
-                           PRIVATE
-                             -fcf-runtime-abi=swift)
-  endif()
-endif()
-
-target_compile_options(CoreFoundation
-                       PRIVATE
-                         -Wno-shorten-64-to-32
-                         -Wno-deprecated-declarations
-                         -Wno-unreachable-code
-                         -Wno-conditional-uninitialized
-                         -Wno-unused-variable
-                         -Wno-int-conversion
-                         -Wno-unused-function
-                         -Wno-microsoft-enum-forward-reference)
-target_compile_options(CFURLSessionInterface
-                       PRIVATE
-                         -Wno-shorten-64-to-32
-                         -Wno-deprecated-declarations
-                         -Wno-unreachable-code
-                         -Wno-conditional-uninitialized
-                         -Wno-unused-variable
-                         -Wno-int-conversion
-                         -Wno-unused-function
-                         -Wno-microsoft-enum-forward-reference)
-target_compile_options(CFXMLInterface
-                       PRIVATE
-                         -Wno-shorten-64-to-32
-                         -Wno-deprecated-declarations
-                         -Wno-unreachable-code
-                         -Wno-conditional-uninitialized
-                         -Wno-unused-variable
-                         -Wno-int-conversion
-                         -Wno-unused-function
-                         -Wno-microsoft-enum-forward-reference)
-
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  target_link_libraries(CFXMLInterface
-                        PRIVATE
-                          ${LIBXML2_LIBRARIES})
-  target_link_libraries(CFURLSessionInterface
-                        PRIVATE
-                          CURL::libcurl)
-endif()
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-  target_link_libraries(CoreFoundation
-                        PRIVATE
-                          log)
-endif()
-target_link_libraries(CoreFoundation
-                      PRIVATE
-                        Threads::Threads
-                        ${CMAKE_DL_LIBS})
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   target_link_libraries(CoreFoundation
                         PRIVATE
