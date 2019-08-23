@@ -26,7 +26,7 @@ class TestURLCredentialStorage : XCTestCase {
         XCTAssertEqual(storage.credentials(for: space)?.count, 1)
 
         guard let credentials = storage.credentials(for: space),
-              let recovered = credentials[try credential.user.unwrapped()] else {
+              let recovered = credentials[try XCTUnwrap(credential.user)] else {
             XCTFail("Credential not found in storage")
             return
         }
@@ -84,7 +84,7 @@ class TestURLCredentialStorage : XCTestCase {
         XCTAssertEqual(storage.credentials(for: space)?.count, 1)
 
         guard let credentials = storage.credentials(for: space),
-              let recovered = credentials[try credential.user.unwrapped()] else {
+              let recovered = credentials[try XCTUnwrap(credential.user)] else {
             XCTFail("Credential not found in storage")
             return
         }
@@ -428,7 +428,7 @@ class TestURLCredentialStorage : XCTestCase {
         let space = URLProtectionSpace(host: "example.com", port: 0, protocol: NSURLProtectionSpaceHTTP, realm: nil, authenticationMethod: NSURLAuthenticationMethodDefault)
 
         let urlSession = URLSession.shared
-        let task = urlSession.dataTask(with: try URL(string: "http://example.com/").unwrapped())
+        let task = urlSession.dataTask(with: try XCTUnwrap(URL(string: "http://example.com/")))
 
         storage.set(credential, for: space)
 
@@ -451,7 +451,7 @@ class TestURLCredentialStorage : XCTestCase {
         let space = URLProtectionSpace(host: "example.com", port: 0, protocol: NSURLProtectionSpaceHTTP, realm: nil, authenticationMethod: NSURLAuthenticationMethodDefault)
 
         let urlSession = URLSession.shared
-        let task = urlSession.dataTask(with: try URL(string: "http://example.com/").unwrapped())
+        let task = urlSession.dataTask(with: try XCTUnwrap(URL(string: "http://example.com/")))
 
         storage.set(credential, for: space, task: task)
 
@@ -479,7 +479,7 @@ class TestURLCredentialStorage : XCTestCase {
         let space = URLProtectionSpace(host: "example.com", port: 0, protocol: NSURLProtectionSpaceHTTP, realm: nil, authenticationMethod: NSURLAuthenticationMethodDefault)
 
         let urlSession = URLSession.shared
-        let task = urlSession.dataTask(with: try URL(string: "http://example.com/").unwrapped())
+        let task = urlSession.dataTask(with: try XCTUnwrap(URL(string: "http://example.com/")))
 
         storage.set(credential, for: space)
 
@@ -495,7 +495,7 @@ class TestURLCredentialStorage : XCTestCase {
         let space = URLProtectionSpace(host: "example.com", port: 0, protocol: NSURLProtectionSpaceHTTP, realm: nil, authenticationMethod: NSURLAuthenticationMethodDefault)
 
         let urlSession = URLSession.shared
-        let task = urlSession.dataTask(with: try URL(string: "http://example.com/").unwrapped())
+        let task = urlSession.dataTask(with: try XCTUnwrap(URL(string: "http://example.com/")))
 
         storage.setDefaultCredential(credential, for: space)
 
@@ -517,7 +517,7 @@ class TestURLCredentialStorage : XCTestCase {
         let space = URLProtectionSpace(host: "example.com", port: 0, protocol: NSURLProtectionSpaceHTTP, realm: nil, authenticationMethod: NSURLAuthenticationMethodDefault)
 
         let urlSession = URLSession.shared
-        let task = urlSession.dataTask(with: try URL(string: "http://example.com/").unwrapped())
+        let task = urlSession.dataTask(with: try XCTUnwrap(URL(string: "http://example.com/")))
 
         expectChanges(storage.allCredentials.count, by: 1) {
             storage.setDefaultCredential(credential, for: space, task: task)

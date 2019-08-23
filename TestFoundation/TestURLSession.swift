@@ -776,7 +776,7 @@ class TestURLSession : LoopbackServerTest {
 
     func test_checkErrorTypeAfterInvalidateAndCancel() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
-        let url = try URL(string: urlString).unwrapped()
+        let url = try XCTUnwrap(URL(string: urlString))
         var urlRequest = URLRequest(url: url)
         urlRequest.addValue("5", forHTTPHeaderField: "X-Pause")
         let expect = expectation(description: "Check error code of tasks after invalidateAndCancel")
@@ -799,12 +799,12 @@ class TestURLSession : LoopbackServerTest {
         let expect = expectation(description: "Check task count after invalidateAndCancel")
 
         let session = URLSession(configuration: .default)
-        var request = URLRequest(url: try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt").unwrapped())
+        var request = URLRequest(url: try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")))
         request.addValue("5", forHTTPHeaderField: "X-Pause")
         let task1 = session.dataTask(with: request)
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"))
         let task2 = session.dataTask(with: request)
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"))
         let task3 = session.dataTask(with: request)
 
         task1.resume()
@@ -837,12 +837,12 @@ class TestURLSession : LoopbackServerTest {
         let expect = expectation(description: "Tasks URLSession.getAllTasks")
 
         let session = URLSession(configuration: .default)
-        var request = URLRequest(url: try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt").unwrapped())
+        var request = URLRequest(url: try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")))
         request.addValue("5", forHTTPHeaderField: "X-Pause")
         let dataTask1 = session.dataTask(with: request)
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"))
         let dataTask2 = session.dataTask(with: request)
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"))
         let dataTask3 = session.dataTask(with: request)
 
         session.getAllTasks { (tasksBeforeResume) in
@@ -885,20 +885,20 @@ class TestURLSession : LoopbackServerTest {
         let expect = expectation(description: "Test URLSession.getTasksWithCompletion")
 
         let session = URLSession(configuration: .default)
-        var request = URLRequest(url: try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt").unwrapped())
+        var request = URLRequest(url: try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")))
         request.addValue("5", forHTTPHeaderField: "X-Pause")
         let dataTask1 = session.dataTask(with: request)
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"))
         let dataTask2 = session.dataTask(with: request)
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"))
         let dataTask3 = session.dataTask(with: request)
 
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/upload").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/upload"))
         let uploadTask1 = session.uploadTask(with: request, from: Data())
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/echo").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/echo"))
         let uploadTask2 = session.uploadTask(with: request, from: Data())
 
-        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd").unwrapped()
+        request.url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd"))
         let downloadTask1 = session.downloadTask(with: request)
 
         session.getTasksWithCompletionHandler { (dataTasksBeforeCancel, uploadTasksBeforeCancel, downloadTasksBeforeCancel) in
@@ -936,7 +936,7 @@ class TestURLSession : LoopbackServerTest {
         let callback2 = expectation(description: "Callback call #2")
         callback2.isInverted = true
         let delegate = SessionDelegate()
-        let url = try URL(string: urlString).unwrapped()
+        let url = try XCTUnwrap(URL(string: urlString))
         let configuration = URLSessionConfiguration.default
         configuration.protocolClasses = [FailFastProtocol.self]
         let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
@@ -959,7 +959,7 @@ class TestURLSession : LoopbackServerTest {
     }
 
     func test_cancelledTasksCannotBeResumed() throws {
-        let url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal").unwrapped()
+        let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"))
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
         let task = session.dataTask(with: url)
 

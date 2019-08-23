@@ -6,20 +6,18 @@
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 
-// This is the same as the .unwrapped() method used in TestFoundation, but does not invoke XCTFail.
+// This is the same as the XCTUnwrap() method used in TestFoundation, but does not require XCTest.
 
 enum TestError: Error {
     case unexpectedNil
 }
 
-extension Optional {
-    // Same signature as the original.
-    func unwrapped(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) throws -> Wrapped {
-        if let x = self {
-            return x
-        } else {
-            throw TestError.unexpectedNil
-        }
+// Same signature as the original.
+func XCTUnwrap<T>(_ expression: @autoclosure () throws -> T?, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line) throws -> T {
+    if let value = try expression() {
+        return value
+    } else {
+        throw TestError.unexpectedNil
     }
 }
 

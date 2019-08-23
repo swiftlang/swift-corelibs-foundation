@@ -63,21 +63,21 @@ class TestSocketPort : XCTestCase {
     }
     
     func testInitPicksATCPPort() throws {
-        let local = try SocketPort(tcpPort: 0).unwrapped()
+        let local = try XCTUnwrap(SocketPort(tcpPort: 0))
         defer { local.invalidate() }
         
-        let port = try tcpOrUdpPort(of: local).unwrapped()
+        let port = try XCTUnwrap(tcpOrUdpPort(of: local))
         XCTAssertNotEqual(port, 0)
         XCTAssert(port >= 1024)
     }
     
     func testSendingOneMessageRemoteToLocal() throws {
-        let local = try SocketPort(tcpPort: 0).unwrapped()
+        let local = try XCTUnwrap(SocketPort(tcpPort: 0))
         defer { local.invalidate() }
                         
-        let tcpPort = try UInt16(tcpOrUdpPort(of: local).unwrapped())
+        let tcpPort = try UInt16(XCTUnwrap(tcpOrUdpPort(of: local)))
         
-        let remote = try SocketPort(remoteWithTCPPort: tcpPort, host: "localhost").unwrapped()
+        let remote = try XCTUnwrap(SocketPort(remoteWithTCPPort: tcpPort, host: "localhost"))
         defer { remote.invalidate() }
         
         let data = Data("I cannot weave".utf8)

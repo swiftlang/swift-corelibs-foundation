@@ -226,12 +226,12 @@ class TestTimeZone: XCTestCase {
 
     func test_nextDaylightSavingTimeTransition() throws {
         // Timezones without DST
-        let gmt = try TimeZone(secondsFromGMT: 0).unwrapped()
-        let msk = try TimeZone(identifier: "Europe/Moscow").unwrapped()
+        let gmt = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
+        let msk = try XCTUnwrap(TimeZone(identifier: "Europe/Moscow"))
 
         // Timezones with DST
-        let bst = try TimeZone(abbreviation: "BST").unwrapped()
-        let aest = try TimeZone(identifier: "Australia/Sydney").unwrapped()
+        let bst = try XCTUnwrap(TimeZone(abbreviation: "BST"))
+        let aest = try XCTUnwrap(TimeZone(identifier: "Australia/Sydney"))
 
         XCTAssertNil(gmt.nextDaylightSavingTimeTransition)
         XCTAssertNil(msk.nextDaylightSavingTimeTransition)
@@ -242,14 +242,14 @@ class TestTimeZone: XCTestCase {
         formatter.timeZone = TimeZone(identifier: "UTC")
         formatter.dateFormat = "yyyy-MM-dd"
 
-        let dt1 = try formatter.date(from: "2018-01-01").unwrapped()
+        let dt1 = try XCTUnwrap(formatter.date(from: "2018-01-01"))
         XCTAssertNil(gmt.nextDaylightSavingTimeTransition(after: dt1))
         XCTAssertNil(msk.nextDaylightSavingTimeTransition(after: dt1))
         XCTAssertEqual(bst.nextDaylightSavingTimeTransition(after: dt1)?.description, "2018-03-25 01:00:00 +0000")
         XCTAssertEqual(aest.nextDaylightSavingTimeTransition(after: dt1)?.description, "2018-03-31 16:00:00 +0000")
 
         formatter.timeZone = aest
-        let dt2 = try formatter.date(from: "2018-06-06").unwrapped()
+        let dt2 = try XCTUnwrap(formatter.date(from: "2018-06-06"))
         XCTAssertNil(gmt.nextDaylightSavingTimeTransition(after: dt2))
         XCTAssertNil(msk.nextDaylightSavingTimeTransition(after: dt2))
         XCTAssertEqual(bst.nextDaylightSavingTimeTransition(after: dt2)?.description, "2018-10-28 01:00:00 +0000")

@@ -41,7 +41,7 @@ enum Fixtures {
             attrs3Maybe = nil
         }
         
-        let attrs3 = try attrs3Maybe.unwrapped()
+        let attrs3 = try XCTUnwrap(attrs3Maybe)
         
         string.setAttributes(attrs1, range: NSMakeRange(1, string.length - 2))
         string.setAttributes(attrs2, range: NSMakeRange(2, 2))
@@ -147,7 +147,7 @@ enum Fixtures {
     static let textCheckingResultSimpleRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-SimpleRegex") {
         let string = "aaa"
         let regexp = try NSRegularExpression(pattern: "aaa", options: [])
-        let result = try regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first.unwrapped()
+        let result = try XCTUnwrap(regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first)
         
         return result
     }
@@ -156,7 +156,7 @@ enum Fixtures {
     static let textCheckingResultExtendedRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ExtendedRegex") {
         let string = "aaaaaa"
         let regexp = try NSRegularExpression(pattern: "a(a(a(a(a(a)))))", options: [])
-        let result = try regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first.unwrapped()
+        let result = try XCTUnwrap(regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first)
         
         return result
     }
@@ -164,7 +164,7 @@ enum Fixtures {
     static let textCheckingResultComplexRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ComplexRegex") {
         let string = "aaaaaaaaa"
         let regexp = try NSRegularExpression(pattern: "a(a(a(a(a(a(a(a(a))))))))", options: [])
-        let result = try regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first.unwrapped()
+        let result = try XCTUnwrap(regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first)
         
         return result
     }

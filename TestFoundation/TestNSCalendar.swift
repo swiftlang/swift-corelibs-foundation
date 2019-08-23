@@ -51,30 +51,30 @@ class TestNSCalendar: XCTestCase {
     func test_isEqualWithDifferentWaysToCreateCalendar() throws {
         let date = Date(timeIntervalSinceReferenceDate: 497973600) // 2016-10-12 07:00:00 +0000;
         
-        let gregorianCalendar = try NSCalendar(identifier: .gregorian).unwrapped()
-        let gregorianCalendar2 = try gregorianCalendar.components(.calendar, from: date).calendar.unwrapped() as NSCalendar
+        let gregorianCalendar = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        let gregorianCalendar2 = try XCTUnwrap(gregorianCalendar.components(.calendar, from: date).calendar) as NSCalendar
         
         XCTAssertEqual(gregorianCalendar, gregorianCalendar2)
         
-        let timeZone = try TimeZone(identifier: "Antarctica/Vostok").unwrapped()
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "Antarctica/Vostok"))
         gregorianCalendar.timeZone = timeZone
-        let gregorianCalendar3 = try gregorianCalendar.components(.calendar, from: date).calendar.unwrapped() as NSCalendar
+        let gregorianCalendar3 = try XCTUnwrap(gregorianCalendar.components(.calendar, from: date).calendar) as NSCalendar
         
         XCTAssertEqual(gregorianCalendar, gregorianCalendar3)
     }
     
     func test_isEqual() throws {
-        let testCal1 = try NSCalendar(identifier: .gregorian).unwrapped()
-        let testCal2 = try NSCalendar(identifier: .gregorian).unwrapped()
+        let testCal1 = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        let testCal2 = try XCTUnwrap(NSCalendar(identifier: .gregorian))
         XCTAssertEqual(testCal1, testCal2)
         
-        testCal2.timeZone = try TimeZone(identifier: "Antarctica/Vostok").unwrapped()
+        testCal2.timeZone = try XCTUnwrap(TimeZone(identifier: "Antarctica/Vostok"))
         testCal2.locale = Locale(identifier: "ru_RU")
         testCal2.firstWeekday += 1
         testCal2.minimumDaysInFirstWeek += 1
         XCTAssertNotEqual(testCal1, testCal2)
         
-        let testCal3 = try NSCalendar(calendarIdentifier: .chinese).unwrapped()
+        let testCal3 = try XCTUnwrap(NSCalendar(calendarIdentifier: .chinese))
         XCTAssertNotEqual(testCal1, testCal3)
     }
     
@@ -101,15 +101,15 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_copy() throws {
-        let cal = try NSCalendar(identifier: .gregorian).unwrapped()
-        let calCopy = try (cal.copy() as? NSCalendar).unwrapped()
+        let cal = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        let calCopy = try XCTUnwrap((cal.copy() as? NSCalendar))
         XCTAssertEqual(cal, calCopy)
         XCTAssert(cal !== calCopy)
     }
     
     func test_copyCurrentCalendar() throws {
         let cal = NSCalendar.current as NSCalendar
-        let calCopy = try (cal.copy() as? NSCalendar).unwrapped()
+        let calCopy = try XCTUnwrap((cal.copy() as? NSCalendar))
         XCTAssertEqual(cal, calCopy)
         XCTAssert(cal !== calCopy)
     }
@@ -170,8 +170,8 @@ class TestNSCalendar: XCTestCase {
     ];
     
     func test_next50MonthsFromDate() throws {
-        let calendar = try NSCalendar(identifier: .gregorian).unwrapped()
-        calendar.timeZone = try TimeZone(identifier: "America/Los_Angeles").unwrapped()
+        let calendar = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
         
         let startDate = Date(timeIntervalSinceReferenceDate: 347113850) // 2012-01-01 12:30:50 +0000
         
@@ -262,16 +262,16 @@ class TestNSCalendar: XCTestCase {
     
     func performTest_dateByAdding(with calendar: NSCalendar, components: NSDateComponents, toAdd secondComponents: NSDateComponents, options: NSCalendar.Options, expected: NSDateComponents, addSingleUnit: Bool) throws {
         
-        let date = try calendar.date(from: components as DateComponents).unwrapped()
+        let date = try XCTUnwrap(calendar.date(from: components as DateComponents))
         var returnedDate: Date
         
         if addSingleUnit {
             let unit = units(in: secondComponents)
             let valueToAdd = secondComponents.value(forComponent: unit)
             
-            returnedDate = try calendar.date(byAdding: unit, value: valueToAdd, to: date, options: options).unwrapped()
+            returnedDate = try XCTUnwrap(calendar.date(byAdding: unit, value: valueToAdd, to: date, options: options))
         } else {
-            returnedDate = try calendar.date(byAdding: secondComponents as DateComponents, to: date, options: options).unwrapped()
+            returnedDate = try XCTUnwrap(calendar.date(byAdding: secondComponents as DateComponents, to: date, options: options))
         }
         
         let expectedUnitFlags = units(in: expected)
@@ -293,8 +293,8 @@ class TestNSCalendar: XCTestCase {
     }
     
     func performTest_componentsFromDateToDate(with calendar: NSCalendar, from fromComponents: NSDateComponents, to toComponents: NSDateComponents, expected: NSDateComponents, options: NSCalendar.Options) throws {
-        let fromDate = try calendar.date(from: fromComponents as DateComponents).unwrapped()
-        let toDate = try calendar.date(from: toComponents as DateComponents).unwrapped()
+        let fromDate = try XCTUnwrap(calendar.date(from: fromComponents as DateComponents))
+        let toDate = try XCTUnwrap(calendar.date(from: toComponents as DateComponents))
         
         let expectedUnitFlags = units(in: expected)
         let returned = calendar.components(expectedUnitFlags, from: fromDate, to: toDate, options: options) as NSDateComponents
@@ -311,7 +311,7 @@ class TestNSCalendar: XCTestCase {
         let originalTZ = fromCalendar.timeZone
         fromCalendar.timeZone = toCalendar.timeZone
         
-        let fromDate = try fromCalendar.date(from: fromComponents as DateComponents).unwrapped()
+        let fromDate = try XCTUnwrap(fromCalendar.date(from: fromComponents as DateComponents))
         
         fromCalendar.timeZone = originalTZ
         
@@ -323,14 +323,14 @@ class TestNSCalendar: XCTestCase {
     
     func test_dateByAddingUnit_withWrapOption() throws {
         let locale = Locale(identifier: "ar_EG")
-        let calendar = try NSCalendar(identifier: .gregorian).unwrapped()
-        let timeZone = try TimeZone(abbreviation: "GMT").unwrapped()
+        let calendar = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        let timeZone = try XCTUnwrap(TimeZone(abbreviation: "GMT"))
         
         calendar.locale = locale
         calendar.timeZone = timeZone
         
         let date = try self.date(fromFixture: "2013-09-20 23:20:28 +0000")
-        let newDate = try calendar.date(byAdding: .hour, value: 12, to: date, options: .wrapComponents).unwrapped()
+        let newDate = try XCTUnwrap(calendar.date(byAdding: .hour, value: 12, to: date, options: .wrapComponents))
         XCTAssertEqual(newDate, try self.date(fromFixture: "2013-09-20 11:20:28 +0000"))
     }
     
@@ -342,12 +342,12 @@ class TestNSCalendar: XCTestCase {
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss Z"
         formatter.locale = Locale(identifier: "en_US")
         
-        return try formatter.date(from: string).unwrapped()
+        return try XCTUnwrap(formatter.date(from: string))
     }
     
     func enumerateTestDates(using block: (NSCalendar, Date, NSDateComponents) throws -> Void) throws {
         func yield(to block: (NSCalendar, Date, NSDateComponents) throws -> Void, _ element: (calendarIdentifier: NSCalendar.Identifier, localeIdentifier: String, timeZoneName: String, dateString: String)) throws {
-            let calendar = try NSCalendar(calendarIdentifier: element.calendarIdentifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: element.calendarIdentifier))
             let currentCalendar = NSCalendar.current as NSCalendar
             let autoCalendar = NSCalendar.autoupdatingCurrent as NSCalendar
             
@@ -357,7 +357,7 @@ class TestNSCalendar: XCTestCase {
                 }
                 
                 let locale = NSLocale(localeIdentifier: element.localeIdentifier) as Locale
-                let timeZone = try TimeZone(identifier: element.timeZoneName).unwrapped()
+                let timeZone = try XCTUnwrap(TimeZone(identifier: element.timeZoneName))
                 calendar.locale = locale
                 calendar.timeZone = timeZone
                 
@@ -447,7 +447,7 @@ class TestNSCalendar: XCTestCase {
     
     func test_dateWithYear_month_day_hour_minute_second_nanosecond() throws {
         try enumerateTestDates() { (calendar, date, components) in
-            let returnedDate = try calendar.date(era: components.era, year: components.year, month: components.month, day: components.day, hour: components.hour, minute: components.minute, second: components.second, nanosecond: components.nanosecond).unwrapped()
+            let returnedDate = try XCTUnwrap(calendar.date(era: components.era, year: components.year, month: components.month, day: components.day, hour: components.hour, minute: components.minute, second: components.second, nanosecond: components.nanosecond))
             
             let interval = date.timeIntervalSince(returnedDate)
             XCTAssertEqual(fabs(interval), 0, accuracy: 0.0000001)
@@ -465,7 +465,7 @@ class TestNSCalendar: XCTestCase {
                 return;
             }
             
-            let returnedDate = try calendar.date(era: components.era, yearForWeekOfYear: components.yearForWeekOfYear, weekOfYear: components.weekOfYear, weekday: components.weekday, hour: components.hour, minute: components.minute, second: components.second, nanosecond: components.nanosecond).unwrapped()
+            let returnedDate = try XCTUnwrap(calendar.date(era: components.era, yearForWeekOfYear: components.yearForWeekOfYear, weekOfYear: components.weekOfYear, weekday: components.weekday, hour: components.hour, minute: components.minute, second: components.second, nanosecond: components.nanosecond))
             
             let interval = date.timeIntervalSince(returnedDate)
             XCTAssertEqual(fabs(interval), 0, accuracy: 0.0000001)
@@ -474,7 +474,7 @@ class TestNSCalendar: XCTestCase {
     
     func enumerateTestDatesWithStartOfDay(using block: (NSCalendar, Date, Date) throws -> Void) throws {
         func yield(to block: (NSCalendar, Date, Date) throws -> Void, _ element: (calendarIdentifier: NSCalendar.Identifier, localeIdentifier: String, timeZoneName: String, dateString: String, startOfDayDateString: String)) throws {
-            let calendar = try NSCalendar(calendarIdentifier: element.calendarIdentifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: element.calendarIdentifier))
             let currentCalendar = NSCalendar.current as NSCalendar
             let autoCalendar = NSCalendar.autoupdatingCurrent as NSCalendar
             
@@ -484,7 +484,7 @@ class TestNSCalendar: XCTestCase {
                 }
                 
                 let locale = NSLocale(localeIdentifier: element.localeIdentifier) as Locale
-                let timeZone = try TimeZone(identifier: element.timeZoneName).unwrapped()
+                let timeZone = try XCTUnwrap(TimeZone(identifier: element.timeZoneName))
                 calendar.locale = locale
                 calendar.timeZone = timeZone
                 
@@ -509,7 +509,7 @@ class TestNSCalendar: XCTestCase {
     
     func test_componentsInTimeZone_fromDate() throws {
         try enumerateTestDates() { (calendar, date, components) in
-            let calendarWithoutTimeZone = try NSCalendar(identifier: calendar.calendarIdentifier).unwrapped()
+            let calendarWithoutTimeZone = try XCTUnwrap(NSCalendar(identifier: calendar.calendarIdentifier))
             calendarWithoutTimeZone.locale = calendar.locale
             
             let timeZone = calendar.timeZone
@@ -521,7 +521,7 @@ class TestNSCalendar: XCTestCase {
     
     func enumerateTestDateComparisons(using block: (NSCalendar, Date, Date, NSCalendar.Unit, ComparisonResult) throws -> Void) throws {
         func yield(to block: (NSCalendar, Date, Date, NSCalendar.Unit, ComparisonResult) throws -> Void, _ element: (calendarIdentifier: NSCalendar.Identifier, localeIdentifier: String, timeZoneName: String, firstDateString: String, secondDateString: String, granularity: NSCalendar.Unit, expectedResult: ComparisonResult)) throws {
-            let calendar = try NSCalendar(calendarIdentifier: element.calendarIdentifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: element.calendarIdentifier))
             let currentCalendar = NSCalendar.current as NSCalendar
             let autoCalendar = NSCalendar.autoupdatingCurrent as NSCalendar
             
@@ -531,7 +531,7 @@ class TestNSCalendar: XCTestCase {
                 }
                 
                 let locale = NSLocale(localeIdentifier: element.localeIdentifier) as Locale
-                let timeZone = try TimeZone(identifier: element.timeZoneName).unwrapped()
+                let timeZone = try XCTUnwrap(TimeZone(identifier: element.timeZoneName))
                 calendar.locale = locale
                 calendar.timeZone = timeZone
                 
@@ -631,7 +631,7 @@ class TestNSCalendar: XCTestCase {
     func test_isDateInToday() throws {
         var datesTested: [Date] = []
         for identifier in availableCalendarIdentifiers {
-            let calendar = try NSCalendar(identifier: identifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(identifier: identifier))
             
             var foundDate = false
             var dateInToday = Date()
@@ -655,14 +655,14 @@ class TestNSCalendar: XCTestCase {
     func test_isDateInYesterday() throws {
         var datesTested: [Date] = []
         for identifier in availableCalendarIdentifiers {
-            let calendar = try NSCalendar(identifier: identifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(identifier: identifier))
             
             var foundDate = false
             var dateInToday = Date()
             for _ in 0..<10 {
                 let delta = NSDateComponents()
                 delta.day = -1
-                let dateInYesterday = try calendar.date(byAdding: delta as DateComponents, to: dateInToday).unwrapped()
+                let dateInYesterday = try XCTUnwrap(calendar.date(byAdding: delta as DateComponents, to: dateInToday))
                 
                 datesTested.append(dateInYesterday)
                 if calendar.isDateInYesterday(dateInYesterday) {
@@ -683,14 +683,14 @@ class TestNSCalendar: XCTestCase {
     func test_isDateInTomorrow() throws {
         var datesTested: [Date] = []
         for identifier in availableCalendarIdentifiers {
-            let calendar = try NSCalendar(identifier: identifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(identifier: identifier))
             
             var foundDate = false
             var dateInToday = Date()
             for _ in 0..<10 {
                 let delta = NSDateComponents()
                 delta.day = 1
-                let dateInTomorrow = try calendar.date(byAdding: delta as DateComponents, to: dateInToday).unwrapped()
+                let dateInTomorrow = try XCTUnwrap(calendar.date(byAdding: delta as DateComponents, to: dateInToday))
                 
                 datesTested.append(dateInTomorrow)
                 if calendar.isDateInTomorrow(dateInTomorrow) {
@@ -710,10 +710,10 @@ class TestNSCalendar: XCTestCase {
     
     func enumerateTestWeekends(using block: (NSCalendar, DateInterval) throws -> Void) throws {
         func yield(to block: (NSCalendar, DateInterval) throws -> Void, _ element: (calendarIdentifier: NSCalendar.Identifier, localeIdentifier: String, timeZoneName: String, firstDateString: String, secondDateString: String)) throws {
-            let calendar = try NSCalendar(calendarIdentifier: element.calendarIdentifier).unwrapped()
+            let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: element.calendarIdentifier))
             
             let locale = NSLocale(localeIdentifier: element.localeIdentifier) as Locale
-            let timeZone = try TimeZone(identifier: element.timeZoneName).unwrapped()
+            let timeZone = try XCTUnwrap(TimeZone(identifier: element.timeZoneName))
             calendar.locale = locale
             calendar.timeZone = timeZone
             
@@ -769,9 +769,9 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne() throws {
-        let calendar = try NSCalendar(calendarIdentifier: .chinese).unwrapped()
+        let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: .chinese))
         let locale = Locale(identifier: "zh_CN")
-        let timeZone = try TimeZone(identifier: "Asia/Chongqing").unwrapped()
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Chongqing"))
         calendar.locale = locale
         calendar.timeZone = timeZone
         
@@ -826,8 +826,8 @@ class TestNSCalendar: XCTestCase {
         // This leads us to propose a potential match twice in certain circumstances (when the highest set date component is hour and we're looking for hour 0).
         //
         // We want to ensure this never happens, and that all matches are strictly increasing or decreasing in time.
-        let calendar = try NSCalendar(identifier: .gregorian).unwrapped()
-        calendar.timeZone = try TimeZone(identifier: "America/Los_Angeles").unwrapped()
+        let calendar = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
         
         let reference = try date(fromFixture: "2018-02-13 12:00:00 -0800")
         let expectations: [(minute: Int, second: Int, results: TimeIntervalQuintuple)] = [

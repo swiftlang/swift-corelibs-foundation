@@ -488,7 +488,7 @@ class TestScanner : XCTestCase {
     func testLocalizedScanner() throws {
         let ds = Locale.current.decimalSeparator ?? "."
         let string = "123\(ds)456"
-        let scanner = try (Scanner.localizedScanner(with: string) as? Scanner).unwrapped()
+        let scanner = try XCTUnwrap((Scanner.localizedScanner(with: string) as? Scanner))
         XCTAssertNotNil(scanner.locale)
         var value: Decimal = 0
         XCTAssertTrue(scanner.scanDecimal(&value))

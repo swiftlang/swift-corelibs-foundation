@@ -7,7 +7,7 @@ swift-corelibs-foundation uses XCTest for its own test suite. This document expl
 ### In brief
 
 * Tests should fail rather than crashing; swift-corelibs-xctest does not implement any crash recovery
-* You should avoid forced optional unwrapping (e.g.: `aValue!`). Use `try aValue.unwrapped()` instead
+* You should avoid forced optional unwrapping (e.g.: `aValue!`). Use `try XCTUnwrap(aValue)` instead
 * You can test code that is expected to crash; you must mark the whole body of the test method with `assertCrashes(within:)`
 * If a test or a portion of a test is giving the build trouble, use `testExpectedToFail` and write a bug
 
@@ -19,7 +19,7 @@ Due to this, it is important to avoid crashing in test code, and to properly han
 
 #### Avoiding Forced Unwrapping
 
-Forced unwrapping is easily the easiest way to crash the test process, and should be avoided. We have an ergonomic replacement in the form of the `.unwrapped()` extension method on the `Optional` type.
+Forced unwrapping is easily the easiest way to crash the test process, and should be avoided. XCTest have an ergonomic replacement in the form of the `XCTUnwrap()` function.
 
 The following code is a liability and code review should flag it:
 
@@ -34,14 +34,14 @@ func testSomeInterestingAPI() {
 Instead:
 
 1. Change the test method to throw errors by adding the `throws` clause. Tests that throw errors will fail and stop the first time an error is thrown, so plan accordingly, but a thrown error will not stop the test run, merely fail this test.
-2. Change the forced unwrapping to `try ….unwrapped()`.
+2. Change the forced unwrapping to `try XCTUnwrap(…)`.
 
 For example, the code above can be fixed as follows:
 
 ```swift
 func testSomeInterestingAPI() throws { // Step 1: Add 'throws'
 	// Step 2: Replace the unwrap.
-	let x = try interestingAPI.someOptionalProperty.unwrapped()
+	let x = try XCTUnwrap(interestingAPI.someOptionalProperty)
 	
 	XCTAssertEqual(x, 42, "The correct answer is present")
 }

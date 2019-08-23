@@ -602,10 +602,10 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.min)).description, UInt64.min.description)
         XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.max)).description, UInt64.max.description)
 
-        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "12.34").unwrapped()).description, "12.34")
-        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "0.0001").unwrapped()).description, "0.0001")
-        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "-1.0002").unwrapped()).description, "-1.0002")
-        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "0.0").unwrapped()).description, "0")
+        XCTAssertEqual(NSDecimalNumber(decimal: try XCTUnwrap(Decimal(string: "12.34"))).description, "12.34")
+        XCTAssertEqual(NSDecimalNumber(decimal: try XCTUnwrap(Decimal(string: "0.0001"))).description, "0.0001")
+        XCTAssertEqual(NSDecimalNumber(decimal: try XCTUnwrap(Decimal(string: "-1.0002"))).description, "-1.0002")
+        XCTAssertEqual(NSDecimalNumber(decimal: try XCTUnwrap(Decimal(string: "0.0"))).description, "0")
     }
 
     func test_PositivePowers() {

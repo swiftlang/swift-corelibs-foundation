@@ -232,7 +232,7 @@ class TestURLCache : XCTestCase {
         
         let response = cache.cachedResponse(for: requestB)
         XCTAssertNotNil(response)
-        XCTAssertEqual((try response.unwrapped()).data, responseB.data)
+        XCTAssertEqual((try XCTUnwrap(response)).data, responseB.data)
     }
     
     // -----
@@ -260,9 +260,9 @@ class TestURLCache : XCTestCase {
     }
     
     func cachePair(for urlString: String, ofSize size: Int, storagePolicy: URLCache.StoragePolicy = .allowed, startingWith: UInt8 = 0) throws -> (URLRequest, CachedURLResponse) {
-        let url = try URL(string: urlString).unwrapped()
+        let url = try XCTUnwrap(URL(string: urlString))
         let request = URLRequest(url: url)
-        let response = try HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: [:]).unwrapped()
+        let response = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: [:]))
         
         var data = Data(count: size)
         if data.count > 0 {

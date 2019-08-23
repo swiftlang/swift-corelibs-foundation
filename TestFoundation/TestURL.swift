@@ -739,7 +739,7 @@ class TestURLComponents : XCTestCase {
 
     func test_url() throws {
 
-        let baseURL = try URL(string: "https://www.example.com").unwrapped()
+        let baseURL = try XCTUnwrap(URL(string: "https://www.example.com"))
 
         /* test NSURLComponents without authority */
         guard var compWithAuthority = URLComponents(string: "https://www.swift.org") else {
