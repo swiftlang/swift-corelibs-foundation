@@ -718,12 +718,11 @@ open class XMLNode: NSObject, NSCopying {
      @abstract Returns the local name bar in foo:bar.
      */
     open class func localName(forName name: String) -> String {
-        //        return name.withCString {
-        //            var length: Int32 = 0
-        //            let result = xmlSplitQName3(UnsafePointer<xmlChar>($0), &length)
-        //            return String.fromCString(UnsafePointer<CChar>(result)) ?? ""
-        //        }
-        NSUnimplemented()
+        if let localName = _CFXMLSplitQualifiedName(name) {
+            return String(cString: localName)
+        } else {
+            return name
+        }
     }
     
     /*!
@@ -731,23 +730,43 @@ open class XMLNode: NSObject, NSCopying {
      @abstract Returns the prefix foo in the name foo:bar.
      */
     open class func prefix(forName name: String) -> String? {
-        //        return name.withCString {
-        //            var result: UnsafeMutablePointer<xmlChar> = nil
-        //            let unused = xmlSplitQName2(UnsafePointer<xmlChar>($0), &result)
-        //            defer {
-        //                xmlFree(result)
-        //                xmlFree(UnsafeMutablePointer<xmlChar>(unused))
-        //            }
-        //            return String.fromCString(UnsafePointer<CChar>(result))
-        //        }
-        NSUnimplemented()
+        var size: size_t = 0
+        if _CFXMLGetLengthOfPrefixInQualifiedName(name, &size) {
+            return name.withCString {
+                $0.withMemoryRebound(to: UInt8.self, capacity: size) {
+                    return String(decoding: UnsafeBufferPointer(start: $0, count: size), as: UTF8.self)
+                }
+            }
+        } else {
+            return nil
+        }
     }
     
     /*!
      @method predefinedNamespaceForPrefix:
      @abstract Returns the namespace belonging to one of the predefined namespaces xml, xs, or xsi
      */
-    open class func predefinedNamespace(forPrefix name: String) -> XMLNode? { NSUnimplemented() }
+    private static func defaultNamespace(prefix: String, value: String) -> XMLNode {
+        let node = XMLNode(kind: .namespace)
+        node.name = prefix
+        node.objectValue = value
+        return node
+    }
+    private static let _defaultNamespaces: [XMLNode] = [
+        XMLNode.defaultNamespace(prefix: "xml", value: "http://www.w3.org/XML/1998/namespace"),
+        XMLNode.defaultNamespace(prefix: "xml", value: "http://www.w3.org/2001/XMLSchema"),
+        XMLNode.defaultNamespace(prefix: "xml", value: "http://www.w3.org/2001/XMLSchema-instance"),
+    ]
+    
+    internal static let _defaultNamespacesByPrefix: [String: XMLNode] =
+        Dictionary(XMLNode._defaultNamespaces.map { ($0.name!, $0) }, uniquingKeysWith: { old, _ in old })
+
+    internal static let _defaultNamespacesByURI: [String: XMLNode] =
+        Dictionary(XMLNode._defaultNamespaces.map { ($0.stringValue!, $0) }, uniquingKeysWith: { old, _ in old })
+
+    open class func predefinedNamespace(forPrefix name: String) -> XMLNode? {
+        return XMLNode._defaultNamespacesByPrefix[name]
+    }
     
     /*!
      @method description
@@ -777,7 +796,39 @@ open class XMLNode: NSObject, NSCopying {
      @method canonicalXMLStringPreservingComments:
      @abstract W3 canonical form (http://www.w3.org/TR/xml-c14n). The input option NSXMLNodePreserveWhitespace should be set for true canonical form.
      */
-    open func canonicalXMLStringPreservingComments(_ comments: Bool) -> String { NSUnimplemented() }
+    open func canonicalXMLStringPreservingComments(_ comments: Bool) -> String {
+        var result = ""
+        switch kind {
+        case .text:
+            let scanner = Scanner(string: self.stringValue ?? "")
+            let toReplace = CharacterSet(charactersIn: "&<>\r")
+            while let string = scanner.scanUpToCharacters(from: toReplace) {
+                result += string
+                if scanner.scanString("&") != nil {
+                    result += "&amp;"
+                } else if scanner.scanString("<") != nil {
+                    result += "&lt;"
+                } else if scanner.scanString(">") != nil {
+                    result += "&gt;"
+                } else if scanner.scanString("\r") != nil {
+                    result += "&#xD;"
+                } else {
+                    fatalError("We scanned up to one of the characters to replace, but couldn't find it when we went to consume it.")
+                }
+            }
+            result += scanner.string[scanner.currentIndex...]
+            
+            
+        case .comment:
+            if comments {
+                result = "<!--\(stringValue ?? "")-->"
+            }
+            
+        default: break
+        }
+        
+        return result
+    }
     
     /*!
      @method nodesForXPath:error:
@@ -786,7 +837,7 @@ open class XMLNode: NSObject, NSCopying {
      */
     open func nodes(forXPath xpath: String) throws -> [XMLNode] {
         guard let nodes = _CFXMLNodesForXPath(_xmlNode, xpath) else {
-            NSUnimplemented()
+            return []
         }
         
         var result: [XMLNode] = []
@@ -803,12 +854,14 @@ open class XMLNode: NSObject, NSCopying {
      @abstract Returns the objects resulting from applying an XQuery to this node using the node as the context item ("."). Constants are a name-value dictionary for constants declared "external" in the query. normalizeAdjacentTextNodesPreservingCDATA:NO should be called if there are adjacent text nodes since they are not allowed under the XPath/XQuery Data Model.
      @returns An array whose elements are kinds of NSArray, NSData, NSDate, NSNumber, NSString, NSURL, or NSXMLNode.
      */
+    @available(*, unavailable, message: "XQuery is not available in swift-corelibs-foundation")
     open func objects(forXQuery xquery: String, constants: [String : Any]?) throws -> [Any] {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
+    @available(*, unavailable, message: "XQuery is not available in swift-corelibs-foundation")
     open func objects(forXQuery xquery: String) throws -> [Any] {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     internal var _childNodes: Set<XMLNode> = []
