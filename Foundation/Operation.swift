@@ -407,7 +407,7 @@ open class Operation : NSObject {
             withExtendedLifetime(op) {
                 var up: Operation?
                 _lock()
-                if __dependencies.first(where: { $0 === op }) != nil {
+                if __dependencies.first(where: { $0 === op }) == nil {
                     __dependencies.append(op)
                     up = op
                 }
