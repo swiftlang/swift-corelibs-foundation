@@ -15,6 +15,7 @@
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFTimeZone.h>
 #include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFLocking.h>
 
 #include "CFDateComponents.h"
 #include "CFDateInterval.h"
@@ -46,6 +47,7 @@ struct __CFCalendar {
     Boolean _userSet_firstWeekday;
     Boolean _userSet_minDaysInFirstWeek;
     Boolean _userSet_gregorianStart;
+    CFLock_t _lock;
 };
 
 struct __CFDateComponents {
@@ -87,6 +89,16 @@ CF_ENUM(CFOptionFlags) {
     kCFCalendarMatchFirst = (1ULL << 12),
     kCFCalendarMatchLast = (1ULL << 13)
 };
+
+
+CF_INLINE void __CFCalendarLock(CFCalendarRef calendar) {
+    __CFLock(&calendar->_lock);
+}
+
+CF_INLINE void __CFCalendarUnlock(CFCalendarRef calendar) {
+    __CFUnlock(&calendar->_lock);
+}
+
 
 CF_PRIVATE void __CFCalendarSetupCal(CFCalendarRef calendar);
 CF_PRIVATE void __CFCalendarZapCal(CFCalendarRef calendar);

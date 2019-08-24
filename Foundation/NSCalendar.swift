@@ -151,6 +151,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private var _userSet_firstWeekday: Bool = false
     private var _userSet_minDaysInFirstWeek: Bool = false
     private var _userSet_gregorianStart: Bool = false
+    private var _lock: CFLock_t = __CFLockInit()
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFCalendar.self)
@@ -272,7 +273,13 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     deinit {
         _CFDeinit(self)
     }
-    
+
+    public func synchronized<T>(_ closure: () -> T) -> T {
+        __CFCalendarLock(_cfObject)
+        defer { __CFCalendarUnlock(_cfObject) }
+        return closure()
+    }
+
     open var calendarIdentifier: Identifier  {
         get {
             return Identifier(rawValue: CFCalendarGetIdentifier(_cfObject)._swiftObject)
@@ -281,21 +288,27 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     /*@NSCopying*/ open var locale: Locale? {
         get {
-            return CFCalendarCopyLocale(_cfObject)._swiftObject
+            return self.synchronized { CFCalendarCopyLocale(_cfObject)._swiftObject }
         }
         set {
-            CFCalendarSetLocale(_cfObject, newValue?._cfObject)
+            self.synchronized { CFCalendarSetLocale(_cfObject, newValue?._cfObject) }
         }
     }
+
+    /*@NSCopying*/ private var _timeZone: TimeZone {
+        get { CFCalendarCopyTimeZone(_cfObject)._swiftObject }
+        set { CFCalendarSetTimeZone(_cfObject, newValue._cfObject) }
+    }
+
     /*@NSCopying*/ open var timeZone: TimeZone {
         get {
-            return CFCalendarCopyTimeZone(_cfObject)._swiftObject
+            return self.synchronized { _timeZone }
         }
         set {
-            CFCalendarSetTimeZone(_cfObject, newValue._cfObject)
+            self.synchronized { _timeZone = newValue }
         }
     }
-    
+
     open var firstWeekday: Int {
         get {
             return CFCalendarGetFirstWeekday(_cfObject)
@@ -316,11 +329,11 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     internal var gregorianStartDate: Date? {
         get {
-            return CFCalendarCopyGregorianStartDate(_cfObject)?._swiftObject
+            return self.synchronized { CFCalendarCopyGregorianStartDate(_cfObject)?._swiftObject }
         }
         set {
             let date = newValue as NSDate?
-            CFCalendarSetGregorianStartDate(_cfObject, date?._cfObject)
+            self.synchronized { CFCalendarSetGregorianStartDate(_cfObject, date?._cfObject) }
         }
     }
     
@@ -424,7 +437,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     // Calendrical calculations
     
     open func minimumRange(of unit: Unit) -> NSRange {
-        let r = CFCalendarGetMinimumRangeOfUnit(self._cfObject, unit._cfValue)
+        let r = self.synchronized { CFCalendarGetMinimumRangeOfUnit(self._cfObject, unit._cfValue) }
         if (r.location == kCFNotFound) {
             return NSRange(location: NSNotFound, length: NSNotFound)
         }
@@ -432,15 +445,16 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func maximumRange(of unit: Unit) -> NSRange {
-        let r = CFCalendarGetMaximumRangeOfUnit(_cfObject, unit._cfValue)
+        let r = self.synchronized { CFCalendarGetMaximumRangeOfUnit(_cfObject, unit._cfValue) }
         if r.location == kCFNotFound {
             return NSRange(location: NSNotFound, length: NSNotFound)
         }
         return NSRange(location: r.location, length: r.length)
     }
+
     
     open func range(of smaller: Unit, in larger: Unit, for date: Date) -> NSRange {
-        let r = CFCalendarGetRangeOfUnit(_cfObject, smaller._cfValue, larger._cfValue, date.timeIntervalSinceReferenceDate)
+        let r = self.synchronized { CFCalendarGetRangeOfUnit(_cfObject, smaller._cfValue, larger._cfValue, date.timeIntervalSinceReferenceDate) }
         if r.location == kCFNotFound {
             return NSRange(location: NSNotFound, length: NSNotFound)
         }
@@ -462,10 +476,10 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var ti: CFTimeInterval = 0.0
         let res: Bool = withUnsafeMutablePointer(to: &start) { startp in
             withUnsafeMutablePointer(to: &ti) { tip in
-                return CFCalendarGetTimeRangeOfUnit(_cfObject, unit._cfValue, date.timeIntervalSinceReferenceDate, startp, tip)
+                return self.synchronized { CFCalendarGetTimeRangeOfUnit(_cfObject, unit._cfValue, date.timeIntervalSinceReferenceDate, startp, tip) }
             }
         }
-        
+
         if res {
             return DateInterval(start: Date(timeIntervalSinceReferenceDate: start), duration: ti)
         }
@@ -513,23 +527,24 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func date(from comps: DateComponents) -> Date? {
-        var (vector, compDesc) = _convert(comps)
+        return self.synchronized {
+            var (vector, compDesc) = _convert(comps)
+            let oldTz = self._timeZone
+            self._timeZone = comps.timeZone ?? self._timeZone
 
-        let oldTz = self.timeZone
-        self.timeZone = comps.timeZone ?? timeZone
-        
-        var at: CFAbsoluteTime = 0.0
-        let res: Bool = withUnsafeMutablePointer(to: &at) { t in
-            return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
-                return _CFCalendarComposeAbsoluteTimeV(_cfObject, t, compDesc, vectorBuffer.baseAddress!, Int32(vectorBuffer.count))
+            var at: CFAbsoluteTime = 0.0
+            let res: Bool = withUnsafeMutablePointer(to: &at) { t in
+                return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
+                    return _CFCalendarComposeAbsoluteTimeV(_cfObject, t, compDesc, vectorBuffer.baseAddress!, Int32(vectorBuffer.count))
+                }
             }
-        }
 
-        self.timeZone = oldTz
-        if res {
-            return Date(timeIntervalSinceReferenceDate: at)
-        } else {
-            return nil
+            self._timeZone = oldTz
+            if res {
+                return Date(timeIntervalSinceReferenceDate: at)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -602,26 +617,28 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// The Darwin version is not nullable but this one is since the conversion from the date and unit flags can potentially return nil
     open func components(_ unitFlags: Unit, from date: Date) -> DateComponents {
-        let compDesc = _setup(unitFlags)
-        
-        // _CFCalendarDecomposeAbsoluteTimeV requires a bit of a funky vector layout; which does not express well in swift; this is the closest I can come up with to the required format
-        // int32_t ints[20];
-        // int32_t *vector[20] = {&ints[0], &ints[1], &ints[2], &ints[3], &ints[4], &ints[5], &ints[6], &ints[7], &ints[8], &ints[9], &ints[10], &ints[11], &ints[12], &ints[13], &ints[14], &ints[15], &ints[16], &ints[17], &ints[18], &ints[19]};
-        var ints = [Int32](repeating: 0, count: 20)
-        let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
-            var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
-                intArrayBuffer.baseAddress!.advanced(by: idx)
+        return self.synchronized {
+            let compDesc = _setup(unitFlags)
+
+            // _CFCalendarDecomposeAbsoluteTimeV requires a bit of a funky vector layout; which does not express well in swift; this is the closest I can come up with to the required format
+            // int32_t ints[20];
+            // int32_t *vector[20] = {&ints[0], &ints[1], &ints[2], &ints[3], &ints[4], &ints[5], &ints[6], &ints[7], &ints[8], &ints[9], &ints[10], &ints[11], &ints[12], &ints[13], &ints[14], &ints[15], &ints[16], &ints[17], &ints[18], &ints[19]};
+            var ints = [Int32](repeating: 0, count: 20)
+            let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
+                var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
+                    intArrayBuffer.baseAddress!.advanced(by: idx)
+                }
+
+                return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
+                    return _CFCalendarDecomposeAbsoluteTimeV(_cfObject, date.timeIntervalSinceReferenceDate, compDesc, vecBuffer.baseAddress!, Int32(compDesc.count - 1))
+                }
+            }
+            if res {
+                return _components(unitFlags, vector: ints)
             }
 
-            return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                return _CFCalendarDecomposeAbsoluteTimeV(_cfObject, date.timeIntervalSinceReferenceDate, compDesc, vecBuffer.baseAddress!, Int32(compDesc.count - 1))
-            }
+            fatalError()
         }
-        if res {
-            return _components(unitFlags, vector: ints)
-        }
-        
-        fatalError()
     }
     
     open func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
@@ -631,7 +648,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         let res: Bool = withUnsafeMutablePointer(to: &at) { t in
             let count = Int32(vector.count)
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
-                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, count)
+                return self.synchronized { _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, count) }
             }
         }
         
@@ -643,38 +660,41 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
-        let validUnitFlags: NSCalendar.Unit = [
-            .era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekOfYear, .weekOfMonth, .yearForWeekOfYear, .weekday, .weekdayOrdinal ]
+        return self.synchronized {
+            let validUnitFlags: NSCalendar.Unit = [
+                .era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekOfYear, .weekOfMonth, .yearForWeekOfYear, .weekday, .weekdayOrdinal ]
 
-        let invalidUnitFlags: NSCalendar.Unit = [ .quarter, .timeZone, .calendar]
+            let invalidUnitFlags: NSCalendar.Unit = [ .quarter, .timeZone, .calendar]
 
-        // Mask off the unsupported fields
-        let newUnitFlags = Unit(rawValue: unitFlags.rawValue & validUnitFlags.rawValue)
-        let compDesc = _setup(newUnitFlags, addIsLeapMonth: false)
-        var ints = [Int32](repeating: 0, count: 20)
-        let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
-            var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
-                return intArrayBuffer.baseAddress!.advanced(by: idx)
+            // Mask off the unsupported fields
+            let newUnitFlags = Unit(rawValue: unitFlags.rawValue & validUnitFlags.rawValue)
+            let compDesc = _setup(newUnitFlags, addIsLeapMonth: false)
+            var ints = [Int32](repeating: 0, count: 20)
+
+            let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
+                var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
+                    return intArrayBuffer.baseAddress!.advanced(by: idx)
+                }
+
+                let count = Int32(vector.count)
+                return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
+                    return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, count)
+                }
             }
+            if res {
+                let emptyUnitFlags = Unit(rawValue: unitFlags.rawValue & invalidUnitFlags.rawValue)
+                var components = _components(newUnitFlags, vector: ints, addIsLeapMonth: false)
 
-            let count = Int32(vector.count)
-            return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, count)
+                // quarter always gets set to zero if requested in the output
+                if emptyUnitFlags.contains(.quarter) {
+                    components.quarter = 0
+                }
+                // isLeapMonth is always set
+                components.isLeapMonth = false
+                return components
             }
+            fatalError()
         }
-        if res {
-            let emptyUnitFlags = Unit(rawValue: unitFlags.rawValue & invalidUnitFlags.rawValue)
-            var components = _components(newUnitFlags, vector: ints, addIsLeapMonth: false)
-
-            // quarter always gets set to zero if requested in the output
-            if emptyUnitFlags.contains(.quarter) {
-                components.quarter = 0
-            }
-            // isLeapMonth is always set
-            components.isLeapMonth = false
-            return components
-        }
-        fatalError()
     }
     
     /*
@@ -720,11 +740,13 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     Get just one component's value.
     */
     open func component(_ unit: Unit, from date: Date) -> Int {
-        let comps = components(unit, from: date)
-        if let res = comps.value(for: Calendar._fromCalendarUnit(unit)) {
-            return res
-        } else {
-            return NSDateComponentUndefined
+        return self.synchronized {
+            let comps = components(unit, from: date)
+            if let res = comps.value(for: Calendar._fromCalendarUnit(unit)) {
+                return res
+            } else {
+                return NSDateComponentUndefined
+            }
         }
     }
     
@@ -947,7 +969,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API reports if the date is within a weekend period, as defined by the calendar and calendar's locale.
     */
     open func isDateInWeekend(_ date: Date) -> Bool {
-        return _CFCalendarIsDateInWeekend(_cfObject, date._cfObject)
+        return self.synchronized { _CFCalendarIsDateInWeekend(_cfObject, date._cfObject) }
     }
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
@@ -982,7 +1004,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     open func nextWeekendAfter(_ date: Date, options: Options) -> DateInterval? {
         var range = _CFCalendarWeekendRange()
         let res = withUnsafeMutablePointer(to: &range) { rangep in
-            return _CFCalendarGetNextWeekend(_cfObject, rangep)
+            return self.synchronized { _CFCalendarGetNextWeekend(_cfObject, rangep) }
         }
         if res {
             var comp = DateComponents()
@@ -1072,13 +1094,15 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         if !verifyCalendarOptions(opts) {
             return
         }
-        
-        withoutActuallyEscaping(block) { (nonescapingBlock) in
-            _CFCalendarEnumerateDates(_cfObject, start._cfObject, comps._createCFDateComponents(), CFOptionFlags(opts.rawValue)) { (cfDate, exact, stop) in
-                var ourStop: ObjCBool = false
-                nonescapingBlock(cfDate._swiftObject, exact, &ourStop)
-                if ourStop.boolValue {
-                    stop.pointee = true
+
+        self.synchronized {
+            withoutActuallyEscaping(block) { (nonescapingBlock) in
+                _CFCalendarEnumerateDates(_cfObject, start._cfObject, comps._createCFDateComponents(), CFOptionFlags(opts.rawValue)) { (cfDate, exact, stop) in
+                    var ourStop: ObjCBool = false
+                    nonescapingBlock(cfDate._swiftObject, exact, &ourStop)
+                    if ourStop.boolValue {
+                        stop.pointee = true
+                    }
                 }
             }
         }

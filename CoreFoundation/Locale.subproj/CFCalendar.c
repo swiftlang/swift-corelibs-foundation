@@ -639,6 +639,7 @@ CF_CROSS_PLATFORM_EXPORT bool _CFCalendarInitWithIdentifier(CFCalendarRef calend
     calendar->_userSet_firstWeekday = false;
     calendar->_userSet_minDaysInFirstWeek = false;
     calendar->_userSet_gregorianStart = false;
+    CF_LOCK_INIT_FOR_STRUCTS(calendar->_lock);
     ICU_LOG("                // _CFCalendarInitWithIdentifier exit true\n");
     return true;
 }

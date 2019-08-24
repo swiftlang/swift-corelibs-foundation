@@ -857,7 +857,60 @@ class TestNSCalendar: XCTestCase {
             }
         }
     }
-    
+
+    func test_ThreadSafety() throws {
+        let cal = try XCTUnwrap(NSCalendar(identifier: .gregorian))
+        let utcTz = try XCTUnwrap(TimeZone(identifier: "UTC"))
+        let cetTz = try XCTUnwrap(TimeZone(identifier: "CET"))
+        let queue = DispatchQueue(label: "test", attributes: .concurrent)
+
+
+        let isoFormatter = ISO8601DateFormatter()
+        let date = try XCTUnwrap(isoFormatter.date(from: "2019-08-2T00:00:00Z"))
+        let date2 = try XCTUnwrap(isoFormatter.date(from: "2022-03-05T01:02:03Z"))
+        cal.timeZone = utcTz
+        let unit: NSCalendar.Unit = .month
+        let addableDateComponents = DateComponents(day: 5)
+
+        let minimumRange = cal.minimumRange(of: .day)
+        let maximumRange = cal.maximumRange(of: .day)
+        let smallerLargeRange = cal.range(of: .day, in: .month, for: date)
+        let dayRange = cal.range(of: .day, for: date)
+        let isWeekend = cal.isDateInWeekend(date)
+        let nextWeekendAfter = cal.nextWeekendAfter(date, options: [])
+        let dateComponent = cal.component(unit, from: date)
+        let dateComponents = cal.components(in: cetTz, from: date)
+        let dateComponents2 = cal.components(unit, from: date, to: date2, options: [])
+        let dateFromComponents = cal.date(from: dateComponents)
+        let dateByAddingComponents = cal.date(byAdding: addableDateComponents, to: date)
+
+        var calendarCorrupted = false
+
+        XCTAssertEqual(cal.timeZone, utcTz)
+        let dg = DispatchGroup()
+        for _ in 0...5000 {
+            dg.enter()
+            queue.async {
+                if utcTz != cal.timeZone
+                    || minimumRange != cal.minimumRange(of: .day)
+                    || maximumRange != cal.maximumRange(of: .day)
+                    || smallerLargeRange != cal.range(of: .day, in: .month, for: date)
+                    || dayRange != cal.range(of: .day, for: date)
+                    || isWeekend != cal.isDateInWeekend(date)
+                    || nextWeekendAfter != cal.nextWeekendAfter(date, options: [])
+                    || dateComponent != cal.component(unit, from: date)
+                    || dateComponents2 != cal.components(unit, from: date, to: date2, options: [])
+                    || dateFromComponents != cal.date(from: dateComponents)
+                    || dateByAddingComponents != cal.date(byAdding: addableDateComponents, to: date) {
+                    queue.sync { calendarCorrupted = true }
+                }
+                dg.leave()
+            }
+        }
+        dg.wait()
+        XCTAssertFalse(calendarCorrupted, "Calendar corruption due to multiple async calls to CFCalendar functions")
+    }
+
     static var allTests: [(String, (TestNSCalendar) -> () throws -> Void)] {
         return [
             ("test_initWithCalendarIdentifier", test_initWithCalendarIdentifier),
@@ -888,6 +941,7 @@ class TestNSCalendar: XCTestCase {
             ("test_rangeOfWeekendStartDate_interval_containingDate", test_rangeOfWeekendStartDate_interval_containingDate),
             ("test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne", test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne),
             ("test_enumerateDatesStartingAfterDate_ensureStrictlyIncreasingResults_minuteSecondClearing", test_enumerateDatesStartingAfterDate_ensureStrictlyIncreasingResults_minuteSecondClearing),
+            ("test_threadSafety", test_ThreadSafety),
         ]
     }
 }
