@@ -668,6 +668,7 @@ open class URLSessionDownloadTask : URLSessionTask {
  * disassociated from the underlying session.
  */
 
+@available(*, deprecated, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
 open class URLSessionStreamTask : URLSessionTask {
     
     /* Read minBytes, or at most maxBytes bytes and invoke the completion
@@ -675,14 +676,16 @@ open class URLSessionStreamTask : URLSessionTask {
      * If an error occurs, any outstanding reads will also fail, and new
      * read requests will error out immediately.
      */
-    open func readData(ofMinLength minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: @escaping (Data?, Bool, Error?) -> Void) { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func readData(ofMinLength minBytes: Int, maxLength maxBytes: Int, timeout: TimeInterval, completionHandler: @escaping (Data?, Bool, Error?) -> Void) { NSUnsupported() }
     
     /* Write the data completely to the underlying socket.  If all the
      * bytes have not been written by the timeout, a timeout error will
      * occur.  Note that invocation of the completion handler does not
      * guarantee that the remote side has received all the bytes, only
      * that they have been written to the kernel. */
-    open func write(_ data: Data, timeout: TimeInterval, completionHandler: @escaping (Error?) -> Void) { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func write(_ data: Data, timeout: TimeInterval, completionHandler: @escaping (Error?) -> Void) { NSUnsupported() }
     
     /* -captureStreams completes any already enqueued reads
      * and writes, and then invokes the
@@ -690,7 +693,8 @@ open class URLSessionStreamTask : URLSessionTask {
      * message. When that message is received, the task object is
      * considered completed and will not receive any more delegate
      * messages. */
-    open func captureStreams() { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func captureStreams() { NSUnsupported() }
     
     /* Enqueue a request to close the write end of the underlying socket.
      * All outstanding IO will complete before the write side of the
@@ -698,26 +702,30 @@ open class URLSessionStreamTask : URLSessionTask {
      * back to the client, so best practice is to continue reading from
      * the server until you receive EOF.
      */
-    open func closeWrite() { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func closeWrite() { NSUnsupported() }
     
     /* Enqueue a request to close the read side of the underlying socket.
      * All outstanding IO will complete before the read side is closed.
      * You may continue writing to the server.
      */
-    open func closeRead() { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func closeRead() { NSUnsupported() }
     
     /*
      * Begin encrypted handshake.  The handshake begins after all pending
      * IO has completed.  TLS authentication callbacks are sent to the
      * session's -URLSession:task:didReceiveChallenge:completionHandler:
      */
-    open func startSecureConnection() { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func startSecureConnection() { NSUnsupported() }
     
     /*
      * Cleanly close a secure connection after all pending secure IO has
      * completed.
      */
-    open func stopSecureConnection() { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func stopSecureConnection() { NSUnsupported() }
 }
 
 /* Key in the userInfo dictionary of an NSError received during a failed download. */

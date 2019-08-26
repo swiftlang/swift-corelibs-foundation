@@ -456,7 +456,8 @@ open class URLSession : NSObject {
     
     /* Creates a bidirectional stream task to a given host and port.
      */
-    open func streamTask(withHostName hostname: String, port: Int) -> URLSessionStreamTask { NSUnimplemented() }
+    @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
+    open func streamTask(withHostName hostname: String, port: Int) -> URLSessionStreamTask { NSUnsupported() }
 }
 
 
