@@ -292,7 +292,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
                     let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
                     self.internalState = .transferInProgress(transferState)
                 default:
-                    NSUnimplemented()
+                    fatalError()
                 }
             default:
                 //TODO: it's possible?
@@ -507,7 +507,7 @@ extension _NativeProtocol {
             NSUnimplemented()
         case .becomeStream:
             /* Turn this task into a stream task */
-            NSUnimplemented()
+            NSUnsupported()
         }
     }
 }

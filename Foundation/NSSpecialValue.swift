@@ -83,7 +83,7 @@ internal class NSSpecialValue : NSValue {
     
     required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         guard let specialType = NSSpecialValue._typeFromObjCType(type) else {
-            NSUnimplemented()
+            NSUnsupported()
         }
     
         self._value = specialType.init(bytes: value)

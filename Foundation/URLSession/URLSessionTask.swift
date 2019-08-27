@@ -892,7 +892,9 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) {
-        NSUnimplemented()
+        guard let task = `protocol`.task else { fatalError() }
+        // Fail with a cancellation error, for now.
+        urlProtocol(task: task, didFailWithError: NSError(domain: NSCocoaErrorDomain, code: CocoaError.userCancelled.rawValue))
     }
 
     func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) {
@@ -1033,7 +1035,7 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {}
 
     func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) {
-        NSUnimplemented()
+        fatalError("The URLSession swift-corelibs-foundation implementation doesn't currently handle redirects directly.")
     }
 }
 extension URLSessionTask {
@@ -1058,7 +1060,7 @@ extension URLSessionTask {
     }
 
     static func digestAuth(_ task: URLSessionTask, _ disposition: URLSession.AuthChallengeDisposition, _ credential: URLCredential?) {
-        NSUnimplemented()
+        fatalError("The URLSession swift-corelibs-foundation implementation doesn't currently handle digest authentication.")
     }
 }
 
