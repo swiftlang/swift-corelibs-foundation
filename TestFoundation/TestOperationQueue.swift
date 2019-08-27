@@ -25,6 +25,7 @@ class TestOperationQueue : XCTestCase {
             ("test_CurrentQueueWithCustomUnderlyingQueue", test_CurrentQueueWithCustomUnderlyingQueue),
             ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
             ("test_isSuspended", test_isSuspended),
+            ("test_OperationDependencyCount", test_OperationDependencyCount),
         ]
     }
     
@@ -263,6 +264,20 @@ class TestOperationQueue : XCTestCase {
         }
         
         waitForExpectations(timeout: 1)
+    }
+    
+    func test_OperationDependencyCount() {
+        var results = [Int]()
+        let op1 = BlockOperation {
+            results.append(1)
+        }
+        op1.name = "op1"
+        let op2 = BlockOperation {
+            results.append(2)
+        }
+        op2.name = "op2"
+        op1.addDependency(op2)
+        XCTAssert(op1.dependencies.count == 1)
     }
 }
 
