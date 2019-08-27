@@ -200,6 +200,22 @@ enum Fixtures {
         return (try Fixtures.indexSetManyRanges.make()).mutableCopy() as! NSMutableIndexSet
     }
     
+    // ===== NSIndexPath =====
+    
+    static let indexPathEmpty = TypedFixture<NSIndexPath>("NSIndexPath-Empty") {
+        return NSIndexPath()
+    }
+    
+    static let indexPathOneIndex = TypedFixture<NSIndexPath>("NSIndexPath-OneIndex") {
+        return NSIndexPath(index: 52)
+    }
+    
+    static let indexPathManyIndices = TypedFixture<NSIndexPath>("NSIndexPath-ManyIndices") {
+        var indexPath = IndexPath()
+        indexPath.append([4, 8, 15, 16, 23, 42])
+        return indexPath as NSIndexPath
+    }
+    
     // ===== NSSet, NSMutableSet =====
     
     static let setOfNumbers = TypedFixture<NSSet>("NSSet-Numbers") {
@@ -284,6 +300,9 @@ enum Fixtures {
         AnyFixture(Fixtures.mutableIndexSetEmpty),
         AnyFixture(Fixtures.mutableIndexSetOneRange),
         AnyFixture(Fixtures.mutableIndexSetManyRanges),
+        AnyFixture(Fixtures.indexPathEmpty),
+        AnyFixture(Fixtures.indexPathOneIndex),
+        AnyFixture(Fixtures.indexPathManyIndices),
         AnyFixture(Fixtures.setOfNumbers),
         AnyFixture(Fixtures.setEmpty),
         AnyFixture(Fixtures.mutableSetOfNumbers),

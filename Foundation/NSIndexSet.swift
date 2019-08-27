@@ -858,52 +858,61 @@ extension NSIndexSet : _StructTypeBridgeable, _SwiftBridgeable {
 
 // MARK: NSCoding
 
-extension NSIndexSet {
-    struct PackedUIntSequence {
-        var data: Data
-        init(data: Data) {
-            self.data = data
-        }
-        
-        var count: Int {
-            var result = 0
-            for byte in data {
-                if byte < 128 {
-                    result += 1
-                }
-            }
-            return result
-        }
-        
-        var unsignedIntegers: [UInt] {
-            var result: [UInt] = []
-            var index = data.startIndex
-            while index < data.endIndex {
-                let fromIndex = unsignedInt(atIndex: index)
-                result.append(fromIndex.value)
-                index = fromIndex.nextIndex
-            }
-            return result
-        }
-        
-        private func unsignedInt(atIndex index: Int) -> (value: UInt, nextIndex: Int) {
-            var result = UInt(data[index])
-            if result < 128 {
-                return (value: result, nextIndex: index + 1)
-            } else {
-                let fromNext = unsignedInt(atIndex: index + 1)
-                result = (result - 128) + 128 * fromNext.value
-                return (value: result, nextIndex: fromNext.nextIndex)
+internal struct PackedUIntSequence {
+    var data: Data
+    init(data: Data = Data()) {
+        self.data = data
+    }
+    
+    var count: Int {
+        var result = 0
+        for byte in data {
+            if byte < 128 {
+                result += 1
             }
         }
-        
-        mutating func append(_ value: UInt) {
-            if value > 127 {
-                data.append(UInt8(128 + (value % 128)))
-                append(value / 128)
-            } else {
-                data.append(UInt8(value))
-            }
+        return result
+    }
+    
+    var unsignedIntegers: [UInt] {
+        var result: [UInt] = []
+        var index = data.startIndex
+        while index < data.endIndex {
+            let fromIndex = unsignedInt(atIndex: index)
+            result.append(fromIndex.value)
+            index = fromIndex.nextIndex
+        }
+        return result
+    }
+    
+    var integers: [Int] {
+        var result: [Int] = []
+        var index = data.startIndex
+        while index < data.endIndex {
+            let fromIndex = unsignedInt(atIndex: index)
+            result.append(Int(fromIndex.value))
+            index = fromIndex.nextIndex
+        }
+        return result
+    }
+    
+    private func unsignedInt(atIndex index: Int) -> (value: UInt, nextIndex: Int) {
+        var result = UInt(data[index])
+        if result < 128 {
+            return (value: result, nextIndex: index + 1)
+        } else {
+            let fromNext = unsignedInt(atIndex: index + 1)
+            result = (result - 128) + 128 * fromNext.value
+            return (value: result, nextIndex: fromNext.nextIndex)
+        }
+    }
+    
+    mutating func append(_ value: UInt) {
+        if value > 127 {
+            data.append(UInt8(128 + (value % 128)))
+            append(value / 128)
+        } else {
+            data.append(UInt8(value))
         }
     }
 }

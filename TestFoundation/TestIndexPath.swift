@@ -9,60 +9,6 @@
 
 class TestIndexPath: XCTestCase {
     
-    static var allTests: [(String, (TestIndexPath) -> () throws -> Void)] {
-        return [
-            ("testEmpty", testEmpty),
-            ("testSingleIndex", testSingleIndex),
-            ("testTwoIndexes", testTwoIndexes),
-            ("testManyIndexes", testManyIndexes),
-            ("testCreateFromSequence", testCreateFromSequence),
-            ("testCreateFromLiteral", testCreateFromLiteral),
-            ("testDropLast", testDropLast),
-            ("testDropLastFromEmpty", testDropLastFromEmpty),
-            ("testDropLastFromSingle", testDropLastFromSingle),
-            ("testDropLastFromPair", testDropLastFromPair),
-            ("testDropLastFromTriple", testDropLastFromTriple),
-            ("testStartEndIndex", testStartEndIndex),
-            ("testIterator", testIterator),
-            ("testIndexing", testIndexing),
-            ("testCompare", testCompare),
-            ("testHashing", testHashing),
-            ("testEquality", testEquality),
-            ("testSubscripting", testSubscripting),
-            ("testAppending", testAppending),
-            ("testAppendEmpty", testAppendEmpty),
-            ("testAppendEmptyIndexPath", testAppendEmptyIndexPath),
-            ("testAppendManyIndexPath", testAppendManyIndexPath),
-            ("testAppendEmptyIndexPathToSingle", testAppendEmptyIndexPathToSingle),
-            ("testAppendSingleIndexPath", testAppendSingleIndexPath),
-            ("testAppendSingleIndexPathToSingle", testAppendSingleIndexPathToSingle),
-            ("testAppendPairIndexPath", testAppendPairIndexPath),
-            ("testAppendManyIndexPathToEmpty", testAppendManyIndexPathToEmpty),
-            ("testAppendByOperator", testAppendByOperator),
-            ("testAppendArray", testAppendArray),
-            ("testRanges", testRanges),
-            ("testRangeFromEmpty", testRangeFromEmpty),
-            ("testRangeFromSingle", testRangeFromSingle),
-            ("testRangeFromPair", testRangeFromPair),
-            ("testRangeFromMany", testRangeFromMany),
-            ("testRangeReplacementSingle", testRangeReplacementSingle),
-            ("testRangeReplacementPair", testRangeReplacementPair),
-            ("testMoreRanges", testMoreRanges),
-            ("testIteration", testIteration),
-            ("testDescription", testDescription),
-            ("testBridgeToObjC", testBridgeToObjC),
-            ("testForceBridgeFromObjC", testForceBridgeFromObjC),
-            ("testConditionalBridgeFromObjC", testConditionalBridgeFromObjC),
-            ("testUnconditionalBridgeFromObjC", testUnconditionalBridgeFromObjC),
-            ("testObjcBridgeType", testObjcBridgeType),
-            ("test_AnyHashableContainingIndexPath", test_AnyHashableContainingIndexPath),
-            ("test_AnyHashableCreatedFromNSIndexPath", test_AnyHashableCreatedFromNSIndexPath),
-            ("test_unconditionallyBridgeFromObjectiveC", test_unconditionallyBridgeFromObjectiveC),
-            ("test_slice_1ary", test_slice_1ary),
-            ("test_copy", test_copy),
-        ]
-    }
-
     func testEmpty() {
         let ip = IndexPath()
         XCTAssertEqual(ip.count, 0)
@@ -790,4 +736,79 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(nip2.length, 3)
         XCTAssertEqual(nip1, nip2)
     }
+    
+    let fixtures: [TypedFixture<NSIndexPath>] = [
+        Fixtures.indexPathEmpty,
+        Fixtures.indexPathOneIndex,
+        Fixtures.indexPathManyIndices,
+    ]
+    
+    func testCodingRoundtrip() throws {
+        for fixture in fixtures {
+            try fixture.assertValueRoundtripsInCoder()
+        }
+    }
+    
+    func testLoadedValuesMatch() throws {
+        for fixture in fixtures {
+            try fixture.assertLoadedValuesMatch()
+        }
+    }
+    
+    static var allTests: [(String, (TestIndexPath) -> () throws -> Void)] {
+        return [
+            ("testEmpty", testEmpty),
+            ("testSingleIndex", testSingleIndex),
+            ("testTwoIndexes", testTwoIndexes),
+            ("testManyIndexes", testManyIndexes),
+            ("testCreateFromSequence", testCreateFromSequence),
+            ("testCreateFromLiteral", testCreateFromLiteral),
+            ("testDropLast", testDropLast),
+            ("testDropLastFromEmpty", testDropLastFromEmpty),
+            ("testDropLastFromSingle", testDropLastFromSingle),
+            ("testDropLastFromPair", testDropLastFromPair),
+            ("testDropLastFromTriple", testDropLastFromTriple),
+            ("testStartEndIndex", testStartEndIndex),
+            ("testIterator", testIterator),
+            ("testIndexing", testIndexing),
+            ("testCompare", testCompare),
+            ("testHashing", testHashing),
+            ("testEquality", testEquality),
+            ("testSubscripting", testSubscripting),
+            ("testAppending", testAppending),
+            ("testAppendEmpty", testAppendEmpty),
+            ("testAppendEmptyIndexPath", testAppendEmptyIndexPath),
+            ("testAppendManyIndexPath", testAppendManyIndexPath),
+            ("testAppendEmptyIndexPathToSingle", testAppendEmptyIndexPathToSingle),
+            ("testAppendSingleIndexPath", testAppendSingleIndexPath),
+            ("testAppendSingleIndexPathToSingle", testAppendSingleIndexPathToSingle),
+            ("testAppendPairIndexPath", testAppendPairIndexPath),
+            ("testAppendManyIndexPathToEmpty", testAppendManyIndexPathToEmpty),
+            ("testAppendByOperator", testAppendByOperator),
+            ("testAppendArray", testAppendArray),
+            ("testRanges", testRanges),
+            ("testRangeFromEmpty", testRangeFromEmpty),
+            ("testRangeFromSingle", testRangeFromSingle),
+            ("testRangeFromPair", testRangeFromPair),
+            ("testRangeFromMany", testRangeFromMany),
+            ("testRangeReplacementSingle", testRangeReplacementSingle),
+            ("testRangeReplacementPair", testRangeReplacementPair),
+            ("testMoreRanges", testMoreRanges),
+            ("testIteration", testIteration),
+            ("testDescription", testDescription),
+            ("testBridgeToObjC", testBridgeToObjC),
+            ("testForceBridgeFromObjC", testForceBridgeFromObjC),
+            ("testConditionalBridgeFromObjC", testConditionalBridgeFromObjC),
+            ("testUnconditionalBridgeFromObjC", testUnconditionalBridgeFromObjC),
+            ("testObjcBridgeType", testObjcBridgeType),
+            ("test_AnyHashableContainingIndexPath", test_AnyHashableContainingIndexPath),
+            ("test_AnyHashableCreatedFromNSIndexPath", test_AnyHashableCreatedFromNSIndexPath),
+            ("test_unconditionallyBridgeFromObjectiveC", test_unconditionallyBridgeFromObjectiveC),
+            ("test_slice_1ary", test_slice_1ary),
+            ("test_copy", test_copy),
+            ("testCodingRoundtrip", testCodingRoundtrip),
+            ("testLoadedValuesMatch", testLoadedValuesMatch),
+        ]
+    }
+
 }
