@@ -422,5 +422,5 @@ extension XMLElement {
         @discussion This method is deprecated and does not function correctly. Use -setAttributesWith: instead.
      */
     @available(*, unavailable, renamed:"setAttributesWith")
-    public func setAttributesAs(_ attributes: [NSObject : AnyObject]) { NSUnimplemented() }
+    public func setAttributesAs(_ attributes: [NSObject : AnyObject]) { NSUnsupported() }
 }

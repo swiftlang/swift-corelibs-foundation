@@ -39,10 +39,12 @@ extension PersonNameComponentsFormatter {
     }
 }
 
+@available(*, deprecated, message: "Person name components formatting isn't available in swift-corelibs-foundation")
 open class PersonNameComponentsFormatter : Formatter {
     
+    @available(*, unavailable, message: "Person name components formatting isn't available in swift-corelibs-foundation")
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     /* Specify the formatting style for the formatted string on an instance. ShortStyle will fall back to user preferences and language-specific defaults
@@ -56,18 +58,22 @@ open class PersonNameComponentsFormatter : Formatter {
     /* Shortcut for converting an NSPersonNameComponents object into a string without explicitly creating an instance.
         Create an instance for greater customizability.
      */
-    open class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnimplemented() }
+    @available(*, unavailable, message: "Person name components formatting isn't available in swift-corelibs-foundation")
+    open class func localizedString(from components: PersonNameComponents, style nameFormatStyle: Style, options nameOptions: Options = []) -> String { NSUnsupported() }
     
     /* Convenience method on string(for:):. Returns a string containing the formatted value of the provided components object.
      */
-    open func string(from components: PersonNameComponents) -> String { NSUnimplemented() }
+    @available(*, unavailable, message: "Person name components formatting isn't available in swift-corelibs-foundation")
+    open func string(from components: PersonNameComponents) -> String { NSUnsupported() }
     
     /* Returns attributed string with annotations for each component. For each range, attributes can be obtained by querying
         dictionary key NSPersonNameComponentKey , using NSPersonNameComponent constant values.
      */
-    open func annotatedString(from components: PersonNameComponents) -> NSAttributedString { NSUnimplemented() }
+    @available(*, unavailable, message: "Person name components formatting isn't available in swift-corelibs-foundation")
+    open func annotatedString(from components: PersonNameComponents) -> NSAttributedString { NSUnsupported() }
     
-    open func personNameComponents(from string: String) -> PersonNameComponents? { NSUnimplemented() }
+    @available(*, unavailable, message: "Person name components formatting isn't available in swift-corelibs-foundation")
+    open func personNameComponents(from string: String) -> PersonNameComponents? { NSUnsupported() }
 }
 
 // Attributed String identifier key string

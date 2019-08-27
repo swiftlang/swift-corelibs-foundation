@@ -34,10 +34,13 @@ extension URLSession {
     }
 
     public enum ResponseDisposition : Int {
-    
         case cancel /* Cancel the load, this is the same as -[task cancel] */
         case allow /* Allow the load to continue */
+        
+        @available(*, deprecated, message: "swift-corelibs-foundation doesn't currently support turning responses into downloads dynamically.")
         case becomeDownload /* Turn this request into a download */
+
+        @available(*, unavailable, message: "swift-corelibs-foundation doesn't support stream tasks.")
         case becomeStream /* Turn this task into a stream task */
     }
 }
