@@ -40,12 +40,80 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         self.init(indexes: [index])
     }
     
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+    fileprivate enum NSCodingKeys {
+        static let lengthKey = "NSIndexPathLength"
+        static let singleValueKey = "NSIndexPathValue"
+        static let dataKey = "NSIndexPathData"
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            aCoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Cannot be serialized with a coder that does not support keyed archives"]))
+            return
+        }
+        
+        let length = self.length
+        aCoder.encode(length, forKey: NSCodingKeys.lengthKey)
+        switch length {
+        case 0:
+            break
+        case 1:
+            aCoder.encode(index(atPosition: 0), forKey: NSCodingKeys.singleValueKey)
+        default:
+            var sequence = PackedUIntSequence(data: Data(capacity: length * 2 + 16))
+            for position in 0 ..< length {
+                sequence.append(UInt(index(atPosition: position)))
+            }
+            aCoder.encode(sequence.data, forKey: NSCodingKeys.dataKey)
+        }
+    }
+    
+    public required convenience init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Cannot be deserialized with a coder that does not support keyed archives"]))
+            return nil
+        }
+        
+        guard aDecoder.containsValue(forKey: NSCodingKeys.lengthKey) else {
+            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Decoder did not provide a length value for the indexPath."]))
+            return nil
+        }
+        
+        let len = aDecoder.decodeInteger(forKey: NSCodingKeys.lengthKey)
+        guard len > 0 else {
+            self.init()
+            return
+        }
+        
+        switch len {
+        case 0:
+            self.init()
+            return
+            
+        case 1:
+            guard aDecoder.containsValue(forKey: NSCodingKeys.singleValueKey) else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Decoder did not provide indexPath data."]))
+                return nil
+            }
+            
+            let index = aDecoder.decodeInteger(forKey: NSCodingKeys.singleValueKey)
+            self.init(index: index)
+            return
+            
+        default:
+            guard let bytes = aDecoder.decodeObject(of: NSData.self, forKey: NSCodingKeys.dataKey) else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Range data missing."]))
+                return nil
+            }
+            
+            let sequence = PackedUIntSequence(data: bytes._swiftObject)
+            guard sequence.count == len else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Range data did not match expected length."]))
+                return nil
+            }
+            
+            self.init(indexes: sequence.integers)
+        }
     }
     
     public static var supportsSecureCoding: Bool { return true }
@@ -109,6 +177,28 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
             return .orderedAscending
         }
         return .orderedSame
+    }
+    
+    open override var hash: Int {
+        var hasher = Hasher()
+        for i in 0 ..< length {
+            hasher.combine(index(atPosition: i))
+        }
+        return hasher.finalize()
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let indexPath = object as? NSIndexPath,
+              indexPath.length == self.length else { return false }
+        
+        let length = self.length
+        for i in 0 ..< length {
+            if index(atPosition: i) != indexPath.index(atPosition: i) {
+                return false
+            }
+        }
+        
+        return true
     }
 }
 
