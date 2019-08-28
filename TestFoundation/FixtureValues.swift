@@ -236,6 +236,28 @@ enum Fixtures {
         return NSMutableSet()
     }
     
+    // ===== NSCountedSet =====
+    
+    static let countedSetOfNumbersAppearingOnce = TypedFixture<NSCountedSet>("NSCountedSet-NumbersAppearingOnce") {
+        let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
+        return NSCountedSet(array: numbers)
+    }
+    
+    static let countedSetOfNumbersAppearingSeveralTimes = TypedFixture<NSCountedSet>("NSCountedSet-NumbersAppearingSeveralTimes") {
+        let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
+        let set = NSCountedSet()
+        for _ in 0 ..< 5 {
+            for number in numbers {
+                set.add(number)
+            }
+        }
+        return set
+    }
+    
+    static let countedSetEmpty = TypedFixture<NSCountedSet>("NSCountedSet-Empty") {
+        return NSCountedSet()
+    }
+    
     // ===== NSCharacterSet, NSMutableCharacterSet =====
     
     static let characterSetEmpty = TypedFixture<NSCharacterSet>("NSCharacterSet-Empty") {
@@ -307,6 +329,9 @@ enum Fixtures {
         AnyFixture(Fixtures.setEmpty),
         AnyFixture(Fixtures.mutableSetOfNumbers),
         AnyFixture(Fixtures.mutableSetEmpty),
+        AnyFixture(Fixtures.countedSetOfNumbersAppearingOnce),
+        AnyFixture(Fixtures.countedSetOfNumbersAppearingSeveralTimes),
+        AnyFixture(Fixtures.countedSetEmpty),
         AnyFixture(Fixtures.characterSetEmpty),
         AnyFixture(Fixtures.characterSetRange),
         AnyFixture(Fixtures.characterSetString),

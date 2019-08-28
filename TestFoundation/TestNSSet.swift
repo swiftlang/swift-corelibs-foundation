@@ -260,11 +260,20 @@ class TestNSSet : XCTestCase {
         Fixtures.mutableSetEmpty,
     ]
     
+    let countedSetFixtures = [
+        Fixtures.countedSetOfNumbersAppearingOnce,
+        Fixtures.countedSetOfNumbersAppearingSeveralTimes,
+        Fixtures.countedSetEmpty,
+    ]
+    
     func test_codingRoundtrip() throws {
         for fixture in setFixtures {
             try fixture.assertValueRoundtripsInCoder()
         }
         for fixture in mutableSetFixtures {
+            try fixture.assertValueRoundtripsInCoder()
+        }
+        for fixture in countedSetFixtures {
             try fixture.assertValueRoundtripsInCoder()
         }
     }
@@ -274,6 +283,9 @@ class TestNSSet : XCTestCase {
             try fixture.assertLoadedValuesMatch()
         }
         for fixture in mutableSetFixtures {
+            try fixture.assertLoadedValuesMatch()
+        }
+        for fixture in countedSetFixtures {
             try fixture.assertLoadedValuesMatch()
         }
     }
