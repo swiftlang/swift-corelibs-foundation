@@ -403,10 +403,6 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
 }
 
 open class NSMutableCharacterSet : NSCharacterSet {
-
-    public convenience required init(coder aDecoder: NSCoder) {
-        NSUnimplemented()
-    }
     
     open func addCharacters(in aRange: NSRange) {
         CFCharacterSetAddCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
