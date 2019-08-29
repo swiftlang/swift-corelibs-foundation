@@ -81,9 +81,39 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open class var supportsSecureCoding: Bool { return true }
     
-    open func encode(with aCoder: NSCoder) { NSUnimplemented() }
+    private enum NSCodingKeys {
+        static let value = "NS.value"
+        static let unit = "NS.unit"
+    }
     
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder) {
+        let value = aDecoder.decodeDouble(forKey: NSCodingKeys.value)
+        guard let unit = aDecoder.decodeObject(of: Unit.self, forKey: NSCodingKeys.unit) else {
+            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue, userInfo: [NSLocalizedDescriptionKey: "Unit class object has been corrupted!"]))
+            return nil
+        }
+        
+        self.doubleValue = value
+        self.unit = unit
+    }
+    
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            fatalError("NSMeasurement cannot be encoded by non-keyed archivers")
+        }
+        
+        aCoder.encode(doubleValue, forKey: "NS.value")
+        aCoder.encode(unit, forKey: "NS.unit")
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let measurement = object as? NSMeasurement else { return false }
+        return measurement.unit.isEqual(self.unit) && doubleValue == measurement.doubleValue
+    }
+    
+    open override var hash: Int {
+        return Int(doubleValue) ^ unit.hash
+    }
 }
 
 extension NSMeasurement : _StructTypeBridgeable {
