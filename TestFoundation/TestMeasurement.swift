@@ -23,12 +23,6 @@ class CustomUnit: Unit {
 #endif
 
 class TestMeasurement: XCTestCase {
-    static var allTests: [(String, (TestMeasurement) -> () throws -> Void)] {
-        return [
-            ("testHashing", testHashing),
-        ]
-    }
-
     func testHashing() {
         let lengths: [[Measurement<UnitLength>]] = [
             [
@@ -75,5 +69,29 @@ class TestMeasurement: XCTestCase {
         checkHashable(custom, equalityOracle: { $0 == $1 })
 #endif
     }
+    
+    let fixtures = [
+        Fixtures.zeroMeasurement,
+        Fixtures.lengthMeasurement,
+        Fixtures.frequencyMeasurement,
+        Fixtures.angleMeasurement,
+    ]
 
+    func testCodingRoundtrip() throws {
+        for fixture in fixtures {
+            try fixture.assertValueRoundtripsInCoder()
+        }
+    }
+    
+    func testLoadedValuesMatch() throws {
+        for fixture in fixtures {
+            try fixture.assertLoadedValuesMatch()
+        }
+    }
+    
+    static let allTests = [
+        ("testHashing", testHashing),
+        ("testCodingRoundtrip", testCodingRoundtrip),
+        ("testLoadedValuesMatch", testLoadedValuesMatch),
+    ]
 }

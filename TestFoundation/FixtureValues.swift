@@ -301,6 +301,25 @@ enum Fixtures {
         return NSMutableOrderedSet()
     }
     
+    // ===== NSMeasurement =====
+    
+    static let zeroMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Zero") {
+        let noUnit = Unit(symbol: "")
+        return NSMeasurement(doubleValue: 0, unit: noUnit)
+    }
+    
+    static let lengthMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Length") {
+        return NSMeasurement(doubleValue: 45, unit: UnitLength.miles)
+    }
+    
+    static let frequencyMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Frequency") {
+        return NSMeasurement(doubleValue: 1400, unit: UnitFrequency.megahertz)
+    }
+    
+    static let angleMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Angle") {
+        return NSMeasurement(doubleValue: 90, unit: UnitAngle.degrees)
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -341,6 +360,10 @@ enum Fixtures {
         AnyFixture(Fixtures.orderedSetEmpty),
         AnyFixture(Fixtures.mutableOrderedSetOfNumbers),
         AnyFixture(Fixtures.mutableOrderedSetEmpty),
+        AnyFixture(Fixtures.zeroMeasurement),
+        AnyFixture(Fixtures.lengthMeasurement),
+        AnyFixture(Fixtures.frequencyMeasurement),
+        AnyFixture(Fixtures.angleMeasurement),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:

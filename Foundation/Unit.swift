@@ -94,25 +94,26 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
     }
 }
 
-private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
+// This must be named with a NS prefix because it can be sometimes encoded by Darwin, and we need to match the name in the archive.
+internal class NSUnitConverterReciprocal : UnitConverter, NSSecureCoding {
     
     
     private var reciprocal: Double
     
     
-    fileprivate init(reciprocal: Double) {
+    init(reciprocal: Double) {
         self.reciprocal = reciprocal
     }
     
-    fileprivate override func baseUnitValue(fromValue value: Double) -> Double {
+    override func baseUnitValue(fromValue value: Double) -> Double {
         return reciprocal / value
     }
     
-    fileprivate override func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
+    override func value(fromBaseUnitValue baseUnitValue: Double) -> Double {
         return reciprocal / baseUnitValue
     }
     
-    fileprivate required convenience init?(coder aDecoder: NSCoder) {
+    required convenience init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
@@ -120,17 +121,17 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
         self.init(reciprocal: reciprocal)
     }
     
-    fileprivate func encode(with aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         aCoder.encode(self.reciprocal, forKey:"NS.reciprocal")
     }
     
-    fileprivate static var supportsSecureCoding: Bool { return true }
+    static var supportsSecureCoding: Bool { return true }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? UnitConverterReciprocal else {
+        guard let other = object as? NSUnitConverterReciprocal else {
             return false
         }
         
@@ -215,8 +216,8 @@ open class Dimension : Unit {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         guard
-            let symbol = aDecoder.decodeObject(forKey: "NS.symbol") as? String,
-            let converter = aDecoder.decodeObject(forKey: "NS.converter") as? UnitConverter
+            let symbol = aDecoder.decodeObject(of: NSString.self, forKey: "NS.symbol")?._swiftObject,
+            let converter = aDecoder.decodeObject(of: [UnitConverterLinear.self, NSUnitConverterReciprocal.self], forKey: "NS.converter") as? UnitConverter
             else { return nil }
         self.converter = converter
         super.init(symbol: symbol)
@@ -1168,7 +1169,7 @@ public final class UnitFuelEfficiency : Dimension {
     }
     
     private convenience init(symbol: String, reciprocal: Double) {
-        self.init(symbol: symbol, converter: UnitConverterReciprocal(reciprocal: reciprocal))
+        self.init(symbol: symbol, converter: NSUnitConverterReciprocal(reciprocal: reciprocal))
     }
     
     public class var litersPer100Kilometers: UnitFuelEfficiency {

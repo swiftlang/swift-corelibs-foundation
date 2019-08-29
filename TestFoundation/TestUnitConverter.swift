@@ -273,7 +273,7 @@ class TestUnitConverter: XCTestCase {
         XCTAssertNotEqual(u1, u4)
         XCTAssertNotEqual(u4, u1)
 
-        // Cannot test UnitConverterReciprocal due to no support for @testable import.
+        // Cannot test NSUnitConverterReciprocal due to no support for @testable import.
     }
     
 }
