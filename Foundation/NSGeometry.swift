@@ -712,159 +712,203 @@ public func NSIntegralRect(_ aRect: NSRect) -> NSRect {
         return .zero
     }
     
-    return NSIntegralRectWithOptions(aRect, [.alignMinXOutward, .alignMaxXOutward, .alignMinYOutward, .alignMaxYOutward])
-}
-public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: AlignmentOptions) -> NSRect {
-    let listOfOptionsIsInconsistentErrorMessage = "List of options is inconsistent"
-    
-    if opts.contains(.alignRectFlipped) {
-        NSUnimplemented()
-    }
-
-    var width = CGFloat.NativeType.nan
-    var height = CGFloat.NativeType.nan
-    var minX = CGFloat.NativeType.nan
-    var minY = CGFloat.NativeType.nan
-    var maxX = CGFloat.NativeType.nan
-    var maxY = CGFloat.NativeType.nan
-
-    if aRect.size.height.native < 0 {
-        height = 0
-    }
-    if aRect.size.width.native < 0 {
-        width = 0
-    }
-    
-
-    if opts.contains(.alignWidthInward) && width != 0 {
-        guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        width = floor(aRect.size.width.native)
-    }
-    if opts.contains(.alignHeightInward) && height != 0 {
-        guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        height = floor(aRect.size.height.native)
-    }
-    if opts.contains(.alignWidthOutward) && width != 0 {
-        guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        width = ceil(aRect.size.width.native)
-    }
-    if opts.contains(.alignHeightOutward) && height != 0 {
-        guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        height = ceil(aRect.size.height.native)
-    }
-    if opts.contains(.alignWidthNearest) && width != 0 {
-        guard width.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        width = round(aRect.size.width.native)
-    }
-    if opts.contains(.alignHeightNearest) && height != 0 {
-        guard height.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        height = round(aRect.size.height.native)
-    }
-
-    
-    if opts.contains(.alignMinXInward) {
-        guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        minX = ceil(aRect.origin.x.native)
-    }
-    if opts.contains(.alignMinYInward) {
-        guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        minY = ceil(aRect.origin.y.native)
-    }
-    if opts.contains(.alignMaxXInward) {
-        guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        maxX = floor(aRect.origin.x.native + aRect.size.width.native)
-    }
-    if opts.contains(.alignMaxYInward) {
-        guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        maxY = floor(aRect.origin.y.native + aRect.size.height.native)
-    }
-
-    
-    if opts.contains(.alignMinXOutward) {
-        guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        minX = floor(aRect.origin.x.native)
-    }
-    if opts.contains(.alignMinYOutward) {
-        guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        minY = floor(aRect.origin.y.native)
-    }
-    if opts.contains(.alignMaxXOutward) {
-        guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        maxX = ceil(aRect.origin.x.native + aRect.size.width.native)
-    }
-    if opts.contains(.alignMaxYOutward) {
-        guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        maxY = ceil(aRect.origin.y.native + aRect.size.height.native)
-    }
-    
-
-    if opts.contains(.alignMinXNearest) {
-        guard minX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        minX = round(aRect.origin.x.native)
-    }
-    if opts.contains(.alignMinYNearest) {
-        guard minY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        minY = round(aRect.origin.y.native)
-    }
-    if opts.contains(.alignMaxXNearest) {
-        guard maxX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        maxX = round(aRect.origin.x.native + aRect.size.width.native)
-    }
-    if opts.contains(.alignMaxYNearest) {
-        guard maxY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-        maxY = round(aRect.origin.y.native + aRect.size.height.native)
-    }
-    
-    var resultOriginX = CGFloat.NativeType.nan
-    var resultOriginY = CGFloat.NativeType.nan
-    var resultWidth = CGFloat.NativeType.nan
-    var resultHeight = CGFloat.NativeType.nan
-    
-    if !minX.isNaN {
-        resultOriginX = minX
-    }
-    if !width.isNaN {
-        resultWidth = width
-    }
-    if !maxX.isNaN {
-        if width.isNaN {
-            guard resultWidth.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-            resultWidth = maxX - minX
-        } else {
-            guard resultOriginX.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-            resultOriginX = maxX - width
-        }
-    }
-    
-    
-    if !minY.isNaN {
-        resultOriginY = minY
-    }
-    if !height.isNaN {
-        resultHeight = height
-    }
-    if !maxY.isNaN {
-        if height.isNaN {
-            guard resultHeight.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-            resultHeight = maxY - minY
-        } else {
-            guard resultOriginY.isNaN else { fatalError(listOfOptionsIsInconsistentErrorMessage) }
-            resultOriginY = maxY - height
-        }
-    }
-    
-    if resultOriginX.isNaN || resultOriginY.isNaN
-        || resultHeight.isNaN || resultWidth.isNaN {
-        fatalError(listOfOptionsIsInconsistentErrorMessage)
-    }
-    
-    var result = NSRect.zero
-    result.origin.x.native = resultOriginX
-    result.origin.y.native = resultOriginY
-    result.size.width.native = resultWidth
-    result.size.height.native = resultHeight
-    
+    var result: NSRect = .zero
+    result.origin.x = CGFloat(floor(aRect.origin.x))
+    result.origin.y = CGFloat(floor(aRect.origin.y))
+    result.size.width = CGFloat(ceil(Double(aRect.origin.x) + Double(aRect.size.width)) - Double(result.origin.x))
+    result.size.height = CGFloat(ceil(Double(aRect.origin.y) + Double(aRect.size.height)) - Double(result.origin.y))
     return result
+}
+
+fileprivate func roundedTowardPlusInfinity(_ value: Double) -> Double {
+    return floor(value + 0.5)
+}
+
+fileprivate func roundedTowardMinusInfinity(_ value: Double) -> Double {
+    return ceil(value - 0.5)
+}
+
+fileprivate extension AlignmentOptions {
+    var isAlignInward: Bool {
+        return (rawValue & 0xFF) != 0
+    }
+    
+    var isAlignNearest: Bool {
+        return (rawValue & 0xFF0000) != 0
+    }
+    
+    var minXOptions: AlignmentOptions {
+        return intersection([.alignMinXInward, .alignMinXNearest, .alignMinXOutward])
+    }
+    
+    var maxXOptions: AlignmentOptions {
+        return intersection([.alignMaxXInward, .alignMaxXNearest, .alignMaxXOutward])
+    }
+    
+    var widthOptions: AlignmentOptions {
+        return intersection([.alignWidthInward, .alignWidthNearest, .alignWidthOutward])
+    }
+    
+    var minYOptions: AlignmentOptions {
+        return intersection([.alignMinYInward, .alignMinYNearest, .alignMinYOutward])
+    }
+    
+    var maxYOptions: AlignmentOptions {
+        return intersection([.alignMaxYInward, .alignMaxYNearest, .alignMaxYOutward])
+    }
+    
+    var heightOptions: AlignmentOptions {
+        return intersection([.alignHeightInward, .alignHeightNearest, .alignHeightOutward])
+    }
+}
+
+fileprivate func integralizeRectAttribute(_ num: Double, options: AlignmentOptions, inward: (Double) -> Double, outward: (Double) -> Double, nearest: (Double) -> Double) -> Double {
+    let tolerance: Double = (1.0 / Double(1 << 8))
+    if options.isAlignNearest {
+        let numTimesTwo = num * 2
+        let roundedNumTimesTwo = roundedTowardPlusInfinity(numTimesTwo)
+        if fabs(numTimesTwo - roundedNumTimesTwo) < 2 * tolerance {
+            return nearest(roundedNumTimesTwo / 2)
+        } else {
+            return nearest(num)
+        }
+    } else {
+        let roundedNum = roundedTowardPlusInfinity(num)
+        if fabs(num - roundedNum) < tolerance {
+            return roundedNum
+        } else {
+            if options.isAlignInward {
+                return inward(num)
+            } else {
+                return outward(num)
+            }
+        }
+    }
+}
+
+extension AlignmentOptions {
+    func assertValid() {
+        let inAttributes = rawValue & 0xFF
+        let outAttributes = (rawValue & 0xFF00) >> 8
+        let nearestAttributes = (rawValue & 0xFF0000) >> 16
+        
+        let horizontal: AlignmentOptions = [.alignMinXInward, .alignMinXOutward, .alignMinXNearest, .alignMaxXInward, .alignMaxXOutward, .alignMaxXNearest, .alignWidthInward, .alignWidthOutward, .alignWidthNearest]
+        let vertical: AlignmentOptions = [.alignMinYInward, .alignMinYOutward, .alignMinYNearest, .alignMaxYInward, .alignMaxYOutward, .alignMaxYNearest, .alignHeightInward, .alignHeightOutward, .alignHeightNearest]
+        
+        if ((inAttributes & outAttributes) | (inAttributes & nearestAttributes) | (outAttributes & nearestAttributes)) != 0 {
+            preconditionFailure("The options parameter is invalid. Only one of {in, out, nearest} may be set for a given rect attribute.")
+        }
+        
+        if intersection(horizontal).rawValue.nonzeroBitCount != 2 {
+            preconditionFailure("The options parameter is invalid. There should be specifiers for exactly two out of {minX, maxX, width}.")
+        }
+        
+        if intersection(vertical).rawValue.nonzeroBitCount != 2 {
+            preconditionFailure("The options parameter is invalid. There should be specifiers for exactly two out of {minY, maxY, height}.")
+        }
+    }
+}
+
+public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: AlignmentOptions) -> NSRect {
+    opts.assertValid()
+    
+    var integralRect: NSRect = .zero
+    let horizontalEdgeNearest = roundedTowardPlusInfinity
+    let verticalEdgeNearest = opts.contains(.alignRectFlipped) ? roundedTowardMinusInfinity : roundedTowardPlusInfinity
+    
+    // two out of these three sets of options will have a single bit set:
+    let minXOptions = opts.minXOptions
+    let maxXOptions = opts.maxXOptions
+    let widthOptions = opts.widthOptions
+    
+    if minXOptions.isEmpty {
+        // we have a maxX and a width
+        integralRect.size.width = CGFloat(integralizeRectAttribute(Double(NSWidth(aRect)),
+                                                                   options: widthOptions,
+                                                                   inward: floor,
+                                                                   outward: ceil,
+                                                                   nearest: roundedTowardPlusInfinity))
+        integralRect.origin.x   = CGFloat(integralizeRectAttribute(Double(NSMaxX(aRect)),
+                                                                   options: maxXOptions,
+                                                                   inward: floor,
+                                                                   outward: ceil,
+                                                                   nearest: horizontalEdgeNearest)) - NSWidth(integralRect)
+    } else if maxXOptions.isEmpty {
+        // we have a minX and a width
+        integralRect.origin.x   = CGFloat(integralizeRectAttribute(Double(NSMinX(aRect)),
+                                                                   options: minXOptions,
+                                                                   inward: ceil,
+                                                                   outward: floor,
+                                                                   nearest: horizontalEdgeNearest))
+        integralRect.size.width = CGFloat(integralizeRectAttribute(Double(NSWidth(aRect)),
+                                                                   options: widthOptions,
+                                                                   inward: floor,
+                                                                   outward: ceil,
+                                                                   nearest: roundedTowardPlusInfinity))
+    } else {
+        // we have a minX and a width
+        integralRect.origin.x   = CGFloat(integralizeRectAttribute(Double(NSMinX(aRect)),
+                                                                   options: minXOptions,
+                                                                   inward: ceil,
+                                                                   outward: floor,
+                                                                   nearest: horizontalEdgeNearest))
+        integralRect.size.width = CGFloat(integralizeRectAttribute(Double(NSMaxX(aRect)),
+                                                                   options: maxXOptions,
+                                                                   inward: floor,
+                                                                   outward: ceil,
+                                                                   nearest: horizontalEdgeNearest)) - NSMinX(integralRect)
+    }
+    
+    // no negarects
+    integralRect.size.width = max(integralRect.size.width, 0)
+    
+    // two out of these three sets of options will have a single bit set:
+    let minYOptions = opts.minYOptions
+    let maxYOptions = opts.maxYOptions
+    let heightOptions = opts.heightOptions
+    
+    if minYOptions.isEmpty {
+        // we have a maxY and a height
+        integralRect.size.height = CGFloat(integralizeRectAttribute(Double(NSHeight(aRect)),
+                                                                    options: heightOptions,
+                                                                    inward: floor,
+                                                                    outward: ceil,
+                                                                    nearest: roundedTowardPlusInfinity))
+        integralRect.origin.y    = CGFloat(integralizeRectAttribute(Double(NSMaxY(aRect)),
+                                                                    options: maxYOptions,
+                                                                    inward: floor,
+                                                                    outward: ceil,
+                                                                    nearest: verticalEdgeNearest)) - NSHeight(integralRect)
+    } else if maxYOptions.isEmpty {
+        // we have a minY and a height
+        integralRect.origin.y    = CGFloat(integralizeRectAttribute(Double(NSMinY(aRect)),
+                                                                    options: minYOptions,
+                                                                    inward: ceil,
+                                                                    outward: floor,
+                                                                    nearest: verticalEdgeNearest))
+        integralRect.size.height = CGFloat(integralizeRectAttribute(Double(NSHeight(aRect)),
+                                                                    options: heightOptions,
+                                                                    inward: floor,
+                                                                    outward: ceil,
+                                                                    nearest: roundedTowardPlusInfinity))
+    } else {
+        // we have a minY and a maxY
+        integralRect.origin.y    = CGFloat(integralizeRectAttribute(Double(NSMinY(aRect)),
+                                                                    options: minYOptions,
+                                                                    inward: ceil,
+                                                                    outward: floor,
+                                                                    nearest: verticalEdgeNearest))
+        integralRect.size.height = CGFloat(integralizeRectAttribute(Double(NSMaxY(aRect)),
+                                                                    options: maxYOptions,
+                                                                    inward: floor,
+                                                                    outward: ceil,
+                                                                    nearest: verticalEdgeNearest)) - NSMinY(integralRect)
+    }
+    
+    // no negarects
+    integralRect.size.height = max(integralRect.size.height, 0)
+    
+    return integralRect
 }
 
 public func NSUnionRect(_ aRect: NSRect, _ bRect: NSRect) -> NSRect {
