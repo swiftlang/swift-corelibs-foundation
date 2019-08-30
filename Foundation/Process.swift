@@ -848,7 +848,8 @@ open class Process: NSObject {
         #else
         for fd in 3 ..< getdtablesize() {
             guard adddup2[fd] == nil &&
-                  !addclose.contains(fd) else {
+                  !addclose.contains(fd) &&
+                  fd != taskSocketPair[1] else {
                     continue // Do not double-close descriptors, or close those pertaining to Pipes or FileHandles we want inherited.
             }
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
