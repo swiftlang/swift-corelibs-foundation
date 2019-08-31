@@ -26,6 +26,7 @@ class TestOperationQueue : XCTestCase {
             ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
             ("test_isSuspended", test_isSuspended),
             ("test_OperationDependencyCount", test_OperationDependencyCount),
+            ("test_BlockOperationAddExecutionBlock", test_BlockOperationAddExecutionBlock)
         ]
     }
     
@@ -278,6 +279,21 @@ class TestOperationQueue : XCTestCase {
         op2.name = "op2"
         op1.addDependency(op2)
         XCTAssert(op1.dependencies.count == 1)
+    }
+    
+    func test_BlockOperationAddExecutionBlock() {
+        var msgOperations = [String]()
+        let blockOperation = BlockOperation {
+            msgOperations.append("block1 executed")
+        }
+        blockOperation.addExecutionBlock {
+            msgOperations.append("block2 executec")
+        }
+        XCTAssert(blockOperation.executionBlocks.count == 2)
+        let queue = OperationQueue()
+        queue.addOperation(blockOperation)
+        queue.waitUntilAllOperationsAreFinished()
+        XCTAssertEqual(msgOperations, ["block1 executed", "block2 executec"])
     }
 }
 

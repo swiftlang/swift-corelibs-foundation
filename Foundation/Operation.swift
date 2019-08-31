@@ -429,7 +429,7 @@ open class Operation : NSObject {
             }
         }
     }
-    
+
     open func addDependency(_ op: Operation) {
         _addDependency(op)
     }
@@ -668,22 +668,16 @@ open class BlockOperation : Operation {
         }
         _lock()
         defer { _unlock() }
-        if _block == nil && _executionBlocks == nil {
+        if _block == nil {
             _block = block
+        } else if _executionBlocks == nil {
+            _executionBlocks = [block]
         } else {
-            if _executionBlocks == nil {
-                if let existing = _block {
-                    _executionBlocks = [existing, block]
-                } else {
-                    _executionBlocks = [block]
-                }
-            } else {
-                _executionBlocks?.append(block)
-            }
+            _executionBlocks?.append(block)
         }
     }
     
-    open var executionBlocks: [@convention(block) () -> Void] {
+    open var executionBlocks: [() -> Void] {
         get {
             _lock()
             defer { _unlock() }
