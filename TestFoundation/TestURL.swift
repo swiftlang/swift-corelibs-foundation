@@ -495,6 +495,8 @@ class TestURL : XCTestCase {
     func test_reachable() {
         #if os(Android)
         var url = URL(fileURLWithPath: "/data")
+        #elseif os(Windows)
+        var url = URL(fileURLWithPath: NSHomeDirectory())
         #else
         var url = URL(fileURLWithPath: "/usr")
         #endif
@@ -524,6 +526,8 @@ class TestURL : XCTestCase {
         
         #if os(Android)
         var nsURL = NSURL(fileURLWithPath: "/data")
+        #elseif os(Windows)
+        var nsURL = NSURL(fileURLWithPath: NSHomeDirectory())
         #else
         var nsURL = NSURL(fileURLWithPath: "/usr")
         #endif
