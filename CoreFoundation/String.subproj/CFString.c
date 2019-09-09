@@ -66,7 +66,7 @@ static void __CFRecordStringAllocationEvent(const char *encoding, const char *by
 
     __CFLock(&lock);
     static int fd = -1;
-    dispatch_once_t pred;
+    static dispatch_once_t pred;
 
     dispatch_once(&pred, ^{
         const char *name = *_NSGetProgname();
