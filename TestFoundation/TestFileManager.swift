@@ -1818,7 +1818,7 @@ VIDEOS=StopgapVideos
             ])
         #endif
         
-        #if !DEPLOYMENT_RUNTIME_OBJC && !os(Android)
+        #if !DEPLOYMENT_RUNTIME_OBJC && !os(Android) && !os(Windows)
         tests.append(contentsOf: [
             ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
             ])
