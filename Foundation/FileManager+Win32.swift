@@ -541,8 +541,19 @@ extension FileManager {
         let length = wcsnlen_s(&fsrBuf, fsrBuf.count)
         let fsrPath = String(utf16CodeUnits: &fsrBuf, count: length)
 
-        let faAttributes = try windowsFileAttributes(atPath: fsrPath)
-
+        let faAttributes: WIN32_FILE_ATTRIBUTE_DATA
+        do {
+            faAttributes = try windowsFileAttributes(atPath: fsrPath)
+        } catch {
+            // removeItem on POSIX throws fileNoSuchFile rather than
+            // fileReadNoSuchFile that windowsFileAttributes will
+            // throw if it doesn't find the file.
+            if (error as NSError).code == CocoaError.fileReadNoSuchFile.rawValue {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+            } else {
+                throw error
+            }
+        }
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
         let readableAttributes = faAttributes.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY)
             guard fsrPath.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, readableAttributes) }) else {
