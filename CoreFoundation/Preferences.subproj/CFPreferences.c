@@ -169,33 +169,8 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
 
 static unsigned long __CFSafeLaunchLevel = 0;
 
-#if TARGET_OS_WIN32
-#include <ShlObj.h>
-
-#endif
-
 static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFAllocatorRef alloc = __CFPreferencesAllocator();
-#if TARGET_OS_WIN32
-
-	CFURLRef url = NULL;
-
-	CFMutableStringRef completePath = _CFCreateApplicationRepositoryPath(alloc, CSIDL_APPDATA);
- 	if (completePath) {
-	    // append "Preferences\" and make the CFURL
-	    CFStringAppend(completePath, CFSTR("Preferences\\"));
-		url = CFURLCreateWithFileSystemPath(alloc, completePath, kCFURLWindowsPathStyle, true);
-		CFRelease(completePath);
-	}
-
-
-	// Can't find a better place?  Home directory then?
-	if (url == NULL)
-		url = CFCopyHomeDirectoryURLForUser((userName == kCFPreferencesCurrentUser) ? NULL : userName);
-
-	return url;
- 
-#else
     CFURLRef location = NULL;
     
     CFKnownLocationUser user;
@@ -219,7 +194,6 @@ static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName
     
     CFRelease(base);
     return location;
-#endif
 }
 
 static CFURLRef  _preferencesDirectoryForUserHost(CFStringRef  userName, CFStringRef  hostName) {
