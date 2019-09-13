@@ -1307,6 +1307,15 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     Boolean result = false;
 
 #if TARGET_OS_WIN32
+    // Start by checking if we're just given a timezone Windows knows about
+    int32_t offset;
+    __CFTimeZoneGetOffset(name, &offset);
+    if (offset) {
+        // TODO: handle DST
+        __CFTimeZoneInitFixed(timeZone, offset, name, 0);
+        return TRUE;
+    }
+
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
 
     tzName = CFDictionaryGetValue(abbrevs, name);
@@ -1319,9 +1328,8 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     CFRelease(abbrevs);
 
     if (tzName) {
-        int32_t offset;
         __CFTimeZoneGetOffset(tzName, &offset);
-        // TODO(compnerd) handle DST
+        // TODO: handle DST
         __CFTimeZoneInitFixed(timeZone, offset, name, 0);
         return TRUE;
     }
@@ -1516,6 +1524,14 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
     CFURLRef baseURL = NULL;
 
 #if TARGET_OS_WIN32
+    // Start by checking if we're just given a timezone Windows knows about
+    int32_t offset;
+    __CFTimeZoneGetOffset(name, &offset);
+    if (offset) {
+        // TODO: handle DST
+        result = __CFTimeZoneCreateFixed(allocator, offset, name, 0);
+    }
+
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
 
     tzName = CFDictionaryGetValue(abbrevs, name);
@@ -1528,9 +1544,8 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
     CFRelease(abbrevs);
 
     if (tzName) {
-        int32_t offset;
         __CFTimeZoneGetOffset(tzName, &offset);
-        // TODO(compnerd) handle DST
+        // TODO: handle DST
         result = __CFTimeZoneCreateFixed(allocator, offset, name, 0);
     }
 
