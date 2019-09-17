@@ -248,8 +248,8 @@ internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool, pat
                         // On an empty path, Windows will return FILE/PATH_NOT_FOUND
                         // rather than invalid path as posix does
                         cocoaError = paths?.contains("") ?? false
-                            ? .fileReadInvalidFileName
-                            : .fileReadNoSuchFile
+                            ? .fileWriteInvalidFileName
+                            : .fileNoSuchFile
                     case ERROR_ACCESS_DENIED: cocoaError = .fileWriteNoPermission
                     case ERROR_INVALID_ACCESS: cocoaError = .fileWriteNoPermission
                     case ERROR_INVALID_DRIVE: cocoaError = .fileNoSuchFile
