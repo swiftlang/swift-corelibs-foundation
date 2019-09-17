@@ -20,7 +20,7 @@
 /* Platform tests are documented at http://git.savannah.gnu.org/gitweb/?p=libffcall.git;a=blob;f=porting-tools/execstack/README */
 #if (defined(__GNUC__) || defined (__llvm__) || defined (__clang__)) && defined(__ELF__) && (defined (__linux__) || defined (__linux) || defined (__gnu_linux__) || defined(__FreeBSD__) || defined (__FreeBSD_kernel__))
 #define NO_EXEC_STACK_DIRECTIVE .section .note.GNU-stack,"",%progbits
-#elsif defined(__SUNPRO_C) && defined(__linux__)
+#elif defined(__SUNPRO_C) && defined(__linux__)
 #define NO_EXEC_STACK_DIRECTIVE .section ".note.GNU-stack"
 #else
 #define NO_EXEC_STACK_DIRECTIVE
