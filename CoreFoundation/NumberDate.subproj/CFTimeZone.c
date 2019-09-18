@@ -182,7 +182,7 @@ static void __CFTimeZoneGetOffset(CFStringRef timezone, int32_t *offset) {
 
     cbData = sizeof(tziInfo);
     if (RegQueryValueExW(hKey, L"TZI", NULL, NULL, (LPBYTE)&tziInfo, &cbData) == ERROR_SUCCESS)
-        *offset = tziInfo.Bias;
+        *offset = tziInfo.Bias * 60; // Bias is in minutes, CF uses seconds for its offset
 
     RegCloseKey(hKey);
 }
