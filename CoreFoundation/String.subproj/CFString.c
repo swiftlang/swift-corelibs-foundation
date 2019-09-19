@@ -2227,8 +2227,8 @@ Boolean CFStringGetCString(CFStringRef str, char *buffer, CFIndex bufferSize, CF
 
     __CFAssertIsNotNegative(bufferSize);
     if (bufferSize < 1) return false;
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, Boolean, (CFSwiftRef)str, NSString._getCString, buffer, bufferSize - 1, encoding);
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, Boolean, (NSString *)str, _getCString:buffer maxLength:(NSUInteger)bufferSize - 1 encoding:encoding);
+    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, Boolean, (CFSwiftRef)str, NSString._getCString, buffer, bufferSize, encoding);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, Boolean, (NSString *)str, _getCString:buffer maxLength:(NSUInteger)bufferSize encoding:encoding);
 
     __CFAssertIsString(str);
 
