@@ -310,6 +310,20 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
     CFIndex buffLen;
     CFURLRef url = NULL;
     CFStringRef outstr;
+
+#if TARGET_OS_ANDROID
+    const char *fixedUserHome = __CFgetenv("CFFIXED_USER_HOME");
+    if (fixedUserHome) {
+        outstr = CFStringCreateWithCString(kCFAllocatorSystemDefault, fixedUserHome, kCFStringEncodingUTF8);
+        if (outstr) {
+            url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, outstr, PLATFORM_PATH_STYLE, true);
+            CFRelease(outstr);
+            if (url) {
+                return url;
+            }
+        }
+    }
+#endif
     
     buffLen = CFStringGetLength(str);
     if (buffLen > CFMaxPathSize) buffLen = CFMaxPathSize;
