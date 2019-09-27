@@ -632,8 +632,8 @@ CF_PRIVATE uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, 
             numBytes /= 4; // for 32bit
 
             while (numBytes-- > 0) {
-                *((uint32_t *)bitmap) = value;
-#if defined (__cplusplus)                
+                unaligned_store32(bitmap, value);
+#if defined (__cplusplus)
 				bitmap = (uint8_t *)bitmap + sizeof(uint32_t);				
 #else
 				bitmap += sizeof(uint32_t);
@@ -744,7 +744,8 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 		headerSize = *((uint8_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
 		bytes += 4; // Skip Unicode version
-		headerSize = *((uint32_t *)bytes); bytes += sizeof(uint32_t);
+        headerSize = unaligned_load32(bytes);
+        bytes += sizeof(uint32_t);
 #endif    
         headerSize -= (sizeof(uint32_t) * 2);
         bodyBase = (char *)bytes + headerSize;
@@ -757,7 +758,8 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 #if defined (__cplusplus)            
 			__CFUniCharMappingTables[idx] = (char *)bodyBase + *((uint32_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
-			__CFUniCharMappingTables[idx] = (char *)bodyBase + *((uint32_t *)bytes); bytes += sizeof(uint32_t);
+			__CFUniCharMappingTables[idx] = (char *)bodyBase + unaligned_load32(bytes);
+            bytes += sizeof(uint32_t);
 #endif
         }
     }
@@ -783,18 +785,24 @@ typedef struct {
 static uint32_t __CFUniCharGetMappedCase(const __CFUniCharCaseMappings *theTable, uint32_t numElem, UTF32Char character) {
     const __CFUniCharCaseMappings *p, *q, *divider;
 
-    if ((character < theTable[0]._key) || (character > theTable[numElem-1]._key)) {
+#define READ_KEY(x)     unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _key))
+#define READ_VALUE(x)   unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _value))
+
+    if ((character < READ_KEY(&theTable[0])) || (character > READ_KEY(&theTable[numElem-1]))) {
         return 0;
     }
     p = theTable;
     q = p + (numElem-1);
     while (p <= q) {
         divider = p + ((q - p) >> 1);	/* divide by 2 */
-        if (character < divider->_key) { q = divider - 1; }
-        else if (character > divider->_key) { p = divider + 1; }
-        else { return divider->_value; }
+        if (character < READ_KEY(divider)) { q = divider - 1; }
+        else if (character > READ_KEY(divider)) { p = divider + 1; }
+        else { return READ_VALUE(divider); }
     }
     return 0;
+
+#undef READ_KEY
+#undef READ_VALUE
 }
 
 #define NUM_CASE_MAP_DATA (kCFUniCharCaseFold + 1)
@@ -818,9 +826,9 @@ static bool __CFUniCharLoadCaseMappingTable(void) {
     __CFUniCharCaseMappingExtraTable = (const uint32_t **)__CFUniCharCaseMappingTable + NUM_CASE_MAP_DATA;
 
     for (idx = 0;idx < NUM_CASE_MAP_DATA;idx++) {
-        countArray[idx] = *((uint32_t *)__CFUniCharMappingTables[idx]) / (sizeof(uint32_t) * 2);
+        countArray[idx] = unaligned_load32(__CFUniCharMappingTables[idx]) / (sizeof(uint32_t) * 2);
         __CFUniCharCaseMappingTable[idx] = ((uint32_t *)__CFUniCharMappingTables[idx]) + 1;
-        __CFUniCharCaseMappingExtraTable[idx] = (const uint32_t *)((char *)__CFUniCharCaseMappingTable[idx] + *((uint32_t *)__CFUniCharMappingTables[idx]));
+        __CFUniCharCaseMappingExtraTable[idx] = (const uint32_t *)((char *)__CFUniCharCaseMappingTable[idx] + unaligned_load32(__CFUniCharMappingTables[idx]));
     }
 
     __CFUniCharCaseMappingTableCounts = countArray;
@@ -1034,7 +1042,7 @@ caseFoldRetry:
                 } else {
                     CFIndex idx;
 
-                    for (idx = 0;idx < count;idx++) *(convertedChar++) = (UTF16Char)*(extraMapping++);
+                    for (idx = 0;idx < count;idx++) *(convertedChar++) = (UTF16Char)unaligned_load32(extraMapping++);
                     return count;
                 }
             }
@@ -1241,7 +1249,8 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
         headerSize = CFSwapInt32BigToHost(*((uint32_t *)bytes)); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
         bytes += 4; // Skip Unicode version
-        headerSize = CFSwapInt32BigToHost(*((uint32_t *)bytes)); bytes += sizeof(uint32_t);
+        headerSize = unaligned_load32be(bytes);
+        bytes += sizeof(uint32_t);
 #endif
         
         headerSize -= (sizeof(uint32_t) * 2);
@@ -1275,7 +1284,7 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
             bodyBase = (const uint8_t *)bodyBase + (CFSwapInt32BigToHost(*(uint32_t *)bytes));
             ((uint32_t *&)bytes) ++;
 #else
-            bodyBase += (CFSwapInt32BigToHost(*((uint32_t *)bytes++)));
+            bodyBase += unaligned_load32be(bytes++);
 #endif
         }
 

@@ -41,7 +41,7 @@ static void __CFUniCharLoadDecompositionTable(void) {
             return;
         }
 
-        __CFUniCharDecompositionTableLength = *(bytes++);
+        __CFUniCharDecompositionTableLength = unaligned_load32(bytes++);
         __CFUniCharDecompositionTable = (UTF32Char *)bytes;
         __CFUniCharMultipleDecompositionTable = (UTF32Char *)((intptr_t)bytes + __CFUniCharDecompositionTableLength);
 
@@ -102,18 +102,24 @@ typedef struct {
 static uint32_t __CFUniCharGetMappedValue(const __CFUniCharDecomposeMappings *theTable, uint32_t numElem, UTF32Char character) {
     const __CFUniCharDecomposeMappings *p, *q, *divider;
 
-    if ((character < theTable[0]._key) || (character > theTable[numElem-1]._key)) {
+#define READ_KEY(x)     unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharDecomposeMappings, _key))
+#define READ_VALUE(x)   unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharDecomposeMappings, _value))
+
+    if ((character < READ_KEY(&theTable[0])) || (character > READ_KEY(&theTable[numElem-1]))) {
         return 0;
     }
     p = theTable;
     q = p + (numElem-1);
     while (p <= q) {
         divider = p + ((q - p) >> 1);    /* divide by 2 */
-        if (character < divider->_key) { q = divider - 1; }
-        else if (character > divider->_key) { p = divider + 1; }
-        else { return divider->_value; }
+        if (character < READ_KEY(divider)) { q = divider - 1; }
+        else if (character > READ_KEY(divider)) { p = divider + 1; }
+        else { return READ_VALUE(divider); }
     }
     return 0;
+
+#undef READ_KEY
+#undef READ_VALUE
 }
 
 static void __CFUniCharPrioritySort(UTF32Char *characters, CFIndex length) {
@@ -162,7 +168,7 @@ static CFIndex __CFUniCharRecursivelyDecomposeCharacter(UTF32Char character, UTF
 
     usedLength += length;
 
-    while (length--) *(convertedChars++) = *(mappings++);
+    while (length--) *(convertedChars++) = unaligned_load32(mappings++);
 
     return usedLength;
 }
