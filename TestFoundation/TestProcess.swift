@@ -550,19 +550,30 @@ class TestProcess : XCTestCase {
         task.executableURL = url
         task.arguments = []
         let stdoutPipe = Pipe()
+        let dataLock = NSLock()
         task.standardOutput = stdoutPipe
 
         var stdoutData = Data()
         stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
-            stdoutData.append(fh.availableData)
+            dataLock.synchronized {
+                stdoutData.append(fh.availableData)
+            }
         }
         try task.run()
         task.waitUntilExit()
         stdoutPipe.fileHandleForReading.readabilityHandler = nil
-        if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
-            stdoutData.append(d)
+
+        try dataLock.synchronized {
+#if DARWIN_COMPATIBILITY_TESTS
+            // Use old API for now
+            stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
+#else
+            if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
+                stdoutData.append(d)
+            }
+#endif
+            XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
         }
-        XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
     }
 
 
@@ -656,11 +667,11 @@ class _SignalHelperRunner {
                         }
                         else if strongSelf.gotReady == true {
                             if line == "Signal: SIGINT" {
-                                strongSelf._sigIntCount += 1
+                                strongSelf.sQueue.sync { strongSelf._sigIntCount += 1 }
                                 strongSelf.semaphore.signal()
                             }
                             else if line == "Signal: SIGCONT" {
-                                strongSelf._sigContCount += 1
+                                strongSelf.sQueue.sync { strongSelf._sigContCount += 1 }
                                 strongSelf.semaphore.signal()
                             }
                         }
@@ -717,17 +728,22 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
 
     let stdoutPipe = Pipe()
     let stderrPipe = Pipe()
+    let dataLock = NSLock()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
 
     var stdoutData = Data()
     stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
-        stdoutData.append(fh.availableData)
+        dataLock.synchronized {
+            stdoutData.append(fh.availableData)
+        }
     }
 
     var stderrData = Data()
     stderrPipe.fileHandleForReading.readabilityHandler = { fh in
-        stderrData.append(fh.availableData)
+        dataLock.synchronized {
+            stderrData.append(fh.availableData)
+        }
     }
 
     try process.run()
@@ -735,34 +751,36 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     stdoutPipe.fileHandleForReading.readabilityHandler = nil
     stderrPipe.fileHandleForReading.readabilityHandler = nil
 
-    // Drain any data remaining in the pipes
-#if DARWIN_COMPATIBILITY_TESTS
-    // Use old API for now
-    stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
-    stderrData.append(stderrPipe.fileHandleForReading.availableData)
-#else
-    if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
-        stdoutData.append(d)
-    }
-
-    if let d = try stderrPipe.fileHandleForReading.readToEnd() {
-        stderrData.append(d)
-    }
-#endif
-
     guard process.terminationStatus == 0 else {
         throw Error.TerminationStatus(process.terminationStatus)
     }
 
-    guard let stdout = String(data: stdoutData, encoding: .utf8) else {
-        throw Error.UnicodeDecodingError(stdoutData)
-    }
+    return try dataLock.synchronized {
+        // Drain any data remaining in the pipes
+#if DARWIN_COMPATIBILITY_TESTS
+        // Use old API for now
+        stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
+        stderrData.append(stderrPipe.fileHandleForReading.availableData)
+#else
+        if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
+            stdoutData.append(d)
+        }
 
-    guard let stderr = String(data: stderrData, encoding: .utf8) else {
-        throw Error.UnicodeDecodingError(stderrData)
-    }
+        if let d = try stderrPipe.fileHandleForReading.readToEnd() {
+            stderrData.append(d)
+        }
+#endif
 
-    return (stdout, stderr)
+        guard let stdout = String(data: stdoutData, encoding: .utf8) else {
+            throw Error.UnicodeDecodingError(stdoutData)
+        }
+
+        guard let stderr = String(data: stderrData, encoding: .utf8) else {
+            throw Error.UnicodeDecodingError(stderrData)
+        }
+
+        return (stdout, stderr)
+    }
 }
 
 private func parseEnv(_ env: String) throws -> [String: String] {
