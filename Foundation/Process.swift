@@ -232,8 +232,28 @@ open class Process: NSObject {
     }
 
     // These properties can only be set before a launch.
-    open var executableURL: URL?
-    open var currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+    private var _executable: URL?
+    open var executableURL: URL? {
+        get { _executable }
+        set {
+            guard let url = newValue, url.isFileURL else {
+                fatalError("must provide a launch path")
+            }
+            _executable = url
+        }
+    }
+
+    private var _currentDirectoryURL: URL? = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+    open var currentDirectoryURL: URL? {
+        get { _currentDirectoryURL }
+        set {
+            guard let url = newValue, url.isFileURL else {
+                fatalError("non-file URL argument")
+            }
+            _currentDirectoryURL = url
+        }
+    }
+
     open var arguments: [String]?
     open var environment: [String : String]? // if not set, use current
 
@@ -245,7 +265,7 @@ open class Process: NSObject {
 
     @available(*, deprecated, renamed: "currentDirectoryURL")
     open var currentDirectoryPath: String {
-        get { return currentDirectoryURL.path }
+        get { return currentDirectoryURL!.path }
         set { currentDirectoryURL = URL(fileURLWithPath: newValue) }
     }
 
@@ -478,8 +498,7 @@ open class Process: NSObject {
         if let env = self.environment {
           environment = env
         } else {
-          environment = ProcessInfo.processInfo.environment
-          environment["PWD"] = currentDirectoryURL.path
+            environment = ProcessInfo.processInfo.environment
         }
 
         // On Windows, the PATH is required in order to locate dlls needed by
@@ -658,7 +677,6 @@ open class Process: NSObject {
             env = e
         } else {
             env = ProcessInfo.processInfo.environment
-            env["PWD"] = currentDirectoryURL.path
         }
 
         let nenv = env.count
@@ -839,7 +857,7 @@ open class Process: NSObject {
 
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
-        if !fileManager.changeCurrentDirectoryPath(currentDirectoryURL.path) {
+        if let dir = currentDirectoryURL?.path, !fileManager.changeCurrentDirectoryPath(dir) {
             throw _NSErrorWithErrno(errno, reading: true, url: currentDirectoryURL)
         }
 
