@@ -386,6 +386,11 @@ open class Process: NSObject {
         // Dispatch the manager thread if it isn't already running
         Process.setup()
 
+        // Check that the process isnt run more than once
+        guard hasStarted == false && hasFinished == false else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSExecutableLoadError)
+        }
+
         // Ensure that the launch path is set
         guard let launchPath = self.executableURL?.path else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)

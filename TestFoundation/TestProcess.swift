@@ -319,15 +319,26 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
 
         do {
+            // Check running the process twice throws an error.
+            let process = Process()
+            process.executableURL = xdgTestHelperURL()
+            process.arguments = ["--exit", "0"]
+            XCTAssertNoThrow(try process.run())
+            process.waitUntilExit()
+            XCTAssertThrowsError(try process.run()) {
+                let nserror = ($0 as! NSError)
+                XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+                let code = CocoaError(_nsError: nserror).code
+                XCTAssertEqual(code, .executableLoad)
+            }
+        }
+
+        do {
             let process = Process()
             process.executableURL = xdgTestHelperURL()
             process.arguments = ["--exit", "0"]
             process.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
-            try process.run()
-            XCTFail("Executed \(xdgTestHelperURL().path) with invalid currentDirectoryURL")
-            process.terminate()
-            process.waitUntilExit()
-        } catch {
+            XCTAssertThrowsError(try process.run())
         }
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
 
@@ -336,11 +347,7 @@ class TestProcess : XCTestCase {
             process.executableURL = URL(fileURLWithPath: "/..", isDirectory: false)
             process.arguments = []
             process.currentDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
-            try process.run()
-            XCTFail("Somehow executed a directory!")
-            process.terminate()
-            process.waitUntilExit()
-        } catch {
+            XCTAssertThrowsError(try process.run())
         }
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
         fm.changeCurrentDirectoryPath(cwd)
