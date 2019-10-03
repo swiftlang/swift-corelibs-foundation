@@ -9,58 +9,6 @@
 
 class TestURLSession : LoopbackServerTest {
     
-    static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
-        return [
-            ("test_dataTaskWithURL", test_dataTaskWithURL),
-            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
-            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
-            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-            // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
-            ("test_gzippedDataTask", test_gzippedDataTask),
-            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
-            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
-            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-            ("test_gzippedDownloadTask", test_gzippedDownloadTask),
-            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
-            ("test_taskError", test_taskError),
-            ("test_taskCopy", test_taskCopy),
-            ("test_cancelTask", test_cancelTask),
-            ("test_taskTimeout", test_taskTimeout),
-            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
-            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
-            ("test_timeoutInterval", test_timeoutInterval),
-            ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
-            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
-            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
-            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
-            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
-            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
-            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
-            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
-            ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
-            // ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate), - Server needs modification
-            ("test_concurrentRequests", test_concurrentRequests),
-            ("test_disableCookiesStorage", test_disableCookiesStorage),
-            ("test_cookiesStorage", test_cookiesStorage),
-            ("test_cookieStorageForEphmeralConfiguration", test_cookieStorageForEphmeralConfiguration),
-            ("test_setCookies", test_setCookies),
-            ("test_dontSetCookies", test_dontSetCookies),
-            ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
-            ("test_basicAuthRequest", test_basicAuthRequest),
-            ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
-            ("test_postWithEmptyBody", test_postWithEmptyBody),
-            ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
-            ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
-            ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
-            ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
-            ("test_getAllTasks", test_getAllTasks),
-            ("test_getTasksWithCompletion", test_getTasksWithCompletion),
-            ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast", test_noDoubleCallbackWhenCancellingAndProtocolFailsFast),
-            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
-        ]
-    }
-    
     func test_dataTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
@@ -1026,6 +974,108 @@ class TestURLSession : LoopbackServerTest {
 
         waitForExpectations(timeout: 1)
     }
+    func test_invalidResumeDataForDownloadTask() {
+        let done = expectation(description: "Invalid resume data for download task (with completion block)")
+        URLSession.shared.downloadTask(withResumeData: Data()) { (url, response, error) in
+            XCTAssertNil(url)
+            XCTAssertNil(response)
+            XCTAssert(error is URLError)
+            XCTAssertEqual((error as? URLError)?.errorCode, URLError.unsupportedURL.rawValue)
+            
+            done.fulfill()
+        }.resume()
+        waitForExpectations(timeout: 20)
+        
+        let d = DownloadTask(testCase: self, description: "Invalid resume data for download task")
+        d.run { (session) -> DownloadTask.Configuration in
+            return DownloadTask.Configuration(task: session.downloadTask(withResumeData: Data()),
+                                              errorExpectation:
+                { (error) in
+                    XCTAssert(error is URLError)
+                    XCTAssertEqual((error as? URLError)?.errorCode, URLError.unsupportedURL.rawValue)
+            })
+        }
+        waitForExpectations(timeout: 20)
+    }
+    
+    func test_simpleUploadWithDelegateProvidingInputStream() throws {
+        let delegate = HTTPUploadDelegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/upload"
+        var request = URLRequest(url: URL(string: urlString)!)
+        request.httpMethod = "PUT"
+        
+        delegate.uploadCompletedExpectation = expectation(description: "PUT \(urlString): Upload data")
+        
+        
+        let fileData = Data(count: 16*1024)
+        let stream = InputStream(data: fileData)
+        stream.open()
+        delegate.streamToProvideOnRequest = stream
+        
+        let task = session.uploadTask(withStreamedRequest: request)
+        task.resume()
+        waitForExpectations(timeout: 20)
+    }
+    
+    static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
+        return [
+            ("test_dataTaskWithURL", test_dataTaskWithURL),
+            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
+            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
+            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
+            // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
+            ("test_gzippedDataTask", test_gzippedDataTask),
+            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
+            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
+            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
+            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+            ("test_gzippedDownloadTask", test_gzippedDownloadTask),
+            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
+            ("test_taskError", test_taskError),
+            ("test_taskCopy", test_taskCopy),
+            ("test_cancelTask", test_cancelTask),
+            ("test_taskTimeout", test_taskTimeout),
+            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
+            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
+            ("test_timeoutInterval", test_timeoutInterval),
+            ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
+            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
+            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
+            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
+            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
+            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
+            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
+            ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
+            // ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate), - Server needs modification
+            ("test_concurrentRequests", test_concurrentRequests),
+            ("test_disableCookiesStorage", test_disableCookiesStorage),
+            ("test_cookiesStorage", test_cookiesStorage),
+            ("test_cookieStorageForEphmeralConfiguration", test_cookieStorageForEphmeralConfiguration),
+            ("test_setCookies", test_setCookies),
+            ("test_dontSetCookies", test_dontSetCookies),
+            ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
+            ("test_basicAuthRequest", test_basicAuthRequest),
+            /* ⚠️ */ ("test_redirectionWithSetCookies",
+            /* ⚠️ */   testExpectedToFail(test_redirectionWithSetCookies, "This test errors out nondeterministically")),
+            ("test_postWithEmptyBody", test_postWithEmptyBody),
+            ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
+            ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
+            ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
+            ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
+            ("test_getAllTasks", test_getAllTasks),
+            ("test_getTasksWithCompletion", test_getTasksWithCompletion),
+            /* ⚠️ */ ("test_invalidResumeDataForDownloadTask",
+            /* ⚠️ */   testExpectedToFail(test_invalidResumeDataForDownloadTask, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11353")),
+            /* ⚠️ */ ("test_simpleUploadWithDelegateProvidingInputStream",
+            /* ⚠️ */   testExpectedToFail(test_simpleUploadWithDelegateProvidingInputStream, "This test times out frequently: https://bugs.swift.org/browse/SR-11343")),
+            /* ⚠️ */ ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast",
+            /* ⚠️ */      testExpectedToFail(test_noDoubleCallbackWhenCancellingAndProtocolFailsFast, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11310")),
+            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
+        ]
+    }
+    
 }
 
 class SharedDelegate: NSObject {
