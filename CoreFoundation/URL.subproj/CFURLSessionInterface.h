@@ -601,7 +601,7 @@ CF_EXPORT CFURLSessionMultiCode CFURLSession_multi_setopt_ptr(CFURLSessionMultiH
 CF_EXPORT CFURLSessionMultiCode CFURLSession_multi_setopt_l(CFURLSessionMultiHandle _Nonnull multi_handle, CFURLSessionMultiOption option, long a);
 CF_EXPORT CFURLSessionMultiCode CFURLSession_multi_setopt_sf(CFURLSessionMultiHandle _Nonnull multi_handle, CFURLSessionMultiOption option, int (*_Nonnull a)(CFURLSessionEasyHandle _Nonnull, CFURLSession_socket_t, int, void *_Nullable, void *_Nullable));
 CF_EXPORT CFURLSessionMultiCode CFURLSession_multi_setopt_tf(CFURLSessionMultiHandle _Nonnull multi_handle, CFURLSessionMultiOption option, int (*_Nonnull a)(CFURLSessionMultiHandle _Nonnull, long, void *_Nullable));
-CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_csf(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, int (*_Nonnull a)(void* _Nullable clientp, CFURLSession_socket_t));
+
 CF_EXPORT CFURLSessionEasyCode CFURLSessionInit(void);
 
 
