@@ -283,7 +283,7 @@ class TestURLSession : LoopbackServerTest {
         let headers = ["header1": "value1"]
         req.httpMethod = "POST"
         req.allHTTPHeaderFields = headers
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
@@ -310,7 +310,7 @@ class TestURLSession : LoopbackServerTest {
         let headers = ["header1": "rvalue1", "header2": "rvalue2", "Header4": "rvalue4"]
         req.httpMethod = "POST"
         req.allHTTPHeaderFields = headers
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
@@ -334,7 +334,7 @@ class TestURLSession : LoopbackServerTest {
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         var expect = expectation(description: "GET \(urlString): no timeout")
         let req = URLRequest(url: URL(string: urlString)!)
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
         }
@@ -351,7 +351,7 @@ class TestURLSession : LoopbackServerTest {
         var expect = expectation(description: "GET \(urlString): will timeout")
         var req = URLRequest(url: URL(string: "http://127.0.0.1:-1/Peru")!)
         req.timeoutInterval = 1
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNotNil(error)
         }
@@ -414,7 +414,6 @@ class TestURLSession : LoopbackServerTest {
             config.timeoutIntervalForRequest = 8
             let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
             let expect = expectation(description: "GET \(urlString): simple HTTP/0.9 response")
-            var expectedResult = "unknown"
             let task = session.dataTask(with: url) { data, response, error in
                 XCTAssertNotNil(data)
                 XCTAssertNotNil(response)
@@ -564,25 +563,34 @@ class TestURLSession : LoopbackServerTest {
         }
     }
 
-    func test_disableCookiesStorage() {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 5
-        config.httpCookieAcceptPolicy = HTTPCookie.AcceptPolicy.never
-        if let storage = config.httpCookieStorage, let cookies = storage.cookies {
+    func emptyCookieStorage(storage: HTTPCookieStorage?) {
+        if let storage = storage, let cookies = storage.cookies {
             for cookie in cookies {
                 storage.deleteCookie(cookie)
             }
         }
+    }
+
+    func test_disableCookiesStorage() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        config.httpCookieAcceptPolicy = HTTPCookie.AcceptPolicy.never
+        emptyCookieStorage(storage: config.httpCookieStorage)
         XCTAssertEqual(config.httpCookieStorage?.cookies?.count, 0)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         var expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, response, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let httpResponse = try? XCTUnwrap(response as? HTTPURLResponse) else {
+                XCTFail("response should be a non-nil HTTPURLResponse")
+                return
+            }
+            XCTAssertNotNil(httpResponse.allHeaderFields["Set-Cookie"])
         }
         task.resume()
         waitForExpectations(timeout: 30)
@@ -593,15 +601,21 @@ class TestURLSession : LoopbackServerTest {
     func test_cookiesStorage() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
+        emptyCookieStorage(storage: config.httpCookieStorage)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         var expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, response, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let httpResponse = try? XCTUnwrap(response as? HTTPURLResponse) else {
+                XCTFail("response should be a non-nil HTTPURLResponse")
+                return
+            }
+            XCTAssertNotNil(httpResponse.allHeaderFields["Set-Cookie"])
         }
         task.resume()
         waitForExpectations(timeout: 30)
@@ -612,57 +626,81 @@ class TestURLSession : LoopbackServerTest {
     func test_redirectionWithSetCookies() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
-        if let storage = config.httpCookieStorage, let cookies = storage.cookies {
-            for cookie in cookies {
-                storage.deleteCookie(cookie)
-            }
-        }
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirectSetCookies"
+        emptyCookieStorage(storage: config.httpCookieStorage)
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         var expect = expectation(description: "POST \(urlString)")
-        var req = URLRequest(url: URL(string: urlString)!)
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let req = URLRequest(url: URL(string: urlString)!)
+        let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
-            XCTAssertNotNil(data)
+            // Because /redirectToEchoHeaders is a redirection, this is the
+            // final result of the redirection, not the redirection itself.
+            guard let data = try? XCTUnwrap(data) else {
+                XCTFail("data should not be nil")
+                return
+            }
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
-            guard let data = data else { return }
             let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
-            print("headers here = \(headers)")
             XCTAssertNotNil(headers.range(of: "Cookie: redirect=true"))
         }
         task.resume()
         waitForExpectations(timeout: 30)
     }
 
-    func test_setCookies() {
+    func test_previouslySetCookiesAreSentInLaterRequests() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/setCookies"
+        emptyCookieStorage(storage: config.httpCookieStorage)
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
-        var req = URLRequest(url: URL(string: urlString)!)
-        req.httpMethod = "POST"
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
-            defer { expect.fulfill() }
+
+        let urlString1 = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
+        var expect1 = expectation(description: "POST \(urlString1)")
+        var req1 = URLRequest(url: URL(string: urlString1)!)
+        req1.httpMethod = "POST"
+
+        let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
+        var expect2 = expectation(description: "POST \(urlString2)")
+        var req2 = URLRequest(url: URL(string: urlString2)!)
+        req2.httpMethod = "POST"
+
+        let task1 = session.dataTask(with: req1) { (data, response, error) -> Void in
+            defer { expect1.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
-            guard let data = data else { return }
-            let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
-            XCTAssertNotNil(headers.range(of: "Cookie: fr=anjd&232"))
+            guard let httpResponse = try? XCTUnwrap(response as? HTTPURLResponse) else {
+                XCTFail("response should be a non-nil HTTPURLResponse")
+                return
+            }
+            XCTAssertNotNil(httpResponse.allHeaderFields["Set-Cookie"])
+
+            let task2 = session.dataTask(with: req2) { (data, _, error) -> Void in
+                defer { expect2.fulfill() }
+                guard let data = try? XCTUnwrap(data) else {
+                    XCTFail("data should not be nil")
+                    return
+                }
+                XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+                let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
+                XCTAssertNotNil(headers.range(of: "Cookie: fr=anjd&232"))
+            }
+            task2.resume()
         }
-        task.resume()
+        task1.resume()
+
         waitForExpectations(timeout: 30)
     }
 
-    func test_cookieStorageForEphmeralConfiguration() {
+    func test_cookieStorageForEphemeralConfiguration() {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 5
+        emptyCookieStorage(storage: config.httpCookieStorage)
+
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         var expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+        let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
@@ -677,24 +715,47 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertEqual(cookies2?.count, 0)
     }
 
-    func test_dontSetCookies() {
+    func test_setCookieHeadersCanBeIgnored() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         config.httpShouldSetCookies = false
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/setCookies"
+        emptyCookieStorage(storage: config.httpCookieStorage)
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
-        var req = URLRequest(url: URL(string: urlString)!)
-        req.httpMethod = "POST"
-        var task = session.dataTask(with: req) { (data, _, error) -> Void in
-            defer { expect.fulfill() }
+
+        let urlString1 = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
+        var expect1 = expectation(description: "POST \(urlString1)")
+        var req1 = URLRequest(url: URL(string: urlString1)!)
+        req1.httpMethod = "POST"
+
+        let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
+        var expect2 = expectation(description: "POST \(urlString2)")
+        var req2 = URLRequest(url: URL(string: urlString2)!)
+        req2.httpMethod = "POST"
+
+        let task1 = session.dataTask(with: req1) { (data, response, error) -> Void in
+            defer { expect1.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
-            guard let data = data else { return }
-            let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
-            XCTAssertNil(headers.range(of: "Cookie: fr=anjd&232"))
+            guard let httpResponse = try? XCTUnwrap(response as? HTTPURLResponse) else {
+                XCTFail("response should be a non-nil HTTPURLResponse")
+                return
+            }
+            XCTAssertNotNil(httpResponse.allHeaderFields["Set-Cookie"])
+
+            let task2 = session.dataTask(with: req2) { (data, _, error) -> Void in
+                defer { expect2.fulfill() }
+                guard let data = try? XCTUnwrap(data) else {
+                    XCTFail("data should not be nil")
+                    return
+                }
+                XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+                let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
+                XCTAssertNil(headers.range(of: "Cookie: fr=anjd&232"))
+            }
+            task2.resume()
         }
-        task.resume()
+        task1.resume()
+
         waitForExpectations(timeout: 30)
     }
 
@@ -749,7 +810,7 @@ class TestURLSession : LoopbackServerTest {
         var expect = expectation(description: "POST \(urlString): post with empty body")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
-        var task = session.dataTask(with: req) { (_, response, error) -> Void in
+        let task = session.dataTask(with: req) { (_, response, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
             guard let httpresponse = response as? HTTPURLResponse else { fatalError() }
@@ -763,7 +824,6 @@ class TestURLSession : LoopbackServerTest {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/unauthorized"
         let url = URL(string: urlString)!
         let expect = expectation(description: "GET \(urlString): with a completion handler")
-        var expectedResult = "unknown"
         let session = URLSession(configuration: URLSessionConfiguration.default)
         let task = session.dataTask(with: url) { _, response, error in
             defer { expect.fulfill() }
@@ -1052,9 +1112,9 @@ class TestURLSession : LoopbackServerTest {
             ("test_concurrentRequests", test_concurrentRequests),
             ("test_disableCookiesStorage", test_disableCookiesStorage),
             ("test_cookiesStorage", test_cookiesStorage),
-            ("test_cookieStorageForEphmeralConfiguration", test_cookieStorageForEphmeralConfiguration),
-            ("test_setCookies", test_setCookies),
-            ("test_dontSetCookies", test_dontSetCookies),
+            ("test_cookieStorageForEphemeralConfiguration", test_cookieStorageForEphemeralConfiguration),
+            ("test_previouslySetCookiesAreSentInLaterRequests", test_previouslySetCookiesAreSentInLaterRequests),
+            ("test_setCookieHeadersCanBeIgnored", test_setCookieHeadersCanBeIgnored),
             ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
             ("test_basicAuthRequest", test_basicAuthRequest),
             ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),

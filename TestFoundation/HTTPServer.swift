@@ -588,17 +588,16 @@ public class TestURLSessionServer {
         }
 
         if uri == "/requestCookies" {
-            let text = request.getCommaSeparatedHeaders()
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)\r\nSet-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: text)
+            return _HTTPResponse(response: .OK, headers: "Set-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: "")
         }
 
-        if uri == "/setCookies" {
+        if uri == "/echoHeaders" {
             let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
         
-        if uri == "/redirectSetCookies" {
-            return _HTTPResponse(response: .REDIRECT, headers: "Location: /setCookies\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
+        if uri == "/redirectToEchoHeaders" {
+            return _HTTPResponse(response: .REDIRECT, headers: "Location: /echoHeaders\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
         }
 
         if uri == "/UnitedStates" {
