@@ -560,6 +560,10 @@ func shouldAttemptAndroidXFailTests(_ reason: String) -> Bool {
     #endif
 }
 
+func testCaseExpectedToFail<T: XCTestCase>(_ allTests: [(String, (T) -> () throws -> Void)], _ reason: String) -> XCTestCaseEntry {
+    return testCase(allTests.map { ($0.0, testExpectedToFail($0.1, "This test suite is disabled: \(reason)")) })
+}
+
 func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [(String, (T) -> () throws -> Void)], into array: inout [XCTestCaseEntry]) {
     if shouldAttemptXFailTests(reason) {
         array.append(testCase(allTests))
