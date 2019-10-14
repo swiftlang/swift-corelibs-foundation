@@ -1544,6 +1544,18 @@ extension NSMutableString {
         }
         return 0
     }
+
+    private static func makeFindResultsRangeIterator(findResults: CFArray, count: Int, backwards: Bool) -> AnyIterator<NSRange> {
+        var index = 0
+        return AnyIterator<NSRange>() { () -> NSRange? in
+            defer { index += 1 }
+            if index < count {
+                let rangePtr = CFArrayGetValueAtIndex(findResults, backwards ? count - index - 1 : index)
+                return NSRange(rangePtr!.load(as: CFRange.self))
+            }
+            return nil
+        }
+    }
     
     public func replaceOccurrences(of target: String, with replacement: String, options: CompareOptions = [], range searchRange: NSRange) -> Int {
         let backwards = options.contains(.backwards)
@@ -1554,19 +1566,35 @@ extension NSMutableString {
         if options.contains(.regularExpression) {
             return _replaceOccurrencesOfRegularExpressionPattern(target, withTemplate:replacement, options:options, range: searchRange)
         }
-        
 
-        if let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) {
-            let numOccurrences = CFArrayGetCount(findResults)
-            for cnt in 0..<numOccurrences {
-                let rangePtr = CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1)
-                replaceCharacters(in: NSRange(rangePtr!.load(as: CFRange.self)), with: replacement)
+        guard let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) else {
+             return 0
+        }
+        let numOccurrences = CFArrayGetCount(findResults)
+
+        let rangeIterator = NSMutableString.makeFindResultsRangeIterator(findResults: findResults, count: numOccurrences, backwards: backwards)
+
+        guard type(of: self) == NSMutableString.self else {
+            // If we're dealing with non NSMutableString, mutations must go through `replaceCharacters` (documented behavior)
+            for range in rangeIterator {
+                replaceCharacters(in: range, with: replacement)
             }
+
             return numOccurrences
-        } else {
-            return 0
         }
 
+        var newStorage = Substring()
+        var sourceStringCurrentIndex = _storage.startIndex
+        for range in rangeIterator {
+            let matchStartIndex = String.Index(utf16Offset: range.location, in: _storage)
+            let matchEndIndex = String.Index(utf16Offset: range.location + range.length, in: _storage)
+            newStorage += _storage[sourceStringCurrentIndex ..< matchStartIndex]
+            newStorage += replacement
+            sourceStringCurrentIndex = matchEndIndex
+        }
+        newStorage += _storage[sourceStringCurrentIndex ..< _storage.endIndex]
+        _storage = String(newStorage)
+        return numOccurrences
     }
     
     public func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer?) -> Bool {
