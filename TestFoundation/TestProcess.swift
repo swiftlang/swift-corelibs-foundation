@@ -565,6 +565,32 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
     }
 
+    func test_fileDescriptorsAreNotInherited() throws {
+        let task = Process()
+        let someExtraFDs = [dup(1), dup(1), dup(1), dup(1), dup(1), dup(1), dup(1)]
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--print-open-file-descriptors"]
+        task.standardInput = FileHandle.nullDevice
+        let stdoutPipe = Pipe()
+        task.standardOutput = stdoutPipe.fileHandleForWriting
+        task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+
+        try stdoutPipe.fileHandleForWriting.close()
+        let stdoutData = try stdoutPipe.fileHandleForReading.readToEnd()
+        task.waitUntilExit()
+        let stdoutString = String(decoding: stdoutData ?? Data(), as: Unicode.UTF8.self)
+        #if os(macOS)
+        XCTAssertEqual("0\n1\n2\n", stdoutString)
+        #else
+        // on Linux we should also have a /dev/urandom open as well as some socket that Process uses for something.
+        XCTAssert(stdoutString.utf8.starts(with: "0\n1\n2\n3\n".utf8))
+        XCTAssertEqual(stdoutString.components(separatedBy: "\n").count, 6, "\(stdoutString)")
+        #endif
+        for fd in someExtraFDs {
+            close(fd)
+        }
+    }
 
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
@@ -599,6 +625,7 @@ class TestProcess : XCTestCase {
         tests += [
             ("test_interrupt", test_interrupt),
             ("test_suspend_resume", test_suspend_resume),
+            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
         ]
 #endif
         return tests
