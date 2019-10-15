@@ -98,7 +98,11 @@ class BundlePlayground {
             case .executable:
                 return ""
             case .library:
+#if os(Windows)
+                return ""
+#else
                 return "lib"
+#endif
             }
         }
     }
