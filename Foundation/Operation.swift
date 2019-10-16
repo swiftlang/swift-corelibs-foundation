@@ -347,7 +347,7 @@ open class Operation : NSObject {
             _state = .executing
             Operation.observeValue(forKeyPath: _NSOperationIsExecuting, ofObject: self)
             
-            _queue?._execute(self)
+            _queue?._execute(self) ?? main()
         }
         
         if __NSOperationState.executing == _state {
