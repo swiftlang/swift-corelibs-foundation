@@ -9,10 +9,6 @@
 
 import CoreFoundation
 
-#if canImport(Darwin)
-import Darwin
-#endif
-
 extension Process {
     public enum TerminationReason : Int {
         case exit
@@ -841,21 +837,6 @@ open class Process: NSObject {
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
-        #if canImport(Darwin)
-        var spawnAttrs: posix_spawnattr_t? = nil
-        posix_spawnattr_init(&spawnAttrs)
-        posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT))
-        #else
-        for fd in 3 ..< getdtablesize() {
-            guard adddup2[fd] == nil &&
-                  !addclose.contains(fd) &&
-                  fd != taskSocketPair[1] else {
-                    continue // Do not double-close descriptors, or close those pertaining to Pipes or FileHandles we want inherited.
-            }
-            posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
-        }
-        #endif
-
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
         if !fileManager.changeCurrentDirectoryPath(currentDirectoryURL.path) {
@@ -869,16 +850,9 @@ open class Process: NSObject {
 
         // Launch
         var pid = pid_t()
-        #if os(macOS)
-        guard _CFPosixSpawn(&pid, launchPath, fileActions, &spawnAttrs, argv, envp) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
-        }
-        #else
         guard _CFPosixSpawn(&pid, launchPath, fileActions, nil, argv, envp) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
         }
-        #endif
-
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
