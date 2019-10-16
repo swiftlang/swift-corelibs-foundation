@@ -15,7 +15,7 @@ class TestOperationQueue : XCTestCase {
             ("test_OperationPriorities", test_OperationPriorities),
             ("test_OperationCount", test_OperationCount),
             ("test_AsyncOperation", test_AsyncOperation),
-            ("test_SyncOperation", test_SyncOperation),
+            ("test_SyncOperationWithoutAQueue", test_SyncOperationWithoutAQueue),
             ("test_isExecutingWorks", test_isExecutingWorks),
             ("test_MainQueueGetter", test_MainQueueGetter),
             ("test_CancelOneOperation", test_CancelOneOperation),
@@ -106,7 +106,7 @@ class TestOperationQueue : XCTestCase {
         XCTAssertTrue(operation.isFinished)
     }
     
-    func test_SyncOperation() {
+    func test_SyncOperationWithoutAQueue() {
         let operation = SyncOperation()
         XCTAssertFalse(operation.isExecuting)
         XCTAssertFalse(operation.isFinished)
