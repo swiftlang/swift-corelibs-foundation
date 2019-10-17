@@ -80,8 +80,15 @@ class TestProcess : XCTestCase {
 
         let inputPipe = Pipe()
         process.standardInput = inputPipe
+        process.standardError = FileHandle.nullDevice
         try process.run()
-        inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: .utf8)!)
+        let msg = try XCTUnwrap("Hello, 🐶.\n".data(using: .utf8))
+        do {
+            try inputPipe.fileHandleForWriting.write(contentsOf: msg)
+        } catch {
+            XCTFail("Cant write to pipe: \(error)")
+            return
+        }
 
         // Close the input pipe to send EOF to cat.
         inputPipe.fileHandleForWriting.closeFile()
