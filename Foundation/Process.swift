@@ -800,7 +800,7 @@ open class Process: NSObject {
         // nil or NullDevice map to /dev/null
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            adddup2[STDIN_FILENO] = try devNullFd()
+            adddup2[STDOUT_FILENO] = try devNullFd()
 
         // No need to dup stdout to stdout
         case let handle as FileHandle where handle === FileHandle._stdoutFileHandle: break
@@ -819,7 +819,7 @@ open class Process: NSObject {
         // nil or NullDevice map to /dev/null
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            adddup2[STDIN_FILENO] = try devNullFd()
+            adddup2[STDERR_FILENO] = try devNullFd()
 
         // No need to dup stderr to stderr
         case let handle as FileHandle where handle === FileHandle._stderrFileHandle: break
