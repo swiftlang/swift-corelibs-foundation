@@ -645,3 +645,10 @@ extension FileHandle: TextOutputStream {
     }
 }
 
+extension NSLock {
+    public func synchronized<T>(_ closure: () throws -> T) rethrows -> T {
+        self.lock()
+        defer { self.unlock() }
+        return try closure()
+    }
+}

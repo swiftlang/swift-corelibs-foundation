@@ -67,7 +67,13 @@ class FTPDataTask : NSObject {
     var cancelExpectation: XCTestExpectation?
     var responseReceivedExpectation: XCTestExpectation?
     var hasTransferCompleted = false
-    public var error = false
+
+    private var errorLock = NSLock()
+    private var _error = false
+    public var error: Bool {
+        get { errorLock.synchronized { _error } }
+        set { errorLock.synchronized { _error = newValue } }
+    }
     
     init(with expectation: XCTestExpectation) {
         dataTaskExpectation = expectation

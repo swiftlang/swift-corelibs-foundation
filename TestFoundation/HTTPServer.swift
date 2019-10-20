@@ -51,8 +51,13 @@ class _TCPSocket {
     private let sendFlags: CInt
 #endif
     private var listenSocket: SOCKET!
-    private var socketAddress = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: 1) 
-    private var connectionSocket: SOCKET?
+    private var socketAddress = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: 1)
+    private var _connectionSocketLock = NSLock()
+    private var _connectionSocket: SOCKET?
+    private var connectionSocket: SOCKET? {
+        get { _connectionSocketLock.synchronized { _connectionSocket } }
+        set { _connectionSocketLock.synchronized { _connectionSocket = newValue } }
+    }
     
     private func isNotNegative(r: CInt) -> Bool {
         return r != -1
@@ -229,13 +234,15 @@ class _TCPSocket {
     }
 
     func closeClient() {
-        if let connectionSocket = self.connectionSocket {
+        _connectionSocketLock.synchronized {
+            if let connectionSocket = _connectionSocket {
 #if os(Windows)
-            closesocket(connectionSocket)
+                closesocket(connectionSocket)
 #else
-            close(connectionSocket)
+                close(connectionSocket)
 #endif
-            self.connectionSocket = nil
+                _connectionSocket = nil
+            }
         }
     }
 
