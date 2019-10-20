@@ -915,10 +915,14 @@ extension FileManager {
                 let statxErrno = _stat_with_btime(fsRep, &statInfo, &btime)
                 guard statxErrno == 0 else {
                     switch statxErrno {
-                    case EPERM:
-                      return try _statxFallback(atPath: path, withFileSystemRepresentation: fsRep)
+                    case EPERM, ENOSYS:
+                        // statx() may be blocked by a security mechanism (eg libseccomp or Docker) even if the kernel verison is new enough. EPERM or ENONSYS may be reported.
+                        // Dont try to use it in future and fallthough to a normal lstat() call.
+                        supportsStatx = false
+                        return try _statxFallback(atPath: path, withFileSystemRepresentation: fsRep)
+
                     default:
-                      throw _NSErrorWithErrno(statxErrno, reading: true, path: path)
+                        throw _NSErrorWithErrno(statxErrno, reading: true, path: path)
                     }
                 }
 
