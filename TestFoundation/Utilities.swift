@@ -625,6 +625,12 @@ extension XCTest {
     }
 }
 
+extension String {
+    public func standardizePath() -> String {
+        URL(fileURLWithPath: self).resolvingSymlinksInPath().path
+    }
+}
+
 extension FileHandle: TextOutputStream {
     public func write(_ string: String) {
         write(Data(string.utf8))

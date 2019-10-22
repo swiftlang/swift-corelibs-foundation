@@ -99,6 +99,7 @@ class TestFileManager : XCTestCase {
 
     func test_creatingDirectoryWithShortIntermediatePath() {
         let fileManager = FileManager.default
+        let cwd = fileManager.currentDirectoryPath
         fileManager.changeCurrentDirectoryPath(NSTemporaryDirectory())
 
         let relativePath = NSUUID().uuidString
@@ -109,6 +110,7 @@ class TestFileManager : XCTestCase {
         } catch {
             XCTFail("Failed to create and clean up directory")
         }
+        fileManager.changeCurrentDirectoryPath(cwd)
     }
 
     func test_moveFile() {

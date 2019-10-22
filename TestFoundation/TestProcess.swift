@@ -262,17 +262,18 @@ class TestProcess : XCTestCase {
             if (dir.hasSuffix("/") && dir != "/") || dir.hasSuffix("\\") {
                dir.removeLast()
             }
-            return dir
+            return dir.standardizePath()
         }()
 
         let fm = FileManager.default
         let previousWorkingDirectory = fm.currentDirectoryPath
+        XCTAssertNotEqual(previousWorkingDirectory.standardizePath(), tmpDir)
 
         // Test that getcwd() returns the currentDirectoryPath
         do {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines).standardizePath(), tmpDir)
         } catch {
             XCTFail("Test failed: \(error)")
         }
@@ -281,7 +282,9 @@ class TestProcess : XCTestCase {
         do {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
+            let cwd = FileManager.default.currentDirectoryPath.standardizePath()
+            XCTAssertNotEqual(cwd, tmpDir)
+            XCTAssertNotEqual(pwd.trimmingCharacters(in: .newlines).standardizePath(), tmpDir)
         } catch {
             XCTFail("Test failed: \(error)")
         }
@@ -584,6 +587,42 @@ class TestProcess : XCTestCase {
     }
 
 
+    func test_currentDirectory() throws {
+
+        let process = Process()
+        XCTAssertNil(process.executableURL)
+        XCTAssertNotNil(process.currentDirectoryURL)
+        process.executableURL = URL(fileURLWithPath: "/some_file_that_doesnt_exist", isDirectory: false)
+        XCTAssertThrowsError(try process.run()) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadNoSuchFile)
+        }
+
+        do {
+            let (stdout, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/")
+            XCTAssertEqual(stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"])), "/")
+        }
+
+        do {
+            XCTAssertNotEqual("/", FileManager.default.currentDirectoryPath)
+            XCTAssertNotEqual(FileManager.default.currentDirectoryPath, "/")
+            let (stdout, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: "/")
+            let directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
+            XCTAssertEqual(directory, ProcessInfo.processInfo.environment["PWD"])
+            XCTAssertNotEqual(directory, "/")
+        }
+
+        do {
+            try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/some_directory_that_doesnt_exsit")
+        } catch {
+            let code = CocoaError.Code(rawValue: (error as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadNoSuchFile)
+            return
+        }
+        XCTFail("Failed to catch error")
+    }
+
+
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
             ("test_exit0" , test_exit0),
@@ -610,6 +649,7 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_null", test_redirect_all_using_null),
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
+            ("test_currentDirectory", test_currentDirectory),
         ]
 
 #if !os(Windows)
@@ -708,6 +748,7 @@ class _SignalHelperRunner {
     }
 }
 
+@discardableResult
 internal func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
     let process = Process()
 
