@@ -1417,4 +1417,62 @@ extension TestNSString {
         XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\r\rworld.")
         XCTAssertEqual(str4.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\rworld.")
     }
+
+    func test_replacingOccurrencesInSubclass() {
+        class TestMutableString: NSMutableString {
+            private var wrapped: NSMutableString
+            var replaceCharactersCount: Int = 0
+
+            override var length: Int {
+                return wrapped.length
+            }
+
+            override func character(at index: Int) -> unichar {
+                return wrapped.character(at: index)
+            }
+
+            override func replaceCharacters(in range: NSRange, with aString: String) {
+                defer { replaceCharactersCount += 1 }
+                wrapped.replaceCharacters(in: range, with: aString)
+            }
+
+            override func mutableCopy(with zone: NSZone? = nil) -> Any {
+                return wrapped.mutableCopy()
+            }
+
+            required init(stringLiteral value: StaticString) {
+                wrapped = .init(stringLiteral: value)
+                super.init(stringLiteral: value)
+            }
+
+            required init(capacity: Int) {
+                fatalError("init(capacity:) has not been implemented")
+            }
+
+            required init(string aString: String) {
+                fatalError("init(string:) has not been implemented")
+            }
+
+            required convenience init?(coder aDecoder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+
+            required init(characters: UnsafePointer<unichar>, length: Int) {
+                fatalError("init(characters:length:) has not been implemented")
+            }
+
+            required convenience init(extendedGraphemeClusterLiteral value: StaticString) {
+                fatalError("init(extendedGraphemeClusterLiteral:) has not been implemented")
+            }
+
+            required convenience init(unicodeScalarLiteral value: StaticString) {
+                fatalError("init(unicodeScalarLiteral:) has not been implemented")
+            }
+        }
+
+        let testString = TestMutableString(stringLiteral: "ababab")
+        XCTAssertEqual(testString.replacingOccurrences(of: "ab", with: "xx"), "xxxxxx")
+        XCTAssertEqual(testString.replaceCharactersCount, 3)
+    }
+
 }
