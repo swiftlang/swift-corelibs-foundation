@@ -84,7 +84,11 @@ class TestProcess : XCTestCase {
         try process.run()
         let msg = try XCTUnwrap("Hello, 🐶.\n".data(using: .utf8))
         do {
+#if DARWIN_COMPATIBILITY_TESTS
+            inputPipe.fileHandleForWriting.write(msg)
+#else
             try inputPipe.fileHandleForWriting.write(contentsOf: msg)
+#endif
         } catch {
             XCTFail("Cant write to pipe: \(error)")
             return

@@ -190,6 +190,7 @@
 		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B99EAE6E23602FFA00C8FB46 /* TestsToSkip.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestsToSkip.txt; sourceTree = "<group>"; };
 		B99EAE6F23602FFA00C8FB46 /* xcode-build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "xcode-build.sh"; sourceTree = "<group>"; };
+		B99EAE742360577C00C8FB46 /* TestCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestCodable.swift; path = TestFoundation/TestCodable.swift; sourceTree = "<group>"; };
 		B9C1C63322607372002BBEA0 /* FixtureValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FixtureValues.swift; path = TestFoundation/FixtureValues.swift; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -326,6 +327,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B99EAE742360577C00C8FB46 /* TestCodable.swift */,
 				B906C30322AC6E2A00FCFA2D /* FTPServer.swift */,
 				B906C2FF22AC6CE600FCFA2D /* TestNSSortDescriptor.swift */,
 				B906C30022AC6CE600FCFA2D /* TestURLSessionFTP.swift */,
@@ -610,6 +612,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9C89F411F6BF89C00087AF4 /* TestCodable.swift in Sources */,
 				B906C30422AC6E2A00FCFA2D /* FTPServer.swift in Sources */,
 				B906C30122AC6CE700FCFA2D /* TestNSSortDescriptor.swift in Sources */,
 				B906C30222AC6CE700FCFA2D /* TestURLSessionFTP.swift in Sources */,
@@ -642,7 +645,6 @@
 				B9C89F3E1F6BF89C00087AF4 /* TestISO8601DateFormatter.swift in Sources */,
 				B9C89F3F1F6BF89C00087AF4 /* TestNSTextCheckingResult.swift in Sources */,
 				B9C89F401F6BF89C00087AF4 /* TestCharacterSet.swift in Sources */,
-				B9C89F411F6BF89C00087AF4 /* TestCodable.swift in Sources */,
 				B9C89F421F6BF89C00087AF4 /* TestIndexPath.swift in Sources */,
 				B9C89F431F6BF89C00087AF4 /* TestMassFormatter.swift in Sources */,
 				B9C89F441F6BF89C00087AF4 /* TestNSSet.swift in Sources */,

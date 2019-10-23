@@ -1266,12 +1266,10 @@ class TestNSString: LoopbackServerTest {
         let firstLine = string[rangeOfFirstLine]
         XCTAssertEqual(firstLine, "LINE1_67あ\n")
     }
-}
 
-func test_reflection() {
-}
+    func test_reflection() {
+    }
 
-extension TestNSString {
     func test_replacingOccurrences() {
         let testPrefix = "ab"
         let testSuffix = "cd"
@@ -1342,6 +1340,8 @@ extension TestNSString {
     }
 
     func test_replacingOccurrencesInSubclass() {
+        // NSMutableString doesnt subclasss correctly
+#if !DARWIN_COMPATIBILITY_TESTS
         class TestMutableString: NSMutableString {
             private var wrapped: NSMutableString
             var replaceCharactersCount: Int = 0
@@ -1396,6 +1396,7 @@ extension TestNSString {
         let testString = TestMutableString(stringLiteral: "ababab")
         XCTAssertEqual(testString.replacingOccurrences(of: "ab", with: "xx"), "xxxxxx")
         XCTAssertEqual(testString.replaceCharactersCount, 3)
+#endif
     }
 
 
@@ -1556,7 +1557,7 @@ extension TestNSString {
             ("test_ExternalRepresentation", test_ExternalRepresentation),
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
-            ("test_reflection", { _ in test_reflection }),
+            ("test_reflection", test_reflection),
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
