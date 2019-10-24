@@ -27,6 +27,8 @@
 		B97E7856222AF995007596B0 /* TestPropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */; };
 		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
 		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
+		B99EAE7023602FFA00C8FB46 /* TestsToSkip.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99EAE6E23602FFA00C8FB46 /* TestsToSkip.txt */; };
+		B99EAE7123602FFA00C8FB46 /* xcode-build.sh in Resources */ = {isa = PBXBuildFile; fileRef = B99EAE6F23602FFA00C8FB46 /* xcode-build.sh */; };
 		B9C1C63422607372002BBEA0 /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C1C63322607372002BBEA0 /* FixtureValues.swift */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
@@ -186,6 +188,9 @@
 		B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestPropertyListEncoder.swift; path = TestFoundation/TestPropertyListEncoder.swift; sourceTree = "<group>"; };
 		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
 		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
+		B99EAE6E23602FFA00C8FB46 /* TestsToSkip.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestsToSkip.txt; sourceTree = "<group>"; };
+		B99EAE6F23602FFA00C8FB46 /* xcode-build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "xcode-build.sh"; sourceTree = "<group>"; };
+		B99EAE742360577C00C8FB46 /* TestCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestCodable.swift; path = TestFoundation/TestCodable.swift; sourceTree = "<group>"; };
 		B9C1C63322607372002BBEA0 /* FixtureValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FixtureValues.swift; path = TestFoundation/FixtureValues.swift; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -252,7 +257,7 @@
 		B9C89F221F6BF89800087AF4 /* TestNSCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSCache.swift; path = TestFoundation/TestNSCache.swift; sourceTree = "<group>"; };
 		B9C89F231F6BF89800087AF4 /* TestNSDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSDictionary.swift; path = TestFoundation/TestNSDictionary.swift; sourceTree = "<group>"; };
 		B9C89F241F6BF89800087AF4 /* TestNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNotificationCenter.swift; path = TestFoundation/TestNotificationCenter.swift; sourceTree = "<group>"; };
-		B9C89F251F6BF89800087AF4 /* TestProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestProcess.swift; path = TestFoundation/TestProcess.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		B9C89F251F6BF89800087AF4 /* TestProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestProcess.swift; path = TestFoundation/TestProcess.swift; sourceTree = "<group>"; };
 		B9C89F261F6BF89900087AF4 /* TestEnergyFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestEnergyFormatter.swift; path = TestFoundation/TestEnergyFormatter.swift; sourceTree = "<group>"; };
 		B9C89F271F6BF89900087AF4 /* TestNSCompoundPredicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSCompoundPredicate.swift; path = TestFoundation/TestNSCompoundPredicate.swift; sourceTree = "<group>"; };
 		B9C89F281F6BF89900087AF4 /* TestNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNotification.swift; path = TestFoundation/TestNotification.swift; sourceTree = "<group>"; };
@@ -322,6 +327,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B99EAE742360577C00C8FB46 /* TestCodable.swift */,
 				B906C30322AC6E2A00FCFA2D /* FTPServer.swift */,
 				B906C2FF22AC6CE600FCFA2D /* TestNSSortDescriptor.swift */,
 				B906C30022AC6CE600FCFA2D /* TestURLSessionFTP.swift */,
@@ -472,6 +478,8 @@
 		B9C89ED81F6BF77E00087AF4 /* DarwinCompatibilityTests */ = {
 			isa = PBXGroup;
 			children = (
+				B99EAE6F23602FFA00C8FB46 /* xcode-build.sh */,
+				B99EAE6E23602FFA00C8FB46 /* TestsToSkip.txt */,
 				B9F3269E1FC714DD003C3599 /* DarwinShims.swift */,
 				B9C89EDF1F6BF79000087AF4 /* TestFoundation */,
 				B9C89EDB1F6BF77E00087AF4 /* Info.plist */,
@@ -563,6 +571,7 @@
 			files = (
 				B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */,
 				B9C89FBA1F6DCAEB00087AF4 /* NSString-UTF32-LE-data.txt in Resources */,
+				B99EAE7023602FFA00C8FB46 /* TestsToSkip.txt in Resources */,
 				B9C89FBB1F6DCAEB00087AF4 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
 				B9C89FBC1F6DCAEB00087AF4 /* NSKeyedUnarchiver-ConcreteValueTest.plist in Resources */,
 				B9C89FBD1F6DCAEB00087AF4 /* NSKeyedUnarchiver-RectTest.plist in Resources */,
@@ -582,6 +591,7 @@
 				B9C89FCA1F6DCAEB00087AF4 /* NSKeyedUnarchiver-RangeTest.plist in Resources */,
 				B9C89FCB1F6DCAEB00087AF4 /* NSXMLDocumentTestData.xml in Resources */,
 				B9C89FCC1F6DCAEB00087AF4 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */,
+				B99EAE7123602FFA00C8FB46 /* xcode-build.sh in Resources */,
 				B9C89FCD1F6DCAEB00087AF4 /* PropertyList-1.0.dtd in Resources */,
 				B9C89FCE1F6DCAEB00087AF4 /* Test.plist in Resources */,
 			);
@@ -602,6 +612,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9C89F411F6BF89C00087AF4 /* TestCodable.swift in Sources */,
 				B906C30422AC6E2A00FCFA2D /* FTPServer.swift in Sources */,
 				B906C30122AC6CE700FCFA2D /* TestNSSortDescriptor.swift in Sources */,
 				B906C30222AC6CE700FCFA2D /* TestURLSessionFTP.swift in Sources */,
@@ -634,7 +645,6 @@
 				B9C89F3E1F6BF89C00087AF4 /* TestISO8601DateFormatter.swift in Sources */,
 				B9C89F3F1F6BF89C00087AF4 /* TestNSTextCheckingResult.swift in Sources */,
 				B9C89F401F6BF89C00087AF4 /* TestCharacterSet.swift in Sources */,
-				B9C89F411F6BF89C00087AF4 /* TestCodable.swift in Sources */,
 				B9C89F421F6BF89C00087AF4 /* TestIndexPath.swift in Sources */,
 				B9C89F431F6BF89C00087AF4 /* TestMassFormatter.swift in Sources */,
 				B9C89F441F6BF89C00087AF4 /* TestNSSet.swift in Sources */,

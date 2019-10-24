@@ -134,7 +134,12 @@ class TestPort: Port {
         self.sentinel = sentinel
         super.init()
     }
-    
+
+    // Required on Darwin
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     deinit {
         invalidate()
         sentinel()

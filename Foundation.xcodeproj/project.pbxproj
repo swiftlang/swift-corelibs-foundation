@@ -424,8 +424,10 @@
 		B933A79F1F3055F700FE6846 /* NSString-UTF32-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */; };
 		B940492D223B146800FB4384 /* TestProgressFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940492C223B146800FB4384 /* TestProgressFraction.swift */; };
 		B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */; };
+		B95FC97522AF051B005DEA0A /* xcode-build.sh in Resources */ = {isa = PBXBuildFile; fileRef = B95FC97422AF051B005DEA0A /* xcode-build.sh */; };
 		B95FC97622B84B0A005DEA0A /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
 		B98E33DD2136AA740044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */; };
+		B99EAE72236044C900C8FB46 /* SwiftXCTest.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B95FC97222AF0050005DEA0A /* SwiftXCTest.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B9C0E89620C31AB60064C68C /* CFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D888A1BBC963C00234F36 /* CFInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BB3D7558208A1E500085CFDC /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D7557208A1E500085CFDC /* TestImports.swift */; };
 		BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8042151E09857800487EB8 /* TestLengthFormatter.swift */; };
@@ -672,6 +674,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				B99EAE72236044C900C8FB46 /* SwiftXCTest.framework in CopyFiles */,
 				5BDC406E1BD6D8C400ED97BB /* SwiftFoundation.framework in CopyFiles */,
 				1550111822EA43E00088F082 /* SwiftFoundationXML.framework in CopyFiles */,
 				1550111C22EA43E20088F082 /* SwiftFoundationNetworking.framework in CopyFiles */,
@@ -934,7 +937,7 @@
 		5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter_Private.h; sourceTree = "<group>"; };
 		5B6F17921C48631C00935030 /* TestNSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNull.swift; sourceTree = "<group>"; };
 		5B6F17931C48631C00935030 /* TestNumberFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNumberFormatter.swift; sourceTree = "<group>"; };
-		5B6F17941C48631C00935030 /* TestProcess.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = TestProcess.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		5B6F17941C48631C00935030 /* TestProcess.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = TestProcess.swift; sourceTree = "<group>"; };
 		5B6F17951C48631C00935030 /* TestXMLDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestXMLDocument.swift; sourceTree = "<group>"; };
 		5B6F17961C48631C00935030 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		5B7818591D6CB5CD004A01F2 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
@@ -1063,8 +1066,10 @@
 		B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-LE-data.txt"; sourceTree = "<group>"; };
-		B940492C223B146800FB4384 /* TestProgressFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestProgressFraction.swift; path = TestFoundation/TestProgressFraction.swift; sourceTree = "<group>"; };
+		B940492C223B146800FB4384 /* TestProgressFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProgressFraction.swift; sourceTree = "<group>"; };
 		B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSLock.swift; sourceTree = "<group>"; };
+		B95FC97222AF0050005DEA0A /* SwiftXCTest.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftXCTest.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B95FC97422AF051B005DEA0A /* xcode-build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "xcode-build.sh"; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9974B8F1EDF4A22007F15B8 /* TransferState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransferState.swift; sourceTree = "<group>"; };
 		B9974B901EDF4A22007F15B8 /* MultiHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiHandle.swift; sourceTree = "<group>"; };
@@ -1328,7 +1333,7 @@
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
-				B940492C223B146800FB4384 /* TestProgressFraction.swift */,
+				B95FC97422AF051B005DEA0A /* xcode-build.sh */,
 				B167A6641ED7303F0040B09A /* README.md */,
 				5BDC3F2C1BCC5DB500ED97BB /* Foundation */,
 				EAB57B681BD1A255004AC5C5 /* CoreFoundation */,
@@ -1338,6 +1343,7 @@
 				5B5D89AB1BBDCD0B00234F36 /* Frameworks */,
 				5B5D885E1BBC938800234F36 /* Products */,
 				1550110A22EA266C0088F082 /* SwiftFoundation copy-Info.plist */,
+				B95FC97222AF0050005DEA0A /* SwiftXCTest.framework */,
 			);
 			indentWidth = 4;
 			sourceTree = "<group>";
@@ -1819,6 +1825,7 @@
 				3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */,
 				AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */,
 				DCA8120A1F046D13000D0C86 /* TestCodable.swift */,
+				B940492C223B146800FB4384 /* TestProgressFraction.swift */,
 				C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
 				294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */,
@@ -2629,6 +2636,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B95FC97522AF051B005DEA0A /* xcode-build.sh in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4032,6 +4040,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(TOOLCHAIN_DIR)/usr/lib/swift/macosx @executable_path @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -4044,6 +4053,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(TOOLCHAIN_DIR)/usr/lib/swift/macosx @executable_path @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
