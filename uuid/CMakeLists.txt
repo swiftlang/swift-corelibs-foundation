@@ -20,3 +20,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
 endif()
 set_target_properties(uuid PROPERTIES
   POSITION_INDEPENDENT_CODE YES)
+
+if(NOT BUILD_SHARED_LIBS)
+  set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS uuid)
+endif()

@@ -239,6 +239,8 @@ set_target_properties(FoundationXML PROPERTIES
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
+set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+  Foundation FoundationNetworking FoundationXML)
 get_swift_host_arch(swift_arch)
 install(TARGETS Foundation FoundationNetworking FoundationXML
   ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>

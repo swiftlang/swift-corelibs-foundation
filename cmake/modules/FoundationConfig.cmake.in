@@ -1,0 +1,4 @@
+
+if(NOT TARGET Foundation)
+  include(@Foundation_EXPORTS_FILE@)
+endif()

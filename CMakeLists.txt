@@ -55,6 +55,8 @@ if(ENABLE_TESTING)
   add_subdirectory(TestFoundation)
 endif()
 
+add_subdirectory(cmake/modules)
+
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
