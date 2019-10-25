@@ -584,7 +584,7 @@ open class Process: NSObject {
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
         try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
-          try currentDirectoryURL.path.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
+          try currentDirectoryURL?.path.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
             try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
               if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
                                  nil, nil, true,
