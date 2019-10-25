@@ -596,6 +596,38 @@ class TestProcess : XCTestCase {
         let process = Process()
         XCTAssertNil(process.executableURL)
         XCTAssertNotNil(process.currentDirectoryURL)
+
+        // Test currentDirectoryURL cannot be set to nil even though it is a URL?
+        let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        process.currentDirectoryURL = nil
+        XCTAssertNotNil(process.currentDirectoryURL)
+        XCTAssertEqual(process.currentDirectoryURL, cwd)
+
+        let aFileURL = URL(fileURLWithPath: "/a_file", isDirectory: false)
+        XCTAssertFalse(aFileURL.hasDirectoryPath)
+        XCTAssertEqual(aFileURL.path, "/a_file")
+        process.currentDirectoryURL = aFileURL
+        XCTAssertNotEqual(process.currentDirectoryURL, aFileURL)
+        XCTAssertEqual(process.currentDirectoryPath, "/a_file")
+        XCTAssertTrue(try XCTUnwrap(process.currentDirectoryURL).hasDirectoryPath)
+        XCTAssertEqual(try XCTUnwrap(process.currentDirectoryURL).absoluteString, "file:///a_file/")
+
+        let aDirURL = URL(fileURLWithPath: "/a_dir", isDirectory: true)
+        XCTAssertTrue(aDirURL.hasDirectoryPath)
+        XCTAssertEqual(aDirURL.path, "/a_dir")
+        process.currentDirectoryURL = aDirURL
+        XCTAssertEqual(process.currentDirectoryURL, aDirURL)
+        XCTAssertEqual(process.currentDirectoryPath, "/a_dir")
+        XCTAssertTrue(try XCTUnwrap(process.currentDirectoryURL).hasDirectoryPath)
+        XCTAssertEqual(try XCTUnwrap(process.currentDirectoryURL).absoluteString, "file:///a_dir/")
+
+        process.currentDirectoryPath = ""
+        XCTAssertEqual(process.currentDirectoryPath, "")
+        XCTAssertNil(process.currentDirectoryURL)
+        process.currentDirectoryURL = nil
+        XCTAssertEqual(process.currentDirectoryPath, cwd.path)
+
+
         process.executableURL = URL(fileURLWithPath: "/some_file_that_doesnt_exist", isDirectory: false)
         XCTAssertThrowsError(try process.run()) {
             let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
@@ -617,13 +649,44 @@ class TestProcess : XCTestCase {
         }
 
         do {
-            try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/some_directory_that_doesnt_exsit")
+            let process = Process()
+            process.executableURL = xdgTestHelperURL()
+            process.arguments = [ "--getcwd" ]
+            process.currentDirectoryPath = ""
+
+            let stdoutPipe = Pipe()
+            process.standardOutput = stdoutPipe
+
+            try process.run()
+            process.waitUntilExit()
+
+            guard process.terminationStatus == 0 else {
+                throw Error.TerminationStatus(process.terminationStatus)
+            }
+
+            var stdoutData = Data()
+            #if DARWIN_COMPATIBILITY_TESTS
+                    // Use old API for now
+                    stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
+            #else
+                    if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
+                        stdoutData.append(d)
+                    }
+            #endif
+
+            guard let stdout = String(data: stdoutData, encoding: .utf8) else {
+                throw Error.UnicodeDecodingError(stdoutData)
+            }
+            let directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
+            XCTAssertEqual(directory, FileManager.default.currentDirectoryPath)
         } catch {
+            XCTFail(String(describing: error))
+        }
+
+        XCTAssertThrowsError(try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/some_directory_that_doesnt_exsit")) { error in
             let code = CocoaError.Code(rawValue: (error as? NSError)!.code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
-            return
         }
-        XCTFail("Failed to catch error")
     }
 
 
