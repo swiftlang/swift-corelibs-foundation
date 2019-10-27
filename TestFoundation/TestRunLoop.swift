@@ -69,6 +69,16 @@ class TestRunLoop : XCTestCase {
         
         XCTAssertLessThan(abs(timerTickInterval - expectedTimeInterval), 0.01)
     }
+
+    func test_runLoopPoll() {
+        let runLoop = RunLoop.current
+
+        let startDate = Date()
+        runLoop.run(until: Date())
+        let endDate = Date()
+
+        XCTAssertLessThan(endDate.timeIntervalSince(startDate), 0.5)
+    }
     
     func test_commonModes() {
         let runLoop = RunLoop.current
@@ -123,6 +133,7 @@ class TestRunLoop : XCTestCase {
             // these tests do not work the same as Darwin https://bugs.swift.org/browse/SR-399
             // ("test_runLoopRunMode", test_runLoopRunMode),
             // ("test_runLoopLimitDate", test_runLoopLimitDate),
+            ("test_runLoopPoll", test_runLoopPoll),
             ("test_addingRemovingPorts", test_addingRemovingPorts),
         ]
     }
