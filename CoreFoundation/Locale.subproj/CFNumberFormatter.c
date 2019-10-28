@@ -136,6 +136,8 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
     }
 
     if (kCFNumberFormatterNoStyle == style) {
+#if U_ICU_VERSION_MAJOR_NUM < 62
+        // ICU62+ is stricter about patterns matching attribute settings and setting UNUM_MAX_INTEGER_DIGITS = 42 would result in a pattern of  42x '#' not 1x '#' as is set here.
         UChar ubuff[1];
         status = U_ZERO_ERROR;
         ubuff[0] = '#';
@@ -143,6 +145,7 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
         __cficu_unum_applyPattern(memory->_nf, false, ubuff, 1, NULL, &status);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_INTEGER_DIGITS, 42);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_FRACTION_DIGITS, 0);
+#endif
     }
     //Prior to Gala, CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
     //Since we're not in that situation here, and this is a frequently used path, we retain as we used to
