@@ -84,11 +84,7 @@ class TestProcess : XCTestCase {
         try process.run()
         let msg = try XCTUnwrap("Hello, 🐶.\n".data(using: .utf8))
         do {
-#if DARWIN_COMPATIBILITY_TESTS
-            inputPipe.fileHandleForWriting.write(msg)
-#else
             try inputPipe.fileHandleForWriting.write(contentsOf: msg)
-#endif
         } catch {
             XCTFail("Cant write to pipe: \(error)")
             return
@@ -585,14 +581,9 @@ class TestProcess : XCTestCase {
         stdoutPipe.fileHandleForReading.readabilityHandler = nil
 
         try dataLock.synchronized {
-#if DARWIN_COMPATIBILITY_TESTS
-            // Use old API for now
-            stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
-#else
             if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
                 stdoutData.append(d)
             }
-#endif
             XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
         }
     }
@@ -672,14 +663,9 @@ class TestProcess : XCTestCase {
             }
 
             var stdoutData = Data()
-            #if DARWIN_COMPATIBILITY_TESTS
-                    // Use old API for now
-                    stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
-            #else
-                    if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
-                        stdoutData.append(d)
-                    }
-            #endif
+            if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
+                stdoutData.append(d)
+            }
 
             guard let stdout = String(data: stdoutData, encoding: .utf8) else {
                 throw Error.UnicodeDecodingError(stdoutData)
@@ -948,11 +934,6 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
 
     return try dataLock.synchronized {
         // Drain any data remaining in the pipes
-#if DARWIN_COMPATIBILITY_TESTS
-        // Use old API for now
-        stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
-        stderrData.append(stderrPipe.fileHandleForReading.availableData)
-#else
         if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
             stdoutData.append(d)
         }
@@ -960,7 +941,6 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
         if let d = try stderrPipe.fileHandleForReading.readToEnd() {
             stderrData.append(d)
         }
-#endif
 
         guard let stdout = String(data: stdoutData, encoding: .utf8) else {
             throw Error.UnicodeDecodingError(stdoutData)

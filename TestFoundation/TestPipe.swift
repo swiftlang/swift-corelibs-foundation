@@ -7,7 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !DARWIN_COMPATIBILITY_TESTS     // Disable until Foundation has the new FileHandle API
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
@@ -79,4 +78,3 @@ class TestPipe: XCTestCase {
         XCTAssertEqual(text, convertedData)
     }
 }
-#endif
