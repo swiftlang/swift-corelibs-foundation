@@ -1152,8 +1152,8 @@ class TestNSNumber : XCTestCase {
         // Currently disabled as the latest ICU (62+) which uses Google's dobule-conversion library currently converts Double.leastNonzeroMagnitude to 0
         // although the ICU61 version correctly converted it to 5E-324 - Test left in to check for the bug being fixed in the future.
         //XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "5E-324")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "0E+00")
         XCTAssertEqual(NSNumber(value: 2 * Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1E-323")
-
         XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1.797693134862316E+308")
 
         // de_DE Locale
@@ -1200,6 +1200,7 @@ class TestNSNumber : XCTestCase {
         // Currently disabled as the latest ICU (62+) which uses Google's dobule-conversion library currently converts Double.leastNonzeroMagnitude to 0
         // although the ICU61 version correctly converted it to 5E-324 - Test left in to check for the bug being fixed in the future.
         //XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "5E-324")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "0E+00")
         XCTAssertEqual(NSNumber(value: 2 * Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1E-323")
         XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1,797693134862316E+308")
     }
