@@ -860,7 +860,7 @@ open class Process: NSObject {
         for (new, old) in adddup2 {
             posix(_CFPosixSpawnFileActionsAddDup2(fileActions, old, new))
         }
-        for fd in addclose {
+        for fd in addclose.filter({ $0 >= 0 }) {
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 

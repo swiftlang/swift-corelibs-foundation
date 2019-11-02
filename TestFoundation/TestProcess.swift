@@ -696,6 +696,33 @@ class TestProcess : XCTestCase {
         }
     }
 
+    func test_pipeCloseBeforeLaunch() {
+        let process = Process()
+        let stdInput = Pipe()
+        let stdOutput = Pipe()
+
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--cat"]
+        process.standardInput = stdInput
+        process.standardOutput = stdOutput
+
+        let string = "Hello, World"
+        let stdInputPipe = stdInput.fileHandleForWriting
+        XCTAssertNoThrow(try stdInputPipe.write(XCTUnwrap(string.data(using: .utf8))))
+        stdInputPipe.closeFile()
+
+        XCTAssertNoThrow(try process.run())
+        process.waitUntilExit()
+
+        let stdOutputPipe = stdOutput.fileHandleForReading
+        do {
+            let readData = try XCTUnwrap(stdOutputPipe.readToEnd())
+            let readString = String(data: readData, encoding: .utf8)
+            XCTAssertEqual(string, readString)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
@@ -724,6 +751,7 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
             ("test_currentDirectory", test_currentDirectory),
+            ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch)
         ]
 
 #if !os(Windows)
