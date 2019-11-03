@@ -381,10 +381,11 @@ extension String {
     private func _scan<T: BinaryFloatingPoint>(buffer buf: inout _NSStringBuffer, locale: Locale?, neg: Bool, to: (T) -> Void, base: UInt,
                                                numericValue: ((_: unichar) -> Int?)) -> Bool {
         let ds = (locale ?? Locale.current).decimalSeparator?.first ?? Character(".")
-        var localResult: T = T(0)
+        var localResult: T! = nil
         var neg = neg
 
         while let numeral = numericValue(buf.currentCharacter) {
+            localResult = localResult ?? T(0)
             // if (localResult >= T.greatestFiniteMagnitude / T(10)) && ((localResult > T.greatestFiniteMagnitude / T(10)) || T(numericValue(buf.currentCharacter) - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10))  is evidently too complex; so break it down to more "edible chunks"
             let limit1 = localResult >= T.greatestFiniteMagnitude / T(base)
             let limit2 = localResult > T.greatestFiniteMagnitude / T(base)
@@ -407,10 +408,15 @@ extension String {
             var factor = 1 / T(base)
             buf.advance()
             while let numeral = numericValue(buf.currentCharacter) {
+                localResult = localResult ?? T(0)
                 localResult = localResult + T(numeral) * factor
                 factor = factor / T(base)
                 buf.advance()
             }
+        }
+
+        guard localResult != nil else {
+            return false
         }
 
         // If this is used to parse a number in Hexadecimal, this will never be true as the 'e' or 'E' will be caught by the previous loop.
@@ -435,7 +441,7 @@ extension String {
                 }
             }
         }
-        
+
         to(neg ? T(-1) * localResult : localResult)
         return true
     }

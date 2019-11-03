@@ -75,6 +75,19 @@ class TestScanner : XCTestCase {
             expectEqual($0.scanDouble(), atof("3.14"), "Roundtrip: 1")
             expectEqual($0.scanDouble(), atof("-100"), "Roundtrip: 2")
         }
+
+        withScanner(for: "0.5 bla 0. .1 1e2 e+3 e4") {
+            expectEqual($0.scanDouble(), 0.5, "Parse '0.5' as Double")
+            expectEqual($0.scanDouble(), nil, "Dont parse 'bla' as a Double")     // "bla" doesnt parse as Double
+            expectEqual($0.scanString("bla"), "bla", "Consume the 'bla'")
+            expectEqual($0.scanDouble(), 0, "Parse '0.' as a Double")
+            expectEqual($0.scanDouble(), 0.1, "Parse '.1' as a Double")
+            expectEqual($0.scanDouble(), 100, "Parse '1e2' as a Double")
+            expectEqual($0.scanDouble(), nil, "Dont parse 'e+3' as a Double")     // "e+3" doesnt parse as Double
+            expectEqual($0.scanString("e+3"), "e+3", "Consume the 'e+3'")
+            expectEqual($0.scanDouble(), nil, "Dont parse 'e4' as a Double'")     // "e3" doesnt parse as Double
+            expectEqual($0.scanString("e4"), "e4", "Consume the 'e4'")
+        }
     }
     
     func testHexRepresentation() {
