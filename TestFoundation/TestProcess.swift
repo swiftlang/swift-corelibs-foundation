@@ -724,6 +724,46 @@ class TestProcess : XCTestCase {
         }
     }
 
+    func test_multiProcesses() {
+        let source = Process()
+        source.executableURL = xdgTestHelperURL()
+        source.arguments = [ "--getcwd" ]
+
+        let cat1 = Process()
+        cat1.executableURL = xdgTestHelperURL()
+        cat1.arguments = [ "--cat" ]
+
+        let cat2 = Process()
+        cat2.executableURL = xdgTestHelperURL()
+        cat2.arguments = [ "--cat" ]
+
+        let pipe1 = Pipe()
+        source.standardOutput = pipe1
+        cat1.standardInput = pipe1
+
+        let pipe2 = Pipe()
+        cat1.standardOutput = pipe2
+        cat2.standardInput = pipe2
+
+        let pipe3 = Pipe()
+        cat2.standardOutput = pipe3
+
+        XCTAssertNoThrow(try source.run())
+        XCTAssertNoThrow(try cat1.run())
+        XCTAssertNoThrow(try cat2.run())
+        cat2.waitUntilExit()
+        cat1.waitUntilExit()
+        source.waitUntilExit()
+
+        do {
+            let data = try XCTUnwrap(pipe3.fileHandleForReading.readToEnd())
+            let pwd = String.init(decoding: data, as: UTF8.self).trimmingCharacters(in: CharacterSet(["\n", "\r"]))
+            XCTAssertEqual(pwd, FileManager.default.currentDirectoryPath.standardizePath())
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
             ("test_exit0" , test_exit0),
@@ -751,7 +791,8 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
             ("test_currentDirectory", test_currentDirectory),
-            ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch)
+            ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
+            ("test_multiProcesses", test_multiProcesses),
         ]
 
 #if !os(Windows)
