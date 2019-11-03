@@ -1879,7 +1879,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         if ns != NSDateComponentUndefined && 0 < ns {
             nanosecond = 0
         }
-        let d = calendar.date(from: self._swiftObject)
+        let d = cal.date(from: self._swiftObject)
         if ns != NSDateComponentUndefined && 0 < ns {
             nanosecond = ns
         }
