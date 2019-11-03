@@ -272,6 +272,7 @@ class TestNSDateComponents: XCTestCase {
             ("test_dateDifferenceComponents", test_dateDifferenceComponents),
             ("test_nanoseconds", test_nanoseconds),
             ("test_currentCalendar", test_currentCalendar),
+            ("test_isValidDate", test_isValidDate),
         ]
     }
 
@@ -533,5 +534,21 @@ class TestNSDateComponents: XCTestCase {
         XCTAssertEqual(Calendar.current.compare(d1, to: d2, toGranularity: .month), .orderedSame)
         XCTAssertEqual(Calendar.current.compare(d1, to: d2, toGranularity: .weekday), .orderedAscending)
         XCTAssertEqual(Calendar.current.compare(d2, to: d1, toGranularity: .weekday), .orderedDescending)
+    }
+    
+    func test_isValidDate() {
+        let components = NSDateComponents()
+        components.year = 2019
+        components.month = 11
+        components.day = 3
+        components.hour = 7
+        components.minute = 5
+        components.second = 54
+        components.timeZone = TimeZone(secondsFromGMT: -18000)!
+        
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+
+        XCTAssert(components.isValidDate(in: Calendar(identifier: Calendar.Identifier.gregorian)))
     }
 }
