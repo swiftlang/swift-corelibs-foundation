@@ -104,8 +104,7 @@ extension TestJSONSerialization {
             ("test_deserialize_simpleEscapeSequences_withData", test_deserialize_simpleEscapeSequences_withData),
             ("test_deserialize_unicodeEscapeSequence_withData", test_deserialize_unicodeEscapeSequence_withData),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence_withData", test_deserialize_unicodeSurrogatePairEscapeSequence_withData),
-            // Disabled due to uninitialized memory SR-606
-            // ("test_deserialize_allowFragments_withData", test_deserialize_allowFragments_withData),
+            ("test_deserialize_allowFragments_withData", test_deserialize_allowFragments_withData),
 
             ("test_deserialize_unterminatedObjectString_withData", test_deserialize_unterminatedObjectString_withData),
             ("test_deserialize_missingObjectKey_withData", test_deserialize_missingObjectKey_withData),
@@ -136,8 +135,7 @@ extension TestJSONSerialization {
             ("test_deserialize_simpleEscapeSequences_withStream", test_deserialize_simpleEscapeSequences_withStream),
             ("test_deserialize_unicodeEscapeSequence_withStream", test_deserialize_unicodeEscapeSequence_withStream),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence_withStream", test_deserialize_unicodeSurrogatePairEscapeSequence_withStream),
-            // Disabled due to uninitialized memory SR-606
-            // ("test_deserialize_allowFragments_withStream", test_deserialize_allowFragments_withStream),
+            ("test_deserialize_allowFragments_withStream", test_deserialize_allowFragments_withStream),
 
             ("test_deserialize_unterminatedObjectString_withStream", test_deserialize_unterminatedObjectString_withStream),
             ("test_deserialize_missingObjectKey_withStream", test_deserialize_missingObjectKey_withStream),
@@ -207,10 +205,9 @@ extension TestJSONSerialization {
         deserialize_unicodeSurrogatePairEscapeSequence(objectType: .data)
     }
 
-    // Disabled due to uninitialized memory SR-606
-    //    func test_deserialize_allowFragments_withData() {
-    //        deserialize_allowFragments(objectType: .data)
-    //    }
+    func test_deserialize_allowFragments_withData() {
+        deserialize_allowFragments(objectType: .data)
+    }
 
     func test_deserialize_unterminatedObjectString_withData() {
         deserialize_unterminatedObjectString(objectType: .data)
@@ -305,10 +302,9 @@ extension TestJSONSerialization {
         deserialize_unicodeSurrogatePairEscapeSequence(objectType: .stream)
     }
 
-    // Disabled due to uninitialized memory SR-606
-    //    func test_deserialize_allowFragments_withStream() {
-    //        deserialize_allowFragments(objectType: .stream)
-    //    }
+    func test_deserialize_allowFragments_withStream() {
+        deserialize_allowFragments(objectType: .stream)
+    }
 
     func test_deserialize_unterminatedObjectString_withStream() {
         deserialize_unterminatedObjectString(objectType: .stream)
@@ -613,17 +609,26 @@ extension TestJSONSerialization {
     func deserialize_allowFragments(objectType: ObjectType) {
         let subject = "3"
 
-        do {
-            for encoding in supportedEncodings {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? Int
-                XCTAssertEqual(result, 3)
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data using encoding \(encoding)")
+                continue
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+
+            // Check failure to decode without .allowFragments
+            XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) {
+                let nserror = ($0 as! NSError)
+                XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+                let code = CocoaError(_nsError: nserror).code
+                XCTAssertEqual(code, .propertyListReadCorrupt)
+            }
+
+            do {
+                let result = try getjsonObjectResult(data, objectType, options: .allowFragments) as? Int
+                XCTAssertEqual(result, 3)
+            } catch {
+                XCTFail("Unexpected error: \(error) using encoding \(encoding)")
+            }
         }
     }
 
