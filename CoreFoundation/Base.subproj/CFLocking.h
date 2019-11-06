@@ -37,16 +37,17 @@ static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 #elif TARGET_OS_WIN32
 
 #define NOMINMAX
+#define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
-#define VCEXTRALEAN
 #include <Windows.h>
+#include <synchapi.h>
 
 typedef int32_t CFLock_t;
 #define CFLockInit 0
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
 CF_INLINE void __CFLock(volatile CFLock_t *lock) {
-  while (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) != 0) {
+  while (InterlockedCompareExchange((long volatile *)lock, ~0, 0) != 0) {
     Sleep(0);
   }
 }
@@ -57,7 +58,7 @@ CF_INLINE void __CFUnlock(volatile CFLock_t *lock) {
 }
 
 CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
-  return (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) == 0);
+  return (InterlockedCompareExchange((long volatile *)lock, ~0, 0) == 0);
 }
 
 // SPI to permit initialization of values in Swift
@@ -66,6 +67,7 @@ static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
 
 #include <stdint.h>
+#include <unistd.h>
 
 typedef int32_t CFLock_t;
 #define CFLockInit 0

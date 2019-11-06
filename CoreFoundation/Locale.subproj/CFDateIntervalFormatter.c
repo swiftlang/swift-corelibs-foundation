@@ -241,8 +241,8 @@ void _CFDateIntervalFormatterInitializeFromCoderValues(CFDateIntervalFormatterRe
                                                        int64_t timeStyle,
                                                        CFStringRef _Nullable dateTemplate,
                                                        CFStringRef _Nullable dateTemplateFromStyles,
-                                                       bool modified,
-                                                       bool useTemplate,
+                                                       Boolean modified,
+                                                       Boolean useTemplate,
                                                        CFLocaleRef _Nullable locale,
                                                        CFCalendarRef _Nullable calendar,
                                                        CFTimeZoneRef _Nullable timeZone) {
@@ -277,8 +277,8 @@ void _CFDateIntervalFormatterCopyCoderValues(CFDateIntervalFormatterRef formatte
                                              int64_t *timeStyle,
                                              CFStringRef _Nullable *dateTemplate,
                                              CFStringRef _Nullable *dateTemplateFromStyles,
-                                             bool *modified,
-                                             bool *useTemplate,
+                                             Boolean *modified,
+                                             Boolean *useTemplate,
                                              CFLocaleRef _Nullable *locale,
                                              CFCalendarRef _Nullable *calendar,
                                              CFTimeZoneRef _Nullable *timeZone) {

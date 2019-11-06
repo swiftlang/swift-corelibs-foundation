@@ -32,6 +32,7 @@
 
 #if TARGET_OS_WIN32
 #define NOMINMAX
+#define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
@@ -77,6 +78,8 @@
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
 #endif //__GLIBC_PREREQ(2. 28)
 #endif // TARGET_OS_LINUX
+
+#include <stdlib.h>
 
 
 _CF_EXPORT_SCOPE_BEGIN
@@ -352,12 +355,12 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
 #if TARGET_OS_WIN32
-typedef HANDLE _CFThreadRef;
+typedef void *_CFThreadRef;
 typedef struct _CFThreadAttributes {
-  DWORD dwSizeOfAttributes;
-  DWORD dwThreadStackReservation;
+  unsigned long dwSizeOfAttributes;
+  unsigned long dwThreadStackReservation;
 } _CFThreadAttributes;
-typedef DWORD _CFThreadSpecificKey;
+typedef unsigned long _CFThreadSpecificKey;
 #elif _POSIX_THREADS
 typedef pthread_t _CFThreadRef;
 typedef pthread_attr_t _CFThreadAttributes;
@@ -592,27 +595,27 @@ static inline int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
 CF_EXPORT void __CFSocketInitializeWinSock(void);
 
 typedef struct _REPARSE_DATA_BUFFER {
-    ULONG  ReparseTag;
-    USHORT ReparseDataLength;
-    USHORT Reserved;
+    unsigned long  ReparseTag;
+    unsigned short ReparseDataLength;
+    unsigned short Reserved;
     union {
         struct {
-            USHORT SubstituteNameOffset;
-            USHORT SubstituteNameLength;
-            USHORT PrintNameOffset;
-            USHORT PrintNameLength;
-            ULONG  Flags;
-            WCHAR  PathBuffer[1];
+            unsigned short SubstituteNameOffset;
+            unsigned short SubstituteNameLength;
+            unsigned short PrintNameOffset;
+            unsigned short PrintNameLength;
+            unsigned long  Flags;
+            short          PathBuffer[1];
         } SymbolicLinkReparseBuffer;
         struct {
-            USHORT SubstituteNameOffset;
-            USHORT SubstituteNameLength;
-            USHORT PrintNameOffset;
-            USHORT PrintNameLength;
-            WCHAR  PathBuffer[1];
+            unsigned short SubstituteNameOffset;
+            unsigned short SubstituteNameLength;
+            unsigned short PrintNameOffset;
+            unsigned short PrintNameLength;
+            short          PathBuffer[1];
         } MountPointReparseBuffer;
         struct {
-            UCHAR DataBuffer[1];
+            unsigned char DataBuffer[1];
         } GenericReparseBuffer;
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER;

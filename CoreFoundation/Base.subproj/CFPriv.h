@@ -59,6 +59,8 @@ CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
 
 #if !TARGET_OS_WIN32
+#include <sys/types.h>
+
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
@@ -492,8 +494,8 @@ void CFCharacterSetInitInlineBuffer(CFCharacterSetRef cset, CFCharacterSetInline
  @result true, if the value is in the character set, otherwise false.
  */
 #if defined(CF_INLINE)
-CF_INLINE bool CFCharacterSetInlineBufferIsLongCharacterMember(const CFCharacterSetInlineBuffer *buffer, UTF32Char character) {
-    bool isInverted = ((0 == (buffer->flags & kCFCharacterSetIsInverted)) ? false : true);
+CF_INLINE Boolean CFCharacterSetInlineBufferIsLongCharacterMember(const CFCharacterSetInlineBuffer *buffer, UTF32Char character) {
+    Boolean isInverted = ((0 == (buffer->flags & kCFCharacterSetIsInverted)) ? FALSE : TRUE);
 
     if ((character >= buffer->rangeStart) && (character < buffer->rangeLimit)) {
         if ((character > 0xFFFF) || (0 != (buffer->flags & kCFCharacterSetNoBitmapAvailable))) return (CFCharacterSetIsLongCharacterMember(buffer->cset, character) != 0);
@@ -569,6 +571,7 @@ CF_EXPORT CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator,
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
+#include <time.h>
 
 CF_INLINE CFAbsoluteTime _CFAbsoluteTimeFromFileTimeSpec(struct timespec ts) {
     return (CFAbsoluteTime)((CFTimeInterval)ts.tv_sec - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * (CFTimeInterval)ts.tv_nsec);
@@ -592,10 +595,10 @@ CF_INLINE struct timespec _CFFileTimeSpecFromAbsoluteTime(CFAbsoluteTime at) {
 }
 
 // The 'filtered' function below is preferred to this older one
-CF_EXPORT bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error);
+CF_EXPORT Boolean _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error);
 
 // Returns a subset of the property list, only including the keyPaths in the CFSet. If the top level object is not a dictionary, you will get back an empty dictionary as the result.
-CF_EXPORT bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+CF_EXPORT Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
 // Returns a set of the keys of the top-level dictionary of a plist. Optimized for bplist (though it works with XML too).  Only supports string keys. 
 CF_EXPORT CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFErrorRef *outError) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));

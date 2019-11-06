@@ -142,7 +142,7 @@ typedef void* _CFXMLDTDPtr;
 typedef void* _CFXMLDTDNodePtr;
 
 _CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr _Nullable name_space, const char* name);
-_CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, bool recursive);
+_CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, Boolean recursive);
 
 _CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version);
 _CFXMLNodePtr _CFXMLNewProcessingInstruction(const unsigned char* name, const unsigned char* value);
@@ -178,8 +178,8 @@ void _CFXMLNodeReplaceNode(_CFXMLNodePtr node, _CFXMLNodePtr replacement);
 
 _CFXMLDocPtr _Nullable _CFXMLNodeGetDocument(_CFXMLNodePtr node);
 
-bool _CFXMLDocStandalone(_CFXMLDocPtr doc);
-void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, bool standalone);
+Boolean _CFXMLDocStandalone(_CFXMLDocPtr doc);
+void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, Boolean standalone);
 _CFXMLNodePtr _Nullable _CFXMLDocRootElement(_CFXMLDocPtr doc);
 void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLDocCopyCharacterEncoding(_CFXMLDocPtr doc);
@@ -211,7 +211,7 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int option
 CFStringRef _Nullable _CFXMLNodeCopyLocalName(_CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLNodeCopyPrefix(_CFXMLNodePtr node);
 
-bool _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error);
+Boolean _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error);
 
 _CFXMLDTDPtr _CFXMLNewDTD(_CFXMLDocPtr _Nullable doc, const unsigned char* name, const unsigned char* publicID, const unsigned char* systemID);
 _CFXMLDTDNodePtr _Nullable _CFXMLParseDTDNode(const unsigned char* xmlString);
