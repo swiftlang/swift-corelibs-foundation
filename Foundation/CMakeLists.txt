@@ -149,6 +149,7 @@ target_link_libraries(Foundation PRIVATE
   uuid)
 target_link_libraries(Foundation PUBLIC
   swiftDispatch)
+
 # TODO(compnerd) properly propogate `BUILD_RPATH` to the target using CMake
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_options(Foundation PRIVATE
@@ -163,6 +164,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     pathcch)
 endif()
 set_target_properties(Foundation PROPERTIES
+  INSTALL_RPATH "$ORIGIN"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
@@ -212,6 +214,7 @@ target_link_libraries(FoundationNetworking PRIVATE
   Foundation
   CFURLSessionInterface)
 set_target_properties(FoundationNetworking PROPERTIES
+  INSTALL_RPATH "$ORIGIN"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
@@ -236,8 +239,10 @@ target_link_libraries(FoundationXML PRIVATE
   Foundation
   CFXMLInterface)
 set_target_properties(FoundationXML PROPERTIES
+  INSTALL_RPATH "$ORIGIN"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
+
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
   Foundation FoundationNetworking FoundationXML)
