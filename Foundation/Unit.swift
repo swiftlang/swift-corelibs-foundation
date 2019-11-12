@@ -2030,8 +2030,8 @@ public final class UnitVolume : Dimension {
         static let cubicKilometers      = 1e12
         static let cubicMeters          = 1000.0
         static let cubicDecimeters      = 1.0
-        static let cubicCentimeters     = 0.01
-        static let cubicMillimeters     = 0.001
+        static let cubicCentimeters     = 1e-3
+        static let cubicMillimeters     = 1e-6
         static let cubicInches          = 0.0163871
         static let cubicFeet            = 28.3168
         static let cubicYards           = 764.555
