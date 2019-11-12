@@ -51,12 +51,6 @@
                   Identifier = "TestDateComponents/test_hash()">
                </Test>
                <Test
-                  Identifier = "TestFileHandle">
-               </Test>
-               <Test
-                  Identifier = "TestPipe">
-               </Test>
-               <Test
                   Identifier = "TestURLComponents/test_hash()">
                </Test>
                <Test

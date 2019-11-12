@@ -7,8 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !DARWIN_COMPATIBILITY_TESTS     // Disable until Foundation has the new Scanner API
-
 fileprivate func withScanner(for string: String, invoking block: ((Scanner) throws -> Void)? = nil) rethrows {
     let scanner = Scanner(string: string)
     scanner.locale = Locale(identifier: "en_US_POSIX")
@@ -528,5 +526,3 @@ class TestScanner : XCTestCase {
         ]
     }
 }
-
-#endif

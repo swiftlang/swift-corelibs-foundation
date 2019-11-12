@@ -126,6 +126,7 @@
 		B9C89FCC1F6DCAEB00087AF4 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB71F6DCAEB00087AF4 /* NSKeyedUnarchiver-NotificationTest.plist */; };
 		B9C89FCD1F6DCAEB00087AF4 /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */; };
 		B9C89FCE1F6DCAEB00087AF4 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB91F6DCAEB00087AF4 /* Test.plist */; };
+		B9ED84FD23641F7000A58AF2 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
 		B9F137A120B998D0000B7577 /* xdgTestHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B9F326A01FC714DD003C3599 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
 		DAE7D0F320D8224200DC6C54 /* TestURLProtectionSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */; };
@@ -605,6 +606,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B917D32620B0DE2000728EE0 /* main.swift in Sources */,
+				B9ED84FD23641F7000A58AF2 /* DarwinShims.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -727,7 +729,7 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CODE_SIGN_STYLE = Automatic;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -741,7 +743,7 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CODE_SIGN_STYLE = Automatic;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -796,7 +798,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -847,7 +849,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -861,7 +863,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = DarwinCompatibilityTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.DarwinCompatibilityTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -876,7 +878,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = DarwinCompatibilityTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.DarwinCompatibilityTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
