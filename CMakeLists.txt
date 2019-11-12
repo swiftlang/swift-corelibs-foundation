@@ -18,7 +18,8 @@ enable_testing()
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE
   STRING "MSVC Runtime Library")
 if(CMAKE_VERSION VERSION_LESS 3.16.0)
-  if(NOT (CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin))
+  if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" AND
+     NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     set(CMAKE_SHARED_LIBRARY_RUNTIME_Swift_FLAG "-Xlinker -rpath -Xlinker ")
     set(CMAKE_SHARED_LIBRARY_RUNTIME_Swift_FLAG_SEP ":")
   endif()
