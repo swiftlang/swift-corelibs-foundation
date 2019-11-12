@@ -1,4 +1,8 @@
 
+if(CMAKE_VERSION VERSION_LESS 3.16)
+  set(CMAKE_LIBRARY_PATH_FLAG "-L")
+endif()
+
 add_subdirectory(xdgTestHelper)
 
 add_executable(TestFoundation
