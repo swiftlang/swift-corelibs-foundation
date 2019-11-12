@@ -1,4 +1,8 @@
 
+if(CMAKE_VERSION VERSION_LESS 3.16)
+  set(CMAKE_LINK_LIBRARY_FLAG "-l")
+endif()
+
 add_library(Foundation
   AffineTransform.swift
   Array.swift
