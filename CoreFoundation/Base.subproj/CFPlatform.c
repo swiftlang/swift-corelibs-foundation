@@ -906,14 +906,15 @@ CF_EXPORT int _NS_open(const char *name, int oflag, int pmode) {
 
     DWORD dwCreationDisposition;
     switch (oflag & (O_CREAT | O_EXCL | O_TRUNC)) {
+      case O_CREAT | O_EXCL | O_TRUNC:
+      case O_CREAT | O_EXCL:
+        dwCreationDisposition = CREATE_NEW;
+        break;
       case O_CREAT | O_TRUNC:
         dwCreationDisposition = CREATE_ALWAYS;
         break;
       case O_CREAT:
         dwCreationDisposition = OPEN_ALWAYS;
-        break;
-      case O_EXCL:
-        dwCreationDisposition = CREATE_NEW;
         break;
       case O_TRUNC:
         dwCreationDisposition = TRUNCATE_EXISTING;
