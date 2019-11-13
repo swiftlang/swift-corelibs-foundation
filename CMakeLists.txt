@@ -26,8 +26,6 @@ endif()
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 
-option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
-
 find_package(CURL CONFIG)
 if(CURL_FOUND)
   include(CMakeExpandImportedTargets)
@@ -58,6 +56,7 @@ add_subdirectory(uuid)
 add_subdirectory(Foundation)
 add_subdirectory(Tools)
 if(ENABLE_TESTING)
+  find_package(XCTest CONFIG REQUIRED)
   add_subdirectory(TestFoundation)
 endif()
 
