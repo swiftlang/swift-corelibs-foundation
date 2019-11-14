@@ -60,8 +60,12 @@ if(ENABLE_TESTING)
   add_subdirectory(TestFoundation)
 endif()
 
-add_subdirectory(cmake/modules)
-
+if(NOT BUILD_SHARED_LIBS)
+  set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+    CoreFoundation CFXMLInterface CFURLSessionInterface)
+  install(TARGETS CoreFoundation CXFXMLInterface CFURLSessionInterface
+    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
@@ -90,3 +94,5 @@ install(FILES
           CoreFoundation/Parsing.subproj/module.map
         DESTINATION
           lib/swift/CFXMLInterface)
+
+add_subdirectory(cmake/modules)
