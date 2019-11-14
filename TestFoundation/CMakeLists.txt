@@ -1,8 +1,4 @@
 
-if(CMAKE_VERSION VERSION_LESS 3.16)
-  set(CMAKE_LINK_LIBRARY_FLAG "-l")
-endif()
-
 add_subdirectory(xdgTestHelper)
 
 add_executable(TestFoundation
@@ -112,10 +108,6 @@ target_link_libraries(TestFoundation PRIVATE
   Foundation
   FoundationNetworking
   FoundationXML)
-target_include_directories(TestFoundation PRIVATE
-  ${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift)
-target_link_directories(TestFoundation PRIVATE
-  ${FOUNDATION_PATH_TO_XCTEST_BUILD})
 target_link_libraries(TestFoundation PRIVATE
   XCTest)
 
@@ -179,5 +171,5 @@ add_test(NAME TestFoundation
   COMMAND ${CMAKE_BINARY_DIR}/TestFoundation.app/TestFoundation
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/TestFoundation.app)
 set_tests_properties(TestFoundation PROPERTIES
-  ENVIRONMENT LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/TestFoundation.app:${FOUNDATION_PATH_TO_XCTEST_BUILD}:$<TARGET_LINKER_FILE_DIR:dispatch>:$<TARGET_LINKER_FILE_DIR:swiftDispatch>:$<TARGET_LINKER_FILE_DIR:BlocksRuntime>)
+  ENVIRONMENT LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/TestFoundation.app:$<TARGET_LINKER_FILE_DIR:XCTest>:$<TARGET_LINKER_FILE_DIR:dispatch>:$<TARGET_LINKER_FILE_DIR:swiftDispatch>:$<TARGET_LINKER_FILE_DIR:BlocksRuntime>)
 
