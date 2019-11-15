@@ -63,7 +63,7 @@ endif()
 if(NOT BUILD_SHARED_LIBS)
   set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
     CoreFoundation CFXMLInterface CFURLSessionInterface)
-  install(TARGETS CoreFoundation CXFXMLInterface CFURLSessionInterface
+  install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
     DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
 endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
