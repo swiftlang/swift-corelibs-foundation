@@ -122,8 +122,12 @@ open class NumberFormatter : Formatter {
 
     private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         if numberStyle == .currency {
-          let symbol = _currencySymbol ?? _currencyCode ?? locale.currencySymbol ?? locale.currencyCode
-           _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol?._cfObject)
+            let symbol = _currencySymbol ?? locale.currencySymbol
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol?._cfObject)
+
+            if let code = _currencyCode, code.count == 3 {
+                _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: code._cfObject)
+            }
        }
        if numberStyle == .currencyISOCode {
           let code = _currencyCode ?? _currencySymbol ?? locale.currencyCode ?? locale.currencySymbol
@@ -152,10 +156,8 @@ open class NumberFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingMode, value: _roundingMode.rawValue._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingIncrement, value: _roundingIncrement?._cfObject)
 
-        var width: Int = 0
-        CFNumberGetValue(_formatWidth._bridgeToObjectiveC()._cfObject, kCFNumberLongType, &width)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterFormatWidth, value: _formatWidth._bridgeToObjectiveC()._cfObject)
-        if width > 0 {
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterFormatWidth, value: _formatWidth?._bridgeToObjectiveC()._cfObject)
+        if self.formatWidth > 0 {
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingCharacter, value: _paddingCharacter?._cfObject)
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingPosition, value: _paddingPosition.rawValue._bridgeToObjectiveC()._cfObject)
         } else {
@@ -192,10 +194,10 @@ open class NumberFormatter : Formatter {
     // to indicate to use the default value (if nil) or the caller-supplied value (if not nil).
     private func defaultMinimumIntegerDigits() -> Int {
         switch numberStyle {
-        case .none, .ordinal, .spellOut, .currencyPlural, .scientific:
+        case .ordinal, .spellOut, .currencyPlural:
             return 0
 
-        case .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent:
+        case .none, .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
             return 1
         }
     }
@@ -245,14 +247,14 @@ open class NumberFormatter : Formatter {
             return 0
 
         case .currency, .none, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
-            return 1
+            return -1
         }
     }
 
     private func defaultMaximumSignificantDigits() -> Int {
         switch numberStyle {
         case .none, .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
-            return 6
+            return -1
 
         case .ordinal, .spellOut, .currencyPlural:
             return 0
@@ -283,6 +285,16 @@ open class NumberFormatter : Formatter {
         switch numberStyle {
         case .percent:  return NSNumber(100)
         default:        return nil
+        }
+    }
+
+    private func defaultFormatWidth() -> Int {
+        switch numberStyle {
+        case .ordinal, .ordinal, .spellOut, .currencyPlural:
+            return 0
+
+        case .none, .decimal, .currency, .percent, .scientific, .currencyISOCode, .currencyAccounting:
+            return -1
         }
     }
 
@@ -683,10 +695,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _formatWidth: Int = 0
+    private var _formatWidth: Int?
     open var formatWidth: Int {
         get {
-            return _formatWidth
+            return _formatWidth ?? defaultFormatWidth()
         }
         set {
             _reset()
@@ -849,6 +861,9 @@ open class NumberFormatter : Formatter {
             _reset()
             _usesSignificantDigits = true
             _minimumSignificantDigits = newValue
+            if _maximumSignificantDigits == nil && newValue > defaultMinimumSignificantDigits() {
+                _maximumSignificantDigits = (newValue < 1000) ? 999 : newValue
+            }
         }
     }
 
