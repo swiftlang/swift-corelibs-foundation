@@ -142,6 +142,12 @@ target_compile_options(Foundation PUBLIC
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
 target_compile_options(Foundation PRIVATE
   "SHELL:-Xcc -I${ICU_INCLUDE_DIR}")
+if(CMAKE_SYSTEM_NAME STREQUAL Windows AND CMAKE_VERSION VERSION_LESS 3.16)
+  # Work around for CMake 15 which doesn't link in the resource file
+  # target properly
+  add_dependencies(Foundation CoreFoundationResources)
+  target_link_options(Foundation PRIVATE $<TARGET_OBJECTS:CoreFoundationResources>)
+endif()
 if(ENABLE_TESTING)
   target_compile_options(Foundation PRIVATE
     -enable-testing)
