@@ -2,7 +2,9 @@
 add_executable(xdgTestHelper
   main.swift)
 target_link_libraries(xdgTestHelper PRIVATE
-  Foundation)
+  Foundation
+  FoundationNetworking
+  FoundationXML)
 # TODO(compnerd) properly propogate `BUILD_RPATH` to the target using CMake
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_options(xdgTestHelper PRIVATE
