@@ -7,8 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
-
 public var NSDecimalMaxSize: Int32 { 8 }
 public var NSDecimalNoScale: Int32 { Int32(Int16.max) }
 
@@ -349,9 +347,50 @@ extension Decimal : SignedNumeric {
             _reserved: 0, _mantissa: self._mantissa)
     }
 
-    // FIXME(integers): implement properly
     public init?<T : BinaryInteger>(exactly source: T) {
-        fatalError()
+        let zero = 0 as T
+
+        if source == zero {
+            self = Decimal.zero
+            return
+        }
+
+        let negative: UInt32 = (T.isSigned && source < zero) ? 1 : 0
+        var mantissa = source.magnitude
+        var exponent: Int32 = 0
+
+        let maxExponent = type(of: __exponent).max
+        while mantissa.isMultiple(of: 10) && (exponent < maxExponent) {
+            exponent += 1
+            mantissa /= 10
+        }
+
+        // If the matinssa still requires more than 128bits of storage then it is too large.
+        if mantissa.bitWidth > 128 && (mantissa >> 128 != zero) { return nil }
+
+        let mantissaParts: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)
+        let loWord = UInt64(truncatingIfNeeded: mantissa)
+        var length = ((loWord.bitWidth - loWord.leadingZeroBitCount) + (UInt16.bitWidth - 1)) / UInt16.bitWidth
+        mantissaParts.0 = UInt16(truncatingIfNeeded: loWord >> 0)
+        mantissaParts.1 = UInt16(truncatingIfNeeded: loWord >> 16)
+        mantissaParts.2 = UInt16(truncatingIfNeeded: loWord >> 32)
+        mantissaParts.3 = UInt16(truncatingIfNeeded: loWord >> 48)
+
+        let hiWord = mantissa.bitWidth > 64 ? UInt64(truncatingIfNeeded: mantissa >> 64) : 0
+        if hiWord != 0 {
+            length = 4 + ((hiWord.bitWidth - hiWord.leadingZeroBitCount) + (UInt16.bitWidth - 1)) / UInt16.bitWidth
+            mantissaParts.4 = UInt16(truncatingIfNeeded: hiWord >> 0)
+            mantissaParts.5 = UInt16(truncatingIfNeeded: hiWord >> 16)
+            mantissaParts.6 = UInt16(truncatingIfNeeded: hiWord >> 32)
+            mantissaParts.7 = UInt16(truncatingIfNeeded: hiWord >> 48)
+        } else {
+            mantissaParts.4 = 0
+            mantissaParts.5 = 0
+            mantissaParts.6 = 0
+            mantissaParts.7 = 0
+        }
+
+        self = Decimal(_exponent: exponent, _length: UInt32(length), _isNegative: negative, _isCompact: 1, _reserved: 0, _mantissa: mantissaParts)
     }
 
     public static func +=(lhs: inout Decimal, rhs: Decimal) {
