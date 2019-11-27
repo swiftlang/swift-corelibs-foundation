@@ -459,12 +459,12 @@ CFStringEncoding CFStringFileSystemEncoding(void) {
 CFIndex CFStringGetMaximumSizeForEncoding(CFIndex length, CFStringEncoding encoding) {
     if (encoding == kCFStringEncodingUTF8) {
             return (length > (LONG_MAX / 3)) ? kCFNotFound : (length * 3);
-    } else if ((encoding == kCFStringEncodingUTF32) || (encoding == kCFStringEncodingUTF32BE) || (encoding == kCFStringEncodingUTF32LE)) { // UTF-32
-        return (length > (LONG_MAX / sizeof(UTF32Char))) ? kCFNotFound : (length * sizeof(UTF32Char));
-    } else {
-        encoding &= 0xFFF; // Mask off non-base part
     }
-    switch (encoding) {
+    if ((encoding == kCFStringEncodingUTF32) || (encoding == kCFStringEncodingUTF32BE) || (encoding == kCFStringEncodingUTF32LE)) { // UTF-32
+        return (length > (LONG_MAX / sizeof(UTF32Char))) ? kCFNotFound : (length * sizeof(UTF32Char));
+    }
+
+    switch (encoding & 0xFFF) {  // Mask off non-base part
         case kCFStringEncodingUnicode:
             return (length > (LONG_MAX / sizeof(UniChar))) ? kCFNotFound : (length * sizeof(UniChar));
 
@@ -476,8 +476,6 @@ CFIndex CFStringGetMaximumSizeForEncoding(CFIndex length, CFStringEncoding encod
         case kCFStringEncodingISOLatin1:
         case kCFStringEncodingNextStepLatin:
         case kCFStringEncodingASCII:
-            return length / sizeof(uint8_t);
-
         default:
             return length / sizeof(uint8_t);
     }

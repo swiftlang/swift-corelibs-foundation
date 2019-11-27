@@ -528,11 +528,7 @@ private var shouldRunXFailTests: Bool {
 
 
 private func printStderr(_ msg: String) {
-#if DARWIN_COMPATIBILITY_TESTS
-    FileHandle.standardError.write(Data(msg.utf8))
-#else
     try? FileHandle.standardError.write(contentsOf: Data(msg.utf8))
-#endif
 }
 
 func shouldAttemptXFailTests(_ reason: String) -> Bool {

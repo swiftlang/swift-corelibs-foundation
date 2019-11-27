@@ -154,6 +154,13 @@ internal func __CFInitializeSwift() {
     __CFSocketInitializeWinSock()
 #endif
 
+    // Ensure that the foreign type value witness for `_NSCFConstantString` is
+    // initialized prior to access.  This may be lazily initialized on some
+    // targets when the type cache is updated due to a type-cast.
+    //
+    // TODO: invoke `swift_getForeignTypeMetadata` to do this directly
+    if let _ = "" as? _NSCFConstantString {}
+
     _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafeRawPointer.self))

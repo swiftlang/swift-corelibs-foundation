@@ -247,14 +247,17 @@ open class Process: NSObject {
         }
     }
 
-    private var _currentDirectoryURL: URL? = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+    private var _currentDirectoryPath = FileManager.default.currentDirectoryPath
     open var currentDirectoryURL: URL? {
-        get { _currentDirectoryURL }
+        get { _currentDirectoryPath == "" ? nil : URL(fileURLWithPath: _currentDirectoryPath, isDirectory: true) }
         set {
-            guard let url = newValue, url.isFileURL else {
-                fatalError("non-file URL argument")
+            // Setting currentDirectoryURL to nil resets to the current directory
+            if let url = newValue {
+                guard url.isFileURL else { fatalError("non-file URL argument") }
+                _currentDirectoryPath = url.path
+            } else {
+                _currentDirectoryPath = FileManager.default.currentDirectoryPath
             }
-            _currentDirectoryURL = url
         }
     }
 
@@ -269,8 +272,8 @@ open class Process: NSObject {
 
     @available(*, deprecated, renamed: "currentDirectoryURL")
     open var currentDirectoryPath: String {
-        get { return currentDirectoryURL!.path }
-        set { currentDirectoryURL = URL(fileURLWithPath: newValue) }
+        get { _currentDirectoryPath }
+        set { _currentDirectoryPath = newValue }
     }
 
     // Standard I/O channels; could be either a FileHandle or a Pipe
@@ -409,6 +412,11 @@ open class Process: NSObject {
 
         // Dispatch the manager thread if it isn't already running
         Process.setup()
+
+        // Check that the process isnt run more than once
+        guard hasStarted == false && hasFinished == false else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSExecutableLoadError)
+        }
 
         // Ensure that the launch path is set
         guard let launchPath = self.executableURL?.path else {
@@ -587,8 +595,9 @@ open class Process: NSObject {
             CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
+        let workingDirectory = currentDirectoryURL?.path ?? FileManager.default.currentDirectoryPath
         try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
-          try currentDirectoryURL.path.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
+          try workingDirectory.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
             try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
               if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
                                  nil, nil, true,
@@ -855,7 +864,7 @@ open class Process: NSObject {
         for (new, old) in adddup2 {
             posix(_CFPosixSpawnFileActionsAddDup2(fileActions, old, new))
         }
-        for fd in addclose {
+        for fd in addclose.filter({ $0 >= 0 }) {
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 

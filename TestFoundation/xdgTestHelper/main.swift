@@ -180,19 +180,9 @@ func cat(_ args: ArraySlice<String>.Iterator) {
                 exitCode = 1
                 return
             }
- #if DARWIN_COMPATIBILITY_TESTS
-            var data: Data
-            repeat {
-                data = fh.readData(ofLength: Int.max)
-                if data.count > 0 {
-                    FileHandle.standardOutput.write(data)
-                }
-            } while data.count > 0
-#else
             while let data = try fh.readToEnd() {
                 try FileHandle.standardOutput.write(contentsOf: data)
             }
-#endif
         }
         catch { print(error) }
     }

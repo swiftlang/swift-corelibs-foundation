@@ -21,7 +21,7 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG ON)
+set(THREADS_PREFER_PTHREAD_FLAG OFF)
 find_package(Threads)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
@@ -33,8 +33,6 @@ endif()
 include(GNUInstallDirs)
 include(CoreFoundationAddFramework)
 
-option(CF_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source")
-option(CF_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build")
 option(CF_DEPLOYMENT_SWIFT "Build for swift" NO)
 
 if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
@@ -383,14 +381,14 @@ target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR}
                              ${ICU_INCLUDE_DIR})
-target_link_libraries(CoreFoundation
-                      PRIVATE
-                        Threads::Threads
-                        ${CMAKE_DL_LIBS})
+target_link_libraries(CoreFoundation PRIVATE
+  Threads::Threads
+  ${CMAKE_DL_LIBS}
+  BlocksRuntime
+  dispatch)
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
-  target_link_libraries(CoreFoundation
-                        PRIVATE
-                          log)
+  target_link_libraries(CoreFoundation PRIVATE
+    log)
 endif()
 
 add_framework(CFURLSessionInterface
@@ -411,12 +409,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-target_include_directories(CFURLSessionInterface
-                           PRIVATE
-                             ${CURL_INCLUDE_DIRS})
-target_link_libraries(CFURLSessionInterface
-                      PRIVATE
-                        ${CURL_LIBRARIES})
+target_include_directories(CFURLSessionInterface PRIVATE
+  ${CURL_INCLUDE_DIRS})
+target_link_libraries(CFURLSessionInterface PRIVATE
+  ${CURL_LIBRARIES})
 
 add_framework(CFXMLInterface
                 ${FRAMEWORK_LIBRARY_TYPE}
@@ -431,12 +427,10 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
-target_include_directories(CFXMLInterface
-                           PRIVATE
-                             ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(CFXMLInterface
-                      PRIVATE
-                        ${LIBXML2_LIBRARIES})
+target_include_directories(CFXMLInterface PRIVATE
+  ${LIBXML2_INCLUDE_DIR})
+target_link_libraries(CFXMLInterface PRIVATE
+  ${LIBXML2_LIBRARIES})
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   add_library(CoreFoundationResources OBJECT
@@ -454,30 +448,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     WindowsOlsonMapping.plist
     OlsonWindowsMapping.plist)
   add_dependencies(CoreFoundation CoreFoundationWindowsTimeZonesPLists)
-endif()
-
-target_include_directories(CoreFoundation
-                           PRIVATE
-                             ${CF_PATH_TO_LIBDISPATCH_SOURCE}
-                             ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
-target_include_directories(CFURLSessionInterface
-                           PRIVATE
-                             ${CF_PATH_TO_LIBDISPATCH_SOURCE}
-                             ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
-target_include_directories(CFXMLInterface
-                           PRIVATE
-                             ${CF_PATH_TO_LIBDISPATCH_SOURCE}
-                             ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  target_include_directories(CoreFoundation
-                             SYSTEM PRIVATE
-                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
-  target_include_directories(CFURLSessionInterface
-                             SYSTEM PRIVATE
-                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
-  target_include_directories(CFXMLInterface
-                             SYSTEM PRIVATE
-                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
