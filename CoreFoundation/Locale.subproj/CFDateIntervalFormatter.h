@@ -71,8 +71,8 @@ CF_EXPORT void _CFDateIntervalFormatterInitializeFromCoderValues(CFDateIntervalF
                                                                  int64_t timeStyle,
                                                                  CFStringRef _Nullable dateTemplate,
                                                                  CFStringRef _Nullable dateTemplateFromStyles,
-                                                                 bool modified,
-                                                                 bool useTemplate,
+                                                                 Boolean modified,
+                                                                 Boolean useTemplate,
                                                                  CFLocaleRef _Nullable locale,
                                                                  CFCalendarRef _Nullable calendar,
                                                                  CFTimeZoneRef _Nullable timeZone);
@@ -82,8 +82,8 @@ CF_EXPORT void _CFDateIntervalFormatterCopyCoderValues(CFDateIntervalFormatterRe
                                                        int64_t *timeStyle,
                                                        CFStringRef _Nullable *_Nonnull dateTemplate,
                                                        CFStringRef _Nullable *_Nonnull dateTemplateFromStyles,
-                                                       bool *modified,
-                                                       bool *useTemplate,
+                                                       Boolean *modified,
+                                                       Boolean *useTemplate,
                                                        CFLocaleRef _Nullable *_Nonnull locale,
                                                        CFCalendarRef _Nullable *_Nonnull calendar,
                                                        CFTimeZoneRef _Nullable *_Nonnull timeZone);

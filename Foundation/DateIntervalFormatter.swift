@@ -133,8 +133,8 @@ open class DateIntervalFormatter: Formatter {
         var timeStyle: Int64 = 0
         var dateTemplate: Unmanaged<CFString>?
         var dateTemplateFromStyles: Unmanaged<CFString>?
-        var modified: Bool = false
-        var useTemplate: Bool = false
+        var modified: _DarwinCompatibleBoolean = false
+        var useTemplate: _DarwinCompatibleBoolean = false
         var locale: Unmanaged<CFLocale>?
         var calendar: Unmanaged<CFCalendar>?
         var timeZone: Unmanaged<CFTimeZone>?
