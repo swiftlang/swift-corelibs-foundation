@@ -9,6 +9,12 @@
 
 import CoreFoundation
 
+#if os(Windows)
+let validPathSeps: [Character] = ["\\", "/"]
+#else
+let validPathSeps: [Character] = ["/"]
+#endif
+
 public func NSTemporaryDirectory() -> String {
 #if os(Windows)
     let cchLength: DWORD = GetTempPathW(0, nil)
@@ -51,7 +57,7 @@ public func NSTemporaryDirectory() -> String {
     }
 #endif
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
-        if !tmpdir.hasSuffix("/") {
+        if !validPathSeps.contains(where: { tmpdir.hasSuffix(String($0)) }) {
             return tmpdir + "/"
         } else {
             return tmpdir
@@ -70,7 +76,7 @@ public func NSTemporaryDirectory() -> String {
 extension String {
     
     internal var _startOfLastPathComponent : String.Index {
-        precondition(!hasSuffix("/") && length > 1)
+        precondition(!validPathSeps.contains(where: { hasSuffix(String($0)) }) && length > 1)
         
         let startPos = startIndex
         var curPos = endIndex
@@ -78,7 +84,7 @@ extension String {
         // Find the beginning of the component
         while curPos > startPos {
             let prevPos = index(before: curPos)
-            if self[prevPos] == "/" {
+            if validPathSeps.contains(self[prevPos]) {
                 break
             }
             curPos = prevPos
@@ -88,7 +94,7 @@ extension String {
     }
 
     internal var _startOfPathExtension : String.Index? {
-        precondition(!hasSuffix("/"))
+        precondition(!validPathSeps.contains(where: { hasSuffix(String($0)) }))
 
         var currentPosition = endIndex
         let startOfLastPathComponent = _startOfLastPathComponent
@@ -97,7 +103,7 @@ extension String {
         while currentPosition > startOfLastPathComponent {
             let previousPosition = index(before: currentPosition)
             let character = self[previousPosition]
-            if character == "/" {
+            if validPathSeps.contains(character) {
                 return nil
             } else if character == "." {
                 if startOfLastPathComponent == previousPosition {
@@ -132,8 +138,8 @@ extension String {
         if isEmpty {
             return str
         }
-        if hasSuffix("/") {
-            return self + str
+        if validPathSeps.contains(where: { hasSuffix(String($0)) }) {
+          return self + str
         }
         return self + "/" + str
     }
@@ -146,9 +152,9 @@ extension String {
             var curPos = startPos
 
             while curPos < endPos {
-                if result[curPos] == "/" {
+                if validPathSeps.contains(result[curPos]) {
                     var afterLastSlashPos = curPos
-                    while afterLastSlashPos < endPos && result[afterLastSlashPos] == "/" {
+                    while afterLastSlashPos < endPos && validPathSeps.contains(result[afterLastSlashPos]) {
                         afterLastSlashPos = result.index(after: afterLastSlashPos)
                     }
                     if afterLastSlashPos != result.index(after: curPos) {
@@ -161,7 +167,7 @@ extension String {
                 }
             }
         }
-        if stripTrailing && result.length > 1 && result.hasSuffix("/") {
+        if stripTrailing && result.length > 1 && validPathSeps.contains(where: {result.hasSuffix(String($0))}) {
             result.remove(at: result.index(before: result.endIndex))
         }
         return result
@@ -248,7 +254,7 @@ extension NSString {
     }
     
     internal func _stringByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String {
-        if _swiftObject == "/" {
+        if validPathSeps.contains(where: { String($0) == _swiftObject }) {
             return _swiftObject
         }
         
@@ -259,9 +265,9 @@ extension NSString {
             var curPos = startPos
 
             while curPos < endPos {
-                if result[curPos] == "/" {
+                if validPathSeps.contains(result[curPos]) {
                     var afterLastSlashPos = curPos
-                    while afterLastSlashPos < endPos && result[afterLastSlashPos] == "/" {
+                    while afterLastSlashPos < endPos && validPathSeps.contains(result[afterLastSlashPos]) {
                         afterLastSlashPos = result.index(after: afterLastSlashPos)
                     }
                     if afterLastSlashPos != result.index(after: curPos) {
@@ -274,7 +280,7 @@ extension NSString {
                 }
             }
         }
-        if stripTrailing && result.hasSuffix("/") {
+        if stripTrailing && validPathSeps.contains(where: { result.hasSuffix(String($0)) }) {
             result.remove(at: result.index(before: result.endIndex))
         }
         return result
@@ -314,7 +320,7 @@ extension NSString {
     }
     
     public func appendingPathExtension(_ str: String) -> String? {
-        if str.hasPrefix("/") || self == "" || self == "/" {
+        if validPathSeps.contains(where: { str.hasPrefix(String($0)) }) || self == "" || validPathSeps.contains(where: { String($0)._nsObject == self }) {
             print("Cannot append extension \(str) to path \(self)")
             return nil
         }
@@ -327,7 +333,7 @@ extension NSString {
             return _swiftObject
         }
 
-        let endOfUserName = _swiftObject.firstIndex(of: "/") ?? _swiftObject.endIndex
+        let endOfUserName = _swiftObject.firstIndex(where : { validPathSeps.contains($0) }) ?? _swiftObject.endIndex
         let startOfUserName = _swiftObject.index(after: _swiftObject.startIndex)
         let userName = String(_swiftObject[startOfUserName..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName
@@ -359,11 +365,9 @@ extension NSString {
         }
         
         // TODO: pathComponents keeps final path separator if any. Check that logic.
-        if components.last == "/" && components.count > 1 {
+        if validPathSeps.contains(where: { String($0) == components.last }) && components.count > 1 {
             components.removeLast()
         }
-        
-        let isAbsolutePath = components.first == "/"
         
         var resolvedPath = components.removeFirst()
         for component in components {
@@ -439,7 +443,7 @@ extension NSString {
     }
 
     internal func _stringIsPathToDirectory(_ path: String) -> Bool {
-        if !path.hasSuffix("/") {
+        if !validPathSeps.contains(where: { path.hasSuffix(String($0)) }) {
             return false
         }
         
@@ -538,7 +542,7 @@ extension NSString {
     }
     
     internal func _ensureLastPathSeparator(_ path: String) -> String {
-        if path.hasSuffix("/") || path.isEmpty {
+        if validPathSeps.contains(where: { path.hasSuffix(String($0)) }) || path.isEmpty {
             return path
         }
         

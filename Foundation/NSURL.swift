@@ -957,6 +957,8 @@ extension NSURL {
     
     open func appendingPathComponent(_ pathComponent: String) -> URL? {
         var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
+        // Since we are appending to a URL, path seperators should
+        // always be '/', even if we're on Windows
         if !pathComponent.hasSuffix("/") && isFileURL {
             if let urlWithoutDirectory = result {
                 var isDir: ObjCBool = false
