@@ -119,7 +119,7 @@ open class Thread : NSObject {
 
         // the timeout is in 100ns units
         var liTimeout: LARGE_INTEGER =
-            LARGE_INTEGER(QuadPart: LONGLONG(date.timeIntervalSinceNow) * -10000000)
+            LARGE_INTEGER(QuadPart: LONGLONG(date.timeIntervalSinceNow * -10_000_000))
         if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
@@ -156,7 +156,7 @@ open class Thread : NSObject {
 
         // the timeout is in 100ns units
         var liTimeout: LARGE_INTEGER =
-            LARGE_INTEGER(QuadPart: LONGLONG(interval) * -10000000)
+            LARGE_INTEGER(QuadPart: LONGLONG(interval * -10_000_000))
         if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
