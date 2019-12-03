@@ -1056,9 +1056,13 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             }
 
             assert(!stuffToPrefix && "prefix not yet implemented");
-            CFStringRef filePath = CFRetain(fileName);
-
             Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+            CFMutableStringRef filePath = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, nameLen + 1, fileName);
+            if (appendSlashForDirectories && isDirectory) {
+                UniChar slash = CFPreferredSlash;
+                CFStringAppendCharacters(filePath, &slash, 1);
+            }
+
             Boolean result = fileHandler(fileName, filePath, isDirectory ? DT_DIR : DT_REG);
             CFRelease(fileName);
             CFRelease(filePath);
