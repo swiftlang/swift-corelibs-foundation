@@ -43,15 +43,21 @@ extension FileManager {
                 continue
             }
 
-            var pPath: DWORD = 0
-            repeat {
-                let path: String = String(decodingCString: &wszPathNames[Int(pPath)], as: UTF16.self)
-                if path.length == 0 {
-                    break
+            // GetVolumePathNamesForVolumeNameW writes an array of
+            // null terminated wchar strings followed by an additional
+            // null terminator.
+            // e.g. [ "C", ":", "\\", "\0", "D", ":", "\\", "\0", "\0"]
+            var remaining = wszPathNames[...]
+            while !remaining.isEmpty {
+                let path = remaining.withUnsafeBufferPointer {
+                    String(decodingCString: $0.baseAddress!, as: UTF16.self)
                 }
-                urls.append(URL(fileURLWithPath: path, isDirectory: true))
-                pPath += DWORD(path.length + 1)
-            } while pPath < dwCChReturnLength
+
+                if !path.isEmpty {
+                    urls.append(URL(fileURLWithPath: path, isDirectory: true))
+                }
+                remaining = remaining.dropFirst(path.count + 1)
+            }
         } while FindNextVolumeW(hVolumes, &wszVolumeName, DWORD(wszVolumeName.count))
 
         return urls
