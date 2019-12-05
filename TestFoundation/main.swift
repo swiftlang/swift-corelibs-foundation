@@ -115,6 +115,7 @@ var allTestCases = [
     testCase(TestUnit.allTests),
     testCase(TestDimension.allTests),
     testCase(TestMeasurement.allTests),
+    testCase(TestUnitVolume.allTests),
     testCase(TestNSLock.allTests),
     testCase(TestNSSortDescriptor.allTests),
 ]
