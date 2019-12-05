@@ -600,7 +600,15 @@ open class Process: NSObject {
                                  DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
                                  wszCurrentDirectory,
                                  &siStartupInfo, &piProcessInfo) {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+                let error = GetLastError()
+                // If the current directory doesn't exist, Windows
+                // throws an ERROR_DIRECTORY. Since POSIX gives an
+                // ENOENT, we intercept the error to match the POSIX
+                // behaviour
+                if error == ERROR_DIRECTORY {
+                    throw _NSErrorWithWindowsError(DWORD(ERROR_FILE_NOT_FOUND), reading: true)
+                }
+                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
               }
             }
           }
