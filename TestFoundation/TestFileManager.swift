@@ -1581,7 +1581,9 @@ VIDEOS=StopgapVideos
             #endif
             
             XCTAssertGreaterThanOrEqual(components.count, 3)
-            XCTAssertEqual(components[components.count - 2], "a")
+            if components.count >= 3 {
+                XCTAssertEqual(components[components.count - 2], "a")
+            }
             
             #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
             XCTAssertEqual(components.last, "Prova")
@@ -1598,11 +1600,13 @@ VIDEOS=StopgapVideos
             #endif
             
             XCTAssertGreaterThanOrEqual(components.count, 4)
-            XCTAssertEqual(components[components.count - 3], "a")
-            
-            #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-            XCTAssertEqual(components[components.count - 2], "Test")
-            #endif
+            if components.count >= 4 {
+                XCTAssertEqual(components[components.count - 3], "a")
+                
+                #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+                XCTAssertEqual(components[components.count - 2], "Test")
+                #endif
+            }
             
             XCTAssertEqual(components.last, "b")
         }
