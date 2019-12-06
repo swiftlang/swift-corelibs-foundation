@@ -125,7 +125,7 @@ extension String {
 
     internal var isAbsolutePath: Bool {
 #if os(Windows)
-        return !withCString(encodedAs: UTF16.self, PathIsRelativeW)
+        return hasPrefix("~") || !withCString(encodedAs: UTF16.self, PathIsRelativeW)
 #else
         return hasPrefix("~") || hasPrefix("/")
 #endif
