@@ -975,7 +975,12 @@ class TestFileManager : XCTestCase {
             return
         }
         XCTAssertNotEqual(0, volumes.count)
+#if os(Windows)
+        let url = URL(fileURLWithPath: String(NSTemporaryDirectory().prefix(3)))
+        XCTAssertTrue(volumes.contains(url))
+#else
         XCTAssertTrue(volumes.contains(URL(fileURLWithPath: "/")))
+#endif
 #if os(macOS)
         // On macOS, .skipHiddenVolumes should hide 'nobrowse' volumes of which there should be at least one
         guard let visibleVolumes = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: [], options: [.skipHiddenVolumes]) else {
