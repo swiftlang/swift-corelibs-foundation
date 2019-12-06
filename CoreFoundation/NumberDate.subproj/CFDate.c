@@ -122,7 +122,7 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
     return (double)res.tv_sec + ((double)res.tv_nsec)/1.0E9;
 #elif TARGET_OS_WIN32
     ULONGLONG ullTickCount = GetTickCount64();
-    return ullTickCount / 1000;
+    return ullTickCount / 1000.0;
 #else
 #error Unable to calculate uptime for this platform
 #endif
