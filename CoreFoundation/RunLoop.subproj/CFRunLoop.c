@@ -2938,6 +2938,13 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             // In this case, the timer port has been automatically reset (since it was returned from MsgWaitForMultipleObjectsEx), and if we do not re-arm it, then no timers will ever be serviced again unless something adjusts the timer list (e.g. adding or removing timers). The fix for the issue is to reset the timer here if CFRunLoopDoTimers did not handle a timer itself. 9308754
             if (!__CFRunLoopDoTimers(rl, rlm, mach_absolute_time())) {
                 // Re-arm the next timer
+                // Since we'll be resetting the same timer as before
+                // with the same deadlines, we need to reset these
+                // values so that the arm next timer code can
+                // correctly find the next timer in the list and arm
+                // the underlying timer.
+                rlm->_timerSoftDeadline = UINT64_MAX;
+                rlm->_timerHardDeadline = UINT64_MAX;
                 __CFArmNextTimerInMode(rlm, rl);
             }
         }
