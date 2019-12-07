@@ -88,6 +88,7 @@ target_sources(TestFoundation PRIVATE
   TestTimer.swift
   TestTimeZone.swift
   TestUnitConverter.swift
+  TestUnitVolume.swift
   TestUnit.swift
   TestURLCache.swift
   TestURLCredential.swift
