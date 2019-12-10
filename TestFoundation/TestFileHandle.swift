@@ -84,6 +84,16 @@ class TestFileHandle : XCTestCase {
         return fh!
     }
 
+    func createFileHandleForUpdating() -> FileHandle {
+        let url = createTemporaryFile(containing: content)
+
+        var fh: FileHandle!
+        expectDoesNotThrow({ fh = try FileHandle(forUpdating: url) }, "Couldn't create file handle.")
+
+        allHandles.append(fh)
+        return fh
+    }
+
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func createFileHandleForSeekErrors() -> FileHandle {
 #if os(Windows)
@@ -380,6 +390,44 @@ class TestFileHandle : XCTestCase {
         XCTAssertEqual(data.count, 10)
         XCTAssertEqual(data, Data([0, 0, 0, 0, 0, 1, 2, 3, 4, 5]))
     }
+
+    func test_truncate() throws {
+        // `func truncate(atOffset offset: UInt64) throws` is introduced in Swift 5.
+        // See also https://bugs.swift.org/browse/SR-11922
+        
+        let fh = createFileHandleForUpdating()
+
+        try fh.truncate(atOffset: 50)
+        XCTAssertEqual(fh.offsetInFile, 50)
+
+        try fh.truncate(atOffset: 0)
+        XCTAssertEqual(fh.offsetInFile, 0)
+
+        try fh.truncate(atOffset: 100)
+        XCTAssertEqual(fh.offsetInFile, 100)
+
+        fh.write(Data([1, 2]))
+        XCTAssertEqual(fh.offsetInFile, 102)
+
+        try fh.seek(toOffset: 4)
+        XCTAssertEqual(fh.offsetInFile, 4)
+
+        (0..<20).forEach { fh.write(Data([$0])) }
+        XCTAssertEqual(fh.offsetInFile, 24)
+
+        fh.seekToEndOfFile()
+        XCTAssertEqual(fh.offsetInFile, 102)
+
+        try fh.truncate(atOffset: 10)
+        XCTAssertEqual(fh.offsetInFile, 10)
+
+        try fh.seek(toOffset: 0)
+        XCTAssertEqual(fh.offsetInFile, 0)
+
+        let data = fh.readDataToEndOfFile()
+        XCTAssertEqual(data.count, 10)
+        XCTAssertEqual(data, Data([0, 0, 0, 0, 0, 1, 2, 3, 4, 5]))
+    }
     
     func test_readabilityHandlerCloseFileRace() throws {
         for _ in 0..<10 {
@@ -541,6 +589,7 @@ class TestFileHandle : XCTestCase {
             ("testWritingWithMultiregionData", testWritingWithMultiregionData),
             ("test_constants", test_constants),
             ("test_truncateFile", test_truncateFile),
+            ("test_truncate", test_truncate),
             ("test_readabilityHandlerCloseFileRace", test_readabilityHandlerCloseFileRace),
             ("test_readabilityHandlerCloseFileRaceWithError", test_readabilityHandlerCloseFileRaceWithError),
             ("test_availableData", test_availableData),

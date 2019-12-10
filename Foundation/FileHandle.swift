@@ -570,7 +570,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func truncate(toOffset offset: UInt64) throws {
+    public func truncate(atOffset offset: UInt64) throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
@@ -683,9 +683,9 @@ open class FileHandle : NSObject {
         try! seek(toOffset: offset)
     }
     
-    @available(swift, deprecated: 100000, renamed: "truncate(toOffset:)")
+    @available(swift, deprecated: 100000, renamed: "truncate(atOffset:)")
     open func truncateFile(atOffset offset: UInt64) {
-        try! truncate(toOffset: offset)
+        try! truncate(atOffset: offset)
     }
     
     @available(swift, deprecated: 100000, renamed: "synchronize()")
