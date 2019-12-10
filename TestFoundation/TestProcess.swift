@@ -682,6 +682,45 @@ class TestProcess : XCTestCase {
         }
     }
 
+    #if !os(Windows)
+    func test_fileDescriptorsAreNotInherited() throws {
+        let task = Process()
+        let someExtraFDs = [dup(1), dup(1), dup(1), dup(1), dup(1), dup(1), dup(1)]
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--print-open-file-descriptors"]
+        task.standardInput = FileHandle.nullDevice
+        let stdoutPipe = Pipe()
+        task.standardOutput = stdoutPipe.fileHandleForWriting
+        task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+
+        try stdoutPipe.fileHandleForWriting.close()
+        let stdoutData = try stdoutPipe.fileHandleForReading.readToEnd()
+        task.waitUntilExit()
+        let stdoutString = String(decoding: stdoutData ?? Data(), as: Unicode.UTF8.self)
+        #if os(macOS)
+        XCTAssertEqual("0\n1\n2\n", stdoutString)
+        #else
+        // on Linux we may also have a /dev/urandom open as well as some socket that Process uses for something.
+
+        // we should definitely have stdin (0), stdout (1), and stderr (2) open
+        XCTAssert(stdoutString.utf8.starts(with: "0\n1\n2\n".utf8))
+
+        // in total we should have 6 or fewer lines:
+        // 1. stdin
+        // 2. stdout
+        // 3. stderr
+        // 4. /dev/urandom (optional)
+        // 5. communication socket (optional)
+        // 6. trailing new line
+        XCTAssertLessThanOrEqual(stdoutString.components(separatedBy: "\n").count, 6, "\(stdoutString)")
+        #endif
+        for fd in someExtraFDs {
+            close(fd)
+        }
+    }
+    #endif
+
     func test_pipeCloseBeforeLaunch() {
         let process = Process()
         let stdInput = Pipe()
@@ -777,6 +816,7 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
             ("test_currentDirectory", test_currentDirectory),
+            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
             ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
             ("test_multiProcesses", test_multiProcesses),
         ]
@@ -786,6 +826,7 @@ class TestProcess : XCTestCase {
         tests += [
             ("test_interrupt", test_interrupt),
             ("test_suspend_resume", test_suspend_resume),
+            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
         ]
 #endif
         return tests
