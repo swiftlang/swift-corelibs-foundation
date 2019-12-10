@@ -816,7 +816,6 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
             ("test_currentDirectory", test_currentDirectory),
-            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
             ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
             ("test_multiProcesses", test_multiProcesses),
         ]
