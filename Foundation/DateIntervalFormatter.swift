@@ -158,10 +158,10 @@ open class DateIntervalFormatter: Formatter {
         
         let dateTemplateFromStylesNS = dateTemplateFromStyles?.takeRetainedValue()._nsObject
         aCoder.encode(dateTemplateFromStylesNS, forKey: "NS.dateTemplateFromStyles")
-        
-        aCoder.encode(modified, forKey: "NS.modified");
-        aCoder.encode(useTemplate, forKey: "NS.useTemplate")
-        
+
+        aCoder.encode(modified == true, forKey: "NS.modified");
+        aCoder.encode(useTemplate == true, forKey: "NS.useTemplate")
+
         let localeNS = locale?.takeRetainedValue()._nsObject
         aCoder.encode(localeNS, forKey: "NS.locale")
         
