@@ -486,14 +486,14 @@ open class FileHandle : NSObject {
     // MARK: New API.
     
     @available(swift 5.0)
-    public func readToEnd() throws -> Data? {
+    open func readToEnd() throws -> Data? {
         guard self != FileHandle._nulldeviceFileHandle else { return nil }
         
         return try read(upToCount: Int.max)
     }
     
     @available(swift 5.0)
-    public func read(upToCount count: Int) throws -> Data? {
+    open func read(upToCount count: Int) throws -> Data? {
         guard self != FileHandle._nulldeviceFileHandle else { return nil }
         
         let result = try _readDataOfLength(count, untilEOF: true)
@@ -501,7 +501,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func write<T: DataProtocol>(contentsOf data: T) throws {
+    open func write<T: DataProtocol>(contentsOf data: T) throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
@@ -516,7 +516,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func offset() throws -> UInt64 {
+    open func offset() throws -> UInt64 {
         guard self != FileHandle._nulldeviceFileHandle else { return 0 }
         
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
@@ -536,7 +536,7 @@ open class FileHandle : NSObject {
     
     @available(swift 5.0)
     @discardableResult
-    public func seekToEnd() throws -> UInt64 {
+    open func seekToEnd() throws -> UInt64 {
         guard self != FileHandle._nulldeviceFileHandle else { return 0 }
         
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
@@ -555,7 +555,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func seek(toOffset offset: UInt64) throws {
+    open func seek(toOffset offset: UInt64) throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
@@ -570,7 +570,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func truncate(atOffset offset: UInt64) throws {
+    open func truncate(atOffset offset: UInt64) throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
@@ -589,7 +589,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func synchronize() throws {
+    open func synchronize() throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         #if os(Windows)
@@ -616,7 +616,7 @@ open class FileHandle : NSObject {
     }
     
     @available(swift 5.0)
-    public func close() throws {
+    open func close() throws {
         try performOnQueueIfExists {
             try _immediatelyClose()
         }
