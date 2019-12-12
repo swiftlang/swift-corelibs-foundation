@@ -198,7 +198,13 @@ func cat(_ args: ArraySlice<String>.Iterator) {
 
 #if !os(Windows)
 func printOpenFileDescriptors() {
-    for fd in 0..<getdtablesize() {
+    let reasonableMaxFD: CInt
+    #if os(Linux) || os(macOS)
+    reasonableMaxFD = getdtablesize()
+    #else
+    reasonableMaxFD = 4096
+    #endif
+    for fd in 0..<reasonableMaxFD {
         if fcntl(fd, F_GETFD) != -1 {
             print(fd)
         }

@@ -60,6 +60,43 @@ extension CFSocketError {
 }
 #endif
 
+#if !canImport(Darwin) && !os(Windows)
+private func findMaximumOpenFromProcSelfFD() -> CInt? {
+    guard let dirPtr = opendir("/proc/self/fd") else {
+        return nil
+    }
+    defer {
+        closedir(dirPtr)
+    }
+    var highestFDSoFar = CInt(0)
+
+    while let dirEntPtr = readdir(dirPtr) {
+        var entryName = dirEntPtr.pointee.d_name
+        let thisFD = withUnsafeBytes(of: &entryName) { entryNamePtr -> CInt? in
+            CInt(String(decoding: entryNamePtr.prefix(while: { $0 != 0 }), as: Unicode.UTF8.self))
+        }
+        highestFDSoFar = max(thisFD ?? -1, highestFDSoFar)
+    }
+
+    return highestFDSoFar
+}
+
+func findMaximumOpenFD() -> CInt {
+    if let maxFD = findMaximumOpenFromProcSelfFD() {
+        // the precise method worked, let's return this fd.
+        return maxFD
+    }
+
+    // We don't have /proc, let's go with the best estimate.
+#if os(Linux)
+    return getdtablesize()
+#else
+    return 4096
+#endif
+}
+#endif
+
+
 private func emptyRunLoopCallback(_ context : UnsafeMutableRawPointer?) -> Void {}
 
 
@@ -881,7 +918,7 @@ open class Process: NSObject {
         posix_spawnattr_init(&spawnAttrs)
         posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT))
         #else
-        for fd in 3 ..< getdtablesize() {
+        for fd in 3 ... findMaximumOpenFD() {
             guard adddup2[fd] == nil &&
                   !addclose.contains(fd) &&
                   fd != taskSocketPair[1] else {
