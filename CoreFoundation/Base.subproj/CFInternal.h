@@ -1044,5 +1044,79 @@ CF_PRIVATE const CFStringRef __kCFLocaleCollatorID;
 
 CF_EXTERN_C_END
 
+
+// Load 16,32,64 bit values from unaligned memory addresses. These need to be done bytewise otherwise
+// it is undefined behaviour in C. On some architectures, eg x86, unaligned loads are allowed by the
+// processor and the compiler will convert these byte accesses into the appropiate DWORD/QWORD memory
+// access.
+
+CF_INLINE uint32_t unaligned_load32(const void *ptr) {
+    uint8_t *bytes = (uint8_t *)ptr;
+#if __LITTLE_ENDIAN__
+    uint32_t result = (uint32_t)bytes[0];
+    result |= ((uint32_t)bytes[1] << 8);
+    result |= ((uint32_t)bytes[2] << 16);
+    result |= ((uint32_t)bytes[3] << 24);
+#else
+    uint32_t result = (uint32_t)bytes[0] << 24;
+    result |= ((uint32_t)bytes[1] << 16);
+    result |= ((uint32_t)bytes[2] << 8);
+    result |= (uint32_t)bytes[3];
+#endif
+    return result;
+}
+
+
+CF_INLINE void unaligned_store32(void *ptr, uint32_t value) {
+    uint8_t *bytes = (uint8_t *)ptr;
+#if __LITTLE_ENDIAN__
+    bytes[0] = (uint8_t)(value & 0xff);
+    bytes[1] = (uint8_t)((value >>  8) & 0xff);
+    bytes[2] = (uint8_t)((value >> 16) & 0xff);
+    bytes[3] = (uint8_t)((value >> 24) & 0xff);
+#else
+    bytes[0] = (uint8_t)((value >> 24) & 0xff);
+    bytes[1] = (uint8_t)((value >> 16) & 0xff);
+    bytes[2] = (uint8_t)((value >>  8) & 0xff);
+    bytes[3] = (uint8_t)((value >>  0) & 0xff);
+#endif
+}
+
+
+// Load values stored in Big Endian order in memory.
+CF_INLINE uint16_t unaligned_load16be(const void *ptr) {
+    uint8_t *bytes = (uint8_t *)ptr;
+    uint16_t result = (uint16_t)bytes[0] << 8;
+    result |= (uint16_t)bytes[1];
+
+    return result;
+}
+
+
+CF_INLINE uint32_t unaligned_load32be(const void *ptr) {
+    uint8_t *bytes = (uint8_t *)ptr;
+    uint32_t result = (uint32_t)bytes[0] << 24;
+    result |= ((uint32_t)bytes[1] << 16);
+    result |= ((uint32_t)bytes[2] << 8);
+    result |= (uint32_t)bytes[3];
+
+    return result;
+}
+
+
+CF_INLINE uint64_t unaligned_load64be(const void *ptr) {
+    uint8_t *bytes = (uint8_t *)ptr;
+    uint64_t result = (uint64_t)bytes[0] << 56;
+    result |= ((uint64_t)bytes[1] << 48);
+    result |= ((uint64_t)bytes[2] << 40);
+    result |= ((uint64_t)bytes[3] << 32);
+    result |= ((uint64_t)bytes[4] << 24);
+    result |= ((uint64_t)bytes[5] << 16);
+    result |= ((uint64_t)bytes[6] << 8);
+    result |= (uint64_t)bytes[7];
+
+    return result;
+}
+
 #endif /* ! __COREFOUNDATION_CFINTERNAL__ */
 

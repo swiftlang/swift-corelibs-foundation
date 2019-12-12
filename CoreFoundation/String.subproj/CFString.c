@@ -534,6 +534,18 @@ CFStringEncoding __CFStringComputeEightBitStringEncoding(void) {
 */
 CF_INLINE Boolean __CFBytesInASCII(const uint8_t *bytes, CFIndex len) {
 #if TARGET_RT_64_BIT
+    uint64_t align_mask = 7;
+#else
+    uint32_t align_mask = 3;
+#endif
+
+    /* Read bytes until the buffer is aligned. */
+    while (((uintptr_t)bytes & align_mask) && len > 0) {
+        if (*bytes++ & 0x80) return false;
+        len--;
+    }
+
+#if TARGET_RT_64_BIT
     /* A bit of unrolling; go by 32s, 16s, and 8s first */
     while (len >= 32) {
         uint64_t val = *(const uint64_t *)bytes;

@@ -501,7 +501,7 @@ static void _flattenPlist(CFPropertyListRef plist, CFMutableArrayRef objlist, CF
     CFDictionaryAddValue(objtable, plist, (const void *)(uintptr_t)refnum);
     if (_kCFRuntimeIDCFDictionary == type) {
         CFIndex count = CFDictionaryGetCount((CFDictionaryRef)plist);
-        STACK_BUFFER_DECL(CFPropertyListRef, buffer, count <= 128 ? count * 2 : 1);
+        STACK_BUFFER_DECL(CFPropertyListRef, buffer, (count > 0 && count <= 128) ? count * 2 : 1);
         CFPropertyListRef *list = (count <= 128) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, 2 * count * sizeof(CFTypeRef), 0);
         CFDictionaryGetKeysAndValues((CFDictionaryRef)plist, list, list + count);
         for (CFIndex idx = 0; idx < 2 * count; idx++) {
@@ -510,7 +510,7 @@ static void _flattenPlist(CFPropertyListRef plist, CFMutableArrayRef objlist, CF
         if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
     } else if (_kCFRuntimeIDCFArray == type) {
         CFIndex count = CFArrayGetCount((CFArrayRef)plist);
-        STACK_BUFFER_DECL(CFPropertyListRef, buffer, count <= 256 ? count : 1);
+        STACK_BUFFER_DECL(CFPropertyListRef, buffer, (count > 0 && count <= 256) ? count : 1);
         CFPropertyListRef *list = (count <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, count * sizeof(CFTypeRef), 0);
         CFArrayGetValues((CFArrayRef)plist, CFRangeMake(0, count), list);
         for (CFIndex idx = 0; idx < count; idx++) {
@@ -713,22 +713,19 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 /* Grab a valSize-bytes integer out of the buffer pointed at by data and return it.
  */
 CF_INLINE uint64_t _getSizedInt(const uint8_t *data, uint8_t valSize) {
-#if defined(__i386__) || defined(__x86_64__)
+
     if (valSize == 1) {
         return (uint64_t)*data;
     } else if (valSize == 2) {
-        uint16_t val = *(uint16_t *)data;
-        return (uint64_t)CFSwapInt16BigToHost(val);
+        return (uint64_t)unaligned_load16be(data);
     } else if (valSize == 4) {
-        uint32_t val = *(uint32_t *)data;
-        return (uint64_t)CFSwapInt32BigToHost(val);
+        return (uint64_t)unaligned_load32be(data);
     } else if (valSize == 8) {
-        uint64_t val = *(uint64_t *)data;
-        return CFSwapInt64BigToHost(val);
+        return unaligned_load64be(data);
     }
-#endif
-    // Compatibility with existing archives, including anything with a non-power-of-2 
-    // size and 16-byte values, and architectures that don't support unaligned access
+
+    // Compatibility with existing archives, including anything with a non-power-of-2
+    // size and 16-byte values
     uint64_t res = 0;
     for (CFIndex idx = 0; idx < valSize; idx++) {
         res = (res << 8) + data[idx];
@@ -1429,7 +1426,7 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
 	byte_cnt = check_size_t_mul(arrayCount, sizeof(CFPropertyListRef), &err);
 	if (CF_NO_ERROR != err) FAIL_FALSE;
-        STACK_BUFFER_DECL(CFPropertyListRef, buffer, arrayCount <= 256 ? arrayCount : 1);
+        STACK_BUFFER_DECL(CFPropertyListRef, buffer, (arrayCount > 0 && arrayCount <= 256) ? arrayCount : 1);
 	list = (arrayCount <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
 	if (!list) FAIL_FALSE;
 	Boolean madeSet = false;
