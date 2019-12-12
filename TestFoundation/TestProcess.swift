@@ -818,7 +818,6 @@ class TestProcess : XCTestCase {
             ("test_currentDirectory", test_currentDirectory),
             ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
             ("test_multiProcesses", test_multiProcesses),
-            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
         ]
 
 #if !os(Windows)
