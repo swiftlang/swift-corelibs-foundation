@@ -376,7 +376,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /*
      * The current state of the task within the session.
      */
-    open var state: URLSessionTask.State {
+    open fileprivate(set) var state: URLSessionTask.State {
         get {
             return self.syncQ.sync { self._state }
         }
