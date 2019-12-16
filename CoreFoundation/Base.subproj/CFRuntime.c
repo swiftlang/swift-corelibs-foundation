@@ -787,7 +787,7 @@ static CFLock_t __CFRuntimeExternRefCountTableLock = CFLockInit;
 #else
 static uint64_t __CFGetFullRetainCount(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** __CFGetFullRetainCount() called with NULL ***"); HALT; }
-#if TARGET_RT64_BIT
+#if TARGET_RT_64_BIT
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     uint32_t rc = __CFHighRCFromInfo(info);
     if (0 == rc) {
