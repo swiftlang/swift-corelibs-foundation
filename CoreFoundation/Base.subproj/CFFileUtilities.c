@@ -439,7 +439,11 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
             dirURL = CFURLCreateFromFileSystemRepresentation(alloc, (uint8_t *)dirPath, pathLength, true);
             releaseBase = true;
         }
+#if !defined(__OpenBSD__)
         if (dp->d_type == DT_DIR || dp->d_type == DT_UNKNOWN || dp->d_type == DT_LNK || dp->d_type == DT_WHT) {
+#else
+        if (dp->d_type == DT_DIR || dp->d_type == DT_UNKNOWN || dp->d_type == DT_LNK) {
+#endif
             Boolean isDir = (dp->d_type == DT_DIR);
             if (!isDir) {
                 // Ugh; must stat.
