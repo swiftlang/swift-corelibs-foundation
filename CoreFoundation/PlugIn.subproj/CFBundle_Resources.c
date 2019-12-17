@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>

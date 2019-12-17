@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <limits.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/mman.h>
