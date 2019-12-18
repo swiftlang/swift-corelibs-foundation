@@ -12,7 +12,6 @@
 		1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1513A8422044893F00539722 /* FileManager_XDG.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
 		1539391422A07007006DFF4F /* TestCachedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1539391322A07007006DFF4F /* TestCachedURLResponse.swift */; };
-		1539391522A07160006DFF4F /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
 		153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
@@ -2569,7 +2568,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
@@ -3110,7 +3109,6 @@
 				5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */,
 				5B13B3461C582D4C00651CE2 /* TestProcess.swift in Sources */,
 				555683BD1C1250E70041D4C6 /* TestUserDefaults.swift in Sources */,
-				1539391522A07160006DFF4F /* TestNSSortDescriptor.swift in Sources */,
 				DCA8120B1F046D13000D0C86 /* TestCodable.swift in Sources */,
 				7900433B1CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift in Sources */,
 				1581706322B1A29100348861 /* TestURLCache.swift in Sources */,
