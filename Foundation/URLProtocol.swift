@@ -167,8 +167,6 @@ open class URLProtocol : NSObject {
     private static var _registeredProtocolClasses = [AnyClass]()
     private static var _classesLock = NSLock()
 
-    //TODO: The right way to do this is using URLProtocol.property(forKey:in) and URLProtocol.setProperty(_:forKey:in)
-    var properties: [URLProtocol._PropertyKey: Any] = [:]
     /*! 
         @method initWithRequest:cachedResponse:client:
         @abstract Initializes an NSURLProtocol given request, 
@@ -346,6 +344,22 @@ open class URLProtocol : NSObject {
     */
     open class func removeProperty(forKey key: String, in request: NSMutableURLRequest) {
         request.protocolProperties.removeValue(forKey: key)
+    }
+
+    internal func property(for key: URLProtocol._PropertyKey) -> Any? {
+        return Self.property(forKey: key.rawValue, in: _request)
+    }
+
+    internal func setProperty(_ value: Any, for key: URLProtocol._PropertyKey) {
+        _request._applyMutation { request in
+            Self.setProperty(value, forKey: key.rawValue, in: request)
+        }
+    }
+
+    internal func removeProperty(for key: URLProtocol._PropertyKey) {
+        _request._applyMutation { request in
+            Self.removeProperty(forKey: key.rawValue, in: request)
+        }
     }
     
     /*! 

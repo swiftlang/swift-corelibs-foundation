@@ -852,7 +852,7 @@ extension _ProtocolClient : URLProtocolClient {
         case .taskDelegate(let delegate):
             if let downloadDelegate = delegate as? URLSessionDownloadDelegate, let downloadTask = task as? URLSessionDownloadTask {
                 session.delegateQueue.addOperation {
-                    downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as! URL)
+                    downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: urlProtocol.property(for: .temporaryFileURL) as! URL)
                 }
             }
             session.delegateQueue.addOperation {
@@ -872,7 +872,7 @@ extension _ProtocolClient : URLProtocolClient {
         case .dataCompletionHandler(let completion):
             session.delegateQueue.addOperation {
                 guard task.state != .completed else { return }
-                completion(urlProtocol.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
+                completion(urlProtocol.property(for: .responseData) as? Data ?? Data(), task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -881,7 +881,7 @@ extension _ProtocolClient : URLProtocolClient {
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
                 guard task.state != .completed else { return }
-                completion(urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
+                completion(urlProtocol.property(for: .temporaryFileURL) as? URL, task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -963,7 +963,7 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
-        `protocol`.properties[.responseData] = data
+        `protocol`.setProperty(data, for: .responseData)
         guard let task = `protocol`.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
         
