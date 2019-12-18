@@ -152,7 +152,7 @@ typedef int		boolean_t;
 typedef unsigned long fd_mask;
 #endif
     
-#if !TARGET_OS_ANDROID && !TARGET_OS_CYGWIN
+#if !TARGET_OS_ANDROID && !TARGET_OS_CYGWIN && !TARGET_OS_BSD
 CF_INLINE size_t
 strlcpy(char * dst, const char * src, size_t maxlen) {
     const size_t srclen = strlen(src);
@@ -180,7 +180,7 @@ strlcat(char * dst, const char * src, size_t maxlen) {
 }
 #endif
 
-#if !TARGET_OS_CYGWIN
+#if !TARGET_OS_CYGWIN && !TARGET_OS_BSD
 #define issetugid() 0
 #endif
     
@@ -250,7 +250,7 @@ void OSMemoryBarrier();
 
 #endif
 
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_BSD
 #include <sys/param.h>
 #endif
 #if TARGET_OS_WIN32 || TARGET_OS_LINUX

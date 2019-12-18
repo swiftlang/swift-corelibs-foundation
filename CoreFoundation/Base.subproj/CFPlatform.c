@@ -131,7 +131,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
 }
@@ -619,7 +619,7 @@ CF_PRIVATE void __CFTSDInitialize() {
 static void __CFTSDSetSpecific(void *arg) {
 #if TARGET_OS_MAC
     pthread_setspecific(__CFTSDIndexKey, arg);
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif TARGET_OS_WIN32
     FlsSetValue(__CFTSDIndexKey, arg);
@@ -629,7 +629,7 @@ static void __CFTSDSetSpecific(void *arg) {
 static void *__CFTSDGetSpecific() {
 #if TARGET_OS_MAC
     return pthread_getspecific(__CFTSDIndexKey);
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     return pthread_getspecific(__CFTSDIndexKey);
 #elif TARGET_OS_WIN32
     return FlsGetValue(__CFTSDIndexKey);
