@@ -113,6 +113,25 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         guard let httpRequest = task?.currentRequest else { return false }
         guard let httpResponse = response.response as? HTTPURLResponse else { return false }
         
+        // HTTP status codes: https://tools.ietf.org/html/rfc7231#section-6.1
+        switch httpResponse.statusCode {
+        case 200: fallthrough
+        case 203: fallthrough
+        case 204: fallthrough
+        case 206: fallthrough
+        case 300: fallthrough
+        case 301: fallthrough
+        case 404: fallthrough
+        case 405: fallthrough
+        case 410: fallthrough
+        case 414: fallthrough
+        case 501:
+            break
+            
+        default:
+            return false
+        }
+        
         let now = Date()
         
         // Figure out the date we should start counting expiration from.
@@ -147,6 +166,19 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             return false
         }
         
+        // Vary: https://tools.ietf.org/html/rfc7231#section-7.1.4
+        /*   "1.  To inform cache recipients that they MUST NOT use this response
+         to satisfy a later request unless the later request has the same
+         values for the listed fields as the original request (Section 4.1
+         of [RFC7234]).  In other words, Vary expands the cache key
+         required to match a new request to the stored cache entry."
+         
+         If we do not store this response, we will never use it to satisfy a later request, including a later request for which it would be incorrect.
+         */
+        if httpResponse.allHeaderFields["Vary"] != nil {
+            return false
+        }
+        
         // Cache-Control: https://tools.ietf.org/html/rfc7234#section-5.2
         var hasCacheControl = false
         var hasMaxAge = false
@@ -178,43 +210,11 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
         
         // Pragma: https://tools.ietf.org/html/rfc7234#section-5.4
-        if !hasCacheControl, let pragma = httpResponse.allHeaderFields["Cache-Control"] as? String {
+        if !hasCacheControl, let pragma = httpResponse.allHeaderFields["Pragma"] as? String {
             let parts = pragma.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased(with: NSLocale.system) }
             if parts.contains("no-cache") {
                 return false
             }
-        }
-        
-        // HTTP status codes: https://tools.ietf.org/html/rfc7231#section-6.1
-        switch httpResponse.statusCode {
-        case 200: fallthrough
-        case 203: fallthrough
-        case 204: fallthrough
-        case 206: fallthrough
-        case 300: fallthrough
-        case 301: fallthrough
-        case 404: fallthrough
-        case 405: fallthrough
-        case 410: fallthrough
-        case 414: fallthrough
-        case 501:
-            break
-            
-        default:
-            return false
-        }
-        
-        // Vary: https://tools.ietf.org/html/rfc7231#section-7.1.4
-        /*   "1.  To inform cache recipients that they MUST NOT use this response
-         to satisfy a later request unless the later request has the same
-         values for the listed fields as the original request (Section 4.1
-         of [RFC7234]).  In other words, Vary expands the cache key
-         required to match a new request to the stored cache entry."
-         
-         If we do not store this response, we will never use it to satisfy a later request, including a later request for which it would be incorrect.
-         */
-        if httpResponse.allHeaderFields["Vary"] != nil {
-            return false
         }
         
         // Expires: <https://tools.ietf.org/html/rfc7234#section-5.3>
