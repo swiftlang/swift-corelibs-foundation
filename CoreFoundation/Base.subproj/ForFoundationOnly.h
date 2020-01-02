@@ -691,6 +691,7 @@ CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t
 
 // We don't need static class refs if CF is used standalone, as there's no Swift or ObjC runtime to interoperate with.
 #define STATIC_CLASS_REF(...) NULL
+#define DECLARE_STATIC_CLASS_REF(...)
 
 #endif
 
