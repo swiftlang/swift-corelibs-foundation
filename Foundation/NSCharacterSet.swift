@@ -10,7 +10,6 @@
 
 import CoreFoundation
 
-#if _runtime(_ObjC) // if objc_enum works, restore the old names:
 let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
 let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
 let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.whitespaceAndNewline
@@ -32,9 +31,7 @@ let kCFCharacterSetKeyedCodingTypeBuiltin = CFCharacterSetKeyedCodingType.builti
 let kCFCharacterSetKeyedCodingTypeRange = CFCharacterSetKeyedCodingType.range
 let kCFCharacterSetKeyedCodingTypeString = CFCharacterSetKeyedCodingType.string
 let kCFCharacterSetKeyedCodingTypeBuiltinAndBitmap = CFCharacterSetKeyedCodingType.builtinAndBitmap
-#endif
 
-#if _runtime(_ObjC)
 fileprivate let lastKnownPredefinedCharacterSetConstant = kCFCharacterSetNewline.rawValue
 
 fileprivate extension Int {
@@ -42,17 +39,10 @@ fileprivate extension Int {
         self = predefinedSet.rawValue
     }
 }
-#else
-fileprivate let lastKnownPredefinedCharacterSetConstant = kCFCharacterSetNewline
-#endif
 
 fileprivate func knownPredefinedCharacterSet(rawValue: Int) -> CFCharacterSetPredefinedSet? {
     if rawValue > 0 && rawValue <= lastKnownPredefinedCharacterSetConstant {
-        #if _runtime(_ObjC)
             return CFCharacterSetPredefinedSet(rawValue: rawValue)
-        #else
-            return CFCharacterSetPredefinedSet(rawValue)
-        #endif
     } else {
         return nil
     }
@@ -69,7 +59,6 @@ fileprivate extension String {
     static let characterSetIsInvertedKey = "NSIsInverted"
     static let characterSetNewIsInvertedKey = "NSIsInverted2"
 }
-
 
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet

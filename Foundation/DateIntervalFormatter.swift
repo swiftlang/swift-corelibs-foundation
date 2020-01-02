@@ -9,7 +9,6 @@
 
 import CoreFoundation
 
-#if _runtime(_ObjC)
 internal let kCFDateIntervalFormatterNoStyle = CFDateIntervalFormatterStyle.noStyle
 internal let kCFDateIntervalFormatterShortStyle = CFDateIntervalFormatterStyle.shortStyle
 internal let kCFDateIntervalFormatterMediumStyle = CFDateIntervalFormatterStyle.mediumStyle
@@ -19,7 +18,6 @@ internal let kCFDateIntervalFormatterFullStyle = CFDateIntervalFormatterStyle.fu
 internal let kCFDateIntervalFormatterBoundaryStyleDefault = _CFDateIntervalFormatterBoundaryStyle.cfDateIntervalFormatterBoundaryStyleDefault
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 internal let kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths = _CFDateIntervalFormatterBoundaryStyle.cfDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths
-#endif
 #endif
 
 extension DateIntervalFormatter {

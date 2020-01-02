@@ -44,7 +44,6 @@ private var managerThreadRunLoop : RunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
 private var managerThreadRunLoopIsRunningCondition = NSCondition()
 
-#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 internal let kCFSocketNoCallBack: CFOptionFlags = 0 // .noCallBack cannot be used because empty option flags are imported as unavailable.
 internal let kCFSocketAcceptCallBack = CFSocketCallBackType.acceptCallBack.rawValue
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
@@ -58,7 +57,6 @@ extension CFSocketError {
         self.init(rawValue: value)
     }
 }
-#endif
 
 #if !canImport(Darwin) && !os(Windows)
 private func findMaximumOpenFromProcSelfFD() -> CInt? {

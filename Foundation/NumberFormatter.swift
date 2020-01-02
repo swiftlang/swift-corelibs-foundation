@@ -9,7 +9,6 @@
 
 import CoreFoundation
 
-
 extension NumberFormatter {
     public enum Style : UInt {
         case none               = 0
@@ -50,11 +49,7 @@ open class NumberFormatter : Formatter {
         if let obj = _currentCfFormatter {
             return obj
         } else {
-            #if os(macOS) || os(iOS)
-                let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(self.numberStyle.rawValue))!
-            #else
-                let numberStyle = CFNumberFormatterStyle(self.numberStyle.rawValue)
-            #endif
+            let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(self.numberStyle.rawValue))!
 
             let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
             _setFormatterAttributes(obj)
@@ -98,11 +93,7 @@ open class NumberFormatter : Formatter {
         var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(to: &range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
 
-            #if os(macOS) || os(iOS)
-                let parseOption = allowsFloats ? 0 : CFNumberFormatterOptionFlags.parseIntegersOnly.rawValue
-            #else
-                let parseOption = allowsFloats ? 0 : CFOptionFlags(kCFNumberFormatterParseIntegersOnly)
-            #endif
+            let parseOption = allowsFloats ? 0 : CFNumberFormatterOptionFlags.parseIntegersOnly.rawValue
             let result = CFNumberFormatterCreateNumberFromString(kCFAllocatorSystemDefault, _cfFormatter, string._cfObject, rangePointer, parseOption)
 
             return result?._nsObject

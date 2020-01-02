@@ -16,8 +16,13 @@ CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
 CF_ASSUME_NONNULL_BEGIN
 
+// Must match NSDateComponentUndefined
 CF_ENUM(CFIndex) {
-    CFDateComponentUndefined = __LONG_MAX__ // Must match NSDateComponentUndefined
+#if TARGET_OS_WIN32
+    CFDateComponentUndefined = LLONG_MAX
+#else
+    CFDateComponentUndefined = __LONG_MAX__
+#endif
 };
 
 enum {
