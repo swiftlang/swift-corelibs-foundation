@@ -712,7 +712,7 @@ typedef enum {
 
 static bool also_do_stderr(const _cf_logging_style style) {
     bool result = false;
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_WIN32
     // just log to stderr, other logging facilities are out
     result = true;
 #elif TARGET_OS_MAC
