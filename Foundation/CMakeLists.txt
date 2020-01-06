@@ -140,8 +140,6 @@ target_compile_definitions(Foundation PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(Foundation PUBLIC
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
-target_compile_options(Foundation PRIVATE
-  "SHELL:-Xcc -I${ICU_INCLUDE_DIR}")
 if(CMAKE_SYSTEM_NAME STREQUAL Windows AND CMAKE_VERSION VERSION_LESS 3.16)
   # Work around for CMake 15 which doesn't link in the resource file
   # target properly
@@ -153,8 +151,6 @@ if(ENABLE_TESTING)
     -enable-testing)
 endif()
 target_link_libraries(Foundation PRIVATE
-  ${ICU_UC_LIBRARY}
-  ${ICU_I18N_LIBRARY}
   CoreFoundation
   uuid)
 target_link_libraries(Foundation PUBLIC
@@ -219,8 +215,6 @@ if(ENABLE_TESTING)
     -enable-testing)
 endif()
 target_link_libraries(FoundationNetworking PRIVATE
-  ${CURL_LIBRARIES}
-  ${ZLIB_LIBRARIES}
   Foundation
   CFURLSessionInterface)
 set_target_properties(FoundationNetworking PROPERTIES
@@ -245,7 +239,6 @@ if(ENABLE_TESTING)
     -enable-testing)
 endif()
 target_link_libraries(FoundationXML PRIVATE
-  ${LIBXML2_LIBRARIES}
   Foundation
   CFXMLInterface)
 set_target_properties(FoundationXML PROPERTIES

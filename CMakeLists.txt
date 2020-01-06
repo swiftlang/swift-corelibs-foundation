@@ -26,15 +26,6 @@ endif()
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 
-find_package(CURL CONFIG)
-if(CURL_FOUND)
-  include(CMakeExpandImportedTargets)
-  cmake_expand_imported_targets(CURL_LIBRARIES LIBRARIES CURL::libcurl)
-else()
-  find_package(CURL REQUIRED)
-endif()
-find_package(ICU COMPONENTS uc i18n REQUIRED)
-find_package(LibXml2 REQUIRED)
 find_package(dispatch CONFIG REQUIRED)
 
 include(SwiftSupport)

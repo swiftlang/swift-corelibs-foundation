@@ -379,8 +379,7 @@ target_compile_definitions(CoreFoundation
                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping">)
 target_include_directories(CoreFoundation
                            PRIVATE
-                             ${PROJECT_SOURCE_DIR}
-                             ${ICU_INCLUDE_DIR})
+                             ${PROJECT_SOURCE_DIR})
 target_link_libraries(CoreFoundation PRIVATE
   Threads::Threads
   ${CMAKE_DL_LIBS}
@@ -389,6 +388,11 @@ target_link_libraries(CoreFoundation PRIVATE
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE
     log)
+endif()
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  target_link_libraries(CoreFoundation PRIVATE
+    ICU::uc
+    ICU::i18n)
 endif()
 
 add_framework(CFURLSessionInterface
@@ -409,10 +413,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-target_include_directories(CFURLSessionInterface PRIVATE
-  ${CURL_INCLUDE_DIRS})
-target_link_libraries(CFURLSessionInterface PRIVATE
-  ${CURL_LIBRARIES})
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  target_link_libraries(CFURLSessionInterface PRIVATE
+    CURL::libcurl)
+endif()
 
 add_framework(CFXMLInterface
                 ${FRAMEWORK_LIBRARY_TYPE}
@@ -427,10 +431,10 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
-target_include_directories(CFXMLInterface PRIVATE
-  ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(CFXMLInterface PRIVATE
-  ${LIBXML2_LIBRARIES})
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  target_link_libraries(CFXMLInterface PRIVATE
+    LibXml2::LibXml2)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   add_library(CoreFoundationResources OBJECT
