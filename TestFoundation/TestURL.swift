@@ -248,25 +248,40 @@ class TestURL : XCTestCase {
             default:
                 XCTFail()
             }
-            if title == "NSURLWithString-parse-ambiguous-url-001" {
-                // TODO: Fix this test
-            } else {
-                if let url = url {
-                        let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
-                        if let expected = expectedNSResult as? [String: Any] {
-                            let (isEqual, differences) = compareResults(url, expected: expected, got: results)
-                            XCTAssertTrue(isEqual, "\(title): \(differences.joined(separator: "\n"))")
-                        } else {
-                            XCTFail("\(url) should not be a valid url")
-                        }
+
+#if os(Windows)
+            // On Windows, pipes are valid charcters which can be used
+            // to replace a ':'. See RFC 8089 Section E.2.2 for
+            // details.
+            //
+            // Skip the test which expects pipes to be invalid
+            let skippedPipeTest = "NSURLWithString-parse-absolute-escape-006-pipe-invalid"
+#else
+            // On other platforms, pipes are not valid
+            //
+            // Skip the test which expects pipes to be valid
+            let skippedPipeTest = "NSURLWithString-parse-absolute-escape-006-pipe-valid"
+#endif
+            let skippedTests = [
+                "NSURLWithString-parse-ambiguous-url-001", // TODO: Fix Test
+                skippedPipeTest,
+            ]
+            if skippedTests.contains(title) { continue }
+
+            if let url = url {
+                let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
+                if let expected = expectedNSResult as? [String: Any] {
+                    let (isEqual, differences) = compareResults(url, expected: expected, got: results)
+                    XCTAssertTrue(isEqual, "\(title): \(differences.joined(separator: "\n"))")
                 } else {
-                    XCTAssertEqual(expectedNSResult as? String, kNullURLString)
+                    XCTFail("\(url) should not be a valid url")
                 }
+            } else {
+                XCTAssertEqual(expectedNSResult as? String, kNullURLString)
             }
         }
-        
     }
-    
+
     static let gBaseTemporaryDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
     static var gBaseCurrentWorkingDirectoryPath : String {
         return FileManager.default.currentDirectoryPath

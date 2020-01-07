@@ -3493,13 +3493,67 @@
 		</dict>
 		<dict>
 			<key>In-Title</key>
-			<string>NSURLWithString-parse-absolute-escape-006</string>
+			<string>NSURLWithString-parse-absolute-escape-006-pipe-invalid</string>
 			<key>In-URLCreator</key>
 			<string>NSURLWithString</string>
 			<key>In-Url</key>
 			<string>http://test.com/unescaped|pipe</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
+		</dict>
+		<dict>
+			<key>In-Title</key>
+			<string>NSURLWithString-parse-absolute-escape-006-pipe-valid</string>
+			<key>In-URLCreator</key>
+			<string>NSURLWithString</string>
+			<key>In-Url</key>
+			<string>http://test.com/unescaped|pipe</string>
+			<key>Out-NSResults</key>
+			<dict>
+				<key>absoluteString</key>
+				<string>http://test.com/unescaped%7Cpipe</string>
+				<key>absoluteURLString</key>
+				<string>http://test.com/unescaped%7Cpipe</string>
+				<key>baseURLString</key>
+				<string>&lt;null&gt;</string>
+				<key>deletingLastPathComponent</key>
+				<string>http://test.com/</string>
+				<key>deletingLastPathExtension</key>
+				<string>http://test.com/unescaped%7Cpipe</string>
+				<key>fragment</key>
+				<string>&lt;null&gt;</string>
+				<key>host</key>
+				<string>test.com</string>
+				<key>isFileURL</key>
+				<string>NO</string>
+				<key>lastPathComponent</key>
+				<string>unescaped|pipe</string>
+				<key>password</key>
+				<string>&lt;null&gt;</string>
+				<key>path</key>
+				<string>/unescaped|pipe</string>
+				<key>pathComponents</key>
+				<array>
+					<string>/</string>
+					<string>unescaped|pipe</string>
+				</array>
+				<key>pathExtension</key>
+				<string></string>
+				<key>port</key>
+				<string>&lt;null&gt;</string>
+				<key>query</key>
+				<string>&lt;null&gt;</string>
+				<key>relativePath</key>
+				<string>/unescaped|pipe</string>
+				<key>relativeString</key>
+				<string>http://test.com/unescaped%7Cpipe</string>
+				<key>scheme</key>
+				<string>http</string>
+				<key>standardizedURL</key>
+				<string>http://test.com/unescaped%7Cpipe</string>
+				<key>user</key>
+				<string>&lt;null&gt;</string>
+		    </dict>
 		</dict>
 		<dict>
 			<key>In-Title</key>
