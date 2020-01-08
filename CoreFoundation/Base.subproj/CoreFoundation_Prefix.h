@@ -180,6 +180,23 @@ bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volati
 void OSMemoryBarrier();
 #endif // TARGET_OS_LINUX || TARGET_OS_BSD
 
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+#include <time.h>
+
+CF_INLINE uint64_t mach_absolute_time() {
+#if TARGET_OS_WIN32
+    LARGE_INTEGER count;
+    QueryPerformanceCounter(&count);
+    // mach_absolute_time is unsigned, but this function returns a signed value.
+    return (uint64_t)count.QuadPart;
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
+#endif
+}
+#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+
 #if TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
 #define strtod_l(a,b,locale) strtod(a,b)
 #define strtoul_l(a,b,c,locale) strtoul(a,b,c)
@@ -217,13 +234,6 @@ typedef unsigned long fd_mask;
 #include <malloc.h>
 CF_INLINE size_t malloc_size(void *memblock) {
     return malloc_usable_size(memblock);
-}
-
-#include <time.h>
-CF_INLINE uint64_t mach_absolute_time() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
 }
 
 #define malloc_default_zone() (void *)0
@@ -339,13 +349,6 @@ typedef int32_t OSSpinLock;
 
 CF_INLINE size_t malloc_size(void *memblock) {
     return _msize(memblock);
-}
-
-CF_INLINE uint64_t mach_absolute_time() {
-    LARGE_INTEGER count;
-    QueryPerformanceCounter(&count);
-    // mach_absolute_time is unsigned, but this function returns a signed value.
-    return (uint64_t)count.QuadPart;
 }
 
 CF_INLINE long long llabs(long long v) {
