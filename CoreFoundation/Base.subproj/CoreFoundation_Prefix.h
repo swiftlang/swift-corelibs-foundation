@@ -119,6 +119,34 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #define CF_RETAIN_BALANCED_ELSEWHERE(obj, identified_location) do { } while (0)
 #endif
 
+#if (TARGET_OS_LINUX && !TARGET_OS_ANDROID && !TARGET_OS_CYGWIN) || TARGET_OS_WIN32
+CF_INLINE size_t
+strlcpy(char * dst, const char * src, size_t maxlen) {
+    const size_t srclen = strlen(src);
+    if (srclen < maxlen) {
+        memcpy(dst, src, srclen+1);
+    } else if (maxlen != 0) {
+        memcpy(dst, src, maxlen-1);
+        dst[maxlen-1] = '\0';
+    }
+    return srclen;
+}
+
+CF_INLINE size_t
+strlcat(char * dst, const char * src, size_t maxlen) {
+    const size_t srclen = strlen(src);
+    const size_t dstlen = strnlen(dst, maxlen);
+    if (dstlen == maxlen) return maxlen+srclen;
+    if (srclen < maxlen-dstlen) {
+        memcpy(dst+dstlen, src, srclen+1);
+    } else {
+        memcpy(dst+dstlen, src, maxlen-dstlen-1);
+        dst[maxlen-1] = '\0';
+    }
+    return dstlen + srclen;
+}
+#endif
+
 #if TARGET_OS_WIN32
 // Compatibility with boolean.h
 #if defined(__x86_64__)
@@ -152,33 +180,6 @@ typedef int		boolean_t;
 typedef unsigned long fd_mask;
 #endif
     
-#if !TARGET_OS_ANDROID && !TARGET_OS_CYGWIN && !TARGET_OS_BSD
-CF_INLINE size_t
-strlcpy(char * dst, const char * src, size_t maxlen) {
-    const size_t srclen = strlen(src);
-    if (srclen < maxlen) {
-        memcpy(dst, src, srclen+1);
-    } else if (maxlen != 0) {
-        memcpy(dst, src, maxlen-1);
-        dst[maxlen-1] = '\0';
-    }
-    return srclen;
-}
-
-CF_INLINE size_t
-strlcat(char * dst, const char * src, size_t maxlen) {
-    const size_t srclen = strlen(src);
-    const size_t dstlen = strnlen(dst, maxlen);
-    if (dstlen == maxlen) return maxlen+srclen;
-    if (srclen < maxlen-dstlen) {
-        memcpy(dst+dstlen, src, srclen+1);
-    } else {
-        memcpy(dst+dstlen, src, maxlen-dstlen-1);
-        dst[maxlen-1] = '\0';
-    }
-    return dstlen + srclen;
-}
-#endif
 
 #if !TARGET_OS_CYGWIN && !TARGET_OS_BSD
 #define issetugid() 0
@@ -370,32 +371,6 @@ CF_INLINE long long llabs(long long v) {
 #define snprintf _snprintf
 
 #define fprintf_l(a,locale,b,...) fprintf(a, b, __VA_ARGS__)
-
-CF_INLINE size_t
-strlcpy(char * dst, const char * src, size_t maxlen) {
-    const size_t srclen = strlen(src);
-    if (srclen < maxlen) {
-        memcpy(dst, src, srclen+1);
-    } else if (maxlen != 0) {
-        memcpy(dst, src, maxlen-1);
-        dst[maxlen-1] = '\0';
-    }
-    return srclen;
-}
-
-CF_INLINE size_t
-strlcat(char * dst, const char * src, size_t maxlen) {
-    const size_t srclen = strlen(src);
-    const size_t dstlen = strnlen(dst, maxlen);
-    if (dstlen == maxlen) return maxlen+srclen;
-    if (srclen < maxlen-dstlen) {
-        memcpy(dst+dstlen, src, srclen+1);
-    } else {
-        memcpy(dst+dstlen, src, maxlen-dstlen-1);
-        dst[maxlen-1] = '\0';
-    }
-    return dstlen + srclen;
-}
 
 #define sleep(x) Sleep(1000*x)
 
