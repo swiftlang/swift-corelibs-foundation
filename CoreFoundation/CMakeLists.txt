@@ -26,7 +26,10 @@ find_package(Threads)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
-  find_package(CURL REQUIRED)
+  find_package(CURL CONFIG)
+  if(NOT CURL_FOUND)
+    find_package(CURL REQUIRED)
+  endif()
   find_package(ICU COMPONENTS uc i18n REQUIRED)
 endif()
 
