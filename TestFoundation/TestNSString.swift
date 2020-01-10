@@ -1495,6 +1495,99 @@ class TestNSString: LoopbackServerTest {
         }
     }
     
+    func test_paragraphRange() {
+        let text = "Klaatu\nbarada\r\nnikto.\rRemember 🟨those\u{2029}words."
+        let nsText = text as NSString
+
+        // Expected paragraph ranges in test string
+        let paragraphRanges = [
+            NSRange(location: 0, length: 7),
+            NSRange(location: 7, length: 8),
+            NSRange(location: 15, length: 7),
+            NSRange(location: 22, length: 17),
+            NSRange(location: 39, length: 6),
+        ]
+
+        // We also will check ranges across two consecutive paragraphs.
+        // Generate pairs from plain array.
+        let paragraphPairs = paragraphRanges.enumerated().compactMap { i, range -> (NSRange, NSRange)? in
+            guard i < paragraphRanges.count - 1 else {
+                return nil
+            }
+
+            return (range, paragraphRanges[i + 1])
+        }
+
+        // Helper function. Generates all possible subranges in provided range.
+        // Interrupts if handler returns false.
+        func subranges(in range: NSRange, with handler: (NSRange) -> Bool) {
+            for location in range.location..<(range.location + range.length) {
+                let maxLength = range.length - (location - range.location)
+                for length in 0...maxLength {
+                    let generatedRange = NSRange(location: location, length: length)
+
+                    guard handler(generatedRange) else {
+                        return
+                    }
+                }
+            }
+        }
+
+        // Simplest check. Whole string is one or more
+        // paragraphs, so result range should cover it completely.
+        let wholeStringRange = NSRange(location: 0, length: nsText.length)
+        let allParagrapsRange = nsText.paragraphRange(for: wholeStringRange)
+        XCTAssertEqual(wholeStringRange, allParagrapsRange)
+
+        // Every paragraph is checked against all possible subranges in it.
+        for expectedRange in paragraphRanges {
+            subranges(in: expectedRange) { generatedRange in
+                let calculatedRange = nsText.paragraphRange(for: generatedRange)
+
+                // One fail report is enough.
+                // Otherwise there will be hundreds.
+                // Using manual check (not XCTAssertEqual)
+                // for early exit.
+                guard calculatedRange == expectedRange else {
+                    XCTFail("paragraphRange(for:) returned \(calculatedRange) for \(generatedRange), but expected is \(expectedRange)")
+                    return false
+                }
+
+                return true
+            }
+        }
+
+        // Every paragraph pair is checked against all possible
+        // subranges in single continuous range of both paragraphs.
+        for paragraphPair in paragraphPairs {
+            let paragraphPairRange = NSRange(location: paragraphPair.0.location, length: paragraphPair.0.length + paragraphPair.1.length)
+            subranges(in: paragraphPairRange) { generatedRange in
+                let calculatedRange = nsText.paragraphRange(for: generatedRange)
+
+                let expectedRange: NSRange = {
+                    // Does it fit in first paragraph range?
+                    if paragraphPair.0.intersection(generatedRange) == generatedRange {
+                        return paragraphPair.0
+                    }
+                    // Does it fit in second paragraph range?
+                    if paragraphPair.1.intersection(generatedRange) == generatedRange {
+                        return paragraphPair.1
+                    }
+                    // Neither completely in first, nor in second. Must be partially in both.
+                    return paragraphPairRange
+                }()
+
+                // Again, manual check with early exit
+                guard calculatedRange == expectedRange else {
+                    XCTFail("paragraphRange(for:) returned \(calculatedRange) for \(generatedRange), but expected \(expectedRange)")
+                    return false
+                }
+
+                return true
+            }
+        }
+    }
+
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         return [
             ("test_initData", test_initData),
@@ -1567,6 +1660,7 @@ class TestNSString: LoopbackServerTest {
             ("test_lineRangeFor", test_lineRangeFor),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_enumerateSubstrings", test_enumerateSubstrings),
+            ("test_paragraphRange", test_paragraphRange),
         ]
     }
 }
