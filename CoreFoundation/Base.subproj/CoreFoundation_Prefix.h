@@ -133,6 +133,25 @@ typedef int		boolean_t;
 #include <sys/stat.h> // mode_t
 #endif
 
+#if TARGET_OS_LINUX || TARGET_OS_BSD
+// Implemented in CFPlatform.c
+bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
+bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
+bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
+bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
+
+int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
+int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
+int32_t OSAtomicIncrement32(volatile int32_t *theValue);
+int32_t OSAtomicDecrement32(volatile int32_t *theValue);
+
+int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
+int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
+bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
+
+void OSMemoryBarrier();
+#endif // TARGET_OS_LINUX || TARGET_OS_BSD
+
 #if TARGET_OS_LINUX
     
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
@@ -183,23 +202,6 @@ strlcat(char * dst, const char * src, size_t maxlen) {
 #if !TARGET_OS_CYGWIN && !TARGET_OS_BSD
 #define issetugid() 0
 #endif
-    
-// Implemented in CFPlatform.c 
-bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
-bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
-bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
-bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
-    
-int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
-int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
-int32_t OSAtomicIncrement32(volatile int32_t *theValue);
-int32_t OSAtomicDecrement32(volatile int32_t *theValue);
-
-int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
-int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
-bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
-    
-void OSMemoryBarrier();
 
 #if TARGET_OS_CYGWIN
 #define HAVE_STRUCT_TIMESPEC 1
@@ -230,24 +232,6 @@ CF_INLINE uint64_t mach_absolute_time() {
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __strong
 #define __weak
-
-// Implemented in CFPlatform.c
-bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
-bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
-bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
-bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
-
-int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
-int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
-int32_t OSAtomicIncrement32(volatile int32_t *theValue);
-int32_t OSAtomicDecrement32(volatile int32_t *theValue);
-
-int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
-int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
-bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
-
-void OSMemoryBarrier();
-
 #endif
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD
