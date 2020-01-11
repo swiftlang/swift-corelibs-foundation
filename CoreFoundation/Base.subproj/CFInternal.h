@@ -97,9 +97,9 @@ CF_EXTERN_C_BEGIN
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
-#if !TARGET_OS_CYGWIN && !defined(__linux__)
+#if TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__)) || TARGET_OS_ANDROID
 #include <xlocale.h>
-#endif // !TARGET_OS_CYGWIN && !defined(__linux__)
+#endif // TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__)) || TARGET_OS_ANDROID
 
 #include <sys/time.h>
 #include <signal.h>

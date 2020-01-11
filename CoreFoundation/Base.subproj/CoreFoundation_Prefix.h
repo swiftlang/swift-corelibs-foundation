@@ -180,13 +180,13 @@ bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volati
 void OSMemoryBarrier();
 #endif // TARGET_OS_LINUX || TARGET_OS_BSD
 
-#if TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
 #define strtod_l(a,b,locale) strtod(a,b)
 #define strtoul_l(a,b,c,locale) strtoul(a,b,c)
 #define strtol_l(a,b,c,locale) strtol(a,b,c)
 
 #define fprintf_l(a,locale,b,...) fprintf(a, b, __VA_ARGS__)
-#endif // TARGET_OS_LINUX || TARGET_OS_WIN32
+#endif // TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
 
 #if TARGET_OS_LINUX
     
@@ -236,6 +236,10 @@ CF_INLINE uint64_t mach_absolute_time() {
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __strong
 #define __weak
+
+#if defined(__OpenBSD__)
+#define strtoll_l(a,b,c,locale) strtoll(a,b,c)
+#endif
 #endif
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD
