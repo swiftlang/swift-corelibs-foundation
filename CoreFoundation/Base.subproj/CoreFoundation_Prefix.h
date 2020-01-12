@@ -376,18 +376,6 @@ CF_EXPORT bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newVal
 
 void OSMemoryBarrier();
 
-/*
-CF_EXPORT bool OSAtomicCompareAndSwap64( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
-CF_EXPORT bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
-    
-CF_EXPORT int64_t OSAtomicAdd64( int64_t __theAmount, volatile int64_t *__theValue );
-CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *__theValue );
-*/
-
-//#ifndef NTDDI_VERSION
-//#define NTDDI_VERSION NTDDI_WINXP
-//#endif
-
 #include <io.h>
 #include <fcntl.h>
 #include <errno.h>
