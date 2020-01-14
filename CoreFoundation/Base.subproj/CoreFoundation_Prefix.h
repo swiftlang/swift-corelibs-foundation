@@ -201,6 +201,15 @@ CF_INLINE uint64_t mach_absolute_time() {
 #define strtol_l(a,b,c,locale) strtol(a,b,c)
 
 #define fprintf_l(a,locale,b,...) fprintf(a, b, __VA_ARGS__)
+
+CF_INLINE int flsl( long mask ) {
+    int idx = 0;
+    while (mask != 0) {
+        mask = (unsigned long)mask >> 1;
+        idx++;
+    }
+    return idx;
+}
 #endif // TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
 
 #if TARGET_OS_LINUX
@@ -390,12 +399,6 @@ CF_INLINE int popcountll(long long x) {
 #if TARGET_OS_LINUX || TARGET_OS_WIN32
 
 #include <stdarg.h>
-
-CF_INLINE int flsl( long mask ) {
-    int idx = 0;
-    while (mask != 0) mask = (unsigned long)mask >> 1, idx++;
-    return idx;
-}
 
 CF_PRIVATE int asprintf(char **ret, const char *format, ...);
 
