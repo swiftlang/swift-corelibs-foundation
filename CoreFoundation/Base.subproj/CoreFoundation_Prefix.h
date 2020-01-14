@@ -180,18 +180,21 @@ bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volati
 void OSMemoryBarrier();
 #endif // TARGET_OS_LINUX || TARGET_OS_BSD
 
+#if TARGET_OS_LINUX || TARGET_OS_WIN32
+#define strtod_l(a,b,locale) strtod(a,b)
+#define strtoul_l(a,b,c,locale) strtoul(a,b,c)
+#define strtol_l(a,b,c,locale) strtol(a,b,c)
+
+#define fprintf_l(a,locale,b,...) fprintf(a, b, __VA_ARGS__)
+#endif // TARGET_OS_LINUX || TARGET_OS_WIN32
+
 #if TARGET_OS_LINUX
     
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __weak
 
-#define strtod_l(a,b,locale) strtod(a,b)
-#define strtoul_l(a,b,c,locale) strtoul(a,b,c)
-#define strtol_l(a,b,c,locale) strtol(a,b,c)
 #define strtoll_l(a,b,c,locale) strtoll(a,b,c)
 #define strncasecmp_l(a, b, c, d) strncasecmp(a, b, c)
-
-#define fprintf_l(a,locale,b,...) fprintf(a, b, __VA_ARGS__)
 
 #include <pthread.h>
 
@@ -346,15 +349,10 @@ CF_INLINE long long llabs(long long v) {
     return v;
 }
 
-#define strtod_l(a,b,locale) strtod(a,b)
-#define strtoul_l(a,b,c,locale) strtoul(a,b,c)
-#define strtol_l(a,b,c,locale) strtol(a,b,c)
 #define strtoll_l(a,b,c,locale) _strtoi64(a,b,c)
 #define strncasecmp(a, b, c) _strnicmp(a, b, c)
 #define strncasecmp_l(a, b, c, d) _strnicmp(a, b, c)
 #define snprintf _snprintf
-
-#define fprintf_l(a,locale,b,...) fprintf(a, b, __VA_ARGS__)
 
 #define sleep(x) Sleep(1000*x)
 
