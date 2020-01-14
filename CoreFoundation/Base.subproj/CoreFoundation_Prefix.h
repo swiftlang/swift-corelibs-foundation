@@ -367,6 +367,15 @@ CF_INLINE long long llabs(long long v) {
 #include <fcntl.h>
 #include <errno.h>
     
+CF_INLINE int popcountll(long long x) {
+    int count = 0;
+    while (x) {
+        count++;
+        x &= x - 1; // reset LS1B
+    }
+    return count;
+}
+
 #endif
 
 #if !defined(CF_PRIVATE)
@@ -386,15 +395,6 @@ CF_INLINE int flsl( long mask ) {
     int idx = 0;
     while (mask != 0) mask = (unsigned long)mask >> 1, idx++;
     return idx;
-}
-    
-CF_INLINE int popcountll(long long x) {
-    int count = 0;
-    while (x) {
-        count++;
-        x &= x - 1; // reset LS1B
-    }
-    return count;
 }
 
 CF_PRIVATE int asprintf(char **ret, const char *format, ...);
