@@ -630,8 +630,6 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_null", test_redirect_all_using_null),
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
-            ("test_currentDirectory", test_currentDirectory),
-            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
         ]
 
 #if !os(Windows)
