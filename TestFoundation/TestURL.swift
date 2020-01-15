@@ -286,7 +286,6 @@ class TestURL : XCTestCase {
     static var gBaseCurrentWorkingDirectoryPath : String {
         return FileManager.default.currentDirectoryPath
     }
-    static var gSavedPath = ""
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
     static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
@@ -340,8 +339,9 @@ class TestURL : XCTestCase {
             }
         }
 
-        TestURL.gSavedPath = FileManager.default.currentDirectoryPath
-        FileManager.default.changeCurrentDirectoryPath(NSTemporaryDirectory())
+        #if os(Android)
+        FileManager.default.changeCurrentDirectoryPath("/data/local/tmp")
+        #endif
 
         let cwd = FileManager.default.currentDirectoryPath
         let cwdURL = URL(fileURLWithPath: cwd, isDirectory: true)
@@ -358,7 +358,6 @@ class TestURL : XCTestCase {
             let error = strerror(errno)!
             XCTFail("Failed to set up test paths: \(String(cString: error))")
         }
-        defer { FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
         
         // test with file that exists
         var path = TestURL.gFileExistsPath
@@ -404,7 +403,6 @@ class TestURL : XCTestCase {
             let error = strerror(errno)!
             XCTFail("Failed to set up test paths: \(String(cString: error))")
         }
-        defer { FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
         
         // test with file that exists
         var path = TestURL.gFileExistsPath
