@@ -30,7 +30,6 @@ find_package(dispatch CONFIG REQUIRED)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
-include(XCTest)
 
 set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
