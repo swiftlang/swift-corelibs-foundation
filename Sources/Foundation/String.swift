@@ -12,7 +12,7 @@
 
 import CoreFoundation
 
-extension String : _ObjectiveCBridgeable {
+extension String: _ObjectiveCBridgeable {
     
     public typealias _ObjectType = NSString
     public func _bridgeToObjectiveC() -> _ObjectType {
@@ -74,4 +74,38 @@ extension String : _ObjectiveCBridgeable {
             return ""
         }
     }
+}
+
+
+extension Substring: _ObjectiveCBridgeable {
+
+    public func _bridgeToObjectiveC() -> NSString {
+        return NSString(String(self))
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: NSString, result: inout Substring?) {
+        result = _unconditionallyBridgeFromObjectiveC(source)
+    }
+
+    @discardableResult
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSString, result: inout Substring?) -> Bool {
+        var value: String?
+        if String._conditionallyBridgeFromObjectiveC(source, result: &value) {
+            result = Substring(value!)
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> Substring {
+        if let object = source {
+            var value: Substring?
+            _conditionallyBridgeFromObjectiveC(object, result: &value)
+            return value!
+        } else {
+            return ""
+        }
+    }
+
 }

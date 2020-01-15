@@ -122,6 +122,29 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(cluster.length, 3)
     }
 
+    func test_bridging() {
+        let nsstring = NSString("NSString")
+        let anyNSstring = nsstring as Any
+
+        XCTAssertEqual(nsstring as String, "NSString")
+        XCTAssertEqual(nsstring as Substring, "NSString")
+
+        XCTAssertEqual(anyNSstring as! String, "NSString")
+        XCTAssertEqual(anyNSstring as! Substring, "NSString")
+
+        XCTAssertEqual(anyNSstring as? String, "NSString")
+        XCTAssertEqual(anyNSstring as? Substring, "NSString")
+
+        let string = "String"
+        let subString = string.dropFirst()
+        XCTAssertEqual(string as NSString, NSString("String"))
+        XCTAssertEqual(subString as NSString, NSString("tring"))
+
+        let abc = "abc" as Substring as NSString
+        XCTAssertEqual(abc, NSString("abc"))
+    }
+
+
     func test_integerValue() {
         let string1: NSString = "123"
         XCTAssertEqual(string1.integerValue, 123)
@@ -1610,7 +1633,8 @@ class TestNSString: LoopbackServerTest {
         var tests = [
             ("test_initData", test_initData),
             ("test_boolValue", test_boolValue ),
-            ("test_BridgeConstruction", test_BridgeConstruction ),
+            ("test_BridgeConstruction", test_BridgeConstruction),
+            ("test_bridging", test_bridging),
             ("test_integerValue", test_integerValue ),
             ("test_intValue", test_intValue ),
             ("test_doubleValue", test_doubleValue),
