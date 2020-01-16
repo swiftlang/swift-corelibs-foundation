@@ -13,13 +13,8 @@ private var registeredDefaults = [String: Any]()
 private var sharedDefaults = UserDefaults()
 
 fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
-    // This line will produce a 'Conditional cast always succeeds' warning if compiled on Darwin, since Darwin has bridging casts of any value to an object,
-    // but is required for non-Darwin to work correctly, since that platform _doesn't_ have bridging casts of that kind for now.
-    if let object = value as? AnyObject {
-        return __SwiftValue.fetch(nonOptional: object)
-    } else {
-        return value
-    }
+    let object = value as AnyObject
+    return __SwiftValue.fetch(nonOptional: object)
 }
 
 open class UserDefaults: NSObject {
