@@ -273,6 +273,13 @@ class TestNumberFormatter: XCTestCase {
 
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "£42_00")
+
+        // Check that the currencyCode is preferred over the locale when no currencySymbol is set
+        let codeFormatter = NumberFormatter()
+        codeFormatter.numberStyle = .currency
+        codeFormatter.locale = Locale(identifier: "en_US")
+        codeFormatter.currencyCode = "GBP"
+        XCTAssertEqual(codeFormatter.string(from: 3.02), "£3.02")
     }
 
     func test_decimalSeparator() {
