@@ -268,7 +268,7 @@ open class URLSession : NSObject {
     }
     
     open private(set) var delegateQueue: OperationQueue
-    open var delegate: URLSessionDelegate?
+    open private(set) var delegate: URLSessionDelegate?
     open private(set) var configuration: URLSessionConfiguration
     
     /*
@@ -370,8 +370,13 @@ open class URLSession : NSObject {
         }
     }
 
+    @available(*, unavailable, renamed: "getTasksWithCompletionHandler(_:)")
+    open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void) {
+        getTasksWithCompletionHandler(completionHandler)
+    }
+
     /* invokes completionHandler with outstanding data, upload and download tasks. */
-    open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  {
+    open func getTasksWithCompletionHandler(_ completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  {
         workQueue.async {
             self.delegateQueue.addOperation {
                 var dataTasks = [URLSessionDataTask]()
@@ -419,6 +424,22 @@ open class URLSession : NSObject {
     open func dataTask(with url: URL) -> URLSessionDataTask {
         return dataTask(with: _Request(url), behaviour: .callDelegate)
     }
+
+    /*
+     * data task convenience methods.  These methods create tasks that
+     * bypass the normal delegate calls for response and data delivery,
+     * and provide a simple cancelable asynchronous interface to receiving
+     * data.  Errors will be returned in the NSURLErrorDomain,
+     * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
+     * called for authentication challenges.
+     */
+    open func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+        return dataTask(with: _Request(request), behaviour: .dataCompletionHandler(completionHandler))
+    }
+
+    open func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+        return dataTask(with: _Request(url), behaviour: .dataCompletionHandler(completionHandler))
+    }
     
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
     open func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
@@ -437,6 +458,18 @@ open class URLSession : NSObject {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: nil, behaviour: .callDelegate)
     }
+
+    /*
+     * upload convenience method.
+     */
+    open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
+        let fileData = try! Data(contentsOf: fileURL)
+        return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
+    }
+
+    open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
+        return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
+    }
     
     /* Creates a download task with the given request. */
     open func downloadTask(with request: URLRequest) -> URLSessionDownloadTask {
@@ -452,6 +485,24 @@ open class URLSession : NSObject {
     /* Creates a download task with the resume data.  If the download cannot be successfully resumed, URLSession:task:didCompleteWithError: will be called. */
     open func downloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask {
         return invalidDownloadTask(behavior: .callDelegate)
+    }
+
+    /*
+     * download task convenience methods.  When a download successfully
+     * completes, the URL will point to a file that must be read or
+     * copied during the invocation of the completion routine.  The file
+     * will be removed automatically.
+     */
+    open func downloadTask(with request: URLRequest, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        return downloadTask(with: _Request(request), behavior: .downloadCompletionHandler(completionHandler))
+    }
+
+    open func downloadTask(with url: URL, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+       return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler))
+    }
+
+    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        return invalidDownloadTask(behavior: .downloadCompletionHandler(completionHandler))
     }
     
     /* Creates a bidirectional stream task to a given host and port.
@@ -553,64 +604,6 @@ fileprivate extension URLSession {
             self.taskRegistry.add(task, behaviour: behavior)
         }
         return task
-    }
-}
-
-
-/*
- * URLSession convenience routines deliver results to
- * a completion handler block.  These convenience routines
- * are not available to URLSessions that are configured
- * as background sessions.
- *
- * Task objects are always created in a suspended state and
- * must be sent the -resume message before they execute.
- */
-extension URLSession {
-    /*
-     * data task convenience methods.  These methods create tasks that
-     * bypass the normal delegate calls for response and data delivery,
-     * and provide a simple cancelable asynchronous interface to receiving
-     * data.  Errors will be returned in the NSURLErrorDomain,
-     * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
-     * called for authentication challenges.
-     */
-    open func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-        return dataTask(with: _Request(request), behaviour: .dataCompletionHandler(completionHandler))
-    }
-
-    open func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-        return dataTask(with: _Request(url), behaviour: .dataCompletionHandler(completionHandler))
-    }
-    
-    /*
-     * upload convenience method.
-     */
-    open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
-        let fileData = try! Data(contentsOf: fileURL) 
-        return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
-    }
-
-    open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
-        return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
-    }
-    
-    /*
-     * download task convenience methods.  When a download successfully
-     * completes, the URL will point to a file that must be read or
-     * copied during the invocation of the completion routine.  The file
-     * will be removed automatically.
-     */
-    open func downloadTask(with request: URLRequest, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
-        return downloadTask(with: _Request(request), behavior: .downloadCompletionHandler(completionHandler))
-    }
-
-    open func downloadTask(with url: URL, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
-       return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler)) 
-    }
-
-    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
-        return invalidDownloadTask(behavior: .downloadCompletionHandler(completionHandler))
     }
 }
 
