@@ -9,6 +9,10 @@
 
 import CoreFoundation
 
+#if canImport(Darwin)
+import Darwin
+#endif
+
 extension Process {
     public enum TerminationReason : Int {
         case exit
@@ -55,6 +59,43 @@ extension CFSocketError {
     }
 }
 #endif
+
+#if !canImport(Darwin) && !os(Windows)
+private func findMaximumOpenFromProcSelfFD() -> CInt? {
+    guard let dirPtr = opendir("/proc/self/fd") else {
+        return nil
+    }
+    defer {
+        closedir(dirPtr)
+    }
+    var highestFDSoFar = CInt(0)
+
+    while let dirEntPtr = readdir(dirPtr) {
+        var entryName = dirEntPtr.pointee.d_name
+        let thisFD = withUnsafeBytes(of: &entryName) { entryNamePtr -> CInt? in
+            CInt(String(decoding: entryNamePtr.prefix(while: { $0 != 0 }), as: Unicode.UTF8.self))
+        }
+        highestFDSoFar = max(thisFD ?? -1, highestFDSoFar)
+    }
+
+    return highestFDSoFar
+}
+
+func findMaximumOpenFD() -> CInt {
+    if let maxFD = findMaximumOpenFromProcSelfFD() {
+        // the precise method worked, let's return this fd.
+        return maxFD
+    }
+
+    // We don't have /proc, let's go with the best estimate.
+#if os(Linux)
+    return getdtablesize()
+#else
+    return 4096
+#endif
+}
+#endif
+
 
 private func emptyRunLoopCallback(_ context : UnsafeMutableRawPointer?) -> Void {}
 
@@ -872,6 +913,21 @@ open class Process: NSObject {
             posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
+        #if canImport(Darwin)
+        var spawnAttrs: posix_spawnattr_t? = nil
+        posix_spawnattr_init(&spawnAttrs)
+        posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT))
+        #else
+        for fd in 3 ... findMaximumOpenFD() {
+            guard adddup2[fd] == nil &&
+                  !addclose.contains(fd) &&
+                  fd != taskSocketPair[1] else {
+                    continue // Do not double-close descriptors, or close those pertaining to Pipes or FileHandles we want inherited.
+            }
+            posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
+        }
+        #endif
+
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
         if let dir = currentDirectoryURL?.path, !fileManager.changeCurrentDirectoryPath(dir) {
@@ -885,9 +941,16 @@ open class Process: NSObject {
 
         // Launch
         var pid = pid_t()
+        #if os(macOS)
+        guard _CFPosixSpawn(&pid, launchPath, fileActions, &spawnAttrs, argv, envp) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+        }
+        #else
         guard _CFPosixSpawn(&pid, launchPath, fileActions, nil, argv, envp) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
         }
+        #endif
+
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
