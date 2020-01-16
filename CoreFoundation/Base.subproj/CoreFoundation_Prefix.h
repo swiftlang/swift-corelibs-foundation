@@ -161,26 +161,24 @@ typedef int		boolean_t;
 #include <sys/stat.h> // mode_t
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
-// Implemented in CFPlatform.c
-bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
-bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
-bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
-bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
-
-int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
-int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
-int32_t OSAtomicIncrement32(volatile int32_t *theValue);
-int32_t OSAtomicDecrement32(volatile int32_t *theValue);
-
-int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
-int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
-bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
-
-void OSMemoryBarrier();
-#endif // TARGET_OS_LINUX || TARGET_OS_BSD
-
 #if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+// Implemented in CFPlatform.c
+CF_EXPORT bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
+CF_EXPORT bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
+CF_EXPORT bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
+CF_EXPORT bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
+
+CF_EXPORT int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
+CF_EXPORT int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
+CF_EXPORT int32_t OSAtomicIncrement32(volatile int32_t *theValue);
+CF_EXPORT int32_t OSAtomicDecrement32(volatile int32_t *theValue);
+
+CF_EXPORT int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
+CF_EXPORT int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
+CF_EXPORT bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
+
+CF_EXPORT void OSMemoryBarrier();
+
 #include <time.h>
 
 CF_INLINE uint64_t mach_absolute_time() {
@@ -364,22 +362,6 @@ CF_INLINE long long llabs(long long v) {
 #define sleep(x) Sleep(1000*x)
 
 #define issetugid() 0
-
-// CF exports these useful atomic operation functions on Windows
-CF_EXPORT bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
-CF_EXPORT bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
-CF_EXPORT bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
-
-CF_EXPORT int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
-CF_EXPORT int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
-CF_EXPORT int32_t OSAtomicIncrement32(volatile int32_t *theValue);
-CF_EXPORT int32_t OSAtomicDecrement32(volatile int32_t *theValue);
-    
-CF_EXPORT int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
-CF_EXPORT int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
-CF_EXPORT bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
-
-void OSMemoryBarrier();
 
 #include <io.h>
 #include <fcntl.h>
