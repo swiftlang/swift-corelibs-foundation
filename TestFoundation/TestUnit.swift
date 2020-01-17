@@ -1,19 +1,13 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 class TestUnit: XCTestCase {
-
-    static var allTests: [(String, (TestUnit) -> () throws -> Void)] {
-        return [
-            ("test_equality", test_equality),
-        ]
-    }
 
     func test_equality() {
         let s1 = "a"
@@ -92,27 +86,9 @@ class TestUnit: XCTestCase {
         testEquality(ofDimensionSubclass: UnitVolume.self)
     }
 
-}
-
-class TestDimension: XCTestCase {
-    static var allTests: [(String, (TestDimension) -> () throws -> Void)] {
+    static var allTests: [(String, (TestUnit) -> () throws -> Void)] {
         return [
-            ("test_encodeDecode", test_encodeDecode),
+            ("test_equality", test_equality),
         ]
-    }
-
-    func test_encodeDecode() {
-        let original = Dimension(symbol: "symbol", converter: UnitConverterLinear(coefficient: 1.0))
-
-        let encodedData = NSMutableData()
-        let archiver = NSKeyedArchiver(forWritingWith: encodedData)
-        original.encode(with: archiver)
-        archiver.finishEncoding()
-
-        let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData as Data)
-        let decoded = Dimension(coder: unarchiver)
-
-        XCTAssertNotNil(decoded)
-        XCTAssertEqual(original, decoded)
     }
 }
