@@ -528,6 +528,8 @@ class TestNSData: LoopbackServerTest {
             ("test_replaceSubrangeReferencingMutable", test_replaceSubrangeReferencingMutable),
             ("test_replaceSubrangeReferencingImmutable", test_replaceSubrangeReferencingImmutable),
             ("test_rangeOfSlice", test_rangeOfSlice),
+            ("test_nsdataSequence", test_nsdataSequence),
+            ("test_dispatchSequence", test_dispatchSequence),
         ]
     }
     
@@ -4528,5 +4530,38 @@ extension TestNSData {
         let decodedData = NSData(coder: unarchiver)
         XCTAssertEqual(data, decodedData)
     }
+
+    func test_nsdataSequence() {
+        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
+            let bytes: [UInt8] = Array(0x00...0xFF)
+            let data = bytes.withUnsafeBytes { NSData(bytes: $0.baseAddress, length: $0.count) }
+
+            for byte in bytes {
+                expectEqual(data[Int(byte)], byte)
+            }
+        }
+    }
+
+    func test_dispatchSequence() {
+        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
+            let bytes1: [UInt8] = Array(0x00..<0xF0)
+            let bytes2: [UInt8] = Array(0xF0..<0xFF)
+            var data = DispatchData.empty
+            bytes1.withUnsafeBytes {
+                data.append($0)
+            }
+            bytes2.withUnsafeBytes {
+                data.append($0)
+            }
+
+            for byte in bytes1 {
+                expectEqual(data[Int(byte)], byte)
+            }
+            for byte in bytes2 {
+                expectEqual(data[Int(byte)], byte)
+            }
+        }
+    }
+
 }
 
