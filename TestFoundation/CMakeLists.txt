@@ -24,12 +24,14 @@ target_sources(TestFoundation PRIVATE
   TestDateIntervalFormatter.swift
   TestDate.swift
   TestDecimal.swift
+  TestDimension.swift
   TestEnergyFormatter.swift
   TestFileHandle.swift
   TestFileManager.swift
   TestHost.swift
   TestHTTPCookieStorage.swift
   TestHTTPCookie.swift
+  TestHTTPURLResponse.swift
   TestImports.swift
   TestIndexPath.swift
   TestIndexSet.swift
@@ -48,6 +50,7 @@ target_sources(TestFoundation PRIVATE
   TestNSCalendar.swift
   TestNSCompoundPredicate.swift
   TestNSData.swift
+  TestNSDateComponents.swift
   TestNSDictionary.swift
   TestNSError.swift
   TestNSGeometry.swift
@@ -93,6 +96,7 @@ target_sources(TestFoundation PRIVATE
   TestURLCache.swift
   TestURLCredential.swift
   TestURLCredentialStorage.swift
+  TestURLComponents.swift
   TestURLProtectionSpace.swift
   TestURLProtocol.swift
   TestURLRequest.swift
