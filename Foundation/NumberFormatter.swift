@@ -113,11 +113,13 @@ open class NumberFormatter : Formatter {
 
     private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         if numberStyle == .currency {
-            let symbol = _currencySymbol ?? locale.currencySymbol
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol?._cfObject)
-
-            if let code = _currencyCode, code.count == 3 {
+            // Prefer currencySymbol, then currencyCode then locale.currencySymbol
+            if let symbol = _currencySymbol {
+                _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol._cfObject)
+            } else if let code = _currencyCode, code.count == 3 {
                 _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: code._cfObject)
+            } else {
+                _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: locale.currencySymbol?._cfObject)
             }
        }
        if numberStyle == .currencyISOCode {
