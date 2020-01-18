@@ -226,6 +226,7 @@ class TestNSData: LoopbackServerTest {
             ("test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil", test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil),
             ("test_initializeWithBase64EncodedDataWithNonBase64CharacterWithOptionToAllowItSkipsCharacter", test_initializeWithBase64EncodedDataWithNonBase64CharacterWithOptionToAllowItSkipsCharacter),
             ("test_base64EncodedDataGetsEncodedText", test_base64EncodedDataGetsEncodedText),
+            ("test_base64EncodeEmptyData", test_base64EncodeEmptyData),
             ("test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn", test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn),
             ("test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed", test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed),
             ("test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth", test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth),
@@ -753,6 +754,14 @@ class TestNSData: LoopbackServerTest {
         XCTAssertEqual(encodedTextResult, encodedText)
 
     }
+
+    func test_base64EncodeEmptyData() {
+        XCTAssertEqual(Data().base64EncodedString(), "")
+        XCTAssertEqual(NSData().base64EncodedString(), "")
+        XCTAssertEqual(Data().base64EncodedData(), Data())
+        XCTAssertEqual(NSData().base64EncodedData(), Data())
+    }
+
     func test_base64DecodeWithPadding1() {
         let encodedPadding1 = "AoR="
         let dataPadding1Bytes : [UInt8] = [0x02,0x84]
@@ -765,6 +774,7 @@ class TestNSData: LoopbackServerTest {
         }
         XCTAssert(dataPadding1.isEqual(to: decodedPadding1))
     }
+
     func test_base64DecodeWithPadding2() {
         let encodedPadding2 = "Ao=="
         let dataPadding2Bytes : [UInt8] = [0x02]
@@ -777,6 +787,7 @@ class TestNSData: LoopbackServerTest {
         }
         XCTAssert(dataPadding2.isEqual(to: decodedPadding2))
     }
+
     func test_rangeOfData() {
         let baseData : [UInt8] = [0x00,0x01,0x02,0x03,0x04]
         let base = NSData(bytes: baseData, length: baseData.count)
