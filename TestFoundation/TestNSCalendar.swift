@@ -371,8 +371,8 @@ class TestNSCalendar: XCTestCase {
         try yield(to: block, (.gregorian,           "en_US",   "America/Edmonton",    "1906-09-01 00:33:52 -0700"))
         try yield(to: block, (.gregorian,           "en_US",   "America/Los_Angeles", "2014-09-23 20:11:39 -0800"))
         try yield(to: block, (.gregorian,           "en_US",   "America/Los_Angeles", "2016-02-29 06:30:33 -0900"))
-        try yield(to: block, (.hebrew,              "he_IL",   "Israel",              "2018-12-24 05:40:43 +0200"))
-        try yield(to: block, (.hebrew,              "he_IL",   "Israel",              "2019-03-22 09:23:26 +0200"))
+        try yield(to: block, (.hebrew,              "he_IL",   "Asia/Jerusalem",      "2018-12-24 05:40:43 +0200"))
+        try yield(to: block, (.hebrew,              "he_IL",   "Asia/Jerusalem",      "2019-03-22 09:23:26 +0200"))
         try yield(to: block, (.buddhist,            "es_MX",   "America/Cancun",      "2022-10-26 23:05:34 -0500"))
         try yield(to: block, (.buddhist,            "es_MX",   "America/Cancun",      "2014-10-22 07:13:00 -0500"))
         try yield(to: block, (.japanese,            "ja_JP",   "Asia/Tokyo",          "2013-08-23 06:09:01 +0900"))
@@ -392,6 +392,13 @@ class TestNSCalendar: XCTestCase {
         try yield(to: block, (.chinese,             "zh_CN",   "Asia/Hong_Kong",      "2019-04-12 01:12:10 +0800"))
         try yield(to: block, (.chinese,             "zh_CN",   "Asia/Hong_Kong",      "2015-04-02 07:13:22 +0800"))
         try yield(to: block, (.chinese,             "zh_CN",   "Asia/Hong_Kong",      "2014-10-16 06:12:10 +0800"))
+
+#if !os(Windows)
+        // TODO: these are deprecated aliases which are unavailable on Windows,
+        // it is unclear if the support for the old names need to be validated.
+        try yield(to: block, (.hebrew,              "he_IL",   "Israel",              "2018-12-24 05:40:43 +0200"))
+        try yield(to: block, (.hebrew,              "he_IL",   "Israel",              "2019-03-22 09:23:26 +0200"))
+#endif
     }
     
     func test_getEra_year_month_day_fromDate() throws {
@@ -496,8 +503,14 @@ class TestNSCalendar: XCTestCase {
         }
         
         try yield(to: block, (.gregorian, "en_US", "America/Los_Angeles", "2013-03-26 10:04:16 -0700", "2013-03-26 00:00:00 -0700"))
+        try yield(to: block, (.gregorian, "pt_BR", "America/Sao_Paulo", "2013-10-20 13:10:20 -0200", "2013-10-20 01:00:00 -0200")) // DST jump forward at midnight
+        try yield(to: block, (.gregorian, "pt_BR", "America/Sao_Paulo", "2014-02-15 23:59:59 -0300", "2014-02-15 00:00:00 -0200")) // DST jump backward
+#if !os(Windows)
+        // TODO: these are deprecated aliases which are unavailable on Windows,
+        // it is unclear if the support for the old names need to be validated.
         try yield(to: block, (.gregorian, "pt_BR", "Brazil/East", "2013-10-20 13:10:20 -0200", "2013-10-20 01:00:00 -0200")) // DST jump forward at midnight
         try yield(to: block, (.gregorian, "pt_BR", "Brazil/East", "2014-02-15 23:59:59 -0300", "2014-02-15 00:00:00 -0200")) // DST jump backward
+#endif
     }
     
     func test_startOfDayForDate() throws {
@@ -729,15 +742,20 @@ class TestNSCalendar: XCTestCase {
         try yield(to: block, (.gregorian,             "en_US",   "Africa/Algiers",      "1971-04-24 00:00:00 +0000",   "1971-04-26 00:00:00 +0100")) // suprise weekday 1
         try yield(to: block, (.gregorian,             "en_US",   "America/Toronto",     "1919-03-29 00:00:00 -0500",   "1919-03-31 00:30:00 -0400")) // suprise weekday 2
         try yield(to: block, (.gregorian,             "en_US",   "Europe/Madrid",       "1978-04-01 00:00:00 +0100",   "1978-04-03 00:00:00 +0200")) // suprise weekday 3
-        try yield(to: block, (.hebrew,                "he_IL",   "Israel",              "2018-03-23 00:00:00 +0200",   "2018-03-25 00:00:00 +0300")) // weekend with DST jump
+        try yield(to: block, (.hebrew,                "he_IL",   "Asia/Jerusalem",      "2018-03-23 00:00:00 +0200",   "2018-03-25 00:00:00 +0300")) // weekend with DST jump
         try yield(to: block, (.japanese,              "ja_JP",   "Asia/Tokyo",          "2015-08-22 00:00:00 +0900",   "2015-08-24 00:00:00 +0900")) // japanese
         try yield(to: block, (.persian,               "ps_AF",   "Asia/Kabul",          "2015-03-19 00:00:00 +0430",   "2015-03-21 00:00:00 +0430")) // persian
         try yield(to: block, (.coptic,                "ar_EG",   "Africa/Cairo",        "2015-12-18 00:00:00 +0200",   "2015-12-20 00:00:00 +0200")) // coptic
-        try yield(to: block, (.ethiopicAmeteMihret,              "am_ET",   "Africa/Addis_Ababa",  "2015-07-25 00:00:00 +0300",   "2015-07-27 00:00:00 +0300")) // ethiopic
+        try yield(to: block, (.ethiopicAmeteMihret,   "am_ET",   "Africa/Addis_Ababa",  "2015-07-25 00:00:00 +0300",   "2015-07-27 00:00:00 +0300")) // ethiopic
         try yield(to: block, (.ethiopicAmeteAlem,     "am_ET",   "Africa/Addis_Ababa",  "2015-07-25 00:00:00 +0300",   "2015-07-27 00:00:00 +0300")) // ethiopic-amete-alem
         try yield(to: block, (.islamic,               "ar_SA",   "Asia/Riyadh",         "2015-05-29 00:00:00 +0300",   "2015-05-31 00:00:00 +0300")) // islamic
         try yield(to: block, (.islamicCivil,          "ar_SA",   "Asia/Riyadh",         "2015-05-29 00:00:00 +0300",   "2015-05-31 00:00:00 +0300")) // islamic-civil
         try yield(to: block, (.chinese,               "zh_CN",   "Asia/Hong_Kong",      "2015-01-03 00:00:00 +0800",   "2015-01-05 00:00:00 +0800")) // chinese
+#if !os(Windows)
+        // TODO: these are deprecated aliases which are unavailable on Windows,
+        // it is unclear if the support for the old names need to be validated.
+        try yield(to: block, (.hebrew,                "he_IL",   "Israel",              "2018-03-23 00:00:00 +0200",   "2018-03-25 00:00:00 +0300")) // weekend with DST jump
+#endif
     }
     
     func test_isDateInWeekend() throws {
@@ -771,7 +789,7 @@ class TestNSCalendar: XCTestCase {
     func test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne() throws {
         let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: .chinese))
         let locale = Locale(identifier: "zh_CN")
-        let timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Chongqing"))
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Shanghai"))
         calendar.locale = locale
         calendar.timeZone = timeZone
         
