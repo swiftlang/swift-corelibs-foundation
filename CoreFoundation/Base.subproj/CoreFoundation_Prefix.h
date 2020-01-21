@@ -68,6 +68,33 @@ typedef char * Class;
 #include <pthread.h>
 #endif
 
+#if TARGET_OS_WIN32
+#define BOOL WINDOWS_BOOL
+
+#define MAXPATHLEN MAX_PATH
+#undef MAX_PATH
+#undef INVALID_HANDLE_VALUE
+
+#define WIN32_LEAN_AND_MEAN
+
+#ifndef WINVER
+#define WINVER  0x0601
+#endif
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0601
+#endif
+
+// The order of these includes is important
+#define FD_SETSIZE 1024
+#include <winsock2.h>
+#include <windows.h>
+#include <time.h>
+
+#undef BOOL
+
+#endif
+
     
 /* This macro creates some helper functions which are useful in dealing with libdispatch:
  *  __ PREFIX Queue -- manages and returns a singleton serial queue
@@ -261,10 +288,6 @@ CF_INLINE size_t malloc_size(void *memblock) {
 
 #if TARGET_OS_WIN32
 
-#define MAXPATHLEN MAX_PATH
-#undef MAX_PATH
-#undef INVALID_HANDLE_VALUE
-
 // Defined for source compatibility
 #define ino_t _ino_t
 #define off_t _off_t
@@ -290,26 +313,6 @@ CF_EXPORT int _NS_open(const char *name, int oflag, int pmode);
 CF_EXPORT int _NS_chdir(const char *name);
 CF_EXPORT int _NS_mkstemp(char *name, int bufSize);
 CF_EXPORT int _NS_access(const char *name, int amode);
-
-#define BOOL WINDOWS_BOOL
-
-#define WIN32_LEAN_AND_MEAN
-
-#ifndef WINVER
-#define WINVER  0x0601
-#endif
-    
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0601
-#endif
-
-// The order of these includes is important
-#define FD_SETSIZE 1024
-#include <winsock2.h>
-#include <windows.h>
-#include <time.h>
-
-#undef BOOL
 
 #define __PRETTY_FUNCTION__ __FUNCTION__
 
