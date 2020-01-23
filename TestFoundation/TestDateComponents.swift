@@ -1,18 +1,13 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 class TestDateComponents: XCTestCase {
-    static var allTests: [(String, (TestDateComponents) -> () throws -> Void)] {
-        return [
-            ("test_hash", test_hash),
-        ]
-    }
 
     func test_hash() {
         let c1 = DateComponents(year: 2018, month: 8, day: 1)
@@ -99,5 +94,33 @@ class TestDateComponents: XCTestCase {
             byMutating: \DateComponents.weekdayOrdinal,
             throughValues: integers)
         // isLeapMonth does not have enough values to test it here.
+    }
+
+    func test_isValidDate() throws {
+        // SR-11569
+        let calendarTimeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
+        let dateComponentsTimeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 3600))
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = calendarTimeZone
+
+        var dc = DateComponents()
+        dc.calendar = calendar
+        dc.timeZone = dateComponentsTimeZone
+        dc.year = 2019
+        dc.month = 1
+        dc.day = 2
+        dc.hour = 3
+        dc.minute = 4
+        dc.second = 5
+        dc.nanosecond = 6
+        XCTAssertTrue(dc.isValidDate)
+    }
+
+    static var allTests: [(String, (TestDateComponents) -> () throws -> Void)] {
+        return [
+            ("test_hash", test_hash),
+            ("test_isValidDate", test_isValidDate),
+        ]
     }
 }
