@@ -122,8 +122,14 @@ open class NumberFormatter : Formatter {
 
     private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         if numberStyle == .currency {
-          let symbol = _currencySymbol ?? _currencyCode ?? locale.currencySymbol ?? locale.currencyCode
-           _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol?._cfObject)
+            // Prefer currencySymbol, then currencyCode then locale.currencySymbol
+            if let symbol = _currencySymbol {
+                _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol._cfObject)
+            } else if let code = _currencyCode {
+                _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: code._cfObject)
+            } else {
+                _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: locale.currencySymbol?._cfObject)
+            }
        }
        if numberStyle == .currencyISOCode {
           let code = _currencyCode ?? _currencySymbol ?? locale.currencyCode ?? locale.currencySymbol
