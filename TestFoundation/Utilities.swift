@@ -135,6 +135,7 @@ func _checkHashing<Source: Hashable, Target: Hashable, S: Sequence>(
 
 enum TestError: Error {
     case unexpectedNil
+    case fileCreationFailed
 }
 
 extension Optional {
@@ -655,4 +656,23 @@ extension NSLock {
         defer { self.unlock() }
         return try closure()
     }
+}
+
+
+// Create a uniquely named temporary directory, pass the URL and path to a closure then remove the directory afterwards.
+public func withTemporaryDirectory<R>(functionName: String = #function, block: (URL, String) throws -> R) throws -> R {
+
+    // Find the name of the function upto '('
+    guard let idx = functionName.firstIndex(of: "(") else {
+        throw TestError.unexpectedNil
+    }
+
+    let fname = String(functionName[..<idx])
+    let tmpDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent(testBundleName()).appendingPathComponent(fname).appendingPathComponent(NSUUID().uuidString)
+    let fm = FileManager.default
+    try? fm.removeItem(at: tmpDir)
+    try fm.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+    defer { try? fm.removeItem(at: tmpDir) }
+
+    return try block(tmpDir, tmpDir.path)
 }
