@@ -1773,6 +1773,7 @@
 				1520469A1D8AEABE00D02E36 /* HTTPServer.swift */,
 				EA66F6381BF1619600136161 /* main.swift */,
 				BB3D7557208A1E500085CFDC /* TestImports.swift */,
+				7D0DE86D211883F500540061 /* Utilities.swift */,
 				9F4ADBCF1ECD4F56001F0B3D /* xdgTestHelper */,
 				EA66F65A1BF1976100136161 /* Tests */,
 				EA66F6391BF1619600136161 /* Resources */,
@@ -1814,7 +1815,6 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				7D0DE86D211883F500540061 /* Utilities.swift */,
 				155D3BBB22401D1100B0D38E /* FixtureValues.swift */,
 				C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */,
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,

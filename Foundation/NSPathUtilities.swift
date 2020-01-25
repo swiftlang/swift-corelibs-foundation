@@ -423,7 +423,7 @@ extension NSString {
         if matches.count == 1 {
             let theOnlyFoundItem = URL(fileURLWithPath: matches[0], relativeTo: urlWhereToSearch)
             if theOnlyFoundItem.hasDirectoryPath {
-                matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], namePredicate: { _ in true }, typePredicate: checkExtension)
+                matches = _getNamesAtURL(theOnlyFoundItem, prependWith: matches[0], namePredicate: nil, typePredicate: checkExtension)
             }
         }
         
@@ -446,60 +446,60 @@ extension NSString {
         if !validPathSeps.contains(where: { path.hasSuffix(String($0)) }) {
             return false
         }
-        
+
         var isDirectory: ObjCBool = false
         let exists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
         return exists && isDirectory.boolValue
     }
-    
-    internal typealias _FileNamePredicate = (String?) -> Bool
-    
-    internal func _getNamesAtURL(_ filePathURL: URL, prependWith: String, namePredicate: _FileNamePredicate, typePredicate: _FileNamePredicate) -> [String] {
+
+
+    fileprivate typealias _FileNamePredicate = (String) -> Bool
+
+    fileprivate func _getNamesAtURL(_ filePathURL: URL, prependWith: String, namePredicate: _FileNamePredicate?, typePredicate: _FileNamePredicate?) -> [String] {
         var result: [String] = []
-        
+
         if let enumerator = FileManager.default.enumerator(at: filePathURL, includingPropertiesForKeys: nil, options: .skipsSubdirectoryDescendants, errorHandler: nil) {
             for item in enumerator.lazy.map({ $0 as! URL }) {
                 let itemName = item.lastPathComponent
-                
-                let matchByName = namePredicate(itemName)
-                let matchByExtension = typePredicate(item.pathExtension)
-                
-                if matchByName && matchByExtension {
-                    if prependWith.isEmpty {
-                        result.append(itemName)
-                    } else {
-                        result.append(prependWith._bridgeToObjectiveC().appendingPathComponent(itemName))
-                    }
+
+                if let predicate = namePredicate, !predicate(itemName) { continue }
+                if let predicate = typePredicate, !predicate(item.pathExtension) { continue }
+                if prependWith.isEmpty {
+                    result.append(itemName)
+                } else {
+                    result.append(prependWith._bridgeToObjectiveC().appendingPathComponent(itemName))
                 }
             }
         }
-        
+
         return result
     }
-    
-    fileprivate func _getExtensionPredicate(_ extensions: [String]?, caseSensitive: Bool) -> _FileNamePredicate {
+
+
+    fileprivate func _getExtensionPredicate(_ extensions: [String]?, caseSensitive: Bool) -> _FileNamePredicate? {
         guard let exts = extensions else {
-            return { _ in true }
+            return nil
         }
         
         if caseSensitive {
             let set = Set(exts)
-            return { $0 != nil && set.contains($0!) }
+            return { set.contains($0) }
         } else {
             let set = Set(exts.map { $0.lowercased() })
-            return { $0 != nil && set.contains($0!.lowercased()) }
+            return {set.contains($0.lowercased()) }
         }
     }
     
-    fileprivate func _getFileNamePredicate(_ prefix: String, caseSensitive: Bool) -> _FileNamePredicate {
+    fileprivate func _getFileNamePredicate(_ prefix: String, caseSensitive: Bool) -> _FileNamePredicate? {
         guard !prefix.isEmpty else {
-            return { _ in true }
+            return nil
         }
 
         if caseSensitive {
-            return { $0 != nil && $0!.hasPrefix(prefix) }
+            return { $0.hasPrefix(prefix) }
         } else {
-            return { $0 != nil && $0!._bridgeToObjectiveC().range(of: prefix, options: .caseInsensitive).location == 0 }
+            let prefix = prefix.lowercased()
+            return { $0.lowercased().hasPrefix(prefix) }
         }
     }
     
