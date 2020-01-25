@@ -587,21 +587,37 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - Base64 Methods
 
+    private func estimateBase64Size(length: Int) -> Int {
+        // Worst case allow for 64bytes + \r\n per line  48 input bytes => 66 output bytes
+        return ((length + 47) * 66) / 48
+    }
+
     /// Creates a Base64 encoded String from the data object using the given options.
     open func base64EncodedString(options: Base64EncodingOptions = []) -> String {
-        var decodedBytes = [UInt8](repeating: 0, count: self.length)
-        getBytes(&decodedBytes, length: decodedBytes.count)
-        let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
-        let characters = encodedBytes.map { Character(UnicodeScalar($0)) }
-        return String(characters)
+        let dataLength = self.length
+        if dataLength == 0 { return "" }
+
+        let capacity = estimateBase64Size(length: dataLength)
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 1)
+        let buffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
+        let length = NSData.base64EncodeBytes(self, options: options, buffer: buffer)
+
+        return String(bytesNoCopy: ptr, length: length, encoding: .ascii, freeWhenDone: true)!
     }
 
     /// Creates a Base64, UTF-8 encoded Data from the data object using the given options.
     open func base64EncodedData(options: Base64EncodingOptions = []) -> Data {
-        var decodedBytes = [UInt8](repeating: 0, count: self.length)
-        getBytes(&decodedBytes, length: decodedBytes.count)
-        let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
-        return Data(bytes: encodedBytes, count: encodedBytes.count)
+        let dataLength = self.length
+        if dataLength == 0 { return Data() }
+
+        let capacity = estimateBase64Size(length: dataLength)
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 1)
+        let buffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
+        let length = NSData.base64EncodeBytes(self, options: options, buffer: buffer)
+
+        return Data(bytesNoCopy: ptr, count: length, deallocator: .custom({ (ptr, length) in
+            ptr.deallocate()
+        }))
     }
 
     /// The ranges of ASCII characters that are used to encode data in Base64.
@@ -641,29 +657,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             decodedStart += range.upperBound - range.lowerBound
         }
         return .invalid
-    }
-    
-    /**
-     This method takes six bits of binary data and encodes it as a character
-     in Base64.
-     
-     The value in the byte must be less than 64, because a Base64 character
-     can only represent 6 bits.
-     
-     - parameter byte:       The byte to encode
-     - returns:              The ASCII value for the encoded character.
-     */
-    private static func base64EncodeByte(_ byte: UInt8) -> UInt8 {
-        assert(byte < 64)
-        var decodedStart: UInt8 = 0
-        for range in base64ByteMappings {
-            let decodedRange = decodedStart ..< decodedStart + (range.upperBound - range.lowerBound)
-            if decodedRange.contains(byte) {
-                return range.lowerBound + (byte - decodedStart)
-            }
-            decodedStart += range.upperBound - range.lowerBound
-        }
-        return 0
     }
 
     /**
@@ -741,78 +734,114 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /**
      This method encodes data in Base64.
      
-     - parameter bytes:      The bytes you want to encode
+     - parameter data:       The NSData object you want to encode
      - parameter options:    Options for formatting the result
-     - returns:              The Base64-encoding for those bytes.
+     - parameter buffer:     The buffer to write the bytes into
+     - returns:              The number of bytes written into the buffer
      */
-    private static func base64EncodeBytes(_ bytes: [UInt8], options: Base64EncodingOptions = []) -> [UInt8] {
-        var result = [UInt8]()
-        result.reserveCapacity((bytes.count/3)*4)
-        
-        let lineOptions : (lineLength : Int, separator : [UInt8])? = {
-            let lineLength: Int
-            
-            if options.contains(.lineLength64Characters) { lineLength = 64 }
-            else if options.contains(.lineLength76Characters) { lineLength = 76 }
-            else {
-                return nil
-            }
-            
-            var separator = [UInt8]()
-            if options.contains(.endLineWithCarriageReturn) { separator.append(13) }
-            if options.contains(.endLineWithLineFeed) { separator.append(10) }
-            
-            //if the kind of line ending to insert is not specified, the default line ending is Carriage Return + Line Feed.
-            if separator.isEmpty { separator = [13,10] }
-            
-            return (lineLength,separator)
-        }()
-        
+    private static func base64EncodeBytes(_ data: NSData, options: Base64EncodingOptions = [], buffer: UnsafeMutableRawBufferPointer) -> Int {
+
+        // Use a StaticString for lookup of values 0-63 -> ASCII values
+        let base64Chars = StaticString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+        assert(base64Chars.utf8CodeUnitCount == 64)
+        assert(base64Chars.hasPointerRepresentation)
+        assert(base64Chars.isASCII)
+        let base64CharsPtr = base64Chars.utf8Start
+
+        let lineLength: Int
         var currentLineCount = 0
-        let appendByteToResult : (UInt8) -> Void = {
-            result.append($0)
-            currentLineCount += 1
-            if let options = lineOptions, currentLineCount == options.lineLength {
-                result.append(contentsOf: options.separator)
-                currentLineCount = 0
+        let separatorByte1: UInt8
+        var separatorByte2: UInt8? = nil
+        var index = 0
+
+        let dataLength = data.length
+        let dataBuffer = UnsafeRawBufferPointer(start: data.bytes, count: dataLength)
+        var dataIndex = 0
+
+        func nextByte() -> UInt8? {
+            guard dataIndex < dataLength else { return nil }
+            defer { dataIndex += 1 }
+            return dataBuffer[dataIndex]
+        }
+
+        if options.isEmpty {
+            lineLength = 0
+            separatorByte1 = 0
+        } else {
+            if options.contains(.lineLength64Characters) {
+                lineLength = 64
+            } else if options.contains(.lineLength76Characters) {
+                lineLength = 76
+            } else {
+                lineLength = 0
+            }
+
+            if options.contains(.endLineWithCarriageReturn) && options.contains(.endLineWithLineFeed) {
+                separatorByte1 = UInt8(ascii: "\r")
+                separatorByte2 = UInt8(ascii: "\n")
+            } else if options.contains(.endLineWithCarriageReturn) {
+                separatorByte1 = UInt8(ascii: "\r")
+            } else if options.contains(.endLineWithLineFeed) {
+                separatorByte1 = UInt8(ascii: "\n")
+            } else {
+                separatorByte1 = UInt8(ascii: "\r")
+                separatorByte2 = UInt8(ascii: "\n")
             }
         }
-        
-        var currentByte : UInt8 = 0
-        
-        for (index,value) in bytes.enumerated() {
-            switch index%3 {
-            case 0:
-                currentByte = (value >> 2)
-                appendByteToResult(NSData.base64EncodeByte(currentByte))
-                currentByte = ((value << 6) >> 2)
-            case 1:
-                currentByte |= (value >> 4)
-                appendByteToResult(NSData.base64EncodeByte(currentByte))
-                currentByte = ((value << 4) >> 2)
-            case 2:
-                currentByte |= (value >> 6)
-                appendByteToResult(NSData.base64EncodeByte(currentByte))
-                currentByte = ((value << 2) >> 2)
-                appendByteToResult(NSData.base64EncodeByte(currentByte))
-            default:
-                fatalError()
+
+        func appendToBuffer(_ byte: UInt8) {
+            buffer[index] = byte
+            index += 1
+        }
+
+        func appendByteToResult(_ byte: UInt8) {
+            if lineLength == 0 {
+                appendToBuffer(byte)
+            } else {
+                appendToBuffer(byte)
+                currentLineCount += 1
+                if currentLineCount == lineLength {
+                    appendToBuffer(separatorByte1)
+                    if let byte2 = separatorByte2 {
+                        appendToBuffer(byte2)
+                    }
+                    currentLineCount = 0
+                }
             }
         }
-        //add padding
-        switch bytes.count%3 {
-        case 0: break //no padding needed
-        case 1:
-            appendByteToResult(NSData.base64EncodeByte(currentByte))
-            appendByteToResult(self.base64Padding)
-            appendByteToResult(self.base64Padding)
-        case 2:
-            appendByteToResult(NSData.base64EncodeByte(currentByte))
-            appendByteToResult(self.base64Padding)
-        default:
-            fatalError()
+
+        func outputBase64Value(_ value: UInt16) {
+            let byte = base64CharsPtr[Int(value & 63)]
+            appendByteToResult(byte)
         }
-        return result
+
+        // Read three bytes at a time, which convert to 4 ASCII characters, allowing for byte2 and byte3 being nil
+
+        while let byte1 = nextByte() {
+            outputBase64Value(UInt16(byte1 >> 2))
+            var value = UInt16(byte1 & 0x3) << 8
+            let byte2 = nextByte()
+            value |= UInt16(byte2 ?? 0)
+            outputBase64Value(value >> 4)
+
+            if byte2 == nil {
+                appendByteToResult(self.base64Padding)
+                appendByteToResult(self.base64Padding)
+                break
+            }
+
+            let byte3 = nextByte()
+            value = (value << 8) | UInt16(byte3 ?? 0)
+            outputBase64Value(value >> 6)
+            if byte3 == nil {
+                appendByteToResult(self.base64Padding)
+                break
+            }
+            outputBase64Value(value)
+        }
+
+        // Return the number of ASCII bytes written to the buffer
+        return index
     }
 }
 
