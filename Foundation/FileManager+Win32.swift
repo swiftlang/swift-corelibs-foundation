@@ -637,7 +637,7 @@ extension FileManager {
         var szDirectory: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
 
         GetCurrentDirectoryW(dwLength, &szDirectory)
-        return String(decodingCString: &szDirectory, as: UTF16.self)
+        return String(decodingCString: &szDirectory, as: UTF16.self).standardizingPath
     }
 
     @discardableResult
@@ -701,8 +701,8 @@ extension FileManager {
         return true
     }
 
-    internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
-        let _fsRep: UnsafePointer<Int8>
+    internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> stat {
+        let _fsRep: UnsafePointer<NativeFSRCharType>
         if fsRep == nil {
             _fsRep = try __fileSystemRepresentation(withPath: path)
         } else {
@@ -714,15 +714,13 @@ extension FileManager {
         }
 
         var statInfo = stat()
-        let h = path.withCString(encodedAs: UTF16.self) {
-            CreateFileW(/*lpFileName=*/$0,
-                        /*dwDesiredAccess=*/DWORD(0),
-                        /*dwShareMode=*/DWORD(FILE_SHARE_READ),
-                        /*lpSecurityAttributes=*/nil,
-                        /*dwCreationDisposition=*/DWORD(OPEN_EXISTING),
-                        /*dwFlagsAndAttributes=*/DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
-                        /*hTemplateFile=*/nil)
-        }
+        let h = CreateFileW(_fsRep,
+                            /*dwDesiredAccess=*/DWORD(0),
+                            DWORD(FILE_SHARE_READ),
+                            /*lpSecurityAttributes=*/nil,
+                            DWORD(OPEN_EXISTING),
+                            DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                            /*hTemplateFile=*/nil)
         if h == INVALID_HANDLE_VALUE {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
         }
@@ -858,7 +856,7 @@ extension FileManager {
     }
 
     internal func _updateTimes(atPath path: String,
-                               withFileSystemRepresentation fsr: UnsafePointer<Int8>,
+                               withFileSystemRepresentation fsr: UnsafePointer<NativeFSRCharType>,
                                creationTime: Date? = nil,
                                accessTime: Date? = nil,
                                modificationTime: Date? = nil) throws {
@@ -869,10 +867,7 @@ extension FileManager {
       var mtime: FILETIME =
           FILETIME(from: time_t((modificationTime ?? stat.lastModificationDate).timeIntervalSince1970))
 
-      let hFile: HANDLE = String(utf8String: fsr)!.withCString(encodedAs: UTF16.self) {
-        CreateFileW($0, DWORD(GENERIC_WRITE), DWORD(FILE_SHARE_WRITE),
-                    nil, DWORD(OPEN_EXISTING), 0, nil)
-      }
+      let hFile = CreateFileW(fsr, DWORD(GENERIC_WRITE), DWORD(FILE_SHARE_WRITE), nil, DWORD(OPEN_EXISTING), 0, nil)
       if hFile == INVALID_HANDLE_VALUE {
           throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
       }

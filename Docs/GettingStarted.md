@@ -87,10 +87,14 @@ build with cmake.  It currently requires clang, swift, and libdispatch (which
 are generally built as part of the swift build).
 
 ```
-cmake -G Ninja ../../../swift-corelibs-foundation                               \
- -DCMAKE_C_COMPILER=../../llvm-linux-x86_64/bin/clang                           \
- -DCMAKE_SWIFT_COMPILER=../../swift-linux-x86_64/bin/swiftc                     \
- -DFOUNDATION_PATH_TO_LIBDISPATCH_SOURCE=../../../swift-corelibs-libdispatch    \
- -DFOUNDATION_PATH_TO_LIBDISPATCH_BUILD=../../libdispatch-linux-x86_64
+cmake                                                                               \
+  -G Ninja                                                                          \
+  -D CMAKE_BUILD_TYPE=RelWithDebInfo                                                \
+  -D CMAKE_C_COMPILER=build/Ninja-ReleaseAssert/llvm-linux-x86_64/bin/clang         \
+  -D CMAKE_Swift_COMPILER=build/Ninja-ReleaseAssert/swift-linux-x86_64/bin/swiftc   \
+  -D dispatch_DIR=build/Ninja-ReleaseAssert/libdispatch-linux-x86_64/cmake/modules  \
+  -B build/Ninja-ReleaseAssert/foundation-linux-x86_64
+  -S swift-corelibs-foundation
+ninja -C build/Ninja-ReleaseAssert/foundation-linux-x86_64
 ```
 

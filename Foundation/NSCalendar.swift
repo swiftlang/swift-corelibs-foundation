@@ -1885,7 +1885,7 @@ open class NSDateComponents : NSObject, NSCopying, NSSecureCoding {
         }
         if let date = d {
             let all: NSCalendar.Unit = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear]
-            let comps = calendar._bridgeToObjectiveC().components(all, from: date)
+            let comps = cal._bridgeToObjectiveC().components(all, from: date)
             var val = era
             if val != NSDateComponentUndefined {
                 if comps.era != val {

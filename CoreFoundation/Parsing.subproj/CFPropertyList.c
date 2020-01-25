@@ -2642,7 +2642,7 @@ CFTypeRef _CFPropertyListCreateFromXMLString(CFAllocatorRef allocator, CFStringR
 CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist);
 
 // Returns a subset of the property list, only including the key paths in the CFSet.
-bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) {
+Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) {
     
     if (!keyPaths || !data) {
         return false;
@@ -2691,7 +2691,7 @@ bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFO
  @param error If an error occurs, will be set to a valid CFErrorRef. It is the caller's responsibility to release this value.
  @return True if the key is found, false otherwise.
  */
-bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error) {
+Boolean _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error) {
     
     if (!keyPath || CFStringGetLength(keyPath) == 0) {
         return false;

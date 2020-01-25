@@ -604,7 +604,7 @@ static CFStringRef _CFCalendarGetCanonicalIdentifier(CFStringRef identifier) {
     return canonicalIdent;
 }
 
-CF_CROSS_PLATFORM_EXPORT bool _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
     CFStringRef canonicalIdent = _CFCalendarGetCanonicalIdentifier(identifier);
     if (!canonicalIdent) ICU_LOG("                // _CFCalendarInitWithIdentifier exit false 1\n");
     if (!canonicalIdent) return false;

@@ -29,6 +29,10 @@
 		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
 		B99EAE7023602FFA00C8FB46 /* TestsToSkip.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99EAE6E23602FFA00C8FB46 /* TestsToSkip.txt */; };
 		B99EAE7123602FFA00C8FB46 /* xcode-build.sh in Resources */ = {isa = PBXBuildFile; fileRef = B99EAE6F23602FFA00C8FB46 /* xcode-build.sh */; };
+		B9AE37B123D1A8F900EAD1FA /* TestHTTPURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9AE37AD23D1A8F900EAD1FA /* TestHTTPURLResponse.swift */; };
+		B9AE37B223D1A8F900EAD1FA /* TestDimension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9AE37AE23D1A8F900EAD1FA /* TestDimension.swift */; };
+		B9AE37B323D1A8F900EAD1FA /* TestNSDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9AE37AF23D1A8F900EAD1FA /* TestNSDateComponents.swift */; };
+		B9AE37B423D1A8F900EAD1FA /* TestURLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9AE37B023D1A8F900EAD1FA /* TestURLComponents.swift */; };
 		B9C1C63422607372002BBEA0 /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C1C63322607372002BBEA0 /* FixtureValues.swift */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
@@ -170,14 +174,11 @@
 		B906C30022AC6CE600FCFA2D /* TestURLSessionFTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestURLSessionFTP.swift; path = TestFoundation/TestURLSessionFTP.swift; sourceTree = "<group>"; };
 		B906C30322AC6E2A00FCFA2D /* FTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FTPServer.swift; path = TestFoundation/FTPServer.swift; sourceTree = "<group>"; };
 		B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "NSString-ISO-8859-1-data.txt"; path = "TestFoundation/Resources/NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
-		B91269ED22857B7000C78241 /* TestNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNotification.swift; path = TestFoundation/TestNotification.swift; sourceTree = "<group>"; };
 		B91269EE22857B7000C78241 /* TestUUID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestUUID.swift; path = TestFoundation/TestUUID.swift; sourceTree = "<group>"; };
 		B91269EF22857B7000C78241 /* TestDateInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDateInterval.swift; path = TestFoundation/TestDateInterval.swift; sourceTree = "<group>"; };
 		B91269F022857B7000C78241 /* TestMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestMeasurement.swift; path = TestFoundation/TestMeasurement.swift; sourceTree = "<group>"; };
 		B91269F122857B7000C78241 /* TestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestHost.swift; path = TestFoundation/TestHost.swift; sourceTree = "<group>"; };
-		B91269F222857B7100C78241 /* TestNotificationQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNotificationQueue.swift; path = TestFoundation/TestNotificationQueue.swift; sourceTree = "<group>"; };
 		B91269F322857B7100C78241 /* TestNSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSLock.swift; path = TestFoundation/TestNSLock.swift; sourceTree = "<group>"; };
-		B91269F422857B7100C78241 /* TestNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNotificationCenter.swift; path = TestFoundation/TestNotificationCenter.swift; sourceTree = "<group>"; };
 		B91269F522857B7100C78241 /* TestDateComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDateComponents.swift; path = TestFoundation/TestDateComponents.swift; sourceTree = "<group>"; };
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -191,7 +192,10 @@
 		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B99EAE6E23602FFA00C8FB46 /* TestsToSkip.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestsToSkip.txt; sourceTree = "<group>"; };
 		B99EAE6F23602FFA00C8FB46 /* xcode-build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "xcode-build.sh"; sourceTree = "<group>"; };
-		B99EAE742360577C00C8FB46 /* TestCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestCodable.swift; path = TestFoundation/TestCodable.swift; sourceTree = "<group>"; };
+		B9AE37AD23D1A8F900EAD1FA /* TestHTTPURLResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestHTTPURLResponse.swift; path = TestFoundation/TestHTTPURLResponse.swift; sourceTree = "<group>"; };
+		B9AE37AE23D1A8F900EAD1FA /* TestDimension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDimension.swift; path = TestFoundation/TestDimension.swift; sourceTree = "<group>"; };
+		B9AE37AF23D1A8F900EAD1FA /* TestNSDateComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSDateComponents.swift; path = TestFoundation/TestNSDateComponents.swift; sourceTree = "<group>"; };
+		B9AE37B023D1A8F900EAD1FA /* TestURLComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestURLComponents.swift; path = TestFoundation/TestURLComponents.swift; sourceTree = "<group>"; };
 		B9C1C63322607372002BBEA0 /* FixtureValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FixtureValues.swift; path = TestFoundation/FixtureValues.swift; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -328,23 +332,9 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
-				B99EAE742360577C00C8FB46 /* TestCodable.swift */,
 				B906C30322AC6E2A00FCFA2D /* FTPServer.swift */,
-				B906C2FF22AC6CE600FCFA2D /* TestNSSortDescriptor.swift */,
-				B906C30022AC6CE600FCFA2D /* TestURLSessionFTP.swift */,
-				B91269F522857B7100C78241 /* TestDateComponents.swift */,
-				B91269EF22857B7000C78241 /* TestDateInterval.swift */,
 				B91269F122857B7000C78241 /* TestHost.swift */,
-				B91269F022857B7000C78241 /* TestMeasurement.swift */,
-				B91269ED22857B7000C78241 /* TestNotification.swift */,
-				B91269F422857B7100C78241 /* TestNotificationCenter.swift */,
-				B91269F222857B7100C78241 /* TestNotificationQueue.swift */,
-				B91269F322857B7100C78241 /* TestNSLock.swift */,
-				B91269EE22857B7000C78241 /* TestUUID.swift */,
 				B9C1C63322607372002BBEA0 /* FixtureValues.swift */,
-				B940492A223B13D000FB4384 /* TestProgressFraction.swift */,
-				B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */,
-				B97E7853222AF973007596B0 /* TestDateIntervalFormatter.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
 				B9C89FAD1F6DCAE800087AF4 /* NSKeyedUnarchiver-ArrayTest.plist */,
 				B9C89FB31F6DCAE900087AF4 /* NSKeyedUnarchiver-ComplexTest.plist */,
@@ -380,13 +370,18 @@
 				B9C89EF01F6BF89000087AF4 /* TestCharacterSet.swift */,
 				B9C89EF11F6BF89100087AF4 /* TestCodable.swift */,
 				B9C89EF61F6BF89100087AF4 /* TestDate.swift */,
+				B91269F522857B7100C78241 /* TestDateComponents.swift */,
 				B9C89EFC1F6BF89200087AF4 /* TestDateFormatter.swift */,
+				B91269EF22857B7000C78241 /* TestDateInterval.swift */,
+				B97E7853222AF973007596B0 /* TestDateIntervalFormatter.swift */,
 				B9C89F211F6BF89800087AF4 /* TestDecimal.swift */,
+				B9AE37AE23D1A8F900EAD1FA /* TestDimension.swift */,
 				B9C89F261F6BF89900087AF4 /* TestEnergyFormatter.swift */,
 				B9C89F051F6BF89400087AF4 /* TestFileHandle.swift */,
 				B9C89F201F6BF89800087AF4 /* TestFileManager.swift */,
 				B9C89EFD1F6BF89200087AF4 /* TestHTTPCookie.swift */,
 				B9C89EE41F6BF88F00087AF4 /* TestHTTPCookieStorage.swift */,
+				B9AE37AD23D1A8F900EAD1FA /* TestHTTPURLResponse.swift */,
 				B9C89EF21F6BF89100087AF4 /* TestIndexPath.swift */,
 				B9C89F111F6BF89500087AF4 /* TestIndexSet.swift */,
 				B9C89EEE1F6BF89000087AF4 /* TestISO8601DateFormatter.swift */,
@@ -394,6 +389,7 @@
 				B9C89F311F6BF89B00087AF4 /* TestJSONSerialization.swift */,
 				B9C89EE51F6BF88F00087AF4 /* TestLengthFormatter.swift */,
 				B9C89EF31F6BF89100087AF4 /* TestMassFormatter.swift */,
+				B91269F022857B7000C78241 /* TestMeasurement.swift */,
 				B9C89F281F6BF89900087AF4 /* TestNotification.swift */,
 				B9C89F241F6BF89800087AF4 /* TestNotificationCenter.swift */,
 				B9C89F301F6BF89B00087AF4 /* TestNotificationQueue.swift */,
@@ -403,12 +399,14 @@
 				1560EA8B219217F8004377E9 /* TestNSCalendar.swift */,
 				B9C89F271F6BF89900087AF4 /* TestNSCompoundPredicate.swift */,
 				B9C89F291F6BF89900087AF4 /* TestNSData.swift */,
+				B9AE37AF23D1A8F900EAD1FA /* TestNSDateComponents.swift */,
 				B9C89F231F6BF89800087AF4 /* TestNSDictionary.swift */,
 				B9C89EFE1F6BF89300087AF4 /* TestNSError.swift */,
 				B9C89F2B1F6BF89900087AF4 /* TestNSGeometry.swift */,
 				B9C89F161F6BF89600087AF4 /* TestNSKeyedArchiver.swift */,
 				B9C89F1E1F6BF89700087AF4 /* TestNSKeyedUnarchiver.swift */,
 				B9C89F1D1F6BF89700087AF4 /* TestNSLocale.swift */,
+				B91269F322857B7100C78241 /* TestNSLock.swift */,
 				B9C89F151F6BF89600087AF4 /* TestNSNull.swift */,
 				B9C89F081F6BF89400087AF4 /* TestNSNumber.swift */,
 				B9C89F101F6BF89500087AF4 /* TestNSOrderedSet.swift */,
@@ -417,6 +415,7 @@
 				B9C89F2A1F6BF89900087AF4 /* TestNSRange.swift */,
 				B9C89F1B1F6BF89700087AF4 /* TestNSRegularExpression.swift */,
 				B9C89EF41F6BF89100087AF4 /* TestNSSet.swift */,
+				B906C2FF22AC6CE600FCFA2D /* TestNSSortDescriptor.swift */,
 				B9C89EFF1F6BF89300087AF4 /* TestNSString.swift */,
 				B9C89EEF1F6BF89000087AF4 /* TestNSTextCheckingResult.swift */,
 				B9C89F331F6BF89C00087AF4 /* TestNSURLRequest.swift */,
@@ -430,6 +429,8 @@
 				B9C89F251F6BF89800087AF4 /* TestProcess.swift */,
 				B9C89EE91F6BF88F00087AF4 /* TestProcessInfo.swift */,
 				B9C89EF91F6BF89200087AF4 /* TestProgress.swift */,
+				B940492A223B13D000FB4384 /* TestProgressFraction.swift */,
+				B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */,
 				B9C89F011F6BF89300087AF4 /* TestPropertyListSerialization.swift */,
 				B9C89F2E1F6BF89A00087AF4 /* TestRunLoop.swift */,
 				B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */,
@@ -440,14 +441,17 @@
 				B9C89F0B1F6BF89400087AF4 /* TestUnit.swift */,
 				B9C89F171F6BF89600087AF4 /* TestUnitConverter.swift */,
 				B9C89F191F6BF89700087AF4 /* TestURL.swift */,
+				B9AE37B023D1A8F900EAD1FA /* TestURLComponents.swift */,
 				B9C89F2D1F6BF89A00087AF4 /* TestURLCredential.swift */,
 				DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */,
 				B9C89EEB1F6BF89000087AF4 /* TestURLProtocol.swift */,
 				B9C89F141F6BF89600087AF4 /* TestURLRequest.swift */,
 				B9C89EF51F6BF89100087AF4 /* TestURLResponse.swift */,
 				B9C89EEC1F6BF89000087AF4 /* TestURLSession.swift */,
+				B906C30022AC6CE600FCFA2D /* TestURLSessionFTP.swift */,
 				B9C89F0E1F6BF89500087AF4 /* TestUserDefaults.swift */,
 				B9C89EE81F6BF88F00087AF4 /* TestUtils.swift */,
+				B91269EE22857B7000C78241 /* TestUUID.swift */,
 				B9C89F0F1F6BF89500087AF4 /* TestXMLDocument.swift */,
 				B9C89EED1F6BF89000087AF4 /* TestXMLParser.swift */,
 				B9C89F131F6BF89600087AF4 /* xdgTestHelper */,
@@ -614,6 +618,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9AE37B123D1A8F900EAD1FA /* TestHTTPURLResponse.swift in Sources */,
+				B9AE37B223D1A8F900EAD1FA /* TestDimension.swift in Sources */,
+				B9AE37B323D1A8F900EAD1FA /* TestNSDateComponents.swift in Sources */,
+				B9AE37B423D1A8F900EAD1FA /* TestURLComponents.swift in Sources */,
 				B9C89F411F6BF89C00087AF4 /* TestCodable.swift in Sources */,
 				B906C30422AC6E2A00FCFA2D /* FTPServer.swift in Sources */,
 				B906C30122AC6CE700FCFA2D /* TestNSSortDescriptor.swift in Sources */,

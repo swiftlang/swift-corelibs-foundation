@@ -727,7 +727,7 @@ extension NSString {
         let len = length
         var ch: unichar
         
-        precondition(range.length <= len && range.location < len - range.length, "Range {\(range.location), \(range.length)} is out of bounds of length \(len)")
+        precondition(range.length <= len && range.location <= len - range.length, "Range {\(range.location), \(range.length)} is out of bounds of length \(len)")
         
         if range.location == 0 && range.length == len && contentsEndPtr == nil { // This occurs often
             startPtr?.pointee = 0

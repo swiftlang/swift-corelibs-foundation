@@ -24,12 +24,14 @@ target_sources(TestFoundation PRIVATE
   TestDateIntervalFormatter.swift
   TestDate.swift
   TestDecimal.swift
+  TestDimension.swift
   TestEnergyFormatter.swift
   TestFileHandle.swift
   TestFileManager.swift
   TestHost.swift
   TestHTTPCookieStorage.swift
   TestHTTPCookie.swift
+  TestHTTPURLResponse.swift
   TestImports.swift
   TestIndexPath.swift
   TestIndexSet.swift
@@ -48,6 +50,7 @@ target_sources(TestFoundation PRIVATE
   TestNSCalendar.swift
   TestNSCompoundPredicate.swift
   TestNSData.swift
+  TestNSDateComponents.swift
   TestNSDictionary.swift
   TestNSError.swift
   TestNSGeometry.swift
@@ -93,6 +96,7 @@ target_sources(TestFoundation PRIVATE
   TestURLCache.swift
   TestURLCredential.swift
   TestURLCredentialStorage.swift
+  TestURLComponents.swift
   TestURLProtectionSpace.swift
   TestURLProtocol.swift
   TestURLRequest.swift
@@ -168,9 +172,11 @@ add_custom_command(TARGET TestFoundation POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:FoundationXML> ${CMAKE_BINARY_DIR}/TestFoundation.app)
 
-add_test(NAME TestFoundation
-  COMMAND ${CMAKE_BINARY_DIR}/TestFoundation.app/TestFoundation
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/TestFoundation.app)
-set_tests_properties(TestFoundation PROPERTIES
-  ENVIRONMENT LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/TestFoundation.app:$<TARGET_LINKER_FILE_DIR:XCTest>:$<TARGET_LINKER_FILE_DIR:dispatch>:$<TARGET_LINKER_FILE_DIR:swiftDispatch>:$<TARGET_LINKER_FILE_DIR:BlocksRuntime>)
+xctest_discover_tests(TestFoundation
+                      COMMAND
+                      ${CMAKE_BINARY_DIR}/TestFoundation.app/TestFoundation${CMAKE_EXECUTABLE_SUFFIX}
+                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/TestFoundation.app
+                      PROPERTIES
+                        ENVIRONMENT
+                          LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/TestFoundation.app:$<TARGET_LINKER_FILE_DIR:XCTest>:$<TARGET_LINKER_FILE_DIR:dispatch>:$<TARGET_LINKER_FILE_DIR:swiftDispatch>:$<TARGET_LINKER_FILE_DIR:BlocksRuntime>)
 
