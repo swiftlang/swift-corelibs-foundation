@@ -1126,6 +1126,7 @@ open class Process: NSObject {
         } while( self.isRunning == true && RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
+        self.runLoopSource = nil
     }
 }
 
