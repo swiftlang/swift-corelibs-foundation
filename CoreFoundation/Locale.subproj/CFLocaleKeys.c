@@ -132,8 +132,8 @@ CONST_STRING_DECL(kCFCalendarIdentifierCoptic, "coptic");
 CONST_STRING_DECL(kCFCalendarIdentifierEthiopicAmeteMihret, "ethiopic");
 CONST_STRING_DECL(kCFCalendarIdentifierEthiopicAmeteAlem, "ethiopic-amete-alem");
 
-// Aliases for Linux
-#if TARGET_OS_LINUX || TARGET_OS_WIN32
+// Aliases for other platforms.
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
 
 CF_EXPORT CFStringRef const kCFBuddhistCalendar __attribute__((alias ("kCFCalendarIdentifierBuddhist")));
 CF_EXPORT CFStringRef const kCFChineseCalendar __attribute__((alias ("kCFCalendarIdentifierChinese")));
