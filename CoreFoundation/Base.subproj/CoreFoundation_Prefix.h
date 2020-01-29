@@ -219,6 +219,8 @@ CF_INLINE uint64_t mach_absolute_time() {
     return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
 #endif
 }
+
+#define malloc_default_zone() (void *)0
 #endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
 
 #if TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
@@ -268,9 +270,6 @@ typedef unsigned long fd_mask;
 CF_INLINE size_t malloc_size(void *memblock) {
     return malloc_usable_size(memblock);
 }
-
-#define malloc_default_zone() (void *)0
-
 #endif
     
 #if TARGET_OS_BSD
@@ -324,7 +323,6 @@ CF_EXPORT int _NS_access(const char *name, int amode);
 
 #define __PRETTY_FUNCTION__ __FUNCTION__
 
-#define malloc_default_zone() (void *)0
 #define malloc_zone_from_ptr(a) (void *)0
 #define malloc_zone_malloc(zone,size) malloc(size)
 #define malloc_zone_memalign(zone,align,size) malloc(size)
