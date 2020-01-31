@@ -373,22 +373,22 @@ extension FileManager {
             }
             defer { closedir(dir) }
 
-            var entry = dirent()
-            var result: UnsafeMutablePointer<dirent>? = nil
-
-            while readdir_r(dir, &entry, &result) == 0 {
-                guard result != nil else {
-                    return
-                }
-                let length = Int(_direntNameLength(&entry))
-                let entryName = withUnsafePointer(to: &entry.d_name) { (ptr) -> String in
+            // readdir returns NULL on EOF and error so set errno to 0 to check for errors
+            errno = 0
+            while let entry = readdir(dir) {
+                let length = Int(_direntNameLength(entry))
+                let entryName = withUnsafePointer(to: entry.pointee.d_name) { (ptr) -> String in
                     let namePtr = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
                     return string(withFileSystemRepresentation: namePtr, length: length)
                 }
                 if entryName != "." && entryName != ".." {
-                    let entryType = Int32(entry.d_type)
+                    let entryType = Int32(entry.pointee.d_type)
                     try closure(entryName, entryType)
                 }
+                errno = 0
+            }
+            guard errno == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
             }
         }
     }
