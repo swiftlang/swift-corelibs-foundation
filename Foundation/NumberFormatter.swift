@@ -283,7 +283,7 @@ open class NumberFormatter : Formatter {
 
     private func defaultFormatWidth() -> Int {
         switch numberStyle {
-        case .ordinal, .ordinal, .spellOut, .currencyPlural:
+        case .ordinal, .spellOut, .currencyPlural:
             return 0
 
         case .none, .decimal, .currency, .percent, .scientific, .currencyISOCode, .currencyAccounting:

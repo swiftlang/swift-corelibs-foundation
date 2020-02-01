@@ -370,7 +370,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         // On Darwin, avoids dipping into the class hierarchy that exists above this class,
         // which is ultimately rooted in the ObjC NSObject class.
         guard !(self == NSObject.self) else { return nil }
-        return _getSuperclass(self) as! NSObject.Type
+        return _getSuperclass(self) as? NSObject.Type
     }
     
     public class var superclass: AnyClass? {

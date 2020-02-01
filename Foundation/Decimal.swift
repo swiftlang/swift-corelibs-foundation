@@ -101,7 +101,7 @@ extension Decimal {
 public func pow(_ x: Decimal, _ y: Int) -> Decimal {
     var x = x
     var result = Decimal()
-    NSDecimalPower(&result, &x, y, .plain)
+    _ = NSDecimalPower(&result, &x, y, .plain)
     return result
 }
 

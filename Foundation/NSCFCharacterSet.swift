@@ -43,7 +43,7 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
     }
     
     override func copy(with zone: NSZone? = nil) -> Any {
-        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject) as Any
     }
     
     override func mutableCopy(with zone: NSZone? = nil) -> Any {
