@@ -172,8 +172,9 @@ open class JSONSerialization : NSObject {
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
      */
     open class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
-        return try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
+        return try data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Any in
             let encoding: String.Encoding
+            let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
             let buffer: UnsafeBufferPointer<UInt8>
             if let detected = parseBOM(bytes, length: data.count) {
                 encoding = detected.encoding
@@ -206,9 +207,9 @@ open class JSONSerialization : NSObject {
      */
     open class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
         let jsonData = try _data(withJSONObject: obj, options: opt, stream: true)
-        let count = jsonData.count
-        return jsonData.withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> Int in
-            let res: Int = stream.write(bytePtr, maxLength: count)
+        return jsonData.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Int in
+            let ptr = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
+            let res: Int = stream.write(ptr, maxLength: rawBuffer.count)
             /// TODO: If the result here is negative the error should be obtained from the stream to propagate as a throw
             return res
         }

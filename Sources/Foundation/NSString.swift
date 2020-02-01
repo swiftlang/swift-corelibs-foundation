@@ -951,8 +951,9 @@ extension NSString {
         
         if 0 < reqSize {
             var data = Data(count: reqSize)
-            data.count = data.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Int in
-                if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, UnsafeMutablePointer<UInt8>(mutableBytes), reqSize, &reqSize) == convertedLen {
+            data.count = data.withUnsafeMutableBytes { (mutableRawBuffer: UnsafeMutableRawBufferPointer) -> Int in
+                let mutableBytes = mutableRawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                if __CFStringEncodeByteStream(_cfObject, 0, len, true, cfStringEncoding, lossy ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, mutableBytes, reqSize, &reqSize) == convertedLen {
                     return reqSize
                 } else {
                     fatalError("didn't convert all characters")
@@ -1260,9 +1261,8 @@ extension NSString {
         var mData = Data(count: numBytes)
         // The getBytes:... call should hopefully not fail, given it succeeded above, but check anyway (mutable string changing behind our back?)
         var used = 0
-        // This binds mData memory to UInt8 because Data.withUnsafeMutableBytes does not handle raw pointers.
-        try mData.withUnsafeMutableBytes { (mutableBytes: UnsafeMutablePointer<UInt8>) -> Void in
-            if !getBytes(mutableBytes, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
+        try mData.withUnsafeMutableBytes { (mutableRawBuffer: UnsafeMutableRawBufferPointer) -> Void in
+            if !getBytes(mutableRawBuffer.baseAddress, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [
                     NSURLErrorKey: dest,
                 ])
@@ -1328,7 +1328,8 @@ extension NSString {
         if data.isEmpty {
             self.init("")
         } else {
-        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
+        guard let cf = data.withUnsafeBytes({ (rawBuffer: UnsafeRawBufferPointer) -> CFString? in
+            let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
             return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count,
                                            CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true)
         }) else { return nil }

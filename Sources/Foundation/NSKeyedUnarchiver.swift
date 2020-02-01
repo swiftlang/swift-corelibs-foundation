@@ -770,8 +770,9 @@ open class NSKeyedUnarchiver : NSCoder {
     open override func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
         let ns : Data? = _decodeValue(forKey: key)
         if let value = ns {
-            return try value.withUnsafeBytes {
-                try body(UnsafeBufferPointer(start: $0, count: value.count))
+            return try value.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> ResultType in
+                let ptr = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                return try body(UnsafeBufferPointer(start: ptr, count: value.count))
             }
         } else {
             return try body(nil)
