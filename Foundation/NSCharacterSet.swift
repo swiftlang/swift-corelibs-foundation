@@ -370,7 +370,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
         } else if type(of: self) == _NSCFCharacterSet.self {
-            return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+            return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject) as Any
         } else {
             NSRequiresConcreteImplementation()
         }
