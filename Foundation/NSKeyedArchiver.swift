@@ -66,7 +66,7 @@ open class NSKeyedArchiver : NSCoder {
             self.rawValue = rawValue
         }
         
-        static let none = ArchiverFlags(rawValue: 0)
+        static let none = ArchiverFlags([])
         static let finishedEncoding = ArchiverFlags(rawValue : 1)
         static let requiresSecureCoding = ArchiverFlags(rawValue: 2)
     }

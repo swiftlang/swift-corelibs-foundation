@@ -24,7 +24,7 @@ open class DateComponentsFormatter : Formatter {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let none = ZeroFormattingBehavior(rawValue: 0) //drop none, pad none
+        public static let none = ZeroFormattingBehavior([]) //drop none, pad none
         public static let `default` = ZeroFormattingBehavior(rawValue: 1 << 0) //Positional units: drop leading zeros, pad other zeros. All others: drop all zeros.
         
         public static let dropLeading = ZeroFormattingBehavior(rawValue: 1 << 1) // Off: "0h 10m", On: "10m"

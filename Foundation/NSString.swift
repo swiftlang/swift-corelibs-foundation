@@ -68,7 +68,7 @@ extension NSString {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let byLines = EnumerationOptions(rawValue: 0)
+        public static let byLines = EnumerationOptions([])
         public static let byParagraphs = EnumerationOptions(rawValue: 1)
         public static let byComposedCharacterSequences = EnumerationOptions(rawValue: 2)
         
