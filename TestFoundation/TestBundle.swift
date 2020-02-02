@@ -585,7 +585,7 @@ class TestBundle : XCTestCase {
             ("test_bundleForClass", testExpectedToFailOnWindows(test_bundleForClass, "Functionality not yet implemented on Windows. SR-XXXX")),
         ]
         
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows)
         tests.append(contentsOf: [
             ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
             ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),

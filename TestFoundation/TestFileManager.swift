@@ -1755,7 +1755,7 @@ VIDEOS=StopgapVideos
         }
         #endif
 
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows) // Not implemented on Windows yet
         print("note: Testing cross-platform replace implementation.", to: &stderr)
         try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
             try fm._replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options, allowPlatformSpecificSyscalls: false)

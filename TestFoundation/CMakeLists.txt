@@ -115,6 +115,11 @@ target_link_libraries(TestFoundation PRIVATE
   FoundationXML)
 target_link_libraries(TestFoundation PRIVATE
   XCTest)
+if(ENABLE_TESTING)
+  target_compile_definitions(TestFoundation PRIVATE
+    NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT)
+endif()
+
 
 # NOTE(compnerd) create a test "app" directory as we need the xdgTestHelper as
 # an executable peer and the binary will be placed in the directory with the
