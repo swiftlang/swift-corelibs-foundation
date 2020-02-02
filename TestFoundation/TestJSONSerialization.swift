@@ -1415,11 +1415,11 @@ extension TestJSONSerialization {
         }
     }
     
-    func test_jsonObjectToOutputStreamBuffer(){
+    func test_jsonObjectToOutputStreamBuffer() {
         let dict = ["a":["b":1]]
         do {
-            let buffer = Array<UInt8>(repeating: 0, count: 20)
-            let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 20)
+            var buffer = Array<UInt8>(repeating: 0, count: 20)
+            let outputStream = OutputStream(toBuffer: &buffer, capacity: buffer.count)
             outputStream.open()
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
@@ -1463,8 +1463,8 @@ extension TestJSONSerialization {
     func test_jsonObjectToOutputStreamInsufficientBuffer() {
 #if !DARWIN_COMPATIBILITY_TESTS  // Hangs
         let dict = ["a":["b":1]]
-        let buffer = Array<UInt8>(repeating: 0, count: 10)
-        let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
+        var buffer = Array<UInt8>(repeating: 0, count: 10)
+        let outputStream = OutputStream(toBuffer: &buffer, capacity: buffer.count)
         outputStream.open()
         do {
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
