@@ -29,7 +29,7 @@ open class NSKeyedUnarchiver : NSCoder {
             self.rawValue = rawValue
         }
         
-        static let none = UnarchiverFlags(rawValue: 0)
+        static let none = UnarchiverFlags([])
         static let finishedDecoding = UnarchiverFlags(rawValue : 1 << 0)
         static let requiresSecureCoding = UnarchiverFlags(rawValue: 1 << 1)
         static let startedDecoding = UnarchiverFlags(rawValue: 1 << 2)
