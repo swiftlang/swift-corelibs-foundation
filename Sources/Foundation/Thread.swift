@@ -274,11 +274,11 @@ open class Thread : NSObject {
       #if DEPLOYMENT_RUNTIME_OBJC
         // Do not use _CF functions on the ObjC runtime as that breaks on the
         // Darwin runtime.
-        if pthread_getname_np(pthread_self(), &buf, buf.count) == 0 {
+        guard pthread_getname_np(pthread_self(), &buf, buf.count) == 0 else {
           return ""
         }
       #else
-        if _CFThreadGetName(&buf, Int32(buf.count)) == 0 {
+        guard _CFThreadGetName(&buf, Int32(buf.count)) == 0 else {
           return ""
         }
       #endif
