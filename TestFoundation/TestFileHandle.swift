@@ -99,11 +99,11 @@ class TestFileHandle : XCTestCase {
 #if os(Windows)
         var hReadPipe: HANDLE? = INVALID_HANDLE_VALUE
         var hWritePipe: HANDLE? = INVALID_HANDLE_VALUE
-        if CreatePipe(&hReadPipe, &hWritePipe, nil, 0) == FALSE {
+        if !CreatePipe(&hReadPipe, &hWritePipe, nil, 0) {
           assert(false)
         }
 
-        if CloseHandle(hWritePipe) == FALSE {
+        if !CloseHandle(hWritePipe) {
           assert(false)
         }
 
