@@ -195,7 +195,7 @@ class TestStream : XCTestCase {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
         let myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
+        let outputStream = OutputStream(toBuffer: &buffer, capacity: buffer.count)
         XCTAssertEqual(.notOpen, outputStream.streamStatus)
         outputStream.open()
         XCTAssertEqual(.open, outputStream.streamStatus)
@@ -238,19 +238,19 @@ class TestStream : XCTestCase {
         //verify the data written
         let dataWritten  = outputStream.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey)
         if let nsdataWritten = dataWritten as? NSData {
-            nsdataWritten.getBytes(UnsafeMutablePointer(mutating: buffer), length: result!)
-            XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))
+            nsdataWritten.getBytes(&buffer, length: result!)
+            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))
             outputStream.close()
         } else {
-            XCTFail("Unable to get data from memeory.")
+            XCTFail("Unable to get data from memory.")
         }
     }
 
     func test_outputStreamHasSpaceAvailable() {
-        let buffer = Array<UInt8>(repeating: 0, count: 12)
+        var buffer = Array<UInt8>(repeating: 0, count: 12)
         let myString = "Welcome To Hello world  !"
         let encodedData = [UInt8](myString.utf8)
-        let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
+        let outputStream = OutputStream(toBuffer: &buffer, capacity: buffer.count)
         outputStream.open()
         XCTAssertTrue(outputStream.hasSpaceAvailable)
         _ = outputStream.write(encodedData, maxLength: encodedData.count)

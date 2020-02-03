@@ -277,15 +277,16 @@ class TestNSKeyedArchiver : XCTestCase {
     
     func test_archive_charptr() {
         let charArray = [CChar]("Hello world, we are testing!\0".utf8CString)
-        var charPtr = UnsafeMutablePointer(mutating: charArray)
 
-        test_archive({ archiver -> Bool in
+        charArray.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) in
+            var charPtr = buffer.baseAddress!
+            test_archive({ archiver -> Bool in
                 let value = NSValue(bytes: &charPtr, objCType: "*")
                 
                 archiver.encode(value, forKey: "root")
                 return true
             },
-             decode: {unarchiver -> Bool in
+            decode: {unarchiver -> Bool in
                 guard let value = unarchiver.decodeObject(of: NSValue.self, forKey: "root") else {
                     return false
                 }
@@ -299,7 +300,8 @@ class TestNSKeyedArchiver : XCTestCase {
 
                     return s1 == s2
                 }
-        })
+            })
+        }
     }
     
     func test_archive_user_class() {

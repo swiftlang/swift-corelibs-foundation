@@ -207,22 +207,22 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the given Base64 encoded string.
     public init?(base64Encoded base64String: String, options: Base64DecodingOptions = []) {
         let encodedBytes = Array(base64String.utf8)
-        guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+        guard var decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
             return nil
         }
         super.init()
-        _init(bytes: UnsafeMutableRawPointer(mutating: decodedBytes), length: decodedBytes.count, copy: true)
+        _init(bytes: &decodedBytes, length: decodedBytes.count, copy: true)
     }
 
     /// Initializes a data object with the given Base64 encoded data.
     public init?(base64Encoded base64Data: Data, options: Base64DecodingOptions = []) {
         var encodedBytes = [UInt8](repeating: 0, count: base64Data.count)
         base64Data._nsObject.getBytes(&encodedBytes, length: encodedBytes.count)
-        guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+        guard var decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
             return nil
         }
         super.init()
-        _init(bytes: UnsafeMutableRawPointer(mutating: decodedBytes), length: decodedBytes.count, copy: true)
+        _init(bytes: &decodedBytes, length: decodedBytes.count, copy: true)
     }
     
     deinit {

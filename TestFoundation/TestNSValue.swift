@@ -110,12 +110,14 @@ class TestNSValue : XCTestCase {
     }
 
     func test_valueWithCharPtr() {
-        let charArray = [UInt8]("testing123".utf8)
-        var charPtr = UnsafeMutablePointer(mutating: charArray)
-        var expectedPtr: UnsafeMutablePointer<UInt8>? = nil
+        var charArray = [UInt8]("testing123".utf8)
+        charArray.withUnsafeMutableBufferPointer {
+            var charPtr = $0.baseAddress!
+            var expectedPtr: UnsafeMutablePointer<UInt8>? = nil
         
-        NSValue(bytes: &charPtr, objCType: "*").getValue(&expectedPtr)
-        XCTAssertEqual(charPtr, expectedPtr)
+            NSValue(bytes: &charPtr, objCType: "*").getValue(&expectedPtr)
+            XCTAssertEqual(charPtr, expectedPtr)
+        }
     }
 
     func test_isEqual() {
