@@ -246,7 +246,6 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
 
-#if os(macOS) // timestyle zzzz is currently broken on Linux
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
         for (timestamp, stringResult) in timestamps {
             
@@ -255,7 +254,6 @@ class TestDateFormatter: XCTestCase {
             
             XCTAssertEqual(sf, stringResult)
         }
-#endif
 
         let quarterTimestamps: [Double : String] = [
             1451679712 : "1", 1459542112 : "2", 1467404512 : "3", 1475353312 : "4"
@@ -298,36 +296,36 @@ class TestDateFormatter: XCTestCase {
 
     func test_dateFormatString() {
         let f = DateFormatter()
+        f.locale = Locale(identifier: DEFAULT_LOCALE)
         f.timeZone = TimeZone(abbreviation: DEFAULT_TIMEZONE)
         
-        //.full cases have been commented out as they're not working correctly on Linux
+        // .medium cases fail for the date part on Linux and so have been commented out.
         let formats: [String: (DateFormatter.Style, DateFormatter.Style)] = [
             "": (.none, .none),
             "h:mm a": (.none, .short),
             "h:mm:ss a": (.none, .medium),
             "h:mm:ss a z": (.none, .long),
-//            "h:mm:ss a zzzz": (.none, .full),
+            "h:mm:ss a zzzz": (.none, .full),
             "M/d/yy": (.short, .none),
             "M/d/yy, h:mm a": (.short, .short),
             "M/d/yy, h:mm:ss a": (.short, .medium),
             "M/d/yy, h:mm:ss a z": (.short, .long),
-//            "M/d/yy, h:mm:ss a zzzz": (.short, .full),
+            "M/d/yy, h:mm:ss a zzzz": (.short, .full),
             "MMM d, y": (.medium, .none),
-            //These tests currently fail, there seems to be a difference in behavior in the CoreFoundation methods called to construct the format strings.
-//            "MMM d, y 'at' h:mm a": (.medium, .short),
-//            "MMM d, y 'at' h:mm:ss a": (.medium, .medium),
-//            "MMM d, y 'at' h:mm:ss a z": (.medium, .long),
-//            "MMM d, y 'at' h:mm:ss a zzzz": (.medium, .full),
+            //"MMM d, y 'at' h:mm a": (.medium, .short),
+            //"MMM d, y 'at' h:mm:ss a": (.medium, .medium),
+            //"MMM d, y 'at' h:mm:ss a z": (.medium, .long),
+            //"MMM d, y 'at' h:mm:ss a zzzz": (.medium, .full),
             "MMMM d, y": (.long, .none),
             "MMMM d, y 'at' h:mm a": (.long, .short),
             "MMMM d, y 'at' h:mm:ss a": (.long, .medium),
             "MMMM d, y 'at' h:mm:ss a z": (.long, .long),
-//            "MMMM d, y 'at' h:mm:ss a zzzz": (.long, .full),
-//            "EEEE, MMMM d, y": (.full, .none),
-//            "EEEE, MMMM d, y 'at' h:mm a": (.full, .short),
-//            "EEEE, MMMM d, y 'at' h:mm:ss a": (.full, .medium),
-//            "EEEE, MMMM d, y 'at' h:mm:ss a z": (.full, .long),
-//            "EEEE, MMMM d, y 'at' h:mm:ss a zzzz": (.full, .full),
+            "MMMM d, y 'at' h:mm:ss a zzzz": (.long, .full),
+            "EEEE, MMMM d, y": (.full, .none),
+            "EEEE, MMMM d, y 'at' h:mm a": (.full, .short),
+            "EEEE, MMMM d, y 'at' h:mm:ss a": (.full, .medium),
+            "EEEE, MMMM d, y 'at' h:mm:ss a z": (.full, .long),
+            "EEEE, MMMM d, y 'at' h:mm:ss a zzzz": (.full, .full),
         ]
         
         for (dateFormat, styles) in formats {
@@ -400,9 +398,8 @@ class TestDateFormatter: XCTestCase {
         // TimeZone.current is GMT as well.
         // (ex. TestTimeZone.test_systemTimeZoneName)
 
-// Disabled because of: https://bugs.swift.org/browse/SR-8994
-//        f.timeZone = TimeZone.current
-//        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
+        f.timeZone = TimeZone.current
+        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
 
         // Case 2: New York
         f.timeZone = newYork
