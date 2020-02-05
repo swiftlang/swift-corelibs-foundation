@@ -695,6 +695,20 @@ CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t
 
 #endif
 
+// pthread setup
+
+#if TARGET_OS_WIN32
+typedef void *_CFThreadRef;
+typedef struct _CFThreadAttributes {
+  unsigned long dwSizeOfAttributes;
+  unsigned long dwThreadStackReservation;
+} _CFThreadAttributes;
+typedef unsigned long _CFThreadSpecificKey;
+#elif _POSIX_THREADS
+typedef pthread_t _CFThreadRef;
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_key_t _CFThreadSpecificKey;
+#endif
 
 _CF_EXPORT_SCOPE_END
 

@@ -38,12 +38,6 @@
 #else
 #include <fts.h>
 #endif
-#if __has_include(<unistd.h>)
-#include <unistd.h>
-#endif
-#if _POSIX_THREADS
-#include <pthread.h>
-#endif
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <dirent.h>
 #endif
@@ -353,19 +347,6 @@ extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef al
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
-
-#if TARGET_OS_WIN32
-typedef void *_CFThreadRef;
-typedef struct _CFThreadAttributes {
-  unsigned long dwSizeOfAttributes;
-  unsigned long dwThreadStackReservation;
-} _CFThreadAttributes;
-typedef unsigned long _CFThreadSpecificKey;
-#elif _POSIX_THREADS
-typedef pthread_t _CFThreadRef;
-typedef pthread_attr_t _CFThreadAttributes;
-typedef pthread_key_t _CFThreadSpecificKey;
-#endif
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
 CF_EXPORT _CFThreadRef _CFMainPThread;
