@@ -64,7 +64,7 @@ class TestObjCRuntime: XCTestCase {
     #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func testClassesRenamedByAPINotes() throws {
         for entry in _NSClassesRenamedByObjCAPINotes {
-            XCTAssert(NSClassFromString(NSStringFromClass(entry.class)) === entry.class)
+            XCTAssert(try XCTUnwrap(NSClassFromString(NSStringFromClass(entry.class))) === entry.class)
             XCTAssert(NSStringFromClass(try XCTUnwrap(NSClassFromString(entry.objCName))) == entry.objCName)
         }
     }
