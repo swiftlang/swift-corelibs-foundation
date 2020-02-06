@@ -15,6 +15,7 @@ class TestOperationQueue : XCTestCase {
             ("test_OperationPriorities", test_OperationPriorities),
             ("test_OperationCount", test_OperationCount),
             ("test_AsyncOperation", test_AsyncOperation),
+            ("test_SyncOperationWithoutAQueue", test_SyncOperationWithoutAQueue),
             ("test_isExecutingWorks", test_isExecutingWorks),
             ("test_MainQueueGetter", test_MainQueueGetter),
             ("test_CancelOneOperation", test_CancelOneOperation),
@@ -103,6 +104,18 @@ class TestOperationQueue : XCTestCase {
 
         XCTAssertFalse(operation.isExecuting)
         XCTAssertTrue(operation.isFinished)
+    }
+    
+    func test_SyncOperationWithoutAQueue() {
+        let operation = SyncOperation()
+        XCTAssertFalse(operation.isExecuting)
+        XCTAssertFalse(operation.isFinished)
+
+        operation.start()
+
+        XCTAssertFalse(operation.isExecuting)
+        XCTAssertTrue(operation.isFinished)
+        XCTAssertTrue(operation.hasRun)
     }
     
     func test_MainQueueGetter() {
@@ -342,6 +355,17 @@ class AsyncOperation: Operation {
             self.isExecuting = false
             self.isFinished = true
         }
+    }
+
+}
+
+class SyncOperation: Operation {
+
+    var hasRun = false
+
+    override func main() {
+        Thread.sleep(forTimeInterval: 1)
+        hasRun = true
     }
 
 }
