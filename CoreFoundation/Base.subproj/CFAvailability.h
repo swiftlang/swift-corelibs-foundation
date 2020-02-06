@@ -10,13 +10,7 @@
 #if !defined(__COREFOUNDATION_CFAVAILABILITY__)
 #define __COREFOUNDATION_CFAVAILABILITY__ 1
 
-#if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
-#elif __has_include(<TargetConditionals.h>)
-#include <TargetConditionals.h>
-#else
-#error Missing header TargetConditionals.h
-#endif
 
 #if __has_include(<Availability.h>) && __has_include(<os/availability.h>) && __has_include(<AvailabilityMacros.h>)
 #include <Availability.h>
