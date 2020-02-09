@@ -222,35 +222,10 @@ set_target_properties(FoundationNetworking PROPERTIES
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
-
-add_library(FoundationXML
-  XMLDocument.swift
-  XMLDTD.swift
-  XMLDTDNode.swift
-  XMLElement.swift
-  XMLNode.swift
-  XMLParser.swift)
-target_compile_definitions(FoundationXML PRIVATE
-  DEPLOYMENT_RUNTIME_SWIFT)
-target_compile_options(FoundationXML PUBLIC
-  "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
-if(ENABLE_TESTING)
-  target_compile_options(FoundationXML PRIVATE
-    -enable-testing)
-endif()
-target_link_libraries(FoundationXML PRIVATE
-  Foundation
-  CFXMLInterface)
-set_target_properties(FoundationXML PROPERTIES
-  INSTALL_RPATH "$ORIGIN"
-  Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
-
-
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
-  Foundation FoundationNetworking FoundationXML)
+  Foundation FoundationNetworking)
 get_swift_host_arch(swift_arch)
-install(TARGETS Foundation FoundationNetworking FoundationXML
+install(TARGETS Foundation FoundationNetworking
   ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
   LIBRARY DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
   RUNTIME DESTINATION bin)
@@ -259,6 +234,4 @@ install(FILES
   ${CMAKE_BINARY_DIR}/swift/Foundation.swiftmodule
   ${CMAKE_BINARY_DIR}/swift/FoundationNetworking.swiftdoc
   ${CMAKE_BINARY_DIR}/swift/FoundationNetworking.swiftmodule
-  ${CMAKE_BINARY_DIR}/swift/FoundationXML.swiftdoc
-  ${CMAKE_BINARY_DIR}/swift/FoundationXML.swiftmodule
   DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})
