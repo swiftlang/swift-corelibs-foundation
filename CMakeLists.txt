@@ -44,7 +44,7 @@ target_include_directories(CoreFoundation PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
 
-add_subdirectory(uuid)
+add_subdirectory(Sources)
 add_subdirectory(Foundation)
 add_subdirectory(Tools)
 if(ENABLE_TESTING)
