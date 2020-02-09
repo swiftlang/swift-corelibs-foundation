@@ -3,7 +3,7 @@ add_executable(TestFoundation
   HTTPServer.swift
   Imports.swift
   FTPServer.swift
-  ../../Foundation/ProgressFraction.swift
+  ../../Sources/Foundation/ProgressFraction.swift
   Utilities.swift
   FixtureValues.swift)
 

@@ -1,5 +1,5 @@
 add_library(FoundationNetworking
-  ../../Foundation/Boxing.swift
+  ../Foundation/Boxing.swift
   HTTPCookie.swift
   HTTPCookieStorage.swift
   NSURLRequest.swift
