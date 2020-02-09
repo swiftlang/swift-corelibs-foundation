@@ -51,7 +51,7 @@ class TestRunLoop : XCTestCase {
         runLoop.add(dummyTimer, forMode: .default)
         let result = runLoop.run(mode: .default, before: endDate)
         
-        XCTAssertFalse(result) // should be .Finished
+        XCTAssertTrue(result)
         XCTAssertTrue(flag)
     }
     
@@ -130,9 +130,8 @@ class TestRunLoop : XCTestCase {
             ("test_constants", test_constants),
             ("test_runLoopInit", test_runLoopInit),
             ("test_commonModes", test_commonModes),
-            // these tests do not work the same as Darwin https://bugs.swift.org/browse/SR-399
-            // ("test_runLoopRunMode", test_runLoopRunMode),
-            // ("test_runLoopLimitDate", test_runLoopLimitDate),
+            ("test_runLoopRunMode", test_runLoopRunMode),
+            ("test_runLoopLimitDate", test_runLoopLimitDate),
             ("test_runLoopPoll", test_runLoopPoll),
             ("test_addingRemovingPorts", test_addingRemovingPorts),
         ]
