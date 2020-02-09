@@ -48,7 +48,6 @@ target_include_directories(CoreFoundation PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
 
 add_subdirectory(Sources)
-add_subdirectory(Tools)
 if(ENABLE_TESTING)
   find_package(XCTest CONFIG REQUIRED)
   add_subdirectory(Tests)

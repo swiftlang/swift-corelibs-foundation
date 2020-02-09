@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		155D3BB522401A2900B0D38E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155D3BB422401A2900B0D38E /* main.swift */; };
-		155D3BBF2240205300B0D38E /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155D3BBE2240205300B0D38E /* FixtureValues.swift */; };
-		155D3BC3224020F900B0D38E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155D3BC2224020F900B0D38E /* Utilities.swift */; };
+		F023077023F0BB980023DBEC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023076E23F0BB970023DBEC /* main.swift */; };
+		F023077123F0BB980023DBEC /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023076F23F0BB970023DBEC /* Utilities.swift */; };
+		F023077323F0BBAE0023DBEC /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023077223F0BBAE0023DBEC /* FixtureValues.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,9 +26,9 @@
 
 /* Begin PBXFileReference section */
 		155D3BB122401A2900B0D38E /* GenerateTestFixtures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateTestFixtures; sourceTree = BUILT_PRODUCTS_DIR; };
-		155D3BB422401A2900B0D38E /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		155D3BBE2240205300B0D38E /* FixtureValues.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FixtureValues.swift; path = ../../../TestFoundation/FixtureValues.swift; sourceTree = "<group>"; };
-		155D3BC2224020F900B0D38E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		F023076E23F0BB970023DBEC /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = main.swift; path = Tests/Tools/GenerateTestFixtures/main.swift; sourceTree = SOURCE_ROOT; };
+		F023076F23F0BB970023DBEC /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Utilities.swift; path = Tests/Tools/GenerateTestFixtures/Utilities.swift; sourceTree = SOURCE_ROOT; };
+		F023077223F0BBAE0023DBEC /* FixtureValues.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FixtureValues.swift; path = Tests/Foundation/FixtureValues.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,8 +62,8 @@
 			isa = PBXGroup;
 			children = (
 				155D3BBD2240202C00B0D38E /* Sources from TestFoundation */,
-				155D3BB422401A2900B0D38E /* main.swift */,
-				155D3BC2224020F900B0D38E /* Utilities.swift */,
+				F023076E23F0BB970023DBEC /* main.swift */,
+				F023076F23F0BB970023DBEC /* Utilities.swift */,
 			);
 			path = GenerateTestFixtures;
 			sourceTree = "<group>";
@@ -71,7 +71,7 @@
 		155D3BBD2240202C00B0D38E /* Sources from TestFoundation */ = {
 			isa = PBXGroup;
 			children = (
-				155D3BBE2240205300B0D38E /* FixtureValues.swift */,
+				F023077223F0BBAE0023DBEC /* FixtureValues.swift */,
 			);
 			name = "Sources from TestFoundation";
 			sourceTree = "<group>";
@@ -133,9 +133,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				155D3BC3224020F900B0D38E /* Utilities.swift in Sources */,
-				155D3BB522401A2900B0D38E /* main.swift in Sources */,
-				155D3BBF2240205300B0D38E /* FixtureValues.swift in Sources */,
+				F023077023F0BB980023DBEC /* main.swift in Sources */,
+				F023077323F0BBAE0023DBEC /* FixtureValues.swift in Sources */,
+				F023077123F0BB980023DBEC /* Utilities.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
