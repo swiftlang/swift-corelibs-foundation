@@ -49,7 +49,7 @@ add_subdirectory(Foundation)
 add_subdirectory(Tools)
 if(ENABLE_TESTING)
   find_package(XCTest CONFIG REQUIRED)
-  add_subdirectory(TestFoundation)
+  add_subdirectory(Tests)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
