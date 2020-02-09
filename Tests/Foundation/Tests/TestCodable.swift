@@ -259,7 +259,7 @@ class TestCodable : XCTestCase {
         CGPoint(x: 10, y: 20),
         CGPoint(x: -10, y: -20),
         // Disabled due to limit on magnitude in JSON. See SR-5346
-        // CGPoint(x: .greatestFiniteMagnitude, y: .greatestFiniteMagnitude),
+        CGPoint(x: CGFloat.greatestFiniteMagnitude, y: CGFloat.greatestFiniteMagnitude),
     ]
     
     func test_CGPoint_JSON() {
@@ -279,7 +279,7 @@ class TestCodable : XCTestCase {
         CGSize(width: 30, height: 40),
         CGSize(width: -30, height: -40),
         // Disabled due to limit on magnitude in JSON. See SR-5346
-        // CGSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude),
+        CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude),
     ]
     
     func test_CGSize_JSON() {
@@ -300,7 +300,7 @@ class TestCodable : XCTestCase {
         CGRect(origin: CGPoint(x: -10, y: -20), size: CGSize(width: -30, height: -40)),
         CGRect.null,
         // Disabled due to limit on magnitude in JSON. See SR-5346
-        // CGRect.infinite
+        CGRect.infinite
     ]
     
     func test_CGRect_JSON() {
