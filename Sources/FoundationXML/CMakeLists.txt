@@ -26,6 +26,6 @@ install(TARGETS FoundationXML
   RUNTIME DESTINATION bin)
 get_swift_host_arch(swift_arch)
 install(FILES
-  ${CMAKE_BINARY_DIR}/swift/FoundationXML.swiftdoc
-  ${CMAKE_BINARY_DIR}/swift/FoundationXML.swiftmodule
+  $<TARGET_PROPERTY:FoundationXML,Swift_MODULE_DIRECTORY>/FoundationXML.swiftdoc
+  $<TARGET_PROPERTY:FoundationXML,Swift_MODULE_DIRECTORY>/FoundationXML.swiftmodule
   DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})

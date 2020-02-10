@@ -148,6 +148,7 @@ target_link_libraries(Foundation
     swiftDispatch)
 set_target_properties(Foundation PROPERTIES
   INSTALL_RPATH "$ORIGIN"
+  BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
@@ -156,12 +157,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows AND CMAKE_VERSION VERSION_LESS 3.16)
   # properly
   add_dependencies(Foundation CoreFoundationResources)
   target_link_options(Foundation PRIVATE $<TARGET_OBJECTS:CoreFoundationResources>)
-
-  # Workaround for CMake 3.15 which doesn't handle `-rpath` properly
-  if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    target_link_options(Foundation PRIVATE
-      "SHELL:-Xlinker -rpath -Xlinker $<TARGET_FILE_DIR:swiftDispatch>")
-  endif()
 endif()
 
 
@@ -172,6 +167,6 @@ install(TARGETS Foundation
   RUNTIME DESTINATION bin)
 get_swift_host_arch(swift_arch)
 install(FILES
-  ${CMAKE_BINARY_DIR}/swift/Foundation.swiftdoc
-  ${CMAKE_BINARY_DIR}/swift/Foundation.swiftmodule
+  $<TARGET_PROPERTY:Foundation,Swift_MODULE_DIRECTORY>/Foundation.swiftdoc
+  $<TARGET_PROPERTY:Foundation,Swift_MODULE_DIRECTORY>/Foundation.swiftmodule
   DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})
