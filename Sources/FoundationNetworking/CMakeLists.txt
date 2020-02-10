@@ -34,9 +34,11 @@ target_compile_definitions(FoundationNetworking PRIVATE
 target_compile_options(FoundationNetworking PUBLIC
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
-target_link_libraries(FoundationNetworking PRIVATE
-  Foundation
-  CFURLSessionInterface)
+target_link_libraries(FoundationNetworking
+  PRIVATE
+    CFURLSessionInterface
+  PUBLIC
+    Foundation)
 set_target_properties(FoundationNetworking PROPERTIES
   INSTALL_RPATH "$ORIGIN"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift

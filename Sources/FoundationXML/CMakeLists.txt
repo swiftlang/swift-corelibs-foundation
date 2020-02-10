@@ -10,9 +10,11 @@ target_compile_definitions(FoundationXML PRIVATE
 target_compile_options(FoundationXML PUBLIC
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
-target_link_libraries(FoundationXML PRIVATE
-  Foundation
-  CFXMLInterface)
+target_link_libraries(FoundationXML
+  PRIVATE
+    CFXMLInterface
+  PUBLIC
+    Foundation)
 set_target_properties(FoundationXML PROPERTIES
   INSTALL_RPATH "$ORIGIN"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
