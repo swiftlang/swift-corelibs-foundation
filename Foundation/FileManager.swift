@@ -886,7 +886,7 @@ open class FileManager : NSObject {
     }()
 #endif
 
-    internal func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
+    internal func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<NativeFSRCharType>, andFileSystemRepresentation file2Rep: UnsafePointer<NativeFSRCharType>, size: Int64, bufSize: Int) -> Bool {
         guard let file1 = FileHandle(fileSystemRepresentation: file1Rep, flags: O_RDONLY, createMode: 0) else { return false }
         guard let file2 = FileHandle(fileSystemRepresentation: file2Rep, flags: O_RDONLY, createMode: 0) else { return false }
 

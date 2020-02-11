@@ -480,7 +480,11 @@ CF_CROSS_PLATFORM_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
 
 #pragma mark - File Functions
 
+#if TARGET_OS_WIN32
+CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const unsigned short *path, int opts, mode_t mode);
+#else
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
+#endif
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 
