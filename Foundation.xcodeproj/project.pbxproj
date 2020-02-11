@@ -426,6 +426,8 @@
 		B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */; };
 		B95FC97522AF051B005DEA0A /* xcode-build.sh in Resources */ = {isa = PBXBuildFile; fileRef = B95FC97422AF051B005DEA0A /* xcode-build.sh */; };
 		B95FC97622B84B0A005DEA0A /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
+		B983E32C23F0C69600D9C402 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = B983E32B23F0C69600D9C402 /* Docs */; };
+		B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */ = {isa = PBXBuildFile; fileRef = B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */; };
 		B98E33DD2136AA740044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */; };
 		B99EAE72236044C900C8FB46 /* SwiftXCTest.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B95FC97222AF0050005DEA0A /* SwiftXCTest.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B9C0E89620C31AB60064C68C /* CFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D888A1BBC963C00234F36 /* CFInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1075,6 +1077,8 @@
 		B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSLock.swift; sourceTree = "<group>"; };
 		B95FC97222AF0050005DEA0A /* SwiftXCTest.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftXCTest.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B95FC97422AF051B005DEA0A /* xcode-build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "xcode-build.sh"; sourceTree = "<group>"; };
+		B983E32B23F0C69600D9C402 /* Docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Docs; sourceTree = "<group>"; };
+		B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9974B8F1EDF4A22007F15B8 /* TransferState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransferState.swift; sourceTree = "<group>"; };
 		B9974B901EDF4A22007F15B8 /* MultiHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiHandle.swift; sourceTree = "<group>"; };
@@ -1342,8 +1346,10 @@
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
-				B95FC97422AF051B005DEA0A /* xcode-build.sh */,
 				B167A6641ED7303F0040B09A /* README.md */,
+				B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */,
+				B95FC97422AF051B005DEA0A /* xcode-build.sh */,
+				B983E32B23F0C69600D9C402 /* Docs */,
 				5BDC3F2C1BCC5DB500ED97BB /* Foundation */,
 				EAB57B681BD1A255004AC5C5 /* CoreFoundation */,
 				EA66F65B1BF2DF3200136161 /* Bootstrap */,
@@ -2658,6 +2664,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */,
+				B983E32C23F0C69600D9C402 /* Docs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
