@@ -569,15 +569,18 @@ class TestFileManager : XCTestCase {
 #endif
 
         func directoryItems(options: FileManager.DirectoryEnumerationOptions) -> [String: Int]? {
-            if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: basePath), includingPropertiesForKeys: nil, options: options, errorHandler: nil) {
-                var foundItems = [String:Int]()
-                while let item = e.nextObject() as? URL {
-                    foundItems[item.lastPathComponent] = e.level
-                }
-                return foundItems
-            } else {
-                return nil
+            guard let enumerator =
+                FileManager.default.enumerator(at: URL(fileURLWithPath: basePath),
+                                               includingPropertiesForKeys: nil,
+                                               options: options, errorHandler: nil) else {
+              return nil
             }
+
+            var foundItems = [String:Int]()
+            while let item = enumerator.nextObject() as? URL {
+              foundItems[item.lastPathComponent] = enumerator.level
+            }
+            return foundItems
         }
 
         try? fm.removeItem(atPath: basePath)

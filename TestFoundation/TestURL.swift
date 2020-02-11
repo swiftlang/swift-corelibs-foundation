@@ -62,8 +62,8 @@ class TestURL : XCTestCase {
       // ensure that the trailing slashes are compressed even when mixed
       // e.g. NOT file:///S:/b/u3%2F%/%2F%2/
       let u3 = URL(fileURLWithPath: "S:\\b\\u3//\\//")
-      // XCTAssertEqual(u3.absoluteString, "file:///S:/b/u3/%2F/")
-      XCTAssertEqual(u3.path, "S:\\b\\u3\\")
+      XCTAssertEqual(u3.absoluteString, "file:///S:/b/u3/")
+      XCTAssertEqual(u3.path, "S:/b/u3")
 
       // ensure that the regular conversion works
       let u4 = URL(fileURLWithPath: "S:\\b\\u4")
@@ -393,7 +393,16 @@ class TestURL : XCTestCase {
         // 1 for path separator
         let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
         XCTAssertEqual(UInt(actualLength), expectedLength, "fileSystemRepresentation was too short")
+#if os(Windows)
+        // On Windows, the URL path should have `/` separators and the
+        // fileSystemRepresentation should have `\` separators.
+        XCTAssertTrue(strncmp(String(TestURL.gBaseCurrentWorkingDirectoryPath.map { $0 == "/" ? "\\" : $0 }),
+                              fileSystemRep,
+                              Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0,
+                      "fileSystemRepresentation of base path is wrong")
+#else
         XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
+#endif
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
         XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
@@ -449,7 +458,16 @@ class TestURL : XCTestCase {
         // 1 for path separator
         let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
         XCTAssertEqual(actualLength, expectedLength, "fileSystemRepresentation was too short")
+#if os(Windows)
+        // On Windows, the URL path should have `/` separators and the
+        // fileSystemRepresentation should have `\` separators.
+        XCTAssertTrue(strncmp(String(TestURL.gBaseCurrentWorkingDirectoryPath.map { $0 == "/" ? "\\" : $0 }),
+                              fileSystemRep,
+                              Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0,
+                      "fileSystemRepresentation of base path is wrong")
+#else
         XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
+#endif
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
         XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
@@ -476,14 +494,26 @@ class TestURL : XCTestCase {
         do {
             let url = URL(fileURLWithPath: "~")
             let result = url.resolvingSymlinksInPath().absoluteString
+#if os(Windows)
+            // On Windows `currentDirectoryPath` will return something like
+            // `C:/Users/...` which doesn't have a leading slash
+            let expected = "file:///" + FileManager.default.currentDirectoryPath + "/~"
+#else
             let expected = "file://" + FileManager.default.currentDirectoryPath + "/~"
+#endif
             XCTAssertEqual(result, expected, "URLByResolvingSymlinksInPath resolves relative paths using current working directory.")
         }
 
         do {
             let url = URL(fileURLWithPath: "anysite.com/search")
             let result = url.resolvingSymlinksInPath().absoluteString
+#if os(Windows)
+            // On Windows `currentDirectoryPath` will return something like
+            // `C:/Users/...` which doesn't have a leading slash
+            let expected = "file:///" + FileManager.default.currentDirectoryPath + "/anysite.com/search"
+#else
             let expected = "file://" + FileManager.default.currentDirectoryPath + "/anysite.com/search"
+#endif
             XCTAssertEqual(result, expected)
         }
 

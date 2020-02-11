@@ -3965,10 +3965,15 @@ CF_EXPORT void __CFURLSetResourceInfoPtr(CFURLRef url, void *ptr) {
 /* HFSPath<->URLPath functions at the bottom of the file */
 static CFArrayRef WindowsPathToURLComponents(CFStringRef path, CFAllocatorRef alloc, Boolean isDir, Boolean isAbsolute) CF_RETURNS_RETAINED {
     CFArrayRef tmp;
+    CFMutableStringRef mutablePath;
     CFMutableArrayRef urlComponents = NULL;
     CFIndex i=0;
 
-    tmp = CFStringCreateArrayBySeparatingStrings(alloc, path, CFSTR("\\"));
+    // Since '/' is a valid Windows path separator, we convert '/' to '\' before splitting
+    mutablePath = CFStringCreateMutableCopy(alloc, 0, path);
+    CFStringFindAndReplace(mutablePath, CFSTR("/"), CFSTR("\\"), CFRangeMake(0, CFStringGetLength(mutablePath)), 0);
+    tmp = CFStringCreateArrayBySeparatingStrings(alloc, mutablePath, CFSTR("\\"));
+    CFRelease(mutablePath);
     urlComponents = CFArrayCreateMutableCopy(alloc, 0, tmp);
     CFRelease(tmp);
 
