@@ -20,6 +20,14 @@ import CoreFoundation
 import MSVCRT
 #endif
 
+#if os(Windows)
+internal typealias NativeFSRCharType = WCHAR
+internal let NativeFSREncoding = String.Encoding.utf16LittleEndian.rawValue
+#else
+internal typealias NativeFSRCharType = CChar
+internal let NativeFSREncoding = String.Encoding.utf8.rawValue
+#endif
+
 open class FileManager : NSObject {
     
     /* Returns the default singleton instance.
@@ -352,7 +360,7 @@ open class FileManager : NSObject {
             attributes.formIntersection(FileAttributeKey.allPublicKeys)
         }
         
-        try _fileSystemRepresentation(withPath: path, { fsRep in
+        try _fileSystemRepresentation(withPath: path) { fsRep in
             var flagsToSet: UInt32 = 0
             var flagsToUnset: UInt32 = 0
             
@@ -383,7 +391,12 @@ open class FileManager : NSObject {
                     #elseif os(Linux) || os(Android) || os(Windows)
                         let modeT = number.uint32Value
                     #endif
-                    guard chmod(fsRep, mode_t(modeT)) == 0 else {
+#if os(Windows)
+                    let result = _wchmod(fsRep, mode_t(modeT))
+#else
+                    let result = chmod(fsRep, mode_t(modeT))
+#endif
+                    guard result == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                 
@@ -423,8 +436,8 @@ open class FileManager : NSObject {
                     let hiddenAttrs = isHidden
                         ? attrs | DWORD(FILE_ATTRIBUTE_HIDDEN)
                         : attrs & DWORD(bitPattern: ~FILE_ATTRIBUTE_HIDDEN)
-                    guard path.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, hiddenAttrs) }) else {
-                        fatalError("Couldn't set \(path) to be hidden")
+                    guard SetFileAttributesW(fsRep, hiddenAttrs) else {
+                      throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
                     }
 #else
                     prepareToSetOrUnsetFlag(UF_HIDDEN)
@@ -465,7 +478,7 @@ open class FileManager : NSObject {
               // Set dates as the very last step, to avoid other operations overwriting these values:
               try _updateTimes(atPath: path, withFileSystemRepresentation: fsRep, accessTime: newAccessDate, modificationTime: newModificationDate)
             }
-        })
+        }
     }
     
     /* createDirectoryAtPath:withIntermediateDirectories:attributes:error: creates a directory at the specified path. If you pass 'NO' for createIntermediates, the directory must not exist at the time this call is made. Passing 'YES' for 'createIntermediates' will create any necessary intermediate directories. This method returns YES if all directories specified in 'path' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
@@ -1021,15 +1034,29 @@ open class FileManager : NSObject {
      */
     open func fileSystemRepresentation(withPath path: String) -> UnsafePointer<Int8> {
         precondition(path != "", "Empty path argument")
+#if os(Windows)
+        // On Windows, the internal _fileSystemRepresentation returns UTF16
+        // encoded data, so we need to re-encode the result as UTF-8 before
+        // returning.
+        return try! _fileSystemRepresentation(withPath: path) {
+            String(decodingCString: $0, as: UTF16.self).withCString() {
+                let size = strnlen($0, Int(MAX_PATH))
+                let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: size + 1)
+                buffer.initialize(from: $0, count: size + 1)
+                return UnsafePointer(buffer)
+            }
+        }
+#else
         return try! __fileSystemRepresentation(withPath: path)
+#endif
     }
 
-    internal func __fileSystemRepresentation(withPath path: String) throws -> UnsafePointer<Int8> {
+    internal func __fileSystemRepresentation(withPath path: String) throws -> UnsafePointer<NativeFSRCharType> {
         let len = CFStringGetMaximumSizeOfFileSystemRepresentation(path._cfObject)
         if len != kCFNotFound {
-            let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+            let buf = UnsafeMutablePointer<NativeFSRCharType>.allocate(capacity: len)
             buf.initialize(repeating: 0, count: len)
-            if path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
+            if path._nsObject._getFileSystemRepresentation(buf, maxLength: len) {
                 return UnsafePointer(buf)
             }
             buf.deinitialize(count: len)
@@ -1038,13 +1065,13 @@ open class FileManager : NSObject {
         throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInvalidFileName.rawValue, userInfo: [NSFilePathErrorKey: path])
     }
 
-    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<Int8>) throws -> ResultType) throws -> ResultType {
+    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<NativeFSRCharType>) throws -> ResultType) throws -> ResultType {
         let fsRep = try __fileSystemRepresentation(withPath: path)
         defer { fsRep.deallocate() }
         return try body(fsRep)
     }
 
-    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<Int8>, UnsafePointer<Int8>) throws -> ResultType) throws -> ResultType {
+    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<NativeFSRCharType>, UnsafePointer<NativeFSRCharType>) throws -> ResultType) throws -> ResultType {
         let fsRep1 = try __fileSystemRepresentation(withPath: path1)
         defer { fsRep1.deallocate() }
         let fsRep2 = try __fileSystemRepresentation(withPath: path2)
@@ -1058,7 +1085,7 @@ open class FileManager : NSObject {
     open func string(withFileSystemRepresentation str: UnsafePointer<Int8>, length len: Int) -> String {
         return NSString(bytes: str, length: len, encoding: String.Encoding.utf8.rawValue)!._swiftObject
     }
-    
+
     /* -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: is for developers who wish to perform a safe-save without using the full NSDocument machinery that is available in the AppKit.
      
         The `originalItemURL` is the item being replaced.
@@ -1094,13 +1121,13 @@ open class FileManager : NSObject {
     open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: FileManager.ItemReplacementOptions = [], resultingItemURL resultingURL: UnsafeMutablePointer<NSURL?>?) throws {
         NSUnsupported()
     }
-    
+
     internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {
         // destinationOfSymbolicLink(atPath:) will fail if the path is not a symbolic link
         guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
-        
+
         return _appendSymlinkDestination(destination, toPath: path)
     }
 

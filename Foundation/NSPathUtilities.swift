@@ -22,7 +22,7 @@ public func NSTemporaryDirectory() -> String {
     guard GetTempPathW(DWORD(wszPath.count), &wszPath) <= cchLength else {
       preconditionFailure("GetTempPathW mutation race")
     }
-    return String(decodingCString: wszPath, as: UTF16.self)
+    return String(decodingCString: wszPath, as: UTF16.self).standardizingPath
 #else
 #if canImport(Darwin)
     let safe_confstr = { (name: Int32, buf: UnsafeMutablePointer<Int8>?, len: Int) -> Int in
@@ -124,13 +124,17 @@ extension String {
     }
 
     internal var isAbsolutePath: Bool {
+      if hasPrefix("~") { return true }
 #if os(Windows)
-        return hasPrefix("~") || !withCString(encodedAs: UTF16.self, PathIsRelativeW)
+      guard let value = try? FileManager.default._fileSystemRepresentation(withPath: self, {
+          !PathIsRelativeW($0)
+      }) else { return false }
+      return value
 #else
-        return hasPrefix("~") || hasPrefix("/")
+      return hasPrefix("/")
 #endif
     }
-    
+
     internal func _stringByAppendingPathComponent(_ str: String, doneAppending : Bool = true) -> String {
         if str.isEmpty {
             return self
@@ -198,15 +202,11 @@ extension String {
 }
 
 extension NSString {
-    
+
     public var isAbsolutePath: Bool {
-#if os(Windows)
-        return !self._swiftObject.withCString(encodedAs: UTF16.self, PathIsRelativeW)
-#else
-        return hasPrefix("~") || hasPrefix("/")
-#endif
+      return (self as String).isAbsolutePath
     }
-    
+
     public static func path(withComponents components: [String]) -> String {
         var result = ""
         for comp in components.prefix(components.count - 1) {
@@ -348,9 +348,26 @@ extension NSString {
         
         return result
     }
+
+#if os(Windows)
+    public var unixPath: String {
+        var unprefixed = self as String
+        // If there is anything before the drive letter, e.g. "\\?\", "\\host\",
+        // "\??\", etc, remove it.
+        if isAbsolutePath, let index = unprefixed.firstIndex(of: ":") {
+            unprefixed.removeSubrange(..<unprefixed.index(before: index))
+        }
+        let converted = String(unprefixed.map({ $0 == "\\" ? "/" : $0 }))
+        return converted._stringByFixingSlashes(stripTrailing: false)
+    }
+#endif
     
     public var standardizingPath: String {
+#if os(Windows)
+        let expanded = unixPath.expandingTildeInPath
+#else
         let expanded = expandingTildeInPath
+#endif
         var resolved = expanded._bridgeToObjectiveC().resolvingSymlinksInPath
         
         let automount = "/var/automount"
@@ -552,13 +569,70 @@ extension NSString {
     public var fileSystemRepresentation: UnsafePointer<Int8> {
         return FileManager.default.fileSystemRepresentation(withPath: self._swiftObject)
     }
-    
+
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {
+#if os(Windows)
+        let fsr = UnsafeMutablePointer<WCHAR>.allocate(capacity: max)
+        defer { fsr.deallocate() }
+
+        guard _getFileSystemRepresentation(fsr, maxLength: max) else { return false }
+        return String(decodingCString: fsr, as: UTF16.self).withCString() {
+            let chars = strnlen_s($0, max)
+            guard chars < max else { return false }
+            cname.assign(from: $0, count: chars + 1)
+            return true
+        }
+#else
+        return _getFileSystemRepresentation(cname, maxLength: max)
+#endif
+    }
+
+    internal func _getFileSystemRepresentation(_ cname: UnsafeMutablePointer<NativeFSRCharType>, maxLength max: Int) -> Bool {
         guard self.length > 0 else {
             return false
         }
         
+#if os(Windows)
+        var fsr = self._swiftObject
+
+        // If we have a RFC8089 style path, e.g. `/[drive-letter]:/...`, drop
+        // the leading '/', otherwise, a leading slash indicates a rooted path
+        // on the drive for the current working directoyr.
+        if fsr.count >= 3 {
+            let index0 = fsr.startIndex
+            let index1 = fsr.index(after: index0)
+            let index2 = fsr.index(after: index1)
+
+            if fsr[index0] == "/" && fsr[index1].isLetter && fsr[index2] == ":" {
+                fsr.removeFirst()
+            }
+        }
+
+        // Windows APIs that go through the path parser can handle forward
+        // slashes in paths.  However, symlinks created with forward slashes
+        // do not resolve properly, so we normalize the path separators anyways.
+        fsr = fsr.replacingOccurrences(of: "/", with: "\\")
+
+        // Drop trailing slashes unless it follows a drive letter.  On Windows,
+        // the path `C:\` indicates the root directory of the `C:` drive.  The
+        // path `C:` indicates the current working directory on the `C:` drive.
+        while fsr.count > 1 &&
+              fsr[fsr.index(before: fsr.endIndex)] == "\\" &&
+              !(fsr.count == 3 &&
+                fsr[fsr.index(fsr.endIndex, offsetBy: -2)] == ":" &&
+                fsr[fsr.index(fsr.endIndex, offsetBy: -3)].isLetter) {
+            fsr.removeLast()
+        }
+
+        return fsr.withCString(encodedAs: UTF16.self) {
+            let wchars = wcsnlen_s($0, max)
+            guard wchars < max else { return false }
+            cname.assign(from: $0, count: wchars + 1)
+            return true
+        }
+#else
         return CFStringGetFileSystemRepresentation(self._cfObject, cname, max)
+#endif
     }
 
 }
@@ -696,22 +770,18 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
-#if os(Windows)
-    try auxFilePath.withCString(encodedAs: UTF16.self) { fromPath in
-        try filePath.withCString(encodedAs: UTF16.self) { toPath in
-            let res = CopyFileW(fromPath, toPath, /*bFailIfExists=*/false)
-            try? FileManager.default.removeItem(atPath: auxFilePath)
-            if !res {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
-            }
-        }
-    }
-#else
     try FileManager.default._fileSystemRepresentation(withPath: auxFilePath, andPath: filePath, {
+#if os(Windows)
+        let res = CopyFileW($0, $1, /*bFailIfExists=*/false)
+        try? FileManager.default.removeItem(atPath: auxFilePath)
+        if !res {
+          throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+        }
+#else
         if rename($0, $1) != 0 {
             try? FileManager.default.removeItem(atPath: auxFilePath)
             throw _NSErrorWithErrno(errno, reading: false, path: filePath)
         }
-    })
 #endif
+    })
 }
