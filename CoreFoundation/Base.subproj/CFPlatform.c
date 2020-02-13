@@ -1527,9 +1527,15 @@ CF_EXPORT char **_CFEnviron(void) {
 #endif
 }
 
+#if TARGET_OS_WIN32
+CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const unsigned short *path, int opts, mode_t mode) {
+    return _wopen(path, opts, mode);
+}
+#else
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
     return open(path, opts, mode);
 }
+#endif
 
 int _CFOpenFile(const char *path, int opts) {
     return open(path, opts, 0);

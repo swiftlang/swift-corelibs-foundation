@@ -583,21 +583,24 @@ extension FileManager {
                 }
                 dirStack.append(itemPath)
                 var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
-                let h: HANDLE = (itemPath + "\\*").withCString(encodedAs: UTF16.self, {
-                    FindFirstFileW($0, &ffd)
-                })
-                guard h != INVALID_HANDLE_VALUE else {
-                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [itemPath])
+                let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
+
+                let handle: HANDLE = try FileManager.default._fileSystemRepresentation(withPath: joinPath(prefix: itemPath, suffix: "*")) {
+                  FindFirstFileW($0, &ffd)
                 }
-                defer { FindClose(h) }
+                if handle == INVALID_HANDLE_VALUE {
+                  throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [itemPath])
+                }
+                defer { FindClose(handle) }
 
                 repeat {
-                    let fileArr = Array<WCHAR>(
-                        UnsafeBufferPointer(start: &ffd.cFileName.0,
-                                            count: MemoryLayout.size(ofValue: ffd.cFileName)))
-                    let file = String(decodingCString: fileArr, as: UTF16.self)
-                    itemPath = "\(currentDir)\\\(file)"
+                    let file = withUnsafePointer(to: &ffd.cFileName) {
+                      $0.withMemoryRebound(to: WCHAR.self, capacity: capacity) {
+                        String(decodingCString: $0, as: UTF16.self)
+                      }
+                    }
 
+                    itemPath = "\(currentDir)\\\(file)"
                     if ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
                         let readableAttributes = ffd.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY)
                         guard itemPath.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, readableAttributes) }) else {
@@ -617,7 +620,7 @@ extension FileManager {
                             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
                         }
                     }
-                } while FindNextFileW(h, &ffd)
+                } while FindNextFileW(handle, &ffd)
             } catch {
                 if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
                     throw error
@@ -646,18 +649,24 @@ extension FileManager {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-            do {
-                let contents = try destinationOfSymbolicLink(atPath: path)
-                let resolvedPath = contents.isAbsolutePath
-                    ? contents
-                    : joinPath(prefix: path.deletingLastPathComponent, suffix: contents)
-                try faAttributes = windowsFileAttributes(atPath: resolvedPath)
-            } catch {
-                return false
-            }
-        }
-        if let isDirectory = isDirectory {
+          guard let handle: HANDLE = try? FileManager.default._fileSystemRepresentation(withPath: path, {
+            CreateFileW($0, /* dwDesiredAccess= */ DWORD(0),
+                        DWORD(FILE_SHARE_READ), /* lpSecurityAttributes= */ nil,
+                        DWORD(OPEN_EXISTING),
+                        DWORD(FILE_FLAG_BACKUP_SEMANTICS), /* hTemplateFile= */ nil)
+          }) else { return false }
+          if handle == INVALID_HANDLE_VALUE { return false }
+          defer { CloseHandle(handle) }
+
+          if let isDirectory = isDirectory {
+            var info: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
+            GetFileInformationByHandle(handle, &info)
+            isDirectory.pointee = ObjCBool(info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY))
+          }
+        } else {
+          if let isDirectory = isDirectory {
             isDirectory.pointee = ObjCBool(faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY))
+          }
         }
         return true
     }
@@ -758,21 +767,24 @@ extension FileManager {
     }
 
     internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
-        guard let path1Handle = path1.withCString(encodedAs: UTF16.self, {
-            CreateFileW($0, GENERIC_READ, DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nil,
-                        DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS), nil)
-        }), path1Handle != INVALID_HANDLE_VALUE else {
-            return false
-        }
-
+        guard let path1Handle: HANDLE = try? FileManager.default._fileSystemRepresentation(withPath: path1, {
+          CreateFileW($0, GENERIC_READ,
+                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
+                      nil, DWORD(OPEN_EXISTING),
+                      DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                      nil)
+        }) else { return false }
+        if path1Handle == INVALID_HANDLE_VALUE { return false }
         defer { CloseHandle(path1Handle) }
 
-        guard let path2Handle = path2.withCString(encodedAs: UTF16.self, {
-            CreateFileW($0, GENERIC_READ, DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nil,
-                        DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS), nil)
-        }), path2Handle != INVALID_HANDLE_VALUE else {
-            return false
-        }
+        guard let path2Handle: HANDLE = try? FileManager.default._fileSystemRepresentation(withPath: path2, {
+          CreateFileW($0, GENERIC_READ,
+                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
+                      nil, DWORD(OPEN_EXISTING),
+                      DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                      nil)
+        }) else { return false }
+        if path2Handle == INVALID_HANDLE_VALUE { return false }
         defer { CloseHandle(path2Handle) }
 
         let file1Type = GetFileType(path1Handle)
@@ -829,14 +841,12 @@ extension FileManager {
                 return true
             }
 
-            let path1Fsr = fileSystemRepresentation(withPath: path1)
-            defer { path1Fsr.deallocate() }
-            let path2Fsr = fileSystemRepresentation(withPath: path2)
-            defer { path2Fsr.deallocate() }
-            return _compareFiles(withFileSystemRepresentation: path1Fsr,
-                                 andFileSystemRepresentation: path2Fsr,
-                                 size: (Int64(path1FileInfo.nFileSizeHigh) << 32) | Int64(path1FileInfo.nFileSizeLow),
-                                 bufSize: 0x1000)
+            return try! FileManager.default._fileSystemRepresentation(withPath: path1, andPath: path2) {
+              _compareFiles(withFileSystemRepresentation: $0,
+                            andFileSystemRepresentation: $1,
+                            size: (Int64(path1FileInfo.nFileSizeHigh) << 32) | Int64(path1FileInfo.nFileSizeLow),
+                            bufSize: 0x1000)
+            }
         }
     }
 
@@ -891,10 +901,13 @@ extension FileManager {
             func firstValidItem() -> URL? {
                 while let url = _stack.popLast() {
                     if !FileManager.default.fileExists(atPath: url.path) {
-                        guard let handler = _errorHandler,
-                              handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [url.path]))
-                        else { return nil }
-                        continue
+                      if let handler = _errorHandler {
+                        if !handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [url.path])) {
+                          return nil
+                        }
+                      } else {
+                        return nil
+                      }
                     }
                     _lastReturned = url
                     return _lastReturned
@@ -910,31 +923,32 @@ extension FileManager {
                 return firstValidItem()
             }
 
-            let isDir = attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY)
-                    && attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == 0
+            let isDir = attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) &&
+                attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == 0
             if isDir && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
                 var ffd = WIN32_FIND_DATAW()
-                let dirPath = joinPath(prefix: _lastReturned.path, suffix: "*")
-                let handle = try? FileManager.default._fileSystemRepresentation(withPath: dirPath) {
+                let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
+
+                guard let handle = try? FileManager.default._fileSystemRepresentation(withPath: joinPath(prefix: _lastReturned.path, suffix: "*"), {
                   FindFirstFileW($0, &ffd)
-                }
+                }) else { return firstValidItem() }
                 if handle == INVALID_HANDLE_VALUE { return firstValidItem() }
                 defer { FindClose(handle) }
 
                 repeat {
-                    let fileArr = Array<WCHAR>(
-                      UnsafeBufferPointer(start: &ffd.cFileName.0,
-                                          count: MemoryLayout.size(ofValue: ffd.cFileName)))
-                    let file = String(decodingCString: fileArr, as: UTF16.self)
-                    if file != "." && file != ".."
-                        && (!_options.contains(.skipsHiddenFiles)
-                            || (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_HIDDEN) == 0)) {
-                        let relative = URL(fileURLWithPath: file, relativeTo: _lastReturned)
-                        _stack.append(relative)
+                    let file = withUnsafePointer(to: &ffd.cFileName) {
+                      $0.withMemoryRebound(to: WCHAR.self, capacity: capacity) {
+                        String(decodingCString: $0, as: UTF16.self)
+                      }
                     }
+                    if file == "." || file == ".." { continue }
+                    if _options.contains(.skipsHiddenFiles) &&
+                       ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_HIDDEN) == DWORD(FILE_ATTRIBUTE_HIDDEN) {
+                      continue
+                    }
+                    _stack.append(URL(fileURLWithPath: file, relativeTo: _lastReturned))
                 } while FindNextFileW(handle, &ffd)
             }
-
             return firstValidItem()
         }
 
