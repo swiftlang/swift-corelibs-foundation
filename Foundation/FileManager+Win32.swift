@@ -397,8 +397,16 @@ extension FileManager {
         }
 
         let substituteNameBuff = Data(bytes: pathBufferPtr + substituteNameOffset, count: substituteNameBytes)
-        guard let substitutePath = String(data: substituteNameBuff, encoding: .utf16LittleEndian) else {
+        guard var substitutePath = String(data: substituteNameBuff, encoding: .utf16LittleEndian) else {
             throw _NSErrorWithWindowsError(DWORD(ERROR_INVALID_DATA), reading: false)
+        }
+
+        // Canonicalize the NT Object Manager Path to the DOS style path
+        // instead.  Unfortunately, there is no nice API which can allow us to
+        // do this in a guranteed way.
+        let kObjectManagerPrefix = "\\??\\"
+        if substitutePath.hasPrefix(kObjectManagerPrefix) {
+          substitutePath = String(substitutePath.dropFirst(kObjectManagerPrefix.count))
         }
         return substitutePath
     }
