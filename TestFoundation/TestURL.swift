@@ -79,7 +79,7 @@ class TestURL : XCTestCase {
 
       // ensure that we do not index beyond the start of the string
       let u7 = URL(fileURLWithPath: "eh", relativeTo: URL(fileURLWithPath: "S:\\b"))
-      XCTAssertEqual(u7.absoluteString, "file:///S:/b/eh")
+      XCTAssertEqual(u7.absoluteString, "file:///S:/eh")
 
       // ensure that / is handled properly
       let u8 = URL(fileURLWithPath: "/")
