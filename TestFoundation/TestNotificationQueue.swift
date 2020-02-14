@@ -10,20 +10,16 @@
 class TestNotificationQueue : XCTestCase {
     static var allTests : [(String, (TestNotificationQueue) -> () throws -> Void)] {
         return [
-/*
-FIXME SR-4280 timeouts in TestNSNotificationQueue tests
-
             ("test_defaultQueue", test_defaultQueue),
             ("test_postNowToDefaultQueueWithoutCoalescing", test_postNowToDefaultQueueWithoutCoalescing),
             ("test_postNowToDefaultQueueWithCoalescing", test_postNowToDefaultQueueWithCoalescing),
             ("test_postNowToCustomQueue", test_postNowToCustomQueue),
             ("test_postNowForDefaultRunLoopMode", test_postNowForDefaultRunLoopMode),
-            // ("test_notificationQueueLifecycle", test_notificationQueueLifecycle),
+            ("test_notificationQueueLifecycle", test_notificationQueueLifecycle),
             ("test_postAsapToDefaultQueue", test_postAsapToDefaultQueue),
             ("test_postAsapToDefaultQueueWithCoalescingOnNameAndSender", test_postAsapToDefaultQueueWithCoalescingOnNameAndSender),
             ("test_postAsapToDefaultQueueWithCoalescingOnNameOrSender", test_postAsapToDefaultQueueWithCoalescingOnNameOrSender),
             ("test_postIdleToDefaultQueue", test_postIdleToDefaultQueue),
-*/
         ]
     }
 
