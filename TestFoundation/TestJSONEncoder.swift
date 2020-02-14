@@ -90,10 +90,115 @@ class TestJSONEncoder : XCTestCase {
         _testRoundTrip(of: person, expectedJSON: expectedJSON)
     }
 
-    func test_encodingOutputFormattingPrettyPrinted() {
+    func test_encodingOutputFormattingPrettyPrinted() throws {
         let expectedJSON = "{\n  \"name\" : \"Johnny Appleseed\",\n  \"email\" : \"appleseed@apple.com\"\n}".data(using: .utf8)!
         let person = Person.testValue
         _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted])
+
+        let encoder = JSONEncoder()
+        if #available(OSX 10.13, *) {
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        } else {
+            // Fallback on earlier versions
+            encoder.outputFormatting = [.prettyPrinted]
+        }
+
+        let emptyArray: [Int] = []
+        let arrayOutput = try encoder.encode(emptyArray)
+        XCTAssertEqual(String.init(decoding: arrayOutput, as: UTF8.self), "[\n\n]")
+
+        let emptyDictionary: [String: Int] = [:]
+        let dictionaryOutput = try encoder.encode(emptyDictionary)
+        XCTAssertEqual(String.init(decoding: dictionaryOutput, as: UTF8.self), "{\n\n}")
+
+        struct DataType: Encodable {
+            let array = [1, 2, 3]
+            let dictionary: [String: Int] = [:]
+            let emptyAray: [Int] = []
+            let secondArray: [Int] = [4, 5, 6]
+            let secondDictionary: [String: Int] = [ "one": 1, "two": 2, "three": 3]
+            let singleElement: [Int] = [1]
+            let subArray: [String: [Int]] = [ "array": [] ]
+            let subDictionary: [String: [String: Int]] = [ "dictionary": [:] ]
+        }
+
+        let dataOutput = try encoder.encode([DataType(), DataType()])
+        XCTAssertEqual(String.init(decoding: dataOutput, as: UTF8.self), """
+[
+  {
+    "array" : [
+      1,
+      2,
+      3
+    ],
+    "dictionary" : {
+
+    },
+    "emptyAray" : [
+
+    ],
+    "secondArray" : [
+      4,
+      5,
+      6
+    ],
+    "secondDictionary" : {
+      "one" : 1,
+      "three" : 3,
+      "two" : 2
+    },
+    "singleElement" : [
+      1
+    ],
+    "subArray" : {
+      "array" : [
+
+      ]
+    },
+    "subDictionary" : {
+      "dictionary" : {
+
+      }
+    }
+  },
+  {
+    "array" : [
+      1,
+      2,
+      3
+    ],
+    "dictionary" : {
+
+    },
+    "emptyAray" : [
+
+    ],
+    "secondArray" : [
+      4,
+      5,
+      6
+    ],
+    "secondDictionary" : {
+      "one" : 1,
+      "three" : 3,
+      "two" : 2
+    },
+    "singleElement" : [
+      1
+    ],
+    "subArray" : {
+      "array" : [
+
+      ]
+    },
+    "subDictionary" : {
+      "dictionary" : {
+
+      }
+    }
+  }
+]
+""")
     }
 
     func test_encodingOutputFormattingSortedKeys() {
