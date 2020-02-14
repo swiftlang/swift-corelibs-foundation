@@ -473,70 +473,101 @@ class TestURL : XCTestCase {
         XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
     }
 
-    func test_URLByResolvingSymlinksInPath() {
-        let files = [
-            NSTemporaryDirectory() + "ABC/test_URLByResolvingSymlinksInPath"
-        ]
+    func test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators() {
+        let url = URL(fileURLWithPath: "//foo///bar////baz/")
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: "/foo/bar/baz"))
+    }
 
-        guard ensureFiles(files) else {
-            XCTAssert(false, "Could create files for testing.")
-            return
-        }
+    func test_URLByResolvingSymlinksInPathShouldRemoveSingleDotsBetweenSeparators() {
+        let url = URL(fileURLWithPath: "/./foo/./.bar/./baz/./")
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: "/foo/.bar/baz"))
+    }
 
-        // tmp is special because it is symlinked to /private/tmp and this /private prefix should be dropped,
-        // so tmp is tmp. On Linux tmp is not symlinked so it would be the same.
-        do {
-            let url = URL(fileURLWithPath: "/.//tmp/ABC/..")
-            let result = url.resolvingSymlinksInPath().absoluteString
-            XCTAssertEqual(result, "file:///tmp/", "URLByResolvingSymlinksInPath removes extraneous path components and resolve symlinks.")
-        }
+    func test_URLByResolvingSymlinksInPathShouldCompressDoubleDotsBetweenSeparators() {
+        let url = URL(fileURLWithPath: "/foo/../..bar/../baz/")
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: "/baz"))
+    }
 
-        do {
-            let url = URL(fileURLWithPath: "~")
-            let result = url.resolvingSymlinksInPath().absoluteString
-#if os(Windows)
-            // On Windows `currentDirectoryPath` will return something like
-            // `C:/Users/...` which doesn't have a leading slash
-            let expected = "file:///" + FileManager.default.currentDirectoryPath + "/~"
-#else
-            let expected = "file://" + FileManager.default.currentDirectoryPath + "/~"
-#endif
-            XCTAssertEqual(result, expected, "URLByResolvingSymlinksInPath resolves relative paths using current working directory.")
-        }
+    func test_URLByResolvingSymlinksInPathShouldUseTheCurrentDirectory() throws {
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: writableTestDirectoryURL) }
 
-        do {
-            let url = URL(fileURLWithPath: "anysite.com/search")
-            let result = url.resolvingSymlinksInPath().absoluteString
-#if os(Windows)
-            // On Windows `currentDirectoryPath` will return something like
-            // `C:/Users/...` which doesn't have a leading slash
-            let expected = "file:///" + FileManager.default.currentDirectoryPath + "/anysite.com/search"
-#else
-            let expected = "file://" + FileManager.default.currentDirectoryPath + "/anysite.com/search"
-#endif
-            XCTAssertEqual(result, expected)
-        }
+        let previousCurrentDirectory = fileManager.currentDirectoryPath
+        fileManager.changeCurrentDirectoryPath(writableTestDirectoryURL.path)
+        defer { fileManager.changeCurrentDirectoryPath(previousCurrentDirectory) }
 
-        // tmp is symlinked on macOS only
-        #if os(macOS)
-        do {
-            let url = URL(fileURLWithPath: "/tmp/..")
-            let result = url.resolvingSymlinksInPath().absoluteString
-            XCTAssertEqual(result, "file:///private/")
-        }
-        #else
-        do {
-            let url = URL(fileURLWithPath: "/tmp/ABC/test_URLByResolvingSymlinksInPath")
-            let result = url.resolvingSymlinksInPath().absoluteString
-            XCTAssertEqual(result, "file:///tmp/ABC/test_URLByResolvingSymlinksInPath", "URLByResolvingSymlinksInPath appends trailing slash for existing directories only")
-        }
-        #endif
+        // In Darwin, because temporary directory is inside /private,
+        // writableTestDirectoryURL will be something like /var/folders/...,
+        // but /var points to /private/var, which is only removed if the
+        // destination exists, so we create the destination to avoid having to
+        // compare against /private in Darwin.
+        try fileManager.createDirectory(at: writableTestDirectoryURL.appendingPathComponent("foo/bar"), withIntermediateDirectories: true)
+        try "".write(to: writableTestDirectoryURL.appendingPathComponent("foo/bar/baz"), atomically: true, encoding: .utf8)
 
-        do {
-            let url = URL(fileURLWithPath: "/tmp/ABC/..")
-            let result = url.resolvingSymlinksInPath().absoluteString
-            XCTAssertEqual(result, "file:///tmp/")
+        let url = URL(fileURLWithPath: "foo/bar/baz")
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: writableTestDirectoryURL.path + "/foo/bar/baz"))
+    }
+
+    func test_resolvingSymlinksInPathShouldAppendTrailingSlashWhenExistingDirectory() throws {
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: writableTestDirectoryURL) }
+
+        var path = writableTestDirectoryURL.path
+        if path.hasSuffix("/") {
+            path.remove(at: path.index(path.endIndex, offsetBy: -1))
         }
+        let url = URL(fileURLWithPath: path)
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: path + "/"))
+    }
+
+    func test_resolvingSymlinksInPathShouldResolveSymlinks() throws {
+        // NOTE: this test only works on file systems that support symlinks.
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: writableTestDirectoryURL) }
+
+        let symbolicLink = writableTestDirectoryURL.appendingPathComponent("origin")
+        let destination = writableTestDirectoryURL.appendingPathComponent("destination")
+        try "".write(to: destination, atomically: true, encoding: .utf8)
+        try fileManager.createSymbolicLink(at: symbolicLink, withDestinationURL: destination)
+
+        let result = symbolicLink.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: writableTestDirectoryURL.path + "/destination"))
+    }
+
+    func test_resolvingSymlinksInPathShouldRemovePrivatePrefix() {
+        // NOTE: this test only works on Darwin, since the code that removes
+        // /private relies on /private/tmp existing.
+        let url = URL(fileURLWithPath: "/private/tmp")
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: "/tmp"))
+    }
+
+    func test_resolvingSymlinksInPathShouldNotRemovePrivatePrefixIfOnlyComponent() {
+        // NOTE: this test only works on Darwin, since only there /tmp is
+        // symlinked to /private/tmp.
+        let url = URL(fileURLWithPath: "/tmp/..")
+        let result = url.resolvingSymlinksInPath()
+        XCTAssertEqual(result, URL(fileURLWithPath: "/private"))
+    }
+
+    func test_resolvingSymlinksInPathShouldNotChangeNonFileURLs() throws {
+        let url = try XCTUnwrap(URL(string: "myscheme://server/foo/bar/baz"))
+        let result = url.resolvingSymlinksInPath().absoluteString
+        XCTAssertEqual(result, "myscheme://server/foo/bar/baz")
+    }
+
+    func test_resolvingSymlinksInPathShouldNotChangePathlessURLs() throws {
+        let url = try XCTUnwrap(URL(string: "file://"))
+        let result = url.resolvingSymlinksInPath().absoluteString
+        XCTAssertEqual(result, "file://")
     }
 
     func test_reachable() {
@@ -719,7 +750,14 @@ class TestURL : XCTestCase {
             // TODO: these tests fail on linux, more investigation is needed
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
-            ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
+            ("test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators", test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators),
+            ("test_URLByResolvingSymlinksInPathShouldRemoveSingleDotsBetweenSeparators", test_URLByResolvingSymlinksInPathShouldRemoveSingleDotsBetweenSeparators),
+            ("test_URLByResolvingSymlinksInPathShouldCompressDoubleDotsBetweenSeparators", test_URLByResolvingSymlinksInPathShouldCompressDoubleDotsBetweenSeparators),
+            ("test_URLByResolvingSymlinksInPathShouldUseTheCurrentDirectory", test_URLByResolvingSymlinksInPathShouldUseTheCurrentDirectory),
+            ("test_resolvingSymlinksInPathShouldAppendTrailingSlashWhenExistingDirectory", test_resolvingSymlinksInPathShouldAppendTrailingSlashWhenExistingDirectory),
+            ("test_resolvingSymlinksInPathShouldResolveSymlinks", test_resolvingSymlinksInPathShouldResolveSymlinks),
+            ("test_resolvingSymlinksInPathShouldNotChangeNonFileURLs", test_resolvingSymlinksInPathShouldNotChangeNonFileURLs),
+            ("test_resolvingSymlinksInPathShouldNotChangePathlessURLs", test_resolvingSymlinksInPathShouldNotChangePathlessURLs),
             ("test_reachable", test_reachable),
             ("test_copy", test_copy),
             ("test_itemNSCoding", test_itemNSCoding),
@@ -734,6 +772,13 @@ class TestURL : XCTestCase {
             ("test_WindowsPathSeparator", test_WindowsPathSeparator),
             ("test_WindowsPathSeparator2", test_WindowsPathSeparator2),
         ])
+#endif
+
+#if canImport(Darwin)
+        tests += [
+            ("test_resolvingSymlinksInPathShouldRemovePrivatePrefix", test_resolvingSymlinksInPathShouldRemovePrivatePrefix),
+            ("test_resolvingSymlinksInPathShouldNotRemovePrivatePrefixIfOnlyComponent", test_resolvingSymlinksInPathShouldNotRemovePrivatePrefixIfOnlyComponent),
+        ]
 #endif
 
         return tests
