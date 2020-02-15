@@ -416,7 +416,7 @@ private struct JSONWriter {
         writer("[")
         if pretty {
             writer("\n")
-            incAndWriteIndent()
+            incIndent()
         }
         
         var first = true
@@ -425,9 +425,11 @@ private struct JSONWriter {
                 first = false
             } else if pretty {
                 writer(",\n")
-                writeIndent()
             } else {
                 writer(",")
+            }
+            if pretty {
+                writeIndent()
             }
             try serializeJSON(elem)
         }
@@ -442,7 +444,10 @@ private struct JSONWriter {
         writer("{")
         if pretty {
             writer("\n")
-            incAndWriteIndent()
+            incIndent()
+            if dict.count > 0 {
+                writeIndent()
+            }
         }
 
         var first = true
@@ -499,7 +504,11 @@ private struct JSONWriter {
     }
     
     let indentAmount = 2
-    
+
+    mutating func incIndent() {
+        indent += indentAmount
+    }
+
     mutating func incAndWriteIndent() {
         indent += indentAmount
         writeIndent()
