@@ -647,22 +647,21 @@ extension FileManager {
 
     @discardableResult
     internal func _changeCurrentDirectoryPath(_ path: String) -> Bool {
-        guard let bResult = try? FileManager.default._fileSystemRepresentation(withPath: path, {
+        return (try? FileManager.default._fileSystemRepresentation(withPath: path) {
           SetCurrentDirectoryW($0)
-        }) else { return false }
-        return bResult
+        }) ?? false
     }
 
     internal func _fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-          guard let handle: HANDLE = try? FileManager.default._fileSystemRepresentation(withPath: path, {
+          let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
             CreateFileW($0, /* dwDesiredAccess= */ DWORD(0),
                         DWORD(FILE_SHARE_READ), /* lpSecurityAttributes= */ nil,
                         DWORD(OPEN_EXISTING),
                         DWORD(FILE_FLAG_BACKUP_SEMANTICS), /* hTemplateFile= */ nil)
-          }) else { return false }
+          }) ?? INVALID_HANDLE_VALUE
           if handle == INVALID_HANDLE_VALUE { return false }
           defer { CloseHandle(handle) }
 
@@ -775,23 +774,23 @@ extension FileManager {
     }
 
     internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
-        guard let path1Handle: HANDLE = try? FileManager.default._fileSystemRepresentation(withPath: path1, {
+        let path1Handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path1) {
           CreateFileW($0, GENERIC_READ,
                       DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
                       nil, DWORD(OPEN_EXISTING),
                       DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
                       nil)
-        }) else { return false }
+        }) ?? INVALID_HANDLE_VALUE
         if path1Handle == INVALID_HANDLE_VALUE { return false }
         defer { CloseHandle(path1Handle) }
 
-        guard let path2Handle: HANDLE = try? FileManager.default._fileSystemRepresentation(withPath: path2, {
+        let path2Handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path2) {
           CreateFileW($0, GENERIC_READ,
                       DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
                       nil, DWORD(OPEN_EXISTING),
                       DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
                       nil)
-        }) else { return false }
+        }) ?? INVALID_HANDLE_VALUE
         if path2Handle == INVALID_HANDLE_VALUE { return false }
         defer { CloseHandle(path2Handle) }
 
@@ -937,9 +936,9 @@ extension FileManager {
                 var ffd = WIN32_FIND_DATAW()
                 let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
 
-                guard let handle = try? FileManager.default._fileSystemRepresentation(withPath: joinPath(prefix: _lastReturned.path, suffix: "*"), {
+                let handle = (try? FileManager.default._fileSystemRepresentation(withPath: joinPath(prefix: _lastReturned.path, suffix: "*")) {
                   FindFirstFileW($0, &ffd)
-                }) else { return firstValidItem() }
+                }) ?? INVALID_HANDLE_VALUE
                 if handle == INVALID_HANDLE_VALUE { return firstValidItem() }
                 defer { FindClose(handle) }
 
