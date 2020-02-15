@@ -632,7 +632,7 @@ open class Process: NSObject {
 
         let workingDirectory = currentDirectoryURL?.path ?? FileManager.default.currentDirectoryPath
         try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
-          try workingDirectory.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
+          try FileManager.default._fileSystemRepresentation(withPath: workingDirectory) { wszCurrentDirectory in
             try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
               if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
                                  nil, nil, true,
