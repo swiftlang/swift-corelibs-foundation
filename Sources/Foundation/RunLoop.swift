@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
 internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
 internal let kCFRunLoopBeforeSources = CFRunLoopActivity.beforeSources.rawValue

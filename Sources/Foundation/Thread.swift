@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 // WORKAROUND_SR9811
 #if os(Windows)
 internal typealias _swift_CFThreadRef = HANDLE

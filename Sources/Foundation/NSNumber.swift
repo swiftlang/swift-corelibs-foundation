@@ -10,6 +10,13 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
+#if os(Windows)
+import WinSDK
+#endif
+
 internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
 internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
 internal let kCFNumberSInt32Type = CFNumberType.sInt32Type

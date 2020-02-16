@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 @_silgen_name("swift_getTypeContextDescriptor")
 private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
 

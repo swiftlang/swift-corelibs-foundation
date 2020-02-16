@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal class NSConcreteValue : NSValue {
     
     struct TypeInfo : Equatable {

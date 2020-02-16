@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 #if canImport(Darwin)
 import Darwin
 #endif

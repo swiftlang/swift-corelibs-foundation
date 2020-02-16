@@ -12,6 +12,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 extension NSRegularExpression {
     public struct Options : OptionSet {
         public let rawValue : UInt
@@ -28,7 +31,10 @@ extension NSRegularExpression {
 }
 
 open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
-    internal var _internal: _CFRegularExpression
+    private let __internal: AnyObject
+    internal var _internal: _CFRegularExpression {
+      unsafeBitCast(__internal, to: _CFRegularExpression.self)
+    }
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -82,7 +88,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
         var error: Unmanaged<CFError>?
         let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
-            _internal = regex
+            __internal = regex
         } else {
             throw error!.takeRetainedValue()
         }

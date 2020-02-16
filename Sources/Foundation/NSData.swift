@@ -10,6 +10,9 @@
 import CoreFoundation
 import Dispatch
 
+@_implementationOnly
+import CoreFoundation_Private
+
 extension NSData {
     public struct ReadingOptions : OptionSet {
         public let rawValue : UInt

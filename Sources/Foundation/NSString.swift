@@ -10,6 +10,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 public typealias unichar = UInt16
 
 extension unichar {

@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 /* Output from NSLogv is serialized, in that only one thread in a process can be doing 
  * the writing/logging described above at a time. All attempts at writing/logging a 
  * message complete before the next thread can begin its attempts. The format specification 

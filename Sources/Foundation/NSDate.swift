@@ -9,6 +9,13 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
+#if os(Windows)
+import WinSDK
+#endif
+
 public typealias TimeInterval = Double
 
 public var NSTimeIntervalSince1970: Double {

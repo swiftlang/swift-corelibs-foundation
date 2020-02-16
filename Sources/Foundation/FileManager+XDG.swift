@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 enum _XDGUserDirectory: String {
     case desktop = "DESKTOP"
     case download = "DOWNLOAD"

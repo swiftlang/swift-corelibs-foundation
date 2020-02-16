@@ -9,7 +9,13 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 #if os(Windows)
+
+import WinSDK
+
 internal func joinPath(prefix: String, suffix: String) -> String {
     var pszPath: PWSTR?
 

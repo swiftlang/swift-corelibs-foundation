@@ -1,0 +1,8 @@
+framework module CoreFoundation_Private [extern_c] [system] {
+  umbrella header "ForSwiftFoundationOnly.h"
+
+  export *
+  module * {
+    export *
+  }
+}

@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal let kCFCalendarUnitEra = CFCalendarUnit.era
 internal let kCFCalendarUnitYear = CFCalendarUnit.year
 internal let kCFCalendarUnitMonth = CFCalendarUnit.month
@@ -22,7 +25,7 @@ internal let kCFCalendarUnitQuarter = CFCalendarUnit.quarter
 internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit.weekOfMonth
 internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit.weekOfYear
 internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit.yearForWeekOfYear
-internal let kCFCalendarUnitNanosecond = CFCalendarUnit(rawValue: CFOptionFlags(CoreFoundation.kCFCalendarUnitNanosecond))
+internal let kCFCalendarUnitNanosecond = CFCalendarUnit(rawValue: CFOptionFlags(CoreFoundation_Private.kCFCalendarUnitNanosecond))
 
 internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
     return unit.rawValue

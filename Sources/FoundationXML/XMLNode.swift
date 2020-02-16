@@ -16,6 +16,9 @@ import Foundation
 import CoreFoundation
 import CFXMLInterface
 
+@_implementationOnly
+import CoreFoundation_Private
+
 // initWithKind options
 //  NSXMLNodeOptionsNone
 //  NSXMLNodePreserveAll
@@ -95,8 +98,11 @@ open class XMLNode: NSObject, NSCopying {
     open override func copy() -> Any {
         return copy(with: nil)
     }
-    
-    internal let _xmlNode: _CFXMLNodePtr!
+
+    private let __xmlNode: UnsafeMutableRawPointer?
+    internal var _xmlNode: _CFXMLNodePtr! {
+      __xmlNode
+    }
     internal var _xmlDocument: XMLDocument?
     
     open func copy(with zone: NSZone? = nil) -> Any {
@@ -129,24 +135,24 @@ open class XMLNode: NSObject, NSCopying {
         case .document:
             let docPtr = _CFXMLNewDoc("1.0")
             _CFXMLDocSetStandalone(docPtr, false) // same default as on Darwin
-            _xmlNode = _CFXMLNodePtr(docPtr)
-            
+            __xmlNode = _CFXMLNodePtr(docPtr)
+
         case .element:
-            _xmlNode = _CFXMLNewNode(nil, "")
-            
+            __xmlNode = _CFXMLNewNode(nil, "")
+
         case .attribute:
-            _xmlNode = _CFXMLNodePtr(_CFXMLNewProperty(nil, "", nil, ""))
-            
+            __xmlNode = _CFXMLNodePtr(_CFXMLNewProperty(nil, "", nil, ""))
+
         case .DTDKind:
-            _xmlNode = _CFXMLNewDTD(nil, "", "", "")
-            
+            __xmlNode = _CFXMLNewDTD(nil, "", "", "")
+
         case .namespace:
-            _xmlNode = _CFXMLNewNamespace("", "")
-            
+            __xmlNode = _CFXMLNewNamespace("", "")
+
         default:
-            _xmlNode = nil
+            __xmlNode = nil
         }
-        
+
         super.init()
 
         if let node = _xmlNode {
@@ -841,8 +847,9 @@ open class XMLNode: NSObject, NSCopying {
         }
         
         var result: [XMLNode] = []
-        for i in 0..<_GetNSCFXMLBridge().CFArrayGetCount(nodes) {
-            let nodePtr = _GetNSCFXMLBridge().CFArrayGetValueAtIndex(nodes, i)!
+        let CF: _NSCFXMLBridge = _GetNSCFXMLBridge().assumingMemoryBound(to: _NSCFXMLBridge.self).pointee
+        for i in 0 ..< CF.CFArrayGetCount(nodes) {
+            let nodePtr = CF.CFArrayGetValueAtIndex(nodes, i)!
             result.append(XMLNode._objectNodeForNode(_CFXMLNodePtr(mutating: nodePtr)))
         }
         
@@ -894,7 +901,7 @@ open class XMLNode: NSObject, NSCopying {
         setupXMLParsing()
         precondition(_CFXMLNodeGetPrivateData(ptr) == nil, "Only one XMLNode per xmlNodePtr allowed")
         
-        _xmlNode = ptr
+        __xmlNode = ptr
         super.init()
         
         if let parent = _CFXMLNodeGetParent(_xmlNode) {
@@ -1023,7 +1030,10 @@ internal protocol _NSXMLNodeCollectionType: Collection { }
 extension XMLNode: _NSXMLNodeCollectionType {
     
     public struct Index: Comparable {
-        fileprivate let node: _CFXMLNodePtr?
+        fileprivate let _node: UnsafeMutableRawPointer?
+        fileprivate var node: _CFXMLNodePtr? {
+          _node
+        }
         fileprivate let offset: Int?
     }
     
@@ -1033,17 +1043,17 @@ extension XMLNode: _NSXMLNodeCollectionType {
     
     public var startIndex: Index {
         let node = _CFXMLNodeGetFirstChild(_xmlNode)
-        return Index(node: node, offset: node.map { _ in 0 })
+        return Index(_node: node, offset: node.map { _ in 0 })
     }
     
     public var endIndex: Index {
-        return Index(node: nil, offset: nil)
+        return Index(_node: nil, offset: nil)
     }
     
     public func index(after i: Index) -> Index {
         precondition(i.node != nil, "can't increment endIndex")
         let nextNode = _CFXMLNodeGetNextSibling(i.node!)
-        return Index(node: nextNode, offset: nextNode.map { _ in i.offset! + 1 } )
+        return Index(_node: nextNode, offset: nextNode.map { _ in i.offset! + 1 } )
     }
 }
 

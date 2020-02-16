@@ -10,6 +10,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 
@@ -1144,7 +1147,10 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 }
 
 open class NSURLComponents: NSObject, NSCopying {
-    private let _components : CFURLComponents!
+    private let __components: AnyObject!
+    private var _components: CFURLComponents {
+      unsafeBitCast(__components, to: CFURLComponents.self)
+    }
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -1191,24 +1197,24 @@ open class NSURLComponents: NSObject, NSCopying {
     
     // Initialize a NSURLComponents with the components of a URL. If resolvingAgainstBaseURL is YES and url is a relative URL, the components of [url absoluteURL] are used. If the url string from the NSURL is malformed, nil is returned.
     public init?(url: URL, resolvingAgainstBaseURL resolve: Bool) {
-        _components = _CFURLComponentsCreateWithURL(kCFAllocatorSystemDefault, url._cfObject, resolve)
+        __components = _CFURLComponentsCreateWithURL(kCFAllocatorSystemDefault, url._cfObject, resolve)
         super.init()
-        if _components == nil {
+        if __components == nil {
             return nil
         }
     }
     
     // Initialize a NSURLComponents with a URL string. If the URLString is malformed, nil is returned.
     public init?(string URLString: String) {
-        _components = _CFURLComponentsCreateWithString(kCFAllocatorSystemDefault, URLString._cfObject)
+        __components = _CFURLComponentsCreateWithString(kCFAllocatorSystemDefault, URLString._cfObject)
         super.init()
-        if _components == nil {
+        if __components == nil {
             return nil
         }
     }
     
     public override init() {
-        _components = _CFURLComponentsCreate(kCFAllocatorSystemDefault)
+        __components = _CFURLComponentsCreate(kCFAllocatorSystemDefault)
     }
     
     // Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.

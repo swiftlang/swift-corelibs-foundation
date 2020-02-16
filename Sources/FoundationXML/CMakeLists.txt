@@ -9,6 +9,7 @@ target_compile_definitions(FoundationXML PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(FoundationXML PUBLIC
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
+  "SHELL:-Xcc -DDEPLOYMENT_RUNTIME_SWIFT"
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
 target_link_libraries(FoundationXML
   PRIVATE

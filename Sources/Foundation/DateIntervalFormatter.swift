@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal let kCFDateIntervalFormatterNoStyle = CFDateIntervalFormatterStyle.noStyle
 internal let kCFDateIntervalFormatterShortStyle = CFDateIntervalFormatterStyle.shortStyle
 internal let kCFDateIntervalFormatterMediumStyle = CFDateIntervalFormatterStyle.mediumStyle
@@ -83,15 +86,18 @@ internal extension _CFDateIntervalFormatterBoundaryStyle {
 // DateIntervalFormatter returns nil and NO for all methods in Formatter.
 
 open class DateIntervalFormatter: Formatter {
-    let core: CFDateIntervalFormatter
-    
+    let _core: AnyObject
+    var core: CFDateIntervalFormatter {
+      unsafeBitCast(_core, to: CFDateIntervalFormatter.self)
+    }
+
     public override init() {
-        core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
+        _core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
         super.init()
     }
 
     private init(cfFormatter: CFDateIntervalFormatter) {
-        self.core = cfFormatter
+        self._core = cfFormatter
         super.init()
     }
     
@@ -118,7 +124,7 @@ open class DateIntervalFormatter: Formatter {
                                                           cfObject(of: NSLocale.self, from: coder, forKey: "NS.locale"),
                                                           cfObject(of: NSCalendar.self, from: coder, forKey: "NS.calendar"),
                                                           cfObject(of: NSTimeZone.self, from: coder, forKey: "NS.timeZone"))
-        self.core = core
+        self._core = core
         
         super.init(coder: coder)
     }

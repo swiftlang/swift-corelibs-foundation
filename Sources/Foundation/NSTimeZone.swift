@@ -10,6 +10,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone
     private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())

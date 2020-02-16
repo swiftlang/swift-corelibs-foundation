@@ -12,8 +12,12 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-import CoreFoundation
 import CFXMLInterface
+
+import CoreFoundation
+
+@_implementationOnly
+import CoreFoundation_Private
 
 /*!
     @class XMLElement

@@ -10,6 +10,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 @usableFromInline
 internal class _NSCFString : NSMutableString {
     required init(characters: UnsafePointer<unichar>, length: Int) {

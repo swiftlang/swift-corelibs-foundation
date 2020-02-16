@@ -15,6 +15,9 @@ import Foundation
 import CoreFoundation
 import CFXMLInterface
 
+@_implementationOnly
+import CoreFoundation_Private
+
 extension XMLParser {
     public enum ExternalEntityResolvingPolicy : UInt {
         case never // default
@@ -394,7 +397,10 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
 }
 
 open class XMLParser : NSObject {
-    private var _handler: _CFXMLInterfaceSAXHandler
+    private let __handler: OpaquePointer
+    private var _handler: _CFXMLInterfaceSAXHandler {
+      __handler
+    }
     internal var _stream: InputStream?
     internal var _data: Data?
 
@@ -402,7 +408,12 @@ open class XMLParser : NSObject {
     // This chunk of data stores the head of the stream. We know we have enough information for encoding
     // when there are atleast 4 bytes in here.
     internal var _bomChunk: Data?
-    fileprivate var _parserContext: _CFXMLInterfaceParserContext?
+
+    private var __parserContext: OpaquePointer?
+    fileprivate var _parserContext: _CFXMLInterfaceParserContext? {
+      __parserContext
+    }
+
     internal var _delegateAborted = false
     internal var _url: URL?
     internal var _namespaces = [[String:String]]()
@@ -432,21 +443,21 @@ open class XMLParser : NSObject {
     public init(data: Data) {
         setupXMLParsing()
         _data = data
-        _handler = _CFXMLInterfaceCreateSAXHandler()
-        _parserContext = nil
+        __handler = _CFXMLInterfaceCreateSAXHandler()
+        __parserContext = nil
     }
     
     deinit {
-        _CFXMLInterfaceDestroySAXHandler(_handler)
-        _CFXMLInterfaceDestroyContext(_parserContext)
+        _CFXMLInterfaceDestroySAXHandler(__handler)
+        _CFXMLInterfaceDestroyContext(__parserContext)
     }
     
     //create a parser that incrementally pulls data from the specified stream and parses it.
     public init(stream: InputStream) {
         setupXMLParsing()
         _stream = stream
-        _handler = _CFXMLInterfaceCreateSAXHandler()
-        _parserContext = nil
+        __handler = _CFXMLInterfaceCreateSAXHandler()
+        __parserContext = nil
     }
     
     open weak var delegate: XMLParserDelegate?
@@ -518,7 +529,7 @@ open class XMLParser : NSObject {
             // Create the push context with the first 4 bytes
             bomChunk.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
                 let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: CChar.self)
-                _parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
+                __parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
             }
             _CFXMLInterfaceCtxtUseOptions(_parserContext, options)
             // Prepare the remaining data for parsing
@@ -988,7 +999,7 @@ extension NSObject {
 func setupXMLParsing() {
     _CFSetupXMLInterface()
     _CFSetupXMLBridgeIfNeededUsingBlock {
-        __CFSwiftXMLParserBridge.CF = _GetNSCFXMLBridge()
+        __CFSwiftXMLParserBridge.CF = _GetNSCFXMLBridge().assumingMemoryBound(to: _NSCFXMLBridge.self)
         __CFSwiftXMLParserBridge.currentParser = _NSXMLParserCurrentParser
         __CFSwiftXMLParserBridge._xmlExternalEntityWithURL = _NSXMLParserExternalEntityWithURL
         __CFSwiftXMLParserBridge.getContext = _NSXMLParserGetContext

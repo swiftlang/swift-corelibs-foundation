@@ -135,6 +135,7 @@ target_compile_definitions(Foundation PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(Foundation PUBLIC
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
+  "SHELL:-Xcc -DDEPLOYMENT_RUNTIME_SWIFT"
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
 target_link_libraries(Foundation
   PRIVATE

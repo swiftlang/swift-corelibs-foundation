@@ -10,6 +10,13 @@
 import CoreFoundation
 import Dispatch
 
+@_implementationOnly
+import CoreFoundation_Private
+
+#if os(Windows)
+import WinSDK
+#endif
+
 // FileHandle has a .read(upToCount:) method. Just invoking read() will cause an ambiguity warning. Use _read instead.
 // Same with close()/.close().
 #if canImport(Darwin)

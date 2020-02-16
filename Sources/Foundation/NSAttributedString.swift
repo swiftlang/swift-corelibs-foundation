@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 extension NSAttributedString {
     public struct Key: RawRepresentable, Equatable, Hashable {
         public let rawValue: String
@@ -50,8 +53,12 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     
     private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
     fileprivate var _string: NSString
-    fileprivate var _attributeArray: CFRunArrayRef
-    
+
+    fileprivate let __attributeArray: OpaquePointer
+    fileprivate var _attributeArray: CFRunArrayRef {
+      __attributeArray
+    }
+
     public required init?(coder aDecoder: NSCoder) {
         let mutableAttributedString = NSMutableAttributedString(string: "")
         guard _NSReadMutableAttributedStringWithCoder(aDecoder, mutableAttributedString: mutableAttributedString) else {
@@ -60,7 +67,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         
         // use the resulting _string and _attributeArray to initialize a new instance, just like init
         _string = mutableAttributedString._string
-        _attributeArray = mutableAttributedString._attributeArray
+        __attributeArray = mutableAttributedString._attributeArray
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -197,7 +204,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     /// Returns an NSAttributedString object initialized with the characters of a given string and no attribute information.
     public init(string: String) {
         _string = string._nsObject
-        _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
+        __attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
         
         super.init()
         addAttributesToAttributeArray(attrs: nil)
@@ -206,7 +213,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     /// Returns an NSAttributedString object initialized with a given string and attributes.
     public init(string: String, attributes attrs: [NSAttributedString.Key: Any]? = nil) {
         _string = string._nsObject
-        _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
+        __attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
 
         super.init()
         addAttributesToAttributeArray(attrs: attrs)
@@ -220,7 +227,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         
         // use the resulting _string and _attributeArray to initialize a new instance
         _string = mutableAttributedString._string
-        _attributeArray = mutableAttributedString._attributeArray
+        __attributeArray = mutableAttributedString._attributeArray
     }
 
     /// Executes the block for each attribute in the range.

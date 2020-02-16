@@ -3,8 +3,8 @@ include(CMakeParseArguments)
 
 function(add_framework NAME)
   set(options STATIC SHARED)
-  set(single_value_args MODULE_MAP FRAMEWORK_DIRECTORY)
-  set(multiple_value_args PRIVATE_HEADERS PUBLIC_HEADERS SOURCES)
+  set(single_value_args FRAMEWORK_DIRECTORY)
+  set(multiple_value_args MODULE_MAP PRIVATE_HEADERS PUBLIC_HEADERS SOURCES)
   cmake_parse_arguments(AF "${options}" "${single_value_args}" "${multiple_value_args}" ${ARGN})
 
   set(AF_TYPE)
@@ -60,18 +60,9 @@ function(add_framework NAME)
                         PROPERTIES
                           LIBRARY_OUTPUT_DIRECTORY
                               ${CMAKE_BINARY_DIR}/${NAME}.framework)
-  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
-    target_compile_options(${NAME}
-                           PRIVATE
-                             -Xclang;-F${CMAKE_BINARY_DIR})
-  else()
-    target_compile_options(${NAME}
-                           PRIVATE
-                             -F;${CMAKE_BINARY_DIR})
-  endif()
-  target_compile_options(${NAME}
-                         PRIVATE
-                           $<$<OR:$<COMPILE_LANGUAGE:ASM>,$<COMPILE_LANGUAGE:C>>:-I;${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders>)
+  target_compile_options(${NAME} PRIVATE
+    $<$<STREQUAL:${CMAKE_C_SIMULATE_ID},MSVC>:/clang:>-F;${CMAKE_BINARY_DIR}
+    $<$<OR:$<COMPILE_LANGUAGE:ASM>,$<COMPILE_LANGUAGE:C>>:-I;${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders>)
   add_dependencies(${NAME} ${NAME}_POPULATE_HEADERS)
 
   if(AF_FRAMEWORK_DIRECTORY)

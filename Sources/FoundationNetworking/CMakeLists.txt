@@ -55,6 +55,7 @@ target_compile_options(FoundationNetworking PUBLIC
   # forced load symbol when validating the TBD
   -Xfrontend -validate-tbd-against-ir=none
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
+  "SHELL:-Xcc -DDEPLOYMENT_RUNTIME_SWIFT"
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
 target_link_libraries(FoundationNetworking
   PRIVATE

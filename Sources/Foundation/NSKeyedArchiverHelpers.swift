@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 extension CFKeyedArchiverUID : _NSBridgeable {
     typealias NSType = _NSKeyedArchiverUID
     

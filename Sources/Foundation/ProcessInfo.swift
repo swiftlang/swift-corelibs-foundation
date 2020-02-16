@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 public struct OperatingSystemVersion {
     public var majorVersion: Int
     public var minorVersion: Int

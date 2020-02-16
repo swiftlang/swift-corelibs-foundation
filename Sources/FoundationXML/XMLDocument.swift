@@ -15,6 +15,9 @@ import Foundation
 import CoreFoundation
 import CFXMLInterface
 
+@_implementationOnly
+import CoreFoundation_Private
+
 // Input options
 //  NSXMLNodeOptionsNone
 //  NSXMLNodePreserveAll

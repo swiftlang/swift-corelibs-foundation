@@ -10,6 +10,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal final class _NSCFArray : NSMutableArray {
     deinit {
         _CFDeinit(self)

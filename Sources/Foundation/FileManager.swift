@@ -16,8 +16,13 @@ fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
 import CoreFoundation
+
+@_implementationOnly
+import CoreFoundation_Private
+
 #if os(Windows)
 import MSVCRT
+import WinSDK
 #endif
 
 #if os(Windows)

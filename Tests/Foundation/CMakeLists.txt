@@ -111,6 +111,8 @@ target_sources(TestFoundation PRIVATE
 
 target_compile_definitions(TestFoundation PRIVATE
   $<$<BOOL:${ENABLE_TESTING}>:NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT>)
+target_compile_options(TestFoundation PRIVATE
+  "SHELL:-Xcc -DDEPLOYMENT_RUNTIME_SWIFT")
 target_link_libraries(TestFoundation PRIVATE
   Foundation
   FoundationNetworking

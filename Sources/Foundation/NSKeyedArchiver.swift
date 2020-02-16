@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 /// Archives created using the class method `archivedData(withRootObject:)` use this key
 /// for the root object in the hierarchy of encoded objects. The `NSKeyedUnarchiver` class method
 /// `unarchiveObject(with:)` looks for this root key as well.

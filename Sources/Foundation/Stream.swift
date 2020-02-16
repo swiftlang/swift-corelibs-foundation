@@ -9,6 +9,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 internal extension UInt {
     init(_ status: CFStreamStatus) {
         self.init(status.rawValue)

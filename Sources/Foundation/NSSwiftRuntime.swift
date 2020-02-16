@@ -10,6 +10,9 @@
 
 import CoreFoundation
 
+@_implementationOnly
+import CoreFoundation_Private
+
 // Re-export Darwin and Glibc by importing Foundation
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -408,7 +411,7 @@ internal enum _NSNonfileURLContentLoader {
     }
 }
 
-public func _GetNSCFXMLBridge() -> _NSCFXMLBridge {
-  return __NSCFXMLBridge
+public func _GetNSCFXMLBridge() -> UnsafeRawPointer {
+  return UnsafeRawPointer(&__NSCFXMLBridge)
 }
 
