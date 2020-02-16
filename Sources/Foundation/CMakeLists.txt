@@ -152,11 +152,11 @@ set_target_properties(Foundation PROPERTIES
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
-if(CMAKE_SYSTEM_NAME STREQUAL Windows AND CMAKE_VERSION VERSION_LESS 3.16)
-  # Workaround for CMake 3.15 which doesn't link in the resource file target
-  # properly
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # NOTE: workaround for CMake which doesn't link in OBJECT libraries properly
   add_dependencies(Foundation CoreFoundationResources)
-  target_link_options(Foundation PRIVATE $<TARGET_OBJECTS:CoreFoundationResources>)
+  target_link_options(Foundation PRIVATE
+    $<TARGET_OBJECTS:CoreFoundationResources>)
 endif()
 
 
