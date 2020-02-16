@@ -17,11 +17,14 @@ enable_testing()
 # Cache the variable to allow the user to alter the configuration.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE
   STRING "MSVC Runtime Library")
+
 if(CMAKE_VERSION VERSION_LESS 3.16.0)
   if(NOT (CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin))
     set(CMAKE_SHARED_LIBRARY_RUNTIME_Swift_FLAG "-Xlinker -rpath -Xlinker ")
     set(CMAKE_SHARED_LIBRARY_RUNTIME_Swift_FLAG_SEP ":")
   endif()
+  # Workaround for CMake 3.15 which doesn't link libraries properly on Windows
+  set(CMAKE_LINK_LIBRARY_FLAG "-l")
 endif()
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
@@ -44,12 +47,10 @@ target_include_directories(CoreFoundation PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
 
-add_subdirectory(uuid)
-add_subdirectory(Foundation)
-add_subdirectory(Tools)
+add_subdirectory(Sources)
 if(ENABLE_TESTING)
   find_package(XCTest CONFIG REQUIRED)
-  add_subdirectory(TestFoundation)
+  add_subdirectory(Tests)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)

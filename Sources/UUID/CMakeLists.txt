@@ -1,4 +1,3 @@
-
 add_library(uuid STATIC
   uuid.h
   uuid.c)
