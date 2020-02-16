@@ -29,6 +29,36 @@ internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawVal
 
 class TestNSString: LoopbackServerTest {
 
+    func test_init() {
+
+        let encodings = NSString.availableStringEncodings
+        var idx = 0
+        var e: [UInt] = []
+        while true {
+            let encoding = encodings[idx]
+            if encoding == 0 { break }
+            e.append(encoding)
+            idx += 1
+        }
+
+        let data: [UInt8] = [ 0x41, 0x42, 0x43, 0x44, 0x45 ]    // "ABCDE"
+
+        e.sorted().forEach {
+            let encoding = String.Encoding(rawValue: $0)
+            let name = NSString.localizedName(of: $0)
+
+            // UTF-16, EBCDIC Latin1, UTF-32, UTF-16BE, UTF-16LE, UTF-32BE, UTF-32LE
+            if [0xa, 0x80000c02, 0x8c000100, 0x90000100, 0x94000100, 0x98000100, 0x9c000100].contains($0) {
+                print("Skipping test for \(name)")
+            } else {
+                let string = data.withUnsafeBytes {
+                    NSString(bytes: $0.baseAddress!, length: $0.count, encoding: encoding.rawValue)
+                }
+                XCTAssertEqual(string, "ABCDE", "Failed to create string with encoding \(name) [\(String($0, radix: 16))]")
+            }
+        }
+    }
+
     func test_initData() {
         let testString = "\u{00} This is a test string"
         let data = testString.data(using: .utf8)!
@@ -73,6 +103,7 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(kra.count, 1)
             XCTAssertEqual(kra.utf8.count, 2)
             XCTAssertEqual(kra.utf16.count, 1)
+            XCTAssertEqual(kra.utf16.first, 0x138)
             XCTAssertEqual(kra, utf16kra as String)
         } else {
             XCTFail("Cant create UTF16 kra")
@@ -1608,6 +1639,7 @@ class TestNSString: LoopbackServerTest {
 
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         var tests = [
+            ("test_init", test_init),
             ("test_initData", test_initData),
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),

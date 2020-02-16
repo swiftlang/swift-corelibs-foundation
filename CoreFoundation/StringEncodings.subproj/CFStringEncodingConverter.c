@@ -579,6 +579,11 @@ CF_INLINE const CFStringEncodingConverter *__CFStringEncodingConverterGetDefinit
     }
 }
 
+CF_EXPORT const CFStringEncodingConverter *__CFStringEncodingConverterGetDefinitionForSwift(CFStringEncoding encoding) {
+    return __CFStringEncodingConverterGetDefinition(encoding);
+}
+
+
 static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
     const _CFEncodingConverter *converter = NULL;
     const _CFEncodingConverter **commonConverterSlot = NULL;

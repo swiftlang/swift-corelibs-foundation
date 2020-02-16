@@ -29,6 +29,7 @@
 #include <CoreFoundation/CFURLPriv.h>
 #include <CoreFoundation/CFURLComponents.h>
 #include <CoreFoundation/CFRunArray.h>
+#include <CoreFoundation/CFStringEncodingConverterPriv.h>
 
 #if TARGET_OS_WIN32
 #define NOMINMAX
@@ -366,6 +367,15 @@ typedef pthread_t _CFThreadRef;
 typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_key_t _CFThreadSpecificKey;
 #endif
+
+CF_EXPORT const CFStringEncodingConverter * _Nullable __CFStringEncodingConverterGetDefinitionForSwift(CFStringEncoding encoding);
+
+static inline bool
+__EncodeCheapEightBitToUnicode(const CFStringEncodingConverter *encoder, uint32_t flags, uint8_t byte, UniChar * _Nonnull character) {
+    CFStringEncodingCheapEightBitToUnicodeProc proc = encoder->toUnicode.cheapEightBit;
+    return (*proc)(flags, byte, character);
+}
+
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
 CF_EXPORT _CFThreadRef _CFMainPThread;

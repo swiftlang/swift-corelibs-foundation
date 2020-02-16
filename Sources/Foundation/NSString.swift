@@ -323,13 +323,10 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public convenience init?(cString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        guard let str =
-            CFStringCreateWithCString(kCFAllocatorSystemDefault,
-                                      nullTerminatedCString,
-                                      CFStringConvertNSStringEncodingToEncoding(numericCast(encoding))) else {
+        guard let string = NSString.createString(bytes: nullTerminatedCString, encoding: encoding) else {
             return nil
         }
-        self.init(string: str._swiftObject)
+        self.init(string)
     }
     
     internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
@@ -1323,35 +1320,299 @@ extension NSString {
         }!
         self.init(str._swiftObject)
     }
-    
+
+
+    /// Given a pointer to some memory of either UInt16 or UIn32 and an encoding, returns and iterator that swaps byes as necessary
+    /// to produce a stream of UTF-16 or UTF-32 Code Units.
+    private struct UTFBufferIterator<T: _UnicodeEncoding>: IteratorProtocol {
+
+        let buffer: UnsafeBufferPointer<T.CodeUnit>
+        var idx = 0
+        let swap: Bool
+
+        var count: Int { buffer.count }
+
+        public init?(bytes: UnsafeRawPointer, length: Int? = nil, encoding: String.Encoding) {
+            let ptr = bytes.assumingMemoryBound(to: T.CodeUnit.self)
+
+            let count: Int
+            // Determine length if buffer is declared null terminated
+            if length == nil {
+                var idx = 0
+                while idx < Int.max {
+                    if ptr[idx] == 0 { break }
+                    idx += 1
+                }
+                count = idx
+            } else {
+                count = length! / MemoryLayout<T.CodeUnit>.size
+            }
+            guard count > 0 else { return nil }
+            self.buffer = UnsafeBufferPointer<T.CodeUnit>(start: ptr, count: count)
+
+            var swap = false
+            // NOTE this does not validate the T.CodeUnit against the encoding
+            switch encoding {
+                case .utf16, .unicode:
+                    let bom = buffer[0]
+                    if bom == 0xFFFE || bom == 0xFEFF {
+                        idx += 1
+                    }
+
+                    #if _endian(big)
+                    if bom == 0xFFFE { swap = true }
+                    #else
+                    if bom != 0xFEFF { swap = true }
+                    #endif
+
+                case .utf16LittleEndian:
+                    #if _endian(big)
+                    swap = true
+                    #endif
+
+                case .utf16BigEndian:
+                    #if _endian(little)
+                    swap = true
+                    #endif
+
+
+                case .utf32:
+                    let bom = buffer[0]
+                    if bom == 0xFFFE0000 || bom == 0x0000FEFF {
+                        idx += 1
+                    }
+
+                    #if _endian(big)
+                    if (bom == 0xFFFE0000) { swap = true }
+                    #else
+                    if (bom != 0x0000FEFF) { swap = true }
+                    #endif
+
+                case .utf32LittleEndian:
+                    #if _endian(big)
+                    swap = true
+                    #endif
+
+                case .utf32BigEndian:
+                    #if _endian(little)
+                    swap = true
+                    #endif
+
+                default:
+                    // All other encodings are 8bit so not supported here
+                    fatalError("UTFBufferIterator does not support encoding \(encoding)")
+            }
+            self.swap = swap
+        }
+
+        public mutating func next() -> T.CodeUnit? {
+            guard idx < buffer.count else { return nil }
+            let value = buffer[idx]
+            idx += 1
+            return swap ? value.byteSwapped : value
+        }
+    }
+
+    static private func createString(bytes: UnsafeRawPointer, length: Int? = nil, encoding: UInt) -> String? {
+        if let len = length, len <= 0 { return "" }
+
+        // Mkae a BufferPointer even if given a C-string (NUL terminated) with no length.
+        func makeUInt8Buffer() -> UnsafeBufferPointer<UInt8> {
+            let ptr = bytes.assumingMemoryBound(to: UInt8.self)
+            if let count = length {
+                return UnsafeBufferPointer(start: ptr, count: count)
+            } else {
+                var idx = 0
+                while idx < Int.max {
+                    if ptr[idx] == 0 { break }
+                    idx += 1
+                }
+                return UnsafeBufferPointer(start: ptr, count: idx)
+            }
+        }
+
+
+        func useEncoder(_ encoder: UnsafePointer<CFStringEncodingConverter>) -> String? {
+            var result = ""
+            if encoder.pointee.encodingClass == kCFStringEncodingConverterCheapEightBit {
+                let buffer = makeUInt8Buffer()
+                result.reserveCapacity(buffer.count)
+                for byte in buffer {
+                    var uniChar: UTF16.CodeUnit = 0
+
+                    guard __EncodeCheapEightBitToUnicode(encoder, 0, byte, &uniChar) else { return nil }
+                    guard let uscalar = Unicode.Scalar(uniChar) else { return nil }
+                    result.append(Character(uscalar))
+                }
+            }
+
+            return result
+        }
+
+
+        let encoding = String.Encoding(rawValue: encoding)
+        switch encoding {
+            case .utf8:
+                let buffer = makeUInt8Buffer()
+                return String._tryFromUTF8(buffer)
+
+            case .utf16, .unicode, .utf16LittleEndian, .utf16BigEndian:
+                guard let iterator = UTFBufferIterator<UTF16>(bytes: bytes, length: length, encoding: encoding) else { return nil }
+                var string = ""
+                string.reserveCapacity(iterator.count)
+                if transcode(iterator, from: UTF16.self, to: UTF32.self, stoppingOnError: true, into: { string.append(Character(Unicode.Scalar($0)!)) }) {
+                    return nil
+                }
+                return string
+
+            case .utf32, .utf32LittleEndian, .utf32BigEndian:
+                guard var iterator = UTFBufferIterator<UTF32>(bytes: bytes, length: length, encoding: encoding) else { return nil }
+                var string = ""
+                string.reserveCapacity(iterator.count)
+                while let value = iterator.next() {
+                    guard let us = Unicode.Scalar(value) else { return nil }
+                    string.append(Character(us))
+                }
+                return string
+
+            case .ascii, .isoLatin1:
+                let buffer = makeUInt8Buffer()
+                var iterator = buffer.makeIterator()
+                var string = ""
+                string.reserveCapacity(buffer.count)
+
+                while let value = iterator.next() {
+                    let chr = UnicodeScalar(value)
+                    if encoding == .ascii && !chr.isASCII { return nil }
+                    string.append(Character(chr))
+                }
+                return string
+
+            case .nonLossyASCII:
+                let buffer = makeUInt8Buffer()
+                var iterator = buffer.makeIterator()
+                var string = ""
+                string.reserveCapacity(buffer.count)
+
+                while let chr = iterator.next() {
+                    guard chr <= 127 else { return nil }
+                    if chr == UInt8(ascii: "\\") {
+                        // Decode \\ as a single '\', \xxx as an octal number for an 8bit unicode scalar, \uxxxx, \uXXXX as a hex unicode scalar
+                        guard let byte0 = iterator.next() else { return nil }
+                        if byte0 == UInt8(ascii: "\\") {
+                            string.append("\\")
+                        } else {
+                            guard let byte1 = iterator.next(), UnicodeScalar(byte1).isASCII else { return nil }
+                            guard let byte2 = iterator.next(), UnicodeScalar(byte2).isASCII else { return nil }
+                            guard let byte3 = iterator.next(), UnicodeScalar(byte3).isASCII else { return nil }
+                            if byte1 == UInt8(ascii: "u") || byte1 == UInt8(ascii: "U") {
+                                guard let byte4 = iterator.next(), UnicodeScalar(byte4).isASCII else { return nil }
+                                guard let byte5 = iterator.next(), UnicodeScalar(byte5).isASCII else { return nil }
+                                var hex = ""
+                                hex.append(Character(UnicodeScalar(byte2)))
+                                hex.append(Character(UnicodeScalar(byte3)))
+                                hex.append(Character(UnicodeScalar(byte4)))
+                                hex.append(Character(UnicodeScalar(byte5)))
+                                guard let value = UInt32(hex, radix: 16), let uni = UnicodeScalar(value) else { return nil }
+                                string.append(Character(uni))
+                            } else if byte1 >= UInt8(ascii: "0") && byte1 <= UInt8(ascii: "3") {
+                                var octal = ""
+                                octal.append(Character(UnicodeScalar(byte1)))
+                                octal.append(Character(UnicodeScalar(byte2)))
+                                octal.append(Character(UnicodeScalar(byte3)))
+                                guard let value = UInt32(octal, radix: 8), let uni = UnicodeScalar(value) else { return nil }
+                                string.append(Character(uni))
+                            }
+                        }
+                    } else {
+                        string.append(Character(UnicodeScalar(chr)))
+                    }
+                }
+                return string
+
+            default:
+                let cfEncoding = CFStringConvertNSStringEncodingToEncoding(numericCast(encoding.rawValue))
+                guard let encoder = __CFStringEncodingConverterGetDefinitionForSwift(cfEncoding) else {
+                    return "No encoder found"
+                }
+
+                switch Int(encoder.pointee.encodingClass) {
+                    case kCFStringEncodingConverterCheapEightBit:
+                        return useEncoder(encoder)
+
+                    case kCFStringEncodingConverterStandardEightBit:
+                        print("Using CF for kCFStringEncodingConverterStandardEightBit")
+                        break
+
+                    case kCFStringEncodingConverterCheapMultiByte:
+                        print("Using CF for kCFStringEncodingConverterCheapMultiByte")
+                        break
+
+                    case kCFStringEncodingConverterICU:
+                        let buffer = makeUInt8Buffer()
+                        let length = CFStringEncodingCharLengthForBytes(cfEncoding, 0, buffer.baseAddress!, buffer.count)
+                        guard length > 0 else { return nil }
+                        let outputString = UnsafeMutableBufferPointer<Unicode.UTF16.CodeUnit>.allocate(capacity: length)
+                        defer { outputString.deallocate() }
+                        var usedByteLen = 0
+                        var usedCharLen = 0
+                        let result = CFStringEncodingBytesToUnicode(cfEncoding, 0, buffer.baseAddress!, buffer.count, &usedByteLen, outputString.baseAddress!, outputString.count, &usedCharLen)
+                        guard result == kCFStringEncodingConversionSuccess else { return nil }
+                        return String(decoding: outputString, as: Unicode.UTF16.self)
+                        //return "kCFStringEncodingConverterICU"
+
+                    case kCFStringEncodingConverterPlatformSpecific:
+                        print("Using CF for kCFStringEncodingConverterPlatformSpecific")
+                        break
+
+                    default: break
+                }
+
+                // Fallback to CF for other encodings
+                let cfString: CFString
+                if let count = length {
+                    let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: count)
+                    guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, count, cfEncoding, true) else {
+                        return nil
+                    }
+                    cfString = cf
+                } else {
+                    let bytePtr = bytes.assumingMemoryBound(to: Int8.self)
+                    guard let cf = CFStringCreateWithCString(kCFAllocatorSystemDefault, bytePtr, cfEncoding) else {
+                        return nil
+                    }
+                    cfString = cf
+                }
+                var str: String?
+                if String._conditionallyBridgeFromObjectiveC(cfString._nsObject, result: &str), let result = str {
+                    return result
+                }
+        }
+        return nil
+    }
+
+
     public convenience init?(data: Data, encoding: UInt) {
         if data.isEmpty {
             self.init("")
         } else {
-        guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
-            return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count,
-                                           CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true)
-        }) else { return nil }
-        
-            var str: String?
-            if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-                self.init(str!)
-            } else {
+            guard let string = data.withUnsafeBytes({
+                return NSString.createString(bytes: $0.baseAddress!, length: $0.count, encoding: encoding)
+            }) else {
                 return nil
             }
+            self.init(string)
         }
     }
     
     public convenience init?(bytes: UnsafeRawPointer, length len: Int, encoding: UInt) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: len)
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, len, CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true) else {
-            return nil
-        }
-        var str: String?
-        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-            self.init(str!)
+        if len == 0 {
+            self.init("")
         } else {
-            return nil
+            guard let string = NSString.createString(bytes: bytes, length: len, encoding: encoding) else {
+                return nil
+            }
+            self.init(string)
         }
     }
     
@@ -1370,20 +1631,12 @@ extension NSString {
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
 
-        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(numericCast(enc)), true) else {
+        guard let string = NSString.createString(bytes: readResult.bytes, length: readResult.length, encoding: enc) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
                 NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
                 ])
         }
-        var str: String?
-        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-            self.init(str!)
-        } else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                NSDebugDescriptionErrorKey : "Unable to bridge CFString to String."
-                ])
-        }
+        self.init(string)
     }
 
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
@@ -1425,20 +1678,13 @@ extension NSString {
 
         // Since the encoding being passed includes the byte order the BOM wont be checked or skipped, so pass offset to
         // manually skip the BOM header.
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr + offset, readResult.length - offset,
-                                               CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true) else {
+
+        guard let string = NSString.createString(bytes: readResult.bytes + offset, length: readResult.length - offset, encoding: encoding) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
                 NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
                 ])
         }
-        var str: String?
-        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-            self.init(str!)
-        } else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                NSDebugDescriptionErrorKey : "Unable to bridge CFString to String."
-                ])
-        }
+        self.init(string)
         enc?.pointee = encoding
     }
     
