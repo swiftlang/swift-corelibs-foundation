@@ -78,12 +78,19 @@ class TestURL : XCTestCase {
       XCTAssertEqual(u6.absoluteString, "file:///S:/b/u6/")
 
       // ensure that we do not index beyond the start of the string
-      let u7 = URL(fileURLWithPath: "eh", relativeTo: URL(fileURLWithPath: "S:\\b"))
+      // NOTE: explicitly mark `S:\b` as a directory as this test expects the
+      // directory to exist to determine that it is a directory.
+      let u7 = URL(fileURLWithPath: "eh",
+                   relativeTo: URL(fileURLWithPath: "S:\\b", isDirectory: true))
       XCTAssertEqual(u7.absoluteString, "file:///S:/b/eh")
 
+      let u8 = URL(fileURLWithPath: "eh",
+                   relativeTo: URL(fileURLWithPath: "S:\\b", isDirectory: false))
+      XCTAssertEqual(u8.absoluteString, "file:///S:/eh")
+
       // ensure that / is handled properly
-      let u8 = URL(fileURLWithPath: "/")
-      XCTAssertEqual(u8.absoluteString, "file:///")
+      let u9 = URL(fileURLWithPath: "/")
+      XCTAssertEqual(u9.absoluteString, "file:///")
     }
 
     func test_WindowsPathSeparator2() {
