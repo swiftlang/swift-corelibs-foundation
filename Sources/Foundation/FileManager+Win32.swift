@@ -295,14 +295,15 @@ extension FileManager {
                   destPath.isAbsolutePath ? destPath
                                           : joinPath(prefix: path.deletingLastPathComponent,
                                                      suffix: destPath)
+
+                // NOTE: windowsfileAttributes will throw if the destPath is not
+                // found.  Since on Windows, you are required to know the type
+                // of the symlink target (file or directory) during creation,
+                // and assuming one or the other doesn't make a lot of sense, we
+                // allow it to throw, thus disallowing the creation of broken
+                // symlinks on Windows is the target is of unknown type.
                 guard let faAttributes = try? windowsFileAttributes(atPath: resolvedDest) else {
-                    // Note: windowsfileAttributes will throw if the destPath is not found.
-                    // Since on Windows, you are required to know the type of the symlink
-                    // target (file or directory) during creation, and assuming one or the
-                    // other doesn't make a lot of sense, we allow it to throw, thus
-                    // disallowing the creation of broken symlinks on Windows is the target
-                    // is of unknown type.
-                    throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path, resolvedDest])
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path, destPath])
                 }
                 if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
                     dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
