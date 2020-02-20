@@ -402,6 +402,7 @@
 		B933A79E1F3055F700FE6846 /* NSString-UTF32-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */; };
 		B933A79F1F3055F700FE6846 /* NSString-UTF32-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */; };
 		B940492D223B146800FB4384 /* TestProgressFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940492C223B146800FB4384 /* TestProgressFraction.swift */; };
+		B94B063C23FDE2BD00B244E8 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */; };
 		B95FC97622B84B0A005DEA0A /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
 		B983E32C23F0C69600D9C402 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = B983E32B23F0C69600D9C402 /* Docs */; };
@@ -604,6 +605,13 @@
 			remoteInfo = xdgTestHelper;
 		};
 		B90FD23120C2FF840087EF44 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
+			remoteInfo = SwiftFoundation;
+		};
+		B94B063A23FDE0AA00B244E8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
 			proxyType = 1;
@@ -1355,6 +1363,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B94B063C23FDE2BD00B244E8 /* SwiftFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2593,6 +2602,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B94B063B23FDE0AA00B244E8 /* PBXTargetDependency */,
 			);
 			name = GenerateTestFixtures;
 			productName = GenerateTestFixtures;
@@ -3251,6 +3261,11 @@
 			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
 			targetProxy = B90FD23120C2FF840087EF44 /* PBXContainerItemProxy */;
 		};
+		B94B063B23FDE0AA00B244E8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
+			targetProxy = B94B063A23FDE0AA00B244E8 /* PBXContainerItemProxy */;
+		};
 		B98F1740229AF5AF00F2B002 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EA66F66E1BF56CCB00136161 /* plutil */;
@@ -3416,7 +3431,7 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.XML;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3472,7 +3487,7 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.XML;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3530,7 +3545,7 @@
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = "-twolevel_namespace";
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.Networking;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3590,7 +3605,7 @@
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = "-twolevel_namespace";
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.Networking;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3867,7 +3882,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3945,7 +3960,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4161,12 +4176,13 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				HEADER_SEARCH_PATHS = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/macosx",
 					"@executable_path",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -4178,12 +4194,13 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
+				HEADER_SEARCH_PATHS = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/macosx",
 					"@executable_path",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -4202,11 +4219,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
+				HEADER_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG NS_GENERATE_FIXTURES_FROM_SWIFT_CORELIBS_FOUNDATION_ON_DARWIN";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -4225,9 +4242,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MTL_FAST_MATH = YES;
+				HEADER_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = NS_GENERATE_FIXTURES_FROM_SWIFT_CORELIBS_FOUNDATION_ON_DARWIN;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
