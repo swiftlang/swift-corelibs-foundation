@@ -8,7 +8,7 @@
 
 // Please keep this import statement as-is; this file is also used by the GenerateTestFixtures project, which doesn't have TestImports.swift.
 
-#if DEPLOYMENT_RUNTIME_SWIFT && (os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
+#if canImport(SwiftFoundation)
     import SwiftFoundation
 #else
     import Foundation
