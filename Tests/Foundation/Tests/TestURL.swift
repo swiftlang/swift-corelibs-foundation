@@ -105,6 +105,19 @@ class TestURL : XCTestCase {
 
       let u4 = URL(fileURLWithPath: "S:\\b\\u3//\\//")
       XCTAssertEqual(u4.absoluteString, "file:///S:/b/u3/")
+
+      // ensure leading slash doesn't break everything
+      let u5 = URL(fileURLWithPath: "\\abs\\path")
+      XCTAssertEqual(u5.absoluteString, "file:///abs/path")
+      XCTAssertEqual(u5.path, "/abs/path")
+
+      let u6 = u5.appendingPathComponent("test")
+      XCTAssertEqual(u6.absoluteString, "file:///abs/path/test")
+      XCTAssertEqual(u6.path, "/abs/path/test")
+
+      let u7 = u6.deletingLastPathComponent()
+      XCTAssertEqual(u7.absoluteString, "file:///abs/path/")
+      XCTAssertEqual(u7.path, "/abs/path")
     }
 #endif
 
