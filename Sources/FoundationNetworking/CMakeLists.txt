@@ -32,6 +32,10 @@ target_compile_definitions(FoundationNetworking PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT
   NS_BUILDING_FOUNDATION_NETWORKING)
 target_compile_options(FoundationNetworking PUBLIC
+  -autolink-force-load
+  # SR-12254: workaround for the swift compiler not properly tracking the
+  # forced load symbol when validating the TBD
+  -Xfrontend -validate-tbd-against-ir=none
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
 target_link_libraries(FoundationNetworking
