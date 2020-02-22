@@ -1359,7 +1359,11 @@ extension NSString {
         // just copy for now since the internal storage will be a copy anyhow
         self.init(bytes: bytes, length: len, encoding: encoding)
         if freeBuffer { // don't take the hint
-            free(bytes)
+#if os(Windows)
+          bytes.deallocate()
+#else
+          free(bytes)
+#endif
         }
     }
 

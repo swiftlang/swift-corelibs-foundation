@@ -599,12 +599,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
         let capacity = estimateBase64Size(length: dataLength)
         let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 1)
-        defer { ptr.deallocate() }
         let buffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
         let length = NSData.base64EncodeBytes(self, options: options, buffer: buffer)
 
-        let utf8buffer = UnsafeBufferPointer<UInt8>(start: ptr.assumingMemoryBound(to: UInt8.self), count: length)
-        return String(decoding: utf8buffer, as: UTF8.self)
+        return String(bytesNoCopy: ptr, length: length, encoding: .ascii, freeWhenDone: true)!
     }
 
     /// Creates a Base64, UTF-8 encoded Data from the data object using the given options.
