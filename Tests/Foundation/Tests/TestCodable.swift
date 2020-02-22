@@ -421,10 +421,8 @@ class TestCodable : XCTestCase {
         .yearForWeekOfYear,
         .timeZone,
         .calendar,
-        // [SR-5576] Disabled due to a bug in Calendar.dateComponents(_:from:) which crashes on Darwin and returns
-        // invalid values on Linux if components include .nanosecond or .quarter.
-        // .nanosecond,
-        // .quarter,
+        .nanosecond,
+        .quarter,
     ]
 
     func test_DateComponents_JSON() {

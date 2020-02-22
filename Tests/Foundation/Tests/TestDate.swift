@@ -145,21 +145,19 @@ class TestDate : XCTestCase {
         XCTAssertEqual(recreatedComponents.era, 1)
         XCTAssertEqual(recreatedComponents.year, 2017)
         XCTAssertEqual(recreatedComponents.month, 11)
+        XCTAssertEqual(recreatedComponents.day, 5)
         XCTAssertEqual(recreatedComponents.hour, 20)
         XCTAssertEqual(recreatedComponents.minute, 38)
-        
-        // Nanoseconds are currently not supported by UCalendar C API, returns nil
-        // XCTAssertEqual(recreatedComponents.nanosecond, 40)
-        
+        XCTAssertEqual(recreatedComponents.second, 11)
+        XCTAssertEqual(recreatedComponents.nanosecond, 59)
         XCTAssertEqual(recreatedComponents.weekday, 1)
         XCTAssertEqual(recreatedComponents.weekdayOrdinal, 1)
-        
-        // Quarter is currently not supported by UCalendar C API, returns nil
-        // XCTAssertEqual(recreatedComponents.quarter, 3)
-        
         XCTAssertEqual(recreatedComponents.weekOfMonth, 2)
         XCTAssertEqual(recreatedComponents.weekOfYear, 45)
         XCTAssertEqual(recreatedComponents.yearForWeekOfYear, 2017)
+
+        // Quarter is currently not supported by UCalendar C API, returns 0
+        XCTAssertEqual(recreatedComponents.quarter, 0)
     }
 
     func test_Hashing() {
