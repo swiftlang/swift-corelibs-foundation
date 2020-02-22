@@ -634,7 +634,16 @@ class TestProcess : XCTestCase {
 
         do {
             let (stdout, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/")
-            XCTAssertEqual(stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"])), "/")
+            var directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
+#if os(Windows)
+            let zero: String.Index = directory.startIndex
+            let one: String.Index = directory.index(zero, offsetBy: 1)
+            XCTAssertTrue(directory[zero].isLetter)
+            XCTAssertEqual(directory[one], ":")
+            directory = "/" + String(directory.dropFirst(2))
+#endif
+            XCTAssertEqual(URL(fileURLWithPath: directory).absoluteURL,
+                           URL(fileURLWithPath: "/").absoluteURL)
         }
 
         do {
