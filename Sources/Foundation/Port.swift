@@ -60,12 +60,12 @@ open class Port : NSObject, NSCopying {
         return 0
     }
     
-    open func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
+    open func send(before limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
         NSRequiresConcreteImplementation()
     }
 
-    open func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
-        return sendBeforeDate(limitDate, components: components, from: receivePort, reserved: headerSpaceReserved)
+    open func send(before limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
+        return send(before: limitDate, components: components, from: receivePort, reserved: headerSpaceReserved)
     }
 }
 
@@ -946,11 +946,11 @@ open class SocketPort : Port {
         }
     }
     
-    open override func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
-        sendBeforeDate(limitDate, msgid: 0, components: components, from: receivePort, reserved: headerSpaceReserved)
+    open override func send(before limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
+        send(before: limitDate, msgid: 0, components: components, from: receivePort, reserved: headerSpaceReserved)
     }
     
-    open override func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
+    open override func send(before limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
         guard let sender = sendingSocket(for: self, before: limitDate.timeIntervalSinceReferenceDate),
               let signature = core.signature.darwinCompatibleDataRepresentation else {
             return false

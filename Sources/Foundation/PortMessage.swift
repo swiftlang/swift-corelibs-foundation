@@ -21,8 +21,8 @@ open class PortMessage : NSObject, NSCopying {
     open private(set) var receivePort: Port?
     open private(set) var sendPort: Port?
     
-    open func sendBeforeDate(_ date: Date) -> Bool {
-        return sendPort?.sendBeforeDate(date, msgid: Int(msgid), components: NSMutableArray(array: components ?? []), from: receivePort, reserved: 0) ?? false
+    open func send(before date: Date) -> Bool {
+        return sendPort?.send(before: date, msgid: Int(msgid), components: NSMutableArray(array: components ?? []), from: receivePort, reserved: 0) ?? false
     }
     
     public func copy(with zone: NSZone?) -> Any {
