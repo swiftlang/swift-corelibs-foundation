@@ -1648,13 +1648,32 @@ CFTimeInterval CFTimeZoneGetSecondsFromGMT(CFTimeZoneRef tz, CFAbsoluteTime at) 
     return __CFTZPeriodGMTOffset(&(tz->_periods[idx]));
 }
 
+extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
+
 CFStringRef CFTimeZoneCopyAbbreviation(CFTimeZoneRef tz, CFAbsoluteTime at) {
     CFStringRef result;
     CFIndex idx;
     __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
+#if TARGET_OS_WIN32
+    UErrorCode status = U_ZERO_ERROR;
+    UCalendar *ucal = __CFCalendarCreateUCalendar(NULL, CFSTR("C"), tz);
+    if (ucal == NULL) {
+      return NULL;
+    }
+    ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
+
+    UChar buffer[64];
+    int32_t length;
+    length = ucal_getTimeZoneDisplayName(ucal, UCAL_SHORT_STANDARD, "C", buffer, sizeof(buffer), &status);
+
+    ucal_close(ucal);
+
+    return length <= sizeof(buffer) ? CFStringCreateWithCharacters(kCFAllocatorSystemDefault, buffer, length) : NULL;
+#else
     idx = __CFBSearchTZPeriods(tz, at);
     result = __CFTZPeriodAbbreviation(&(tz->_periods[idx]));
     return result ? (CFStringRef)CFRetain(result) : NULL;
+#endif
 }
 
 Boolean CFTimeZoneIsDaylightSavingTime(CFTimeZoneRef tz, CFAbsoluteTime at) {
@@ -1682,14 +1701,28 @@ CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef tz, CFAbsolut
 CFAbsoluteTime CFTimeZoneGetNextDaylightSavingTimeTransition(CFTimeZoneRef tz, CFAbsoluteTime at) {
     CF_OBJC_FUNCDISPATCHV(CFTimeZoneGetTypeID(), CFTimeInterval, (NSTimeZone *)tz, _nextDaylightSavingTimeTransitionAfterAbsoluteTime:at);
     __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
+#if TARGET_OS_WIN32
+    UErrorCode status = U_ZERO_ERROR;
+    UCalendar *ucal = __CFCalendarCreateUCalendar(NULL, CFSTR("C"), tz);
+    if (ucal == NULL) {
+      return 0.0;
+    }
+    ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
+
+    UDate date;
+    ucal_getTimeZoneTransitionDate(ucal, UCAL_TZ_TRANSITION_NEXT, &date, &status);
+
+    ucal_close(ucal);
+
+    return (date / 1000.0) - kCFAbsoluteTimeIntervalSince1970;
+#else
     CFIndex idx = __CFBSearchTZPeriods(tz, at);
     if (tz->_periodCnt <= idx + 1) {
         return 0.0;
     }
     return (CFAbsoluteTime)__CFTZPeriodStartSeconds(&(tz->_periods[idx + 1]));
+#endif
 }
-
-extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
 
 #define BUFFER_SIZE 768
 
