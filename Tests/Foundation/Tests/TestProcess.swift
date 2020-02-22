@@ -638,12 +638,17 @@ class TestProcess : XCTestCase {
         }
 
         do {
+            // NOTE: Windows does have an environment variable called `PWD`.
+            // The closed thing is %CD% which is a property of the shell rather
+            // than the environment.  Simply ignore this test on Windows.
+#if !os(Windows)
             XCTAssertNotEqual("/", FileManager.default.currentDirectoryPath)
             XCTAssertNotEqual(FileManager.default.currentDirectoryPath, "/")
             let (stdout, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: "/")
             let directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
             XCTAssertEqual(directory, ProcessInfo.processInfo.environment["PWD"])
             XCTAssertNotEqual(directory, "/")
+#endif
         }
 
         do {
