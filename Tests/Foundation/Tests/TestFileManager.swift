@@ -335,21 +335,11 @@ class TestFileManager : XCTestCase {
             let fileGroupOwnerAccountID = attrs[.groupOwnerAccountID] as? NSNumber
             XCTAssertNotNil(fileGroupOwnerAccountID)
 
-#if os(Linux)
-            /* ⚠️ */
-            if shouldAttemptXFailTests("Checking that .creationDate is set is failing on Ubuntu 16.04 when running from a Docker image. https://bugs.swift.org/browse/SR-10512") {
-                let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
-                let creationDate = attrs[.creationDate] as? Date
-                if ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion) {
-                    XCTAssertNotNil(creationDate)
-                    XCTAssertGreaterThan(Date().timeIntervalSince1970, try XCTUnwrap(creationDate).timeIntervalSince1970)
-                } else {
-                    XCTAssertNil(creationDate)
-                }
+            // .creationDate is not not available on all systems but if it is supported check the value is reasonable
+            if let creationDate = attrs[.creationDate] as? Date {
+                XCTAssertGreaterThan(Date().timeIntervalSince1970, creationDate.timeIntervalSince1970)
             }
-            /* ⚠️ */ 
-#endif
-            
+
             if let fileOwnerAccountName = attrs[.ownerAccountName] {
                 XCTAssertNotNil(fileOwnerAccountName as? String)
                 if let fileOwnerAccountNameStr = fileOwnerAccountName as? String {
