@@ -1672,85 +1672,88 @@ VIDEOS=StopgapVideos
         
         var stderr = FileHandle.standardError
         
-        func testReplaceMethod(invokedBy replace: (URL, URL, String?, FileManager.ItemReplacementOptions) throws -> URL?) throws {
-            func runSingleTest(aIsDirectory: Bool, bIsDirectory: Bool, options: FileManager.ItemReplacementOptions = []) throws {
-                print("note: Testing with: a is directory? \(aIsDirectory), b is directory? \(bIsDirectory), using new metadata only? \(options.contains(.usingNewMetadataOnly)), without deleting backup item? \(options.contains(.withoutDeletingBackupItem))", to: &stderr)
-                try setUpReplacement(aIsDirectory: aIsDirectory, bIsDirectory: bIsDirectory)
-                
-                let initialAttributes = options.contains(.usingNewMetadataOnly) ? try fm.attributesOfItem(atPath: b.path) : try fm.attributesOfItem(atPath: a.path)
-                
-                // Do the thing.
-                let result = try replace(a, b, "c", options)
-                
-                let c = writableTestDirectoryURL.appendingPathComponent("c")
-                let cAttributes = try? fm.attributesOfItem(atPath: c.path)
-                if options.contains(.withoutDeletingBackupItem) {
-                    XCTAssertNotNil(cAttributes)
-                    
-                    if aIsDirectory {
-                        XCTAssertNotNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(initialFileName).path))
-                        XCTAssertNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(finalFileName).path))
+        func testReplaceMethod(invokedBy replace: (URL, URL, String?, FileManager.ItemReplacementOptions) throws -> URL?) {
+            func runSingleTest(aIsDirectory: Bool, bIsDirectory: Bool, options: FileManager.ItemReplacementOptions = []) {
+                do {
+                    print("note: Testing with: a is directory? \(aIsDirectory), b is directory? \(bIsDirectory), using new metadata only? \(options.contains(.usingNewMetadataOnly)), without deleting backup item? \(options.contains(.withoutDeletingBackupItem))", to: &stderr)
+                    try setUpReplacement(aIsDirectory: aIsDirectory, bIsDirectory: bIsDirectory)
+
+                    let initialAttributes = options.contains(.usingNewMetadataOnly) ? try fm.attributesOfItem(atPath: b.path) : try fm.attributesOfItem(atPath: a.path)
+
+                    // Do the thing.
+                    let result = try replace(a, b, "c", options)
+
+                    let c = writableTestDirectoryURL.appendingPathComponent("c")
+                    let cAttributes = try? fm.attributesOfItem(atPath: c.path)
+                    if options.contains(.withoutDeletingBackupItem) {
+                        XCTAssertNotNil(cAttributes)
+
+                        if aIsDirectory {
+                            XCTAssertNotNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(initialFileName).path))
+                            XCTAssertNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(finalFileName).path))
+                        } else {
+                            XCTAssertEqual(try? Data(contentsOf: c), initialData)
+                        }
+
+                        // Remove the backup manually.
+                        try? fm.removeItem(at: c)
                     } else {
-                        XCTAssertEqual(try? Data(contentsOf: c), initialData)
+                        XCTAssertNil(cAttributes)
                     }
-                    
-                    // Remove the backup manually.
-                    try? fm.removeItem(at: c)
-                } else {
-                    XCTAssertNil(cAttributes)
-                }
-                
-                let newA = try XCTUnwrap(result)
 
-                let finalAttributes = try fm.attributesOfItem(atPath: newA.path)
-                XCTAssertEqual(initialAttributes[.creationDate] as? AnyHashable, finalAttributes[.creationDate] as? AnyHashable)
-                XCTAssertEqual(initialAttributes[.posixPermissions] as? AnyHashable, finalAttributes[.posixPermissions] as? AnyHashable)
+                    let newA = try XCTUnwrap(result)
 
-                if bIsDirectory {
-                    // Ensure we have execute permission, which can happen if .…newMetadataOnly isn't used, and we replace a file with a directory. (That's why we check attributes first.)
-                    try? fm.setAttributes([.posixPermissions: 0o777], ofItemAtPath: newA.path)
-                    XCTAssertNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(initialFileName).path))
-                    XCTAssertNotNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(finalFileName).path))
-                } else {
-                    XCTAssertEqual(try? Data(contentsOf: newA), finalData)
+                    let finalAttributes = try fm.attributesOfItem(atPath: newA.path)
+                    XCTAssertEqual(initialAttributes[.creationDate] as? AnyHashable, finalAttributes[.creationDate] as? AnyHashable)
+                    XCTAssertEqual(initialAttributes[.posixPermissions] as? AnyHashable, finalAttributes[.posixPermissions] as? AnyHashable)
+
+                    if bIsDirectory {
+                        // Ensure we have execute permission, which can happen if .…newMetadataOnly isn't used, and we replace a file with a directory. (That's why we check attributes first.)
+                        try? fm.setAttributes([.posixPermissions: 0o777], ofItemAtPath: newA.path)
+                        XCTAssertNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(initialFileName).path))
+                        XCTAssertNotNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(finalFileName).path))
+                    } else {
+                        XCTAssertEqual(try? Data(contentsOf: newA), finalData)
+                    }
+                } catch {
+                    XCTFail()
                 }
-                
-                try tearDownReplacement()
+
+                try? tearDownReplacement()
             }
-            
-            try runSingleTest(aIsDirectory: false, bIsDirectory: false)
-            try runSingleTest(aIsDirectory: false, bIsDirectory: false, options: .withoutDeletingBackupItem)
-            try runSingleTest(aIsDirectory: false, bIsDirectory: false, options: .usingNewMetadataOnly)
-            try runSingleTest(aIsDirectory: false, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
-            try runSingleTest(aIsDirectory: true, bIsDirectory: true)
-            try runSingleTest(aIsDirectory: true, bIsDirectory: true, options: .withoutDeletingBackupItem)
-            try runSingleTest(aIsDirectory: true, bIsDirectory: true, options: .usingNewMetadataOnly)
-            try runSingleTest(aIsDirectory: true, bIsDirectory: true, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
-            try runSingleTest(aIsDirectory: false, bIsDirectory: true)
-            try runSingleTest(aIsDirectory: false, bIsDirectory: true, options: .withoutDeletingBackupItem)
-            try runSingleTest(aIsDirectory: false, bIsDirectory: true, options: .usingNewMetadataOnly)
-            try runSingleTest(aIsDirectory: false, bIsDirectory: true, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
-            try runSingleTest(aIsDirectory: true, bIsDirectory: false)
-            try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: .withoutDeletingBackupItem)
-            try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: .usingNewMetadataOnly)
-            try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
+            runSingleTest(aIsDirectory: false, bIsDirectory: false)
+            runSingleTest(aIsDirectory: false, bIsDirectory: false, options: .withoutDeletingBackupItem)
+            runSingleTest(aIsDirectory: false, bIsDirectory: false, options: .usingNewMetadataOnly)
+            runSingleTest(aIsDirectory: false, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
+            runSingleTest(aIsDirectory: true, bIsDirectory: true)
+            runSingleTest(aIsDirectory: true, bIsDirectory: true, options: .withoutDeletingBackupItem)
+            runSingleTest(aIsDirectory: true, bIsDirectory: true, options: .usingNewMetadataOnly)
+            runSingleTest(aIsDirectory: true, bIsDirectory: true, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
+            runSingleTest(aIsDirectory: false, bIsDirectory: true)
+            runSingleTest(aIsDirectory: false, bIsDirectory: true, options: .withoutDeletingBackupItem)
+            runSingleTest(aIsDirectory: false, bIsDirectory: true, options: .usingNewMetadataOnly)
+            runSingleTest(aIsDirectory: false, bIsDirectory: true, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
+            runSingleTest(aIsDirectory: true, bIsDirectory: false)
+            runSingleTest(aIsDirectory: true, bIsDirectory: false, options: .withoutDeletingBackupItem)
+            runSingleTest(aIsDirectory: true, bIsDirectory: false, options: .usingNewMetadataOnly)
+            runSingleTest(aIsDirectory: true, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
         }
 
         print("Testing Darwin Foundation compatible replace", to: &stderr)
-        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+        testReplaceMethod { (a, b, backupItemName, options) -> URL? in
             try fm.replaceItemAt(a, withItemAt: b, backupItemName: backupItemName, options: options)
         }
 
         #if !DARWIN_COMPATIBILITY_TESTS
         print("note: Testing platform-specific replace implementation.", to: &stderr)
-        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+        testReplaceMethod { (a, b, backupItemName, options) -> URL? in
             try fm.replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options)
         }
         #endif
 
         #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows) // Not implemented on Windows yet
         print("note: Testing cross-platform replace implementation.", to: &stderr)
-        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+        testReplaceMethod { (a, b, backupItemName, options) -> URL? in
             try fm._replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options, allowPlatformSpecificSyscalls: false)
         }
         #endif
@@ -1810,8 +1813,7 @@ VIDEOS=StopgapVideos
             ("test_displayNames", test_displayNames),
             ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
             ("test_contentsEqual", test_contentsEqual),
-            /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
-            /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
+            ("test_replacement", test_replacement),
         ]
         
         #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)
