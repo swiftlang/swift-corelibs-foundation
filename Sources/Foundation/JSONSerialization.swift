@@ -28,6 +28,12 @@ extension JSONSerialization {
     }
 }
 
+extension JSONSerialization {
+    // Structures with container nesting deeper than this limit are not valid if passed in in-memory for validation, nor if they are read during deserialization.
+    // This matches Darwin Foundation's validation behavior.
+    fileprivate static let maximumRecursionDepth = 512
+}
+
 
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
    
@@ -48,8 +54,15 @@ open class JSONSerialization : NSObject {
        - returns: `true` if `obj` can be converted to JSON, otherwise `false`.
      */
     open class func isValidJSONObject(_ obj: Any) -> Bool {
+        var recursionDepth = 0
+        
         // TODO: - revisit this once bridging story gets fully figured out
         func isValidJSONObjectInternal(_ obj: Any?) -> Bool {
+            // Match Darwin Foundation in not considering a deep object valid.
+            guard recursionDepth < JSONSerialization.maximumRecursionDepth else { return false }
+            recursionDepth += 1
+            defer { recursionDepth -= 1 }
+            
             // Emulate the SE-0140 behavior bridging behavior for nils
             guard let obj = obj else {
                 return true
@@ -173,13 +186,13 @@ open class JSONSerialization : NSObject {
             
             let source = JSONReader.UnicodeSource(buffer: buffer, encoding: encoding)
             let reader = JSONReader(source: source)
-            if let (object, _) = try reader.parseObject(0, options: opt) {
+            if let (object, _) = try reader.parseObject(0, options: opt, recursionDepth: 0) {
                 return object
             }
-            else if let (array, _) = try reader.parseArray(0, options: opt) {
+            else if let (array, _) = try reader.parseArray(0, options: opt, recursionDepth: 0) {
                 return array
             }
-            else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0, options: opt) {
+            else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0, options: opt, recursionDepth: 0) {
                 return value
             }
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
@@ -931,9 +944,16 @@ private struct JSONReader {
         }
         return nil
     }
-
-    //MARK: - Value parsing
-    func parseValue(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
+    
+    func parseValue(_ input: Index, options opt: JSONSerialization.ReadingOptions, recursionDepth: Int) throws -> (Any, Index)? {
+        guard recursionDepth < JSONSerialization.maximumRecursionDepth else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                NSDebugDescriptionErrorKey: "Recursion depth exceeded during parsing"
+            ])
+        }
+        
+        let newDepth = recursionDepth + 1
+        
         if let (value, parser) = try parseString(input) {
             return (value, parser)
         }
@@ -946,10 +966,10 @@ private struct JSONReader {
         else if let parser = try consumeASCIISequence("null", input: input) {
             return (NSNull(), parser)
         }
-        else if let (object, parser) = try parseObject(input, options: opt) {
+        else if let (object, parser) = try parseObject(input, options: opt, recursionDepth: newDepth) {
             return (object, parser)
         }
-        else if let (array, parser) = try parseArray(input, options: opt) {
+        else if let (array, parser) = try parseArray(input, options: opt, recursionDepth: newDepth) {
             return (array, parser)
         }
         else if let (number, parser) = try parseNumber(input, options: opt) {
@@ -959,7 +979,7 @@ private struct JSONReader {
     }
 
     //MARK: - Object parsing
-    func parseObject(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> ([String: Any], Index)? {
+    func parseObject(_ input: Index, options opt: JSONSerialization.ReadingOptions, recursionDepth: Int) throws -> ([String: Any], Index)? {
         guard let beginIndex = try consumeStructure(Structure.BeginObject, input: input) else {
             return nil
         }
@@ -970,7 +990,7 @@ private struct JSONReader {
                 return (output, finalIndex)
             }
     
-            if let (key, value, nextIndex) = try parseObjectMember(index, options: opt) {
+            if let (key, value, nextIndex) = try parseObjectMember(index, options: opt, recursionDepth: recursionDepth) {
                 output[key] = value
     
                 if let finalParser = try consumeStructure(Structure.EndObject, input: nextIndex) {
@@ -988,7 +1008,7 @@ private struct JSONReader {
         }
     }
     
-    func parseObjectMember(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (String, Any, Index)? {
+    func parseObjectMember(_ input: Index, options opt: JSONSerialization.ReadingOptions, recursionDepth: Int) throws -> (String, Any, Index)? {
         guard let (name, index) = try parseString(input) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 NSDebugDescriptionErrorKey : "Missing object key at location \(source.distanceFromStart(input))"
@@ -999,7 +1019,7 @@ private struct JSONReader {
                 NSDebugDescriptionErrorKey : "Invalid separator at location \(source.distanceFromStart(index))"
             ])
         }
-        guard let (value, finalIndex) = try parseValue(separatorIndex, options: opt) else {
+        guard let (value, finalIndex) = try parseValue(separatorIndex, options: opt, recursionDepth: recursionDepth) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 NSDebugDescriptionErrorKey : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
             ])
@@ -1009,7 +1029,7 @@ private struct JSONReader {
     }
 
     //MARK: - Array parsing
-    func parseArray(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> ([Any], Index)? {
+    func parseArray(_ input: Index, options opt: JSONSerialization.ReadingOptions, recursionDepth: Int) throws -> ([Any], Index)? {
         guard let beginIndex = try consumeStructure(Structure.BeginArray, input: input) else {
             return nil
         }
@@ -1019,8 +1039,8 @@ private struct JSONReader {
             if let finalIndex = try consumeStructure(Structure.EndArray, input: index) {
                 return (output, finalIndex)
             }
-    
-            if let (value, nextIndex) = try parseValue(index, options: opt) {
+            
+            if let (value, nextIndex) = try parseValue(index, options: opt, recursionDepth: recursionDepth) {
                 output.append(value)
     
                 if let finalIndex = try consumeStructure(Structure.EndArray, input: nextIndex) {
