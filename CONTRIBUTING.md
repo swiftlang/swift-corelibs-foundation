@@ -11,7 +11,7 @@ By submitting a pull request, you represent that you have the right to license y
 
 You can use the `Foundation` component in the [bug reporter](https://bugs.swift.org) if you know your bug is specifically about Swift Foundation.
 
-Please remember to include platform information with your report. If the bug is about the Foundation framework on Darwin, then please use the [Apple bug reporting system](https://bugreport.apple.com).
+Please remember to include platform information with your report. If the bug is about the Foundation framework on Darwin, then please use [Feedback Assistant](https://feedbackassistant.apple.com).
 
 ## Pull Requests
 
