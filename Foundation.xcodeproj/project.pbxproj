@@ -378,6 +378,7 @@
 		61E011821C1B599A000037DD /* CFMachPort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D01BBC9AAC00234F36 /* CFMachPort.c */; };
 		63DCE9D21EAA430100E9CB02 /* ISO8601DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DCE9D11EAA430100E9CB02 /* ISO8601DateFormatter.swift */; };
 		63DCE9D41EAA432400E9CB02 /* TestISO8601DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DCE9D31EAA432400E9CB02 /* TestISO8601DateFormatter.swift */; };
+		659FB6DE2405E5E300F5F63F /* TestBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659FB6DD2405E5E200F5F63F /* TestBridging.swift */; };
 		684C79011F62B611005BD73E /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684C79001F62B611005BD73E /* TestNSNumberBridging.swift */; };
 		6EB768281D18C12C00D4B719 /* UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB768271D18C12C00D4B719 /* UUID.swift */; };
 		7900433B1CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790043391CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift */; };
@@ -1074,6 +1075,7 @@
 		61F8AE7C1C180FC600FB62F0 /* TestNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNotificationCenter.swift; sourceTree = "<group>"; };
 		63DCE9D11EAA430100E9CB02 /* ISO8601DateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO8601DateFormatter.swift; sourceTree = "<group>"; };
 		63DCE9D31EAA432400E9CB02 /* TestISO8601DateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestISO8601DateFormatter.swift; sourceTree = "<group>"; };
+		659FB6DD2405E5E200F5F63F /* TestBridging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestBridging.swift; sourceTree = "<group>"; };
 		684C79001F62B611005BD73E /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNumberBridging.swift; sourceTree = "<group>"; };
 		6E203B8C1C1303BB003B2576 /* TestBundle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestBundle.swift; sourceTree = "<group>"; };
 		6EB768271D18C12C00D4B719 /* UUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUID.swift; sourceTree = "<group>"; };
@@ -1789,6 +1791,7 @@
 			isa = PBXGroup;
 			children = (
 				C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */,
+				659FB6DD2405E5E200F5F63F /* TestBridging.swift */,
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,
 				A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */,
 				1539391322A07007006DFF4F /* TestCachedURLResponse.swift */,
@@ -3109,6 +3112,7 @@
 				B9D9734323D19FD100AB249C /* TestURLComponents.swift in Sources */,
 				5B13B3391C582D4C00651CE2 /* TestNSNull.swift in Sources */,
 				BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */,
+				659FB6DE2405E5E300F5F63F /* TestBridging.swift in Sources */,
 				5B13B3421C582D4C00651CE2 /* TestRunLoop.swift in Sources */,
 				155D3BBC22401D1100B0D38E /* FixtureValues.swift in Sources */,
 				5B13B34E1C582D4C00651CE2 /* TestXMLDocument.swift in Sources */,

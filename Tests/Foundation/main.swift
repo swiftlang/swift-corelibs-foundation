@@ -24,6 +24,7 @@ _ = signal(SIGPIPE, SIG_IGN)
 var allTestCases = [
     testCase(TestAffineTransform.allTests),
     testCase(TestNSArray.allTests),
+    testCase(TestBridging.allTests),
     testCase(TestBundle.allTests),
     testCase(TestByteCountFormatter.allTests),
     testCase(TestNSCache.allTests),
