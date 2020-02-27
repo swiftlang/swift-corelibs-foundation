@@ -74,9 +74,12 @@ internal func _persistCString(_ p: UnsafePointer<CChar>?) -> [CChar]? {
         return nil
     }
     let len = UTF8._nullCodeUnitOffset(in: cString)
-    var result = [CChar](repeating: 0, count: len + 1)
-    for i in 0..<len {
-        result[i] = cString[i]
+    let result = [CChar](unsafeUninitializedCapacity: len + 1) { buf, initedCount in
+        for i in 0..<len {
+            buf[i] = cString[i]
+        }
+        buf[len] = 0
+        initedCount = len + 1
     }
     return result
 }
