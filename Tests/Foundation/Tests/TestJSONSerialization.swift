@@ -149,6 +149,9 @@ extension TestJSONSerialization {
             ("test_deserialize_unicodeMissingTrailingSurrogate_withStream", test_deserialize_unicodeMissingTrailingSurrogate_withStream),
             ("test_JSONObjectWithStream_withFile", test_JSONObjectWithStream_withFile),
             ("test_JSONObjectWithStream_withURL", test_JSONObjectWithStream_withURL),
+            
+            ("test_bailOnDeepValidStructure", test_bailOnDeepValidStructure),
+            ("test_bailOnDeepInvalidStructure", test_bailOnDeepInvalidStructure),
         ]
     }
 
@@ -1539,6 +1542,33 @@ extension TestJSONSerialization {
     func test_serializePrettyPrinted() {
         let dictionary = ["key": 4]
         XCTAssertEqual(try trySerialize(dictionary, options: .prettyPrinted), "{\n  \"key\" : 4\n}")
+    }
+    
+    func test_bailOnDeepValidStructure() {
+        let repetition = 8000
+        let testString = String(repeating: "[", count: repetition) +  String(repeating: "]", count: repetition)
+        let data = testString.data(using: .utf8)!
+        do {
+            _ = try JSONSerialization.jsonObject(with: data, options: [])
+        }
+        catch let nativeError {
+            if let error = nativeError as? NSError {
+                XCTAssertEqual(error.domain, "NSCocoaErrorDomain")
+                XCTAssertEqual(error.code, 3840)
+            }
+        }
+    }
+    
+    func test_bailOnDeepInvalidStructure() {
+        let repetition = 8000
+        let testString = String(repeating: "[", count: repetition)
+        let data = testString.data(using: .utf8)!
+        do {
+            _ = try JSONSerialization.jsonObject(with: data, options: [])
+        }
+        catch {
+            // expected case
+        }
     }
 
     fileprivate func createTestFile(_ path: String,_contents: Data) -> String? {
