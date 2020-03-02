@@ -255,6 +255,102 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
     }
 
+    func test_defaultCompactPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .compact
+        numberFormatter.locale = Locale(identifier: "en_US")
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, -1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, -1)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, -1)
+        XCTAssertEqual(numberFormatter.format, "#.##;0;#.##")
+        XCTAssertEqual(numberFormatter.positiveFormat, "#.##")
+        XCTAssertEqual(numberFormatter.negativeFormat, "#.##")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultCompactPluralPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .compactPlural
+        numberFormatter.locale = Locale(identifier: "en_US")
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, -1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, -1)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "#.##;0;#.##")
+        XCTAssertEqual(numberFormatter.positiveFormat, "#.##")
+        XCTAssertEqual(numberFormatter.negativeFormat, "#.##")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_compact() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.locale = Locale(identifier: "en_US")
+        numberFormatter.numberStyle = .compact
+        XCTAssertEqual(numberFormatter.format, "#.##;0;#.##")
+        XCTAssertEqual(numberFormatter.string(from: 1.1), "1.1")
+        XCTAssertEqual(numberFormatter.string(from: 1100), "1.1K")
+        XCTAssertEqual(numberFormatter.string(from: 1100000), "1.1M");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000), "1.1B");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000000), "1.1T");
+
+        numberFormatter.decimalSeparator = "_";
+        XCTAssertEqual(numberFormatter.string(from: 1.1), "1_1")
+        XCTAssertEqual(numberFormatter.string(from: 1100), "1_1K")
+        XCTAssertEqual(numberFormatter.string(from: 1100000), "1_1M");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000), "1_1B");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000000), "1_1T");
+    }
+
+    func test_compactPlural() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.locale = Locale(identifier: "en_US")
+        numberFormatter.numberStyle = .compactPlural
+        XCTAssertEqual(numberFormatter.format, "#.##;0;#.##")
+        XCTAssertEqual(numberFormatter.string(from: 1.1), "1.1")
+        XCTAssertEqual(numberFormatter.string(from: 1100), "1.1 thousand")
+        XCTAssertEqual(numberFormatter.string(from: 1100000), "1.1 million");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000), "1.1 billion");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000000), "1.1 trillion");
+
+        numberFormatter.decimalSeparator = "_";
+        XCTAssertEqual(numberFormatter.string(from: 1.1), "1_1")
+        XCTAssertEqual(numberFormatter.string(from: 1100), "1_1 thousand")
+        XCTAssertEqual(numberFormatter.string(from: 1100000), "1_1 million");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000), "1_1 billion");
+        XCTAssertEqual(numberFormatter.string(from: 1100000000000), "1_1 trillion");
+    }
+
+    func test_compactGroupingSizes() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.locale = Locale(identifier: "en_US")
+        numberFormatter.numberStyle = .compactPlural
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+
+        for ident in ["ko", "ja", "zh", "zh_Hant"] {
+            numberFormatter.locale = Locale(identifier: ident)
+            XCTAssertEqual(numberFormatter.groupingSize, 4)
+        }
+    }
+
     func test_currencyCode() {
         let numberFormatter = NumberFormatter()
         numberFormatter.locale = Locale(identifier: "en_GB")
@@ -1174,6 +1270,11 @@ class TestNumberFormatter: XCTestCase {
             ("test_defaultCurrencyISOCodePropertyValues", test_defaultCurrencyISOCodePropertyValues),
             ("test_defaultCurrencyPluralPropertyValues", test_defaultCurrencyPluralPropertyValues),
             ("test_defaultCurrenyAccountingPropertyValues", test_defaultCurrenyAccountingPropertyValues),
+            ("test_defaultCompactPropertyValues", test_defaultCompactPropertyValues),
+            ("test_defaultCompactPluralPropertyValues", test_defaultCompactPluralPropertyValues),
+            ("test_compact", test_compact),
+            ("test_compactPlural", test_compactPlural),
+            ("test_compactGroupingSizes", test_compactGroupingSizes),
             ("test_currencyCode", test_currencyCode),
             ("test_decimalSeparator", test_decimalSeparator),
             ("test_currencyDecimalSeparator", test_currencyDecimalSeparator),

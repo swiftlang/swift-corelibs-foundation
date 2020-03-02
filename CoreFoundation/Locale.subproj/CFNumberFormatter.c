@@ -111,6 +111,10 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
 #if U_ICU_VERSION_MAJOR_NUM >= 55
     case kCFNumberFormatterCurrencyAccountingStyle: ustyle = UNUM_CURRENCY_ACCOUNTING; break;
 #endif
+#if U_ICU_VERSION_MAJOR_NUM >= 56 || (U_ICU_VERSION_MAJOR_NUM >= 55 && !defined(U_HIDE_DRAFT_API))
+    case kCFNumberFormatterDecimalCompactStyle: ustyle = UNUM_DECIMAL_COMPACT_SHORT; break;
+    case kCFNumberFormatterDecimalCompactPluralStyle: ustyle = UNUM_DECIMAL_COMPACT_LONG; break;
+#endif
     default:
 	CFAssert2(0, __kCFLogAssertion, "%s(): unknown style %ld", __PRETTY_FUNCTION__, style);
 	ustyle = UNUM_DECIMAL;
@@ -200,6 +204,10 @@ static void __substituteFormatStringFromPrefsNF(CFNumberFormatterRef formatter) 
 #if U_ICU_VERSION_MAJOR_NUM >= 55
 	    case kCFNumberFormatterCurrencyAccountingStyle: key = CFSTR("10"); break;
 #endif
+#if U_ICU_VERSION_MAJOR_NUM >= 56 || (U_ICU_VERSION_MAJOR_NUM >= 55 && !defined(U_HIDE_DRAFT_API))
+        case kCFNumberFormatterDecimalCompactStyle: key = CFSTR("11"); break;
+        case kCFNumberFormatterDecimalCompactPluralStyle: key = CFSTR("12"); break;
+#endif
 	    default: key = CFSTR("0"); break;
 	    }
 	    pref = (CFStringRef)CFDictionaryGetValue((CFDictionaryRef)metapref, key);
@@ -218,6 +226,10 @@ static void __substituteFormatStringFromPrefsNF(CFNumberFormatterRef formatter) 
 	    case kCFNumberFormatterCurrencyPluralStyle: icustyle = UNUM_CURRENCY_PLURAL; break;
 #if U_ICU_VERSION_MAJOR_NUM >= 55
 	    case kCFNumberFormatterCurrencyAccountingStyle: icustyle = UNUM_CURRENCY_ACCOUNTING; break;
+#endif
+#if U_ICU_VERSION_MAJOR_NUM >= 56 || (U_ICU_VERSION_MAJOR_NUM >= 55 && !defined(U_HIDE_DRAFT_API))
+        case kCFNumberFormatterDecimalCompactStyle: icustyle = UNUM_DECIMAL_COMPACT_SHORT; break;
+        case kCFNumberFormatterDecimalCompactPluralStyle: icustyle = UNUM_DECIMAL_COMPACT_LONG; break;
 #endif
 	    }
 	    CFStringRef localeName = CFLocaleGetIdentifier(formatter->_locale);
@@ -313,6 +325,12 @@ static UErrorCode __CFNumberFormatterApplyPattern(CFNumberFormatterRef formatter
     if (kCFNumberFormatterOrdinalStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
     if (kCFNumberFormatterDurationStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
     if (kCFNumberFormatterCurrencyPluralStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
+    #if U_ICU_VERSION_MAJOR_NUM >= 56 || (U_ICU_VERSION_MAJOR_NUM >= 55 && !defined(U_HIDE_DRAFT_API))
+    if (__builtin_available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)) {
+        if (kCFNumberFormatterDecimalCompactStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
+        if (kCFNumberFormatterDecimalCompactPluralStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
+    }
+    #endif
     CFIndex cnt = CFStringGetLength(pattern);
     SAFE_STACK_BUFFER_DECL(UChar, ubuffer, cnt, 256);
     const UChar *ustr = (const UChar *)CFStringGetCharactersPtr(pattern);

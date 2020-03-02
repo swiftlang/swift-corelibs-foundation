@@ -21,6 +21,8 @@ extension NumberFormatter {
         case currencyISOCode    = 8     // 7 is not used
         case currencyPlural     = 9
         case currencyAccounting = 10
+        case compact            = 11
+        case compactPlural      = 12
     }
 
     public enum PadPosition : UInt {
@@ -187,7 +189,7 @@ open class NumberFormatter : Formatter {
     // to indicate to use the default value (if nil) or the caller-supplied value (if not nil).
     private func defaultMinimumIntegerDigits() -> Int {
         switch numberStyle {
-        case .ordinal, .spellOut, .currencyPlural:
+        case .ordinal, .spellOut, .currencyPlural, .compact, .compactPlural:
             return 0
 
         case .none, .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
@@ -200,7 +202,7 @@ open class NumberFormatter : Formatter {
         case .none:
             return 42
 
-        case .ordinal, .spellOut, .currencyPlural:
+        case .ordinal, .spellOut, .currencyPlural, .compact, .compactPlural:
             return 0
 
         case .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent:
@@ -213,7 +215,7 @@ open class NumberFormatter : Formatter {
 
     private func defaultMinimumFractionDigits() -> Int {
         switch numberStyle {
-        case .none, .ordinal, .spellOut, .currencyPlural, .decimal, .percent, .scientific:
+        case .none, .ordinal, .spellOut, .currencyPlural, .decimal, .percent, .scientific, .compact, .compactPlural:
             return 0
 
         case .currency, .currencyISOCode, .currencyAccounting:
@@ -226,7 +228,7 @@ open class NumberFormatter : Formatter {
         case .none, .ordinal, .spellOut, .currencyPlural, .percent, .scientific:
             return 0
 
-        case .currency, .currencyISOCode, .currencyAccounting:
+        case .currency, .currencyISOCode, .currencyAccounting, .compact, .compactPlural:
             return 2
 
         case .decimal:
@@ -239,14 +241,14 @@ open class NumberFormatter : Formatter {
         case .ordinal, .spellOut, .currencyPlural:
             return 0
 
-        case .currency, .none, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
+        case .currency, .none, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific, .compact, .compactPlural:
             return -1
         }
     }
 
     private func defaultMaximumSignificantDigits() -> Int {
         switch numberStyle {
-        case .none, .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
+        case .none, .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific, .compact, .compactPlural:
             return -1
 
         case .ordinal, .spellOut, .currencyPlural:
@@ -256,7 +258,7 @@ open class NumberFormatter : Formatter {
 
     private func defaultUsesGroupingSeparator() -> Bool {
         switch numberStyle {
-        case .none, .scientific, .spellOut, .ordinal, .currencyPlural:
+        case .none, .scientific, .spellOut, .ordinal, .currencyPlural, .compact, .compactPlural:
             return false
 
         case .decimal, .currency, .percent, .currencyAccounting, .currencyISOCode:
@@ -271,6 +273,22 @@ open class NumberFormatter : Formatter {
 
         case .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent:
             return 3
+
+        case .compact, .compactPlural:
+            // some locales group compactions by 4-digit groups.
+            switch self.locale?.languageCode {
+            case "ko"?, "ja"?:
+                return 4
+            case "zh"?:
+                // "zh" and "zh_Hant" use groups of 4.
+                let script = self.locale?.scriptCode ?? "Hant"
+                if script == "Hant" {
+                    return 4
+                }
+                fallthrough // use 3
+            default:
+                return 3
+            }
         }
     }
 
@@ -283,10 +301,10 @@ open class NumberFormatter : Formatter {
 
     private func defaultFormatWidth() -> Int {
         switch numberStyle {
-        case .ordinal, .spellOut, .currencyPlural:
+        case .ordinal, .spellOut, .currencyPlural, .compactPlural:
             return 0
 
-        case .none, .decimal, .currency, .percent, .scientific, .currencyISOCode, .currencyAccounting:
+        case .none, .decimal, .currency, .percent, .scientific, .currencyISOCode, .currencyAccounting, .compact:
             return -1
         }
     }

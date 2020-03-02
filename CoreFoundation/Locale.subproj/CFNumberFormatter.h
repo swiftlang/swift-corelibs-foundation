@@ -37,6 +37,8 @@ typedef CF_ENUM(CFIndex, CFNumberFormatterStyle) {	// number format styles
 	kCFNumberFormatterCurrencyISOCodeStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 8,
 	kCFNumberFormatterCurrencyPluralStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 9,
 	kCFNumberFormatterCurrencyAccountingStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 10,
+    kCFNumberFormatterDecimalCompactStyle API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0)) = 11,
+    kCFNumberFormatterDecimalCompactPluralStyle API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0)) = 12,
 };
 
 
