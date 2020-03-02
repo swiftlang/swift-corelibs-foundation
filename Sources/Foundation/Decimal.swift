@@ -1678,25 +1678,43 @@ public func NSDecimalMultiplyByPowerOf10(_ result: UnsafeMutablePointer<Decimal>
 }
 
 public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: Any?) -> String {
+    let ZERO: UInt8 = 0x30 // ASCII '0' == 0x30
+    let zeroString = String(Unicode.Scalar(ZERO)) // "0"
 
     var copy = dcm.pointee
     if copy.isNaN {
         return "NaN"
     }
     if copy._length == 0 {
-        return "0"
+        return zeroString
     }
 
-    let ZERO: CChar = 0x30 // ASCII '0' == 0x30
-    let DECIMALPOINT: CChar = 0x2e // ASCII '.' == 0x2e
-    let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
-    let bufferSize = 200 // Max value: 39 + 128 + sign + decimal point
-    var buffer = Array<CChar>(repeating: 0, count: bufferSize)
+    let decimalSeparatorReversed: String = {
+        // Short circuiting for common case that `locale` is `nil`
+        guard locale != nil else { return "." } // Defaulting to decimal point
 
-    var i = bufferSize - 1
+        var decimalSeparator: String? = nil
+        if let locale = locale as? Locale {
+            decimalSeparator = locale.decimalSeparator
+        } else if let dictionary = locale as? [NSLocale.Key: String] {
+            decimalSeparator = dictionary[NSLocale.Key.decimalSeparator]
+        } else if let dictionary = locale as? [String: String] {
+            decimalSeparator = dictionary[NSLocale.Key.decimalSeparator.rawValue]
+        }
+        guard let dc = decimalSeparator else { return "." } // Defaulting to decimal point
+        return String(dc.reversed())
+    }()
+
+    let resultCount =
+        (copy.isNegative ? 1 : 0) + // sign, obviously
+        39 + // mantissa is an 128bit, so log10(2^128) is approx 38.5 giving 39 digits max for the mantissa
+        (copy._exponent > 0 ? Int(copy._exponent) : decimalSeparatorReversed.count) // trailing zeroes or decimal separator
+
+    var result = ""
+    result.reserveCapacity(resultCount)
+
     while copy._exponent > 0 {
-        i -= 1
-        buffer[i] = ZERO
+        result.append(zeroString)
         copy._exponent -= 1
     }
 
@@ -1707,44 +1725,25 @@ public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: Any?) -> St
     while copy._length != 0 {
         var remainder: UInt16 = 0
         if copy._exponent == 0 {
-            i -= 1
-            buffer[i] = DECIMALPOINT
+            result.append(decimalSeparatorReversed)
         }
         copy._exponent += 1
         (remainder, _) = divideByShort(&copy, 10)
-        i -= 1
-        buffer[i] = Int8(remainder) + ZERO
+        result.append(String(Unicode.Scalar(ZERO + UInt8(remainder))))
     }
     if copy._exponent <= 0 {
         while copy._exponent != 0 {
-            i -= 1
-            buffer[i] = ZERO
+            result.append(zeroString)
             copy._exponent += 1
         }
-        i -= 1
-        buffer[i] = DECIMALPOINT
-        i -= 1
-        buffer[i] = ZERO
+        result.append(decimalSeparatorReversed)
+        result.append(zeroString)
     }
     if copy._isNegative != 0 {
-        i -= 1
-        buffer[i] = MINUS
-    }
-    let result = String(cString: Array(buffer.suffix(from: i)))
-
-    var decimalSeparator: String?
-    if let locale = locale as? Locale {
-        decimalSeparator = locale.decimalSeparator
-    } else if let dictionary = locale as? [NSLocale.Key: String] {
-        decimalSeparator = dictionary[NSLocale.Key.decimalSeparator]
-    } else if let dictionary = locale as? [String: String] {
-        decimalSeparator = dictionary[NSLocale.Key.decimalSeparator.rawValue]
+        result.append("-")
     }
 
-    if let dcm = decimalSeparator, dcm != "." {
-        return result.replacingOccurrences(of: ".", with: dcm)
-    }
-    return result
+    return String(result.reversed())
 }
 
 private func multiplyBy10(_ dcm: inout Decimal, andAdd extra:Int) -> NSDecimalNumber.CalculationError {
