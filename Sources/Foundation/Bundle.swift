@@ -161,7 +161,7 @@ open class Bundle: NSObject {
     
     /* Methods for loading and unloading bundles. */
     open func load() -> Bool {
-        return  CFBundleLoadExecutable(_bundle)
+        return CFBundleLoadExecutable(_bundle)
     }
     open var isLoaded: Bool {
         return CFBundleIsExecutableLoaded(_bundle)
@@ -171,21 +171,21 @@ open class Bundle: NSObject {
     
     open func preflight() throws {
         var unmanagedError:Unmanaged<CFError>? = nil
-        try withUnsafeMutablePointer(to: &unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
+        try withUnsafeMutablePointer(to: &unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>) in
             CFBundlePreflightExecutable(_bundle, unmanagedCFError)
             if let error = unmanagedCFError.pointee {
-                throw   error.takeRetainedValue()._nsObject
+                throw error.takeRetainedValue()._nsObject
             }
         }
     }
     
     open func loadAndReturnError() throws {
         var unmanagedError:Unmanaged<CFError>? = nil
-        try  withUnsafeMutablePointer(to: &unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>)  in
+        try withUnsafeMutablePointer(to: &unmanagedError) { (unmanagedCFError: UnsafeMutablePointer<Unmanaged<CFError>?>) in
             CFBundleLoadExecutableAndReturnError(_bundle, unmanagedCFError)
             if let error = unmanagedCFError.pointee {
                 let retainedValue = error.takeRetainedValue()
-                throw  retainedValue._nsObject
+                throw retainedValue._nsObject
             }
         }
     }
@@ -411,12 +411,12 @@ open class Bundle: NSObject {
         return nsLocalizations?.map { $0 as! String } ?? []
     }
     
-	open class func preferredLocalizations(from localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] {
+    open class func preferredLocalizations(from localizationsArray: [String], forPreferences preferencesArray: [String]?) -> [String] {
         let localizations = CFBundleCopyLocalizationsForPreferences(localizationsArray._cfObject, preferencesArray?._cfObject)!
         return localizations._swiftObject.map { return ($0 as! NSString)._swiftObject }
     }
-	
-	open var executableArchitectures: [NSNumber]? {
+
+    open var executableArchitectures: [NSNumber]? {
         let architectures = CFBundleCopyExecutableArchitectures(_bundle)!
         return architectures._swiftObject.map() { $0 as! NSNumber }
     }
@@ -430,5 +430,3 @@ open class Bundle: NSObject {
         return Int(bitPattern: CFHash(_bundle))
     }
 }
-
-
