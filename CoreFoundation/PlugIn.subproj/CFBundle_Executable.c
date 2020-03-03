@@ -344,6 +344,10 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
             buffLen += extensionLength;
             outstr = CFStringCreateWithCharactersNoCopy(kCFAllocatorSystemDefault, buff, buffLen, kCFAllocatorNull);
             url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, outstr, PLATFORM_PATH_STYLE, true);
+            if (!_CFURLExists(url)) {
+                CFRelease(url);
+                url = NULL;
+            }
             CFRelease(outstr);
         }
     }
