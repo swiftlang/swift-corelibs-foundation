@@ -238,15 +238,8 @@ open class JSONEncoder {
             throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) did not encode any values."))
         }
 
-        if topLevel is NSNull {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) encoded as null JSON fragment."))
-        } else if topLevel is NSNumber {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) encoded as number JSON fragment."))
-        } else if topLevel is NSString {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) encoded as string JSON fragment."))
-        }
+        let writingOptions = JSONSerialization.WritingOptions(rawValue: self.outputFormatting.rawValue).union(.fragmentsAllowed)
 
-        let writingOptions = JSONSerialization.WritingOptions(rawValue: self.outputFormatting.rawValue)
         do {
             return try JSONSerialization.data(withJSONObject: topLevel, options: writingOptions)
         } catch {
@@ -1155,7 +1148,7 @@ open class JSONDecoder {
     open func decode<T : Decodable>(_ type: T.Type, from data: Data) throws -> T {
         let topLevel: Any
         do {
-            topLevel = try JSONSerialization.jsonObject(with: data)
+            topLevel = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
         } catch {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "The given data was not valid JSON.", underlyingError: error))
         }
