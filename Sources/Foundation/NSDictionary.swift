@@ -296,24 +296,22 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     
     private func getDescription(of object: Any) -> String? {
         switch object {
-        case is NSArray.Type:
-            return (object as! NSArray).description(withLocale: nil, indent: 1)
-        case is NSDecimalNumber.Type:
-            return (object as! NSDecimalNumber).description(withLocale: nil)
-        case is NSDate.Type:
-            return (object as! NSDate).description(with: nil)
-        case is NSOrderedSet.Type:
-            return (object as! NSOrderedSet).description(withLocale: nil)
-        case is NSSet.Type:
-            return (object as! NSSet).description(withLocale: nil)
-        case is NSDictionary.Type:
-            return (object as! NSDictionary).description(withLocale: nil)
+        case let nsArray as NSArray:
+            return nsArray.description(withLocale: nil, indent: 1)
+        case let nsDecimalNumber as NSDecimalNumber:
+            return nsDecimalNumber.description(withLocale: nil)
+        case let nsDate as NSDate:
+            return nsDate.description(with: nil)
+        case let nsOrderedSet as NSOrderedSet:
+            return nsOrderedSet.description(withLocale: nil)
+        case let nsSet as NSSet:
+            return nsSet.description(withLocale: nil)
+        case let nsDictionary as NSDictionary:
+            return nsDictionary.description(withLocale: nil)
+        case let hashableObject as Dictionary<AnyHashable, Any>:
+            return hashableObject._nsObject.description(withLocale: nil, indent: 1)
         default:
-            if let hashableObject = object as? Dictionary<AnyHashable, Any> {
-                return hashableObject._nsObject.description(withLocale: nil, indent: 1)
-            } else {
-                return nil
-            }
+            return nil
         }
     }
 
@@ -372,46 +370,47 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         let indentation = String(repeating: " ", count: level * 4)
         lines.append(indentation + "{")
 
+        let nextLevelIndentation = String(repeating: " ", count: (level + 1) * 4)
         for key in self.allKeys {
-            var line = String(repeating: " ", count: (level + 1) * 4)
+            var line = nextLevelIndentation
 
-            if key is NSArray {
-                line += (key as! NSArray).description(withLocale: locale, indent: level + 1)
-            } else if key is Date {
-                line += (key as! NSDate).description(with: locale)
-            } else if key is NSDecimalNumber {
-                line += (key as! NSDecimalNumber).description(withLocale: locale)
-            } else if key is NSDictionary {
-                line += (key as! NSDictionary).description(withLocale: locale, indent: level + 1)
-            } else if key is NSOrderedSet {
-                line += (key as! NSOrderedSet).description(withLocale: locale, indent: level + 1)
-            } else if key is NSSet {
-                line += (key as! NSSet).description(withLocale: locale)
-            } else {
+            switch key {
+            case let nsArray as NSArray:
+                line += nsArray.description(withLocale: locale, indent: level + 1)
+            case let nsDate as Date:
+                line += nsDate.description(with: locale)
+            case let nsDecimalNumber as NSDecimalNumber:
+                line += nsDecimalNumber.description(withLocale: locale)
+            case let nsDictionary as NSDictionary:
+                line += nsDictionary.description(withLocale: locale, indent: level + 1)
+            case let nsOderedSet as NSOrderedSet:
+                line += nsOderedSet.description(withLocale: locale, indent: level + 1)
+            case let nsSet as NSSet:
+                line += nsSet.description(withLocale: locale)
+            default:
                 line += "\(key)"
             }
 
             line += " = "
 
             let object = self.object(forKey: key)!
-            if object is NSArray {
-                line += (object as! NSArray).description(withLocale: locale, indent: level + 1)
-            } else if object is Date {
-                line += (object as! NSDate).description(with: locale)
-            } else if object is NSDecimalNumber {
-                line += (object as! NSDecimalNumber).description(withLocale: locale)
-            } else if object is NSDictionary {
-                line += (object as! NSDictionary).description(withLocale: locale, indent: level + 1)
-            } else if object is NSOrderedSet {
-                line += (object as! NSOrderedSet).description(withLocale: locale, indent: level + 1)
-            } else if object is NSSet {
-                line += (object as! NSSet).description(withLocale: locale)
-            } else {
-                if let hashableObject = object as? Dictionary<AnyHashable, Any> {
-                    line += hashableObject._nsObject.description(withLocale: nil, indent: level+1)
-                } else {
-                    line += "\(object)"
-                }
+            switch object {
+            case let nsArray as NSArray:
+                line += nsArray.description(withLocale: locale, indent: level + 1)
+            case let nsDate as NSDate:
+                line += nsDate.description(with: locale)
+            case let nsDecimalNumber as NSDecimalNumber:
+                line += nsDecimalNumber.description(withLocale: locale)
+            case let nsDictionary as NSDictionary:
+                line += nsDictionary.description(withLocale: locale, indent: level + 1)
+            case let nsOrderedSet as NSOrderedSet:
+                line += nsOrderedSet.description(withLocale: locale, indent: level + 1)
+            case let nsSet as NSSet:
+                line += nsSet.description(withLocale: locale)
+            case let hashableObject as Dictionary<AnyHashable, Any>:
+                line += hashableObject._nsObject.description(withLocale: nil, indent: level + 1)
+            default:
+                line += "\(object)"
             }
 
             line += ";"
