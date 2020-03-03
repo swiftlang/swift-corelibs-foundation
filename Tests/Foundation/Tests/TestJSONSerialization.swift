@@ -1013,6 +1013,8 @@ extension TestJSONSerialization {
             ("test_serialize_Decimal", test_serialize_Decimal),
             ("test_serialize_NSDecimalNumber", test_serialize_NSDecimalNumber),
             ("test_serialize_stringEscaping", test_serialize_stringEscaping),
+            ("test_serialize_fragments", test_serialize_fragments),
+            ("test_serialize_withoutEscapingSlashes", test_serialize_withoutEscapingSlashes),
             ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
@@ -1369,6 +1371,26 @@ extension TestJSONSerialization {
 
         json = ["j/"]
         XCTAssertEqual(try trySerialize(json), "[\"j\\/\"]")
+    }
+
+    func test_serialize_fragments() {
+        XCTAssertEqual(try trySerialize(2, options: .fragmentsAllowed), "2")
+        XCTAssertEqual(try trySerialize(false, options: .fragmentsAllowed), "false")
+        XCTAssertEqual(try trySerialize(true, options: .fragmentsAllowed), "true")
+        XCTAssertEqual(try trySerialize(Float(1), options: .fragmentsAllowed), "1")
+        XCTAssertEqual(try trySerialize(Double(2), options: .fragmentsAllowed), "2")
+        XCTAssertEqual(try trySerialize(Decimal(Double.leastNormalMagnitude), options: .fragmentsAllowed), "0.0000000000000000000000000000000000000000000000000002225073858507201792")
+        XCTAssertEqual(try trySerialize("test", options: .fragmentsAllowed), "\"test\"")
+    }
+
+    func test_serialize_withoutEscapingSlashes() {
+        // .withoutEscapingSlashes controls whether a "/" is encoded as "\\/" or "/"
+        let testString      = "This /\\/ is a \\ \\\\ \\\\\\ \"string\"\n\r\t\u{0}\u{1}\u{8}\u{c}\u{f}"
+        let escapedString   = "\"This \\/\\\\\\/ is a \\\\ \\\\\\\\ \\\\\\\\\\\\ \\\"string\\\"\\n\\r\\t\\u0000\\u0001\\b\\f\\u000f\""
+        let unescapedString = "\"This /\\\\/ is a \\\\ \\\\\\\\ \\\\\\\\\\\\ \\\"string\\\"\\n\\r\\t\\u0000\\u0001\\b\\f\\u000f\""
+
+        XCTAssertEqual(try trySerialize(testString, options: .fragmentsAllowed), escapedString)
+        XCTAssertEqual(try trySerialize(testString, options: [.withoutEscapingSlashes, .fragmentsAllowed]), unescapedString)
     }
 
     /* These are a programming error and should not be done
