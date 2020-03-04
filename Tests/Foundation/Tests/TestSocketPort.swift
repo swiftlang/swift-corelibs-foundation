@@ -99,7 +99,7 @@ class TestSocketPort : XCTestCase {
                 remote.remove(from: .main, forMode: .default)
             }
             
-            let sent = remote.sendBeforeDate(Date(timeIntervalSinceNow: 5), components: NSMutableArray(array: [data]), from: nil, reserved: 0)
+            let sent = remote.send(before: Date(timeIntervalSinceNow: 5), components: NSMutableArray(array: [data]), from: nil, reserved: 0)
             XCTAssertTrue(sent)
             
             waitForExpectations(timeout: 5.5)
