@@ -1337,10 +1337,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
     } else {
         dow.dow_sema = _CF_get_thread_semaphore();
         next = *vval;
-        for (;;) {
-            if (next == CF_DISPATCH_ONCE_DONE) {
-                break;
-            }
+        while (next != CF_DISPATCH_ONCE_DONE) {
             if (__sync_bool_compare_and_swap(vval, next, tail, &next)) {
                 dow.dow_thread = next->dow_thread;
                 dow.dow_next = next;
