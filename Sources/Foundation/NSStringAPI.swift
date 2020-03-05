@@ -73,13 +73,10 @@ internal func _persistCString(_ p: UnsafePointer<CChar>?) -> [CChar]? {
     guard let cString = p else {
         return nil
     }
-    let len = UTF8._nullCodeUnitOffset(in: cString)
-    let result = [CChar](unsafeUninitializedCapacity: len + 1) { buf, initedCount in
-        for i in 0..<len {
-            buf[i] = cString[i]
-        }
-        buf[len] = 0
-        initedCount = len + 1
+    let bytesToCopy = UTF8._nullCodeUnitOffset(in: cString) + 1 // +1 for the terminating NUL
+    let result = [CChar](unsafeUninitializedCapacity: bytesToCopy) { buf, initedCount in
+        buf.baseAddress!.assign(from: cString, count: bytesToCopy)
+        initedCount = bytesToCopy
     }
     return result
 }
