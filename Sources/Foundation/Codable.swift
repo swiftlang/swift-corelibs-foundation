@@ -40,17 +40,18 @@ extension DecodingError {
     /// - returns: A string describing `value`.
     /// - precondition: `value` is one of the types below.
     fileprivate static func _typeDescription(of value: Any) -> String {
-        if value is NSNull {
+        switch value {
+        case is NSNull:
             return "a null value"
-        } else if value is NSNumber /* FIXME: If swift-corelibs-foundation isn't updated to use NSNumber, this check will be necessary: || value is Int || value is Double */ {
+        case is NSNumber: /* FIXME: If swift-corelibs-foundation isn't updated to use NSNumber, this check will be necessary: || value is Int || value is Double */
             return "a number"
-        } else if value is String {
+        case is String:
             return "a string/data"
-        } else if value is [Any] {
+        case is [Any]:
             return "an array"
-        } else if value is [String : Any] {
+        case is [String : Any]:
             return "a dictionary"
-        } else {
+        default:
             return "\(type(of: value))"
         }
     }
