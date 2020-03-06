@@ -209,8 +209,8 @@ open class JSONSerialization : NSObject {
             fatalError("Stream is not available for reading")
         }
         repeat {
-            let buffer = try [UInt8].init(unsafeUninitializedCapacity: 1024) { buf, initializedCount in
-                let bytesRead = stream.read(buf.baseAddress!, maxLength: 1024)
+            let buffer = try [UInt8](unsafeUninitializedCapacity: 1024) { buf, initializedCount in
+                let bytesRead = stream.read(buf.baseAddress!, maxLength: buf.count)
                 initializedCount = bytesRead
                 guard bytesRead >= 0 else {
                     throw stream.streamError!
