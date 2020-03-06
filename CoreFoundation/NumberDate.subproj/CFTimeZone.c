@@ -865,7 +865,8 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
 #if !TARGET_OS_ANDROID
     if (!__tzZoneInfo) __InitTZStrings();
     ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
-    if (__tzZoneInfo && (0 < ret)) {
+    // The link can be relative, we treat this the same as if there was no link
+    if (__tzZoneInfo && (0 < ret) && (linkbuf[0] != '.')) {
         linkbuf[ret] = '\0';
         const char *tzZoneInfo = CFStringGetCStringPtr(__tzZoneInfo, kCFStringEncodingASCII);
         size_t zoneInfoDirLen = CFStringGetLength(__tzZoneInfo);
