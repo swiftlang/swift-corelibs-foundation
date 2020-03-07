@@ -20,25 +20,6 @@
 #endif
 
 class TestThread : XCTestCase {
-    static var allTests: [(String, (TestThread) -> () throws -> Void)] {
-        var tests: [(String, (TestThread) -> () throws -> Void)] = [
-            ("test_currentThread", test_currentThread),
-            ("test_threadStart", test_threadStart),
-            ("test_mainThread", test_mainThread),
-            ("test_callStackSymbols", testExpectedToFailOnAndroid(test_callStackSymbols, "Android doesn't support backtraces at the moment.")),
-            ("test_callStackReturnAddresses", testExpectedToFailOnAndroid(test_callStackReturnAddresses, "Android doesn't support backtraces at the moment.")),
-            ("test_sleepForTimeInterval", test_sleepForTimeInterval),
-            ("test_sleepUntilDate", test_sleepUntilDate),
-        ]
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && false // Disable for now as some tests are broken
-        tests.append(contentsOf: [
-            ("test_threadName", test_threadName),
-        ])
-#endif
-
-        return tests
-    }
 
     func test_currentThread() {
         let thread1 = Thread.current
@@ -64,57 +45,36 @@ class TestThread : XCTestCase {
         XCTAssertTrue(ok, "NSCondition wait timed out")
     }
     
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_threadName() {
+
+        func testInternalThreadName(_ name: String?) {
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+            XCTAssertEqual(Thread.current._name, name)
+#endif
+        }
+
 #if os(Linux) || os(Android) // Linux sets the initial thread name to the process name.
         XCTAssertEqual(Thread.current.name, "TestFoundation")
-        XCTAssertEqual(Thread.current._name, "TestFoundation")
+        testInternalThreadName("TestFoundation")
 #else
         // No name is set initially
         XCTAssertEqual(Thread.current.name, "")
-        XCTAssertEqual(Thread.current._name, "")
+        testInternalThreadName("")
 #endif
         Thread.current.name = "mainThread"
         XCTAssertEqual(Thread.mainThread.name, "mainThread")
-        XCTAssertEqual(Thread.mainThread._name, "mainThread")
+        testInternalThreadName("mainThread")
 
-        let condition = NSCondition()
-        condition.lock()
-
-        let thread2 = Thread() {
-            XCTAssertEqual(Thread.current.name, "Thread2-1")
-
-            Thread.current.name = "Thread2-2"
-            XCTAssertEqual(Thread.current.name, "Thread2-2")
-            XCTAssertEqual(Thread.current._name, Thread.current.name)
-
-            Thread.current.name = "12345678901234567890"
-            XCTAssertEqual(Thread.current.name, "12345678901234567890")
-#if os(macOS) || os(iOS)
-            XCTAssertEqual(Thread.current._name, Thread.current.name)
-#elseif os(Linux) || os(Android)
-            // pthread_setname_np() only allows 15 characters on Linux, so setting it fails
-            // and the previous name will still be there.
-            XCTAssertEqual(Thread.current._name, "Thread2-2")
-#endif
-            condition.lock()
-            condition.signal()
-            condition.unlock()
-        }
-        thread2.name = "Thread2-1"
-        thread2.start()
-
-        // Allow 1 second for thread2 to finish
-        XCTAssertTrue(condition.wait(until: Date(timeIntervalSinceNow: 1)))
-        condition.unlock()
-
+        Thread.current.name = "12345678901234567890"
+#if os(Linux) || os(Android)
+        // pthread_setname_np() only allows 15 characters on Linux, so setting it fails
+        // and the previous name will still be there.
         XCTAssertEqual(Thread.current.name, "mainThread")
-        XCTAssertEqual(Thread.mainThread.name, "mainThread")
-        let thread3 = Thread()
-        thread3.name = "Thread3"
-        XCTAssertEqual(thread3.name, "Thread3")
-    }
+#else
+        XCTAssertEqual(Thread.current.name, "12345678901234567890")
 #endif
+        testInternalThreadName(Thread.current.name)
+    }
 
     func test_mainThread() {
         XCTAssertTrue(Thread.isMainThread)
@@ -195,4 +155,18 @@ class TestThread : XCTestCase {
         XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
     }
 
+    static var allTests: [(String, (TestThread) -> () throws -> Void)] {
+        let tests: [(String, (TestThread) -> () throws -> Void)] = [
+            ("test_currentThread", test_currentThread),
+            ("test_threadStart", test_threadStart),
+            ("test_mainThread", test_mainThread),
+            ("test_callStackSymbols", testExpectedToFailOnAndroid(test_callStackSymbols, "Android doesn't support backtraces at the moment.")),
+            ("test_callStackReturnAddresses", testExpectedToFailOnAndroid(test_callStackReturnAddresses, "Android doesn't support backtraces at the moment.")),
+            ("test_sleepForTimeInterval", test_sleepForTimeInterval),
+            ("test_sleepUntilDate", test_sleepUntilDate),
+            ("test_threadName", test_threadName),
+        ]
+
+        return tests
+    }
 }
