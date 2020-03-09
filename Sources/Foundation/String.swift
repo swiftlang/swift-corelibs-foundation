@@ -56,11 +56,11 @@ extension String: _ObjectiveCBridgeable {
             result = String(decoding: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)), as: UTF8.self)
         } else {
             let len = source.length
-            var characters = [unichar](repeating: 0, count: len)
-            result = characters.withUnsafeMutableBufferPointer() { (buffer: inout UnsafeMutableBufferPointer<unichar>) -> String? in
-                source.getCharacters(buffer.baseAddress!, range: NSRange(location: 0, length: len))
-                return String(decoding: buffer, as: UTF16.self)
+            let characters = [unichar](unsafeUninitializedCapacity: len) { buf, initializedCount in
+                source.getCharacters(buf.baseAddress!, range: NSRange(location: 0, length: len))
+                initializedCount = len
             }
+            result = String(decoding: characters, as: UTF16.self)
         }
         return result != nil
     }
