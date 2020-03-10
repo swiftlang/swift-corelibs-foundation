@@ -395,7 +395,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         super.init()
         
         // _CFURLInitWithURLString does not fail if checkForLegalCharacters == false
-        data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
+        data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Void in
+            let ptr = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
             if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), false) {
                 _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
             } else if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingISOLatin1), false) {
@@ -404,14 +405,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                 fatalError()
             }
         }
-        
-        
     }
     
     public init(absoluteURLWithDataRepresentation data: Data, relativeTo baseURL: URL?) {
         super.init()
         
-        data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
+        data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Void in
+            let ptr = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
             if _CFURLInitAbsoluteURLWithBytes(_cfObject, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), baseURL?._cfObject) {
                 return
             }

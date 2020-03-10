@@ -160,7 +160,8 @@ internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<
             if _CFXMLInterfaceHasDocument(context) != 0 {
                 if let data = result {
                     // unfortunately we can't add the entity to the doc to avoid further lookup since the delegate can change under us
-                    data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
+                    data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
+                        let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
                         _NSXMLParserCharacters(ctx, ch: bytes, len: Int32(data.count))
                     }
                     
@@ -515,7 +516,8 @@ open class XMLParser : NSObject {
             }
 
             // Create the push context with the first 4 bytes
-            bomChunk.withUnsafeBytes { bytes in
+            bomChunk.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
+                let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: CChar.self)
                 _parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
             }
             _CFXMLInterfaceCtxtUseOptions(_parserContext, options)
@@ -528,7 +530,8 @@ open class XMLParser : NSObject {
             unparsedData = data
         }
 
-        let parseResult = unparsedData.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Int32 in
+        let parseResult = unparsedData.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Int32 in
+            let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: CChar.self)
             return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(unparsedData.count), 0)
         }
 
@@ -556,14 +559,14 @@ open class XMLParser : NSObject {
             } else {
                 result = false
             }
-        } else if let data = _data {
+        } else if var data = _data {
             let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
             defer { free(buffer) }
             var range = NSRange(location: 0, length: min(_chunkSize, data.count))
             while result {
-                let chunk = data.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) -> Data in
-                    let ptr = buffer.advanced(by: range.location)
-                    return Data(bytesNoCopy: UnsafeMutablePointer(mutating: ptr), count: range.length, deallocator: .none)
+                let chunk = data.withUnsafeMutableBytes { (rawBuffer: UnsafeMutableRawBufferPointer) -> Data in
+                    let ptr = rawBuffer.baseAddress!.advanced(by: range.location)
+                    return Data(bytesNoCopy: ptr, count: range.length, deallocator: .none)
                 }
                 result = parseData(chunk)
                 if range.location + range.length >= data.count {

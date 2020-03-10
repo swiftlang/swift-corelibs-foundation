@@ -117,14 +117,16 @@ class _FTPSocket {
     }
 
     func writeRawData(_ data: Data) throws {
-        _ = try data.withUnsafeBytes { ptr in
-            try attempt("write", valid: isNotMinusOne, CInt(write(connectionSocket, ptr, data.count)))
+        _ = try data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
+            let ptr = rawBuffer.baseAddress
+            _ = try attempt("write", valid: isNotMinusOne, CInt(write(connectionSocket, ptr, data.count)))
         }
     }
 
     func writeRawData(socket data: Data) throws -> Int32 {
         var bytesWritten: Int32 = 0
-        _ = try data.withUnsafeBytes { ptr in
+        _ = try data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
+            let ptr = rawBuffer.baseAddress
             bytesWritten = try attempt("write", valid: isNotMinusOne, CInt(write(dataSocket, ptr, data.count)))
         }
         return bytesWritten
