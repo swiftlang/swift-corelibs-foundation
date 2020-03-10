@@ -229,10 +229,11 @@ class TestOperationQueue : XCTestCase {
 
     func test_CurrentQueueWithCustomUnderlyingQueue() {
         let expectation = self.expectation(description: "Background execution")
-        
+
         let operationQueue = OperationQueue()
-        operationQueue.underlyingQueue = DispatchQueue(label: "underlying_queue")
-        
+        let underlyingQueue = DispatchQueue(label: "underlying_queue")
+        operationQueue.underlyingQueue = underlyingQueue
+
         operationQueue.addOperation {
             XCTAssertEqual(operationQueue, OperationQueue.current)
             expectation.fulfill()
@@ -268,7 +269,8 @@ class TestOperationQueue : XCTestCase {
         let expectation = self.expectation(description: "Background execution")
         
         let operationQueue = OperationQueue()
-        operationQueue.underlyingQueue = DispatchQueue(label: "underlying_queue")
+        let underlyingQueue = DispatchQueue(label: "underlying_queue")
+        operationQueue.underlyingQueue = underlyingQueue
         operationQueue.underlyingQueue = nil
         
         operationQueue.addOperation {
