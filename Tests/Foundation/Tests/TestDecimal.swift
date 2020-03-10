@@ -1131,11 +1131,11 @@ class TestDecimal: XCTestCase {
         let fr = NSDecimalString(&decimal, Locale(identifier: "fr_FR"))
         XCTAssertEqual(fr, "-123456,789")
 
-        let d1: [NSLocale.Key: String] = [ .decimalSeparator: "@@@"]
+        let d1: [NSLocale.Key: String] = [.decimalSeparator: "@@@"]
         XCTAssertEqual(NSDecimalString(&decimal, d1), "-123456@@@789")
-        let d2: [NSLocale.Key: String] = [ .decimalSeparator: "()"]
+        let d2: [NSLocale.Key: String] = [.decimalSeparator: "()"]
         XCTAssertEqual(NSDecimalString(&decimal, NSDictionary(dictionary: d2)), "-123456()789")
-        let d3: [String: String] = [ "kCFLocaleDecimalSeparatorKey": "X"]
+        let d3: [String: String] = ["kCFLocaleDecimalSeparatorKey": "X"]
         XCTAssertEqual(NSDecimalString(&decimal, NSDictionary(dictionary: d3)), "-123456X789")
 
         // Input is ignored
