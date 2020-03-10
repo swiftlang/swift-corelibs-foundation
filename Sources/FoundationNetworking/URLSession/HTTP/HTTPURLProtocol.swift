@@ -119,7 +119,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         let expirationStart: Date
         
         if let dateString = httpResponse.allHeaderFields["Date"] as? String,
-           let date = _HTTPURLProtocol.dateFormatter.date(from: dateString) {
+           let date = _HTTPURLProtocol.date(from: dateString) {
             expirationStart = min(date, response.date) // Do not accept a date in the future of the point where we stored it, or of now if we haven't stored it yet. That is: a Date header can only make a response expire _faster_ than if it was issued now, and can't be used to prolong its age.
         } else {
             expirationStart = response.date
@@ -221,7 +221,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         // We should not cache a response that has already expired. (This is also the expiration check for canRespondFromCaching(using:) below.)
         // We MUST ignore this if we have Cache-Control: max-age or s-maxage.
         if !hasMaxAge, let expires = httpResponse.allHeaderFields["Expires"] as? String {
-            guard let expiration = _HTTPURLProtocol.dateFormatter.date(from: expires) else {
+            guard let expiration = _HTTPURLProtocol.date(from: expires) else {
                 // From the spec:
                 /* "A cache recipient MUST interpret invalid date formats, especially the
                  value "0", as representing a time in the past (i.e., 'already
@@ -241,10 +241,35 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     
     static let dateFormatter: DateFormatter = {
         let x = DateFormatter()
-        x.locale = NSLocale.system
         x.dateFormat = "EEE',' dd' 'MMM' 'yyyy HH':'mm':'ss zzz"
         return x
     }()
+    
+    static func date(from string: String) -> Date? {
+        // https://tools.ietf.org/html/rfc2616#section-3.3.1
+        // HTTP applications have historically allowed three different formats
+        // for the representation of date/time stamps
+        
+        // RCF 822 --- Sun, 06 Nov 1994 08:49:37 GMT
+        self.dateFormatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+        if let d1 = self.dateFormatter.date(from: string) {
+            return d1
+        }
+        
+        // RCF 855 --- Sunday, 06-Nov-94 08:49:37 GMT
+        self.dateFormatter.dateFormat = "EEEE, dd-MMM-yy HH:mm:ss zzz"
+        if let d2 = self.dateFormatter.date(from: string) {
+            return d2
+        }
+        
+        // ANSI C's asctime() format --- Sun Nov  6 08:49:37 1994
+        self.dateFormatter.dateFormat = "EEE MMM dd HH:mm:ss yy"
+        if let d3 = self.dateFormatter.date(from: string) {
+            return d3
+        }
+        
+        return nil
+    }
     
     override func canRespondFromCache(using response: CachedURLResponse) -> Bool {
         // If somehow cached a response that shouldn't have been, we should remove it.
@@ -461,7 +486,7 @@ fileprivate extension _HTTPURLProtocol {
     func curlHeaders(for httpHeaders: [AnyHashable : Any]?) -> [String] {
         var result: [String] = []
         var names = Set<String>()
-	if let hh = httpHeaders as? [String : String] {
+    if let hh = httpHeaders as? [String : String] {
             hh.forEach {
                 let name = $0.0.lowercased()
                 guard !names.contains(name) else { return }
