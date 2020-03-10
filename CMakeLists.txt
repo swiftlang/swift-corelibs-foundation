@@ -43,8 +43,16 @@ add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
 
 # Setup include paths for uuid/uuid.h
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h
+  COMMAND
+    ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/uuid-headers/uuid
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/Sources/UUID/uuid.h ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h)
+add_custom_target(uuid-headers
+  DEPENDS ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h)
+add_dependencies(CoreFoundation uuid-headers)
 target_include_directories(CoreFoundation PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_BINARY_DIR}/uuid-headers
   ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
 
 add_subdirectory(Sources)
