@@ -463,8 +463,8 @@ open class URLSession : NSObject {
      * upload convenience method.
      */
     open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
-        let fileData = try! Data(contentsOf: fileURL)
-        return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
+        let r = URLSession._Request(request)
+        return uploadTask(with: r, body: .file(fileURL), behaviour: .dataCompletionHandler(completionHandler))
     }
 
     open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
