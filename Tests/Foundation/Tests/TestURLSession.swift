@@ -590,6 +590,93 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
+    func test_httpRedirectDontFollowUsingNil() throws {
+        let statusCode = 302
+        for method in httpMethods {
+            let testMethod = "\(method) request with statusCode \(statusCode)"
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
+            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            let delegate = SessionDelegate(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
+            delegate.redirectionHandler = { (response: HTTPURLResponse, request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) in
+                // Dont follow the request by calling the completion handler with nil
+                completionHandler(nil)
+            }
+            delegate.run(with: request, timeoutInterval: 2)
+
+            waitForExpectations(timeout: 3)
+            XCTAssertNil(delegate.error)
+
+            XCTAssertNotNil(delegate.response)
+            let httpResponse = delegate.response as? HTTPURLResponse
+            XCTAssertEqual(httpResponse?.statusCode, 302, "HTTP final response code is invalid for \(testMethod)")
+            XCTAssertEqual(delegate.redirectionResponse?.statusCode, statusCode, "HTTP redirection response code is invalid for \(testMethod)")
+
+            let callbackMsg = "Bad callback for \(testMethod)"
+            switch method {
+                case "HEAD":
+                    let callbacks = [
+                        "urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)",
+                        "urlSession(_:dataTask:didReceive:completionHandler:)",
+                        "urlSession(_:task:didCompleteWithError:)"
+                    ]
+                    XCTAssertEqual(delegate.callbacks.count, 3, "Callback count for \(testMethod)")
+                    XCTAssertEqual(delegate.callbacks, callbacks, callbackMsg)
+                    XCTAssertNil(delegate.receivedData) // No body for HEAD requests
+
+                default:
+                    let callbacks = [
+                        "urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)",
+                        "urlSession(_:dataTask:didReceive:completionHandler:)",
+                        "urlSession(_:dataTask:didReceive:)",
+                        "urlSession(_:task:didCompleteWithError:)",
+                    ]
+                    XCTAssertEqual(delegate.callbacks.count, 4, "Callback count for \(testMethod)")
+                    XCTAssertEqual(delegate.callbacks, callbacks, callbackMsg)
+
+                    let contentLength = Int(httpResponse?.value(forHTTPHeaderField: "Content-Length") ?? "")
+                    let body = "Redirecting to \(method) jsonBody"
+                    XCTAssertEqual(contentLength, body.count)
+                    XCTAssertEqual(delegate.receivedData?.count, body.count)
+
+                    if let data = delegate.receivedData, let string = String(data: data, encoding: .utf8) {
+                        XCTAssertEqual(string, body)
+                    } else {
+                        XCTFail("No string body for \(testMethod)")
+                }
+            }
+        }
+    }
+
+    func test_httpRedirectDontFollowIgnoringHandler() throws {
+        let statusCode = 302
+        for method in httpMethods {
+            let testMethod = "\(method) request with statusCode \(statusCode)"
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
+            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            let expect = expectation(description: "\(method) \(urlString): with HTTP redirection")
+            expect.isInverted = true
+            let delegate = SessionDelegate(with: expect)
+            delegate.redirectionHandler = { (response: HTTPURLResponse, request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) in
+                // Dont follow the request by not calling the completion handler at all
+            }
+            delegate.run(with: request, timeoutInterval: 1)
+
+            waitForExpectations(timeout: 2)
+            XCTAssertNil(delegate.error)
+            XCTAssertNil(delegate.receivedData)
+            XCTAssertNil(delegate.response)
+            XCTAssertEqual(delegate.redirectionResponse?.statusCode, statusCode, "HTTP redirection response code is invalid for \(testMethod)")
+
+            let callbackMsg = "Bad callback for \(testMethod)"
+            XCTAssertEqual(delegate.callbacks.count, 1, "Callback count for \(testMethod)")
+            XCTAssertEqual(delegate.callbacks, ["urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)"], callbackMsg)
+        }
+    }
+
     func test_httpRedirectionWithCompleteRelativePath() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         let url = URL(string: urlString)!
@@ -1469,6 +1556,8 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithCode303", test_httpRedirectionWithCode303),
             ("test_httpRedirectionWithCode304", test_httpRedirectionWithCode304),
             ("test_httpRedirectionWithCode305_308", test_httpRedirectionWithCode305_308),
+            ("test_httpRedirectDontFollowUsingNil", test_httpRedirectDontFollowUsingNil),
+            ("test_httpRedirectDontFollowIgnoringHandler", test_httpRedirectDontFollowIgnoringHandler),
             ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
@@ -1537,8 +1626,10 @@ class SessionDelegate: NSObject, URLSessionDelegate {
     typealias ChallengeHandler = (URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?)
     var challengeHandler: ChallengeHandler? = nil
 
+    typealias RedirectionHandler = (HTTPURLResponse, URLRequest, @escaping (URLRequest?) -> Void) -> Void
+    var redirectionHandler: RedirectionHandler? = nil
 
-    private(set) var receivedData: Data!
+    private(set) var receivedData: Data?
     private(set) var error: Error?
     private(set) var response: URLResponse?
     private(set) var redirectionResponse: HTTPURLResponse?
@@ -1567,6 +1658,14 @@ class SessionDelegate: NSObject, URLSessionDelegate {
         task.resume()
     }
 
+    func run(with request: URLRequest, timeoutInterval: Double = 3) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = timeoutInterval
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        task = session.dataTask(with: request)
+        task.resume()
+    }
+
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
         callbacks.append(#function)
         self.error = error
@@ -1591,6 +1690,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
         callbacks.append(#function)
     }
 
+    // HTTP Authentication Challenge
     func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         callbacks.append(#function)
         authenticationChallenges.append(challenge)
@@ -1598,6 +1698,18 @@ extension SessionDelegate: URLSessionTaskDelegate {
         if let handler = challengeHandler {
             let (disposition, credentials) = handler(challenge)
             completionHandler(disposition, credentials)
+        }
+    }
+
+    // HTTP Redirect
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        callbacks.append(#function)
+        redirectionResponse = response
+
+        if let handler = redirectionHandler {
+            handler(response, request, completionHandler)
+        } else {
+            completionHandler(request)
         }
     }
 }
@@ -1611,7 +1723,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         if receivedData == nil {
             receivedData = data
         } else {
-            receivedData.append(data)
+            receivedData!.append(data)
         }
     }
 
@@ -1880,6 +1992,7 @@ class FailFastProtocol: URLProtocol {
         // Intentionally blank
     }
 }
+
 class HTTPRedirectionDataTask: NSObject {
     let dataTaskExpectation: XCTestExpectation!
     var session: URLSession! = nil
@@ -1891,8 +2004,7 @@ class HTTPRedirectionDataTask: NSObject {
     private(set) var redirectionResponse: HTTPURLResponse?
     private var callbacks: [String] = []
 
-
-    init(with expectation: XCTestExpectation, statusCode: Int = 200) {
+    init(with expectation: XCTestExpectation) {
         dataTaskExpectation = expectation
     }
     
@@ -1955,12 +2067,14 @@ extension HTTPRedirectionDataTask: URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         callbacks.append(#function)
         redirectionResponse = response
+
         if let url = response.url, url.path.hasSuffix("/redirect-with-default-port") {
             XCTAssertEqual(request.url?.absoluteString, "http://127.0.0.1/redirected-with-default-port")
             // Don't follow the redirect as the test server is not running on port 80
-            return
+            completionHandler(nil)
+        } else {
+            completionHandler(request)
         }
-        completionHandler(request)
     }
 }
 

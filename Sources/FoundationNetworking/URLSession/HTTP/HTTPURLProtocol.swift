@@ -19,6 +19,13 @@ import Dispatch
 
 internal class _HTTPURLProtocol: _NativeProtocol {
 
+    // When processing redirects, the intermediate 3xx response bodies are normally discarded.
+    // If the call to urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)
+    // results in the completion handler being called with a nil URLRequest, then processing stops
+    // and the 3xx response is returned to the client and the data is sent via the delegate notify
+    // mechanism. `lastRedirectBody` holds the body of the redirect currently being processed.
+    var lastRedirectBody: Data? = nil
+
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         super.init(task: task, cachedResponse: cachedResponse, client: client)
     }
@@ -389,14 +396,25 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             timeoutInterval = Int(request.timeoutInterval) * 1000
         }
         let timeoutHandler = DispatchWorkItem { [weak self] in
-            guard let _ = self?.task else {
+            guard let self = self, let task = self.task else {
                 fatalError("Timeout on a task that doesn't exist")
             } //this guard must always pass
-            self?.internalState = .transferFailed
-            let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
-            self?.completeTask(withError: urlError)
-            self?.client?.urlProtocol(self!, didFailWithError: urlError)
+
+            // If a timeout occurred while waiting for a redirect completion handler to be called by
+            // the delegate then terminate the task but DONT set the error to NSURLErrorTimedOut.
+            // This matches Darwin.
+            if case .waitingForRedirectCompletionHandler(response: let response,_) = self.internalState {
+                task.response = response
+                self.easyHandle.timeoutTimer = nil
+                self.internalState = .taskCompleted
+            } else {
+                self.internalState = .transferFailed
+                let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
+                self.completeTask(withError: urlError)
+                self.client?.urlProtocol(self, didFailWithError: urlError)
+            }
         }
+
         guard let task = self.task else { fatalError() }
         easyHandle.timeoutTimer = _TimeoutSource(queue: task.workQueue, milliseconds: timeoutInterval, handler: timeoutHandler)
         easyHandle.set(automaticBodyDecompression: true)
@@ -562,8 +580,14 @@ extension _HTTPURLProtocol {
         // as the final response, i.e. not do any redirection.
         // Otherwise, we'll start a new transfer with the passed in request.
         if let r = request {
+            lastRedirectBody = nil
             startNewTransfer(with: r)
         } else {
+            // If the redirect is not followed, return the redirect itself as the response
+            self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            if let redirectBody = lastRedirectBody {
+                self.client?.urlProtocol(self, didLoad: redirectBody)
+            }
             self.internalState = .transferCompleted(response: response, bodyDataDrain: bodyDataDrain)
             completeTask()
         }
