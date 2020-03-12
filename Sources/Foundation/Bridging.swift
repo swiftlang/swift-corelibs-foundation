@@ -232,4 +232,6 @@ internal final class __SwiftValue : NSObject, NSCopying {
     }
     
     public static let null: AnyObject = NSNull()
+
+    override var description: String { String(describing: value) }
 }

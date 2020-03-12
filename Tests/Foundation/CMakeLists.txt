@@ -10,6 +10,7 @@ add_executable(TestFoundation
 # Test Cases
 target_sources(TestFoundation PRIVATE
   Tests/TestAffineTransform.swift
+  Tests/TestBridging.swift
   Tests/TestBundle.swift
   Tests/TestByteCountFormatter.swift
   Tests/TestCachedURLResponse.swift

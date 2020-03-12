@@ -104,6 +104,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromUInt8() {
         for interestingValue in UInt8._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -139,6 +140,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromInt16() {
         for interestingValue in Int16._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -174,6 +176,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromUInt16() {
         for interestingValue in UInt8._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -209,6 +212,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromInt32() {
         for interestingValue in Int32._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -248,6 +252,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromUInt32() {
         for interestingValue in UInt32._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -287,6 +292,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromInt64() {
         for interestingValue in Int64._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -326,6 +332,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromUInt64() {
         for interestingValue in UInt64._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -365,6 +372,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromInt() {
         for interestingValue in Int._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -404,6 +412,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromUInt() {
         for interestingValue in UInt._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -443,6 +452,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromFloat() {
         for interestingValue in Float._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)
@@ -482,6 +492,7 @@ class TestNSNumberBridging : XCTestCase {
     func testNSNumberBridgeFromDouble() {
         for interestingValue in Double._interestingValues {
             func testNumber(_ number: NSNumber) {
+                XCTAssertEqual(interestingValue.description, number.description)
                 let int8 = Int8(exactly: number)
                 XCTAssertEqual(Int8(exactly: interestingValue), int8)
                 let uint8 = UInt8(exactly: number)

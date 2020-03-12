@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		659FB6E02405E65D00F5F63F /* TestBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659FB6DF2405E65D00F5F63F /* TestBridging.swift */; };
 		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
 		B94B07402401847C00B244E8 /* FTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B073C2401847C00B244E8 /* FTPServer.swift */; };
 		B94B07412401847C00B244E8 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B073D2401847C00B244E8 /* HTTPServer.swift */; };
@@ -171,6 +172,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		659FB6DF2405E65D00F5F63F /* TestBridging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestBridging.swift; path = Tests/Foundation/Tests/TestBridging.swift; sourceTree = "<group>"; };
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B94B073C2401847C00B244E8 /* FTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FTPServer.swift; path = Tests/Foundation/FTPServer.swift; sourceTree = "<group>"; };
@@ -339,6 +341,7 @@
 			children = (
 				B94B08342401854E00B244E8 /* main.swift */,
 				B94B07822401849700B244E8 /* TestAffineTransform.swift */,
+				659FB6DF2405E65D00F5F63F /* TestBridging.swift */,
 				B94B07472401849300B244E8 /* TestBundle.swift */,
 				B94B078D2401849800B244E8 /* TestByteCountFormatter.swift */,
 				B94B078F2401849800B244E8 /* TestCachedURLResponse.swift */,
@@ -666,6 +669,7 @@
 				B94B07CF2401849B00B244E8 /* TestURLProtocol.swift in Sources */,
 				B94B07D02401849B00B244E8 /* TestScanner.swift in Sources */,
 				B94B07D12401849B00B244E8 /* TestXMLParser.swift in Sources */,
+				659FB6E02405E65D00F5F63F /* TestBridging.swift in Sources */,
 				B94B07D22401849B00B244E8 /* TestNSUUID.swift in Sources */,
 				B94B07D32401849B00B244E8 /* TestThread.swift in Sources */,
 				B94B07D42401849B00B244E8 /* TestNSLocale.swift in Sources */,
