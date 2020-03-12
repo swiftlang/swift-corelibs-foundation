@@ -1004,7 +1004,7 @@ class TestURLSession : LoopbackServerTest {
             callbackCount += 1
             XCTAssertNotNil(error)
             if let urlError = error as? URLError {
-                XCTAssertNotEqual(urlError._nsError.code, NSURLErrorCancelled)
+                XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
             }
 
             if callbackCount == 1 {
@@ -1403,6 +1403,10 @@ class FailFastProtocol: URLProtocol {
 
     override class func canInit(with request: URLRequest) -> Bool {
         return request.url?.scheme == "failfast"
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        return request
     }
 
     override class func canInit(with task: URLSessionTask) -> Bool {
