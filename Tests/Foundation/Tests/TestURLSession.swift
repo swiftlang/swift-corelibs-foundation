@@ -1794,7 +1794,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
             ("test_httpRedirectionExceededMaxRedirects", test_httpRedirectionExceededMaxRedirects),
             ("test_httpNotFound", test_httpNotFound),
-            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
+            /* ⚠️ */ ("test_http0_9SimpleResponses", testExpectedToFail(test_http0_9SimpleResponses, "Breaks on Ubunut20.04")),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
             ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
@@ -1802,7 +1802,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
             ("test_requestWithEmptyBody", test_requestWithEmptyBody),
             ("test_requestWithNonEmptyBody", test_requestWithNonEmptyBody),
-            ("test_concurrentRequests", test_concurrentRequests),
+            /* ⚠️ */ ("test_concurrentRequests", testExpectedToFail(test_concurrentRequests, "Fails about 4% of the time")),
             ("test_disableCookiesStorage", test_disableCookiesStorage),
             ("test_cookiesStorage", test_cookiesStorage),
             ("test_cookieStorageForEphemeralConfiguration", test_cookieStorageForEphemeralConfiguration),
@@ -1816,7 +1816,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
             ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
             ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
-            ("test_getAllTasks", test_getAllTasks),
+            /* ⚠️ */ ("test_getAllTasks", testExpectedToFail(test_getAllTasks, "This test causes later ones to crash")),
             ("test_getTasksWithCompletion", test_getTasksWithCompletion),
             /* ⚠️ */ ("test_invalidResumeDataForDownloadTask",
             /* ⚠️ */   testExpectedToFail(test_invalidResumeDataForDownloadTask, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11353")),
@@ -1824,7 +1824,7 @@ class TestURLSession: LoopbackServerTest {
             /* ⚠️ */   testExpectedToFail(test_simpleUploadWithDelegateProvidingInputStream, "This test times out frequently: https://bugs.swift.org/browse/SR-11343")),
             /* ⚠️ */ ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast",
             /* ⚠️ */      testExpectedToFail(test_noDoubleCallbackWhenCancellingAndProtocolFailsFast, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11310")),
-            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
+            /* ⚠️ */ ("test_cancelledTasksCannotBeResumed", testExpectedToFail(test_cancelledTasksCannotBeResumed, "Breaks on Ubuntu 18.04")),
         ]
     }
     
