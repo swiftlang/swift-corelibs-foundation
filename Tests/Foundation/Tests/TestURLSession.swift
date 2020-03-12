@@ -83,7 +83,7 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_dataTaskWithHttpInputStream() {
+    func test_dataTaskWithHttpInputStream() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/echo"
         
         let dataString = """
@@ -93,28 +93,20 @@ class TestURLSession : LoopbackServerTest {
 
             Vivamus vehicula faucibus odio vel maximus. Vivamus elementum, quam at accumsan rhoncus, ex ligula maximus sem, sed pretium urna enim ut urna. Donec semper porta augue at faucibus. Quisque vel congue purus. Morbi vitae elit pellentesque, finibus lectus quis, laoreet nulla. Praesent in fermentum felis. Aenean vestibulum dictum lorem quis egestas. Sed dictum elementum est laoreet volutpat.
         """
-        
-        let url = URL(string: urlString)!
-        let urlSession = URLSession(configuration: URLSessionConfiguration.default)
-        
+        let data = try XCTUnwrap(dataString.data(using: .utf8))
+        let inputStream = InputStream(data: data)
+
+        let url = try XCTUnwrap(URL(string: urlString))
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
-        
-        guard let data = dataString.data(using: .utf8) else {
-            XCTFail()
-            return
-        }
-        
-        let inputStream = InputStream(data: data)
-        inputStream.open()
-        
         urlRequest.httpBodyStream = inputStream
-        
         urlRequest.setValue("en-us", forHTTPHeaderField: "Accept-Language")
         urlRequest.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("chunked", forHTTPHeaderField: "Transfer-Encoding")
         
         let expect = expectation(description: "POST \(urlString): with HTTP Body as InputStream")
+
+        let urlSession = URLSession(configuration: URLSessionConfiguration.default)
         let task = urlSession.dataTask(with: urlRequest) { respData, response, error in
             XCTAssertNotNil(respData)
             XCTAssertNotNil(response)
@@ -1065,14 +1057,11 @@ class TestURLSession : LoopbackServerTest {
         var request = URLRequest(url: URL(string: urlString)!)
         request.httpMethod = "PUT"
         
-        delegate.uploadCompletedExpectation = expectation(description: "PUT \(urlString): Upload data")
-        
-        
         let fileData = Data(count: 16*1024)
         let stream = InputStream(data: fileData)
-        stream.open()
+
+        delegate.uploadCompletedExpectation = expectation(description: "PUT \(urlString): Upload data")
         delegate.streamToProvideOnRequest = stream
-        
         let task = session.uploadTask(withStreamedRequest: request)
         task.resume()
         waitForExpectations(timeout: 20)

@@ -66,6 +66,8 @@ internal final class _BodyStreamSource {
     let inputStream: InputStream
     
     init(inputStream: InputStream) {
+        assert(inputStream.streamStatus == .notOpen)
+        inputStream.open()
         self.inputStream = inputStream
     }
 }
