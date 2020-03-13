@@ -283,7 +283,7 @@ class LoopbackFTPServerTest: XCTestCase {
         }
         let timeout = DispatchTime(uptimeNanoseconds: DispatchTime.now().uptimeNanoseconds + 2_000_000_000)
 
-        serverReady.wait(timeout: timeout)
+        _ = serverReady.wait(timeout: timeout)
     }
 }
 #endif
