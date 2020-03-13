@@ -344,16 +344,14 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         }
         return nil
     }
-    
+
     internal var _fastContents: UnsafePointer<UniChar>? {
-        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            if _storage._guts._isContiguousUTF16 {
-                return UnsafePointer<UniChar>(_storage._guts.startUTF16)
-            }
-        }
+        // The string held in _storage is a Swift string, natively stored as UTF-8. There is no UTF-16 data that can be
+        // returned here. If, in the future, CFStrings are lazy-bridged to Swift Strings and the address of the CFString
+        // is held as a foreign object in the String then it may be possible to return a pointer here.
         return nil
     }
-    
+
     internal var _encodingCantBeStoredInEightBitCFString: Bool {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             return !_storage._guts._isContiguousASCII
