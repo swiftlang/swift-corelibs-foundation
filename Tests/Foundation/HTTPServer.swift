@@ -1,16 +1,16 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 
-//This is a very rudimentary HTTP server written plainly for testing URLSession. 
-//It is not concurrent. It listens on a port, reads once and writes back only once.
-//We can make it better everytime we need more functionality to test different aspects of URLSession.
+// This is a very rudimentary HTTP server written plainly for testing URLSession.
+// It listens for connections and then processes each client connection in a Dispatch
+// queue using async().
 
 import Dispatch
 
@@ -46,19 +46,21 @@ extension UInt16 {
     }
 }
 
+// _TCPSocket wraps one socket that is used either to listen()/accept() new connections, or for the client connection itself.
 class _TCPSocket {
 #if !os(Windows)
-    private let sendFlags: CInt
+    #if os(Linux) || os(Android) || os(FreeBSD)
+    private let sendFlags = CInt(MSG_NOSIGNAL)
+#else
+    private let sendFlags = CInt(0)
+    #endif
 #endif
-    private var listenSocket: SOCKET!
+
+    let listening: Bool
+    private var _socket: SOCKET!
     private var socketAddress = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: 1)
-    private var _connectionSocketLock = NSLock()
-    private var _connectionSocket: SOCKET?
-    private var connectionSocket: SOCKET? {
-        get { _connectionSocketLock.synchronized { _connectionSocket } }
-        set { _connectionSocketLock.synchronized { _connectionSocket = newValue } }
-    }
-    
+    public private(set) var port: UInt16
+
     private func isNotNegative(r: CInt) -> Bool {
         return r != -1
     }
@@ -75,48 +77,46 @@ class _TCPSocket {
         return r
     }
 
-    public private(set) var port: UInt16
+
+    init(socket: SOCKET) {
+        _socket = socket
+        self.port = 0
+        listening = false
+    }
 
     init(port: UInt16?) throws {
-#if !os(Windows)
-#if os(Linux) || os(Android) || os(FreeBSD)
-        sendFlags = CInt(MSG_NOSIGNAL)
-#else
-        sendFlags = 0
-#endif
-#endif
-
-        self.port = port ?? 0
+        listening = true
+        self.port = 0
 
 #if os(Windows)
-        listenSocket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, DWORD(WSA_FLAG_OVERLAPPED)))
+        _socket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, DWORD(WSA_FLAG_OVERLAPPED)))
 
         var value: Int8 = 1
-        _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
+        _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
 #else
 #if os(Linux) && !os(Android)
         let SOCKSTREAM = Int32(SOCK_STREAM.rawValue)
 #else
         let SOCKSTREAM = SOCK_STREAM
 #endif
-        listenSocket = try attempt("socket", valid: { $0 >= 0 }, socket(AF_INET, SOCKSTREAM, Int32(IPPROTO_TCP)))
+        _socket = try attempt("socket", valid: { $0 >= 0 }, socket(AF_INET, SOCKSTREAM, Int32(IPPROTO_TCP)))
         var on: CInt = 1
-        _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<CInt>.size)))
+        _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<CInt>.size)))
 #endif
 
         let sa = createSockaddr(port)
         socketAddress.initialize(to: sa)
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, { 
             let addr = UnsafePointer<sockaddr>($0)
-            _ = try attempt("bind", valid: isZero, bind(listenSocket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
-            _ = try attempt("listen", valid: isZero, listen(listenSocket, SOMAXCONN))
+            _ = try attempt("bind", valid: isZero, bind(_socket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
+            _ = try attempt("listen", valid: isZero, listen(_socket, SOMAXCONN))
         })
 
         var actualSA = sockaddr_in()
         withUnsafeMutablePointer(to: &actualSA) { ptr in
             ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { (ptr: UnsafeMutablePointer<sockaddr>) in
                 var len = socklen_t(MemoryLayout<sockaddr>.size)
-                getsockname(listenSocket, ptr, &len)
+                getsockname(_socket, ptr, &len)
             }
         }
 
@@ -139,27 +139,31 @@ class _TCPSocket {
         #endif
     }
 
-    func acceptConnection(notify: ServerSemaphore) throws {
-        try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
+    func acceptConnection(notify: ServerSemaphore) throws -> _TCPSocket {
+        guard listening else { fatalError("Trying to listen on a client connection socket") }
+        let connection: SOCKET = try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
             let addr = UnsafeMutablePointer<sockaddr>($0)
             var sockLen = socklen_t(MemoryLayout<sockaddr>.size) 
 #if os(Windows)
-            connectionSocket = try attempt("WSAAccept", valid: { $0 != INVALID_SOCKET }, WSAAccept(listenSocket, addr, &sockLen, nil, 0))
+            let connectionSocket = try attempt("WSAAccept", valid: { $0 != INVALID_SOCKET }, WSAAccept(_socket, addr, &sockLen, nil, 0))
 #else
-            connectionSocket = try attempt("accept", valid: { $0 >= 0 }, accept(listenSocket, addr, &sockLen))
+            let connectionSocket = try attempt("accept", valid: { $0 >= 0 }, accept(_socket, addr, &sockLen))
 #endif
 #if canImport(Darwin)
             // Disable SIGPIPEs when writing to closed sockets
             var on: CInt = 1
-            if let connectionSocket = connectionSocket {
-                _ = try attempt("setsockopt", valid: isZero, setsockopt(connectionSocket, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<CInt>.size)))
+            guard setsockopt(connectionSocket, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<CInt>.size)) == 0 else {
+                close(connectionSocket)
+                throw ServerError.init(operation: "setsockopt", errno: errno, file: #file, line: #line)
             }
 #endif
+            return connectionSocket
         })
+        return _TCPSocket(socket: connection)
     }
  
-    func readData() throws -> String {
-        guard let connectionSocket = connectionSocket else {
+    func readData() throws -> Data? {
+        guard let connectionSocket = _socket else {
             throw InternalServerError.socketAlreadyClosed
         }
 
@@ -171,14 +175,16 @@ class _TCPSocket {
             var flags: DWORD = 0
             _ = try attempt("WSARecv", valid: { $0 != SOCKET_ERROR }, WSARecv(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesRecieved, &flags, nil, nil))
         }
+        let length = Int(dwNumberOfBytesRecieved)
 #else
-        _ = try attempt("read", valid: { $0 >= 0 }, read(connectionSocket, &buffer, buffer.count))
+        let length = try attempt("read", valid: { $0 >= 0 }, read(connectionSocket, &buffer, buffer.count))
 #endif
-        return String(cString: &buffer)
+        guard length > 0 else { return nil }
+        return Data(bytes: buffer, count: length)
     }
 
     func writeRawData(_ data: Data) throws {
-        guard let connectionSocket = connectionSocket else {
+        guard let connectionSocket = _socket else {
             throw InternalServerError.socketAlreadyClosed
         }
 
@@ -196,7 +202,7 @@ class _TCPSocket {
     }
 
     private func _send(_ bytes: [UInt8]) throws -> Int {
-        guard let connectionSocket = connectionSocket else {
+        guard let connectionSocket = _socket else {
             throw InternalServerError.socketAlreadyClosed
         }
 
@@ -233,66 +239,95 @@ class _TCPSocket {
         }
     }
 
-    func closeClient() {
-        _connectionSocketLock.synchronized {
-            if let connectionSocket = _connectionSocket {
+    deinit {
+        guard _socket != nil else { return }
 #if os(Windows)
-                closesocket(connectionSocket)
+        if listening { shutdown(_socket, SD_BOTH) }
+        closesocket(_socket)
 #else
-                close(connectionSocket)
-#endif
-                _connectionSocket = nil
-            }
-        }
-    }
-
-    func shutdownListener() {
-        closeClient()
-#if os(Windows)
-        shutdown(listenSocket, SD_BOTH)
-        closesocket(listenSocket)
-#else
-        shutdown(listenSocket, CInt(SHUT_RDWR))
-        close(listenSocket)
+        if listening { shutdown(_socket, CInt(SHUT_RDWR)) }
+        close(_socket)
 #endif
     }
 }
 
 class _HTTPServer {
 
-    let socket: _TCPSocket
-    var willReadAgain = false
-    var port: UInt16 {
-        get {
-            return self.socket.port
+    // Provide Data() blocks from the socket either separated by a given separator or of a requested block size.
+    struct _SocketDataReader {
+        private let tcpSocket: _TCPSocket
+        private var buffer = Data()
+
+        init(socket: _TCPSocket) {
+            tcpSocket = socket
+        }
+
+        mutating func readBlockSeparated(by separatorData: Data) throws -> Data {
+            var range = buffer.range(of: separatorData)
+            while range == nil {
+                guard let data = try tcpSocket.readData() else { break }
+                buffer.append(data)
+                range = buffer.range(of: separatorData)
+            }
+            guard let r = range else { throw InternalServerError.requestTooShort }
+
+            let result = buffer.prefix(upTo: r.lowerBound)
+            buffer = buffer.suffix(from: r.upperBound)
+            return result
+        }
+
+        mutating func readBytes(count: Int) throws -> Data {
+            while buffer.count < count {
+                guard let data = try tcpSocket.readData() else { break }
+                buffer.append(data)
+            }
+            guard buffer.count >= count else {
+                throw InternalServerError.requestTooShort
+            }
+            let endIndex = buffer.startIndex + count
+            let result = buffer[buffer.startIndex..<endIndex]
+            buffer = buffer[endIndex...]
+            return result
         }
     }
-    
+
+    let tcpSocket: _TCPSocket
+    var port: UInt16 { tcpSocket.port }
+
     init(port: UInt16?) throws {
-        socket = try _TCPSocket(port: port)
+        tcpSocket = try _TCPSocket(port: port)
+    }
+
+    init(socket: _TCPSocket) {
+        tcpSocket = socket
     }
 
     public class func create(port: UInt16?) throws -> _HTTPServer {
         return try _HTTPServer(port: port)
     }
 
-    public func listen(notify: ServerSemaphore) throws {
-        try socket.acceptConnection(notify: notify)
+    public func listen(notify: ServerSemaphore) throws -> _HTTPServer {
+        let connection = try tcpSocket.acceptConnection(notify: notify)
+        return _HTTPServer(socket: connection)
     }
 
-    public func stop() {
-        if !willReadAgain {
-            socket.closeClient()
-            socket.shutdownListener()
-	}
-    }
-   
     public func request() throws -> _HTTPRequest {
-        var request = try _HTTPRequest(request: socket.readData())
-       
-        if Int(request.getHeader(for: "Content-Length") ?? "0") ?? 0 > 0
-            || (request.getHeader(for: "Transfer-Encoding") ?? "").lowercased() == "chunked" {
-            
+
+        var reader = _SocketDataReader(socket: tcpSocket)
+        let headerData = try reader.readBlockSeparated(by: _HTTPUtils.CRLF2.data(using: .ascii)!)
+
+        guard let headerString = String(bytes: headerData, encoding: .ascii) else {
+            throw InternalServerError.requestTooShort
+        }
+        var request = try _HTTPRequest(header: headerString)
+
+        if let contentLength = request.getHeader(for: "Content-Length"), let length = Int(contentLength), length > 0 {
+            let messageData = try reader.readBytes(count: length)
+            request.messageData = messageData
+            request.messageBody = String(bytes: messageData, encoding: .utf8)
+            return request
+        }
+        else if(request.getHeader(for: "Transfer-Encoding") ?? "").lowercased() == "chunked" {
             // According to RFC7230 https://tools.ietf.org/html/rfc7230#section-3
             // We receive messageBody after the headers, so we need read from socket minimum 2 times
             //
@@ -303,14 +338,37 @@ class _HTTPServer {
             // CRLF
             // [ message-body ]
             // We receives '{numofbytes}\r\n{data}\r\n'
-            // TODO read data until the end
-            
-            let substr = try socket.readData().split(separator: "\r\n")
-            if substr.count >= 2 {
-                request.messageBody = String(substr[1])
+
+            // There maybe some part of the body in the initial data
+
+            let bodySeparator = _HTTPUtils.CRLF.data(using: .ascii)!
+            var messageData = Data()
+            var finished = false
+
+            while !finished {
+                let chunkSizeData = try reader.readBlockSeparated(by: bodySeparator)
+                // Should now have <num bytes>\r\n
+                guard let number = String(bytes: chunkSizeData, encoding: .ascii), let chunkSize = Int(number, radix: 16) else {
+                     throw InternalServerError.requestTooShort
+                }
+                if chunkSize == 0 {
+                    finished = true
+                    break
+                }
+
+                let chunkData = try reader.readBytes(count: chunkSize)
+                messageData.append(chunkData)
+
+                // Next 2 bytes should be \r\n to indicate the end of the chunk
+                let endOfChunk = try reader.readBytes(count: bodySeparator.count)
+                guard endOfChunk == bodySeparator else {
+                    throw InternalServerError.requestTooShort
+                }
             }
+            request.messageData = messageData
+            request.messageBody = String(bytes: messageData, encoding: .utf8)
         }
-        
+
         return request
     }
 
@@ -319,7 +377,7 @@ class _HTTPServer {
             Thread.sleep(forTimeInterval: delay)
         }
         do {
-            try self.socket.writeData(header: response.header, bodyData: response.bodyData, sendDelay: sendDelay, bodyChunks: bodyChunks)
+            try tcpSocket.writeData(header: response.header, bodyData: response.bodyData, sendDelay: sendDelay, bodyChunks: bodyChunks)
         } catch {
         }
     }
@@ -383,23 +441,14 @@ class _HTTPServer {
                                "case-missing-in: TestFoundation/HTTPServer.swift\r\n" +
                                "\r\n").data(using: .utf8)!
         }
-        try self.socket.writeRawData(responseData)
+        try tcpSocket.writeRawData(responseData)
     }
 
-    func respondWithAuthResponse(uri: String, firstRead: Bool) throws {
+    func respondWithAuthResponse(request: _HTTPRequest) throws {
         let responseData: Data
-        if firstRead {
-            responseData = ("HTTP/1.1 401 UNAUTHORIZED \r\n" +
-                        "Content-Length: 0\r\n" +
-                        "WWW-Authenticate: Basic realm=\"Fake Relam\"\r\n" +
-                        "Access-Control-Allow-Origin: *\r\n" +
-                        "Access-Control-Allow-Credentials: true\r\n" +
-                        "Via: 1.1 vegur\r\n" +
-                        "Cache-Control: proxy-revalidate\r\n" +
-                        "Connection: keep-Alive\r\n" +
-                        "\r\n").data(using: .utf8)!
-        } else {
-            responseData = ("HTTP/1.1 200 OK \r\n" +
+        if let auth = request.getHeader(for: "authorization"),
+            auth == "Basic dXNlcjpwYXNzd2Q=" {
+                responseData = ("HTTP/1.1 200 OK \r\n" +
                 "Content-Length: 37\r\n" +
                 "Content-Type: application/json\r\n" +
                 "Access-Control-Allow-Origin: *\r\n" +
@@ -409,8 +458,18 @@ class _HTTPServer {
                 "Connection: keep-Alive\r\n" +
                 "\r\n" +
                 "{\"authenticated\":true,\"user\":\"user\"}\n").data(using: .utf8)!
+        } else {
+            responseData = ("HTTP/1.1 401 UNAUTHORIZED \r\n" +
+                        "Content-Length: 0\r\n" +
+                        "WWW-Authenticate: Basic realm=\"Fake Relam\"\r\n" +
+                        "Access-Control-Allow-Origin: *\r\n" +
+                        "Access-Control-Allow-Credentials: true\r\n" +
+                        "Via: 1.1 vegur\r\n" +
+                        "Cache-Control: proxy-revalidate\r\n" +
+                        "Connection: keep-Alive\r\n" +
+                        "\r\n").data(using: .utf8)!
         }
-        try self.socket.writeRawData(responseData)
+        try tcpSocket.writeRawData(responseData)
     }
 
     func respondWithUnauthorizedHeader() throws{
@@ -418,7 +477,7 @@ class _HTTPServer {
                 "Content-Length: 0\r\n" +
                 "Connection: keep-Alive\r\n" +
                 "\r\n").data(using: .utf8)!
-        try self.socket.writeRawData(responseData)
+        try tcpSocket.writeRawData(responseData)
     }
 }
 
@@ -432,21 +491,19 @@ struct _HTTPRequest {
     let uri: String 
     let body: String
     var messageBody: String?
+    var messageData: Data?
     let headers: [String]
 
     enum Error: Swift.Error {
         case headerEndNotFound
     }
     
-    public init(request: String) throws {
-        let headerEnd = (request as NSString).range(of: _HTTPUtils.CRLF2)
-        guard headerEnd.location != NSNotFound else { throw Error.headerEndNotFound }
-        let header = (request as NSString).substring(to: headerEnd.location)
+    public init(header: String) throws {
         headers = header.components(separatedBy: _HTTPUtils.CRLF)
         let action = headers[0]
         method = Method(rawValue: action.components(separatedBy: " ")[0])!
         uri = action.components(separatedBy: " ")[1]
-        body = (request as NSString).substring(from: headerEnd.location + headerEnd.length)
+        body = ""
     }
 
     public func getCommaSeparatedHeaders() -> String {
@@ -470,10 +527,11 @@ struct _HTTPRequest {
 }
 
 struct _HTTPResponse {
-    enum Response : Int {
+    enum Response: Int {
         case OK = 200
         case REDIRECT = 302
         case NOTFOUND = 404
+        case METHOD_NOT_ALLOWED = 405
     }
     private let responseCode: Response
     private let headers: String
@@ -508,22 +566,16 @@ public class TestURLSessionServer {
     let startDelay: TimeInterval?
     let sendDelay: TimeInterval?
     let bodyChunks: Int?
-    var port: UInt16 {
-        get {
-            return self.httpServer.port
-        }
-    }
-    
-    public init (port: UInt16?, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-        httpServer = try _HTTPServer.create(port: port)
-        self.startDelay = startDelay
-        self.sendDelay = sendDelay
-        self.bodyChunks = bodyChunks
+
+    internal init(httpServer: _HTTPServer) {
+        self.httpServer = httpServer
+        self.startDelay = nil
+        self.sendDelay = nil
+        self.bodyChunks = nil
     }
 
     public func readAndRespond() throws {
         let req = try httpServer.request()
-
         if let value = req.getHeader(for: "x-pause") {
             if let wait = Double(value), wait > 0 {
                 Thread.sleep(forTimeInterval: wait)
@@ -539,39 +591,26 @@ public class TestURLSessionServer {
                 let content = try? Data(contentsOf: url) {
                 var responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .ascii)!
                 responseData.append(content)
-                try httpServer.socket.writeRawData(responseData)
+                try httpServer.tcpSocket.writeRawData(responseData)
             } else {
                 try httpServer.respond(with: _HTTPResponse(response: .NOTFOUND, body: "Not Found"))
             }
         } else if req.uri.hasPrefix("/auth") {
-            httpServer.willReadAgain = true
-            try httpServer.respondWithAuthResponse(uri: req.uri, firstRead: true)
+            try httpServer.respondWithAuthResponse(request: req)
         } else if req.uri.hasPrefix("/unauthorized") {
             try httpServer.respondWithUnauthorizedHeader()
         } else {
-            try httpServer.respond(with: process(request: req), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
-        }
-    }
-
-    public func readAndRespondAgain() throws {
-        let req = try httpServer.request()
-        if req.uri.hasPrefix("/auth/") {
-            try httpServer.respondWithAuthResponse(uri: req.uri, firstRead: false)
-        }
-        httpServer.willReadAgain = false
-    }
-
-    func process(request: _HTTPRequest) -> _HTTPResponse {
-        if request.method == .GET || request.method == .POST || request.method == .PUT {
-            return getResponse(request: request)
-        } else {
-            fatalError("Unsupported method!")
+            if req.method == .GET || req.method == .POST || req.method == .PUT {
+                try httpServer.respond(with: getResponse(request: req))
+            }
+            else {
+                try httpServer.respond(with: _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed"))
+            }
         }
     }
 
     func getResponse(request: _HTTPRequest) -> _HTTPResponse {
         let uri = request.uri
-
         if uri == "/upload" {
             let text = "Upload completed!"
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
@@ -679,10 +718,6 @@ public class TestURLSessionServer {
 
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
-
-    func stop() {
-        httpServer.stop()
-    }
 }
 
 struct ServerError : Error {
@@ -704,6 +739,7 @@ extension ServerError : CustomStringConvertible {
 
 enum InternalServerError : Error {
     case socketAlreadyClosed
+    case requestTooShort
 }
 
 public class ServerSemaphore {
@@ -724,7 +760,7 @@ class LoopbackServerTest : XCTestCase {
     private static var _serverPort: Int = -1
     private static let serverReady = ServerSemaphore()
     private static var _serverActive = false
-    private static var testServer: TestURLSessionServer? = nil
+    private static var testServer: _HTTPServer? = nil
 
 
     static var serverPort: Int {
@@ -741,31 +777,23 @@ class LoopbackServerTest : XCTestCase {
         set { staticSyncQ.sync { _serverActive = newValue }}
     }
 
-    static func terminateServer() {
-        serverActive = false
-        testServer?.stop()
-        testServer = nil
-    }
-
     override class func setUp() {
         super.setUp()
-        func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-            let server = try TestURLSessionServer(port: nil, startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
-            testServer = server
-            serverPort = Int(server.port)
+        func runServer(with condition: ServerSemaphore) throws {
+            testServer = try _HTTPServer(port: nil)
+            serverPort = Int(testServer!.port)
             serverReady.signal()
             serverActive = true
 
             while serverActive {
                 do {
-                    try server.httpServer.listen(notify: condition)
-                    try server.readAndRespond()
-                    if server.httpServer.willReadAgain {
-                        try server.httpServer.listen(notify: condition)
-                        try server.readAndRespondAgain()
+                    let httpServer = try testServer!.listen(notify: condition)
+                    globalDispatchQueue.async {
+                        let subServer = TestURLSessionServer(httpServer: httpServer)
+                        try? subServer.readAndRespond()
                     }
-                    server.httpServer.socket.closeClient()
                 } catch {
+                    NSLog("httpServer: \(error)")
                 }
             }
             serverPort = -2
@@ -788,7 +816,7 @@ class LoopbackServerTest : XCTestCase {
     }
 
     override class func tearDown() {
+        serverActive = false
         super.tearDown()
-        terminateServer()
     }
 }
