@@ -4076,7 +4076,7 @@ static CFStringRef URLPathToPOSIXPath(CFStringRef path, CFAllocatorRef allocator
     return result;
 }
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static Boolean CanonicalFileURLStringToFileSystemRepresentation(CFStringRef str, UInt8 *inBuffer, CFIndex inBufferLen)
 {
     size_t fileURLPrefixLength;
@@ -4546,13 +4546,24 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
 }
 
 Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, uint8_t *buffer, CFIndex bufLen) {
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_WIN32
     CFAllocatorRef alloc = CFGetAllocator(url);
     CFStringRef path;
 
     if (!url) return false;
-#endif
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+
+#if TARGET_OS_WIN32
+    path = CFURLCreateStringWithFileSystemPath(alloc, url, kCFURLWindowsPathStyle, resolveAgainstBase);
+    if (path) {
+        CFIndex usedLen;
+        CFIndex pathLen = CFStringGetLength(path);
+        CFIndex numConverted = CFStringGetBytes(path, CFRangeMake(0, pathLen), CFStringFileSystemEncoding(), 0, true, buffer, bufLen-1, &usedLen); // -1 because we need one byte to zero-terminate.
+        CFRelease(path);
+        if (numConverted == pathLen) {
+            buffer[usedLen] = '\0';
+            return true;
+        }
+    }
+#else
     if ( !resolveAgainstBase || (CFURLGetBaseURL(url) == NULL) ) {
         if (!CF_IS_OBJC(CFURLGetTypeID(), url)) {
             // We can access the ivars
@@ -4567,18 +4578,6 @@ Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBas
         Boolean convResult = CFStringGetFileSystemRepresentation(path, (char *)buffer, bufLen);
         CFRelease(path);
         return convResult;
-    }
-#elif TARGET_OS_WIN32
-    path = CFURLCreateStringWithFileSystemPath(alloc, url, kCFURLWindowsPathStyle, resolveAgainstBase);
-    if (path) {
-        CFIndex usedLen;
-        CFIndex pathLen = CFStringGetLength(path);
-        CFIndex numConverted = CFStringGetBytes(path, CFRangeMake(0, pathLen), CFStringFileSystemEncoding(), 0, true, buffer, bufLen-1, &usedLen); // -1 because we need one byte to zero-terminate.
-        CFRelease(path);
-        if (numConverted == pathLen) {
-            buffer[usedLen] = '\0';
-            return true;
-        }
     }
 #endif
     return false;
