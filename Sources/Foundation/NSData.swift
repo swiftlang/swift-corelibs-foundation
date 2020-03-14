@@ -284,9 +284,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return false
         }
         
-        return other.withUnsafeBytes { (bytes2: UnsafePointer<UInt8>) -> Bool in
+        return other.withUnsafeBytes { (bytes2: UnsafeRawBufferPointer) -> Bool in
             let bytes1 = bytes
-            return memcmp(bytes1, bytes2, length) == 0
+            return memcmp(bytes1, bytes2.baseAddress!, length) == 0
         }
     }
     
@@ -980,8 +980,8 @@ open class NSMutableData : NSData {
     /// Appends the content of another data object to the data object.
     open func append(_ other: Data) {
         let otherLength = other.count
-        other.withUnsafeBytes {
-            append($0, length: otherLength)
+        other.withUnsafeBytes { rawPtr in
+            append(rawPtr.baseAddress!, length: otherLength)
         }
     }
 
