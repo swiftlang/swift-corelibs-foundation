@@ -186,7 +186,24 @@ open class HTTPURLResponse : URLResponse {
     /// - Returns: the instance of the object, or `nil` if an error occurred during initialization.
     public init?(url: URL, statusCode: Int, httpVersion: String?, headerFields: [String : String]?) {
         self.statusCode = statusCode
-        self.allHeaderFields = headerFields ?? [:]
+
+        self._allHeaderFields = {
+            // Canonicalize the header fields by capitalizing the field names, but not X- Headers
+            // This matches the behaviour of Darwin.
+            guard let headerFields = headerFields else { return [:] }
+            var canonicalizedFields: [String: String] = [:]
+
+            for (key, value) in headerFields  {
+                if key.isEmpty { continue }
+                if key.hasPrefix("x-") || key.hasPrefix("X-") {
+                    canonicalizedFields[key] = value
+                } else {
+                    canonicalizedFields[key.capitalized] = value
+                }
+            }
+            return canonicalizedFields
+        }()
+
         super.init(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
         expectedContentLength = getExpectedContentLength(fromHeaderFields: headerFields) ?? -1
         suggestedFilename = getSuggestedFilename(fromHeaderFields: headerFields) ?? "Unknown"
@@ -204,9 +221,9 @@ open class HTTPURLResponse : URLResponse {
         self.statusCode = aDecoder.decodeInteger(forKey: "NS.statusCode")
         
         if aDecoder.containsValue(forKey: "NS.allHeaderFields") {
-            self.allHeaderFields = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NS.allHeaderFields") as! [AnyHashable: Any]
+            self._allHeaderFields = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NS.allHeaderFields") as! [String: String]
         } else {
-            self.allHeaderFields = [:]
+            self._allHeaderFields = [:]
         }
         
         super.init(coder: aDecoder)
@@ -236,8 +253,15 @@ open class HTTPURLResponse : URLResponse {
     ///
     /// - Important: This is an *experimental* change from the
     /// `[NSObject: AnyObject]` type that Darwin Foundation uses.
-    public let allHeaderFields: [AnyHashable : Any]
-    
+    private let _allHeaderFields: [String: String]
+    public var allHeaderFields: [AnyHashable : Any] {
+        _allHeaderFields as [AnyHashable : Any]
+    }
+
+    public func value(forHTTPHeaderField field: String) -> String? {
+        return valueForCaseInsensitiveKey(field, fields: _allHeaderFields)
+    }
+
     /// Convenience method which returns a localized string
     /// corresponding to the status code for this response.
     /// - Parameter forStatusCode: the status code to use to produce a localized string.
@@ -315,8 +339,8 @@ open class HTTPURLResponse : URLResponse {
     /// This property is intended to produce readable output.
     override open var description: String {
         var result = "<\(type(of: self)) \(Unmanaged.passUnretained(self).toOpaque())> { URL: \(url!.absoluteString) }{ status: \(statusCode), headers {\n"
-        for(aKey, aValue) in allHeaderFields {
-            guard let key = aKey as? String, let value = aValue as? String else { continue } //shouldn't typically fail here 
+        for key in _allHeaderFields.keys.sorted() {
+            guard let value = _allHeaderFields[key] else { continue }
             if((key.lowercased() == "content-disposition" && suggestedFilename != "Unknown") || key.lowercased() == "content-type") {
                 result += "   \"\(key)\" = \"\(value)\";\n"
             } else {
