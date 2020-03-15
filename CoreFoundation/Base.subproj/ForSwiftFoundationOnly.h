@@ -293,13 +293,13 @@ struct _NSCFXMLBridge {
   _Null_unspecified CFMutableArrayRef (* _Nonnull CFArrayCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFArrayCallBacks *_Nullable);
   void (* _Nonnull CFArrayAppendValue)(CFMutableArrayRef, const void *);
   CFIndex (* _Nonnull CFDataGetLength)(CFDataRef);
-  uint8_t * _Null_unspecified (* _Nonnull CFDataGetBytePtr)(CFDataRef);
+  const uint8_t * _Null_unspecified (* _Nonnull CFDataGetBytePtr)(CFDataRef);
   _Null_unspecified CFMutableDictionaryRef (* _Nonnull CFDictionaryCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFDictionaryKeyCallBacks *, const CFDictionaryValueCallBacks *);
   void (* _Nonnull CFDictionarySetValue)(CFMutableDictionaryRef, const void * _Null_Unspecified, const void * _Null_unspecified);
-  _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorSystemDefault;
-  _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorNull;
-  CFDictionaryKeyCallBacks * _Nonnull kCFCopyStringDictionaryKeyCallBacks;
-  CFDictionaryValueCallBacks * _Nonnull kCFTypeDictionaryValueCallBacks;
+  const _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorSystemDefault;
+  const _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorNull;
+  const CFDictionaryKeyCallBacks * _Nonnull kCFCopyStringDictionaryKeyCallBacks;
+  const CFDictionaryValueCallBacks * _Nonnull kCFTypeDictionaryValueCallBacks;
   _Null_unspecified const CFStringRef * _Nonnull kCFErrorLocalizedDescriptionKey;
 };
 
