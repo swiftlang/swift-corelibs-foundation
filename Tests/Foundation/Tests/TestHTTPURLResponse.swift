@@ -173,6 +173,57 @@ class TestHTTPURLResponse: XCTestCase {
         XCTAssertEqual(sut?.textEncodingName, "iso-8859-4")
     }
 
+    func test_fieldCapitalisation() throws {
+        let f = [
+            "location": "/newLocation",
+            "conTent-lenGTH": "123",
+            "CONTENT-type": "text/plAIn; charset=ISO-8891-1",
+            "x-extra-HEADER": "my Header",
+            "X-UPPERCASE": "UPPERCASE",
+            "x-lowercase": "lowercase",
+            "X-mixedCASE": "MIXEDcase",
+            "vary": "much",
+            "X-xss-protection": "1; mode=block",
+
+        ]
+        guard let sut = HTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1", headerFields: f) else {
+            XCTFail("Cant create HTTPURLResponse")
+            return
+        }
+        XCTAssertEqual(sut.statusCode, 302)
+        XCTAssertEqual(sut.expectedContentLength, 123)
+        XCTAssertEqual(sut.mimeType, "text/plain")
+        XCTAssertEqual(sut.textEncodingName, "iso-8891-1")
+
+        guard let ahf = sut.allHeaderFields as? [String: String] else {
+            XCTFail("Cant read .allheaderFields")
+            return
+        }
+
+        XCTAssertEqual(sut.value(forHTTPHeaderField: "location"), "/newLocation")
+        XCTAssertEqual(sut.value(forHTTPHeaderField: "LOcation"), "/newLocation")
+        XCTAssertEqual(sut.value(forHTTPHeaderField: "locATIon"), "/newLocation")
+        XCTAssertEqual(sut.value(forHTTPHeaderField: "x-extra-HEADER"), "my Header")
+        XCTAssertEqual(sut.value(forHTTPHeaderField: "X-EXTRA-HEADER"), "my Header")
+        XCTAssertEqual(sut.value(forHTTPHeaderField: "x-ExTrA-header"), "my Header")
+
+        XCTAssertEqual(ahf["Location"], "/newLocation")
+        XCTAssertEqual(ahf["Content-Length"], "123")
+        XCTAssertEqual(ahf["Content-Type"], "text/plAIn; charset=ISO-8891-1")
+        XCTAssertEqual(ahf["x-extra-HEADER"], "my Header")
+        XCTAssertEqual(ahf["X-UPPERCASE"], "UPPERCASE")
+        XCTAssertEqual(ahf["x-lowercase"], "lowercase")
+        XCTAssertEqual(ahf["X-mixedCASE"], "MIXEDcase")
+
+        XCTAssertNil(ahf["location"])
+        XCTAssertNil(ahf["conTent-lenGTH"])
+        XCTAssertNil(ahf["CONTENT-type"])
+        XCTAssertNil(ahf["X-Extra-Header"])
+        XCTAssertNil(ahf["X-Uppercase"])
+        XCTAssertNil(ahf["X-Lowercase"])
+        XCTAssertNil(ahf["X-Mixedcase"])
+    }
+
     // NSCoding
 
     func test_NSCoding() {
@@ -230,6 +281,7 @@ class TestHTTPURLResponse: XCTestCase {
             ("test_MIMETypeAndCharacterEncoding_2", test_MIMETypeAndCharacterEncoding_2),
             ("test_MIMETypeAndCharacterEncoding_3", test_MIMETypeAndCharacterEncoding_3),
 
+            ("test_fieldCapitalisation", test_fieldCapitalisation),
             ("test_NSCoding", test_NSCoding),
         ]
     }

@@ -643,7 +643,7 @@ public class TestURLSessionServer {
         }
         
         if uri == "/redirectToEchoHeaders" {
-            return _HTTPResponse(response: .REDIRECT, headers: "Location: /echoHeaders\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
+            return _HTTPResponse(response: .REDIRECT, headers: "location: /echoHeaders\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
         }
 
         if uri == "/UnitedStates" {
