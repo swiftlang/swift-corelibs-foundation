@@ -29,7 +29,7 @@ class TestBridging : XCTestCase {
         ]
     }
 
-    func testBridgedDescription() {
+    func testBridgedDescription() throws {
         // Struct with working (debug)description properties:
         let a = StructWithDescriptionAndDebugDescription()
         XCTAssertEqual("description", a.description)
@@ -38,7 +38,7 @@ class TestBridging : XCTestCase {
         // Wrap it up in a SwiftValue container
         let b = (a as AnyObject) as? NSObject
         XCTAssertNotNil(b)
-        let c = b!
+        let c = try XCTUnwrap(b)
 
         // Check that the wrapper forwards (debug)description
         // to the wrapped description property.
