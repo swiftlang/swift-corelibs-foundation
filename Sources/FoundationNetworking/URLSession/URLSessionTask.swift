@@ -782,7 +782,7 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocolDidFinishLoading(_ urlProtocol: URLProtocol) {
         guard let task = urlProtocol.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
-        guard let urlResponse = task.response else { fatalError("No response") }
+        let urlResponse = task.response
         if let response = urlResponse as? HTTPURLResponse, response.statusCode == 401 {
             if let protectionSpace = createProtectionSpace(response) {
 
