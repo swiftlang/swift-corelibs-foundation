@@ -483,9 +483,11 @@ class _HTTPServer {
 
 struct _HTTPRequest {
     enum Method : String {
+        case HEAD
         case GET
         case POST
         case PUT
+        case DELETE
     }
     let method: Method
     let uri: String 
@@ -495,14 +497,22 @@ struct _HTTPRequest {
     let headers: [String]
 
     enum Error: Swift.Error {
+        case invalidURI
+        case invalidMethod
         case headerEndNotFound
     }
     
     public init(header: String) throws {
         headers = header.components(separatedBy: _HTTPUtils.CRLF)
-        let action = headers[0]
-        method = Method(rawValue: action.components(separatedBy: " ")[0])!
-        uri = action.components(separatedBy: " ")[1]
+        guard headers.count > 0 else {
+            throw Error.invalidURI
+        }
+        let uriParts = headers[0].components(separatedBy: " ")
+        guard uriParts.count > 2, let methodName = Method(rawValue: uriParts[0]) else {
+            throw Error.invalidMethod
+        }
+        method = methodName
+        uri = uriParts[1]
         body = ""
     }
 
@@ -524,14 +534,31 @@ struct _HTTPRequest {
         }
         return nil
     }
+
+    public func headersAsJSON() throws -> Data {
+        var headerDict: [String: String] = [:]
+        for header in headers {
+            if header.hasPrefix(method.rawValue) {
+                headerDict["uri"] = header
+                continue
+            }
+            let parts = header.components(separatedBy: ":")
+            if parts.count > 1 {
+                headerDict[parts[0]] = parts[1].trimmingCharacters(in: CharacterSet(charactersIn: " "))
+            }
+        }
+        return try JSONEncoder().encode(headerDict)
+    }
 }
 
 struct _HTTPResponse {
     enum Response: Int {
         case OK = 200
         case REDIRECT = 302
+        case BAD_REQUEST = 400
         case NOTFOUND = 404
         case METHOD_NOT_ALLOWED = 405
+        case SERVER_ERROR = 500
     }
     private let responseCode: Response
     private let headers: String
@@ -600,20 +627,56 @@ public class TestURLSessionServer {
         } else if req.uri.hasPrefix("/unauthorized") {
             try httpServer.respondWithUnauthorizedHeader()
         } else {
-            if req.method == .GET || req.method == .POST || req.method == .PUT {
-                try httpServer.respond(with: getResponse(request: req))
-            }
-            else {
-                try httpServer.respond(with: _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed"))
-            }
+            try httpServer.respond(with: getResponse(request: req))
         }
     }
 
-    func getResponse(request: _HTTPRequest) -> _HTTPResponse {
+    func getResponse(request: _HTTPRequest) throws -> _HTTPResponse {
+
+        func headersAsJSONResponse() throws -> _HTTPResponse {
+            guard let body = try String(data: request.headersAsJSON(), encoding: .utf8) else {
+                return _HTTPResponse(response: .SERVER_ERROR, body: "Cant convert headers to JSON object")
+            }
+            let headers = "Content-Type: application/json\r\nContent-Length: \(body.count)"
+            return _HTTPResponse(response: .OK, headers: headers, body: body)
+        }
+
         let uri = request.uri
+        if uri == "/head" {
+            guard request.method == .HEAD else { return _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/get" {
+            guard request.method == .GET else { return _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/put" {
+            guard request.method == .PUT else { return _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/post" {
+            guard request.method == .POST else { return _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/delete" {
+            guard request.method == .DELETE else { return _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
         if uri == "/upload" {
-            let text = "Upload completed!"
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+            if let contentLength = request.getHeader(for: "content-length") {
+                let text = "Upload completed!, Content-Length: \(contentLength)"
+                return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+            }
+            if let te = request.getHeader(for: "transfer-encoding"), te == "chunked" {
+                return _HTTPResponse(response: .OK, body: "Received Chunked request")
+            } else {
+                return _HTTPResponse(response: .BAD_REQUEST, body: "Missing Content-Length")
+            }
         }
 
         if uri == "/country.txt" {
