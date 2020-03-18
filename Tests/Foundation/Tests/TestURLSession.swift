@@ -264,6 +264,44 @@ class TestURLSession : LoopbackServerTest {
         d.cancel()
         waitForExpectations(timeout: 12)
     }
+
+    func test_suspendResumeTask() throws {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/get"
+        let url = try XCTUnwrap(URL(string: urlString))
+
+        let expect = expectation(description: "GET \(urlString)")
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+             guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            if httpResponse.statusCode == 200 {
+                expect.fulfill()
+            }
+        }
+
+        // The task starts suspended (1) so this requires 1 extra resume to perform the task
+        task.suspend()                          // 2
+        XCTAssertEqual(task.state, .suspended)
+        task.suspend()                          // 3
+        XCTAssertEqual(task.state, .suspended)
+
+        task.resume()                           // 2
+        XCTAssertEqual(task.state, .suspended)  // Darwin reports this as .running even though the task hasnt actually resumed
+        task.resume()                           // 1
+        XCTAssertEqual(task.state, .suspended)  // Darwin reports this as .running even though the task hasnt actually resumed
+
+        task.resume()                           // 0 - Task can run
+        XCTAssertEqual(task.state, .running)
+
+        task.resume()                           // -1
+        XCTAssertEqual(task.state, .running)
+        task.resume()                           // -2
+        XCTAssertEqual(task.state, .running)
+
+        waitForExpectations(timeout: 3)
+    }
+
     
     func test_verifyRequestHeaders() {
         let config = URLSessionConfiguration.default
@@ -1084,6 +1122,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
             ("test_cancelTask", test_cancelTask),
+            ("test_suspendResumeTask", test_suspendResumeTask),
             ("test_taskTimeout", test_taskTimeout),
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),

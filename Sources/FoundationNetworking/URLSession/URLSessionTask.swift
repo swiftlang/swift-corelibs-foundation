@@ -438,8 +438,7 @@ open class URLSessionTask : NSObject, NSCopying {
     open func resume() {
         workQueue.sync {
             guard self.state != .canceling && self.state != .completed else { return }
-            self.suspendCount -= 1
-            guard 0 <= self.suspendCount else { fatalError("Resuming a task that's not suspended. Calls to resume() / suspend() need to be matched.") }
+            if self.suspendCount > 0 { self.suspendCount -= 1 }
             self.updateTaskState()
             if self.suspendCount == 0 {
                 self.hasTriggeredResume = true
