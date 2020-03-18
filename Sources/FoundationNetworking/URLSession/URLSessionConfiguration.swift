@@ -216,8 +216,14 @@ open class URLSessionConfiguration : NSObject, NSCopying {
      Note that these headers are added to the request only if not already present. */
     open var httpAdditionalHeaders: [AnyHashable : Any]? = nil
     
+    #if NS_CURL_MISSING_MAX_HOST_CONNECTIONS
+    /* The maximum number of simultaneous persistent connections per host */
+    @available(*, deprecated, message: "This platform doles not support selecting the maximum number of simultaneous persistent connections per host. This property is ignored.")
+    open var httpMaximumConnectionsPerHost: Int
+    #else
     /* The maximum number of simultaneous persistent connections per host */
     open var httpMaximumConnectionsPerHost: Int
+    #endif
     
     /* The cookie storage object to use, or nil to indicate that no cookies should be handled */
     open var httpCookieStorage: HTTPCookieStorage?
