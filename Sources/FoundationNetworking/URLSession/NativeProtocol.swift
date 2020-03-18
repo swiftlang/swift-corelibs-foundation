@@ -191,16 +191,16 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         // If everything went well, we will simply forward the resulting data
         // to the delegate. But in case of redirects etc. we might send another
         // request.
+        guard error == nil else {
+            internalState = .transferFailed
+            failWith(error: error!, request: request)
+            return
+        }
         guard case .transferInProgress(let ts) = internalState else {
             fatalError("Transfer completed, but it wasn't in progress.")
         }
         guard let request = task?.currentRequest else {
             fatalError("Transfer completed, but there's no current request.")
-        }
-        guard error == nil else {
-            internalState = .transferFailed
-            failWith(error: error!, request: request)
-            return
         }
 
         if let response = task?.response {

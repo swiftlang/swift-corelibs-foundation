@@ -8,7 +8,9 @@
 //
 
 class TestURLSession : LoopbackServerTest {
-    
+
+    let httpMethods = ["HEAD", "GET", "PUT", "POST", "DELETE"]
+
     func test_dataTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
@@ -564,6 +566,93 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 20)
     }
 
+    func test_requestWithEmptyBody() throws {
+        for method in httpMethods {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/" + method.lowercased()
+            let url = try XCTUnwrap(URL(string: urlString))
+
+            let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            let expect = expectation(description: "\(method) \(urlString)")
+
+            let task = session.dataTask(with: request) { (data, response, error) in
+                defer { expect.fulfill() }
+
+                XCTAssertNil(error)
+                guard let httpResponse = try? XCTUnwrap(response as? HTTPURLResponse) else {
+                    XCTFail("Response should be a non-nil HTTPURLResponse for \(method) request")
+                    return
+                }
+                XCTAssertEqual(httpResponse.statusCode, 200, "\(method)")
+
+                if method == "HEAD" { return }  // HEAD requests return no body
+
+                guard let data = data,
+                    let jsonBody = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: String] else {
+                        XCTFail("No JSON body for \(method) request")
+                        return
+                }
+                let uri = "\(method) /" + method.lowercased() + " HTTP/1.1"
+                XCTAssertEqual(jsonBody["uri"], uri)
+
+                if method == "GET" {
+                    XCTAssertNil(jsonBody["Content-Length"], "Unexpected Content-Length for \(method) request")
+                } else {
+                    XCTAssertEqual(jsonBody["Content-Length"], "0", "Bad Content-Length for \(method) request")
+                }
+            }
+            task.resume()
+            waitForExpectations(timeout: 3)
+        }
+    }
+
+
+    func test_requestWithNonEmptyBody() throws {
+        let bodyData = try XCTUnwrap("This is a request body".data(using: .utf8))
+        for method in httpMethods {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/" + method.lowercased()
+            let url = try XCTUnwrap(URL(string: urlString))
+
+            let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            request.httpBody = bodyData
+            let expect = expectation(description: "\(method) \(urlString)")
+
+            let task = session.dataTask(with: request) { (data, response, error) in
+                defer { expect.fulfill() }
+
+                if method == "GET" {
+                    XCTAssertNotNil(error)
+                    XCTAssertNil(data)
+                    XCTAssertNil(response)
+                } else {
+                    XCTAssertNil(error)
+
+                    guard let httpResponse = try? XCTUnwrap(response as? HTTPURLResponse) else {
+                        XCTFail("Response should be a non-nil HTTPURLResponse for \(method) request")
+                        return
+                    }
+                    XCTAssertEqual(httpResponse.statusCode, 200, "\(method)")
+
+                    if method == "HEAD" { return }  // HEAD requests return no body
+                    guard let data = data,
+                        let jsonBody = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: String] else {
+                        XCTFail("No JSON body for \(method) request")
+                        return
+                    }
+                    let uri = "\(method) /" + method.lowercased() + " HTTP/1.1"
+                    XCTAssertEqual(jsonBody["uri"], uri)
+                    XCTAssertEqual(jsonBody["Content-Length"], "\(bodyData.count)", "Bad Content-Length for \(method) request")
+                }
+            }
+            task.resume()
+            waitForExpectations(timeout: 3)
+        }
+    }
+
+
     func test_concurrentRequests() {
         // "10 tasks ought to be enough for anybody"
         let tasks = 10
@@ -1089,20 +1178,42 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_simpleUploadWithDelegateProvidingInputStream() throws {
-        let delegate = HTTPUploadDelegate()
-        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/upload"
-        var request = URLRequest(url: URL(string: urlString)!)
-        request.httpMethod = "PUT"
-        
-        let fileData = Data(count: 16*1024)
-        let stream = InputStream(data: fileData)
 
-        delegate.uploadCompletedExpectation = expectation(description: "PUT \(urlString): Upload data")
-        delegate.streamToProvideOnRequest = stream
-        let task = session.uploadTask(withStreamedRequest: request)
-        task.resume()
-        waitForExpectations(timeout: 20)
+        let fileData = Data(count: 16*1024)
+        for method in httpMethods {
+            let delegate = HTTPUploadDelegate()
+            let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/" + method.lowercased()
+            var request = URLRequest(url: try XCTUnwrap(URL(string: urlString)))
+            request.httpMethod = method
+
+            let stream = InputStream(data: fileData)
+
+            let expect = expectation(description: "\(method) \(urlString): Upload data")
+            if method == "GET" || method == "HEAD" { expect.isInverted = true }
+            delegate.uploadCompletedExpectation = expect
+            delegate.streamToProvideOnRequest = stream
+            let task = session.uploadTask(withStreamedRequest: request)
+            task.resume()
+
+            waitForExpectations(timeout: 5)
+            switch method {
+                case "GET":
+                    XCTAssertEqual(delegate.callbacks.count, 1, "Callback count for GET request")
+                    XCTAssertEqual(delegate.callbacks[0], "urlSession(_:task:needNewBodyStream:)")
+
+                case "HEAD":
+                    XCTAssertEqual(delegate.callbacks.count, 2, "Callback count for HEAD request")
+                    XCTAssertEqual(delegate.callbacks[0], "urlSession(_:task:needNewBodyStream:)")
+                    XCTAssertEqual(delegate.callbacks[1], "urlSession(_:task:didSendBodyData:totalBytesSent:totalBytesExpectedToSend:)")
+
+                default:
+                    XCTAssertEqual(delegate.callbacks.count, 3, "Callback count for \(method) request")
+                    XCTAssertEqual(delegate.callbacks[0], "urlSession(_:task:needNewBodyStream:)")
+                    XCTAssertEqual(delegate.callbacks[1], "urlSession(_:task:didSendBodyData:totalBytesSent:totalBytesExpectedToSend:)")
+                    XCTAssertEqual(delegate.callbacks[2], "urlSession(_:dataTask:didReceive:)")
+            }
+        }
     }
     
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
@@ -1136,7 +1247,9 @@ class TestURLSession : LoopbackServerTest {
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
             ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
             ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
-            // ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate), - Server needs modification
+            ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
+            ("test_requestWithEmptyBody", test_requestWithEmptyBody),
+            ("test_requestWithNonEmptyBody", test_requestWithNonEmptyBody),
             ("test_concurrentRequests", test_concurrentRequests),
             ("test_disableCookiesStorage", test_disableCookiesStorage),
             ("test_cookiesStorage", test_cookiesStorage),
@@ -1514,6 +1627,8 @@ extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
 }
 
 class HTTPUploadDelegate: NSObject {
+    private(set) var callbacks: [String] = []
+
     var uploadCompletedExpectation: XCTestExpectation!
     var streamToProvideOnRequest: InputStream?
     var totalBytesSent: Int64 = 0
@@ -1521,10 +1636,14 @@ class HTTPUploadDelegate: NSObject {
 
 extension HTTPUploadDelegate: URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        if callbacks.last != #function {
+            callbacks.append(#function)
+        }
         self.totalBytesSent = totalBytesSent
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+        callbacks.append(#function)
         if streamToProvideOnRequest == nil {
             XCTFail("This shouldn't have been invoked -- no stream was set.")
         }
@@ -1535,6 +1654,7 @@ extension HTTPUploadDelegate: URLSessionTaskDelegate {
 
 extension HTTPUploadDelegate: URLSessionDataDelegate {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        callbacks.append(#function)
         XCTAssertEqual(self.totalBytesSent, 16*1024)
         uploadCompletedExpectation.fulfill()
     }

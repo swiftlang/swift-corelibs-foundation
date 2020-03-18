@@ -272,6 +272,22 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         // We would have to break that retain cycle once the handle completes
         // its transfer.
 
+
+        if request.httpMethod == "GET" {
+            // GET requests cannot have a body
+            guard case .none = body else {
+                NSLog("GET method must not have a body")
+                let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorDataLengthExceedsMaximum,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey: "resource exceeds maximum size",
+                                        NSURLErrorFailingURLStringErrorKey: request.url?.description ?? ""
+                ])
+                internalState = .transferFailed
+                transferCompleted(withError: error)
+                return
+            }
+        }
+
         // Behavior Options
         easyHandle.set(verboseModeOn: enableLibcurlDebugOutput)
         easyHandle.set(debugOutputOn: enableLibcurlDebugOutput, task: task!)
@@ -296,7 +312,11 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         do {
             switch (body, try body.getBodyLength()) {
             case (.none, _):
-                set(requestBodyLength: .noBody)
+                if request.httpMethod == "GET" {
+                    set(requestBodyLength: .noBody)
+                } else {
+                    set(requestBodyLength: .length(0))
+                }
             case (_, let length?):
                 set(requestBodyLength: .length(length))
                 task!.countOfBytesExpectedToSend = Int64(length)

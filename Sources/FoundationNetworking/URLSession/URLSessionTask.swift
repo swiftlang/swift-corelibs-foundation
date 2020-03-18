@@ -245,7 +245,7 @@ open class URLSessionTask : NSObject, NSCopying {
         } else if let bodyStream = request.httpBodyStream {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.stream(bodyStream))
         } else {
-            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: nil)
         }
     }
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body?) {
