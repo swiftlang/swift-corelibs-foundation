@@ -239,34 +239,31 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         return true
     }
     
-    static let dateFormatter: DateFormatter = {
-        let x = DateFormatter()
-        return x
-    }()
-    
-    static func date(from string: String) -> Date? {
+    static let dateFormatters: [DateFormatter] = {
         // https://tools.ietf.org/html/rfc2616#section-3.3.1
         // HTTP applications have historically allowed three different formats
         // for the representation of date/time stamps
         
         // RCF 822 --- Sun, 06 Nov 1994 08:49:37 GMT
-        self.dateFormatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
-        if let d1 = self.dateFormatter.date(from: string) {
-            return d1
-        }
+        let d1 = DateFormatter()
+        d1.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
         
         // RCF 855 --- Sunday, 06-Nov-94 08:49:37 GMT
-        self.dateFormatter.dateFormat = "EEEE, dd-MMM-yy HH:mm:ss zzz"
-        if let d2 = self.dateFormatter.date(from: string) {
-            return d2
-        }
+        let d2 = DateFormatter()
+        d2.dateFormat = "EEEE, dd-MMM-yy HH:mm:ss zzz"
         
         // ANSI C's asctime() format --- Sun Nov  6 08:49:37 1994
-        self.dateFormatter.dateFormat = "EEE MMM dd HH:mm:ss yy"
-        if let d3 = self.dateFormatter.date(from: string) {
-            return d3
+        let d3 = DateFormatter()
+        d3.dateFormat = "EEE MMM dd HH:mm:ss yy"
+        return [d1, d2, d3]
+    }()
+    
+    static func date(from string: String) -> Date? {
+        for dateFormat in self.dateFormatters {
+            if let d = dateFormat.date(from: string) {
+                return d
+            }
         }
-        
         return nil
     }
     
