@@ -716,7 +716,11 @@ public class TestURLSessionServer {
                                  bodyData: helloWorld)
         }
 
-        return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
+        guard let capital = capitals[String(uri.dropFirst())] else {
+            return _HTTPResponse(response: .NOTFOUND, body: "Not Found")
+        }
+        return _HTTPResponse(response: .OK, body: capital)
+
     }
 }
 

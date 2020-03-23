@@ -1517,13 +1517,44 @@ extension TestNSData {
 #endif
     }
 
-    func test_contentsOfURL() {
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
-        let url = URL(string: urlString)!
-        let contents = NSData(contentsOf: url)
-        XCTAssertNotNil(contents)
-        if let contents = contents {
-            XCTAssertTrue(contents.length > 0)
+    func test_contentsOfURL() throws {
+        do {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+            let url = try XCTUnwrap(URL(string: urlString))
+            let contents = NSData(contentsOf: url)
+            XCTAssertNotNil(contents)
+            if let contents = contents {
+                XCTAssertTrue(contents.length > 0)
+            }
+        }
+
+        do {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/NotFound"
+            let url = try XCTUnwrap(URL(string: urlString))
+            XCTAssertNil(NSData(contentsOf: url))
+            do {
+                _ = try NSData(contentsOf: url, options: [])
+                XCTFail("NSData(contentsOf:options: did not throw")
+            } catch let error as NSError {
+                if let nserror = error as? NSError {
+                    XCTAssertEqual(NSCocoaErrorDomain, nserror.domain)
+                    XCTAssertEqual(CocoaError.fileReadUnknown.rawValue, nserror.code)
+                } else {
+                    XCTFail("Not an NSError")
+                }
+            }
+
+            do {
+                _ = try Data(contentsOf: url)
+                XCTFail("Data(contentsOf:options: did not throw")
+            } catch let error as NSError {
+                if let nserror = error as? NSError {
+                    XCTAssertEqual(NSCocoaErrorDomain, nserror.domain)
+                    XCTAssertEqual(CocoaError.fileReadUnknown.rawValue, nserror.code)
+                } else {
+                    XCTFail("Not an NSError")
+                }
+            }
         }
     }
 
