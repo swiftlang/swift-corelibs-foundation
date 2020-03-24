@@ -34,6 +34,7 @@ var allTestCases = [
     testCase(TestCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
+    testCase(TestDataURLProtocol.allTests),
     testCase(TestDate.allTests),
     testCase(TestDateComponents.allTests),
     testCase(TestDateInterval.allTests),

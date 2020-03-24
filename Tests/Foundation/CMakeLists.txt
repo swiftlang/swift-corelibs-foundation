@@ -17,6 +17,7 @@ target_sources(TestFoundation PRIVATE
   Tests/TestCalendar.swift
   Tests/TestCharacterSet.swift
   Tests/TestCodable.swift
+  Tests/TestDataURLProtocol.swift
   Tests/TestDateComponents.swift
   Tests/TestDateFormatter.swift
   Tests/TestDateInterval.swift
