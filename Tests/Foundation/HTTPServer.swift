@@ -483,27 +483,53 @@ class _HTTPServer {
 
 struct _HTTPRequest {
     enum Method : String {
+        case HEAD
         case GET
         case POST
         case PUT
+        case DELETE
     }
-    let method: Method
-    let uri: String 
-    let body: String
-    var messageBody: String?
-    var messageData: Data?
-    let headers: [String]
 
     enum Error: Swift.Error {
+        case invalidURI
+        case invalidMethod
         case headerEndNotFound
     }
-    
+
+    let method: Method
+    let uri: String
+    private(set) var headers: [String] = []
+    private(set) var parameters: [String: String] = [:]
+    var messageBody: String?
+    var messageData: Data?
+
+
     public init(header: String) throws {
-        headers = header.components(separatedBy: _HTTPUtils.CRLF)
-        let action = headers[0]
-        method = Method(rawValue: action.components(separatedBy: " ")[0])!
-        uri = action.components(separatedBy: " ")[1]
-        body = ""
+        self.headers = header.components(separatedBy: _HTTPUtils.CRLF)
+        guard headers.count > 0 else {
+            throw Error.invalidURI
+        }
+        let uriParts = headers[0].components(separatedBy: " ")
+        guard uriParts.count > 2, let methodName = Method(rawValue: uriParts[0]) else {
+            throw Error.invalidMethod
+        }
+        method = methodName
+        let params = uriParts[1].split(separator: "?", maxSplits: 1, omittingEmptySubsequences: true)
+        if params.count > 1 {
+            for arg in params[1].split(separator: "&", omittingEmptySubsequences: true) {
+                let keyValue = arg.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+                guard !keyValue.isEmpty else { continue }
+                guard let key = keyValue[0].removingPercentEncoding else {
+                    throw Error.invalidURI
+                }
+                guard let value = (keyValue.count > 1) ? keyValue[1].removingPercentEncoding : "" else {
+                    throw Error.invalidURI
+                }
+                self.parameters[key] = value
+            }
+        }
+
+        self.uri = String(params[0])
     }
 
     public func getCommaSeparatedHeaders() -> String {
@@ -524,32 +550,83 @@ struct _HTTPRequest {
         }
         return nil
     }
+
+    public func headersAsJSON() throws -> Data {
+        var headerDict: [String: String] = [:]
+        for header in headers {
+            if header.hasPrefix(method.rawValue) {
+                headerDict["uri"] = header
+                continue
+            }
+            let parts = header.components(separatedBy: ":")
+            if parts.count > 1 {
+                headerDict[parts[0]] = parts[1].trimmingCharacters(in: CharacterSet(charactersIn: " "))
+            }
+        }
+        return try JSONSerialization.data(withJSONObject: headerDict, options: .sortedKeys)
+    }
 }
 
 struct _HTTPResponse {
     enum Response: Int {
         case OK = 200
-        case REDIRECT = 302
-        case NOTFOUND = 404
+        case FOUND = 302
+        case BAD_REQUEST = 400
+        case NOT_FOUND = 404
         case METHOD_NOT_ALLOWED = 405
+        case SERVER_ERROR = 500
     }
-    private let responseCode: Response
-    private let headers: String
+
+
+    private let responseCode: Int
+    private var headers: [String]
     public let bodyData: Data
 
-    public init(response: Response, headers: String = _HTTPUtils.EMPTY, bodyData: Data) {
-        self.responseCode = response
+    public init(responseCode: Int, headers: [String] = [], bodyData: Data) {
+        self.responseCode = responseCode
         self.headers = headers
         self.bodyData = bodyData
+
+        for header in headers {
+            if header.lowercased().hasPrefix("content-length") {
+                return
+            }
+        }
+        self.headers.append("Content-Length: \(bodyData.count)")
     }
 
-    public init(response: Response, headers: String = _HTTPUtils.EMPTY, body: String) {
-        self.init(response: response, headers: headers, bodyData: body.data(using: .utf8)!)
+    public init(response: Response, headers: [String] = [], bodyData: Data = Data()) {
+        self.init(responseCode: response.rawValue, headers: headers, bodyData: bodyData)
+    }
+
+    public init(response: Response, headers: String = _HTTPUtils.EMPTY, bodyData: Data) {
+        let headers = headers.split(separator: "\r\n").map { String($0) }
+        self.init(responseCode: response.rawValue, headers: headers, bodyData: bodyData)
+    }
+
+    public init(response: Response, headers: String = _HTTPUtils.EMPTY, body: String) throws {
+        guard let data = body.data(using: .utf8) else {
+            throw InternalServerError.badBody
+        }
+        self.init(response: response, headers: headers, bodyData: data)
+    }
+
+    public init(responseCode: Int, headers: [String] = [], body: String) throws {
+        guard let data = body.data(using: .utf8) else {
+            throw InternalServerError.badBody
+        }
+        self.init(responseCode: responseCode, headers: headers, bodyData: data)
     }
 
     public var header: String {
-        let statusLine = _HTTPUtils.VERSION + _HTTPUtils.SPACE + "\(responseCode.rawValue)" + _HTTPUtils.SPACE + "\(responseCode)"
-        return statusLine + (headers != _HTTPUtils.EMPTY ? _HTTPUtils.CRLF + headers : _HTTPUtils.EMPTY) + _HTTPUtils.CRLF2
+        let responseCodeName = HTTPURLResponse.localizedString(forStatusCode: responseCode)
+        let statusLine = _HTTPUtils.VERSION + _HTTPUtils.SPACE + "\(responseCode)" + _HTTPUtils.SPACE + "\(responseCodeName)"
+        let header = headers.joined(separator: "\r\n")
+        return statusLine + (header != _HTTPUtils.EMPTY ? _HTTPUtils.CRLF + header : _HTTPUtils.EMPTY) + _HTTPUtils.CRLF2
+    }
+
+    mutating func addHeader(_ header: String) {
+        headers.append(header)
     }
 }
 
@@ -593,57 +670,93 @@ public class TestURLSessionServer {
                 responseData.append(content)
                 try httpServer.tcpSocket.writeRawData(responseData)
             } else {
-                try httpServer.respond(with: _HTTPResponse(response: .NOTFOUND, body: "Not Found"))
+                try httpServer.respond(with: _HTTPResponse(response: .NOT_FOUND, body: "Not Found"))
             }
         } else if req.uri.hasPrefix("/auth") {
             try httpServer.respondWithAuthResponse(request: req)
         } else if req.uri.hasPrefix("/unauthorized") {
             try httpServer.respondWithUnauthorizedHeader()
         } else {
-            if req.method == .GET || req.method == .POST || req.method == .PUT {
-                try httpServer.respond(with: getResponse(request: req))
-            }
-            else {
-                try httpServer.respond(with: _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed"))
-            }
+            try httpServer.respond(with: getResponse(request: req))
         }
     }
 
-    func getResponse(request: _HTTPRequest) -> _HTTPResponse {
+    func getResponse(request: _HTTPRequest) throws -> _HTTPResponse {
+
+        func headersAsJSONResponse() throws -> _HTTPResponse {
+            return try _HTTPResponse(response: .OK, headers: ["Content-Type: application/json"], bodyData: request.headersAsJSON())
+        }
+
         let uri = request.uri
+        if uri == "/jsonBody" {
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/head" {
+            guard request.method == .HEAD else { return try _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/get" {
+            guard request.method == .GET else { return try _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/put" {
+            guard request.method == .PUT else { return try _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/post" {
+            guard request.method == .POST else { return try _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
+        if uri == "/delete" {
+            guard request.method == .DELETE else { return try _HTTPResponse(response: .METHOD_NOT_ALLOWED, body: "Method not allowed") }
+            return try headersAsJSONResponse()
+        }
+
         if uri == "/upload" {
-            let text = "Upload completed!"
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+            if let contentLength = request.getHeader(for: "content-length") {
+                let text = "Upload completed!, Content-Length: \(contentLength)"
+                return try _HTTPResponse(response: .OK, body: text)
+            }
+            if let te = request.getHeader(for: "transfer-encoding"), te == "chunked" {
+                return try _HTTPResponse(response: .OK, body: "Received Chunked request")
+            } else {
+                return try _HTTPResponse(response: .BAD_REQUEST, body: "Missing Content-Length")
+            }
         }
 
         if uri == "/country.txt" {
             let text = capitals[String(uri.dropFirst())]!
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+            return try _HTTPResponse(response: .OK, body: text)
         }
 
         if uri == "/requestHeaders" {
             let text = request.getCommaSeparatedHeaders()
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+            return try _HTTPResponse(response: .OK, body: text)
         }
 
         if uri == "/emptyPost" {
-            if request.body.count == 0 && request.getHeader(for: "Content-Type") == nil {
-                return _HTTPResponse(response: .OK, body: "")
+            if request.getHeader(for: "Content-Type") == nil {
+                return try _HTTPResponse(response: .OK, body: "")
             }
-            return _HTTPResponse(response: .NOTFOUND, body: "")
+            return try _HTTPResponse(response: .NOT_FOUND, body: "")
         }
 
         if uri == "/requestCookies" {
-            return _HTTPResponse(response: .OK, headers: "Set-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: "")
+            return try _HTTPResponse(response: .OK, headers: "Set-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: "")
         }
 
         if uri == "/echoHeaders" {
             let text = request.getCommaSeparatedHeaders()
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+            return try _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
         
         if uri == "/redirectToEchoHeaders" {
-            return _HTTPResponse(response: .REDIRECT, headers: "location: /echoHeaders\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
+            return try _HTTPResponse(response: .FOUND, headers: "location: /echoHeaders\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
         }
 
         if uri == "/UnitedStates" {
@@ -654,7 +767,7 @@ public class TestURLSessionServer {
             let port = host.components(separatedBy: ":")[1]
             let newPort = Int(port)! + 1
             let newHost = ip + ":" + String(newPort)
-            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(newHost + "/" + value)", body: text)
+            let httpResponse = try _HTTPResponse(response: .FOUND, headers: "Location: http://\(newHost + "/" + value)", body: text)
             return httpResponse 
         }
 
@@ -680,26 +793,26 @@ public class TestURLSessionServer {
     <!ELEMENT real (#PCDATA)> <!-- Contents should represent a floating point number matching ("+" | "-")? d+ ("."d*)? ("E" ("+" | "-") d+)? where d is a digit 0-9.  -->
     <!ELEMENT integer (#PCDATA)> <!-- Contents should represent a (possibly signed) integer number in base 10 -->
 """
-            return _HTTPResponse(response: .OK, body: dtd)
+            return try _HTTPResponse(response: .OK, body: dtd)
         }
 
         if uri == "/UnitedKingdom" {
             let value = capitals[String(uri.dropFirst())]!
             let text = request.getCommaSeparatedHeaders()
             //Response header with only path to the location to redirect.
-            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: \(value)", body: text)
+            let httpResponse = try _HTTPResponse(response: .FOUND, headers: "Location: \(value)", body: text)
             return httpResponse
         }
         
         if uri == "/echo" {
-            return _HTTPResponse(response: .OK, body: request.messageBody ?? request.body)
+            return try _HTTPResponse(response: .OK, body: request.messageBody ?? "")
         }
         
         if uri == "/redirect-with-default-port" {
             let text = request.getCommaSeparatedHeaders()
             let host = request.headers[1].components(separatedBy: " ")[1]
             let ip = host.components(separatedBy: ":")[0]
-            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(ip)/redirected-with-default-port", body: text)
+            let httpResponse = try _HTTPResponse(response: .FOUND, headers: "Location: http://\(ip)/redirected-with-default-port", body: text)
             return httpResponse
 
         }
@@ -716,11 +829,42 @@ public class TestURLSessionServer {
                                  bodyData: helloWorld)
         }
 
-        guard let capital = capitals[String(uri.dropFirst())] else {
-            return _HTTPResponse(response: .NOTFOUND, body: "Not Found")
+        // Look for /xxx where xxx is a 3digit HTTP code
+        if uri.hasPrefix("/") && uri.count == 4, let code = Int(String(uri.dropFirst())), code > 0 && code < 1000 {
+            return try statusCodeResponse(forRequest: request, statusCode: code)
         }
-        return _HTTPResponse(response: .OK, body: capital)
 
+        guard let capital = capitals[String(uri.dropFirst())] else {
+            return _HTTPResponse(response: .NOT_FOUND)
+        }
+        return try _HTTPResponse(response: .OK, body: capital)
+    }
+
+    private func statusCodeResponse(forRequest request: _HTTPRequest, statusCode: Int) throws -> _HTTPResponse {
+        guard let bodyData = try? request.headersAsJSON() else {
+            return try _HTTPResponse(response: .SERVER_ERROR, body: "Cant convert headers to JSON object")
+        }
+
+        var response: _HTTPResponse
+        switch statusCode {
+            case 300...303, 305...308:
+                let location = request.parameters["location"] ?? "/" + request.method.rawValue.lowercased()
+                let body = "Redirecting to \(request.method) \(location)"
+                let headers = ["Content-Type: test/plain", "Location: \(location)"]
+                response = try _HTTPResponse(responseCode: statusCode, headers: headers, body: body)
+
+            case 401:
+                let headers = ["Content-Type: application/json", "Content-Length: \(bodyData.count)"]
+                response = _HTTPResponse(responseCode: statusCode, headers: headers, bodyData: bodyData)
+                response.addHeader("WWW-Authenticate: Basic realm=\"Fake Relam\"")
+
+            default:
+                let headers = ["Content-Type: application/json", "Content-Length: \(bodyData.count)"]
+                response = _HTTPResponse(responseCode: statusCode, headers: headers, bodyData: bodyData)
+                break
+        }
+
+        return response
     }
 }
 
@@ -744,6 +888,7 @@ extension ServerError : CustomStringConvertible {
 enum InternalServerError : Error {
     case socketAlreadyClosed
     case requestTooShort
+    case badBody
 }
 
 public class ServerSemaphore {
