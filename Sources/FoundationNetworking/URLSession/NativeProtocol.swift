@@ -102,13 +102,6 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         if let response = validateHeaderComplete(transferState:ts) {
             ts.response = response
         }
-
-        // Note this excludes code 300 which should return the response of the redirect and not follow it.
-        // For other redirect codes dont notify the delegate of the data received in the redirect response.
-        if let httpResponse = ts.response as? HTTPURLResponse, 301...308 ~= httpResponse.statusCode {
-            return .proceed
-        }
-
         notifyDelegate(aboutReceivedData: data)
         internalState = .transferInProgress(ts.byAppending(bodyData: data))
         return .proceed
