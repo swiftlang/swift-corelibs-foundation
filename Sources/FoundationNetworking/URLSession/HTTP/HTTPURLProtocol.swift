@@ -401,9 +401,8 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         easyHandle.timeoutTimer = _TimeoutSource(queue: task.workQueue, milliseconds: timeoutInterval, handler: timeoutHandler)
         easyHandle.set(automaticBodyDecompression: true)
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
-        if request.httpMethod == "HEAD" {
-            easyHandle.set(noBody: true)
-        }
+        // Always set the status as it may change if a HEAD is converted to a GET.
+        easyHandle.set(noBody: request.httpMethod == "HEAD")
     }
 
     /// What action to take
@@ -591,7 +590,7 @@ internal extension _HTTPURLProtocol {
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
             switch response.statusCode {
-            case 301, 302, 303, 307:
+            case 301, 302, 303, 305...308:
                 break
             default:
                 self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
@@ -619,19 +618,26 @@ internal extension _HTTPURLProtocol {
                     return nil
             }
 
+            let method = fromRequest.httpMethod ?? "GET"
             // Check for a redirect:
             switch response.statusCode {
-            //TODO: Should we do this for 300 "Multiple Choices", too?
-            case 301, 302, 303:
-                // Change into "GET":
-                return ("GET", targetURL)
-            case 307:
-                // Re-use existing method:
-                return (fromRequest.httpMethod ?? "GET", targetURL)
-            default:
-                return nil
+                case 301, 302:
+                    // Change "POST" into "GET" but leave other methods unchanged:
+                    let newMethod = (method == "POST") ? "GET" : method
+                    return (newMethod, targetURL)
+
+                case 303:
+                    return ("GET", targetURL)
+
+                case 305...308:
+                    // Re-use existing method:
+                    return (method, targetURL)
+
+                default:
+                    return nil
             }
         }
+
         guard let (method, targetURL) = methodAndURL() else { return nil }
         var request = fromRequest
         request.httpMethod = method
