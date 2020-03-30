@@ -449,6 +449,7 @@
 		E1A03F361C4828650023AF4D /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */; };
 		E1A03F381C482C730023AF4D /* NSXMLDTDTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */; };
 		E1A3726F1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml in Resources */ = {isa = PBXBuildFile; fileRef = E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */; };
+		E5D8723824324D9C002AA44F /* TestUnitPressure.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D8723724324D9C002AA44F /* TestUnitPressure.swift */; };
 		EA01AAEC1DA839C4008F4E07 /* TestProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA01AAEB1DA839C4008F4E07 /* TestProgress.swift */; };
 		EA0812691DA71C8A00651B70 /* ProgressFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0812681DA71C8A00651B70 /* ProgressFraction.swift */; };
 		EA418C261D57257D005EAD0D /* NSKeyedArchiverHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA418C251D57257D005EAD0D /* NSKeyedArchiverHelpers.swift */; };
@@ -1159,6 +1160,7 @@
 		E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "PropertyList-1.0.dtd"; sourceTree = "<group>"; };
 		E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NSXMLDTDTestData.xml; sourceTree = "<group>"; };
 		E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NSXMLDocumentTestData.xml; sourceTree = "<group>"; };
+		E5D8723724324D9C002AA44F /* TestUnitPressure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUnitPressure.swift; sourceTree = "<group>"; };
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		EA01AAEB1DA839C4008F4E07 /* TestProgress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestProgress.swift; sourceTree = "<group>"; };
 		EA0812681DA71C8A00651B70 /* ProgressFraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressFraction.swift; sourceTree = "<group>"; };
@@ -1872,6 +1874,7 @@
 				84BA558D1C16F90900F48C54 /* TestTimeZone.swift */,
 				3E55A2321F52463B00082000 /* TestUnit.swift */,
 				CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */,
+				E5D8723724324D9C002AA44F /* TestUnitPressure.swift */,
 				5D0E1BDA237A1FE800C35C5A /* TestUnitVolume.swift */,
 				EA66F6431BF1619600136161 /* TestURL.swift */,
 				1581706222B1A29100348861 /* TestURLCache.swift */,
@@ -3082,6 +3085,7 @@
 				5B13B3381C582D4C00651CE2 /* TestNotificationQueue.swift in Sources */,
 				CC5249C01D341D23007CB54D /* TestUnitConverter.swift in Sources */,
 				5B13B3331C582D4C00651CE2 /* TestJSONSerialization.swift in Sources */,
+				E5D8723824324D9C002AA44F /* TestUnitPressure.swift in Sources */,
 				5B13B33C1C582D4C00651CE2 /* TestNSOrderedSet.swift in Sources */,
 				90E645DF1E4C89A400D0D47C /* TestNSCache.swift in Sources */,
 				5B13B34A1C582D4C00651CE2 /* TestURL.swift in Sources */,
