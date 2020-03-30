@@ -36,6 +36,9 @@ class TestUnitPressure: XCTestCase {
     func testImperialPressureConversion() {
         let poundsForcePerSquareInch = Measurement(value: 1_000, unit: UnitPressure.poundsForcePerSquareInch)
         XCTAssertEqual(poundsForcePerSquareInch, Measurement(value: 1, unit: UnitPressure.kilopoundsForcePerSquareInch), "Conversion from poundsForcePerSquareInch to kilopoundsForcePerSquareInch")
+
+        let kilopoundsForcePerSquareInch = Measurement(value: 2_000, unit: UnitPressure.kilopoundsForcePerSquareInch)
+        XCTAssertEqual(kilopoundsForcePerSquareInch, Measurement(value: 2, unit: UnitPressure.megapoundsForcePerSquareInch), "Conversion from kilopoundsForcePerSquareInch to megapoundsForcePerSquareInch")
     }
 
     static let allTests = [

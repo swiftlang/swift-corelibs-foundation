@@ -1757,6 +1757,7 @@ public final class UnitPressure : Dimension {
         static let millimetersOfMercury         = "mmHg"
         static let poundsForcePerSquareInch     = "psi"
         static let kilopoundsForcePerSquareInch = "ksi"
+        static let megapoundsForcePerSquareInch = "Mpsi"
     }
     
     private struct Coefficient {
@@ -1769,8 +1770,9 @@ public final class UnitPressure : Dimension {
         static let bars                         = 1e5
         static let millibars                    = 1e2
         static let millimetersOfMercury         = 133.322
-        static let poundsForcePerSquareInch     = 6894.76
+        static let poundsForcePerSquareInch     = 689476e-2
         static let kilopoundsForcePerSquareInch = 689476e1
+        static let megapoundsForcePerSquareInch = 689476e4
     }
     
     private convenience init(symbol: String, coefficient: Double) {
@@ -1842,7 +1844,13 @@ public final class UnitPressure : Dimension {
             return UnitPressure(symbol: Symbol.kilopoundsForcePerSquareInch, coefficient: Coefficient.kilopoundsForcePerSquareInch)
         }
     }
-    
+
+    public class var megapoundsForcePerSquareInch: UnitPressure {
+        get {
+            return UnitPressure(symbol: Symbol.megapoundsForcePerSquareInch, coefficient: Coefficient.megapoundsForcePerSquareInch)
+        }
+    }
+
     public override class func baseUnit() -> UnitPressure {
         return .newtonsPerMetersSquared
     }
