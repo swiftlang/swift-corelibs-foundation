@@ -1746,29 +1746,31 @@ public final class UnitPressure : Dimension {
      */
     
     private struct Symbol {
-        static let newtonsPerMetersSquared  = "N/m²"
-        static let gigapascals              = "GPa"
-        static let megapascals              = "MPa"
-        static let kilopascals              = "kPa"
-        static let hectopascals             = "hPa"
-        static let inchesOfMercury          = "inHg"
-        static let bars                     = "bar"
-        static let millibars                = "mbar"
-        static let millimetersOfMercury     = "mmHg"
-        static let poundsForcePerSquareInch = "psi"
+        static let newtonsPerMetersSquared      = "N/m²"
+        static let gigapascals                  = "GPa"
+        static let megapascals                  = "MPa"
+        static let kilopascals                  = "kPa"
+        static let hectopascals                 = "hPa"
+        static let inchesOfMercury              = "inHg"
+        static let bars                         = "bar"
+        static let millibars                    = "mbar"
+        static let millimetersOfMercury         = "mmHg"
+        static let poundsForcePerSquareInch     = "psi"
+        static let kilopoundsForcePerSquareInch = "ksi"
     }
     
     private struct Coefficient {
-        static let newtonsPerMetersSquared  = 1.0
-        static let gigapascals              = 1e9
-        static let megapascals              = 1e6
-        static let kilopascals              = 1e3
-        static let hectopascals             = 1e2
-        static let inchesOfMercury          = 3386.39
-        static let bars                     = 1e5
-        static let millibars                = 1e2
-        static let millimetersOfMercury     = 133.322
-        static let poundsForcePerSquareInch = 6894.76
+        static let newtonsPerMetersSquared      = 1.0
+        static let gigapascals                  = 1e9
+        static let megapascals                  = 1e6
+        static let kilopascals                  = 1e3
+        static let hectopascals                 = 1e2
+        static let inchesOfMercury              = 3386.39
+        static let bars                         = 1e5
+        static let millibars                    = 1e2
+        static let millimetersOfMercury         = 133.322
+        static let poundsForcePerSquareInch     = 6894.76
+        static let kilopoundsForcePerSquareInch = 689476e1
     }
     
     private convenience init(symbol: String, coefficient: Double) {
@@ -1832,6 +1834,12 @@ public final class UnitPressure : Dimension {
     public class var poundsForcePerSquareInch: UnitPressure {
         get {
             return UnitPressure(symbol: Symbol.poundsForcePerSquareInch, coefficient: Coefficient.poundsForcePerSquareInch)
+        }
+    }
+
+    public class var kilopoundsForcePerSquareInch: UnitPressure {
+        get {
+            return UnitPressure(symbol: Symbol.kilopoundsForcePerSquareInch, coefficient: Coefficient.kilopoundsForcePerSquareInch)
         }
     }
     

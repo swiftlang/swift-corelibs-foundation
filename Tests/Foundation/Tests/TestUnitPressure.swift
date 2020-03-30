@@ -33,9 +33,15 @@ class TestUnitPressure: XCTestCase {
         XCTAssertEqual(newtonsPerMetersSquared.converted(to: .poundsForcePerSquareInch).value, 145.037, accuracy: 0.001, "Conversion from newtonsPerMetersSquared to poundsForcePerSquareInch")
     }
 
+    func testImperialPressureConversion() {
+        let poundsForcePerSquareInch = Measurement(value: 1_000, unit: UnitPressure.poundsForcePerSquareInch)
+        XCTAssertEqual(poundsForcePerSquareInch, Measurement(value: 1, unit: UnitPressure.kilopoundsForcePerSquareInch), "Conversion from poundsForcePerSquareInch to kilopoundsForcePerSquareInch")
+    }
+
     static let allTests = [
         ("testMetricPressureConversions", testMetricPressureConversions),
         ("testMetricToImperialPressureConversion", testMetricToImperialPressureConversion),
+        ("testImperialPressureConversion", testImperialPressureConversion)
     ]
 }
 

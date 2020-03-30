@@ -217,6 +217,7 @@ class TestUnitConverter: XCTestCase {
         XCTAssertEqual(testIdentity(UnitPressure.millibars), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitPressure.millimetersOfMercury), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitPressure.poundsForcePerSquareInch), 1, accuracy: delta)
+        XCTAssertEqual(testIdentity(UnitPressure.kilopoundsForcePerSquareInch), 1, accuracy: delta)
 
         XCTAssertEqual(testIdentity(UnitSpeed.metersPerSecond), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitSpeed.kilometersPerHour), 1, accuracy: delta)
