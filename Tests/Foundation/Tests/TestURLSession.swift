@@ -635,6 +635,34 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
+    func test_httpNotFound() throws {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/404"
+        let url = try XCTUnwrap(URL(string: urlString))
+
+        let delegate = SessionDelegate(with: expectation(description: "GET \(urlString): with a delegate"))
+        delegate.run(with: url)
+
+        waitForExpectations(timeout: 4)
+        XCTAssertNil(delegate.error)
+        XCTAssertNotNil(delegate.response)
+        let httpResponse = delegate.response as? HTTPURLResponse
+        XCTAssertEqual(httpResponse?.statusCode, 404)
+
+        XCTAssertEqual(delegate.callbacks.count, 3)
+        let callbacks = ["urlSession(_:dataTask:didReceive:completionHandler:)",
+                         "urlSession(_:dataTask:didReceive:)",
+                         "urlSession(_:task:didCompleteWithError:)"
+        ]
+        XCTAssertEqual(delegate.callbacks, callbacks)
+
+        XCTAssertNotNil(delegate.receivedData)
+        if let data = delegate.receivedData, let jsonBody = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: String] {
+            XCTAssertEqual(jsonBody["uri"], "GET /404 HTTP/1.1")
+        } else {
+            XCTFail("Could not decode body as JSON")
+        }
+    }
+
     func test_http0_9SimpleResponses() {
         for brokenCity in ["Pompeii", "Sodom"] {
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
@@ -1445,6 +1473,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            ("test_httpNotFound", test_httpNotFound),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
@@ -1498,18 +1527,103 @@ extension SharedDelegate: URLSessionDownloadDelegate {
 
 
 class SessionDelegate: NSObject, URLSessionDelegate {
-    let invalidateExpectation: XCTestExpectation?
+    var expectation: XCTestExpectation! = nil
+    var session: URLSession! = nil
+    var task: URLSessionDataTask! = nil
+    var cancelExpectation: XCTestExpectation? = nil
+    var invalidateExpectation: XCTestExpectation? = nil
+
+    // Callbacks
+    typealias ChallengeHandler = (URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?)
+    var challengeHandler: ChallengeHandler? = nil
+
+
+    private(set) var receivedData: Data!
+    private(set) var error: Error?
+    private(set) var response: URLResponse?
+    private(set) var redirectionResponse: HTTPURLResponse?
+    private(set) var callbacks: [String] = []
+    private(set) var authenticationChallenges: [URLAuthenticationChallenge] = []
+
+
+    init(with expectation: XCTestExpectation) {
+        self.expectation = expectation
+    }
+
     override init() {
         invalidateExpectation = nil
         super.init()
     }
+
     init(invalidateExpectation: XCTestExpectation) {
         self.invalidateExpectation = invalidateExpectation
     }
+
+    func run(with url: URL, timeoutInterval: Double = 3) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = timeoutInterval
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        task = session.dataTask(with: url)
+        task.resume()
+    }
+
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        callbacks.append(#function)
+        self.error = error
         invalidateExpectation?.fulfill()
     }
+
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        callbacks.append(#function)
+    }
 }
+
+extension SessionDelegate: URLSessionTaskDelegate {
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        callbacks.append(#function)
+
+        self.error = error
+        expectation.fulfill()
+    }
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+        callbacks.append(#function)
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        callbacks.append(#function)
+        authenticationChallenges.append(challenge)
+
+        if let handler = challengeHandler {
+            let (disposition, credentials) = handler(challenge)
+            completionHandler(disposition, credentials)
+        }
+    }
+}
+
+extension SessionDelegate: URLSessionDataDelegate {
+
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        if callbacks.last != #function {
+            callbacks.append(#function)
+        }
+        if receivedData == nil {
+            receivedData = data
+        } else {
+            receivedData.append(data)
+        }
+    }
+
+
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        callbacks.append(#function)
+
+        self.response = response
+        completionHandler(.allow)
+    }
+}
+
 
 class DataTask : NSObject {
     let syncQ = dispatchQueueMake("org.swift.TestFoundation.TestURLSession.DataTask.syncQ")
