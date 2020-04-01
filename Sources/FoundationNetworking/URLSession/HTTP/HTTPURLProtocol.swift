@@ -376,8 +376,12 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
         let customHeaders: [String]
         let headersForRequest = curlHeaders(for: httpHeaders)
-        if ((request.httpMethod == "POST") && (request.httpBody?.count ?? 0 > 0)
-            && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+        var hasStream = (request.httpBodyStream != nil)
+        if case _Body.stream(_) = body {
+            hasStream = true
+        }
+        if (request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)
+            && ((request.httpBody?.count ?? 0 > 0) || hasStream) {
             customHeaders = headersForRequest + ["Content-Type:application/x-www-form-urlencoded"]
         } else {
             customHeaders = headersForRequest
