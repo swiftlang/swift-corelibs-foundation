@@ -420,7 +420,7 @@ static UCollator *__CFStringCopyDefaultCollator(CFLocaleRef compareLocale) {
     return collator;
 }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 static void __collatorFinalize(UCollator *collator) {
     CFLocaleRef locale = _CFGetTSD(__CFTSDKeyCollatorLocale);
     _CFSetTSD(__CFTSDKeyCollatorUCollator, NULL, NULL);
@@ -603,9 +603,8 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
     if (range2.location > 0) {
 	range2.location = __extendLocationBackward(range2.location - 1, str2, nonBaseBMP, punctBMP);
     }
-    
+
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
-#if TARGET_OS_MAC
     // First we try to use the last one used on this thread, if the locale is the same,
     // otherwise we try to check out a default one, or then we create one.
     UCollator *threadCollator = _CFGetTSD(__CFTSDKeyCollatorUCollator);
@@ -613,18 +612,15 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
     if (compareLocale == threadLocale) {
 	collator = threadCollator;
     } else {
-#endif
 	collator = __CFStringCopyDefaultCollator((CFLocaleRef)compareLocale);
 	defaultCollator = true;
 	if (NULL == collator) {
 	    collator = __CFStringCreateCollator((CFLocaleRef)compareLocale);
 	    defaultCollator = false;
 	}
-#if TARGET_OS_MAC
     }
 #endif
-#endif
-    
+
     characters1 = CFStringGetCharactersPtrFromInlineBuffer(str1, range1);
     characters2 = CFStringGetCharactersPtrFromInlineBuffer(str2, range2);
 
@@ -739,7 +735,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
         if (buffer2Len > 0) CFAllocatorDeallocate(kCFAllocatorSystemDefault, buffer2);
     }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
     if (collator == threadCollator) {
 	// do nothing, already cached
     } else {
