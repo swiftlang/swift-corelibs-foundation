@@ -400,6 +400,8 @@
 		B90C57BC1EEEEA5A005208AE /* TestThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestThread.swift */; };
 		B910957A1EEF237800A71930 /* NSString-UTF16-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */; };
 		B910957B1EEF237800A71930 /* NSString-UTF16-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */; };
+		B91161AA2429860900BD2907 /* DataURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91161A82429857D00BD2907 /* DataURLProtocol.swift */; };
+		B91161AD242A363900BD2907 /* TestDataURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91161AB242A350D00BD2907 /* TestDataURLProtocol.swift */; };
 		B933A79E1F3055F700FE6846 /* NSString-UTF32-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */; };
 		B933A79F1F3055F700FE6846 /* NSString-UTF32-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */; };
 		B940492D223B146800FB4384 /* TestProgressFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940492C223B146800FB4384 /* TestProgressFraction.swift */; };
@@ -1106,6 +1108,8 @@
 		B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
 		B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-LE-data.txt"; sourceTree = "<group>"; };
 		B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-BE-data.txt"; sourceTree = "<group>"; };
+		B91161A82429857D00BD2907 /* DataURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataURLProtocol.swift; sourceTree = "<group>"; };
+		B91161AB242A350D00BD2907 /* TestDataURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDataURLProtocol.swift; sourceTree = "<group>"; };
 		B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-LE-data.txt"; sourceTree = "<group>"; };
 		B940492C223B146800FB4384 /* TestProgressFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProgressFraction.swift; sourceTree = "<group>"; };
@@ -1798,6 +1802,7 @@
 				52829AD61C160D64003BC4EF /* TestCalendar.swift */,
 				5BC1D8BC1BF3ADFE009D3973 /* TestCharacterSet.swift */,
 				DCA8120A1F046D13000D0C86 /* TestCodable.swift */,
+				B91161AB242A350D00BD2907 /* TestDataURLProtocol.swift */,
 				22B9C1E01C165D7A00DECFF9 /* TestDate.swift */,
 				7D0DE86C211883F500540061 /* TestDateComponents.swift */,
 				2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */,
@@ -2191,6 +2196,7 @@
 				F023073223F0B6E90023DBEC /* FTP */,
 				F023072F23F0B6E20023DBEC /* BodySource.swift */,
 				F023072E23F0B6E20023DBEC /* Configuration.swift */,
+				B91161A82429857D00BD2907 /* DataURLProtocol.swift */,
 				F023075A23F0B7AD0023DBEC /* Message.swift */,
 				F023075323F0B7AC0023DBEC /* NativeProtocol.swift */,
 				F023075523F0B7AC0023DBEC /* NetworkingSpecific.swift */,
@@ -2630,7 +2636,7 @@
 					};
 					5B7C8A6D1BEA7F8F00C5B690 = {
 						CreatedOnToolsVersion = 7.2;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 1140;
 						ProvisioningStyle = Manual;
 					};
 					5BDC405B1BD6D83B00ED97BB = {
@@ -2787,6 +2793,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B91161AA2429860900BD2907 /* DataURLProtocol.swift in Sources */,
 				F023073823F0B6FE0023DBEC /* HTTPMessage.swift in Sources */,
 				15B8043D228F38A600B30FF6 /* URLCredentialStorage.swift in Sources */,
 				F023074023F0B7100023DBEC /* libcurlHelpers.swift in Sources */,
@@ -3069,6 +3076,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B91161AD242A363900BD2907 /* TestDataURLProtocol.swift in Sources */,
 				B95FC97622B84B0A005DEA0A /* TestNSSortDescriptor.swift in Sources */,
 				B940492D223B146800FB4384 /* TestProgressFraction.swift in Sources */,
 				159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */,
@@ -3977,12 +3985,18 @@
 		5B7C8A6F1BEA7F8F00C5B690 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = /usr/include/libxml2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				OTHER_CFLAGS = (
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
@@ -4011,6 +4025,7 @@
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -4018,12 +4033,18 @@
 		5B7C8A701BEA7F8F00C5B690 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = /usr/include/libxml2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				OTHER_CFLAGS = (
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		659FB6E02405E65D00F5F63F /* TestBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659FB6DF2405E65D00F5F63F /* TestBridging.swift */; };
+		B91161AF242A385A00BD2907 /* TestDataURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */; };
 		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
 		B94B07402401847C00B244E8 /* FTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B073C2401847C00B244E8 /* FTPServer.swift */; };
 		B94B07412401847C00B244E8 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B073D2401847C00B244E8 /* HTTPServer.swift */; };
@@ -173,6 +174,7 @@
 
 /* Begin PBXFileReference section */
 		659FB6DF2405E65D00F5F63F /* TestBridging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestBridging.swift; path = Tests/Foundation/Tests/TestBridging.swift; sourceTree = "<group>"; };
+		B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDataURLProtocol.swift; path = Tests/Foundation/Tests/TestDataURLProtocol.swift; sourceTree = "<group>"; };
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B94B073C2401847C00B244E8 /* FTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FTPServer.swift; path = Tests/Foundation/FTPServer.swift; sourceTree = "<group>"; };
@@ -339,6 +341,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */,
 				B94B08342401854E00B244E8 /* main.swift */,
 				B94B07822401849700B244E8 /* TestAffineTransform.swift */,
 				659FB6DF2405E65D00F5F63F /* TestBridging.swift */,
@@ -626,6 +629,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B91161AF242A385A00BD2907 /* TestDataURLProtocol.swift in Sources */,
 				B94B07A62401849A00B244E8 /* TestUnitConverter.swift in Sources */,
 				B94B07A72401849A00B244E8 /* TestRunLoop.swift in Sources */,
 				B94B07A82401849A00B244E8 /* TestDateInterval.swift in Sources */,

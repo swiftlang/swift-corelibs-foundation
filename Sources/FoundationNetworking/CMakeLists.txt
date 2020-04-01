@@ -17,6 +17,7 @@ endif()
 
 add_library(FoundationNetworking
   ../Foundation/Boxing.swift
+  DataURLProtocol.swift
   HTTPCookie.swift
   HTTPCookieStorage.swift
   NSURLRequest.swift
