@@ -106,6 +106,13 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         // Note this excludes code 300 which should return the response of the redirect and not follow it.
         // For other redirect codes dont notify the delegate of the data received in the redirect response.
         if let httpResponse = ts.response as? HTTPURLResponse, 301...308 ~= httpResponse.statusCode {
+            if let _http = self as? _HTTPURLProtocol {
+                // Save the response body in case the delegate does not perform a redirect and the 3xx response
+                // including its body needs to be returned to the client.
+                var redirectBody = _http.lastRedirectBody ?? Data()
+                redirectBody.append(data)
+                _http.lastRedirectBody = redirectBody
+            }
             return .proceed
         }
 
