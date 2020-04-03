@@ -245,7 +245,7 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
     internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
-        if let bodyData = request.httpBody {
+        if let bodyData = request.httpBody, !bodyData.isEmpty {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
         } else if let bodyStream = request.httpBodyStream {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.stream(bodyStream))
@@ -253,6 +253,7 @@ open class URLSessionTask : NSObject, NSCopying {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.none)
         }
     }
+
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body?) {
         self.session = session
         /* make sure we're actually having a serial queue as it's used for synchronization */
