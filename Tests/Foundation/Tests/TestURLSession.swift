@@ -771,6 +771,33 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
+    func test_httpRedirectionChainInheritsTimeoutInterval() throws {
+        let redirectCount = 4
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/\(redirectCount)"
+        let url = try XCTUnwrap(URL(string: urlString))
+        let timeoutInterval = 3.0
+
+        for method in httpMethods {
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            request.timeoutInterval = timeoutInterval
+            let delegate = SessionDelegate(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
+            var timeoutIntervals: [Double] = []
+            delegate.redirectionHandler = { (response: HTTPURLResponse, request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) in
+                timeoutIntervals.append(request.timeoutInterval)
+                completionHandler(request)
+            }
+            delegate.run(with: request, timeoutInterval: timeoutInterval)
+            waitForExpectations(timeout: timeoutInterval + 1)
+            XCTAssertEqual(timeoutIntervals.count, redirectCount, "Redirect chain count for \(method)")
+
+            // Check the redirect request timeouts are the same as the original request timeout
+            XCTAssertFalse(timeoutIntervals.contains { $0 != timeoutInterval }, "Timeout Intervals for \(method)")
+            let httpResponse = delegate.response as? HTTPURLResponse
+            XCTAssertEqual(httpResponse?.statusCode, 200, ".statusCode for \(method)")
+        }
+    }
+
     func test_httpNotFound() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/404"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -1663,6 +1690,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
             ("test_httpNotFound", test_httpNotFound),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
@@ -1733,6 +1761,7 @@ class SessionDelegate: NSObject, URLSessionDelegate {
     private(set) var receivedData: Data?
     private(set) var error: Error?
     private(set) var response: URLResponse?
+    private(set) var redirectionRequest: URLRequest?
     private(set) var redirectionResponse: HTTPURLResponse?
     private(set) var callbacks: [String] = []
     private(set) var authenticationChallenges: [URLAuthenticationChallenge] = []
@@ -1805,6 +1834,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
     // HTTP Redirect
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         callbacks.append(#function)
+        redirectionRequest = request
         redirectionResponse = response
 
         if let handler = redirectionHandler {

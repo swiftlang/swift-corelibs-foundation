@@ -722,6 +722,14 @@ public class TestURLSessionServer {
             return try headersAsJSONResponse()
         }
 
+        if uri.hasPrefix("/redirect/") {
+            let components = uri.components(separatedBy: "/")
+            if components.count >= 3, let count = Int(components[2]) {
+                let newLocation = (count <= 1) ? "/jsonBody" : "/redirect/\(count - 1)"
+                return try _HTTPResponse(response: .FOUND, headers: "Location: \(newLocation)", body: "Redirecting to \(newLocation)")
+            }
+        }
+
         if uri == "/upload" {
             if let contentLength = request.getHeader(for: "content-length") {
                 let text = "Upload completed!, Content-Length: \(contentLength)"
