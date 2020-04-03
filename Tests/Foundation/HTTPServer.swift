@@ -563,6 +563,11 @@ struct _HTTPRequest {
                 headerDict[parts[0]] = parts[1].trimmingCharacters(in: CharacterSet(charactersIn: " "))
             }
         }
+
+        // Include the body as a Base64 Encoded entry
+        if let bodyData = messageData ?? messageBody?.data(using: .utf8) {
+            headerDict["x-base64-body"] = bodyData.base64EncodedString()
+        }
         return try JSONSerialization.data(withJSONObject: headerDict, options: .sortedKeys)
     }
 }
