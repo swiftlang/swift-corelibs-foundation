@@ -798,6 +798,47 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
+    func test_httpRedirectionExceededMaxRedirects() throws {
+        let expectedMaxRedirects = 16
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/99"
+        let url = try XCTUnwrap(URL(string: urlString))
+        let exceededCountUrlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/\(99 - expectedMaxRedirects)"
+        let exceededCountUrl = try XCTUnwrap(URL(string: exceededCountUrlString))
+
+        for method in httpMethods {
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            let delegate = SessionDelegate(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
+
+            var redirectRequests: [(HTTPURLResponse, URLRequest)] = []
+            delegate.redirectionHandler = { (response: HTTPURLResponse, request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) in
+                redirectRequests.append((response, request))
+                completionHandler(request)
+            }
+            delegate.run(with: request, timeoutInterval: 5)
+            waitForExpectations(timeout: 20)
+
+            XCTAssertNil(delegate.response)
+            XCTAssertNil(delegate.receivedData)
+
+            XCTAssertNotNil(delegate.error)
+            let error = delegate.error as? URLError
+            XCTAssertEqual(error?.code.rawValue, NSURLErrorHTTPTooManyRedirects)
+            XCTAssertEqual(error?.localizedDescription, "too many HTTP redirects")
+            let userInfo = error?.userInfo as? [String: Any]
+            let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
+            XCTAssertEqual(errorURL, exceededCountUrl)
+
+            // Check the last Redirection response/request received.
+            XCTAssertEqual(redirectRequests.count, expectedMaxRedirects)
+            let lastResponse = redirectRequests.last?.0
+            let lastRequest = redirectRequests.last?.1
+
+            XCTAssertEqual(lastResponse?.statusCode, 302)
+            XCTAssertEqual(lastRequest?.url, exceededCountUrl)
+        }
+    }
+
     func test_httpNotFound() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/404"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -1691,6 +1732,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
+            ("test_httpRedirectionExceededMaxRedirects", test_httpRedirectionExceededMaxRedirects),
             ("test_httpNotFound", test_httpNotFound),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
