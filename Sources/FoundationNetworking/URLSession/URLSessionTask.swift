@@ -780,26 +780,12 @@ extension _ProtocolClient : URLProtocolClient {
         }
     }
 
-    func createProtectionSpace(_ response: HTTPURLResponse) -> URLProtectionSpace? {
-        let host = response.url?.host ?? ""
-        let port = response.url?.port ?? 80        //we're doing http
-        let _protocol = response.url?.scheme
-        if response.allHeaderFields["WWW-Authenticate"] != nil {
-            let wwwAuthHeaderValue = response.allHeaderFields["WWW-Authenticate"] as! String
-            let authMethod = wwwAuthHeaderValue.components(separatedBy: " ")[0]
-            let realm = String(String(wwwAuthHeaderValue.components(separatedBy: "realm=")[1].dropFirst()).dropLast())
-            return URLProtectionSpace(host: host, port: port, protocol: _protocol, realm: realm, authenticationMethod: authMethod)
-        } else {
-            return nil
-        }
-    }
-
     func urlProtocolDidFinishLoading(_ urlProtocol: URLProtocol) {
         guard let task = urlProtocol.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
         let urlResponse = task.response
         if let response = urlResponse as? HTTPURLResponse, response.statusCode == 401 {
-            if let protectionSpace = createProtectionSpace(response) {
+            if let protectionSpace = URLProtectionSpace.create(with: response) {
 
                 func proceed(proposing credential: URLCredential?) {
                     let proposedCredential: URLCredential?
@@ -1056,8 +1042,8 @@ extension URLSessionTask {
 
     static func authHandler(for authScheme: String) -> _AuthHandler? {
         let handlers: [String : _AuthHandler] = [
-            "Basic" : basicAuth,
-            "Digest": digestAuth
+            NSURLAuthenticationMethodHTTPBasic : basicAuth,
+            NSURLAuthenticationMethodHTTPDigest: digestAuth
         ]
         return handlers[authScheme]
     }
