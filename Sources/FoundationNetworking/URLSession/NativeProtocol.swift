@@ -160,8 +160,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     }
 
     fileprivate func notifyDelegate(aboutUploadedData count: Int64) {
-        guard let task = self.task as? URLSessionUploadTask,
-            let session = self.task?.session as? URLSession,
+        guard let task = self.task, let session = task.session as? URLSession,
             case .taskDelegate(let delegate) = session.behaviour(for: task) else { return }
         task.countOfBytesSent += count
         session.delegateQueue.addOperation {
