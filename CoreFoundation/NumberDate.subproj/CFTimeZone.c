@@ -1663,9 +1663,10 @@ CFStringRef CFTimeZoneCopyAbbreviation(CFTimeZoneRef tz, CFAbsoluteTime at) {
     }
     ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
 
+    UCalendarDisplayNameType nameType = ucal_inDaylightTime(ucal, &status) ? UCAL_SHORT_DST : UCAL_SHORT_STANDARD;
     UChar buffer[64];
     int32_t length;
-    length = ucal_getTimeZoneDisplayName(ucal, UCAL_SHORT_STANDARD, "C", buffer, sizeof(buffer), &status);
+    length = ucal_getTimeZoneDisplayName(ucal, nameType, "C", buffer, sizeof(buffer), &status);
 
     ucal_close(ucal);
 
@@ -1678,10 +1679,22 @@ CFStringRef CFTimeZoneCopyAbbreviation(CFTimeZoneRef tz, CFAbsoluteTime at) {
 }
 
 Boolean CFTimeZoneIsDaylightSavingTime(CFTimeZoneRef tz, CFAbsoluteTime at) {
-    CFIndex idx;
     __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
+#if TARGET_OS_WIN32
+    UErrorCode status = U_ZERO_ERROR;
+    UCalendar *ucal = __CFCalendarCreateUCalendar(NULL, CFSTR("C"), tz);
+    if (ucal == NULL) {
+      return FALSE;
+    }
+    ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
+
+    UBool isDaylightTime = ucal_inDaylightTime(ucal, &status);
+    return isDaylightTime ? TRUE : FALSE;
+#else
+    CFIndex idx;
     idx = __CFBSearchTZPeriods(tz, at);
     return __CFTZPeriodIsDST(&(tz->_periods[idx]));
+#endif
 }
 
 CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef tz, CFAbsoluteTime at) {
