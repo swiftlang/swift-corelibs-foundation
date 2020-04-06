@@ -263,7 +263,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
 * **UserDefaults**: A mechanism for storing values to persist as user settings and local.
 
-    | Entity Name    | Statues         | Test Coverage | Notes                                                                                                                         |
+    | Entity Name    | Status         | Test Coverage | Notes                                                                                                                         |
     |----------------|-----------------|---------------|-------------------------------------------------------------------------------------------------------------------------------|
     | `UserDefaults` | Incomplete      | Incomplete    | domain support, and forced objects remain unimplemented.                                                                      |
     | `NSLocale`     | Complete        | Incomplete    | Only unit test asserts locale key constant names                                                                              |
