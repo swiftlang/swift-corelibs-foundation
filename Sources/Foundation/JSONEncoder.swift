@@ -866,9 +866,6 @@ extension _JSONEncoder {
         if type == Date.self || type == NSDate.self {
             // Respect Date encoding strategy
             return try self.box((value as! Date))
-        } else if type == Data.self || type == NSData.self {
-            // Respect Data encoding strategy
-            return try self.box((value as! Data))
         } else if type == URL.self || type == NSURL.self {
             // Encode URLs as single strings.
             return self.box((value as! URL).absoluteString)
