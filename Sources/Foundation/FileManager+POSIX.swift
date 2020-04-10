@@ -470,7 +470,20 @@ extension FileManager {
 
         return self.string(withFileSystemRepresentation: buf, length: Int(len))
     }
-    
+        
+    internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        let bufSize = Int(PATH_MAX + 1)
+        var buf = [Int8](repeating: 0, count: bufSize)
+        let _resolvedPath = try _fileSystemRepresentation(withPath: path) {
+            realpath($0, &buf)
+        }
+        guard let resolvedPath = _resolvedPath else {
+            throw _NSErrorWithErrno(errno, reading: true, path: path)
+        }
+
+        return String(cString: resolvedPath)
+    }
+
     /* Returns a String with a canonicalized path for the element at the specified path. */
     internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
         let bufSize = Int(PATH_MAX + 1)

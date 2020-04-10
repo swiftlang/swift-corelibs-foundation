@@ -412,6 +412,27 @@ extension FileManager {
         }
         return substitutePath
     }
+    
+    private func _nonThrowingDestinationOfSymbolicLink(atPath path: String) -> String {
+        return (try? _destinationOfSymbolicLink(atPath: path)) ?? path
+    }
+    
+    internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        var previousIterationDestination = _nonThrowingDestinationOfSymbolicLink(atPath: path)
+        
+        // Same recursion limit as in Darwin:
+        let symbolicLinkRecursionLimit = 32
+        for _ in 0..<symbolicLinkRecursionLimit {
+            let iterationDestination = _nonThrowingDestinationOfSymbolicLink(atPath: previousIterationDestination)
+            if previousIterationDestination == iterationDestination {
+                return iterationDestination
+            }
+            previousIterationDestination = iterationDestination
+        }
+        
+        // As in Darwin Foundation, after the recursion limit we return the initial path without resolution.
+        return path
+    }
 
     internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
         let hFile: HANDLE = try FileManager.default._fileSystemRepresentation(withPath: path) {
