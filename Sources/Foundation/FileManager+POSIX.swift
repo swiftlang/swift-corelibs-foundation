@@ -472,6 +472,9 @@ extension FileManager {
     }
         
     internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        // Throw error if path is not a symbolic link:
+        let path = try _destinationOfSymbolicLink(atPath: path)
+        
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
         let _resolvedPath = try _fileSystemRepresentation(withPath: path) {

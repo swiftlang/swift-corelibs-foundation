@@ -1127,7 +1127,8 @@ open class FileManager : NSObject {
     }
 
     internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {
-        guard let destination = try? FileManager.default.recursiveDestinationOfSymbolicLink(atPath: path) else {
+        // FileManager.recursiveDestinationOfSymbolicLink(atPath:) will fail if the path is not a symbolic link
+        guard let destination = try? self.recursiveDestinationOfSymbolicLink(atPath: path) else {
             return nil
         }
 
