@@ -14,7 +14,7 @@
 
 #include <CoreFoundation/CFAvailability.h>
 
-#define __HAS_DISPATCH__ 1
+#define __HAS_DISPATCH__ 0
 
 #include <CoreFoundation/CFBase.h>
 
