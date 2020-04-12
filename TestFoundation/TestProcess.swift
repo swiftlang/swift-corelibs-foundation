@@ -373,7 +373,9 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.processIdentifier, 0)
         XCTAssertEqual(process.qualityOfService, .default)
 
+        let pipe = Pipe()
         process.executableURL = xdgTestHelperURL()
+        process.standardInput = pipe.fileHandleForReading
         process.arguments = ["--cat"]
         _ = try? process.run()
         XCTAssertTrue(process.isRunning)
@@ -426,7 +428,12 @@ class TestProcess : XCTestCase {
     }
 
     func test_terminate() {
-        guard let process = try? Process.run(xdgTestHelperURL(), arguments: ["--cat"]) else {
+        let pipe = Pipe()
+        let process = Process()
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--cat"]
+        process.standardInput = pipe.fileHandleForReading
+        guard (try? process.run()) != nil else {
             XCTFail("Cant run 'cat'")
             return
         }
