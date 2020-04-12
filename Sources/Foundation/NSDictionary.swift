@@ -9,7 +9,10 @@
 
 
 import CoreFoundation
+
+#if !os(WASI)
 import Dispatch
+#endif
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByDictionaryLiteral {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
@@ -538,6 +541,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 }
             }
 
+            #if !os(WASI)
             if opts.contains(.concurrent) {
                 DispatchQueue.concurrentPerform(iterations: count, execute: iteration)
             } else {
@@ -545,6 +549,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                     iteration(idx)
                 }
             }
+            #else
+            for idx in 0..<count {
+                iteration(idx)
+            }
+            #endif
         }
     }
     

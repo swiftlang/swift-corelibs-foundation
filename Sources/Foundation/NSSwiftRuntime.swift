@@ -20,7 +20,9 @@ import CoreFoundation
 @_exported import MSVCRT
 #endif
 
+#if !os(WASI)
 @_exported import Dispatch
+#endif
 
 #if os(Windows)
 import WinSDK

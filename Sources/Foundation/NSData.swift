@@ -8,7 +8,10 @@
 //
 
 import CoreFoundation
+
+#if !os(WASI)
 import Dispatch
+#endif
 
 extension NSData {
     public struct ReadingOptions : OptionSet {
@@ -266,6 +269,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return isEqual(to: data._swiftObject)
         }
 
+#if !os(WASI)
         if let data = value as? DispatchData {
             if data.count != length {
                 return false
@@ -275,6 +279,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 return memcmp(bytes1, bytes2, length) == 0
             }
         }
+#endif
 
         return false
     }
