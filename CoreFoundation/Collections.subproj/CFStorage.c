@@ -1366,21 +1366,6 @@ static void __CFStorageApplyNodeBlock(CFStorageRef storage, void (^block)(CFStor
     __CFStorageApplyNodeBlockInterior(storage, &storage->rootNode, block);
 }
 
-static CFIndex __CFStorageEstimateTotalAllocatedSize(CFStorageRef storage) __attribute__((unused));
-static CFIndex __CFStorageEstimateTotalAllocatedSize(CFStorageRef storage) {
-    __block CFIndex nodeResult = 0;
-    __block CFIndex contentsResult = 0;
-    __CFStorageApplyNodeBlock(storage, ^(CFStorageRef storage, CFStorageNode *node) {
-	if (node != &storage->rootNode) {
-	    nodeResult += malloc_size(node);
-	    if (node->isLeaf && node->info.leaf.memory != NULL) {
-		contentsResult += malloc_size(node->info.leaf.memory);
-	    }
-	}
-    });
-    return nodeResult + contentsResult;
-}
-
 void __CFStorageSetAlwaysFrozen(CFStorageRef storage, bool alwaysFrozen) {
     storage->alwaysFrozen = alwaysFrozen;
 }

@@ -942,14 +942,15 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/un.h>
 #include <libc.h>
 #include <dlfcn.h>
-#if TARGET_OS_CYGWIN
-#include <sys/socket.h>
 #endif
+#if TARGET_OS_CYGWIN || TARGET_OS_BSD
+#include <sys/socket.h>
 #endif
 #if TARGET_OS_WIN32
 #include <WinSock2.h>
 #else
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #endif
 #if !TARGET_OS_WIN32
 #include <sys/ioctl.h>
@@ -1117,7 +1118,7 @@ static void __cfSocketLogWithSocket(CFSocketRef s, const char* function, int lin
 #endif
 
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_UNIX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #define INVALID_SOCKET (CFSocketNativeHandle)(-1)
 #define closesocket(a) close((a))
 #define ioctlsocket(a,b,c) ioctl((a),(b),(c))
@@ -2174,10 +2175,9 @@ manageSelectError()
 
 static void *__CFSocketManager(void * arg)
 {
-#if (TARGET_OS_LINUX && !TARGET_OS_CYGWIN) || TARGET_OS_BSD
+#if TARGET_OS_LINUX && !TARGET_OS_CYGWIN
     pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
-#elif TARGET_OS_CYGWIN
-#else
+#elif !TARGET_OS_CYGWIN && !TARGET_OS_BSD
     pthread_setname_np("com.apple.CFSocket.private");
 #endif
     SInt32 nrfds, maxnrfds, fdentries = 1;

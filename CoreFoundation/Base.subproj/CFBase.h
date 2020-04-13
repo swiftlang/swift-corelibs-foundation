@@ -10,11 +10,7 @@
 #if !defined(__COREFOUNDATION_CFBASE__)
 #define __COREFOUNDATION_CFBASE__ 1
 
-#if DEPLOYMENT_RUNTIME_SWIFT
 #include <CoreFoundation/TargetConditionals.h>
-#else
-#include <TargetConditionals.h>
-#endif
 #include <CoreFoundation/CFAvailability.h>
 
 #if (defined(__CYGWIN32__) || defined(_WIN32)) && !defined(__WIN32__)

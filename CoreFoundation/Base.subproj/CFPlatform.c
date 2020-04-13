@@ -28,6 +28,7 @@
 #include <WinIoCtl.h>
 #include <direct.h>
 #include <process.h>
+#include <processthreadsapi.h>
 #define SECURITY_WIN32
 #include <Security.h>
 
@@ -1337,10 +1338,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
     } else {
         dow.dow_sema = _CF_get_thread_semaphore();
         next = *vval;
-        for (;;) {
-            if (next == CF_DISPATCH_ONCE_DONE) {
-                break;
-            }
+        while (next != CF_DISPATCH_ONCE_DONE) {
             if (__sync_bool_compare_and_swap(vval, next, tail, &next)) {
                 dow.dow_thread = next->dow_thread;
                 dow.dow_next = next;
@@ -1453,24 +1451,6 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
 #endif
 }
 
-#if TARGET_OS_WIN32
-
-// This code from here:
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-
-const DWORD MS_VC_EXCEPTION=0x406D1388;
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-    DWORD dwType; // Must be 0x1000.
-    LPCSTR szName; // Pointer to name (in user addr space).
-    DWORD dwThreadID; // Thread ID (-1=caller thread).
-    DWORD dwFlags; // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
-#endif
-
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
 #if TARGET_OS_MAC
     if (pthread_equal(pthread_self(), thread)) {
@@ -1478,18 +1458,22 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
     }
     return EINVAL;
 #elif TARGET_OS_WIN32
-    THREADNAME_INFO info;
-
-    info.dwType = 0x1000;
-    info.szName = name;
-    info.dwThreadID = GetThreadId(thread);
-    info.dwFlags = 0;
-
-    __try {
-        RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR),
-                       (ULONG_PTR*)&info);
-    } __except(EXCEPTION_EXECUTE_HANDLER) {
+    // Convert To UTF-16
+    int szLength =
+        MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, NULL, 0);
+    if (szLength == 0) {
+        return EINVAL;
     }
+
+    WCHAR *pszThreadDescription = calloc(szLength + 1, sizeof(WCHAR));
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1,
+                        pszThreadDescription, szLength);
+
+    // Set Thread Name
+    SetThreadDescription(thread, pszThreadDescription);
+
+    // Free Conversion
+    free(pszThreadDescription);
 
     return 0;
 #elif TARGET_OS_LINUX
@@ -1513,6 +1497,33 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
     return 0;
 #elif TARGET_OS_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
+#elif TARGET_OS_WIN32
+    *buf = '\0';
+
+    // Get Thread Name
+    PWSTR pszThreadDescription = NULL;
+    HRESULT hr = GetThreadDescription(GetCurrentThread(), &pszThreadDescription);
+    if (FAILED(hr)) {
+        return -1;
+    }
+
+    // Convert to UTF-8
+    int szLength =
+        WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, pszThreadDescription,
+                            -1, NULL, 0, NULL, NULL);
+    if (szLength) {
+        char *buffer = calloc(szLength + 1, sizeof(char));
+        WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, pszThreadDescription,
+                            -1, buffer, szLength, NULL, NULL);
+        memcpy(buf, buffer, length - 1);
+        buf[MIN(szLength, length - 1)] = '\0';
+        free(buffer);
+    }
+
+    // Free Result
+    LocalFree(pszThreadDescription);
+
+    return 0;
 #endif
     return -1;
 }
@@ -1527,9 +1538,15 @@ CF_EXPORT char **_CFEnviron(void) {
 #endif
 }
 
+#if TARGET_OS_WIN32
+CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const unsigned short *path, int opts, mode_t mode) {
+    return _wopen(path, opts, mode);
+}
+#else
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
     return open(path, opts, mode);
 }
+#endif
 
 int _CFOpenFile(const char *path, int opts) {
     return open(path, opts, 0);

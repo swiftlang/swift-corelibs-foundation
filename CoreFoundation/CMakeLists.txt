@@ -22,7 +22,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG OFF)
-find_package(Threads)
+find_package(Threads REQUIRED)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
@@ -396,6 +396,16 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation PRIVATE
     ICU::uc
     ICU::i18n)
+endif()
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  if((NS_CURL_ASSUME_FEATURES_MISSING) OR (CURL_VERSION_STRING VERSION_LESS "7.32.0"))
+    add_compile_definitions($<$<COMPILE_LANGUAGE:C>:NS_CURL_MISSING_XFERINFOFUNCTION>)
+  endif()
+
+  if((NS_CURL_ASSUME_FEATURES_MISSING) OR (CURL_VERSION_STRING VERSION_LESS "7.30.0"))
+    add_compile_definitions($<$<COMPILE_LANGUAGE:C>:NS_CURL_MISSING_MAX_HOST_CONNECTIONS>)
+  endif()
 endif()
 
 add_framework(CFURLSessionInterface

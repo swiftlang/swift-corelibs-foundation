@@ -3965,15 +3965,24 @@ CF_EXPORT void __CFURLSetResourceInfoPtr(CFURLRef url, void *ptr) {
 /* HFSPath<->URLPath functions at the bottom of the file */
 static CFArrayRef WindowsPathToURLComponents(CFStringRef path, CFAllocatorRef alloc, Boolean isDir, Boolean isAbsolute) CF_RETURNS_RETAINED {
     CFArrayRef tmp;
-    CFMutableStringRef mutablePath = CFStringCreateMutableCopy(alloc, 0, path);
+    CFMutableStringRef mutablePath;
     CFMutableArrayRef urlComponents = NULL;
     CFIndex i=0;
-    // Since '/' is a valid Windows path separator, we convert / to \ before splitting
+
+    // Since '/' is a valid Windows path separator, we convert '/' to '\' before splitting
+    mutablePath = CFStringCreateMutableCopy(alloc, 0, path);
     CFStringFindAndReplace(mutablePath, CFSTR("/"), CFSTR("\\"), CFRangeMake(0, CFStringGetLength(mutablePath)), 0);
     tmp = CFStringCreateArrayBySeparatingStrings(alloc, mutablePath, CFSTR("\\"));
     CFRelease(mutablePath);
     urlComponents = CFArrayCreateMutableCopy(alloc, 0, tmp);
     CFRelease(tmp);
+
+    if (isDir == FALSE) {
+      CFIndex last = CFArrayGetCount(urlComponents) - 1;
+      if (CFEqual(CFArrayGetValueAtIndex(urlComponents, last), CFSTR(""))) {
+        CFArrayRemoveValueAtIndex(urlComponents, last);
+      }
+    }
 
     CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(urlComponents, 0);
     if (isAbsolute && CFStringGetLength(str) == 2 && CFStringGetCharacterAtIndex(str, 1) == ':') {
@@ -4067,7 +4076,7 @@ static CFStringRef URLPathToPOSIXPath(CFStringRef path, CFAllocatorRef allocator
     return result;
 }
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static Boolean CanonicalFileURLStringToFileSystemRepresentation(CFStringRef str, UInt8 *inBuffer, CFIndex inBufferLen)
 {
     size_t fileURLPrefixLength;
@@ -4537,13 +4546,24 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
 }
 
 Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, uint8_t *buffer, CFIndex bufLen) {
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_WIN32
     CFAllocatorRef alloc = CFGetAllocator(url);
     CFStringRef path;
 
     if (!url) return false;
-#endif
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+
+#if TARGET_OS_WIN32
+    path = CFURLCreateStringWithFileSystemPath(alloc, url, kCFURLWindowsPathStyle, resolveAgainstBase);
+    if (path) {
+        CFIndex usedLen;
+        CFIndex pathLen = CFStringGetLength(path);
+        CFIndex numConverted = CFStringGetBytes(path, CFRangeMake(0, pathLen), CFStringFileSystemEncoding(), 0, true, buffer, bufLen-1, &usedLen); // -1 because we need one byte to zero-terminate.
+        CFRelease(path);
+        if (numConverted == pathLen) {
+            buffer[usedLen] = '\0';
+            return true;
+        }
+    }
+#else
     if ( !resolveAgainstBase || (CFURLGetBaseURL(url) == NULL) ) {
         if (!CF_IS_OBJC(CFURLGetTypeID(), url)) {
             // We can access the ivars
@@ -4558,18 +4578,6 @@ Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBas
         Boolean convResult = CFStringGetFileSystemRepresentation(path, (char *)buffer, bufLen);
         CFRelease(path);
         return convResult;
-    }
-#elif TARGET_OS_WIN32
-    path = CFURLCreateStringWithFileSystemPath(alloc, url, kCFURLWindowsPathStyle, resolveAgainstBase);
-    if (path) {
-        CFIndex usedLen;
-        CFIndex pathLen = CFStringGetLength(path);
-        CFIndex numConverted = CFStringGetBytes(path, CFRangeMake(0, pathLen), CFStringFileSystemEncoding(), 0, true, buffer, bufLen-1, &usedLen); // -1 because we need one byte to zero-terminate.
-        CFRelease(path);
-        if (numConverted == pathLen) {
-            buffer[usedLen] = '\0';
-            return true;
-        }
     }
 #endif
     return false;

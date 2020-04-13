@@ -156,3 +156,11 @@ A few notes:
 * The exception-throwing API will be deprecated in a future release. It is now marked as `@available(…, deprecated: 100000, …)`, which matches what you would see if `API_TO_BE_DEPRECATED` was used in a Objective-C header.
 
 * Subclassing `NSFileHandle` is strongly discouraged. Many of the new methods are `public` and cannot be overridden.
+
+## `NSString(bytesNoCopy:length:encoding:freeWhenDone:)` deviations from reference implementation
+
+On Windows, `NSString(bytesNoCopy:length:encoding:freeWhenDone:)` deviates from
+the behaviour on Darwin and uses the buffer's `deallocate` routine rather than
+`free`.  This is done to ensure that the correct routine is invoked for
+releasing the resources acquired through `UnsafeMutablePointer.allocate` or
+`UnsafeMutableRawPointer.allocate`.

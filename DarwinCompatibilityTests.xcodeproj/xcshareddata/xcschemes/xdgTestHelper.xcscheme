@@ -51,6 +51,9 @@
                   Identifier = "TestDateComponents/test_hash()">
                </Test>
                <Test
+                  Identifier = "TestDecimal/test_initExactly()">
+               </Test>
+               <Test
                   Identifier = "TestURLComponents/test_hash()">
                </Test>
                <Test

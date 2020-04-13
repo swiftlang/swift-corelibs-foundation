@@ -372,7 +372,6 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
         }
     }
     
-    struct dirent buffer;
     struct dirent *dp;
     int err;
    
@@ -389,7 +388,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     }
     files = CFArrayCreateMutable(alloc, 0, & kCFTypeArrayCallBacks);
 
-    while((0 == readdir_r(dirp, &buffer, &dp)) && dp) {
+    while((dp = readdir(dirp))) {
         CFURLRef fileURL;
 	unsigned namelen = strlen(dp->d_name);
 
@@ -1059,14 +1058,28 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 continue;
             }
 
-            assert(!stuffToPrefix && "prefix not yet implemented");
-            Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-            CFMutableStringRef filePath = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, nameLen + 1, fileName);
-            if (appendSlashForDirectories && isDirectory) {
-                UniChar slash = CFPreferredSlash;
-                CFStringAppendCharacters(filePath, &slash, 1);
+            const UniChar kSlash = CFPreferredSlash;
+
+            CFStringAppendBuffer buffer;
+            CFStringInitAppendBuffer(kCFAllocatorSystemDefault, &buffer);
+
+            if (stuffToPrefix) {
+              for (CFIndex i = 0, e = CFArrayGetCount(stuffToPrefix); i < e; i++) {
+                CFStringRef entry = CFArrayGetValueAtIndex(stuffToPrefix, i);
+                CFStringAppendStringToAppendBuffer(&buffer, entry);
+                if (CFStringGetCharacterAtIndex(entry, CFStringGetLength(entry) - 1) != _CFGetSlash()) {
+                  CFStringAppendCharactersToAppendBuffer(&buffer, &kSlash, 1);
+                }
+              }
             }
 
+            CFStringAppendStringToAppendBuffer(&buffer, fileName);
+            Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+            if (appendSlashForDirectories && isDirectory) {
+              CFStringAppendCharactersToAppendBuffer(&buffer, &kSlash, 1);
+            }
+
+            CFMutableStringRef filePath = CFStringCreateMutableWithAppendBuffer(&buffer);
             Boolean result = fileHandler(fileName, filePath, isDirectory ? DT_DIR : DT_REG);
             CFRelease(fileName);
             CFRelease(filePath);
