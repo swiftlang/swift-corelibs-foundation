@@ -351,7 +351,7 @@ static CFMutableArrayRef __CFCopyAndroidTimeZoneList() {
     return result;
 }
 
-#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
 #if !TARGET_OS_ANDROID
