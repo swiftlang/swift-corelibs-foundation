@@ -531,6 +531,8 @@ class TestNSData: LoopbackServerTest {
             ("test_rangeOfSlice", test_rangeOfSlice),
             ("test_nsdataSequence", test_nsdataSequence),
             ("test_dispatchSequence", test_dispatchSequence),
+            ("test_Data_increaseCount", test_Data_increaseCount),
+            ("test_Data_decreaseCount", test_Data_decreaseCount),
         ]
     }
     
@@ -4605,5 +4607,51 @@ extension TestNSData {
         }
     }
 
+    func test_Data_increaseCount() {
+         guard #available(macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, *) else { return }
+         let initials: [Range<UInt8>] = [
+             0..<0,
+             0..<2,
+             0..<4,
+             0..<8,
+             0..<16,
+             0..<32,
+             0..<64
+         ]
+         let diffs = [0, 1, 2, 4, 8, 16, 32]
+         for initial in initials {
+             for diff in diffs {
+                 var data = Data(initial)
+                 data.count += diff
+                 XCTAssertEqual(
+                     Data(Array(initial) + Array(repeating: 0, count: diff)),
+                     data)
+             }
+         }
+     }
+
+     func test_Data_decreaseCount() {
+         guard #available(macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, *) else { return }
+         let initials: [Range<UInt8>] = [
+             0..<0,
+             0..<2,
+             0..<4,
+             0..<8,
+             0..<16,
+             0..<32,
+             0..<64
+         ]
+         let diffs = [0, 1, 2, 4, 8, 16, 32]
+         for initial in initials {
+             for diff in diffs {
+                 guard initial.count >= diff else { continue }
+                 var data = Data(initial)
+                 data.count -= diff
+                 XCTAssertEqual(
+                     Data(initial.dropLast(diff)),
+                     data)
+             }
+         }
+     }
 }
 
