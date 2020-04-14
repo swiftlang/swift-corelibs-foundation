@@ -96,6 +96,15 @@ typedef CFLock_t OSSpinLock;
 #define OSSpinLockLock(lock) __CFLock(lock)
 #define OSSpinLockUnlock(lock) __CFUnlock(lock)
 
+#elif TARGET_OS_WASI
+typedef int32_t CFLock_t;
+typedef CFLock_t OSSpinLock;
+#define CFLockInit 0
+#define OS_SPINLOCK_INIT CFLockInit
+
+#define __CFLock(A)     do {} while (0)
+#define __CFUnlock(A)   do {} while (0)
+
 #else
 
 #warning CF locks not defined for this platform -- CF is not thread-safe

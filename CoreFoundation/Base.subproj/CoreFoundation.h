@@ -22,7 +22,9 @@
 #include <limits.h>
 #include <locale.h>
 #include <math.h>
+#if !TARGET_OS_WASI
 #include <setjmp.h>
+#endif
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>

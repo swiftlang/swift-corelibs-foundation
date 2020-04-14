@@ -160,6 +160,7 @@ CF_EXPORT Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, UInt8
 /* If this is publicized, we might need to create a GetBytesPtr type function as well. */
 CF_EXPORT CFStringRef _CFStringCreateWithBytesNoCopy(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean externalFormat, CFAllocatorRef contentsDeallocator);
 
+#if !TARGET_OS_WASI
 /* These return NULL on MacOS 8 */
 // This one leaks the returned string in order to be thread-safe.
 // CF cannot help you in this matter if you continue to use this SPI.
@@ -171,6 +172,7 @@ CFStringRef CFCopyUserName(void);
 
 CF_EXPORT
 CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName);	/* Pass NULL for the current user's home directory */
+#endif
 
 
 /*

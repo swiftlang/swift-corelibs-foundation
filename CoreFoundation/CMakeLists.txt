@@ -20,15 +20,20 @@ endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG OFF)
-find_package(Threads REQUIRED)
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+  set(THREADS_PREFER_PTHREAD_FLAG OFF)
+  find_package(Threads REQUIRED)
+endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  find_package(LibXml2 REQUIRED)
-  find_package(CURL CONFIG)
-  if(NOT CURL_FOUND)
-    find_package(CURL REQUIRED)
+  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+    find_package(LibXml2 REQUIRED)
+    find_package(CURL CONFIG)
+    if(NOT CURL_FOUND)
+      find_package(CURL REQUIRED)
+    endif()
   endif()
   find_package(ICU COMPONENTS uc i18n REQUIRED)
 endif()
@@ -383,11 +388,16 @@ target_compile_definitions(CoreFoundation
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR})
-target_link_libraries(CoreFoundation PRIVATE
-  Threads::Threads
-  ${CMAKE_DL_LIBS}
-  BlocksRuntime
-  dispatch)
+                             
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  target_link_libraries(CoreFoundation PRIVATE
+    Threads::Threads
+    ${CMAKE_DL_LIBS}
+    BlocksRuntime
+    dispatch)
+else()
+  target_include_directories(CoreFoundation PRIVATE ../Sources/BlocksRuntime)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE
     log)
@@ -426,27 +436,29 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
   target_link_libraries(CFURLSessionInterface PRIVATE
     CURL::libcurl)
 endif()
 
-add_framework(CFXMLInterface
-                ${FRAMEWORK_LIBRARY_TYPE}
-              FRAMEWORK_DIRECTORY
-                CFXMLInterface_FRAMEWORK_DIRECTORY
-              MODULE_MAP
-                Parsing.subproj/module.modulemap
-              PRIVATE_HEADERS
-                Parsing.subproj/CFXMLInterface.h
-              PUBLIC_HEADERS
-                Parsing.subproj/CFXMLInterface.h
-              SOURCES
-                Parsing.subproj/CFXMLInterface.c)
-add_dependencies(CFXMLInterface CoreFoundation)
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  target_link_libraries(CFXMLInterface PRIVATE
-    LibXml2::LibXml2)
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  add_framework(CFXMLInterface
+                  ${FRAMEWORK_LIBRARY_TYPE}
+                FRAMEWORK_DIRECTORY
+                  CFXMLInterface_FRAMEWORK_DIRECTORY
+                MODULE_MAP
+                  Parsing.subproj/module.modulemap
+                PRIVATE_HEADERS
+                  Parsing.subproj/CFXMLInterface.h
+                PUBLIC_HEADERS
+                  Parsing.subproj/CFXMLInterface.h
+                SOURCES
+                  Parsing.subproj/CFXMLInterface.c)
+  add_dependencies(CFXMLInterface CoreFoundation)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    target_link_libraries(CFXMLInterface PRIVATE
+      LibXml2::LibXml2)
+  endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
@@ -487,7 +499,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                           User32
                           mincore)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows 
+AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin
+AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           m)
@@ -498,15 +512,18 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Dar
                         PRIVATE
                           m)
 endif()
-target_link_libraries(CoreFoundation
-                      PRIVATE
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  target_link_libraries(CoreFoundation
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFXMLInterface
+                        PRIVATE
                         dispatch)
-target_link_libraries(CFURLSessionInterface
-                      PRIVATE
-                        dispatch)
-target_link_libraries(CFXMLInterface
-                      PRIVATE
-                        dispatch)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
@@ -522,12 +539,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
 
-install(TARGETS
-          CoreFoundation
-          CFURLSessionInterface
-          CFXMLInterface
-        DESTINATION
-          "${CMAKE_INSTALL_FULL_LIBDIR}")
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  install(TARGETS
+            CoreFoundation
+            CFURLSessionInterface
+            CFXMLInterface
+          DESTINATION
+            "${CMAKE_INSTALL_FULL_LIBDIR}")
+else()
+  install(TARGETS
+    CoreFoundation
+    DESTINATION
+    "${CMAKE_INSTALL_FULL_LIBDIR}")
+endif()
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
 # Double slash raise CMake error "file called with network path DESTINATION //System/Library/Frameworks".

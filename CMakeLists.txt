@@ -66,10 +66,16 @@ if(ENABLE_TESTING)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-  set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
-    CoreFoundation CFXMLInterface CFURLSessionInterface)
-  install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
-    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+      CoreFoundation CFXMLInterface CFURLSessionInterface)
+    install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
+      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  else()
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation)
+    install(TARGETS CoreFoundation
+      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  endif()
 endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY

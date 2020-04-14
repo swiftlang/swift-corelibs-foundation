@@ -35,7 +35,7 @@
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#else
+#elif !TARGET_OS_WASI
 #include <fts.h>
 #endif
 #if __has_include(<unistd.h>)
