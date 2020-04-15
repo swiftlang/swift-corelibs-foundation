@@ -1135,11 +1135,11 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             // This buffer has to be 1 bigger than the size of the one in the dirent so we can hold the extra '/' if it's required
             // Be sure to initialize the first character to null, so that strlcat below works correctly
             #if TARGET_OS_WASI
-            size_t d_name_size = WASI_D_ENT_SIZE;
+            size_t d_name_size = WASI_D_NAME_SIZE;
             #else
             size_t d_name_size = sizeof(dent->d_name);
             #endif
-            char fullPathToFile[sizeof(dent->d_name) + 1];
+            char fullPathToFile[d_name_size + 1];
             fullPathToFile[0] = 0;
             CFIndex startAt = 0;
 

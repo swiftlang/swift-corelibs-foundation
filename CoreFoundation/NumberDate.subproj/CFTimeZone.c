@@ -25,11 +25,13 @@
 #include <unicode/udat.h>
 #include <unicode/ustring.h>
 #include <CoreFoundation/CFDateFormatter.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <dirent.h>
 #include <unistd.h>
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
 #include <sys/fcntl.h>
+#elif TARGET_OS_WASI
+#include <fcntl.h>
 #else
 #include <sys/endian.h>
 #endif
@@ -47,7 +49,7 @@
 #include <tzfile.h>
 #define MACOS_TZDIR1 "/usr/share/zoneinfo/"          // 10.12 and earlier
 #define MACOS_TZDIR2 "/var/db/timezone/zoneinfo/"    // 10.13 onwards
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #ifndef TZDIR
 #define TZDIR	"/usr/share/zoneinfo/" /* Time zone object file directory */
 #endif /* !defined TZDIR */
@@ -807,9 +809,9 @@ static void __InitTZStrings(void) {
     });
 }
 
-#elif TARGET_OS_ANDROID || TARGET_OS_WASI
+#elif TARGET_OS_ANDROID
 // Nothing
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static void __InitTZStrings(void) {
     __tzZoneInfo = CFSTR(TZDIR);
     __tzDir = TZDIR "zone.tab";
@@ -879,9 +881,11 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     } else
 #endif
     {
+        #if !TARGET_OS_WASI
         // TODO: This can still fail on Linux if the time zone is not recognized by ICU later
         // Try localtime
         tzset();
+        #endif
         time_t t = time(NULL);
         struct tm lt = {0};
         localtime_r(&t, &lt);

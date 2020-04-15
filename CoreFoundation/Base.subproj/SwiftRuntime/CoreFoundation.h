@@ -45,7 +45,7 @@
 #include <netdb.h> // for Host.swift
 #endif
 
-#if __has_include(<ifaddrs.h>)
+#if __has_include(<ifaddrs.h>) && !defined(__wasi__)
 #include <ifaddrs.h> // for Host.swift
 #endif
 

@@ -28,7 +28,10 @@
 #include <string.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
+
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStream.h>
+#endif
 
 typedef struct {
     int64_t high;
@@ -138,6 +141,7 @@ uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid) {
 
 CF_PRIVATE CFErrorRef __CFPropertyListCreateError(CFIndex code, CFStringRef debugString, ...);
 
+#if !TARGET_OS_WASI
 typedef struct {
     CFTypeRef stream;
     void *databytes;
@@ -701,6 +705,7 @@ CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPro
     }
     return result;
 }
+#endif
 
 #pragma mark -
 #pragma mark Reading

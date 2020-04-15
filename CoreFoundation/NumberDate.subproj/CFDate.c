@@ -176,7 +176,7 @@ CF_PRIVATE void __CFDateInitialize(void) {
     }
     __CFTSRRate = (double)freq.QuadPart;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
     struct timespec res;
     if (clock_getres(CLOCK_MONOTONIC, &res) != 0) {
         HALT;

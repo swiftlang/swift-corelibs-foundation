@@ -1,3 +1,9 @@
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
+  Stream.swift)
+endif()
+
 add_library(Foundation
   AffineTransform.swift
   Array.swift
@@ -120,7 +126,6 @@ add_library(Foundation
   Scanner.swift
   ScannerAPI.swift
   Set.swift
-  Stream.swift
   String.swift
   StringEncodings.swift
   Thread.swift
@@ -130,7 +135,8 @@ add_library(Foundation
   URL.swift
   URLComponents.swift
   UserDefaults.swift
-  UUID.swift)
+  UUID.swift
+  ${FOUNDATION_WASI_UNAVAILABLE_SOURCES})
 target_compile_definitions(Foundation PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(Foundation PUBLIC
@@ -159,6 +165,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     $<TARGET_OBJECTS:CoreFoundationResources>)
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  target_compile_options(Foundation
+  PRIVATE
+    -sdk ${WASI_SDK_PREFIX}/share/wasi-sysroot
+    -target wasm32-unknown-wasi
+  )
+endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
 install(TARGETS Foundation
