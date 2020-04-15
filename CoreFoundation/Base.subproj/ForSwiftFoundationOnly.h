@@ -189,9 +189,11 @@ struct _NSMutableStringBridge {
     void (*_cfAppendCString)(CFTypeRef str, const char *chars, CFIndex appendLength);
 };
 
+#if !TARGET_OS_WASI
 struct _NSRunLoop {
     _Nonnull CFTypeRef (*_Nonnull _new)(CFRunLoopRef rl);
 };
+#endif
 
 struct _NSCharacterSetBridge {
     _Nullable CFCharacterSetRef (*_Nonnull _expandedCFCharacterSet)(CFTypeRef cset);
@@ -267,7 +269,9 @@ struct _CFSwiftBridge {
     struct _NSMutableSetBridge NSMutableSet;
     struct _NSStringBridge NSString;
     struct _NSMutableStringBridge NSMutableString;
+#if !TARGET_OS_WASI
     struct _NSRunLoop NSRunLoop;
+#endif
     struct _NSCharacterSetBridge NSCharacterSet;
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
@@ -338,7 +342,10 @@ CF_PRIVATE uint64_t __CFMemorySize(void);
 CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void);
 
+#if !TARGET_OS_WASI
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
+#endif
+
 #if !__COREFOUNDATION_FORFOUNDATIONONLY__
 typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
 extern CFTypeID _CFKeyedArchiverUIDGetTypeID(void);
@@ -348,7 +355,10 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
 CF_CROSS_PLATFORM_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
+
+#if !TARGET_OS_WASI
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
+#endif
 
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
@@ -388,9 +398,11 @@ CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCh
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses);
 
+#if !TARGET_OS_WASI
 CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspecified stream);
 
 CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef _Null_unspecified stream);
+#endif
 
 CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyExecutablePath(CFBundleRef bundle);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles(void);

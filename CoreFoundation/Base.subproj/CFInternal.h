@@ -95,16 +95,16 @@ CF_EXTERN_C_BEGIN
 #include <stdatomic.h>
 #include <Block.h>
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
-#if TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__)) || TARGET_OS_ANDROID || TARGET_OS_WASI
+#if TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__)) || TARGET_OS_ANDROID
 #include <xlocale.h>
 #endif // TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__)) || TARGET_OS_ANDROID
 
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
-#endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 #if __has_include(<unistd.h>)
 #include <unistd.h>

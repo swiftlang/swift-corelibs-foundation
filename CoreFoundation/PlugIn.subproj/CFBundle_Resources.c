@@ -25,9 +25,9 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <unistd.h>
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
 #include <sys/sysctl.h>
 #endif
 #include <sys/stat.h>

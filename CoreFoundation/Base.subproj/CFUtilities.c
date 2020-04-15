@@ -59,7 +59,7 @@
 #include <os/lock.h>
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <string.h>
 #include <sys/mman.h>
 #endif
@@ -980,7 +980,12 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
 void CFLog(int32_t lev, CFStringRef format, ...) {
     va_list args;
     va_start(args, format); 
+    
+    #if !TARGET_OS_WASI
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
+    #else
+    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
+    #endif
     va_end(args);
 }
     
@@ -1536,7 +1541,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN || TARGET_OS_WASI
         extern char **environ;
         char **envp = environ;
 #elif TARGET_OS_LINUX

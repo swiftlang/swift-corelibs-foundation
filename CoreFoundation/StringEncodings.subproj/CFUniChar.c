@@ -107,7 +107,7 @@ static const void *__CFGetSectDataPtr(const char *segname, const char *sectname,
 
 // Memory map the file
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 CF_INLINE void __CFUniCharCharacterSetPath(char *cpath) {
 #elif TARGET_OS_WIN32
 CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {

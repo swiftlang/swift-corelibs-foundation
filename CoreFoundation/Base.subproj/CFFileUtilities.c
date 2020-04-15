@@ -38,7 +38,11 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/types.h>
+
+#if !TARGET_OS_WASI
 #include <pwd.h>
+#endif
+
 #include <fcntl.h>
 
 #define statinfo stat
@@ -342,7 +346,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     FindClose(handle);
     pathBuf[pathLength] = '\0';
 
-#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
     uint8_t extBuff[CFMaxPathSize];
     int extBuffInteriorDotCount = 0; //people insist on using extensions like ".trace.plist", so we need to know how many dots back to look :(
     
@@ -438,7 +442,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
             dirURL = CFURLCreateFromFileSystemRepresentation(alloc, (uint8_t *)dirPath, pathLength, true);
             releaseBase = true;
         }
-#if !defined(__OpenBSD__)
+#if !defined(__OpenBSD__) && !TARGET_OS_WASI
         if (dp->d_type == DT_DIR || dp->d_type == DT_UNKNOWN || dp->d_type == DT_LNK || dp->d_type == DT_WHT) {
 #else
         if (dp->d_type == DT_DIR || dp->d_type == DT_UNKNOWN || dp->d_type == DT_LNK) {
@@ -455,13 +459,13 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
                     isDir = ((statBuf.st_mode & S_IFMT) == S_IFDIR);
                 }
             }
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_WASI
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, namelen, isDir, dirURL);
 #else
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, dp->d_namlen, isDir, dirURL);
 #endif
         } else {
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_WASI
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase (alloc, (uint8_t *)dp->d_name, namelen, false, dirURL);
 #else
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase (alloc, (uint8_t *)dp->d_name, dp->d_namlen, false, dirURL);
@@ -548,7 +552,7 @@ CF_PRIVATE SInt32 _CFGetPathProperties(CFAllocatorRef alloc, char *path, Boolean
     
     if (modTime != NULL) {
         if (fileExists) {
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
             struct timespec ts = {statBuf.st_mtime, 0};
 #else
             struct timespec ts = statBuf.st_mtimespec;
@@ -1093,7 +1097,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     struct dirent *dent;
     if ((dirp = opendir(directoryPathBuf))) {
         while ((dent = readdir(dirp))) {
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_WASI
             CFIndex nameLen = strlen(dent->d_name);
             if (dent->d_type == DT_UNKNOWN) {
                 // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat

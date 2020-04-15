@@ -14,7 +14,10 @@
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFError.h>
+
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStream.h>
+#endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
@@ -82,6 +85,7 @@ Boolean CFPropertyListIsValid(CFPropertyListRef plist, CFPropertyListFormat form
 
 CF_IMPLICIT_BRIDGING_DISABLED
 
+#if !TARGET_OS_WASI
 /* Writes the bytes of a plist serialization out to the stream.  The
  * stream must be opened and configured -- the function simply writes
  * a bunch of bytes to the stream. The output plist format can be chosen.
@@ -113,6 +117,7 @@ CFPropertyListRef CFPropertyListCreateFromStream(CFAllocatorRef allocator, CFRea
 CF_IMPLICIT_BRIDGING_ENABLED
 
 CF_IMPLICIT_BRIDGING_DISABLED
+#endif
 
 CF_ENUM(CFIndex) {
     kCFPropertyListReadCorruptError = 3840,              // Error parsing a property list
@@ -121,6 +126,7 @@ CF_ENUM(CFIndex) {
     kCFPropertyListWriteStreamError = 3851,              // Stream error writing a property list
 } API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
+#if !TARGET_OS_WASI
 /* Create a property list with a CFData input. If the format parameter is non-NULL, it will be set to the format of the data after parsing is complete. The options parameter is used to specify CFPropertyListMutabilityOptions. If an error occurs while parsing the data, the return value will be NULL. Additionally, if an error occurs and the error parameter is non-NULL, the error parameter will be set to a CFError describing the problem, which the caller must release. If the parse succeeds, the returned value is a reference to the new property list. It is the responsibility of the caller to release this value.
  */
 CF_EXPORT
@@ -140,11 +146,11 @@ CFIndex CFPropertyListWrite(CFPropertyListRef propertyList, CFWriteStreamRef str
  */
 CF_EXPORT
 CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+#endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED
-
 #endif /* ! __COREFOUNDATION_CFPROPERTYLIST__ */
 

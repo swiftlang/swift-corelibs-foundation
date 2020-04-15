@@ -116,6 +116,37 @@ else()
   set(FRAMEWORK_LIBRARY_TYPE STATIC)
 endif()
 
+set(CF_WASI_UNAVAILABLE_SOURCES )
+set(CF_WASI_UNAVAILABLE_PRIVATE_HEADERS )
+set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS )
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  list(APPEND CF_WASI_UNAVAILABLE_PRIVATE_HEADERS
+    # RunLoop
+    RunLoop.subproj/CFMachPort_Internal.h
+    RunLoop.subproj/CFMachPort_Lifetime.h
+    # Stream
+    Stream.subproj/CFStreamAbstract.h
+    Stream.subproj/CFStreamInternal.h
+    Stream.subproj/CFStreamPriv.h)
+  list(APPEND CF_WASI_UNAVAILABLE_PUBLIC_HEADERS 
+    # RunLoop
+    RunLoop.subproj/CFMachPort.h
+    RunLoop.subproj/CFMessagePort.h
+    RunLoop.subproj/CFRunLoop.h
+    RunLoop.subproj/CFSocket.h
+    # Stream
+    Stream.subproj/CFStreamPriv.h
+    Stream.subproj/CFStream.h)
+  list(APPEND CF_WASI_UNAVAILABLE_SOURCES 
+    RunLoop.subproj/CFRunLoop.c
+    RunLoop.subproj/CFSocket.c
+    # Stream
+    Stream.subproj/CFConcreteStreams.c
+    Stream.subproj/CFSocketStream.c
+    Stream.subproj/CFStream.c)
+endif()
+
 add_framework(CoreFoundation
                 ${FRAMEWORK_LIBRARY_TYPE}
               FRAMEWORK_DIRECTORY
@@ -159,13 +190,7 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_BinaryTypes.h
                 PlugIn.subproj/CFBundle_Internal.h
                 PlugIn.subproj/CFPlugIn_Factory.h
-                # RunLoop
-                RunLoop.subproj/CFMachPort_Internal.h
-                RunLoop.subproj/CFMachPort_Lifetime.h
-                # Stream
-                Stream.subproj/CFStreamAbstract.h
-                Stream.subproj/CFStreamInternal.h
-                Stream.subproj/CFStreamPriv.h
+                ${CF_WASI_UNAVAILABLE_PRIVATE_HEADERS}
                 # String
                 String.subproj/CFAttributedStringPriv.h
                 String.subproj/CFBurstTrie.h
@@ -203,7 +228,6 @@ add_framework(CoreFoundation
                 Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFLocaleInternal.h
                 PlugIn.subproj/CFBundlePriv.h
-                Stream.subproj/CFStreamPriv.h
                 String.subproj/CFCharacterSetPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
@@ -254,13 +278,7 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFPlugInCOM.h
                 # Preferences
                 Preferences.subproj/CFPreferences.h
-                # RunLoop
-                RunLoop.subproj/CFMachPort.h
-                RunLoop.subproj/CFMessagePort.h
-                RunLoop.subproj/CFRunLoop.h
-                RunLoop.subproj/CFSocket.h
-                # Stream
-                Stream.subproj/CFStream.h
+                ${CF_WASI_UNAVAILABLE_PUBLIC_HEADERS}
                 # String
                 String.subproj/CFAttributedString.h
                 String.subproj/CFCharacterSet.h
@@ -345,12 +363,6 @@ add_framework(CoreFoundation
                 # RunLoop.subproj/CFMachPort.c
                 # RunLoop.subproj/CFMachPort_Lifetime.c
                 # RunLoop.subproj/CFMessagePort.c
-                RunLoop.subproj/CFRunLoop.c
-                RunLoop.subproj/CFSocket.c
-                # Stream
-                Stream.subproj/CFConcreteStreams.c
-                Stream.subproj/CFSocketStream.c
-                Stream.subproj/CFStream.c
                 # String
                 String.subproj/CFAttributedString.c
                 String.subproj/CFBurstTrie.c
@@ -396,7 +408,7 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     BlocksRuntime
     dispatch)
 else()
-  target_compile_definitions(CoreFoundation PRIVATE FOO)
+  target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN)
   target_include_directories(CoreFoundation PRIVATE ../Sources/BlocksRuntime)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)

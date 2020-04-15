@@ -14,7 +14,11 @@
 
 #include <CoreFoundation/CFAvailability.h>
 
+#if TARGET_OS_WASI
 #define __HAS_DISPATCH__ 0
+#else
+#define __HAS_DISPATCH__ 1
+#endif
 
 #include <CoreFoundation/CFBase.h>
 

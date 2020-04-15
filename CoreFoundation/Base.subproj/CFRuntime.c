@@ -50,7 +50,7 @@ __kCFRetainEvent = 28,
 __kCFReleaseEvent = 29
 };
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()

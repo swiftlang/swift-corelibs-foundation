@@ -57,7 +57,7 @@
 #endif /* !defined TZDEFAULT */
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
 struct tzhead {
     char	tzh_magic[4];		/* TZ_MAGIC */
     char	tzh_reserved[16];	/* reserved for future use */
@@ -807,7 +807,7 @@ static void __InitTZStrings(void) {
     });
 }
 
-#elif TARGET_OS_ANDROID
+#elif TARGET_OS_ANDROID || TARGET_OS_WASI
 // Nothing
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
 static void __InitTZStrings(void) {
@@ -862,7 +862,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         if (result) return result;
     }
 
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
     if (!__tzZoneInfo) __InitTZStrings();
     ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
     // The link can be relative, we treat this the same as if there was no link

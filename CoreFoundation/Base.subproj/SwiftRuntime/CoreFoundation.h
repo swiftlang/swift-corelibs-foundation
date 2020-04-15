@@ -31,7 +31,9 @@
 #include <limits.h>
 #include <locale.h>
 #include <math.h>
+#if !defined(__wasi__)
 #include <setjmp.h>
+#endif
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>

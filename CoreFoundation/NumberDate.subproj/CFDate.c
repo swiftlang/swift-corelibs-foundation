@@ -114,7 +114,7 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
 #if TARGET_OS_MAC
     uint64_t tsr = mach_absolute_time();
     return (CFTimeInterval)((double)tsr * __CF1_TSRRate);
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
     struct timespec res;
     if (clock_gettime(CLOCK_MONOTONIC, &res) != 0) {
         HALT;

@@ -27,7 +27,11 @@
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFBag.h>
 #include <CoreFoundation/CFCalendar.h>
+
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStreamPriv.h>
+#endif
+
 #include <math.h>
 #include <limits.h>
 
@@ -538,12 +542,14 @@ CF_CROSS_PLATFORM_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRe
 CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
 
+#if !TARGET_OS_WASI
 CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef mode);
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 CF_EXPORT Boolean _CFRunLoopIsCurrent(CFRunLoopRef rl);
 
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(_Nullable CFAllocatorRef alloc, CFDataRef data);
+#endif
 
 #if TARGET_OS_MAC
 typedef struct {
