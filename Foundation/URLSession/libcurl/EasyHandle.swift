@@ -498,12 +498,14 @@ fileprivate extension _EasyHandle {
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionNOPROGRESS, 0).asError()
         
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionPROGRESSDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
-        
+
+        #if !NS_CURL_MISSING_XFERINFOFUNCTION
         try! CFURLSession_easy_setopt_tc(rawHandle, CFURLSessionOptionXFERINFOFUNCTION, { (userdata: UnsafeMutableRawPointer?, dltotal :Int64, dlnow: Int64, ultotal: Int64, ulnow: Int64) -> Int32 in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return -1 }
             handle.updateProgressMeter(with: _Progress(totalBytesSent: ulnow, totalBytesExpectedToSend: ultotal, totalBytesReceived: dlnow, totalBytesExpectedToReceive: dltotal))
             return 0
         }).asError()
+        #endif
 
     }
     /// This callback function gets called by libcurl when it receives body

@@ -37,8 +37,13 @@ open class URLSessionTask : NSObject, NSCopying {
     open var countOfBytesClientExpectsToSend: Int64 = NSURLSessionTransferSizeUnknown {
         didSet { updateProgress() }
     }
-    
+
+    #if NS_CURL_MISSING_XFERINFOFUNCTION
+    @available(*, deprecated, message: "This platform doesn't fully support reporting the progress of a URLSessionTask. The progress instance returned will be functional, but may not have continuous updates as bytes are sent or received.")
     open private(set) var progress = Progress(totalUnitCount: -1)
+    #else
+    open private(set) var progress = Progress(totalUnitCount: -1)
+    #endif
     
     func updateProgress() {
         self.workQueue.async {
