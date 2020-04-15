@@ -1194,22 +1194,19 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD
 
-bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
-{ 
+bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) {
     return __sync_bool_compare_and_swap(dst, oldp, newp);
 }
 
-bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst) 
-{ 
+bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst) {
     return __sync_val_compare_and_swap(dst, oldl, newl);
 }
 
-bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst) 
-{ 
+bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst) {
     return __sync_bool_compare_and_swap(dst, oldp, newp);
 }
 
-int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue ) {
+int32_t OSAtomicAdd32Barrier(int32_t theAmount, volatile int32_t *theValue) {
     return __sync_fetch_and_add(theValue, theAmount) + theAmount;
 }
 
@@ -1221,17 +1218,15 @@ bool OSAtomicCompareAndSwap64Barrier(int64_t oldValue, int64_t newValue, volatil
     return __sync_bool_compare_and_swap(theValue, oldValue, newValue);
 }
 
-int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst)
-{
+int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst) {
     return OSAtomicAdd32Barrier(-1, dst);
 }
 
-int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst)
-{
+int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst) {
     return OSAtomicAdd32Barrier(1, dst);
 }
 
-int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue ) {
+int32_t OSAtomicAdd32(int32_t theAmount, volatile int32_t *theValue) {
     return OSAtomicAdd32Barrier(theAmount, theValue);
 }
 
