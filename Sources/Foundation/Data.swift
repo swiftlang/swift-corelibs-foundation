@@ -12,6 +12,10 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
+#if os(WASI)
+import Glibc
+#endif
+
 #if !canImport(Darwin)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {
@@ -653,7 +657,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @usableFromInline
     @frozen
     internal struct InlineData {
-#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+// wasm32 supports 64-bit integers, it just doesn't support 64-bit pointers
+#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le) || arch(wasm32)
         @usableFromInline typealias Buffer = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
                                               UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) //len  //enum
         @usableFromInline var bytes: Buffer
@@ -684,7 +689,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         @inlinable // This is @inlinable as a trivial initializer.
         init(count: Int = 0) {
             assert(count <= MemoryLayout<Buffer>.size)
-#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+// wasm32 supports 64-bit integers, it just doesn't support 64-bit pointers
+#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le) || arch(wasm32)
             bytes = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0))
 #elseif arch(i386) || arch(arm)
             bytes = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0))
@@ -867,7 +873,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
 
-#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+// wasm32 supports 64-bit integers, it just doesn't support 64-bit pointers
+#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le) || arch(wasm32)
     @usableFromInline internal typealias HalfInt = Int32
 #elseif arch(i386) || arch(arm)
     @usableFromInline internal typealias HalfInt = Int16
@@ -2015,6 +2022,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
     
+#if !os(WASI)
     /// Initialize a `Data` with the contents of a `URL`.
     ///
     /// - parameter url: The `URL` to read.
@@ -2025,6 +2033,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         let d = try NSData(contentsOf: url, options: ReadingOptions(rawValue: options.rawValue))
         self.init(bytes: d.bytes, count: d.length)
     }
+#endif
     
     /// Initialize a `Data` from a Base-64 encoded String using the given options.
     ///
@@ -2285,6 +2294,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     }
 #endif
     
+#if !os(WASI)
     /// Write the contents of the `Data` to a location.
     ///
     /// - parameter url: The location to write the data into.
@@ -2305,6 +2315,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 #endif
         }
     }
+#endif
     
     // MARK: -
     

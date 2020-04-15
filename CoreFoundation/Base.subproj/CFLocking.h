@@ -105,6 +105,8 @@ typedef CFLock_t OSSpinLock;
 #define __CFLock(A)     do {} while (0)
 #define __CFUnlock(A)   do {} while (0)
 
+static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
+
 #else
 
 #warning CF locks not defined for this platform -- CF is not thread-safe

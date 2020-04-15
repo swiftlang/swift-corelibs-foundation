@@ -1,6 +1,15 @@
 
 if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
 list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
+  FileHandle.swift
+  FileManager.swift
+  FileManager+POSIX.swift
+  FileManager+Win32.swift
+  FileManager+XDG.swift
+  Host.swift
+  Notification.swift
+  NotificationQueue.swift
+  NSNotification.swift
   Stream.swift)
 endif()
 
@@ -30,14 +39,8 @@ add_library(Foundation
   DispatchData+DataProtocol.swift
   EnergyFormatter.swift
   ExtraStringAPIs.swift
-  FileHandle.swift
-  FileManager.swift
-  FileManager+POSIX.swift
-  FileManager+Win32.swift
-  FileManager+XDG.swift
   Formatter.swift
   FoundationErrors.swift
-  Host.swift
   IndexPath.swift
   IndexSet.swift
   ISO8601DateFormatter.swift
@@ -48,8 +51,6 @@ add_library(Foundation
   MassFormatter.swift
   Measurement.swift
   MeasurementFormatter.swift
-  Notification.swift
-  NotificationQueue.swift
   NSArray.swift
   NSAttributedString.swift
   NSCache.swift
@@ -84,7 +85,6 @@ add_library(Foundation
   NSLock.swift
   NSLog.swift
   NSMeasurement.swift
-  NSNotification.swift
   NSNull.swift
   NSNumber.swift
   NSObjCRuntime.swift

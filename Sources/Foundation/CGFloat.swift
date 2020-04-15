@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(WASI)
+import Glibc
+#endif
+
 @frozen
 public struct CGFloat {
 #if arch(i386) || arch(arm)
@@ -189,7 +193,8 @@ extension CGFloat : BinaryFloatingPoint {
     public init(bitPattern: UInt) {
 #if arch(i386) || arch(arm)
         native = NativeType(bitPattern: UInt32(bitPattern))
-#elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+// wasm32 supports 64-bit integers, it just doesn't support 64-bit pointers
+#elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le) || arch(wasm32)
         native = NativeType(bitPattern: UInt64(bitPattern))
 #else
     #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")

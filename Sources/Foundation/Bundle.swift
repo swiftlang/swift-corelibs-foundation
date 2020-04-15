@@ -103,8 +103,9 @@ open class Bundle: NSObject {
         self.init(path: url.path)
     }
     
-    #if os(Windows)
+    #if os(Windows) || os(WASI)
     @available(Windows, deprecated, message: "Not yet implemented.")
+    @available(WASI, deprecated, message: "Not yet implemented.")
     public init(for aClass: AnyClass) {
         NSUnimplemented()
     }

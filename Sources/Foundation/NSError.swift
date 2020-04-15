@@ -977,6 +977,7 @@ extension URLError {
     public static var backgroundSessionWasDisconnected:         URLError.Code { return .backgroundSessionWasDisconnected }
 }
 
+#if !os(WASI)
 /// Describes an error in the POSIX error domain.
 public struct POSIXError : _BridgedStoredNSError {
     
@@ -1377,6 +1378,7 @@ extension POSIXError {
     public static var EQFULL: POSIXError.Code { return .EQFULL }
     #endif
 }
+#endif
 
 enum UnknownNSError: Error {
     case missingError
