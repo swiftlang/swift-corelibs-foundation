@@ -41,6 +41,8 @@
 
 #if !TARGET_OS_WASI
 #include <pwd.h>
+#else
+#define WASI_D_NAME_SIZE 256
 #endif
 
 #include <fcntl.h>
@@ -1102,7 +1104,11 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             if (dent->d_type == DT_UNKNOWN) {
                 // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
                 struct stat statBuf;
+                #if TARGET_OS_WASI
+                char pathToStat[WASI_D_NAME_SIZE];
+                #else
                 char pathToStat[sizeof(dent->d_name)];
+                #endif
                 strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
                 strlcat(pathToStat, "/", sizeof(pathToStat));
                 strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
@@ -1128,6 +1134,11 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             
             // This buffer has to be 1 bigger than the size of the one in the dirent so we can hold the extra '/' if it's required
             // Be sure to initialize the first character to null, so that strlcat below works correctly
+            #if TARGET_OS_WASI
+            size_t d_name_size = WASI_D_ENT_SIZE;
+            #else
+            size_t d_name_size = sizeof(dent->d_name);
+            #endif
             char fullPathToFile[sizeof(dent->d_name) + 1];
             fullPathToFile[0] = 0;
             CFIndex startAt = 0;

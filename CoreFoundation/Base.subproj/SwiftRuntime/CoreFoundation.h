@@ -88,12 +88,15 @@
 #include <CoreFoundation/CFUtilities.h>
 #include <CoreFoundation/CFBundle.h>
 
-#include <CoreFoundation/CFMessagePort.h>
 #include <CoreFoundation/CFPlugIn.h>
+
+#if !TARGET_OS_WASI
+#include <CoreFoundation/CFMessagePort.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFMachPort.h>
+#endif
 
 #include <CoreFoundation/CFAttributedString.h>
 #include <CoreFoundation/CFNotificationCenter.h>
