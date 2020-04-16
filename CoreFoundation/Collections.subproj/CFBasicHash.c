@@ -13,7 +13,11 @@
 #include <CoreFoundation/CFRuntime.h>
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFSet.h>
+
+#if __BLOCKS__
 #include <Block.h>
+#endif
+
 #include <math.h>
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
@@ -324,8 +328,12 @@ static void **CFBasicHashCallBackPtrs;
 static _Atomic(int32_t) CFBasicHashCallBackPtrsCount = 0;
 
 static int32_t CFBasicHashGetPtrIndex(void *ptr) {
+#if __BLOCKS__
     static dispatch_once_t once;
     dispatch_once(&once, ^{
+#else
+    if (!CFBasicHashCallBackPtrsCount) {
+#endif
         CFBasicHashCallBackPtrs = malloc(sizeof(void *) * CFBasicHashSmallSize);
         if (CFBasicHashCallBackPtrs == NULL) {
             HALT;
@@ -339,7 +347,10 @@ static int32_t CFBasicHashGetPtrIndex(void *ptr) {
         CFBasicHashCallBackPtrs[6] = (void *)__CFStringCollectionCopy;
         CFBasicHashCallBackPtrs[7] = NULL;
         CFBasicHashCallBackPtrsCount = 8;
-    });
+    }
+    #if __BLOCKS__
+    );
+    #endif
     int32_t idx;
     for (idx = 0; idx < CFBasicHashCallBackPtrsCount; idx++) {
         if (CFBasicHashCallBackPtrs[idx] == ptr) {

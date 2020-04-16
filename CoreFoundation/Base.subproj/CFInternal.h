@@ -93,7 +93,10 @@ CF_EXTERN_C_BEGIN
 #include <CoreFoundation/CFRuntime.h>
 #include <limits.h>
 #include <stdatomic.h>
+
+#if __BLOCKS__
 #include <Block.h>
+#endif
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
@@ -603,7 +606,7 @@ static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
 #error "do not know how to define mutex and recursive mutex for this OS"
 #endif
 
-#if !__HAS_DISPATCH__
+#if !__HAS_DISPATCH__ && __BLOCKS__
 
 typedef volatile long dispatch_once_t;
 CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));

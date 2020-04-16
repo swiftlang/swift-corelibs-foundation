@@ -1287,11 +1287,16 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
 #endif
     if (options == UDATPG_MATCH_NO_OPTIONS) return (CFStringRef)CFRetain(inString);
     
-    static CFCharacterSetRef hourCharacters;
+    static CFCharacterSetRef hourCharacters = NULL;
+
+#if __BLOCKS__
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         hourCharacters = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("hHkK"));
     });
+#else
+    hourCharacters = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("hHkK"));
+#endif
     
     CFRange hourRange = CFRangeMake(kCFNotFound, 0);
     if (!CFStringFindCharacterFromSet(inString, hourCharacters, CFRangeMake(0, CFStringGetLength(inString)), 0, &hourRange) || hourRange.location == kCFNotFound) {

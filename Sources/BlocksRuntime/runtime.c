@@ -15,7 +15,7 @@
 #if TARGET_OS_WIN32
 #include <Windows.h>
 #include <Psapi.h>
-#elif !TARGET_OS_WASI
+#else
 #include <dlfcn.h>
 #endif
 #if __has_include(<os/assumes.h>)

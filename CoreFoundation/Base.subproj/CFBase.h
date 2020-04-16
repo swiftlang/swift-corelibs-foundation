@@ -64,6 +64,10 @@
 #include <stdbool.h>
 #endif
 
+#if TARGET_OS_WASI
+#define __BLOCKS__ 0
+#endif
+
 #if __BLOCKS__ && ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
 #include <Block.h>
 #endif
