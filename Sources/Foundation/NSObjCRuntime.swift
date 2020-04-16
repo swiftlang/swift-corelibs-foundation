@@ -265,36 +265,20 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (Port.self, "NSPort"),
         (PortMessage.self, "NSPortMessage"),
         (SocketPort.self, "NSSocketPort"),
-        (Bundle.self, "NSBundle"),
         (ByteCountFormatter.self, "NSByteCountFormatter"),
-        (Host.self, "NSHost"),
         (DateFormatter.self, "NSDateFormatter"),
         (DateIntervalFormatter.self, "NSDateIntervalFormatter"),
         (EnergyFormatter.self, "NSEnergyFormatter"),
-        (FileHandle.self, "NSFileHandle"),
-        (FileManager.self, "NSFileManager"),
         (Formatter.self, "NSFormatter"),
-        (InputStream.self, "NSInputStream"),
         (ISO8601DateFormatter.self, "NSISO8601DateFormatter"),
         (JSONSerialization.self, "NSJSONSerialization"),
         (LengthFormatter.self, "NSLengthFormatter"),
         (MassFormatter.self, "NSMassFormatter"),
-        (NotificationQueue.self, "NSNotificationQueue"),
         (NumberFormatter.self, "NSNumberFormatter"),
-        (Operation.self, "NSOperation"),
-        (OperationQueue.self, "NSOperationQueue"),
-        (OutputStream.self, "NSOutputStream"),
         (PersonNameComponentsFormatter.self, "NSPersonNameComponentsFormatter"),
-        (Pipe.self, "NSPipe"),
-        (Progress.self, "NSProgress"),
         (PropertyListSerialization.self, "NSPropertyListSerialization"),
-        (RunLoop.self, "NSRunLoop"),
         (Scanner.self, "NSScanner"),
-        (Stream.self, "NSStream"),
-        (Thread.self, "NSThread"),
-        (Timer.self, "NSTimer"),
         (UserDefaults.self, "NSUserDefaults"),
-        (FileManager.DirectoryEnumerator.self, "NSDirectoryEnumerator"),
         (Dimension.self, "NSDimension"),
         (Unit.self, "NSUnit"),
         (UnitAcceleration.self, "NSUnitAcceleration"),
@@ -321,8 +305,28 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (UnitVolume.self, "NSUnitVolume"),
         (UnitTemperature.self, "NSUnitTemperature"),
     ]
-#if !(os(iOS) || os(Android))
+#if !(os(iOS) || os(Android) || os(WASI))
     map.append((Process.self, "NSTask"))
+#endif
+#if !os(WASI)
+    map.append(contentsOf: [
+        (Bundle.self, "NSBundle"),
+        (FileHandle.self, "NSFileHandle"),
+        (FileManager.self, "NSFileManager"),
+        (FileManager.DirectoryEnumerator.self, "NSDirectoryEnumerator"),
+        (Host.self, "NSHost"),
+        (InputStream.self, "NSInputStream"),
+        (NotificationQueue.self, "NSNotificationQueue"),
+        (Operation.self, "NSOperation"),
+        (OperationQueue.self, "NSOperationQueue"),
+        (OutputStream.self, "NSOutputStream"),
+        (Pipe.self, "NSPipe"),
+        (Progress.self, "NSProgress"),
+        (RunLoop.self, "NSRunLoop"),
+        (Stream.self, "NSStream"),
+        (Thread.self, "NSThread"),
+        (Timer.self, "NSTimer"),
+    ])
 #endif
     return map
 }()

@@ -130,6 +130,7 @@ extension NSLock {
     }
 }
 
+#if !os(WASI)
 open class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
@@ -222,6 +223,7 @@ open class NSConditionLock : NSObject, NSLocking {
     
     open var name: String?
 }
+#endif
 
 open class NSRecursiveLock: NSObject, NSLocking {
     internal var mutex = _RecursiveMutexPointer.allocate(capacity: 1)

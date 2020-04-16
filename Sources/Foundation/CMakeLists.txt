@@ -1,6 +1,7 @@
 
 if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
 list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
+  Bundle.swift
   FileHandle.swift
   FileManager.swift
   FileManager+POSIX.swift
@@ -10,7 +11,10 @@ list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
   Notification.swift
   NotificationQueue.swift
   NSNotification.swift
-  Stream.swift)
+  RunLoop.swift
+  Stream.swift
+  Thread.swift
+  Timer.swift)
 endif()
 
 add_library(Foundation
@@ -18,7 +22,6 @@ add_library(Foundation
   Array.swift
   Boxing.swift
   Bridging.swift
-  Bundle.swift
   ByteCountFormatter.swift
   Calendar.swift
   CGFloat.swift
@@ -122,14 +125,11 @@ add_library(Foundation
   PropertyListEncoder.swift
   PropertyListSerialization.swift
   ReferenceConvertible.swift
-  RunLoop.swift
   Scanner.swift
   ScannerAPI.swift
   Set.swift
   String.swift
   StringEncodings.swift
-  Thread.swift
-  Timer.swift
   TimeZone.swift
   Unit.swift
   URL.swift

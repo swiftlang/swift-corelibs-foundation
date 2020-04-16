@@ -259,8 +259,10 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSMutableString.appendString = _CFSwiftStringAppend
     __CFSwiftBridge.NSMutableString.appendCharacters = _CFSwiftStringAppendCharacters
     __CFSwiftBridge.NSMutableString._cfAppendCString = _CFSwiftStringAppendCString
-    
+
+#if !os(WASI)    
     __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
+#endif
     
     __CFSwiftBridge.NSCharacterSet._expandedCFCharacterSet = _CFSwiftCharacterSetExpandedCFCharacterSet
     __CFSwiftBridge.NSCharacterSet._retainedBitmapRepresentation = _CFSwiftCharacterSetRetainedBitmapRepresentation

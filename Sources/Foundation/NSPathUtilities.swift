@@ -637,6 +637,7 @@ extension NSString {
 
 }
 
+#if !os(WASI)
 extension FileManager {
     public enum SearchPathDirectory: UInt {
         
@@ -785,3 +786,4 @@ internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String)
 #endif
     })
 }
+#endif
