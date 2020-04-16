@@ -301,10 +301,11 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
     }
 
-    func updateProgressMeter(with propgress: _EasyHandle._Progress) {
-        //TODO: Update progress. Note that a single URLSessionTask might
-        // perform multiple transfers. The values in `progress` are only for
-        // the current transfer.
+    func updateProgressMeter(with progress: _EasyHandle._Progress) {
+        guard let progressReporter = self.task?.progress else { return }
+
+        progressReporter.totalUnitCount = progress.totalBytesExpectedToReceive + progress.totalBytesExpectedToSend
+        progressReporter.completedUnitCount = progress.totalBytesReceived + progress.totalBytesSent
     }
 
     /// The data drain.
