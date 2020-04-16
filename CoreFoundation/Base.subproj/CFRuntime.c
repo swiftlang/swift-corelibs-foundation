@@ -223,9 +223,11 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFXMLNode] = &__CFXMLNodeClass,
 #endif // TARGET_OS_OSX
     
+#if !TARGET_OS_WASI
     [_kCFRuntimeIDCFBundle] = &__CFBundleClass,
     [_kCFRuntimeIDCFPFactory] = &__CFPFactoryClass,
     [_kCFRuntimeIDCFPlugInInstance] = &__CFPlugInInstanceClass,
+#endif
 
     [_kCFRuntimeIDCFPreferencesDomain] = &__CFPreferencesDomainClass,
 

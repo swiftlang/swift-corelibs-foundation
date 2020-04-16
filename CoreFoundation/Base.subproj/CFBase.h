@@ -68,6 +68,17 @@
 #define __BLOCKS__ 0
 #endif
 
+#if !__BLOCKS__
+typedef int dispatch_once_t;
+#define __block
+#define DISPATCH_ONCE_BEGIN_BLOCK(x) if(!x) {
+#define DISPATCH_ONCE_END_BLOCK(x) x = 1; }
+#else
+#error WASI BLOCKS
+#define DISPATCH_ONCE_BEGIN_BLOCK(x) dispatch_once(&x, ^{
+#define DISPATCH_ONCE_END_BLOCK(x) });
+#endif
+
 #if __BLOCKS__ && ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
 #include <Block.h>
 #endif

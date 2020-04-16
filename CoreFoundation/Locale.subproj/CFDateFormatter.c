@@ -56,6 +56,7 @@ CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRef allocato
     return (CFArrayRef)CFDateFormatterCreateDateFormatFromTemplate(allocator, (CFStringRef)tmplates, options, locale);
 }
 
+#if __BLOCKS__
 static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDateTimePatternGenerator *ptg)) {
     static UDateTimePatternGenerator *ptg;
     static _CFMutex ptgLock = _CF_MUTEX_STATIC_INITIALIZER;
@@ -91,6 +92,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
     _CFMutexUnlock(&ptgLock);
     return result;
 }
+#endif
 
 /*
  1) Scan the string for an AM/PM indicator
@@ -121,6 +123,7 @@ static void _CFDateFormatterStripAMPMIndicators(UniChar **bpat, int32_t *bpatlen
     }
 }
 
+#if __BLOCKS__
 CFStringRef CFDateFormatterCreateDateFormatFromTemplate(CFAllocatorRef allocator, CFStringRef tmplate, CFOptionFlags options, CFLocaleRef locale) {
     if (allocator) __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
     if (locale) __CFGenericValidateType(locale, CFLocaleGetTypeID());
@@ -197,6 +200,7 @@ CFStringRef CFDateFormatterCreateDateFormatFromTemplate(CFAllocatorRef allocator
     
     return (CFStringRef)result;
 }
+#endif
 
 struct __CFDateFormatter {
     CFRuntimeBase _base;

@@ -3467,13 +3467,10 @@ enum {
 #pragma mark FitzPatrick (skin tone) Modifier Functions
 
 static const CFCharacterSetInlineBuffer *__CFStringGetFitzpatrickModifierBaseCharacterSet(void) {
-    static CFCharacterSetInlineBuffer buffer = NULL;
-#if __BLOCKS__
+    static CFCharacterSetInlineBuffer buffer;
     static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ // based on UTR#51 1.0 (draft 7) for Unicode 8.0
-#else
-    if (!buffer) {
-#endif
+    DISPATCH_ONCE_BEGIN_BLOCK(initOnce)
+        // based on UTR#51 1.0 (draft 7) for Unicode 8.0
         /*
          8.0
          U+261D WHITE UP POINTING INDEX
@@ -3598,10 +3595,7 @@ static const CFCharacterSetInlineBuffer *__CFStringGetFitzpatrickModifierBaseCha
         CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CB, 1)); // U+1F3CB WEIGHT LIFTER
         CFCharacterSetCompact(cset);
         CFCharacterSetInitInlineBuffer(cset, &buffer);
-    }
-#if __BLOCKS__
-);
-#endif
+    DISPATCH_ONCE_END_BLOCK(initOnce)
 
     return (const CFCharacterSetInlineBuffer *)&buffer;
 }
@@ -3619,14 +3613,10 @@ static inline bool __CFStringIsTagSequence(UTF32Char character) { return ((chara
 #pragma mark Gender Modifier Functions
 
 static const CFCharacterSetInlineBuffer *__CFStringGetGenderModifierBaseCharacterSet(void) {
-    static CFCharacterSetInlineBuffer buffer = NULL;
+    static CFCharacterSetInlineBuffer buffer;
 
-    #if __BLOCKS__
     static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-    #else
-    if (!buffer) {
-    #endif
+    DISPATCH_ONCE_BEGIN_BLOCK(initOnce)
         /*
          Unicode 8.0
          ⛹U+26F9 PERSON WITH BALL  // 0x26F9
@@ -3710,10 +3700,7 @@ static const CFCharacterSetInlineBuffer *__CFStringGetGenderModifierBaseCharacte
         CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F9D6, 10)); // PERSON IN STEAMY ROOM ~ ZOMBIE
         CFCharacterSetCompact(cset);
         CFCharacterSetInitInlineBuffer(cset, &buffer);
-    }
-    #if __BLOCKS__
-    );
-    #endif
+    DISPATCH_ONCE_END_BLOCK(initOnce)
     return (const CFCharacterSetInlineBuffer *)&buffer;
 }
 
@@ -3767,13 +3754,9 @@ static inline bool __CFStringIsProfessionBaseCluster(CFStringInlineBuffer *buffe
 }
 
 static const CFCharacterSetInlineBuffer *__CFStringGetProfessionModifierBaseCharacterSet(void) {
-    static CFCharacterSetInlineBuffer buffer = NULL;
-    #if __BLOCKS__
+    static CFCharacterSetInlineBuffer buffer;
     static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-    #else
-    if (!buffer) {
-    #endif
+    DISPATCH_ONCE_BEGIN_BLOCK(initOnce)
         /* Unicode 9.0 - Supported profession modifiers */
         CFMutableCharacterSetRef cset = CFCharacterSetCreateMutable(NULL);
         CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x2695, 1)); // ⚕U+2695 STAFF OF AESCULAPIUS // Health Worker - 0x2695
@@ -3794,10 +3777,7 @@ static const CFCharacterSetInlineBuffer *__CFStringGetProfessionModifierBaseChar
         CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x2696, 1)); // ⚖️U+2696 SCALES // Judge - 0x2696
         CFCharacterSetCompact(cset);
         CFCharacterSetInitInlineBuffer(cset, &buffer);
-    }
-    #if __BLOCKS__
-    );
-    #endif
+    DISPATCH_ONCE_END_BLOCK(initOnce)
     return (const CFCharacterSetInlineBuffer *)&buffer;
 }
 

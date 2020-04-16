@@ -122,6 +122,13 @@ set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS)
 
 if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
   list(APPEND CF_WASI_UNAVAILABLE_PRIVATE_HEADERS
+    # Parsing
+    Parsing.subproj/CFXMLInputStream.h
+    # PlugIn
+    PlugIn.subproj/CFBundlePriv.h
+    PlugIn.subproj/CFBundle_BinaryTypes.h
+    PlugIn.subproj/CFBundle_Internal.h
+    PlugIn.subproj/CFPlugIn_Factory.h
     # RunLoop
     RunLoop.subproj/CFMachPort_Internal.h
     RunLoop.subproj/CFMachPort_Lifetime.h
@@ -139,6 +146,26 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     Stream.subproj/CFStreamPriv.h
     Stream.subproj/CFStream.h)
   list(APPEND CF_WASI_UNAVAILABLE_SOURCES 
+    # Base
+    Base.subproj/CFFileUtilities.c
+    # PlugIn
+    PlugIn.subproj/CFBundle_Binary.c
+    PlugIn.subproj/CFBundle.c
+    PlugIn.subproj/CFBundle_DebugStrings.c
+    PlugIn.subproj/CFBundle_Executable.c
+    PlugIn.subproj/CFBundle_Grok.c
+    PlugIn.subproj/CFBundle_InfoPlist.c
+    PlugIn.subproj/CFBundle_Locale.c
+    PlugIn.subproj/CFBundle_Main.c
+    PlugIn.subproj/CFBundle_ResourceFork.c
+    PlugIn.subproj/CFBundle_Resources.c
+    PlugIn.subproj/CFBundle_Strings.c
+    PlugIn.subproj/CFBundle_Tables.c
+    PlugIn.subproj/CFPlugIn.c
+    PlugIn.subproj/CFPlugIn_Factory.c
+    PlugIn.subproj/CFPlugIn_Instance.c
+    PlugIn.subproj/CFPlugIn_PlugIn.c
+    # RunLoop
     RunLoop.subproj/CFRunLoop.c
     RunLoop.subproj/CFSocket.c
     # Stream
@@ -184,12 +211,6 @@ add_framework(CoreFoundation
                 NumberDate.subproj/CFBigNumber.h
                 # Parsing
                 Parsing.subproj/CFPropertyList_Private.h
-                Parsing.subproj/CFXMLInputStream.h
-                # PlugIn
-                PlugIn.subproj/CFBundlePriv.h
-                PlugIn.subproj/CFBundle_BinaryTypes.h
-                PlugIn.subproj/CFBundle_Internal.h
-                PlugIn.subproj/CFPlugIn_Factory.h
                 # String
                 String.subproj/CFAttributedStringPriv.h
                 String.subproj/CFBurstTrie.h
@@ -255,8 +276,6 @@ add_framework(CoreFoundation
                 Collections.subproj/CFBinaryHeap.h
                 Collections.subproj/CFBitVector.h
                 Collections.subproj/CFData.h
-                Collections.subproj/CFDictionary.h
-                Collections.subproj/CFSet.h
                 Collections.subproj/CFTree.h
                 # Error
                 Error.subproj/CFError.h
@@ -292,7 +311,6 @@ add_framework(CoreFoundation
               SOURCES
                 # Base
                 Base.subproj/CFBase.c
-                Base.subproj/CFFileUtilities.c
                 Base.subproj/CFKnownLocations.c
                 Base.subproj/CFPlatform.c
                 Base.subproj/CFRuntime.c
@@ -338,23 +356,6 @@ add_framework(CoreFoundation
                 Parsing.subproj/CFXMLNode.c
                 Parsing.subproj/CFXMLParser.c
                 Parsing.subproj/CFXMLTree.c
-                # PlugIn
-                PlugIn.subproj/CFBundle_Binary.c
-                PlugIn.subproj/CFBundle.c
-                PlugIn.subproj/CFBundle_DebugStrings.c
-                PlugIn.subproj/CFBundle_Executable.c
-                PlugIn.subproj/CFBundle_Grok.c
-                PlugIn.subproj/CFBundle_InfoPlist.c
-                PlugIn.subproj/CFBundle_Locale.c
-                PlugIn.subproj/CFBundle_Main.c
-                PlugIn.subproj/CFBundle_ResourceFork.c
-                PlugIn.subproj/CFBundle_Resources.c
-                PlugIn.subproj/CFBundle_Strings.c
-                PlugIn.subproj/CFBundle_Tables.c
-                PlugIn.subproj/CFPlugIn.c
-                PlugIn.subproj/CFPlugIn_Factory.c
-                PlugIn.subproj/CFPlugIn_Instance.c
-                PlugIn.subproj/CFPlugIn_PlugIn.c
                 # Preferences
                 Preferences.subproj/CFApplicationPreferences.c
                 Preferences.subproj/CFPreferences.c
@@ -412,6 +413,7 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     dispatch)
 else()
   target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN)
+  target_compile_options(CoreFoundation PRIVATE -fno-blocks)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE

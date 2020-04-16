@@ -1319,7 +1319,7 @@ void OSMemoryBarrier() {}
 #pragma mark -
 #pragma mark Dispatch Replacements
 
-#if !__HAS_DISPATCH__
+#if !__HAS_DISPATCH__ && __BLOCKS__
 
 #include <semaphore.h>
 

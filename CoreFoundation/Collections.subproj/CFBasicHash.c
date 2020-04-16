@@ -941,6 +941,7 @@ CF_PRIVATE CFIndex CFBasicHashGetCountOfKey(CFConstBasicHashRef ht, uintptr_t st
     return __CFBasicHashFindBucket(ht, stack_key).count;
 }
 
+#if __BLOCKS__
 CF_PRIVATE CFIndex CFBasicHashGetCountOfValue(CFConstBasicHashRef ht, uintptr_t stack_value) {
     if (__CFBasicHashSubABZero == stack_value) {
         return 0L;
@@ -1006,6 +1007,7 @@ CF_PRIVATE void CFBasicHashApplyIndexed(CFConstBasicHashRef ht, CFRange range, B
         }
     }
 }
+#endif
 
 CF_PRIVATE void CFBasicHashGetElements(CFConstBasicHashRef ht, CFIndex bufferslen, uintptr_t *weak_values, uintptr_t *weak_keys) {
     CFIndex used = (CFIndex)ht->bits.used_buckets, cnt = (CFIndex)__CFBasicHashTableSizes[ht->bits.num_buckets_idx];
@@ -1469,6 +1471,7 @@ CF_PRIVATE size_t CFBasicHashGetSize(CFConstBasicHashRef ht, Boolean total) {
     return size;
 }
 
+#if __BLOCKS__
 CF_PRIVATE CFStringRef CFBasicHashCopyDescription(CFConstBasicHashRef ht, Boolean detailed, CFStringRef prefix, CFStringRef entryPrefix, Boolean describeElements) {
     CFMutableStringRef result = CFStringCreateMutable(kCFAllocatorSystemDefault, 0);
     CFStringAppendFormat(result, NULL, CFSTR("%@{type = %s %s%s, count = %ld,\n"), prefix, (CFBasicHashIsMutable(ht) ? "mutable" : "immutable"), ((ht->bits.counts_offset) ? "multi" : ""), ((ht->bits.keys_offset) ? "dict" : "set"), CFBasicHashGetCount(ht));
@@ -1510,6 +1513,7 @@ CF_PRIVATE CFStringRef CFBasicHashCopyDescription(CFConstBasicHashRef ht, Boolea
     CFStringAppendFormat(result, NULL, CFSTR("%@}\n"), prefix);
     return result;
 }
+#endif
 
 CF_PRIVATE void CFBasicHashShow(CFConstBasicHashRef ht) {
     CFStringRef str = CFBasicHashCopyDescription(ht, true, CFSTR(""), CFSTR("\t"), false);

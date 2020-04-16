@@ -743,7 +743,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
 // -------- -------- -------- -------- -------- -------- -------- --------
 
 
-
+#if __BLOCKS__
 static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^reallocationFailureHandler)(void *original, bool *outRecovered)) {
     bool recovered = false;
     if (reallocationFailureHandler) {
@@ -774,9 +774,7 @@ void *__CFSafelyReallocateWithAllocator(CFAllocatorRef allocator, void *destinat
     }
     return reallocated;
 }
-
-
-
+#endif
 
 CFRange __CFRangeMake(CFIndex loc, CFIndex len) {
     CFRange range;
