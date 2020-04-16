@@ -60,7 +60,7 @@ CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
 
-#if !TARGET_OS_WIN32
+#if !TARGET_OS_WIN32 && !TARGET_OS_WASI
 #include <sys/types.h>
 
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
