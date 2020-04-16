@@ -116,9 +116,9 @@ else()
   set(FRAMEWORK_LIBRARY_TYPE STATIC)
 endif()
 
-set(CF_WASI_UNAVAILABLE_SOURCES )
-set(CF_WASI_UNAVAILABLE_PRIVATE_HEADERS )
-set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS )
+set(CF_WASI_UNAVAILABLE_SOURCES)
+set(CF_WASI_UNAVAILABLE_PRIVATE_HEADERS)
+set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS)
 
 if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
   list(APPEND CF_WASI_UNAVAILABLE_PRIVATE_HEADERS
@@ -190,7 +190,6 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_BinaryTypes.h
                 PlugIn.subproj/CFBundle_Internal.h
                 PlugIn.subproj/CFPlugIn_Factory.h
-                ${CF_WASI_UNAVAILABLE_PRIVATE_HEADERS}
                 # String
                 String.subproj/CFAttributedStringPriv.h
                 String.subproj/CFBurstTrie.h
@@ -214,6 +213,8 @@ add_framework(CoreFoundation
                 URL.subproj/CFURL.inc.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
+
+                ${CF_WASI_UNAVAILABLE_PRIVATE_HEADERS}
               PUBLIC_HEADERS
                 # FIXME: PrivateHeaders referenced by public headers
                 Base.subproj/CFKnownLocations.h
@@ -390,7 +391,9 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLAccess.c
                 URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
-                URL.subproj/CFURLComponents_URIParser.c)
+                URL.subproj/CFURLComponents_URIParser.c
+                
+                ${CF_WASI_UNAVAILABLE_SOURCES})
 target_compile_definitions(CoreFoundation
                            PRIVATE
                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_BITMAP="CharacterSets/CFCharacterSetBitmaps.bitmap">

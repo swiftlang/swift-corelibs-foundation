@@ -70,6 +70,17 @@ internal func __NSDataIsCompact(_ data: NSData) -> Bool {
 internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {
   return _withStackOrHeapBuffer(size, block)
 }
+#elseif os(WASI)
+// `_withStackOrHeapBuffer` from CoreFoundation depends on BlocksRuntime, which
+// is unavailable on WASI
+@usableFromInline @discardableResult
+internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {
+    let memory = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: 1)
+    var buffer = _ConditionalAllocationBuffer(memory: memory, capacity: size, onStack: false)
+    block(&buffer)
+    memory.deallocate()
+    return true
+}
 #else
 @inlinable @inline(__always) @discardableResult
 internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {

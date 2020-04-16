@@ -469,6 +469,7 @@ static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuf
     return true;
 }
 
+#if !TARGET_OS_WASI
 static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
     _ConditionalAllocationBuffer buffer;
 #if TARGET_OS_MAC
@@ -485,6 +486,7 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
     }
     return true;
 }
+#endif
 
 #pragma mark - Character Set
 

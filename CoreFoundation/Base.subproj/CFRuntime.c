@@ -234,7 +234,7 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFMessagePort] = &__CFMessagePortClass,
 #endif
 
-
+#if !TARGET_OS_WASI
     [_kCFRuntimeIDCFRunLoopMode] = &__CFRunLoopModeClass,
     [_kCFRuntimeIDCFRunLoop] = &__CFRunLoopClass,
     [_kCFRuntimeIDCFRunLoopSource] = &__CFRunLoopSourceClass,
@@ -243,6 +243,8 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFSocket] = &__CFSocketClass,
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
+#endif
+
     [_kCFRuntimeIDCFAttributedString] = &__CFAttributedStringClass,
     [_kCFRuntimeIDCFRunArray] = &__CFRunArrayClass,
     [_kCFRuntimeIDCFCharacterSet] = &__CFCharacterSetClass,
