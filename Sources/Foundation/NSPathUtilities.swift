@@ -56,6 +56,7 @@ public func NSTemporaryDirectory() -> String {
       }
     }
 #endif
+#if !os(WASI)
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         if !validPathSeps.contains(where: { tmpdir.hasSuffix(String($0)) }) {
             return tmpdir + "/"
@@ -63,6 +64,7 @@ public func NSTemporaryDirectory() -> String {
             return tmpdir
         }
     }
+#endif
 #if os(Android)
     // Bionic uses /data/local/tmp/ as temporary directory. TMPDIR is rarely
     // defined.
@@ -187,6 +189,7 @@ extension String {
         return temp
     }
     
+#if !os(WASI)
     internal func _tryToRemovePathPrefix(_ prefix: String) -> String? {
         guard self != prefix else {
             return nil
@@ -199,6 +202,7 @@ extension String {
         
         return nil
     }
+#endif
 }
 
 extension NSString {
@@ -328,6 +332,7 @@ extension NSString {
         return result._stringByFixingSlashes()
     }
 
+#if !os(WASI)
     public var expandingTildeInPath: String {
         guard hasPrefix("~") else {
             return _swiftObject
@@ -348,6 +353,7 @@ extension NSString {
         
         return result
     }
+#endif
 
 #if os(Windows)
     public var unixPath: String {
@@ -362,6 +368,7 @@ extension NSString {
     }
 #endif
     
+#if !os(WASI)
     public var standardizingPath: String {
 #if os(Windows)
         let expanded = unixPath.expandingTildeInPath
@@ -409,6 +416,7 @@ extension NSString {
         
         return resolvedPath
     }
+#endif
     
     public func stringsByAppendingPaths(_ paths: [String]) -> [String] {
         if self == "" {
@@ -417,6 +425,7 @@ extension NSString {
         return paths.map(appendingPathComponent)
     }
     
+#if !os(WASI)
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePath(into outputName: inout String?, caseSensitive flag: Bool, matchesInto outputArray: inout [String], filterTypes: [String]?) -> Int {
@@ -519,6 +528,7 @@ extension NSString {
             return { $0.lowercased().hasPrefix(prefix) }
         }
     }
+#endif
     
     internal func _longestCommonPrefix(_ strings: [String], caseSensitive: Bool) -> String? {
         guard !strings.isEmpty else {
@@ -566,9 +576,11 @@ extension NSString {
         return path + "/"
     }
     
+#if !os(WASI)
     public var fileSystemRepresentation: UnsafePointer<Int8> {
         return FileManager.default.fileSystemRepresentation(withPath: self._swiftObject)
     }
+#endif
 
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {
 #if os(Windows)

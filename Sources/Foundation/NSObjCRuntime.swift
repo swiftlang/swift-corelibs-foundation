@@ -261,10 +261,6 @@ internal let _NSClassesRenamedByObjCAPINotesInNetworkingOrXML: [(swiftName: Stri
 
 internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: String)] = {
     var map: [(AnyClass, String)] = [
-        (ProcessInfo.self, "NSProcessInfo"),
-        (Port.self, "NSPort"),
-        (PortMessage.self, "NSPortMessage"),
-        (SocketPort.self, "NSSocketPort"),
         (ByteCountFormatter.self, "NSByteCountFormatter"),
         (DateFormatter.self, "NSDateFormatter"),
         (DateIntervalFormatter.self, "NSDateIntervalFormatter"),
@@ -321,6 +317,10 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (OperationQueue.self, "NSOperationQueue"),
         (OutputStream.self, "NSOutputStream"),
         (Pipe.self, "NSPipe"),
+        (Port.self, "NSPort"),
+        (PortMessage.self, "NSPortMessage"),
+        (SocketPort.self, "NSSocketPort"),
+        (ProcessInfo.self, "NSProcessInfo"),
         (Progress.self, "NSProgress"),
         (RunLoop.self, "NSRunLoop"),
         (Stream.self, "NSStream"),

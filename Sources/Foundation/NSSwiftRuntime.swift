@@ -308,6 +308,7 @@ internal func __CFInitializeSwift() {
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
     
+#if !os(WASI)
     __CFSwiftBridge.NSURL.copyResourcePropertyForKey = _CFSwiftURLCopyResourcePropertyForKey
     __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys = _CFSwiftURLCopyResourcePropertiesForKeys
     __CFSwiftBridge.NSURL.setResourcePropertyForKey = _CFSwiftURLSetResourcePropertyForKey
@@ -316,6 +317,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSURL.clearResourcePropertyCache = _CFSwiftURLClearResourcePropertyCache
     __CFSwiftBridge.NSURL.setTemporaryResourceValueForKey = _CFSwiftSetTemporaryResourceValueForKey
     __CFSwiftBridge.NSURL.resourceIsReachable = _CFSwiftURLResourceIsReachable
+#endif
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
