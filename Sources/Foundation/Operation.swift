@@ -125,7 +125,7 @@ open class Operation : NSObject {
     internal var _queue: OperationQueue? {
         _lock()
         defer { _unlock() }
-        return __queue?.takeRetainedValue()
+        return __queue?.takeUnretainedValue()
     }
     
     internal func _adopt(queue: OperationQueue, schedule: DispatchWorkItem) {
@@ -230,7 +230,7 @@ open class Operation : NSObject {
         let kind: Transition?
         if keyPath == _NSOperationIsFinished || keyPath == _NSOperationIsFinishedAlternate {
             kind = .toFinished
-        } else if keyPath == _NSOperationIsExecuting || keyPath == _NSOperationIsReadyAlternate {
+        } else if keyPath == _NSOperationIsExecuting || keyPath == _NSOperationIsExecutingAlternate {
             kind = .toExecuting
         } else if keyPath == _NSOperationIsReady || keyPath == _NSOperationIsReadyAlternate {
             kind = .toReady
@@ -474,7 +474,7 @@ open class Operation : NSObject {
     
     internal func changePriority(_ newPri: Operation.QueuePriority.RawValue) {
         _lock()
-        guard let oq = __queue?.takeRetainedValue() else {
+        guard let oq = __queue?.takeUnretainedValue() else {
             __priorityValue = newPri
             _unlock()
             return
@@ -963,6 +963,11 @@ open class OperationQueue : NSObject, ProgressReporting {
         OperationQueue._currentQueue.set(self)
         op.start()
         OperationQueue._currentQueue.clear()
+        // We've just cleared _currentQueue storage.
+        // NSThreadSpecific doesn't release stored value on clear.
+        // This means `self` will leak if we don't release manually.
+        Unmanaged.passUnretained(self).release()
+        
         // unset current tsd
         if op.isFinished && op._state.rawValue < Operation.__NSOperationState.finishing.rawValue {
             Operation.observeValue(forKeyPath: _NSOperationIsFinished, ofObject: op)
