@@ -114,9 +114,7 @@ CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if TARGET_OS_MAC
-    strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
 #elif TARGET_OS_WIN32
     wchar_t frameworkPath[MAXPATHLEN];
