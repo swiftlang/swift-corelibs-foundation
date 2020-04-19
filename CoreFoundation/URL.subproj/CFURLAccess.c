@@ -24,13 +24,15 @@ CFData read/write routines
 #include <CoreFoundation/CFNumber.h>
 #include <string.h>
 #include <ctype.h>
-#if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <stdlib.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if !TARGET_OS_WASI
 #include <pwd.h>
+#endif
 #include <fcntl.h>
 #elif TARGET_OS_WIN32
 #include <io.h>
@@ -233,7 +235,7 @@ static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef
                 CFNumberRef modeNum = (CFNumberRef)value;
                 CFNumberGetValue(modeNum, kCFNumberSInt32Type, &mode);
             } else {
-#if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #define MODE_TYPE mode_t
 #elif TARGET_OS_WIN32
 #define MODE_TYPE uint16_t

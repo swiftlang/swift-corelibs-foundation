@@ -140,6 +140,7 @@ open class NSKeyedArchiver : NSCoder {
         return data._swiftObject
     }
     
+#if !os(WASI)
     /// Archives an object graph rooted at a given object by encoding it into a data object
     /// then atomically writes the resulting data object to a file at a given path,
     /// and returns a Boolean value that indicates whether the operation was successful.
@@ -184,7 +185,8 @@ open class NSKeyedArchiver : NSCoder {
         
         return finishedEncoding
     }
-    
+#endif    
+
     public convenience init(requiringSecureCoding: Bool) {
         self.init(output: NSMutableData())
         self.requiresSecureCoding = requiringSecureCoding
@@ -223,8 +225,13 @@ open class NSKeyedArchiver : NSCoder {
                 success = true
             }
         } else {
+#if !os(WASI)
             let stream = self._stream as! CFWriteStream
             success = CFPropertyListWrite(plist, stream, kCFPropertyListXMLFormat_v1_0, 0, nil) > 0
+#else
+            assertionFailure("\(#function) only supports data streams on WASI")
+            return false
+#endif
         }
         
         return success

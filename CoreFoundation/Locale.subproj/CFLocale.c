@@ -20,7 +20,11 @@
 #include <CoreFoundation/CFNumber.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
+#if !TARGET_OS_WASI
 #include "CFBundle_Internal.h"
+#else
+#include "CFBase.h"
+#endif
 #include "CFLocaleInternal.h"
 #include <stdatomic.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
@@ -243,7 +247,7 @@ const CFRuntimeClass __CFLocaleClass = {
 
 CFTypeID CFLocaleGetTypeID(void) {
     static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
+    DISPATCH_ONCE_BEGIN_BLOCK(initOnce)
         for (CFIndex idx = 0; idx < __kCFLocaleKeyTableCount; idx++) {
             // table fixup to workaround compiler/language limitations
             __CFLocaleKeyTable[idx].key = *((CFStringRef *)__CFLocaleKeyTable[idx].key);
@@ -251,7 +255,7 @@ CFTypeID CFLocaleGetTypeID(void) {
                 __CFLocaleKeyTable[idx].context = *((CFStringRef *)__CFLocaleKeyTable[idx].context);
             }
         }
-    });
+    DISPATCH_ONCE_END_BLOCK(initOnce)
     return _kCFRuntimeIDCFLocale;
 }
 

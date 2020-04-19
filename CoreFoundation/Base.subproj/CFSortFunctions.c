@@ -65,6 +65,8 @@ enum {
 typedef CFIndex VALUE_TYPE;
 typedef CFIndex INDEX_TYPE;
 typedef CFComparisonResult CMP_RESULT_TYPE;
+
+#if __BLOCKS__
 typedef CMP_RESULT_TYPE (^COMPARATOR_BLOCK)(VALUE_TYPE, VALUE_TYPE);
 
 /*
@@ -455,5 +457,4 @@ void CFMergeSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparat
     if (locals != store) free(store);
     if (locali != indexes) free(indexes);
 }
-
-
+#endif

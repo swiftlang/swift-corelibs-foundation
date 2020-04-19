@@ -283,9 +283,11 @@ extension NSTimeZone {
 
 }
 
+#if !os(WASI)
 extension NSNotification.Name {
     public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: kCFTimeZoneSystemTimeZoneDidChangeNotification._swiftObject)
 }
+#endif
 
 internal class __NSLocalTimeZone: NSTimeZone {
     static var shared = __NSLocalTimeZone()

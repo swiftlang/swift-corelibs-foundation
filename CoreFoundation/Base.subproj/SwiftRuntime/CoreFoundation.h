@@ -31,7 +31,9 @@
 #include <limits.h>
 #include <locale.h>
 #include <math.h>
+#if !defined(__wasi__)
 #include <setjmp.h>
+#endif
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -43,7 +45,7 @@
 #include <netdb.h> // for Host.swift
 #endif
 
-#if __has_include(<ifaddrs.h>)
+#if __has_include(<ifaddrs.h>) && !defined(__wasi__)
 #include <ifaddrs.h> // for Host.swift
 #endif
 
@@ -84,14 +86,16 @@
 #include <CoreFoundation/CFURLAccess.h>
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFUtilities.h>
-#include <CoreFoundation/CFBundle.h>
 
-#include <CoreFoundation/CFMessagePort.h>
+#if !TARGET_OS_WASI
+#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFPlugIn.h>
+#include <CoreFoundation/CFMessagePort.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFMachPort.h>
+#endif
 
 #include <CoreFoundation/CFAttributedString.h>
 #include <CoreFoundation/CFNotificationCenter.h>

@@ -30,7 +30,10 @@ endif()
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
-find_package(dispatch CONFIG REQUIRED)
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  find_package(dispatch CONFIG REQUIRED)
+endif()
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -63,10 +66,16 @@ if(ENABLE_TESTING)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-  set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
-    CoreFoundation CFXMLInterface CFURLSessionInterface)
-  install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
-    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+      CoreFoundation CFXMLInterface CFURLSessionInterface)
+    install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
+      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  else()
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation)
+    install(TARGETS CoreFoundation
+      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  endif()
 endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
