@@ -1390,8 +1390,22 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 extern void swift_retain(void *);
 extern void swift_release(void *);
 
+#if TARGET_OS_WIN32
+typedef struct _CFThreadSpecificData {
+    CFTypeRef value;
+    _CFThreadSpecificKey key;
+} _CFThreadSpecificData;
+#endif
+
 static void _CFThreadSpecificDestructor(void *ctx) {
+#if TARGET_OS_WIN32
+    _CFThreadSpecificData *data = (_CFThreadSpecificData *)ctx;
+    FlsSetValue(data->key, NULL);
+    swift_release(data->value);
+    free(data);
+#else
     swift_release(ctx);
+#endif
 }
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
@@ -1406,18 +1420,36 @@ _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
 #if TARGET_OS_WIN32
-  return (CFTypeRef)FlsGetValue(key);
+    _CFThreadSpecificData *data = (_CFThreadSpecificData *)FlsGetValue(key);
+    if (data == NULL) {
+        return NULL;
+    }
+    return data->value;
 #else
     return (CFTypeRef)pthread_getspecific(key);
 #endif
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+    // Intentionally not calling `swift_release` for previous value.
+    // OperationQueue uses these API (through NSThreadSpecific), and balances
+    // retain count manually.
 #if TARGET_OS_WIN32
+    free(FlsGetValue(key));
+
+    _CFThreadSpecificData *data = NULL;
     if (value != NULL) {
+        data = malloc(sizeof(_CFThreadSpecificData));
+        if (!data) {
+            HALT_MSG("Out of memory");
+        }
+        data->value = value;
+        data->key = key;
+
         swift_retain((void *)value);
     }
-    FlsSetValue(key, value);
+
+    FlsSetValue(key, data);
 #else
     if (value != NULL) {
         swift_retain((void *)value);
