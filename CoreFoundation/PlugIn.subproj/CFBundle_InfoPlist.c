@@ -17,7 +17,7 @@
 
 #if (TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD) && !TARGET_OS_CYGWIN
 #include <dirent.h>
-#if !TARGET_OS_ANDROID
+#if TARGET_OS_MAC || TARGET_OS_BSD
 #include <sys/sysctl.h>
 #endif
 #include <sys/mman.h>
