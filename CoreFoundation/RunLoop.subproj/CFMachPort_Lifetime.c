@@ -1,6 +1,6 @@
 /* 
     CFMachPort_Lifetime.h
-    Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+    Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
     All of the functions in this file exist to orchestrate the exact time/circumstances we decrement the port references.
  */
@@ -112,7 +112,7 @@ static void _cfmp_deallocation_record_release(CFAllocatorRef const allocator, vo
     if (!pr->inSet) {
         _cfmp_log_failure("Freeing a record not in the set", pr, pr->client, pr->port);
     }
-    free((_cfmp_deallocation_record *)value);
+    free(pr);
 }
 static CFStringRef _cfmp_copy_description(const void *value) {
     CFStringRef s = CFSTR("{null}");
@@ -161,8 +161,7 @@ CF_PRIVATE void _cfmp_cleanup(_cfmp_deallocation_record const R) {
 /// Records that a given mach_port has been deallocated.
 void _cfmp_record_deallocation(_CFMPLifetimeClient const client, mach_port_t const port, Boolean const doSend, Boolean const doReceive) {
     if (port == MACH_PORT_NULL) { return; }
-    if (doSend == false && doReceive == false) { return; }
-    
+
     // now that we know we're not a no-op, look for an existing deallocation record
     CFMutableSetRef records = _cfmp_records();
 
@@ -208,8 +207,14 @@ void _cfmp_record_intent_to_invalidate(_CFMPLifetimeClient const client, mach_po
     
     CFMutableSetRef const records = _cfmp_records();
     os_unfair_lock_lock(&_cfmp_records_lock);
-    CFSetAddValue(records, pr);
-    os_unfair_lock_unlock(&_cfmp_records_lock);
+    if (CFSetGetValue(records, pr) != NULL) {
+        // since we calloc before we insert; we check to make sure records doesn't already have an entry for this port
+        os_unfair_lock_unlock(&_cfmp_records_lock);
+        free(pr);
+    } else {
+        CFSetAddValue(records, pr);
+        os_unfair_lock_unlock(&_cfmp_records_lock);
+    }
 }
 
 void _cfmp_source_invalidated(_CFMPLifetimeClient const client, mach_port_t port) {

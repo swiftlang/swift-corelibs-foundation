@@ -1,7 +1,7 @@
 /*	CFPlatform.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -21,6 +21,9 @@
     #include <crt_externs.h>
     #include <mach-o/dyld.h>
 #endif
+
+#define _CFEmitInternalDiagnostics 0
+
 
 #if TARGET_OS_WIN32
 #include <shellapi.h>
@@ -152,13 +155,17 @@ const char *_CFProcessPath(void) {
 	}
     }
 #endif
-    uint32_t size = CFMaxPathSize;
-    char buffer[size];
-    if (0 == _NSGetExecutablePath(buffer, &size)) {
-	__CFProcessPath = strdup(buffer);
-	__CFprogname = strrchr(__CFProcessPath, PATH_SEP);
-	__CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
+
+    {
+        uint32_t size = CFMaxPathSize;
+        char buffer[size];
+        if (0 == _NSGetExecutablePath(buffer, &size)) {
+            __CFProcessPath = strdup(buffer);
+            __CFprogname = strrchr(__CFProcessPath, PATH_SEP);
+            __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
+        }
     }
+
     if (!__CFProcessPath) {
 	__CFProcessPath = "";
         __CFprogname = __CFProcessPath;
@@ -220,27 +227,85 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
 // Set the fallBackToHome parameter to true if we should fall back to the HOME environment variable if all else fails. Otherwise return NULL.
 static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHome) {
     const char *fixedHomePath = issetugid() ? NULL : __CFgetenv("CFFIXED_USER_HOME");
-    const char *homePath = NULL;
+    
+    __block CFMutableStringRef errorMessage = NULL;
+    void (^prepareErrorMessage)(void) = ^{
+        if (!errorMessage) {
+            errorMessage = CFStringCreateMutable(NULL, 0);
+        } else {
+            CFStringAppend(errorMessage, CFSTR("\n"));
+        }
+    };
     
     // Calculate the home directory we will use
     // First try CFFIXED_USER_HOME (only if not setugid), then fall back to the upwd, then fall back to HOME environment variable
     CFURLRef home = NULL;
-    if (!issetugid() && fixedHomePath) home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)fixedHomePath, strlen(fixedHomePath), true);
+    if (!issetugid() && fixedHomePath) {
+        home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)fixedHomePath, strlen(fixedHomePath), true);
+        if (!home) {
+            prepareErrorMessage();
+            if (_CFEmitInternalDiagnostics) {
+                CFStringAppendFormat(errorMessage, NULL, CFSTR("CFURLCreateFromFileSystemRepresentation failed to create URL for CFFIXED_USER_HOME value: %s"), fixedHomePath);
+            } else {
+                CFStringAppend(errorMessage, CFSTR("CFURLCreateFromFileSystemRepresentation failed to create URL for CFFIXED_USER_HOME value"));
+            }
+        }
+    }
     if (!home) {
         struct passwd *upwd = NULL;
         if (username) {
+            errno = 0;
             upwd = getpwnam(username);
         } else {
             uid_t euid;
             __CFGetUGIDs(&euid, NULL);
+            
+            errno = 0;
             upwd = getpwuid(euid ?: getuid());
         }
-        if (upwd && upwd->pw_dir) {
-            home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)upwd->pw_dir, strlen(upwd->pw_dir), true);
+        if (upwd) {
+            if (upwd->pw_dir) {
+                home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)upwd->pw_dir, strlen(upwd->pw_dir), true);
+            }
+            if (!home && !username) {
+                prepareErrorMessage();
+                if (!upwd->pw_dir) {
+                    CFStringAppend(errorMessage, CFSTR("upwd->pw_dir is NULL"));
+                } else if (_CFEmitInternalDiagnostics) {
+                    CFStringAppendFormat(errorMessage, NULL, CFSTR("CFURLCreateFromFileSystemRepresentation failed to create URL for upwd->pw_dir value: %s"), upwd->pw_dir);
+                } else {
+                    CFStringAppend(errorMessage, CFSTR("CFURLCreateFromFileSystemRepresentation failed to create URL for upwd->pw_dir value"));
+                }
+            }
+        } else if (!username) {
+            int const savederrno = errno;
+            prepareErrorMessage();
+            CFStringAppendFormat(errorMessage, NULL, CFSTR("getpwuid failed with code: %d"), savederrno);
         }
     }
-    if (fallBackToHome && !home) homePath = __CFgetenv("HOME");
-    if (fallBackToHome && !home && homePath) home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)homePath, strlen(homePath), true);
+    if (fallBackToHome && !home) {
+        const char *homePath = __CFgetenv("HOME");
+        if (homePath) {
+            home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)homePath, strlen(homePath), true);
+            if (!home) {
+                prepareErrorMessage();
+                if (_CFEmitInternalDiagnostics) {
+                    CFStringAppendFormat(errorMessage, NULL, CFSTR("CFURLCreateFromFileSystemRepresentation failed to create URL for HOME value: %s"), homePath);
+                } else {
+                    CFStringAppend(errorMessage, CFSTR("CFURLCreateFromFileSystemRepresentation failed to create URL for HOME value"));
+                }
+            }
+        }
+    }
+    
+    if (errorMessage) {
+        if (!home) {
+            os_log_error(_CFOSLog(), "_CFCopyHomeDirURLForUser failed to create a proper home directory. Falling back to /var/empty. Error(s):\n%{public}@", errorMessage);
+            const char *_var_empty = "/var/empty";
+            home = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (const UInt8 *)_var_empty, strlen(_var_empty), true);
+        }
+        CFRelease(errorMessage);
+    }
     
     return home;
 }
@@ -262,7 +327,7 @@ CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
 /* These are sanitized versions of the above functions. We might want to eliminate the above ones someday.
    These can return NULL.
 */
-CF_EXPORT CFStringRef CFGetUserName(void) {
+CF_EXPORT CFStringRef CFGetUserName(void) CF_RETURNS_RETAINED {
     return CFCopyUserName();
 }
 
@@ -640,7 +705,8 @@ static void *__CFTSDGetSpecific() {
 _Atomic(bool) __CFMainThreadHasExited = false;
 
 static void __CFTSDFinalize(void *arg) {
-    if (pthread_main_np()) {
+    if (pthread_main_np() == 1) {
+        // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
         __CFMainThreadHasExited = true;
     }
     
@@ -707,7 +773,7 @@ static __CFTSDTable *__CFTSDGetTable(const Boolean create) {
 
 
 // For the use of CF and Foundation only
-CF_EXPORT void *_CFGetTSDCreateIfNeeded(const uint32_t slot, const Boolean create) {
+CF_EXPORT void *_CFGetTSDCreateIfNeeded(const uint32_t slot, const Boolean create) CF_RETURNS_NOT_RETAINED {
     if (slot >= CF_TSD_MAX_SLOTS) {
         _CFLogSimple(kCFLogLevelError, "Error: TSD slot %d out of range (get)", slot);
         HALT;
@@ -1213,6 +1279,10 @@ int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue ) {
     return __sync_fetch_and_add(theValue, theAmount) + theAmount;
 }
 
+int64_t OSAtomicAdd64( int64_t theAmount, volatile int64_t *theValue ) {
+    return __sync_fetch_and_add(theValue, theAmount) + theAmount;
+}
+
 bool OSAtomicCompareAndSwap32Barrier(int32_t oldValue, int32_t newValue, volatile int32_t *theValue) {
     return __sync_bool_compare_and_swap(theValue, oldValue, newValue);
 }
@@ -1390,22 +1460,8 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 extern void swift_retain(void *);
 extern void swift_release(void *);
 
-#if TARGET_OS_WIN32
-typedef struct _CFThreadSpecificData {
-    CFTypeRef value;
-    _CFThreadSpecificKey key;
-} _CFThreadSpecificData;
-#endif
-
 static void _CFThreadSpecificDestructor(void *ctx) {
-#if TARGET_OS_WIN32
-    _CFThreadSpecificData *data = (_CFThreadSpecificData *)ctx;
-    FlsSetValue(data->key, NULL);
-    swift_release(data->value);
-    free(data);
-#else
     swift_release(ctx);
-#endif
 }
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
@@ -1420,36 +1476,18 @@ _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
 #if TARGET_OS_WIN32
-    _CFThreadSpecificData *data = (_CFThreadSpecificData *)FlsGetValue(key);
-    if (data == NULL) {
-        return NULL;
-    }
-    return data->value;
+  return (CFTypeRef)FlsGetValue(key);
 #else
     return (CFTypeRef)pthread_getspecific(key);
 #endif
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
-    // Intentionally not calling `swift_release` for previous value.
-    // OperationQueue uses these API (through NSThreadSpecific), and balances
-    // retain count manually.
 #if TARGET_OS_WIN32
-    free(FlsGetValue(key));
-
-    _CFThreadSpecificData *data = NULL;
     if (value != NULL) {
-        data = malloc(sizeof(_CFThreadSpecificData));
-        if (!data) {
-            HALT_MSG("Out of memory");
-        }
-        data->value = value;
-        data->key = key;
-
         swift_retain((void *)value);
     }
-
-    FlsSetValue(key, data);
+    FlsSetValue(key, value);
 #else
     if (value != NULL) {
         swift_retain((void *)value);

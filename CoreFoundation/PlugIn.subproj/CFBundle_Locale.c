@@ -1,7 +1,7 @@
 /*      CFBundle_Locale.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -16,9 +16,8 @@
 
 #if __HAS_APPLE_ICU__
 #include <unicode/ualoc.h>
-#else
-#include <unicode/uloc.h>
 #endif
+#include <unicode/uloc.h>
 #include <ctype.h>
 
 static CFStringRef _CFBundleCopyLanguageFoundInLocalizations(CFArrayRef localizations, CFStringRef language);
@@ -300,6 +299,7 @@ CF_EXPORT Boolean CFBundleGetLocalizationInfoForLocalization(CFStringRef localiz
         }
         if (!languages) languages = _CFBundleCopyUserLanguages();
         if (languages && CFArrayGetCount(languages) > 0) localizationName = (CFStringRef)CFArrayGetValueAtIndex(languages, 0);
+        if (languages) CFRelease(languages);
     }
     if (localizationName) {
         LangCode langCode = -1;
@@ -489,7 +489,7 @@ CF_EXPORT CFArrayRef CFBundleCopyBundleLocalizations(CFBundleRef bundle) {
     
     // Cache the result.
     __CFLock(&bundle->_lock);
-    if (bundle->_lookedForLocalizations && result) {
+    if (bundle->_lookedForLocalizations) {
         // Another thread beat us to it. Release our result and return the existing answer.
         CFRelease(result);
         result = (CFArrayRef)CFRetain(bundle->_localizations);
@@ -531,10 +531,22 @@ CF_EXPORT CFArrayRef CFBundleCopyLocalizationsForURL(CFURLRef url) {
 
 
 
+static CFArrayRef _CFBundleUserLanguages = NULL;
+static os_unfair_lock _CFBundleUserLanguagesLock = OS_UNFAIR_LOCK_INIT;
+
+CF_PRIVATE void _CFBundleFlushUserLanguagesCache() {
+    os_unfair_lock_lock(&_CFBundleUserLanguagesLock);
+    if (_CFBundleUserLanguages) {
+        CFRelease(_CFBundleUserLanguages);
+        _CFBundleUserLanguages = NULL;
+    }
+    os_unfair_lock_unlock(&_CFBundleUserLanguagesLock);
+}
+
 CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages() {
-    static CFArrayRef _CFBundleUserLanguages = NULL;
-    static dispatch_once_t once = 0;
-    dispatch_once(&once, ^{
+    os_unfair_lock_lock(&_CFBundleUserLanguagesLock);
+    
+    if (_CFBundleUserLanguages == NULL) {
         CFArrayRef preferencesArray = NULL;
         if (__CFAppleLanguages) {
             CFDataRef data;
@@ -559,15 +571,18 @@ CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages() {
             _CFBundleUserLanguages = NULL;
         }
         if (preferencesArray) CFRelease(preferencesArray);
-    });
-    
-    if (_CFBundleUserLanguages) {
-        CFRetain(_CFBundleUserLanguages);
-        return _CFBundleUserLanguages;
-    } else {
-        return NULL;
     }
+    
+    
+    CFArrayRef result = NULL;
+    if (_CFBundleUserLanguages) {
+        result = CFRetain(_CFBundleUserLanguages);
+    }
+    os_unfair_lock_unlock(&_CFBundleUserLanguagesLock);
+    
+    return result;
 }
+
 
 CF_EXPORT void _CFBundleGetLanguageAndRegionCodes(SInt32 *languageCode, SInt32 *regionCode) {
     // an attempt to answer the question, "what language are we running in?"
@@ -678,7 +693,7 @@ static CFMutableArrayRef _CFBundleCreateMutableArrayOfFallbackLanguages(CFArrayR
         CFIndex listCount = CFArrayGetCount(list);
         if (listCount == 0) return (char *)NULL;
         
-        size_t bufferSize = listCount * sizeof(char) * (UALANGDATA_CODELEN + 1); // entries are only allowed to be UALANGDATA_CODELEN long, and we null terminate each one
+        size_t bufferSize = listCount * sizeof(char) * ULOC_FULLNAME_CAPACITY; // entries are only allowed to be ULOC_FULLNAME_CAPACITY long with terminating null.
         char *stringBuffer = malloc(bufferSize);
         if (!stringBuffer) return (char *)NULL;
         
@@ -691,7 +706,7 @@ static CFMutableArrayRef _CFBundleCreateMutableArrayOfFallbackLanguages(CFArrayR
             
             // The max size available is -1 because we need to reserve space for the last NULL byte.
             CFIndex theLocalizationLength = CFStringGetLength(theLocalization);
-            CFIndex charactersConverted = CFStringGetBytes(theLocalization, CFRangeMake(0, theLocalizationLength), kCFStringEncodingUTF8, 0, false, (UInt8 *)strings, last - strings - 1, &usedLength);
+            CFIndex charactersConverted = CFStringGetBytes(theLocalization, CFRangeMake(0, MIN(theLocalizationLength, ULOC_FULLNAME_CAPACITY - 1)), kCFStringEncodingASCII, 0, false, (UInt8 *)strings, last - strings - 1, &usedLength);
             if (charactersConverted == theLocalizationLength) {
                 stringPointers[i] = strings;
                 

@@ -1,7 +1,7 @@
 /*	CFStringEncodingConverter.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -607,6 +607,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 #warning This case must match __defaultEncoding value defined in CFString.c
 	case kCFStringEncodingISOLatin1: commonConverterSlot = (const _CFEncodingConverter **)(&(commonConverters[1])); break;
 #endif
+        case kCFStringEncodingInvalidId: return NULL;
 
 	default: if (CFStringGetSystemEncoding() == encoding) commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[2]); break;
     }

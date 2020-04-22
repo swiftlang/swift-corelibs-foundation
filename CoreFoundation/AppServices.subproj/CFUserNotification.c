@@ -1,7 +1,7 @@
 /*	CFUserNotification.c
-	Copyright (c) 2000-2018, Apple Inc.  All rights reserved.
+	Copyright (c) 2000-2019, Apple Inc.  All rights reserved.
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -131,7 +131,7 @@ static void _CFUserNotificationAddToDictionary(const void *key, const void *valu
     if (CFGetTypeID(key) == CFStringGetTypeID()) CFDictionarySetValue((CFMutableDictionaryRef)context, key, value);
 }
 
-static CFDictionaryRef _CFUserNotificationModifiedDictionary(CFAllocatorRef allocator, CFDictionaryRef dictionary, SInt32 token, SInt32 timeout, CFStringRef source) {
+static CFDictionaryRef _CFUserNotificationCreateModifiedDictionary(CFAllocatorRef allocator, CFDictionaryRef dictionary, SInt32 token, SInt32 timeout, CFStringRef source) {
     CFMutableDictionaryRef md = CFDictionaryCreateMutable(allocator, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     CFNumberRef tokenNumber = CFNumberCreate(allocator, kCFNumberSInt32Type, &token);
     CFNumberRef timeoutNumber = CFNumberCreate(allocator, kCFNumberSInt32Type, &timeout);
@@ -207,7 +207,7 @@ static SInt32 _CFUserNotificationSendRequest(CFAllocatorRef allocator, CFStringR
 
     retval = task_get_bootstrap_port(mach_task_self(), &bootstrapPort);
     if (ERR_SUCCESS == retval && MACH_PORT_NULL != serverPort) {
-        modifiedDictionary = _CFUserNotificationModifiedDictionary(allocator, dictionary, token, itimeout, _CFProcessNameString());
+        modifiedDictionary = _CFUserNotificationCreateModifiedDictionary(allocator, dictionary, token, itimeout, _CFProcessNameString());
         if (modifiedDictionary) {
             data = CFPropertyListCreateData(allocator, modifiedDictionary, kCFPropertyListXMLFormat_v1_0, 0, NULL);
             if (data) {
@@ -265,11 +265,6 @@ CFUserNotificationRef CFUserNotificationCreate(CFAllocatorRef allocator, CFTimeI
             userNotification->_token = token;
             userNotification->_timeout = timeout;
             userNotification->_requestFlags = flags;
-            userNotification->_responseFlags = 0;
-            userNotification->_sessionID = NULL;
-            userNotification->_responseDictionary = NULL;
-            userNotification->_machPort = NULL;
-            userNotification->_callout = NULL;
             if (sessionID) userNotification->_sessionID = CFStringCreateCopy(allocator, sessionID);
         } else {
             retval = unix_err(ENOMEM);

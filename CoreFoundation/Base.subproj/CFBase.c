@@ -1,11 +1,11 @@
 /*	CFBase.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Michael LeHew
 */
 
 #include <CoreFoundation/CFBase.h>
@@ -229,7 +229,13 @@ static const struct malloc_introspection_t __CFAllocatorNullZoneIntrospect = {
 
 static void *__CFAllocatorSystemAllocate(CFIndex size, CFOptionFlags hint, void *info) {
     malloc_zone_t * const zone = (info == &__MallocDefaultZoneInfoPlaceholder) ? malloc_default_zone() : (malloc_zone_t *)info;
-    return malloc_zone_malloc(zone, size);
+    void *result = NULL;
+    if (hint == _CFAllocatorHintZeroWhenAllocating) {
+        result = malloc_zone_calloc(zone, 1, size);
+    } else {
+        result = malloc_zone_malloc(zone, size);
+    }
+    return result;
 }
 
 static void *__CFAllocatorSystemReallocate(void *ptr, CFIndex newsize, CFOptionFlags hint, void *info) {
@@ -249,7 +255,11 @@ static void __CFAllocatorSystemDeallocate(void *ptr, void *info) {
 #else
 
 static void *__CFAllocatorSystemAllocate(CFIndex size, CFOptionFlags hint, void *info) {
-    return malloc(size);
+    if (hint == _CFAllocatorHintZeroWhenAllocating) {
+        return calloc(1, size);
+    } else {
+        return malloc(size);
+    }
 }
 
 static void *__CFAllocatorSystemReallocate(void *ptr, CFIndex newsize, CFOptionFlags hint, void *info) {
@@ -459,6 +469,8 @@ CFAllocatorRef CFAllocatorGetDefault(void) {
 }
 
 void CFAllocatorSetDefault(CFAllocatorRef allocator) {
+#ifndef __clang_analyzer__
+    // clang doesn't like complexity of staticly laid out instances like the black magic we do here and  __CFGetDefaultAllocator
     CFAllocatorRef current = __CFGetDefaultAllocator();
 #if defined(DEBUG) 
     if (NULL != allocator) {
@@ -478,6 +490,7 @@ void CFAllocatorSetDefault(CFAllocatorRef allocator) {
 	CFRetain(allocator);
         _CFSetTSD(__CFTSDKeyAllocator, (void *)allocator, NULL);
     }
+#endif
 }
 
 #if DEPLOYMENT_RUNTIME_SWIFT
@@ -582,7 +595,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     if (0 == size) return NULL;
-#if TARGET_OS_OSX || TARGET_IOS_IPHONE
+#if TARGET_OS_MAC
     if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_malloc((malloc_zone_t *)allocator, size);
     }
@@ -743,16 +756,17 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
 // -------- -------- -------- -------- -------- -------- -------- --------
 
 
-
-static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^reallocationFailureHandler)(void *original, bool *outRecovered)) {
+// Technically this function can return, but for analyzer purposes it's enough to claim it doesn't.
+__attribute__((cold))
+static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^reallocationFailureHandler)(void *original, bool *outRecovered)) CLANG_ANALYZER_NORETURN {
     bool recovered = false;
     if (reallocationFailureHandler) {
         reallocationFailureHandler(ptr, &recovered);
     }
     
     if (!recovered) {
-            CRSetCrashLogMessage("Failed to grow buffer");
-            HALT;
+        CRSetCrashLogMessage("Failed to grow buffer");
+        HALT;
     }
 }
 
@@ -772,10 +786,12 @@ void *__CFSafelyReallocateWithAllocator(CFAllocatorRef allocator, void *destinat
     if (__builtin_expect(reallocated == NULL, false) && !(destination == NULL && newCapacity == 0)) {
         __CFReallocationFailed(destination,  CFSTR("realloc"), reallocationFailureHandler);
     }
-    return reallocated;
+    return _CLANG_ANALYZER_IGNORE_NONNULL(reallocated);;
 }
 
-
+Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef allocator) {
+    return allocator == kCFAllocatorSystemDefault || allocator == kCFAllocatorMallocZone;
+}
 
 
 CFRange __CFRangeMake(CFIndex loc, CFIndex len) {

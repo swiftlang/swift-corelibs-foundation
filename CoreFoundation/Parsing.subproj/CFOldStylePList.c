@@ -1,7 +1,7 @@
 /*	CFOldStylePList.c
- Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+ Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
- Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+ Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
  Licensed under Apache License v2.0 with Runtime Library Exception
  See http://swift.org/LICENSE.txt for license information
  See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -37,11 +37,18 @@ typedef struct {
     CFMutableSetRef stringSet;  // set of all strings involved in this parse; allows us to share non-mutable strings in the returned plist
 } _CFStringsFileParseInfo;
 
-static void parseInfo_setError(_CFStringsFileParseInfo *const pInfo, CFErrorRef const error) {
+static void parseInfo_setError(_CFStringsFileParseInfo *const pInfo, CFErrorRef _Nonnull const CF_RELEASES_ARGUMENT error) {
     CFErrorRef oldError = pInfo->error;
-    if (oldError != error) {
-        pInfo->error = error;
-        if (oldError) { CFRelease(oldError); }
+    if (oldError) {
+        CFRelease(oldError);
+    }
+    pInfo->error = error;
+}
+
+static void parseInfo_clearError(_CFStringsFileParseInfo *const pInfo) {
+    if (pInfo->error) {
+        CFRelease(pInfo->error);
+        pInfo->error = NULL;
     }
 }
 
@@ -129,30 +136,25 @@ static UniChar getSlashedChar(_CFStringsFileParseInfo *pInfo) {
             uint8_t num = ch - '0';
             UniChar result;
             CFIndex usedCharLen;
-            if (pInfo->curr < pInfo->end) {
-                /* three digits maximum to avoid reading \000 followed by 5 as \5 ! */
-                if ((ch = *(pInfo->curr)) >= '0' && ch <= '7') { // we use in this test the fact that the buffer is zero-terminated
-                    pInfo->curr ++;
-                    num = (num << 3) + ch - '0';
-                    if (pInfo->curr < pInfo->end) {
-                        if ((ch = *(pInfo->curr)) >= '0' && ch <= '7') {
-                            pInfo->curr ++;
-                            num = (num << 3) + ch - '0';
-                        } else {
-                            parseInfo_setError(pInfo, __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Invalid octal while parsing plist")));
-                            return 0;
-                        }
-                    } else {
-                        parseInfo_setError(pInfo, __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Unexpected EOF while parsing plist")));
-                        return 0;
-                    }
-                } else {
-                    parseInfo_setError(pInfo, __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Invalid octal while parsing plist")));
-                    return 0;
+
+            /* three digits maximum to avoid reading \000 followed by 5 as \5 ! */
+            // We've already read the first character here, so repeat at most two more times.
+            for (uint8_t i = 0; i < 2; i += 1) {
+                // Hitting the end of the plist is not a meaningful error here.
+                // We parse the characters we have and allow the parent context (parseQuotedPlistString, the only current call site of getSlashedChar) to produce a more meaningful error message (e.g. it will at least expect a close quote after this character).
+                if (pInfo->curr >= pInfo->end) {
+                    break;
                 }
-            } else {
-                parseInfo_setError(pInfo, __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Unexpected EOF while parsing plist")));
-                return 0;
+
+                if ((ch = *(pInfo->curr)) >= '0' && ch <= '7') {
+                    num = (num << 3) + ch - '0';
+                    pInfo->curr ++;
+                } else {
+                    // Non-octal characters are not explicitly an error either: "\05" is a valid character which evaluates to 005. (We read a '0', a '5', and then a '"'; we can't bail on seeing '"' though.)
+                    // Is this an ambiguous format? Probably. But it has to remain this way for backwards compatibility.
+                    // See <rdar://problem/34321354>
+                    break;
+                }
             }
             
             const uint32_t conversionResult = CFStringEncodingBytesToUnicode(kCFStringEncodingNextStepLatin, 0, &num, sizeof(uint8_t), NULL,  &result, 1, &usedCharLen);
@@ -312,7 +314,7 @@ static CFStringRef parseQuotedPlistString(_CFStringsFileParseInfo *pInfo, UniCha
     pInfo->curr ++;  // Advance past the quote character before returning.
     
     // this is a success path, so clear errors (NOTE: this seems weird, but is historical)
-    parseInfo_setError(pInfo, NULL);
+    parseInfo_clearError(pInfo);
     return str;
 }
 
@@ -414,7 +416,7 @@ static CFTypeRef parsePlistArray(_CFStringsFileParseInfo *pInfo, uint32_t depth)
     }
     
     // this is a success path, so clear errors (NOTE: this seems weird, but is historical)
-    parseInfo_setError(pInfo, NULL);
+    parseInfo_clearError(pInfo);
     
     pInfo->curr ++; // consume the )
     return array;
@@ -489,7 +491,7 @@ static CFDictionaryRef parsePlistDictContent(_CFStringsFileParseInfo *pInfo, con
     }
     
     // this is a success path, so clear errors (NOTE: this seems weird, but is historical)
-    parseInfo_setError(pInfo, NULL);
+    parseInfo_clearError(pInfo);
     
     return dict;
 }
@@ -570,7 +572,7 @@ static CFTypeRef parsePlistData(_CFStringsFileParseInfo *pInfo) CF_RETURNS_RETAI
     }
     
     // this is a success path, so clear errors (NOTE: this seems weird, but is historical)
-    parseInfo_setError(pInfo, NULL);
+    parseInfo_clearError(pInfo);
     
     if (pInfo->curr < pInfo->end && *(pInfo->curr) == '>') {
         pInfo->curr ++; // Move past '>'
@@ -642,6 +644,7 @@ CF_PRIVATE CFTypeRef __CFCreateOldStylePropertyListOrStringsFile(CFAllocatorRef 
     const CFIndex length = CFStringGetLength(plistString);
     if (!length) {
         if (outError) *outError = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Conversion of string failed. The string is empty."));
+        CFRelease(plistString);
         return NULL;
     }
     
@@ -650,6 +653,7 @@ CF_PRIVATE CFTypeRef __CFCreateOldStylePropertyListOrStringsFile(CFAllocatorRef 
         buf = (UniChar *)CFAllocatorAllocate(allocator, length * sizeof(UniChar), 0);
         if (!buf) {
             CRSetCrashLogMessage("CFPropertyList ran out of memory while attempting to allocate temporary storage.");
+            CFRelease(plistString);
             return NULL;
         }
         CFStringGetCharacters(plistString, CFRangeMake(0, length), buf);

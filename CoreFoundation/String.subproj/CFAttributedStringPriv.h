@@ -1,5 +1,5 @@
 /*	CFAttributedStringPriv.h
-	Copyright (c) 2004-2018, Apple Inc. All rights reserved.
+	Copyright (c) 2004-2019, Apple Inc. All rights reserved.
 */
 
 #if !defined(__COREFOUNDATION_CFATTRIBUTEDSTRINGPRIV__)

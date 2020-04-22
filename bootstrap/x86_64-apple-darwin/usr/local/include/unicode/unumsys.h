@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *****************************************************************************************
 * Copyright (C) 2013-2014, International Business Machines
@@ -98,11 +100,12 @@ U_NAMESPACE_BEGIN
 U_DEFINE_LOCAL_OPEN_POINTER(LocalUNumberingSystemPointer, UNumberingSystem, unumsys_close);
 
 U_NAMESPACE_END
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Returns an enumeration over the names of all of the predefined numbering systems known
  * to ICU.
+ * The numbering system names will be in alphabetical (invariant) order.
  * @param status    A pointer to a UErrorCode to receive any errors.
  * @return          A pointer to a UEnumeration that must be closed with uenum_close(),
  *                  or NULL if an error occurred.

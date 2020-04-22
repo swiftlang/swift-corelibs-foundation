@@ -146,9 +146,9 @@ add_framework(CoreFoundation
                 Locale.subproj/CFLocale_Private.h
                 # NumberDate
                 NumberDate.subproj/CFBigNumber.h
+                NumberDate.subproj/CFNumber_Private.h
                 # Parsing
                 Parsing.subproj/CFPropertyList_Private.h
-                Parsing.subproj/CFXMLInputStream.h
                 # PlugIn
                 PlugIn.subproj/CFBundlePriv.h
                 PlugIn.subproj/CFBundle_BinaryTypes.h
@@ -241,8 +241,6 @@ add_framework(CoreFoundation
                 NumberDate.subproj/CFTimeZone.h
                 # Parsing
                 Parsing.subproj/CFPropertyList.h
-                Parsing.subproj/CFXMLNode.h
-                Parsing.subproj/CFXMLParser.h
                 # PlugIn
                 PlugIn.subproj/CFBundle.h
                 PlugIn.subproj/CFPlugIn.h
@@ -310,10 +308,6 @@ add_framework(CoreFoundation
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
-                Parsing.subproj/CFXMLInputStream.c
-                Parsing.subproj/CFXMLNode.c
-                Parsing.subproj/CFXMLParser.c
-                Parsing.subproj/CFXMLTree.c
                 # PlugIn
                 PlugIn.subproj/CFBundle_Binary.c
                 PlugIn.subproj/CFBundle.c
@@ -325,12 +319,10 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_Main.c
                 PlugIn.subproj/CFBundle_ResourceFork.c
                 PlugIn.subproj/CFBundle_Resources.c
+                PlugIn.subproj/CFBundle_SplitFileName.c
                 PlugIn.subproj/CFBundle_Strings.c
                 PlugIn.subproj/CFBundle_Tables.c
                 PlugIn.subproj/CFPlugIn.c
-                PlugIn.subproj/CFPlugIn_Factory.c
-                PlugIn.subproj/CFPlugIn_Instance.c
-                PlugIn.subproj/CFPlugIn_PlugIn.c
                 # Preferences
                 Preferences.subproj/CFApplicationPreferences.c
                 Preferences.subproj/CFPreferences.c

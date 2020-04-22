@@ -1,11 +1,11 @@
 /*	CFNumberFormatter.c
-	Copyright (c) 2002-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: David Smith
+	Responsibility: Itai Ferber
 */
 
 #include <CoreFoundation/CFBase.h>
@@ -84,16 +84,6 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
     if (NULL == memory) {
 	return NULL;
     }
-    memory->_nf = NULL;
-    memory->_locale = NULL;
-    memory->_format = NULL;
-    memory->_defformat = NULL;
-    memory->_compformat = NULL;
-    memory->_multiplier = NULL;
-    memory->_zeroSym = NULL;
-    memory->_isLenient = false;
-    memory->_userSetMultiplier = false;
-    memory->_usesCharacterDirection = false;
     if (NULL == locale) locale = CFLocaleGetSystem();
     memory->_style = style;
     uint32_t ustyle;
@@ -134,7 +124,6 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
 	CFRelease(memory);
 	return NULL;
     }
-
     if (kCFNumberFormatterNoStyle == style) {
         UChar ubuff[1];
         status = U_ZERO_ERROR;
@@ -156,8 +145,11 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
 	    memory->_format = CFStringCreateWithCharacters(allocator, (const UniChar *)ubuffer, ret);
 	}
     }
-    memory->_defformat = memory->_format ? (CFStringRef)CFRetain(memory->_format) : NULL;
-    memory->_compformat = memory->_format ? __CFNumberFormatterCreateCompressedString(memory->_format, true, NULL) : NULL;
+    if (memory->_format) {
+        memory->_defformat = CFRetain(memory->_format);
+        memory->_compformat = __CFNumberFormatterCreateCompressedString(memory->_format, true, NULL);
+    }
+
     if (kCFNumberFormatterSpellOutStyle != memory->_style && kCFNumberFormatterOrdinalStyle != memory->_style && kCFNumberFormatterCurrencyPluralStyle != memory->_style && kCFNumberFormatterDurationStyle != memory->_style) {
 	int32_t n = __cficu_unum_getAttribute(memory->_nf, UNUM_MULTIPLIER);
 	if (1 != n) {
@@ -292,19 +284,30 @@ static CFStringRef __CFNumberFormatterCreateCompressedString(CFStringRef inStrin
 // Should not be called for rule-based ICU formatters; not supported
 static void __CFNumberFormatterApplySymbolPrefs(const void *key, const void *value, void *context) {
     if (CFGetTypeID(key) == CFStringGetTypeID() && CFGetTypeID(value) == CFStringGetTypeID()) {
-	CFNumberFormatterRef formatter = (CFNumberFormatterRef)context;
-	UNumberFormatSymbol sym = (UNumberFormatSymbol)CFStringGetIntValue((CFStringRef)key);
-	CFStringRef item = (CFStringRef)value;
-	CFIndex item_cnt = CFStringGetLength(item);
-	STACK_BUFFER_DECL(UChar, item_buffer, item_cnt);
-	UChar *item_ustr = (UChar *)CFStringGetCharactersPtr(item);
-	if (NULL == item_ustr) {
-	    CFStringGetCharacters(item, CFRangeMake(0, __CFMin(BUFFER_SIZE, item_cnt)), (UniChar *)item_buffer);
-	    item_ustr = item_buffer;
-	}
+	CFNumberFormatterRef const formatter = (CFNumberFormatterRef)context;
+	UNumberFormatSymbol const sym = (UNumberFormatSymbol)CFStringGetIntValue((CFStringRef)key);
+	CFStringRef const item = (CFStringRef)value;
+	
 	UErrorCode status = U_ZERO_ERROR;
-	__cficu_unum_setSymbol(formatter->_nf, sym, item_ustr, item_cnt, &status);
-   }
+	CFIndex item_cnt = CFStringGetLength(item);
+	if (item_cnt > 0) {
+	    CFIndex const buffer_size = __CFMin(BUFFER_SIZE, item_cnt);
+	    STACK_BUFFER_DECL(UChar, item_buffer, buffer_size);
+	    
+	    UChar *item_ustr = (UChar *)CFStringGetCharactersPtr(item);
+	    if (NULL == item_ustr) {
+		CFStringGetCharacters(item, CFRangeMake(0, buffer_size), (UniChar *)item_buffer);
+		item_ustr = item_buffer;
+		item_cnt = buffer_size;
+	    }
+	    
+	    __cficu_unum_setSymbol(formatter->_nf, sym, item_ustr, item_cnt, &status);
+	} else {
+        UChar ubuff[1];
+        ubuff[0] = '#';
+	    __cficu_unum_setSymbol(formatter->_nf, sym, ubuff, 1, &status);
+	}
+    }
 }
 
 // Should not be called for rule-based ICU formatters
@@ -639,15 +642,33 @@ Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFSt
 	}
 	CFRelease(zeroSym);
     }
-    if (1024 < range.length) range.length = 1024;
+    if (range.length > 1024) {
+        range.length = 1024;
+    } else if (range.length <= 0) {
+        range.length = 0;
+    }
+
     const UChar *ustr = (const UChar *)CFStringGetCharactersPtr(stringToParse);
-    STACK_BUFFER_DECL(UChar, ubuffer, (NULL == ustr) ? range.length : 1);
+    // This set of conditionals is designed to avoid allocating a large stack buffer unless CFStringGetCharactersPtr returned null (meaning we need space to put the result).
+    // The if line above this limits this stack buffer to 1024 total in case of stack allocation.
+    // If ustr is non-null OR range.length == 0, use a value of 1 (because allocating a zero length stack buffer is not allowed). We won't use the buffer in either of these cases, however. In the first case we have a pointer to the bytes directly. In the second we skip filling the buffer.
+    // Otherwise, use range.length.
+    CFIndex const length = (ustr != NULL || range.length == 0) ? 1 : range.length;
+    STACK_BUFFER_DECL(UChar, ubuffer, length);
     if (NULL == ustr) {
-	CFStringGetCharacters(stringToParse, range, (UniChar *)ubuffer);
-	ustr = ubuffer;
+        if (range.length > 0) {
+            CFStringGetCharacters(stringToParse, range, (UniChar *)ubuffer);
+            ustr = ubuffer;
+        }
     } else if (!formatter->_isLenient) {
 	ustr += range.location;
     }
+    
+    if (ustr == NULL) {
+        if (stringToParse) { CFRelease(stringToParse); }
+        return false;
+    }
+    
     CFNumberRef multiplierRef = formatter->_multiplier;
     formatter->_multiplier = NULL;
     if (formatter->_isLenient) {

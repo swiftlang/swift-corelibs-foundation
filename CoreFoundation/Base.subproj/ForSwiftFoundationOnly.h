@@ -84,6 +84,9 @@
 
 _CF_EXPORT_SCOPE_BEGIN
 
+CF_PRIVATE Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef _Nullable allocator);
+static CFOptionFlags _CFAllocatorHintZeroWhenAllocating = 1;
+
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
 CF_CROSS_PLATFORM_EXPORT void _CFCalendarEnumerateDates(CFCalendarRef calendar, CFDateRef start, CFDateComponentsRef matchingComponents, CFOptionFlags opts, void (^block)(CFDateRef, Boolean, Boolean*));
 CF_EXPORT void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef _Nullable date);
@@ -134,6 +137,7 @@ struct _NSDictionaryBridge {
     CFIndex (*countForObject)(CFTypeRef dictionary, CFTypeRef value);
     void (*getObjects)(CFTypeRef dictionary, CFTypeRef _Nullable *_Nullable valuebuf, CFTypeRef _Nullable *_Nullable keybuf);
     void (*__apply)(CFTypeRef dictionary, void (*applier)(CFTypeRef key, CFTypeRef value, void *context), void *context);
+    void (*enumerateKeysAndObjectsWithOptions)(CFTypeRef dictionary, CFIndex options, void (^block)(const void *key, const void *value, Boolean *stop));
     _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
 };
 

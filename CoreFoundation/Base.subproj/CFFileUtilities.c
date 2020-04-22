@@ -1,7 +1,7 @@
 /*	CFFileUtilities.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -598,7 +598,7 @@ CF_PRIVATE SInt32 _CFGetFileProperties(CFAllocatorRef alloc, CFURLRef pathURL, B
 }
 
 CF_PRIVATE bool _CFURLExists(CFURLRef url) {
-    Boolean exists;
+    Boolean exists = false;
     return url && (0 == _CFGetFileProperties(kCFAllocatorSystemDefault, url, &exists, NULL, NULL, NULL, NULL, NULL)) && exists;
 }
 

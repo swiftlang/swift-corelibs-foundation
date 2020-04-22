@@ -1,11 +1,11 @@
 /*	CFBinaryHeap.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Michael LeHew
 */
 
 #include <CoreFoundation/CFBinaryHeap.h>
@@ -133,6 +133,7 @@ static CFStringRef __CFBinaryHeapCopyDescription(CFTypeRef cf) {
     list = (cnt <= 128) ? (const void **)buffer : (const void **)CFAllocatorAllocate(kCFAllocatorSystemDefault, cnt * sizeof(void *), 0);
     if (__CFOASafe && list != buffer) __CFSetLastAllocationEventName(list, "CFBinaryHeap (temp)");
     CFBinaryHeapGetValues(heap, list);
+    _CLANG_ANALYZER_IGNORE_UNINITIALIZED_BUFFER(list, cnt * sizeof(void *)); // The analyzer doesn't understand that the 'cnt' values in both this function and CFBinaryHeapGetValues are identical.
     for (idx = 0; idx < cnt; idx++) {
 	CFStringRef desc = NULL;
 	const void *item = list[idx];
@@ -178,7 +179,7 @@ CFTypeID CFBinaryHeapGetTypeID(void) {
     return _kCFRuntimeIDCFBinaryHeap;
 }
 
-static CFBinaryHeapRef __CFBinaryHeapInit(CFAllocatorRef allocator, UInt32 flags, CFIndex capacity, const void **values, CFIndex numValues, const CFBinaryHeapCallBacks *callBacks, const CFBinaryHeapCompareContext *compareContext) {
+static CFBinaryHeapRef __CFBinaryHeapCreateInit(CFAllocatorRef allocator, UInt32 flags, CFIndex capacity, const void **values, CFIndex numValues, const CFBinaryHeapCallBacks *callBacks, const CFBinaryHeapCompareContext *compareContext) {
     CFBinaryHeapRef memory;
     CFIndex idx;
     CFIndex size;
@@ -200,18 +201,11 @@ static CFBinaryHeapRef __CFBinaryHeapInit(CFAllocatorRef allocator, UInt32 flags
 	    CFRelease(memory);
 	    return NULL;
 	}
-    __CFBinaryHeapSetNumBucketsUsed(memory, 0);
-    __CFBinaryHeapSetCount(memory, 0);
     if (NULL != callBacks) {
 	memory->_callbacks.retain = callBacks->retain;
 	memory->_callbacks.release = callBacks->release;
 	memory->_callbacks.copyDescription = callBacks->copyDescription;
 	memory->_callbacks.compare = callBacks->compare;
-    } else {
-	memory->_callbacks.retain = 0;
-	memory->_callbacks.release = 0;
-	memory->_callbacks.copyDescription = 0;
-	memory->_callbacks.compare = 0;
     }
     if (compareContext) memcpy(&memory->_context, compareContext, sizeof(CFBinaryHeapCompareContext));
 // CF: retain info for proper operation
@@ -224,12 +218,12 @@ static CFBinaryHeapRef __CFBinaryHeapInit(CFAllocatorRef allocator, UInt32 flags
 }
 
 CFBinaryHeapRef CFBinaryHeapCreate(CFAllocatorRef allocator, CFIndex capacity, const CFBinaryHeapCallBacks *callBacks, const CFBinaryHeapCompareContext *compareContext) {
-   return __CFBinaryHeapInit(allocator, kCFBinaryHeapMutable, capacity, NULL, 0, callBacks, compareContext);
+   return __CFBinaryHeapCreateInit(allocator, kCFBinaryHeapMutable, capacity, NULL, 0, callBacks, compareContext);
 }
 
 CFBinaryHeapRef CFBinaryHeapCreateCopy(CFAllocatorRef allocator, CFIndex capacity, CFBinaryHeapRef heap) {
    __CFGenericValidateType(heap, CFBinaryHeapGetTypeID());
-    return __CFBinaryHeapInit(allocator, kCFBinaryHeapMutable, capacity, (const void **)heap->_buckets, __CFBinaryHeapCount(heap), &(heap->_callbacks), &(heap->_context));
+    return __CFBinaryHeapCreateInit(allocator, kCFBinaryHeapMutable, capacity, (const void **)heap->_buckets, __CFBinaryHeapCount(heap), &(heap->_callbacks), &(heap->_context));
 }
 
 CFIndex CFBinaryHeapGetCount(CFBinaryHeapRef heap) {

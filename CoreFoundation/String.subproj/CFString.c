@@ -1,7 +1,7 @@
 /*	CFString.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -27,6 +27,7 @@
 #include "CFString_Internal.h"
 #include "CFRuntime_Internal.h"
 #include <assert.h>
+#include <unicode/uchar.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include "CFLocaleInternal.h"
 #include "CFStringLocalizedFormattingInternal.h"
@@ -111,6 +112,15 @@ extern void __CFStrConvertBytesToUnicode(const uint8_t *bytes, UniChar *buffer, 
 CF_PRIVATE uint32_t CFUniCharGetConditionalCaseMappingFlags(UTF32Char theChar, UTF16Char *buffer, CFIndex currentIndex, CFIndex length, uint32_t type, const uint8_t *langCode, uint32_t lastFlags);
 
 static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, CFDictionaryRef stringsDictConfig, CFStringRef validFormatSpecifiers, CFStringRef formatString, CFIndex initialArgPosition, const void *origValues, CFIndex originalValuesSize, va_list args, CFErrorRef *errorPtr);
+
+static inline const char * _CFStringGetCStringPtrInternal(CFStringRef str, CFStringEncoding encoding, Boolean requiresNullTermination, Boolean requiresBridgingCheck);
+
+CF_INLINE void _CFStringInitInlineBufferInternal(CFStringRef str, CFStringInlineBuffer *buf, CFRange range, Boolean requiresBridgingCheck) {
+    buf->theString = str;
+    buf->rangeToBuffer = range;
+    buf->directCStringBuffer = (buf->directUniCharBuffer = CFStringGetCharactersPtr(str)) ? NULL : _CFStringGetCStringPtrInternal(str, kCFStringEncodingASCII, false, requiresBridgingCheck);
+    buf->bufferedRangeStart = buf->bufferedRangeEnd = 0;
+}
 
 #if defined(DEBUG)
 
@@ -272,7 +282,7 @@ CF_INLINE SInt32 __CFStrSkipAnyLengthByte(CFStringRef str)          {return __CF
 
 /* Returns ptr to the buffer (which might include the length byte).
 */
-CF_INLINE const void *__CFStrContents(CFStringRef str) {
+CF_INLINE const void * _Nullable __CFStrContents(CFStringRef str) {
     if (__CFStrIsInline(str)) {
 	return (const void *)(((uintptr_t)&(str->variants)) + (__CFStrHasExplicitLength(str) ? sizeof(CFIndex) : 0));
     } else {	// Not inline; pointer is always word 2
@@ -476,6 +486,8 @@ CFIndex CFStringGetMaximumSizeForEncoding(CFIndex length, CFStringEncoding encod
         case kCFStringEncodingISOLatin1:
         case kCFStringEncodingNextStepLatin:
         case kCFStringEncodingASCII:
+            return length / sizeof(uint8_t);
+
         default:
             return length / sizeof(uint8_t);
     }
@@ -547,45 +559,49 @@ CF_INLINE Boolean __CFBytesInASCII(const uint8_t *bytes, CFIndex len) {
 
 #if TARGET_RT_64_BIT
     /* A bit of unrolling; go by 32s, 16s, and 8s first */
-    while (len >= 32) {
-        uint64_t val = *(const uint64_t *)bytes;
+    while (len >= 4 * sizeof(uint64_t)) {
+        uint64_t val;
+        memcpy(&val, bytes, sizeof(uint64_t));
         uint64_t hiBits = (val & 0x8080808080808080ULL);    // More efficient to collect this rather than do a conditional at every step
-        bytes += 8;
-        val = *(const uint64_t *)bytes;
+        bytes += sizeof(uint64_t);
+        memcpy(&val, bytes, sizeof(uint64_t));
         hiBits |= (val & 0x8080808080808080ULL);
-        bytes += 8;
-        val = *(const uint64_t *)bytes;
+        bytes += sizeof(uint64_t);
+        memcpy(&val, bytes, sizeof(uint64_t));
         hiBits |= (val & 0x8080808080808080ULL);
-        bytes += 8;
-        val = *(const uint64_t *)bytes;
+        bytes += sizeof(uint64_t);
+        memcpy(&val, bytes, sizeof(uint64_t));
         if (hiBits | (val & 0x8080808080808080ULL)) return false;
-        bytes += 8;
-        len -= 32;
+        bytes += sizeof(uint64_t);
+        len -= 4 * sizeof(uint64_t);
     }
 
-    while (len >= 16) {
-        uint64_t val = *(const uint64_t *)bytes;
+    while (len >= 2 * sizeof(uint64_t)) {
+        uint64_t val;
+        memcpy(&val, bytes, sizeof(uint64_t));
         uint64_t hiBits = (val & 0x8080808080808080ULL);
-        bytes += 8;
-        val = *(const uint64_t *)bytes;
+        bytes += sizeof(uint64_t);
+        memcpy(&val, bytes, sizeof(uint64_t));
         if (hiBits | (val & 0x8080808080808080ULL)) return false;
-        bytes += 8;
-        len -= 16;
+        bytes += sizeof(uint64_t);
+        len -= 2 * sizeof(uint64_t);
     }
 
-    while (len >= 8) {
-        uint64_t val = *(const uint64_t *)bytes;
+    while (len >= sizeof(uint64_t)) {
+        uint64_t val;
+        memcpy(&val, bytes, sizeof(uint64_t));
         if (val & 0x8080808080808080ULL) return false;
-        bytes += 8;
-        len -= 8;
+        bytes += sizeof(uint64_t);
+        len -= sizeof(uint64_t);
     }
 #endif
     /* Go by 4s */
-    while (len >= 4) {
-        uint32_t val = *(const uint32_t *)bytes;
+    while (len >= sizeof(uint32_t)) {
+        uint32_t val;
+        memcpy(&val, bytes, sizeof(uint32_t));
         if (val & 0x80808080U) return false;
-        bytes += 4;
-        len -= 4;
+        bytes += sizeof(uint32_t);
+        len -= sizeof(uint32_t);
     }
     /* Handle the rest one byte at a time */
     while (len--) {
@@ -814,11 +830,9 @@ static void copyBlocks(
 
 /* Call the callback; if it doesn't exist or returns false, then log
 */
-static void __CFStringHandleOutOfMemory(CFTypeRef obj) {
+__attribute__((cold))
+void __CFStringHandleOutOfMemory(CFTypeRef _Nullable obj) CLANG_ANALYZER_NORETURN {
     CFStringRef msg = CFSTR("Out of memory. We suggest restarting the application. If you have an unsaved document, create a backup copy in Finder, then try to save.");
-    {
-	CFLog(kCFLogLevelCritical, CFSTR("%@"), msg);
-    }
 }
 
 /* Reallocates the backing store of the string to accomodate the new length. Space is reserved or characters are deleted as indicated by insertLength and the ranges in deleteRanges. The length is updated to reflect the new state. Will also maintain a length byte and a null byte in 8-bit strings. If length cannot fit in length byte, the space will still be reserved, but will be 0. (Hence the reason the length byte should never be looked at as length unless there is no explicit length.)
@@ -859,7 +873,8 @@ static void __CFStringChangeSizeMultiple(CFMutableStringRef str, const CFRange *
         } else {
             if (!__CFStrIsExternalMutable(str)) {
                 __CFStrSetUnicode(str, false);
-                if (curCapacity >= (int)(sizeof(uint8_t) * 2)) {	// If there's room 
+                if (curCapacity >= (int)(sizeof(uint8_t) * 2)) {	// If there's room
+                    if (!curContents) { CRSetCrashLogMessage("String had a capacity but NULL buffer pointer"); HALT; }
                     __CFStrSetHasLengthAndNullBytes(str);
                     ((uint8_t *)curContents)[0] = ((uint8_t *)curContents)[1] = 0;
                 } else {
@@ -878,7 +893,7 @@ static void __CFStringChangeSizeMultiple(CFMutableStringRef str, const CFRange *
 	if (newLength > (LONG_MAX - numExtraBytes) / newCharSize) __CFStringHandleOutOfMemory(str);	// Does not return
         CFIndex newCapacity = __CFStrNewCapacity(str, newLength * newCharSize + numExtraBytes, curCapacity, true, newCharSize);
 	if (newCapacity == -1) __CFStringHandleOutOfMemory(str);	// Does not return
-        Boolean allocNewBuffer = (newCapacity != curCapacity) || (curLength > 0 && !oldIsUnicode && newIsUnicode);	/* We alloc new buffer if oldIsUnicode != newIsUnicode because the contents have to be copied */
+        Boolean allocNewBuffer = (curContents == NULL) || (newCapacity != curCapacity) || (curLength > 0 && !oldIsUnicode && newIsUnicode);	/* We alloc new buffer if oldIsUnicode != newIsUnicode because the contents have to be copied */
 	uint8_t *newContents;
 	if (allocNewBuffer) {
 	    newContents = (uint8_t *)__CFStrAllocateMutableContents(str, newCapacity);
@@ -1004,7 +1019,7 @@ static Boolean __CFStringEqual(CFTypeRef cf1, CFTypeRef cf2) {
         CFStringInlineBuffer buf;
 	CFIndex buf_idx = 0;
 
-        CFStringInitInlineBuffer(str1, &buf, CFRangeMake(0, len1));
+        _CFStringInitInlineBufferInternal(str1, &buf, CFRangeMake(0, len1), false);
 	for (buf_idx = 0; buf_idx < len1; buf_idx++) {
 	    if (__CFStringGetCharacterFromInlineBufferQuick(&buf, buf_idx) != ((UniChar *)contents2)[buf_idx]) return false;
   	}
@@ -1012,7 +1027,7 @@ static Boolean __CFStringEqual(CFTypeRef cf1, CFTypeRef cf2) {
         CFStringInlineBuffer buf;
 	CFIndex buf_idx = 0;
 
-        CFStringInitInlineBuffer(str2, &buf, CFRangeMake(0, len1));
+        _CFStringInitInlineBufferInternal(str2, &buf, CFRangeMake(0, len1), false);
         for (buf_idx = 0; buf_idx < len1; buf_idx++) {
             if (__CFStringGetCharacterFromInlineBufferQuick(&buf, buf_idx) != ((UniChar *)contents1)[buf_idx]) return false;
         }
@@ -1052,10 +1067,10 @@ Hash function was changed between Panther and Tiger, and Tiger and Leopard.
 #define HashEverythingLimit 96
 
 #define HashNextFourUniChars(accessStart, accessEnd, pointer) \
-    {result = result * 67503105 + (((accessStart 0 accessEnd) * 257  + (accessStart 1 accessEnd)) * 257  + (accessStart 2 accessEnd)) * 257 + (accessStart 3 accessEnd); pointer += 4;}
+    {result = result * 67503105U + (((accessStart 0 accessEnd) * 257U  + (accessStart 1 accessEnd)) * 257U  + (accessStart 2 accessEnd)) * 257U + (accessStart 3 accessEnd); pointer += 4;}
 
 #define HashNextUniChar(accessStart, accessEnd, pointer) \
-    {result = result * 257 + (accessStart 0 accessEnd); pointer++;}
+    {result = result * 257U + (accessStart 0 accessEnd); pointer++;}
 
 
 /* In this function, actualLen is the length of the original string; but len is the number of characters in buffer. The buffer is expected to contain the parts of the string relevant to hashing.
@@ -1213,13 +1228,14 @@ static CFStringRef __CFStringCopyFormattingDescription(CFTypeRef cf, CFDictionar
     return (CFStringRef)CFStringCreateCopy(__CFGetAllocator(cf), (CFStringRef)cf);
 }
 
+CF_PRIVATE CFStringRef _CFNonObjCStringCreateCopy(CFAllocatorRef alloc, CFStringRef str);
 typedef CFTypeRef (*CF_STRING_CREATE_COPY)(CFAllocatorRef alloc, CFTypeRef theString);
 
 const CFRuntimeClass __CFStringClass = {
     _kCFRuntimeScannedObject,
     "CFString",
     NULL,      // init
-    (CF_STRING_CREATE_COPY)CFStringCreateCopy,
+    (CF_STRING_CREATE_COPY)_CFNonObjCStringCreateCopy,
     __CFStringDeallocate,
     __CFStringEqual,
     __CFStringHash,
@@ -1439,7 +1455,7 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
         if (stringSupportsROM) {
             // Disable the string ROM if necessary
             static char sDisableStringROM = -1;
-            if (sDisableStringROM == -1) sDisableStringROM = !! __CFgetenv("CFStringDisableROM");
+            if (sDisableStringROM == -1) sDisableStringROM = !! getenv("CFStringDisableROM");
 
             if (sDisableStringROM == 0) romResult = __CFSearchStringROM((const char *)realBytes, realNumBytes);
         }
@@ -1454,7 +1470,7 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
             bytes = NULL;
             
             /* set our result to the ROM result which is not really mutable, of course, but that's OK because we don't try to modify it. */
-            str = (CFMutableStringRef)romResult;
+            str = (CFMutableStringRef)CFRetain(romResult);
             
 #if INSTRUMENT_TAGGED_POINTER_STRINGS
             _CFTaggedPointerStringStats.stringROMCount++;
@@ -1689,7 +1705,7 @@ CFStringRef CFStringCreateWithSubstring(CFAllocatorRef alloc, CFStringRef str, C
     __CFAssertRangeIsInStringBounds(str, range.location, range.length);
 
     if ((range.location == 0) && (range.length == __CFStrLength(str))) {	/* The substring is the whole string... */
-	return (CFStringRef)CFStringCreateCopy(alloc, str);
+	return (CFStringRef)_CFNonObjCStringCreateCopy(alloc, str);
     } else if (__CFStrIsEightBit(str)) {
 	const uint8_t *contents = (const uint8_t *)__CFStrContents(str);
         return __CFStringCreateImmutableFunnel3(alloc, contents + range.location + __CFStrSkipAnyLengthByte(str), range.length, __CFStringGetEightBitStringEncoding(), false, false, false, false, false, ALLOCATORSFREEFUNC, 0);
@@ -1700,40 +1716,47 @@ CFStringRef CFStringCreateWithSubstring(CFAllocatorRef alloc, CFStringRef str, C
 }
     
 static CFStringRef _CFStringSlowPathCopyBundleUnloadingProtectedString(CFStringRef str) {
-    CFStringEncoding fastestEncoding = CFStringGetFastestEncoding(str);
-    const char *cStr = CFStringGetCStringPtr(str, fastestEncoding);
-    CFIndex len = CFStringGetLength(str);
+    CFIndex const len = CFStringGetLength(str);
+    if (len == 0) {
+        // Check this first to both avoid an allocation, and avoid potentially stack-allocating a zero-length buffer below.
+        return CFSTR("");
+    }
+
+    CFStringEncoding const fastestEncoding = CFStringGetFastestEncoding(str);
+    const char * const cStr = _CFStringGetCStringPtrInternal(str, fastestEncoding, false, true);
     if (cStr) {
         return CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)cStr, len, fastestEncoding, false);
     }
-    const UniChar *charsPtr = CFStringGetCharactersPtr(str);
+
+    const UniChar * const charsPtr = CFStringGetCharactersPtr(str);
     if (charsPtr) {
         return CFStringCreateWithCharacters(kCFAllocatorSystemDefault, charsPtr, len);
     }
-    CFIndex maxByteCount = CFStringGetMaximumSizeForEncoding(len, fastestEncoding);
-    STACK_BUFFER_DECL(uint8_t, buffer, maxByteCount);
+
+    CFIndex const maxByteCount = CFStringGetMaximumSizeForEncoding(len, fastestEncoding);
     CFIndex byteCount = 0;
+    CFStringRef result = NULL;
+    SAFE_STACK_BUFFER_DECL(uint8_t, buffer, maxByteCount, 256 /* malloc for buffers longer than 256 bytes */); // `str` here is currently only ever a bundle ID. Bundle IDs are rarely this long.
     if (CFStringGetBytes(str, CFRangeMake(0, len), fastestEncoding, 0, false, buffer, maxByteCount, &byteCount)) {
-        return CFStringCreateWithBytes(kCFAllocatorSystemDefault, buffer, byteCount, fastestEncoding, false);
+        result = CFStringCreateWithBytes(kCFAllocatorSystemDefault, buffer, byteCount, fastestEncoding, false);
+    } else {
+        result = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, str);
     }
-    return CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, str);
+    
+    SAFE_STACK_BUFFER_CLEANUP(buffer);
+    return result;
 }
 
 CF_PRIVATE CFStringRef _CFStringCopyBundleUnloadingProtectedString(CFStringRef str) {
     return _CFStringSlowPathCopyBundleUnloadingProtectedString(str);
 }
 
-
-CFStringRef CFStringCreateCopy(CFAllocatorRef alloc, CFStringRef str) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, CFStringRef, (CFSwiftRef)str, NSString.copy);
-//  CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, CFStringRef, (NSString *)str, copy);
-
+CF_PRIVATE CFStringRef _CFNonObjCStringCreateCopy(CFAllocatorRef alloc, CFStringRef str) {
     __CFAssertIsString(str);
-    if (!__CFStrIsMutable((CFStringRef)str) && 								// If the string is not mutable
-        ((alloc ? alloc : __CFGetDefaultAllocator()) == __CFGetAllocator(str)) &&		//  and it has the same allocator as the one we're using
-        (__CFStrIsInline((CFStringRef)str) || __CFStrFreeContentsWhenDone((CFStringRef)str) || __CFStrIsConstant((CFStringRef)str))) {	//  and the characters are inline, or are owned by the string, or the string is constant
-        CFRetain(str);			// Then just retain instead of making a true copy
-	return str;
+    if (!__CFStrIsMutable((CFStringRef)str) &&                                 // If the string is not mutable
+        ((alloc ? alloc : __CFGetDefaultAllocator()) == __CFGetAllocator(str)) &&        //  and it has the same allocator as the one we're using
+        (__CFStrIsInline((CFStringRef)str) || __CFStrFreeContentsWhenDone((CFStringRef)str) || __CFStrIsConstant((CFStringRef)str))) {    //  and the characters are inline, or are owned by the string, or the string is constant
+        return _CFNonObjCRetain(str);            // Then just retain instead of making a true copy
     }
     if (__CFStrIsEightBit((CFStringRef)str)) {
         const uint8_t *contents = (const uint8_t *)__CFStrContents((CFStringRef)str);
@@ -1742,6 +1765,13 @@ CFStringRef CFStringCreateCopy(CFAllocatorRef alloc, CFStringRef str) {
         const UniChar *contents = (const UniChar *)__CFStrContents((CFStringRef)str);
         return __CFStringCreateImmutableFunnel3(alloc, contents, __CFStrLength2((CFStringRef)str, contents) * sizeof(UniChar), kCFStringEncodingUnicode, false, true, false, false, false, ALLOCATORSFREEFUNC, 0);
     }
+}
+
+CFStringRef CFStringCreateCopy(CFAllocatorRef alloc, CFStringRef str) {
+    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, CFStringRef, (CFSwiftRef)str, NSString.copy);
+//  CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, CFStringRef, (NSString *)str, copy);
+
+    return _CFNonObjCStringCreateCopy(alloc, str);
 }
 
 
@@ -1943,7 +1973,9 @@ CF_INLINE void __CFStringReplace(CFMutableStringRef str, CFRange range, CFString
 
     if (__CFStrIsUnicode(str)) {
         UniChar *contents = (UniChar *)__CFStrContents(str);
-        CFStringGetCharacters(replacement, CFRangeMake(0, replacementLength), contents + range.location);
+        if (contents) {
+            CFStringGetCharacters(replacement, CFRangeMake(0, replacementLength), contents + range.location);
+        }
     } else {
         uint8_t *contents = (uint8_t *)__CFStrContents(str);
         CFStringGetBytes(replacement, CFRangeMake(0, replacementLength), __CFStringGetEightBitStringEncoding(), 0, false, contents + range.location + __CFStrSkipAnyLengthByte(str), replacementLength, NULL);
@@ -1992,6 +2024,10 @@ CFMutableStringRef CFStringCreateMutableWithExternalCharactersNoCopy(CFAllocator
         if (__CFStrHasContentsAllocator(string)) {
             CFAllocatorRef allocator = __CFStrContentsAllocator((CFMutableStringRef)string);
             CFRelease(allocator);
+
+            // If externalCharactersAllocator == NULL, contentsAllocationBits is set to __kCFNotInlineContentsDefaultFree, which gives the string a default (non-custom) contents allocator.
+            // In that case, __CFStrHasContentsAllocator() returns FALSE, and we don't fall into here.
+            _CLANG_ANALYZER_ASSERT(externalCharactersAllocator != NULL);
             __CFStrSetContentsAllocator(string, externalCharactersAllocator);
         }
         CFStringSetExternalCharactersNoCopy(string, chars, numChars, capacity);
@@ -2072,7 +2108,7 @@ UniChar CFStringGetCharacterAtIndex(CFStringRef str, CFIndex idx) {
 */
 int _CFStringCheckAndGetCharacterAtIndex(CFStringRef str, CFIndex idx, UniChar *ch) {
     const uint8_t *contents = (const uint8_t *)__CFStrContents(str);
-    if (idx >= __CFStrLength2(str, contents) && __CFStringNoteErrors()) return _CFStringErrBounds;
+    if (idx < 0 || idx >= __CFStrLength2(str, contents)) { return _CFStringErrBounds; }
     *ch = __CFStringGetCharacterAtIndexGuts(str, idx, contents);
     return _CFStringErrNone;
 }
@@ -2104,15 +2140,15 @@ void CFStringGetCharacters(CFStringRef str, CFRange range, UniChar *buffer) {
 */
 int _CFStringCheckAndGetCharacters(CFStringRef str, CFRange range, UniChar *buffer) {
      const uint8_t *contents = (const uint8_t *)__CFStrContents(str);
-     if (range.location + range.length > __CFStrLength2(str, contents) && __CFStringNoteErrors()) return _CFStringErrBounds;
+     if (range.location + range.length > __CFStrLength2(str, contents)) return _CFStringErrBounds;
      __CFStringGetCharactersGuts(str, range, buffer, contents);
      return _CFStringErrNone;
 }
 
 
-CFIndex CFStringGetBytes(CFStringRef str, CFRange range, CFStringEncoding encoding, uint8_t lossByte, Boolean isExternalRepresentation, uint8_t *buffer, CFIndex maxBufLen, CFIndex *usedBufLen) {
+CFIndex CFStringGetBytes(CFStringRef str, CFRange range, CFStringEncoding encoding, uint8_t lossByte, Boolean isExternalRepresentation, uint8_t * _Nullable buffer, CFIndex maxBufLen, CFIndex *usedBufLen) {
 #if DEPLOYMENT_RUNTIME_SWIFT
-    if (CF_IS_SWIFT(CFStringGetTypeID(), str) && __CFSwiftBridge.NSString.__getBytes != NULL) {
+    if (CF_IS_SWIFT(_kCFRuntimeIDCFString, str) && __CFSwiftBridge.NSString.__getBytes != NULL) {
         return __CFSwiftBridge.NSString.__getBytes(str, encoding, range, buffer, maxBufLen, usedBufLen);
     }
 #endif
@@ -2154,26 +2190,34 @@ ConstStringPtr CFStringGetPascalStringPtr (CFStringRef str, CFStringEncoding enc
     return NULL;
 }
 
-
-const char * CFStringGetCStringPtr(CFStringRef str, CFStringEncoding encoding) {
-
+static inline const char * _CFStringGetCStringPtrInternal(CFStringRef str, CFStringEncoding encoding, Boolean requiresNullTermination, Boolean requiresBridgingCheck) {
     if (encoding != __CFStringGetEightBitStringEncoding() && (kCFStringEncodingASCII != __CFStringGetEightBitStringEncoding() || !__CFStringEncodingIsSupersetOfASCII(encoding))) return NULL;
     // ??? Also check for encoding = SystemEncoding and perhaps bytes are all ASCII?
-
+    
     if (str == NULL) return NULL;   // Should really just crash, but for compatibility... see <rdar://problem/12340248>
     
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, const char *, (CFSwiftRef)str, NSString._fastCStringContents, true);
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, const char *, (NSString *)str, _fastCStringContents:true);
-
+    if (requiresBridgingCheck) {
+        CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, const char *, (CFSwiftRef)str, NSString._fastCStringContents, requiresNullTermination);
+        CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, const char *, (NSString *)str, _fastCStringContents:requiresNullTermination);
+    }
+        
     __CFAssertIsString(str);
-
-    if (__CFStrHasNullByte(str)) {
+    
+    if ((!requiresNullTermination && __CFStrIsEightBit(str)) || __CFStrHasNullByte(str)) {
         // Note: this is called a lot, 27000 times to open a small xcode project with one file open.
         // Of these uses about 1500 are for cStrings/utf8strings.
-	return (const char *)__CFStrContents(str) + __CFStrSkipAnyLengthByte(str);
+        return (const char *)__CFStrContents(str) + __CFStrSkipAnyLengthByte(str);
     } else {
-	return NULL;
+        return NULL;
     }
+}
+    
+const char * _CFNonObjCStringGetCStringPtr(CFStringRef str, CFStringEncoding encoding, Boolean requiresNullTermination) {
+    return _CFStringGetCStringPtrInternal(str, encoding, requiresNullTermination, false);
+}
+
+const char * CFStringGetCStringPtr(CFStringRef str, CFStringEncoding encoding) {
+    return _CFStringGetCStringPtrInternal(str, encoding, true, true);
 }
 
 
@@ -2619,8 +2663,8 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
 
     if ((NULL == locale) && (NULL == ignoredChars) && !numerically) { // could do binary comp (be careful when adding new flags)
         CFStringEncoding eightBitEncoding = __CFStringGetEightBitStringEncoding();
-        const uint8_t *str1Bytes = (const uint8_t *)CFStringGetCStringPtr(string, eightBitEncoding);
-        const uint8_t *str2Bytes = (const uint8_t *)CFStringGetCStringPtr(string2, eightBitEncoding);
+        const uint8_t *str1Bytes = (const uint8_t *)_CFStringGetCStringPtrInternal(string, eightBitEncoding, false, true);
+        const uint8_t *str2Bytes = (const uint8_t *)_CFStringGetCStringPtrInternal(string2, eightBitEncoding, false, true);
         CFIndex factor = sizeof(uint8_t);
 
         if ((NULL != str1Bytes) && (NULL != str2Bytes)) {
@@ -2698,8 +2742,8 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
     
     const uint8_t *graphemeBMP = CFUniCharGetBitmapPtrForPlane(kCFUniCharGraphemeExtendCharacterSet, 0);
     
-    CFStringInitInlineBuffer(string, &inlineBuf1, rangeToCompare);
-    CFStringInitInlineBuffer(string2, &inlineBuf2, CFRangeMake(0, str2Len));
+    _CFStringInitInlineBufferInternal(string, &inlineBuf1, rangeToCompare, true);
+    _CFStringInitInlineBufferInternal(string2, &inlineBuf2, CFRangeMake(0, str2Len), true);
 
     if (NULL != locale) {
 	str1LocalizedIndex = str1Index;
@@ -2956,8 +3000,8 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
         CFStringInlineBuffer inlineBuf1, inlineBuf2;
         UTF32Char str1Char = 0, str2Char = 0;
         CFStringEncoding eightBitEncoding = __CFStringGetEightBitStringEncoding();
-        const uint8_t *str1Bytes = (const uint8_t *)CFStringGetCStringPtr(string, eightBitEncoding);
-        const uint8_t *str2Bytes = (const uint8_t *)CFStringGetCStringPtr(stringToFind, eightBitEncoding);
+        const uint8_t *str1Bytes = (const uint8_t *)_CFStringGetCStringPtrInternal(string, eightBitEncoding, false, true);
+        const uint8_t *str2Bytes = (const uint8_t *)_CFStringGetCStringPtrInternal(stringToFind, eightBitEncoding, false, true);
         const UTF32Char *characters, *charactersLimit;
         const uint8_t *langCode = NULL;
         CFIndex fromLoc, toLoc;
@@ -2980,8 +3024,8 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
             langCode = (const uint8_t *)_CFStrGetLanguageIdentifierForLocale(locale, true);
         }
 
-        CFStringInitInlineBuffer(string, &inlineBuf1, CFRangeMake(0, rangeToSearch.location + rangeToSearch.length));
-        CFStringInitInlineBuffer(stringToFind, &inlineBuf2, CFRangeMake(0, findStrLen));
+        _CFStringInitInlineBufferInternal(string, &inlineBuf1, CFRangeMake(0, rangeToSearch.location + rangeToSearch.length), true);
+        _CFStringInitInlineBufferInternal(stringToFind, &inlineBuf2, CFRangeMake(0, findStrLen), true);
 
         if (compareOptions & kCFCompareBackwards) {
             fromLoc = rangeToSearch.location + rangeToSearch.length - (lengthVariants ? 1 : findStrLen);
@@ -3272,10 +3316,10 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                             if (diacriticsInsensitive) {
                                 if (str1Char < 0x10000) {
                                     CFIndex index = str1Index;
-
                                     do {
                                         str1Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, --index);
-                                    } while (CFUniCharIsMemberOfBitmap(str1Char, graphemeBMP), (rangeToSearch.location < index));
+                                        // <rdar://problem/36547482> Possible lost optimization in CFString
+                                    } while (/* CFUniCharIsMemberOfBitmap(str1Char, graphemeBMP), */(rangeToSearch.location < index));
 
                                     if (str1Char < 0x0510) {
                                         while (++str1Index < maxStr1Index) if (!CFUniCharIsMemberOfBitmap(CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index), graphemeBMP)) break;
@@ -3463,359 +3507,517 @@ enum {
     kCFStringHangulStateLVT,
     kCFStringHangulStateBreak
 };
-
-#pragma mark FitzPatrick (skin tone) Modifier Functions
-
-static const CFCharacterSetInlineBuffer *__CFStringGetFitzpatrickModifierBaseCharacterSet(void) {
-    static CFCharacterSetInlineBuffer buffer;
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ // based on UTR#51 1.0 (draft 7) for Unicode 8.0
-        /*
-         8.0
-         U+261D WHITE UP POINTING INDEX
-         U+2639 WHITE FROWNING FACE…U+263A WHITE SMILING FACE
-         U+270A RAISED FIST…U+270D WRITING HAND
-         U+1F385 FATHER CHRISTMAS
-         U+1F3C2 SNOWBOARDER…U+1F3C4 SURFER
-         U+1F3C7 HORSE RACING
-         U+1F3CA SWIMMER
-         U+1F3CC GOLFER
-         U+1F442 EAR…U+1F443 NOSE
-         U+1F446 WHITE UP POINTING BACKHAND INDEX…U+1F450 OPEN HANDS SIGN
-         U+1F466 BOY…U+1F469 WOMAN
-         U+1F46A FAMILY…U+1F46F WOMAN WITH BUNNY EARS
-         U+1F470 BRIDE WITH VEIL…U+1F478 PRINCESS
-         U+1F47C BABY ANGEL
-         U+1F47F IMP
-         U+1F481 INFORMATION DESK PERSON…U+1F482 GUARDSMAN
-         U+1F483 DANCER
-         U+1F485 NAIL POLISH
-         U+1F486 FACE MASSAGE…U+1F487 HAIRCUT
-         U+1F4AA FLEXED BICEPS
-         U+1F574 MAN IN BUSINESS SUIT LEVITATING
-         U+1F575 SLEUTH OR SPY
-         U+1F590 RAISED HAND WITH FINGERS SPLAYED
-         U+1F595 REVERSED HAND WITH MIDDLE FINGER EXTENDED…U+1F596 RAISED HAND WITH PART BETWEEN MIDDLE AND RING FINGERS
-         U+1F600 GRINNING FACE…U+1F637 FACE WITH MEDICAL MASK
-         U+1F641 SLIGHTLY FROWNING FACE…U+1F647 PERSON BOWING DEEPLY
-         U+1F64B HAPPY PERSON RAISING ONE HAND
-         U+1F64C PERSON RAISING BOTH HANDS IN CELEBRATION
-         U+1F64D PERSON FROWNING…U+1F64E PERSON WITH POUTING FACE
-         U+1F64F PERSON WITH FOLDED HANDS
-         U+1F6A3 ROWBOAT
-         U+1F6B4 BICYCLIST…U+1F6B6 PEDESTRIAN
-         U+1F6C0 BATH
-         U+1F6CC SLEEPING ACCOMMODATION
-         U+1F910 ZIPPER-MOUTH FACE…U+1F915 FACE WITH HEAD-BANDAGE
-         U+1F917 HUGGING FACE…U+1F918 SIGN OF THE HORNS
-
-         9.0
-         U+26F9 PERSON WITH BALL
-         U+1F3CB WEIGHT LIFTER
-         U+1F57A MAN DANCING
-         U+1F919 CALL ME HAND
-         U+1F91A RAISED BACK OF HAND
-         U+1F91B LEFT-FACING FIST
-         U+1F91C RIGHT-FACING FIST
-         U+1F91D HANDSHAKE
-         U+1F91E HAND WITH INDEX AND MIDDLE FINGERS CROSSED
-         U+1F926 FACE PALM
-         U+1F930 PREGNANT WOMAN
-         U+1F933 SELFIE
-         U+1F934 PRINCE
-         U+1F935 MAN IN TUXEDO
-         U+1F936 MOTHER CHRISTMAS
-         U+1F937 SHRUG
-         U+1F938 PERSON DOING CARTWHEEL
-         U+1F939 JUGGLING
-         U+1F93C WRESTLERS
-         U+1F93D WATER POLO
-         U+1F93E HANDBALL
-
-         10.0
-         U+1F91F LOVE-YOU GESTURE
-         U+1F931 BREAST-FEEDING
-         U+1F932 PALMS UP TOGETHER
-         U+1F9D1 ADULT
-         U+1F9D2 CHILD
-         U+1F9D3 OLDER ADULT
-         U+1F9D4 BEARDED PERSON
-         U+1F9D5 PERSON WITH HEADSCARF [WOMAN WITH HEADSCARF]
-         U+1F9D6 PERSON IN STEAMY ROOM
-         U+1F9D7 PERSON CLIMBING
-         U+1F9D8 PERSON IN LOTUS POSITION
-         U+1F9D9 MAGE
-         U+1F9DA FAIRY
-         U+1F9DB VAMPIRE
-         U+1F9DC MERPERSON
-         U+1F9DD ELF
-         */
-        CFMutableCharacterSetRef cset = CFCharacterSetCreateMutable(NULL);
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x261D, 1)); // WHITE UP POINTING INDEX
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x2639, 2)); // WHITE FROWNING FACE ~ WHITE SMILING FACE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x270A, 4)); // RAISED FIST ~ WRITING HAND
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F385, 1)); // FATHER CHRISTMAS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3C2, 3)); // SNOWBOARDER ~ SURFER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3C7, 1)); // HORSE RACING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CA, 1)); // SWIMMER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CC, 1)); // GOLFER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F442, 2)); // EAR ~ NOSE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F446, 0x1F451 - 0x1F446)); // WHITE UP POINTING BACKHAND INDEX ~ OPEN HANDS SIGN
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F466, 4)); // BOY ~ WOMAN
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F46A, 6)); // FAMILY…U+1F46F WOMAN WITH BUNNY EARS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F470, 0x1F479 - 0x1F470)); // BRIDE WITH VEIL ~ PRINCESS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F47C, 1)); // BABY ANGEL
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F47F, 1)); // IMP
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F481, 3)); // INFORMATION DESK PERSON ~ DANCER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F485, 3)); // NAIL POLISH ~ HAIRCUT
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F4AA, 1)); // FLEXED BICEPS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F574, 1)); // MAN IN BUSINESS SUIT LEVITATING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F575, 1)); // SLEUTH OR SPY
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F57A, 1)); // MAN DANCING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F590, 1)); // RAISED HAND WITH FINGERS SPLAYED
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F595, 2)); // REVERSED HAND WITH MIDDLE FINGER EXTENDED ~ RAISED HAND WITH PART BETWEEN MIDDLE AND RING FINGERS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F600, 0x1F638 - 0x1F600)); // GRINNING FACE ~ FACE WITH MEDICAL MASK
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F641, 0x1F648 - 0x1F641)); // SLIGHTLY FROWNING FACE ~ PERSON BOWING DEEPLY
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F64B, 0x1F650 - 0x1F64B)); // HAPPY PERSON RAISING ONE HAND ~ PERSON WITH FOLDED HANDS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6A3, 1)); // ROWBOAT
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6B4, 0x1F6B7 - 0x1F6B4)); // BICYCLIST ~ PEDESTRIAN
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6C0, 1)); // BATH
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6CC, 1)); // SLEEPING ACCOMMODATION
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F910, 0x1F916 - 0x1F910)); // U+1F910 ZIPPER-MOUTH FACE…U+1F915 FACE WITH HEAD-BANDAGE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F917, 8)); // U+1F917 HUGGING FACE…U+1F91E HAND WITH INDEX AND MIDDLE FINGERS CROSSED
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F91F, 1)); // LOVE-YOU GESTURE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F926, 1)); // FACE PALM
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F930, 3)); // PREGNANT WOMAN ~ PALMS UP TOGETHER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F933, 4)); // SELFIE ~ MOTHER CHRISTMAS
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F937, 3)); // SHRUG ~ JUGGLING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F93C, 3)); // WRESTLERS ~ HANDBALL
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F9D1, 13)); // ADULT ~ ELF
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x26F9, 1)); // U+26F9 PERSON WITH BALL
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CB, 1)); // U+1F3CB WEIGHT LIFTER
-        CFCharacterSetCompact(cset);
-        CFCharacterSetInitInlineBuffer(cset, &buffer);
-    });
-
-    return (const CFCharacterSetInlineBuffer *)&buffer;
-}
-
-static inline bool __CFStringIsFitzpatrickModifiers(UTF32Char character) { return ((character >= 0x1F3FB) && (character <= 0x1F3FF) ? true : false); }
-static inline bool __CFStringIsBaseForFitzpatrickModifiers(UTF32Char character) {
-    if (((character >= 0x2600) && (character < 0x3000)) || ((character >= 0x1F300) && (character < 0x1FA00))) { // Misc symbols, dingbats, & emoticons
-        return (CFCharacterSetInlineBufferIsLongCharacterMember(__CFStringGetFitzpatrickModifierBaseCharacterSet(), character) ? true : false);
+    
+#pragma mark Pictographic Sequences
+/* The following few functions serve to identify ranges of pictographic sequences (AKA emoji sequences with forwards and backwards extension) in a string around a given index. */
+    
+// Reads a character from the given inline buffer at the given index.
+// If the character is a non-BMP character, this reads the matching surrogate pair character as well, and returns the effective read range through an out parameter.
+static inline UTF32Char __CFStringGetLongCharacterFromInlineBuffer(CFStringInlineBuffer *buffer, CFIndex length, CFIndex idx, CFRange *readRange) {
+    if (idx < 0 || idx >= length) {
+        // Matches CFStringGetCharacterFromInlineBuffer.
+        if (readRange) *readRange = CFRangeMake(kCFNotFound, 0);
+        return 0;
     }
-
-    return false;
-}
-static inline bool __CFStringIsTagSequence(UTF32Char character) { return ((character >= 0xE0020) && (character <= 0xE007F) ? true : false); }
-
-#pragma mark Gender Modifier Functions
-
-static const CFCharacterSetInlineBuffer *__CFStringGetGenderModifierBaseCharacterSet(void) {
-    static CFCharacterSetInlineBuffer buffer;
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        /*
-         Unicode 8.0
-         ⛹U+26F9 PERSON WITH BALL  // 0x26F9
-         🏃U+1F3C3 RUNNER  // 0xD83C 0xDFC3
-         🏄U+1F3C4 SURFER  // 0xD83C 0xDFC4
-         🏊U+1F3CA SWIMMER  // 0xD83C 0xDFCA
-         🏋U+1F3CB WEIGHT LIFTER  // 0xD83C 0xDFCB
-         🏌U+1F3CC GOLFER  // 0xD83C 0xDFCC
-         👮U+1F46E POLICE OFFICER  // 0xD83D 0xDC6E
-         👯U+1F46F TWO WOMEN DANCING  // 0xD83D 0xDC6F
-         👱U+1F471 PERSON WITH BLOND HAIR  // 0xD83D 0xDC71
-         👳U+1F473 MAN WITH TURBAN  // 0xD83D 0xDC73
-         👷U+1F477 CONSTRUCTION WORKER  // 0xD83D 0xDC77
-         💁U+1F481 INFORMATION DESK PERSON  // 0xD83D 0xDC81
-         💂U+1F482 GUARDSMAN  // 0xD83D 0xDC82
-         💆U+1F486 FACE MASSAGE  // 0xD83D 0xDC86
-         💇U+1F487 HAIRCUT  // 0xD83D 0xDC87
-         🕵U+1F575 SLEUTH OR SPY // 0xD83D 0xDD75
-         🙅U+1F645 FACE WITH NO GOOD GESTURE  // 0xD83D 0xDE45
-         🙆U+1F646 FACE WITH OK GESTURE  // 0xD83D 0xDE46
-         🙇U+1F647 PERSON BOWING DEEPLY  // 0xD83D 0xDE47
-         🙋U+1F64B HAPPY PERSON RAISING ONE HAND  // 0xD83D 0xDE4B
-         🙍U+1F64D PERSON FROWNING  // 0xD83D 0xDE4D
-         🙎U+1F64E PERSON WITH POUTING FACE  // 0xD83D 0xDE4E
-         🚣U+1F6A3 ROWBOAT  // 0xD83D 0xDEA3
-         🚴U+1F6B4 BICYCLIST  // 0xD83D 0xDEB4
-         🚵U+1F6B5 MOUNTAIN BICYCLIST  // 0xD83D 0xDEB5
-         🚶U+1F6B6 PEDESTRIAN  // 0xD83D 0xDEB6
-         
-         Unicode 9.0
-         U+1F926 FACE PALM
-         U+1F937 SHRUG
-         U+1F938 PERSON DOING CARTWHEEL
-         U+1F939 JUGGLING
-         U+1F93C WRESTLERS
-         U+1F93D WATER POLO
-         U+1F93E HANDBALL
-
-         Unicode 10.0
-         U+1F9D6 PERSON IN STEAMY ROOM
-         U+1F9D7 PERSON CLIMBING
-         U+1F9D8 PERSON IN LOTUS POSITION
-         U+1F9D9 MAGE
-         U+1F9DA FAIRY
-         U+1F9DB VAMPIRE
-         U+1F9DC MERPERSON
-         U+1F9DD ELF
-         U+1F9DE GENIE
-         U+1F9DF ZOMBIE
-         */
-        CFMutableCharacterSetRef cset = CFCharacterSetCreateMutable(NULL);
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x26F9, 1)); // PERSON WITH BALL
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3C3, 1)); // RUNNER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3C4, 1)); // SURFER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CA, 1)); // SWIMMER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CB, 1)); // WEIGHT LIFTER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3CC, 1)); // GOLFER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F46E, 1)); // POLICE OFFICER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F46F, 1)); // TWO WOMEN DANCING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F471, 1)); // PERSON WITH BLOND HAIR
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F473, 1)); // MAN WITH TURBAN
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F477, 1)); // CONSTRUCTION WORKER
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F481, 1)); // INFORMATION DESK PERSON
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F482, 1)); // GUARDSMAN
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F486, 1)); // FACE MASSAGE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F487, 1)); // HAIRCUT
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F575, 1)); // SLEUTH OR SPY
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F645, 1)); // FACE WITH NO GOOD GESTURE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F646, 1)); // FACE WITH OK GESTURE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F647, 1)); // PERSON BOWING DEEPLY
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F64B, 1)); // HAPPY PERSON RAISING ONE HAND
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F64D, 1)); // PERSON FROWNING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F64E, 1)); // PERSON WITH POUTING FACE
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6A3, 1)); // ROWBOAT
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6B4, 1)); // BICYCLIST
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6B5, 1)); // MOUNTAIN BICYCLIST
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F6B6, 1)); // PEDESTRIAN
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F926, 1)); // FACE PALM
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F937, 3)); // SHRUG ~ JUGGLING
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F93C, 3)); // WRESTLERS ~ HANDBALL
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F9D6, 10)); // PERSON IN STEAMY ROOM ~ ZOMBIE
-        CFCharacterSetCompact(cset);
-        CFCharacterSetInitInlineBuffer(cset, &buffer);
-    });
-    return (const CFCharacterSetInlineBuffer *)&buffer;
-}
-
-static inline bool __CFStringIsGenderModifier(UTF32Char character) { return ((character == 0x2640) || (character == 0x2642)); }
-
-static inline bool __CFStringIsBaseForGenderModifier(UTF32Char character) {
-    if (((character >= 0x2600) && (character < 0x3000)) || ((character >= 0x1F300) && (character < 0x1FA00))) { // Misc symbols, dingbats, & emoticons
-        return CFCharacterSetInlineBufferIsLongCharacterMember(__CFStringGetGenderModifierBaseCharacterSet(), character);
-    }
-    return false;
-}
-
-static inline bool __CFStringIsGenderModifierBaseCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    UTF16Char character = CFStringGetCharacterFromInlineBuffer(buffer, range.location);
-    UTF32Char baseCharacter = character;
-    if (range.length > 1) {
-        if (CFUniCharIsSurrogateHighCharacter(character)) {
-            UTF16Char otherCharacter = CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1);
-            if (CFUniCharIsSurrogateLowCharacter(otherCharacter)) {
-                baseCharacter = CFUniCharGetLongCharacterForSurrogatePair(character, otherCharacter);
-            }
+    
+    CFRange range = CFRangeMake(idx, 1);
+    UTF32Char character = CFStringGetCharacterFromInlineBuffer(buffer, idx);
+    if (CFUniCharIsSurrogateHighCharacter(character) && idx < length - 1) {
+        // We need to read ahead if possible to get the low surrogate and combine.
+        UTF16Char surrogateLow = CFStringGetCharacterFromInlineBuffer(buffer, idx + 1);
+        if (CFUniCharIsSurrogateLowCharacter(surrogateLow)) {
+            range.length++;
+            character = CFUniCharGetLongCharacterForSurrogatePair(character, surrogateLow);
+        }
+    } else if (CFUniCharIsSurrogateLowCharacter(character) && idx > 0) {
+        // We need to read behind if possible to get the low surrogate and combine.
+        UTF16Char surrogateHigh = CFStringGetCharacterFromInlineBuffer(buffer, idx - 1);
+        if (CFUniCharIsSurrogateHighCharacter(surrogateHigh)) {
+            range.location--;
+            range.length++;
+            character = CFUniCharGetLongCharacterForSurrogatePair(surrogateHigh, character);
         }
     }
-    return __CFStringIsBaseForGenderModifier(baseCharacter);
+    
+    if (readRange) *readRange = range;
+    return character;
 }
 
-static inline bool __CFStringIsGenderModifierCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    if ((range.length < 1) || (range.length > 2)) return false;
-    UTF16Char character = CFStringGetCharacterFromInlineBuffer(buffer, range.location);
-    return (__CFStringIsGenderModifier(character) && ((range.length == 1) || (0xFE0F == CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1))));  // Either modifier is alone or is followed by FEOF
+static inline bool __CFStringIsValidExtendCharacterForPictographicSequence(UTF32Char character) {
+    // From https://www.unicode.org/reports/tr29/#Extend:
+    // 
+    //   Grapheme_Extend = Yes, or
+    //   Emoji_Modifier=Yes in emoji-data.txt
+    //
+    return u_hasBinaryProperty(character, UCHAR_GRAPHEME_EXTEND) || u_hasBinaryProperty(character, UCHAR_EMOJI_MODIFIER);
 }
 
-#pragma mark Profession Modifier Functions
-
-static inline bool __CFStringIsBaseForManOrWomanCluster(UTF16Char character) {
-    return ((character == 0xDC68) || (character == 0xDC69)); // Low surrogate chars representing MAN (U+1F468) and WOMAN (U+1F469) respectively
+static inline bool __CFStringIsValidExtendedPictographicCharacterForPictographicSequence(UTF32Char character) {
+    return u_hasBinaryProperty(character, UCHAR_EXTENDED_PICTOGRAPHIC);
 }
 
-static inline bool __CFStringIsProfessionBaseCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    // The code here in this method follows the same structure as __CFStringIsGenderModifierBaseCluster() above in that it separates the high and low surrogate chars and passes the low surrogate char to __CFStringIsBaseForManOrWomanCluster().
-    if (range.length > 1) {
-        UTF16Char character = CFStringGetCharacterFromInlineBuffer(buffer, range.location);
-        if (CFUniCharIsSurrogateHighCharacter(character)) {
-            UTF16Char otherCharacter = CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1);
-            if (CFUniCharIsSurrogateLowCharacter(otherCharacter)) {
-                return __CFStringIsBaseForManOrWomanCluster(otherCharacter);
+static inline bool __CFStringIsValidPrecoreCharacterForPictographicSequence(UTF32Char character) {
+    // From https://www.unicode.org/reports/tr29/#Regex_Definitions:
+    //
+    //   precore := Prepend
+    //
+    // We can look up the grapheme cluster break class and use it directly.
+    bool isValid = (UGraphemeClusterBreak)u_getIntPropertyValue(character, UCHAR_GRAPHEME_CLUSTER_BREAK) == U_GCB_PREPEND;
+    return isValid;
+}
+
+static inline bool __CFStringIsValidPostcoreCharacterForPictographicSequence(UTF32Char character) {
+    // From https://www.unicode.org/reports/tr29/#Regex_Definitions:
+    //
+    //   postcore := [Extend ZWJ SpacingMark]
+    //
+    // We already have an expression to match Extend characters (and ZWJ is trivial); we can look up the grapheme cluster break class and use it directly to determine spacing mark characters.
+    bool isValid = character == ZERO_WIDTH_JOINER || __CFStringIsValidExtendCharacterForPictographicSequence(character) || (UGraphemeClusterBreak)u_getIntPropertyValue(character, UCHAR_GRAPHEME_CLUSTER_BREAK) == U_GCB_SPACING_MARK;
+    return isValid;
+}
+    
+// Represents the match information for a single component in a pictographic sequence below.
+// See __CFStringGetExtendedPictographicSequenceComponent and __CFStringGetExtendedPictographicSequence for usage information.
+typedef struct {
+    CFRange range;
+    CFIndex firstExtendIndex;
+    CFIndex zwjIndex;
+    CFIndex pictographIndex;
+} __CFStringPictographicSequenceComponent;
+
+// Given an index, attempts to return the range of the containing element of Grapheme Cluster Boundary Rule GB11:
+//
+//   \p{Extended_Pictographic} (Extend* ZWJ \p{Extended_Pictographic})*
+//
+// Specifically, this will attempt to match either the lone starting \p{Extended_Pictographic} if the index corresponds to it, or a singular instance of (Extend* ZWJ \p{Extended_Pictographic}) which contains the `index`.
+// For instance, the string @"stuff...👩‍❤️‍💋‍👨stuff..." is segmented this way as:
+//
+//                   👩             ❤    Var_Sel           💋             👨
+//   ┌──────────┐│┌───────┐┌─────┐┌──────┐┌──────┐┌─────┐┌───────┐┌─────┐┌───────┐│┌──────────┐
+//   │ stuff... │ │ 1F469 ││ ZWJ ││ 2764 ││ FE0F ││ ZWJ ││ 1F48B ││ ZWJ ││ 1F468 │ │ stuff... │
+//   └──────────┘│└───────┘└─────┘└──────┘└──────┘└─────┘└───────┘└─────┘└───────┘│└──────────┘
+//                 ──r0───  ─────r1──────  ─────────r2───────────  ──────r3──────
+//
+// Each of ranges r0-r3 is one "component" of this sequence that we're looking to match. Given any index which falls in one of these ranges, we should return the same match information.
+// Here, r0 is matched as a \p{Extended_Pictographic}, while each of r1-r3 are matched as (Extend* ZWJ \p{Extended_Pictographic}).
+//
+// If a match is found for the given index, the match information is returned through the `outComponent` parameter.
+static inline bool __CFStringGetExtendedPictographicSequenceComponent(CFStringInlineBuffer *buffer, CFIndex length, CFIndex index, __CFStringPictographicSequenceComponent *outComponent) {
+    if (index < 0 || index >= length) {
+        // This is relied upon in __CFStringGetExtendedPictographicSequence to prevent reading invalid components without additional checking.
+        return false;
+    }
+    
+    __CFStringPictographicSequenceComponent match = {{kCFNotFound, 0}, -1, -1, -1};
+    
+    // The given index can point to any part of any component in a sequence as above.
+    // Start by rewinding backwards as far as we can to see if we we're in the type of component which has a ZWJ or not.
+    CFRange currentRange = CFRangeMake(index, 0);
+    while (currentRange.location >= 0) {
+        // This adjusts currentRange to match the actual range of a long character, if necessary.
+        UTF32Char character = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, currentRange.location, &currentRange);
+        
+        if (__CFStringIsValidExtendCharacterForPictographicSequence(character)) {
+            // This is an extend character; we're at the beginning of the cluster.
+            match.firstExtendIndex = currentRange.location;
+        } else if (character == ZERO_WIDTH_JOINER) {
+            if (match.firstExtendIndex != -1 || match.zwjIndex != -1) {
+                // A ZWJ isn't valid here — we've already previously seen a ZWJ or Extend characters (i.e. this ZWJ is not part of this component).
+                // For example, we've extended backwards and hit another ZWJ:
+                //
+                //   ┌───────────────────────┐ ┌─────┐ ┌────────┐ ┌─────┐ ┌───────────────────────┐
+                //   │ Extended_Pictographic │ │ ZWJ │ │ Extend │ │ ZWJ │ │ Extended_Pictographic │
+                //   └───────────────────────┘ └─────┘ └────────┘ └─────┘ └───────────────────────┘
+                //                                ▲                                   │
+                //                                └───────────────────────────────────┘
+                //
+                // Note that this sequence is not valid (and we will reject it one level up), but we'll stop here.
+                break;
             }
-        }
-    }
-    return false;
-}
-
-static const CFCharacterSetInlineBuffer *__CFStringGetProfessionModifierBaseCharacterSet(void) {
-    static CFCharacterSetInlineBuffer buffer;
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        /* Unicode 9.0 - Supported profession modifiers */
-        CFMutableCharacterSetRef cset = CFCharacterSetCreateMutable(NULL);
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x2695, 1)); // ⚕U+2695 STAFF OF AESCULAPIUS // Health Worker - 0x2695
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F33E, 1)); // 🌾U+1F33E EAR OF RICE // Farmer - 0xD83C 0xDF3E
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F373, 1)); // 🍳U+1F373 COOKING // Cook - 0xD83C 0xDF73
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F393, 1)); // 🎓U+1F393 GRADUATION CAP // Student - 0xD83C 0xDF93
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3A4, 1)); // 🎤U+1F3A4 MICROPHONE // Singer - 0xD83C 0xDFA4
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3EB, 1)); // 🏫U+1F3EB SCHOOL // Teacher - 0xD83C 0xDFEB
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3ED, 1)); // 🏭U+1F3ED FACTORY // Factory Worker - 0xD83C 0XDFED
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F4BB, 1)); // 💻U+1F4BB PERSONAL COMPUTER // Technologist - 0xD83D 0xDCBB
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F4BC, 1)); // 💼U+1F4BC BRIEFCASE // Office Worker - 0xD83D 0xDCBC
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F527, 1)); // 🔧U+1F527 WRENCH // Mechanic - 0xD83D 0xDD27
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F52C, 1)); // 🔬U+1F52C MICROSCOPE // Scientist - 0xD83D 0xDD2C
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F3A8, 1)); // 🎨U+1F3A8 ARTIST PALETTE // Artist - 0xD83C 0xDFA8
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F692, 1)); // 🚒U+1F692 FIRE ENGINE // Firefighter - 0xD83D 0xDE92
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x2708, 1)); // ✈️U+2708 AIRPLANE // Pilot - 0x2708
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x1F680, 1)); // 🚀U+1F680 ROCKET // Astronaut - 0xD83D 0xDE80
-        CFCharacterSetAddCharactersInRange(cset, CFRangeMake(0x2696, 1)); // ⚖️U+2696 SCALES // Judge - 0x2696
-        CFCharacterSetCompact(cset);
-        CFCharacterSetInitInlineBuffer(cset, &buffer);
-    });
-    return (const CFCharacterSetInlineBuffer *)&buffer;
-}
-
-static inline bool __CFStringIsBaseForProfessionModifier(UTF32Char character) {
-    if (((character >= 0x2600) && (character < 0x3000)) || ((character >= 0x1F300) && (character < 0x1FA00))) { // Misc symbols, dingbats, & emoticons
-        return CFCharacterSetInlineBufferIsLongCharacterMember(__CFStringGetProfessionModifierBaseCharacterSet(), character);
-    }
-    return false;
-}
-
-static inline bool __CFStringIsProfessionModifierCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    UTF16Char character = CFStringGetCharacterFromInlineBuffer(buffer, range.location);
-    UTF32Char baseCharacter = character;
-    if (range.length > 1) {
-        if (CFUniCharIsSurrogateHighCharacter(character)) {
-            UTF16Char otherCharacter = CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1);
-            if (CFUniCharIsSurrogateLowCharacter(otherCharacter)) {
-                baseCharacter = CFUniCharGetLongCharacterForSurrogatePair(character, otherCharacter);
+            
+            match.zwjIndex = currentRange.location;
+        } else if (__CFStringIsValidExtendedPictographicCharacterForPictographicSequence(character)) {
+            if (match.pictographIndex != -1 || match.zwjIndex != -1 || match.firstExtendIndex != -1) {
+                // We've already either seen a pictograph before, or we've seen other characters which come before a pictograph.
+                // For example, we've extended far enough backwards to find the previous pictograph:
+                //
+                //   ┌───────────────────────┐ ┌────────┐ ┌─────┐ ┌───────────────────────┐
+                //   │ Extended_Pictographic │ │ Extend │ │ ZWJ │ │ Extended_Pictographic │
+                //   └───────────────────────┘ └────────┘ └─────┘ └───────────────────────┘
+                //               ▲                                            │
+                //               └────────────────────────────────────────────┘
+                break;
             }
+            
+            match.pictographIndex = currentRange.location;
+        } else {
+            // This isn't a character which is valid to include in this pictograph sequence.
+            break;
         }
+        
+        match.range.location = currentRange.location;
+        match.range.length  += currentRange.length;
+        currentRange.location--;
     }
-    return __CFStringIsBaseForProfessionModifier(baseCharacter);
-}
+    
+    // We've advanced as far back as we can go. At this point, we should either have matched
+    //
+    //   ┌───────────────────────┐
+    //   │ Extended_Pictographic │
+    //   └───────────────────────┘
+    //
+    // or at least some subset of
+    //
+    //   ┌─────────┐ ┌──────┐ ┌────────────────────────┐
+    //   │ Extend* │ │ ZWJ* │ │ Extended_Pictographic* │
+    //   └─────────┘ └──────┘ └────────────────────────┘
+    //
+    // If we didn't match _anything_ then we're not looking at a valid component.
+    if (match.pictographIndex == -1) {
+        // No pictograph yet...
+        if (match.zwjIndex == -1 && match.firstExtendIndex == -1) {
+            // ... nor anything else. Advancing forward won't be any use here; this isn't a pictographic sequence component.
+            return false;
+        }
 
-#pragma mark Family Cluster Functions
-
-static inline bool __CFStringIsFamilySequenceBaseCharacterHigh(UTF16Char character) { return (character == 0xD83D) ? true : false; }
-static inline bool __CFStringIsFamilySequenceBaseCharacterLow(UTF16Char character) { return (((character >= 0xDC66) && (character <= 0xDC69)) || (character == 0xDC8B) || (character == 0xDC41) || (character == 0xDDE8) ? true : false); }
-static inline bool __CFStringIsFamilySequenceCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    UTF16Char character = CFStringGetCharacterFromInlineBuffer(buffer, range.location);
-
-    if (character == 0x2764) { // HEART
+        // We've matched the start of a component here; continue below.
+    } else {
+        // We've got a pictograph, so there's nothing left to find by searching forward.
+        // Possible options for what we've matched:
+        //
+        //   1. <Extended_Pictographic>
+        //   2. <ZWJ> <Extended_Pictographic>
+        //   3. <Extend> <Extended_Pictographic>
+        //   4. <Extend> <ZWJ> <Extended_Pictographic>
+        //
+        // Of these, options 1, 2, and 4 are valid, since we either need a ZWJ or don't. 
+        if (match.firstExtendIndex != -1 && match.zwjIndex == -1) {
+            // This is option 3 above. It's likely that we're matching the FE0F (or similar) from a preceding cluster.
+            // For example, we may have extended backwards from the start of 👨‍👦 to the end of 👱‍♀️ in the string @"👱‍♀️👨‍👦" with no ZWJ in between:
+            //
+            //
+            //      👱       ZWJ       ♀     Var_Sel      👨        ZWJ      👦
+            //   ┌───────┐ ┌──────┐ ┌──────┐ ┌──────┐ │ ┌───────┐ ┌──────┐ ┌───────┐
+            //   │ 1F471 │ │ 200D │ │ 2640 │ │ FE0F │   │ 1F468 │ │ 200D │ │ 1F466 │
+            //   └───────┘ └──────┘ └──────┘ └──────┘ │ └───────┘ └──────┘ └───────┘
+            //                                   ▲          │
+            //                                   └──────────┘
+            //
+            // FE0F is a variant selector (a valid extend character) and we matched it with no intervening ZWJ.
+            // In this case, simply ignore the extend characters we've found and return the base pictograph itself as the start of a new sequence looking forward.
+            match.range.location = match.pictographIndex;
+            match.range.length  -= (match.pictographIndex - match.firstExtendIndex);
+        }
+        
+        if (outComponent) *outComponent = match;
         return true;
-    } else if (range.length > 1) {
-        if (__CFStringIsFamilySequenceBaseCharacterHigh(character) && __CFStringIsFamilySequenceBaseCharacterLow(CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1))) return true;
     }
-    return false;
+    
+    // We don't have a full component yet — we might have some Extend characters and/or a ZWJ, but no pictograph yet.
+    // Extend forward as far as we can.
+    currentRange.location = match.range.location + match.range.length;
+    currentRange.length = 0;
+    while (match.pictographIndex == -1 && currentRange.location < length) {
+        // This adjusts currentRange to match the actual range of a long character, if necessary.
+        UTF32Char character = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, currentRange.location, &currentRange);
+        
+        if (__CFStringIsValidExtendCharacterForPictographicSequence(character)) {
+            if (match.zwjIndex != -1) {
+                // We've already seen a ZWJ, so further <Extend>* characters are not valid here.
+                // For example:
+                //
+                //   ┌───────────────────────┐ ┌─────┐ ┌────────┐ ┌─────┐ ┌───────────────────────┐
+                //   │ Extended_Pictographic │ │ ZWJ │ │ Extend │ │ ZWJ │ │ Extended_Pictographic │
+                //   └───────────────────────┘ └─────┘ └────────┘ └─────┘ └───────────────────────┘
+                //                                │        ▲                           
+                //                                └────────┘
+                //
+                // Note that this sequence is not valid (and we will reject all trailing characters as part of the sequence), but we'll stop here.
+                break;
+            }
+            
+            // When extending backwards, we updated component.firstExtendIndex; here we don't update it because we're extending forward.
+        } else if (character == ZERO_WIDTH_JOINER) {
+            if (match.zwjIndex != -1) {
+                // We've already seen a ZWJ, so another ZWJ is not valid here.
+                // For example:
+                //
+                //   ┌───────────────────────┐ ┌─────┐ ┌─────┐ ┌───────────────────────┐
+                //   │ Extended_Pictographic │ │ ZWJ │ │ ZWJ │ │ Extended_Pictographic │
+                //   └───────────────────────┘ └─────┘ └─────┘ └───────────────────────┘
+                //                                │       ▲                           
+                //                                └───────┘
+                //
+                // Note that this sequence is not valid (and we will reject all trailing characters as part of the sequence), but we'll stop here.
+                break;
+            }
+            
+            match.zwjIndex = currentRange.location;
+        } else if (__CFStringIsValidExtendedPictographicCharacterForPictographicSequence(character)) {
+            // We're matching the pictograph we've been looking for, e.g.
+            //
+            //   ┌───────────────────────┐ ┌─────┐ ┌───────────────────────┐
+            //   │ Extended_Pictographic │ │ ZWJ │ │ Extended_Pictographic │
+            //   └───────────────────────┘ └─────┘ └───────────────────────┘
+            //                                │                ▲                           
+            //                                └────────────────┘
+            //
+            // The loop condition means we'll break out after matching this.
+            match.pictographIndex = currentRange.location;
+        } else {
+            // This isn't a character which is valid to include in this pictograph sequence.
+            break;
+        }
+        
+        match.range.length    += currentRange.length;
+        currentRange.location += currentRange.length;
+        currentRange.length    = 0;
+    }
+    
+    if (match.pictographIndex == -1) {
+        // Still no pictograph. We're done.
+        return false;
+    } else {
+        // At this point we should have everything.
+        if (outComponent) *outComponent = match;
+        return true;
+    }
 }
 
-#pragma mark Regional Indicator Functions
+// Given an index into a buffer, attempts to match an extended pictographic sequence containing the character at that index.
+// Specifically, we're looking to match an instance of the extended grapheme cluster grammar in Table 1b. of UAX#29 (http://unicode.org/reports/tr29/) as it concerns pictographic sequences:
+//
+//   precore* core postcore*
+//
+// where in our case, we care about
+//
+//   precore  := Prepend
+//   core     := \p{Extended_Pictographic} (Extend* ZWJ \p{Extended_Pictographic})*
+//   postcore := [Extend ZWJ SpacingMark]
+//
+// In the future, we can extend core to match the full definition of
+//
+//   core := hangul-syllable | ri-sequence | xpicto-sequence | [^Control CR LF]
+//
+// to more generalize the implementation of CFStringGetRangeOfCharacterClusterAtIndex.
+//
+// To do this, we look to match instances of precore, core, and postcore characters around `index`.
+// __CFStringGetExtendedPictographicSequenceComponent above will be used to match instances of `core`, and the general strategy involved tries to extend backwards to the start of the sequence, then forwards to figure out where/what we're matching.
+//
+// For instance, a string like @"stuff...👩🏿‍✈️stuff..." is segmented as
+//
+//                   👩       🏿             ✈     Var_Sel
+//   ┌──────────┐│┌───────┐┌───────┐┌─────┐┌──────┐┌──────┐│┌──────────┐
+//   │ stuff... │ │ 1F469 ││ 1F3FF ││ ZWJ ││ 2708 ││ FE0F │ │ stuff... │
+//   └──────────┘│└───────┘└───────┘└─────┘└──────┘└──────┘│└──────────┘
+//                 ──r0───  ──────────r1──────────  ──r2──              
+//
+// Given any index which falls within ranges r0-r2, we're looking to return the full match from the beginning of r0 to the end of r2 in `outRange`.
+// In this case,
+//
+//   * r0 is the base \p{Extended_Pictographic} matched from `core`,
+//   * r1 is the extension (Extend* ZWJ \p{Extended_Pictographic}) matched from `core`,
+//   * and r2 is a `postcore` extend character
+//
+// `core` characters are matched using __CFStringGetExtendedPictographicSequenceComponent, and we extend with `precore` and `postcore` here.
+static inline bool __CFStringGetExtendedPictographicSequence(CFStringInlineBuffer *buffer, CFIndex length, CFIndex index, CFRange *outRange) {
+    if (index < 0 || index >= length) {
+        return false;
+    }
+    
+    // We want to find the base character here of the whole cluster, so let's rewind backwards.
+    // We may be at the end of the cluster, so let's start rewinding backwards until we hit a boundary.
+    CFRange currentRange;
+    UTF32Char currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, index, &currentRange);
+    
+    // We'll start by matching postcore characters. One difficulty here is that allowable postcore characters are also present in the middle of core matches (like Extend and ZWJs).
+    // This means that if we match some characters here, they may actually fall in the middle of a core match:
+    //
+    //   ┌───────────────────────┐ ┌─────┐ ┌───────────────────────┐
+    //   │ Extended_Pictographic │ │ ZWJ │ │ Extended_Pictographic │
+    //   └───────────────────────┘ └─────┘ └───────────────────────┘
+    //                                ▲
+    //                                └─── could be postcore or could be core (in this case, it's core, but we don't know it yet)
+    // 
+    // We can reconcile this later; for now, we'll keep track of this range until we've concluded whether or not these are really postcore characters.
+    CFRange postcoreRange = CFRangeMake(currentRange.length, 0);
+    while (__CFStringIsValidPostcoreCharacterForPictographicSequence(currentCharacter)) {
+        postcoreRange.location = currentRange.location;
+        postcoreRange.length  += currentRange.length;
+        
+        if (postcoreRange.location == 0) {
+            // We've managed to only match postcore characters and can't extend further; there's no pictographic sequence here, so no point in continuing to look.
+            return false;
+        }
+        
+        // This adjusts currentRange to match the actual range of a long character, if necessary.
+        currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, postcoreRange.location - 1, &currentRange);
+    }
+    
+    // We may or may not have matched any postcore characters, but either way, now try to match a pictographic sequence if we can, extending backwards.
+    __CFStringPictographicSequenceComponent currentComponent = {{kCFNotFound, 0}, -1, -1, -1};
+    CFRange coreRange = CFRangeMake(currentRange.location, 0);
+    while (__CFStringGetExtendedPictographicSequenceComponent(buffer, length, currentRange.location, &currentComponent)) {
+        coreRange.location = currentComponent.range.location;
+        coreRange.length  += currentComponent.range.length;
+        
+        currentRange.location = currentComponent.range.location - 1;
+        currentRange.length   = 0;
+        
+        if (currentComponent.zwjIndex == -1) {
+            // This component is the start of the sequence; stop trying to look for more.
+            break;
+        }
+    }
+    
+    bool shouldLookForPrecoreCharacters = true;
+    if (currentComponent.firstExtendIndex != -1 || currentComponent.zwjIndex != -1) {
+        // The last component we found had characters preceding the pictograph, but we stopped looking.
+        // This can either be because we've hit the beginning of the string (i.e. there's no preceding component to find), or the character preceding those would not form a valid component itself, e.g.:
+        //
+        //   │ ┌─────┐ ┌───────┐ ┌─────┐
+        //     │ ZWJ │ │ 1F469 │ │ ... │
+        //   │ └─────┘ └───────┘ └─────┘
+        //        ▲        │
+        //        └────────┘
+        //
+        //                OR
+        //
+        //   ┌────────────┐ ┌────────┐ ┌─────┐ ┌───────┐ ┌─────┐
+        //   │ Garbage... │ | Extend | │ ZWJ │ │ 1F469 │ │ ... │
+        //   └────────────┘ └────────┘ └─────┘ └───────┘ └─────┘
+        //                      ▲                  │
+        //                      └──────────────────┘
+        //
+        // or similar.
+        // In this case, we'll ignore these preceding characters and use the pictograph as the start of the sequence looking forward.
+        coreRange.location    = currentComponent.pictographIndex;
+        coreRange.length     -= currentComponent.pictographIndex - currentComponent.range.location;
+        currentRange.location = currentComponent.pictographIndex + 1;
+
+        // There's also no point in further looking for precore characters because Extend and ZWJ are not valid precore chars.
+        shouldLookForPrecoreCharacters = false;
+    }
+    
+    if (postcoreRange.length > 0 && coreRange.length == 0) {
+        // We matched some postcore characters but no pictographic sequence components.
+        // There's no point in looking for precore characters, or looking forwards afterwards.
+        return false;
+    }
+    
+    // We've now extended backwards to the start of the emoji sequence, if one exists. We can now try to match precore if there are any to be found.
+    CFRange precoreRange = CFRangeMake(currentRange.location, 0);
+    if (shouldLookForPrecoreCharacters) {
+        // Extend backwards as far as possible.
+        if (currentRange.location >= 0) {
+            // This adjusts currentRange to match the actual range of a long character, if necessary.
+            currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, currentRange.location, &currentRange);
+            while (__CFStringIsValidPrecoreCharacterForPictographicSequence(currentCharacter)) {
+                precoreRange.location = currentRange.location;
+                precoreRange.length  += currentRange.length;
+                
+                if (precoreRange.location == 0) {
+                    break;
+                }
+                
+                currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, precoreRange.location - 1, &currentRange);
+            }
+        }
+        
+        // Then forwards...
+        currentRange = CFRangeMake(precoreRange.location + precoreRange.length, 0);
+        while (currentRange.location < length) {
+            // This adjusts currentRange to match the actual range of a long character, if necessary.
+            currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, currentRange.location, &currentRange);
+            if (__CFStringIsValidPrecoreCharacterForPictographicSequence(currentCharacter)) {
+                precoreRange.length   += currentRange.length;
+                currentRange.location += currentRange.length;
+            } else {
+                break;
+            }
+        }
+    }
+    
+    // We've now extended backwards as far as we can go...
+    if (precoreRange.length == 0 && coreRange.length == 0) {
+        // ... and haven't matched anything meaningful that we could get to by searching forward from here (i.e. we can't match precore/core characters after any postcore ones).
+        return false;
+    }
+    
+    // We can now extend forwards to increase our match.
+    // If we found no core characters, we'll look for them right past any precore characters we've found. If we have found core characters, we'll continue extending them forward.
+    if (coreRange.length == 0) {
+        coreRange = CFRangeMake(precoreRange.location + precoreRange.length, 0);
+        currentRange = coreRange;
+    } else {
+        currentRange = CFRangeMake(coreRange.location + coreRange.length, 0);
+    }
+    
+    while (__CFStringGetExtendedPictographicSequenceComponent(buffer, length, currentRange.location, &currentComponent)) {
+        if (coreRange.length > 0 && currentComponent.zwjIndex == -1) {
+            // This component had no ZWJ; it's the start of the next sequence, and we shouldn't include it.
+            break;
+        }
+        
+        coreRange.length      += currentComponent.range.length;
+        currentRange.location += currentComponent.range.length;
+    }
+    
+    // Now before looking for more postcore characters, we should evaluate whether the ones we've already seen are actual postcore characters or not.
+    // It's entirely possible we matched something like a ZWJ up-front that's really part of the core match.
+    if (postcoreRange.length > 0) {
+        CFIndex onePastCore     = coreRange.location     + coreRange.length;
+        CFIndex onePastPostcore = postcoreRange.location + postcoreRange.length;
+        if (onePastCore >= onePastPostcore) {
+            // We've subsumed the entire postcore range, e.g., our initial example:
+            //
+            //   ┌───────────────────────┐ ┌─────┐ ┌───────────────────────┐ ┌─────┐
+            //   │ Extended_Pictographic │ │ ZWJ │ │ Extended_Pictographic │ | ... |
+            //   └───────────────────────┘ └─────┘ └───────────────────────┘ └─────┘
+            //                                ▲                            ▲
+            //                                │                            └─ coreRange ends here
+            //                                └─── appeared to be postcore but is part of coreRange
+            //
+            // We can look for more postcore characters past the whole of the currently matched range.
+            postcoreRange = CFRangeMake(onePastCore, 0);
+        }
+        
+        currentRange = CFRangeMake(postcoreRange.location + postcoreRange.length, 0);
+    } else {
+        // We didn't find any postcore characters; currentRange points just past the end of coreRange, so advance to there and if we find any characters, we'll append them to this range.
+        postcoreRange = currentRange;
+    }
+    
+    if (currentRange.location < length) {
+        // There may be further trailing post-core characters.
+        // This adjusts currentRange to match the actual range of a long character, if necessary.
+        currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, currentRange.location, &currentRange);
+        while (__CFStringIsValidPostcoreCharacterForPictographicSequence(currentCharacter)) {
+            postcoreRange.length  += currentRange.length;
+            currentRange.location += currentRange.length;
+            currentCharacter = __CFStringGetLongCharacterFromInlineBuffer(buffer, length, currentRange.location, &currentRange);
+        }
+    }
+    
+    // We're only willing to return full matches, which necessitate finding a core character -- otherwise this is not an eligible xpicto-sequence.
+    bool const haveMatch = coreRange.length > 0;
+    if (haveMatch && outRange) {
+        // At this point, the union of {precoreRange, coreRange, postcoreRange} gives us the full range of the match.
+        *outRange = coreRange;
+        if (precoreRange.length > 0) {
+            outRange->location = precoreRange.location;
+            outRange->length  += precoreRange.length;
+        }
+        
+        if (postcoreRange.length > 0) {
+            outRange->length += postcoreRange.length;
+        }
+    }
+    
+    return haveMatch;
+}
+    
+#pragma mark Composed Character Sequences
 
 #define RI_SURROGATE_HI (0xD83C)
 static inline bool __CFStringIsRegionalIndicatorSurrogateLow(UTF16Char character) { return (character >= 0xDDE6) && (character <= 0xDDFF) ? true : false; }
@@ -3824,14 +4026,8 @@ static inline bool __CFStringIsRegionalIndicatorAtIndex(CFStringInlineBuffer *bu
     return ((CFStringGetCharacterFromInlineBuffer(buffer, index) == RI_SURROGATE_HI) && __CFStringIsRegionalIndicatorSurrogateLow(CFStringGetCharacterFromInlineBuffer(buffer, index + 1))) ? true : false;
 }
 
-#pragma mark White/Rainbow Flag Functions
-static inline bool __CFStringIsWavingWhiteFlagCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    return ((CFStringGetCharacterFromInlineBuffer(buffer, range.location) == RI_SURROGATE_HI) && (CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1) == 0xDFF3));
-}
-
-static inline bool __CFStringIsRainbowCluster(CFStringInlineBuffer *buffer, CFRange range) {
-    return ((CFStringGetCharacterFromInlineBuffer(buffer, range.location) == RI_SURROGATE_HI) && (CFStringGetCharacterFromInlineBuffer(buffer, range.location + 1) == 0xDF08));
-}
+static inline bool __CFStringIsFitzpatrickModifiers(UTF32Char character) { return ((character >= 0x1F3FB) && (character <= 0x1F3FF) ? true : false); }
+static inline bool __CFStringIsTagSequence(UTF32Char character) { return ((character >= 0xE0020) && (character <= 0xE007F) ? true : false); }
 
 static CFRange _CFStringInlineBufferGetComposedRange(CFStringInlineBuffer *buffer, CFIndex start, CFStringCharacterClusterType type, const uint8_t *bmpBitmap, CFIndex csetType) {
     CFIndex end = start + 1;
@@ -3865,18 +4061,13 @@ static CFRange _CFStringInlineBufferGetComposedRange(CFStringInlineBuffer *buffe
                 }
             }
 
-            if (__CFStringIsFitzpatrickModifiers(character) && (start > 0)) {
-                UTF32Char baseCharacter = CFStringGetCharacterFromInlineBuffer(buffer, start - 1);
-
-                if (CFUniCharIsSurrogateLowCharacter(baseCharacter) && ((start - 1) > 0)) {
-                    UTF16Char otherCharacter = CFStringGetCharacterFromInlineBuffer(buffer, start - 2);
-
-                    if (CFUniCharIsSurrogateHighCharacter(otherCharacter)) baseCharacter = CFUniCharGetLongCharacterForSurrogatePair(otherCharacter, baseCharacter);
-                }
-
-                if (!__CFStringIsBaseForFitzpatrickModifiers(baseCharacter)) break;
-            } else {
-                if (!CFUniCharIsMemberOfBitmap(character, bitmap) && !__CFStringIsTagSequence(character) && (character != 0xFF9E) && (character != 0xFF9F) && ((character & 0x1FFFF0) != 0xF870)) break;
+            Boolean isRelevantFitzpatrickModifier = (start > 0 && __CFStringIsFitzpatrickModifiers(character));
+            Boolean isInBitmap = CFUniCharIsMemberOfBitmap(character, bitmap);
+            Boolean isTagSequence = __CFStringIsTagSequence(character);
+            Boolean behavesLikeCombiningMark = (character == 0xFF9E) || (character == 0xFF9F) || ((character & 0x1FFFF0) == 0xF870 /* variant tag */);
+            if (!isRelevantFitzpatrickModifier && !isInBitmap && ! isTagSequence && !behavesLikeCombiningMark) {
+                // Nothing to extend backward for.
+                break;
             }
     
             --start;
@@ -3969,8 +4160,6 @@ static CFRange _CFStringInlineBufferGetComposedRange(CFStringInlineBuffer *buffe
         }
     }
 
-    bool prevIsFitzpatrickBase = __CFStringIsBaseForFitzpatrickModifiers(character);
-
     // Extend forward
     while ((character = CFStringGetCharacterFromInlineBuffer(buffer, end)) > 0) {
         if ((type == kCFStringBackwardDeletionCluster) && (character >= 0x0530) && (character < 0x1950)) break;
@@ -3984,9 +4173,14 @@ static CFRange _CFStringInlineBufferGetComposedRange(CFStringInlineBuffer *buffe
             step  = 1;
         }
 
-        if ((!prevIsFitzpatrickBase || !__CFStringIsFitzpatrickModifiers(character)) && !CFUniCharIsMemberOfBitmap(character, bitmap) && !__CFStringIsTagSequence(character) && (character != 0xFF9E) && (character != 0xFF9F) && ((character & 0x1FFFF0) != 0xF870)) break;
-
-        prevIsFitzpatrickBase = __CFStringIsBaseForFitzpatrickModifiers(character);
+        Boolean isRelevantFitzpatrickModifier = __CFStringIsFitzpatrickModifiers(character);
+        Boolean isInBitmap = CFUniCharIsMemberOfBitmap(character, bitmap);
+        Boolean isTagSequence = __CFStringIsTagSequence(character);
+        Boolean behavesLikeCombiningMark = (character == 0xFF9E) || (character == 0xFF9F) || ((character & 0x1FFFF0) == 0xF870 /* variant tag */);
+        if (!isRelevantFitzpatrickModifier && !isInBitmap && ! isTagSequence && !behavesLikeCombiningMark) {
+            // Nothing to extend backward for.
+            break;
+        }
 
         end += step;
     } 
@@ -4143,171 +4337,42 @@ CFRange CFStringGetRangeOfCharacterClusterAtIndex(CFStringRef string, CFIndex ch
         }
     }
 
-    // Rainbow flag sequence & Gender modifier sequence
-    CFRange aCluster;
+    // Attempt to expand to match pictographic sequences (Emoji and otherwise).
+    CFRange cluster;
+    if (__CFStringGetExtendedPictographicSequence(&stringBuffer, length, range.location, &cluster)) {
+        // We've found a pictographic cluster by the definition given in https://www.unicode.org/reports/tr29/#Regex_Definitions
+        // However, we have to be careful -- if we are trying to match a composed character sequence, we might end up with `cluster` not aligning with `range`.
+        //
+        // For instance,
+        //
+        //     \U0001F498\u108F\u103D ≡ [HEART WITH ARROW, MYANMAR SIGN RUMAI PALAUNG TONE-5, MYANMAR CONSONANT SIGN MEDIAL WA]
+        //
+        // is in its entirety a valid composed character sequence (1F498 is a Symbol; 108F and 103D are both Marks).
+        //
+        // However, it does not form a pictographic sequence -- 1F498 is a valid Extended_Pictographic character, but 108F is specifically excluded from the SpacingMark property.
+        //
+        // So, `range` here might be {0, 4}, while `cluster` can be `{0, 2}`. We should only allow `cluster` to _extend_ `range`, not shrink it.
+        CFIndex const rangeEnd = range.location + range.length;
+        CFIndex const clusterEnd = cluster.location + cluster.length;
+        
+        /* We want cluster to exclusively extend range, not just intersect it. Cases:
+         1. range:   [     ]                  range.location == cluster.location && rangeEnd == clusterEnd
+            cluster: [     ]
+         2. range:   [     ]                  range.location == cluster.location && rangeEnd <  clusterEnd
+            cluster: [       ]
+         3. range:     [     ]                range.location >  cluster.location && rangeEnd == clusterEnd
+            cluster: [       ]
+         4. range:     [     ]                range.location >  cluster.location && rangeEnd <  clusterEnd
+            cluster: [         ]
+         */
+        Boolean const clusterContainsRange = (range.location >= cluster.location && rangeEnd <= clusterEnd);
 
-    if (__CFStringIsWavingWhiteFlagCluster(&stringBuffer, range)) {
-        CFIndex end = range.location + range.length - 1;
-        if ((end + 1) < length) {
-            UTF32Char endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-            if (endCharacter != ZERO_WIDTH_JOINER) {
-                end++;
-                endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-            }
-            if (endCharacter == ZERO_WIDTH_JOINER)  {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, end + 1, type, bmpBitmap, csetType);
-                if (__CFStringIsRainbowCluster(&stringBuffer, aCluster)) {
-                    currentIndex = aCluster.location + aCluster.length;
-                    if ((aCluster.length > 1) && (ZERO_WIDTH_JOINER == CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex - 1))) --currentIndex;
-                }
-                if (currentIndex > (range.location + range.length)) range.length = currentIndex - range.location;
-            }
-        }
-    } else if (__CFStringIsRainbowCluster(&stringBuffer, range)) {
-        if (range.location > 1) {
-            CFIndex prev = range.location - 1;
-            UTF32Char prevCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, prev);
-            if (prevCharacter == ZERO_WIDTH_JOINER) {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, prev - 1, type, bmpBitmap, csetType);
-                if (__CFStringIsWavingWhiteFlagCluster(&stringBuffer, aCluster)) {
-                    currentIndex = aCluster.location;
-                }
-                if (currentIndex < range.location) {
-                    range.length += range.location - currentIndex;
-                    range.location = currentIndex;
-                }
-            }
-        }
-    } else if (__CFStringIsGenderModifierBaseCluster(&stringBuffer, range)) {
-        CFIndex end = range.location + range.length - 1;
-        if ((end + 1) < length) {
-            UTF32Char endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-            if (endCharacter != ZERO_WIDTH_JOINER) {
-                end++;
-                endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-            }
-            if (endCharacter == ZERO_WIDTH_JOINER)  {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, end + 1, type, bmpBitmap, csetType);
-                if (__CFStringIsGenderModifierCluster(&stringBuffer, aCluster)) {
-                    currentIndex = aCluster.location + aCluster.length;
-                    if ((aCluster.length > 1) && (ZERO_WIDTH_JOINER == CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex - 1))) --currentIndex;
-                }
-                if (currentIndex > (range.location + range.length)) range.length = currentIndex - range.location;
-            }
-        }
-    } else if (__CFStringIsGenderModifierCluster(&stringBuffer, range)) {
-        if (range.location > 1) {
-            CFIndex prev = range.location - 1;
-            UTF32Char prevCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, prev);
-            if (prevCharacter == ZERO_WIDTH_JOINER) {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, prev - 1, type, bmpBitmap, csetType);
-                if (__CFStringIsGenderModifierBaseCluster(&stringBuffer, aCluster)) {
-                    currentIndex = aCluster.location;
-                }
-                if (currentIndex < range.location) {
-                    range.length += range.location - currentIndex;
-                    range.location = currentIndex;
-                }
-            }
-        }
-    } else if (__CFStringIsProfessionBaseCluster(&stringBuffer, range)) {
-        CFIndex end = range.location + range.length - 1;
-        if ((end + 1) < length) {
-            UTF32Char endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-            if (endCharacter != ZERO_WIDTH_JOINER) {
-                end++;
-                endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-            }
-            if (endCharacter == ZERO_WIDTH_JOINER)  {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, end + 1, type, bmpBitmap, csetType);
-                if (__CFStringIsProfessionModifierCluster(&stringBuffer, aCluster)) {
-                    currentIndex = aCluster.location + aCluster.length;
-                    if ((aCluster.length > 1) && (ZERO_WIDTH_JOINER == CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex - 1))) --currentIndex;
-                }
-                if (currentIndex > (range.location + range.length)) range.length = currentIndex - range.location;
-            }
-        }
-    } else if (__CFStringIsProfessionModifierCluster(&stringBuffer, range)) {
-        if (range.location > 1) {
-            CFIndex prev = range.location - 1;
-            UTF32Char prevCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, prev);
-            if (prevCharacter == ZERO_WIDTH_JOINER) {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, prev - 1, type, bmpBitmap, csetType);
-                if (__CFStringIsProfessionBaseCluster(&stringBuffer, aCluster)) {
-                    currentIndex = aCluster.location;
-                }
-                if (currentIndex < range.location) {
-                    range.length += range.location - currentIndex;
-                    range.location = currentIndex;
-                }
-            }
-        }
-    } else {
-        // range is zwj
-        CFIndex end = range.location + range.length - 1;
-        UTF32Char endCharacter = CFStringGetCharacterFromInlineBuffer(&stringBuffer, end);
-        if (((end + 1) < length) && ((endCharacter == ZERO_WIDTH_JOINER) || (endCharacter == WHITE_SPACE_CHARACTER))) {
-            // Get cluster before and after zwj.  Range length of zwj cluster is always 1.
-            CFRange rangeBeforeZWJ = _CFStringInlineBufferGetComposedRange(&stringBuffer, end - 1, type, bmpBitmap, csetType);
-            aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, end + 1, type, bmpBitmap, csetType);
-
-            if (((__CFStringIsWavingWhiteFlagCluster(&stringBuffer, rangeBeforeZWJ)) && (__CFStringIsRainbowCluster(&stringBuffer, aCluster)))
-                || ((__CFStringIsGenderModifierBaseCluster(&stringBuffer, rangeBeforeZWJ)) && (__CFStringIsGenderModifierCluster(&stringBuffer, aCluster)))
-                || ((__CFStringIsProfessionBaseCluster(&stringBuffer, rangeBeforeZWJ)) && (__CFStringIsProfessionModifierCluster(&stringBuffer, aCluster)))) {
-                range.location = rangeBeforeZWJ.location;
-                range.length += rangeBeforeZWJ.length + aCluster.length;
-            }
+        // If the above is not true, the match we've found here is not useful for the semantics we're applying, and we'll ignore it.
+        if (clusterContainsRange) {
+            range = cluster;
         }
     }
-
-    // Family face sequence
-    if (range.location > 1) { // there are more than 2 chars
-        character = CFStringGetCharacterFromInlineBuffer(&stringBuffer, range.location);
-
-        if (__CFStringIsFamilySequenceCluster(&stringBuffer, range) || (character == ZERO_WIDTH_JOINER)) { // extend backward
-            currentIndex = (character == ZERO_WIDTH_JOINER) ? range.location + 1 : range.location;
-
-            while ((currentIndex > 1) && (ZERO_WIDTH_JOINER == CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex - 1))) {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, currentIndex - 2, type, bmpBitmap, csetType);
-
-                if (aCluster.location < range.location) {
-                    if (__CFStringIsFamilySequenceCluster(&stringBuffer, aCluster)) {
-                        currentIndex = aCluster.location;
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            if (currentIndex < range.location) {
-                range.length += range.location - currentIndex;
-                range.location = currentIndex;
-            }
-        }
-    }
-
-    // Extend forward
-    if (range.location + range.length < length) {
-        currentIndex = range.location + range.length - 1;
-        character = CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex);
-
-        if ((ZERO_WIDTH_JOINER == character) || __CFStringIsFamilySequenceCluster(&stringBuffer, _CFStringInlineBufferGetComposedRange(&stringBuffer, currentIndex, type, bmpBitmap, csetType))) {
-
-            if (ZERO_WIDTH_JOINER != character) ++currentIndex; // move to the end of cluster
-
-            while (((currentIndex + 1) < length) && (ZERO_WIDTH_JOINER == CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex))) {
-                aCluster = _CFStringInlineBufferGetComposedRange(&stringBuffer, currentIndex + 1, type, bmpBitmap, csetType);
-                if ((__CFStringIsFamilySequenceCluster(&stringBuffer, aCluster))) {
-                    currentIndex = aCluster.location + aCluster.length;
-                    if ((aCluster.length > 1) && (ZERO_WIDTH_JOINER == CFStringGetCharacterFromInlineBuffer(&stringBuffer, currentIndex - 1))) --currentIndex;
-                } else {
-                    break;
-                }
-            }
-            if (currentIndex > (range.location + range.length)) range.length = currentIndex - range.location;
-        }
-    }
-
+    
     // Gather the final grapheme extends
     CFRange finalCluster;
     
@@ -4390,7 +4455,7 @@ CF_EXPORT Boolean CFStringFindCharacterFromSet(CFStringRef theString, CFCharacte
     step = (fromLoc <= toLoc) ? 1 : -1;
     cnt = fromLoc;
     
-    CFStringInitInlineBuffer(theString, &stringBuffer, rangeToSearch);
+    _CFStringInitInlineBufferInternal(theString, &stringBuffer, rangeToSearch, true);
     CFCharacterSetInitInlineBuffer(theSet, &csetBuffer);
 
     do {
@@ -4461,7 +4526,7 @@ static void __CFStringGetLineOrParagraphBounds(CFStringRef string, CFRange range
         if (range.location == 0) {
             start = 0;
         } else {
-            CFStringInitInlineBuffer(string, &buf, CFRangeMake(0, len));
+            _CFStringInitInlineBufferInternal(string, &buf, CFRangeMake(0, len), false);
 	    CFIndex buf_idx = range.location;
 
             /* Take care of the special case where start happens to fall right between \r and \n */
@@ -4488,7 +4553,7 @@ static void __CFStringGetLineOrParagraphBounds(CFStringRef string, CFRange range
     /* Now find the ending point */
     if (lineEndIndex || contentsEndIndex) {
         CFIndex endOfContents, lineSeparatorLength = 1;	/* 1 by default */
-        CFStringInitInlineBuffer(string, &buf, CFRangeMake(0, len));
+        _CFStringInitInlineBufferInternal(string, &buf, CFRangeMake(0, len), false);
 	CFIndex buf_idx = range.location + range.length - (range.length ? 1 : 0);
         /* First look at the last char in the range (if the range is zero length, the char after the range) to see if we're already on or within a end of line sequence... */
         ch = __CFStringGetCharacterFromInlineBufferAux(&buf, buf_idx);
@@ -4564,6 +4629,12 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
 
     buffer = (uint8_t *)CFAllocatorAllocate(alloc, canBeEightbit ? ((numChars + 1) * sizeof(uint8_t)) : (numChars * sizeof(UniChar)), 0);
 	bufPtr = (uint8_t *)buffer;
+
+    // check that bufPtr actually got allocated
+    if (!bufPtr) {
+        __CFStringHandleOutOfMemory(NULL);
+    }
+    
     if (__CFOASafe) __CFSetLastAllocationEventName(buffer, "CFString (store)");
     separatorNumByte = CFStringGetLength(separatorString) * (canBeEightbit ? sizeof(uint8_t) : sizeof(UniChar));
 
@@ -4732,7 +4803,7 @@ SInt32 CFStringGetIntValue(CFStringRef str) {
     SInt32 result;
     SInt32 idx = 0;
     CFStringInlineBuffer buf;
-    CFStringInitInlineBuffer(str, &buf, CFRangeMake(0, CFStringGetLength(str)));
+    _CFStringInitInlineBufferInternal(str, &buf, CFRangeMake(0, CFStringGetLength(str)), true);
     success = __CFStringScanInteger(&buf, NULL, &idx, false, &result);
     return success ? result : 0;
 }
@@ -4743,7 +4814,7 @@ double CFStringGetDoubleValue(CFStringRef str) {
     double result;
     SInt32 idx = 0;
     CFStringInlineBuffer buf;
-    CFStringInitInlineBuffer(str, &buf, CFRangeMake(0, CFStringGetLength(str)));
+    _CFStringInitInlineBufferInternal(str, &buf, CFRangeMake(0, CFStringGetLength(str)), true);
     success = __CFStringScanDouble(&buf, NULL, &idx, &result);
     return success ? result : 0.0;
 }
@@ -4879,13 +4950,17 @@ void __CFStringAppendBytes(CFMutableStringRef str, const char *cStr, CFIndex app
 	} else {
 	    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFString, void, (NSMutableString *)str, appendCharacters:(const unichar *)cStr length:(NSUInteger)appendedLength);
 	}
-    } else if (CF_IS_SWIFT(_kCFRuntimeIDCFString, str)) {
+    }
+#if DEPLOYMENT_RUNTIME_SWIFT
+    else if (CF_IS_SWIFT(_kCFRuntimeIDCFString, str)) {
         if (!appendedIsUnicode && !demoteAppendedUnicode) {
             CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, void, (CFSwiftRef)str, NSMutableString._cfAppendCString,(const char *)cStr, appendedLength);
         } else {
             CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFString, void, (CFSwiftRef)str, NSMutableString.appendCharacters, (const UniChar *)cStr, appendedLength);
         }
-    } else {
+    }
+#endif
+    else {
         CFIndex strLength;
         __CFAssertIsStringAndMutable(str);
         strLength = __CFStrLength(str);
@@ -4994,10 +5069,10 @@ CFIndex CFStringFindAndReplace(CFMutableStringRef string, CFStringRef stringToFi
 
 int __CFStringCheckAndReplace(CFMutableStringRef str, CFRange range, CFStringRef replacement) {
     if (!__CFStrIsMutable(str)) return _CFStringErrNotMutable;	// These three ifs are always here, for NSString usage
-    if (!replacement && __CFStringNoteErrors()) return _CFStringErrNilArg;
+    if (!replacement) return _CFStringErrNilArg;
     // This attempts to catch bad ranges including those described in 3375535 (-1,1)
     unsigned long endOfRange = (unsigned long)(range.location) + (unsigned long)(range.length);		// NSRange uses unsigned quantities, hence the casting
-    if (((endOfRange > (unsigned long)__CFStrLength(str)) || (endOfRange < (unsigned long)(range.location))) && __CFStringNoteErrors()) return _CFStringErrBounds;
+    if ((endOfRange > (unsigned long)__CFStrLength(str)) || (endOfRange < (unsigned long)(range.location))) return _CFStringErrBounds;
 
     __CFAssertIsStringAndMutable(str);
     __CFAssertRangeIsInStringBounds(str, range.location, range.length);
@@ -5112,7 +5187,7 @@ void CFStringTrimWhitespace(CFMutableStringRef string) {
     newStartIndex = 0;
     length = __CFStrLength(string);
 
-    CFStringInitInlineBuffer(string, &buffer, CFRangeMake(0, length));
+    _CFStringInitInlineBufferInternal(string, &buffer, CFRangeMake(0, length), false /* already did CF_OBJC_FUNCDISPATCHV above */);
     CFIndex buffer_idx = 0;
 
     while (buffer_idx < length && CFUniCharIsMemberOf(__CFStringGetCharacterFromInlineBufferQuick(&buffer, buffer_idx), kCFUniCharWhitespaceAndNewlineCharacterSet))
@@ -5788,11 +5863,11 @@ void CFStringFold(CFMutableStringRef theString, CFStringCompareFlags theFlags, C
     langCode = ((NULL == theLocale) ? NULL : (const uint8_t *)_CFStrGetLanguageIdentifierForLocale(theLocale, true));
 
     eightBitEncoding = __CFStringGetEightBitStringEncoding();
-    cString = (const uint8_t *)CFStringGetCStringPtr(theString, eightBitEncoding);
+    cString = (const uint8_t *)_CFStringGetCStringPtrInternal(theString, eightBitEncoding, false, isObjcOrSwift);
 
     if ((NULL != cString) && !caseInsensitive && (kCFStringEncodingASCII == eightBitEncoding)) goto bail; // All ASCII
 
-    CFStringInitInlineBuffer(theString, &stringBuffer, CFRangeMake(0, length));
+    _CFStringInitInlineBufferInternal(theString, &stringBuffer, CFRangeMake(0, length), isObjcOrSwift);
 
     if ((NULL != cString) && (theFlags & (kCFCompareCaseInsensitive|kCFCompareDiacriticInsensitive))) {
         const uint8_t *cStringPtr = cString;
@@ -5849,7 +5924,7 @@ void CFStringFold(CFMutableStringRef theString, CFStringCompareFlags theFlags, C
             if (bufferLength > 0) {
                 __CFStringChangeSize(theString, CFRangeMake(currentIndex + 1, 0), bufferLength - 1, true);
                 length = __CFStrLength(theString);
-                CFStringInitInlineBuffer(theString, &stringBuffer, CFRangeMake(0, length));
+                _CFStringInitInlineBufferInternal(theString, &stringBuffer, CFRangeMake(0, length), isObjcOrSwift);
 
                 contents = (UTF16Char *)__CFStrContents(theString) + currentIndex;
                 characters = buffer;
@@ -5899,7 +5974,7 @@ void CFStringFold(CFMutableStringRef theString, CFStringCompareFlags theFlags, C
                         }
                         __CFStringChangeSize(theString, range, insertLength, true);
                         length = __CFStrLength(theString);
-                        CFStringInitInlineBuffer(theString, &stringBuffer, CFRangeMake(0, length));
+                        _CFStringInitInlineBufferInternal(theString, &stringBuffer, CFRangeMake(0, length), isObjcOrSwift);
                     }
 
                     (void)CFUniCharFromUTF32(buffer, bufferLength, (UTF16Char *)__CFStrContents(theString) + currentIndex, true, __CF_BIG_ENDIAN__);
@@ -6081,6 +6156,10 @@ static Boolean __CFStringFormatLocalizedNumber(CFMutableStringRef output, CFLoca
                 }
                 formatter = gFormatter;
                 break;
+        default:
+            // HALT, or else CFNumberGetFormat below will be called on uninitialized memory
+            CRSetCrashLogMessage("Unexpected formatter style");
+            HALT;
     }
 
     CFStringRef origFormat = CFStringCreateCopy(NULL, CFNumberFormatterGetFormat(formatter)); // Need to hang on to this in case the format changes while we are setting properties below
@@ -6178,16 +6257,12 @@ static Boolean __CFStringFormatLocalizedNumber(CFMutableStringRef output, CFLoca
     CFNumberGetValue(tmp, kCFNumberSInt32Type, &minDigits);
 
     // Ensure we're padding up to the minimum number of digits
-    // NOTE: MinIntegerDigits doesn't take punctuation (plus/minus sign, grouping separators, radix, etc) into account but printf normally does.
     if (padZero && (minDigits > 0) && p) {
-        if (spec->type == CFFormatDoubleType) {
-            if (width > precision) {
-                CFRelease(tmp);
-                SInt32 minIntDigits = width - precision;
-                tmp = CFNumberCreate(NULL, kCFNumberSInt32Type, &minIntDigits);
-            }
+        // For floating-point values, the previously set `kCFNumberFormatterFormatWidthKey` value is sufficient to calculate the minimum integer digits needed, accounting for plus/minus sign, grouping separators, radix, etc.
+        // We need this to force padding for integer values (e.g., 42 -> "%04d" => "0,042", or 234 -> "%10.5d" => "    00,234").
+        if (spec->type != CFFormatDoubleType) {
+            CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMinIntegerDigitsKey, tmp);
         }
-        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMinIntegerDigitsKey, tmp);
     }
     CFRelease(tmp);
 
@@ -6420,7 +6495,7 @@ reswtch:switch (ch) {
 	    if (spec->size != CFFormatSize16) spec->size = CFFormatSize8;
 	    return true;
 	case 'n':		/* %n is not handled correctly; for Leopard or newer apps, we disable it further */
-	    spec->type = 1 ? CFFormatDummyPointerType : CFFormatPointerType;
+            spec->type = CFFormatDummyPointerType;
 	    spec->size = CFFormatSizePointer;  // 4 or 8 depending on LP64
 	    return true;
 	case 'p':	
@@ -6614,20 +6689,20 @@ SInt32 __CFStringFindFormatSpecifiersInString(const uint8_t *cformat, const UniC
                             SInt32 cidx, idx, loc;
                             loc = specs[curSpec].loc;
                             if (cformat) {
-                                for (idx = 0, cidx = 0; cidx < specs[curSpec].len; idx++, cidx++) {
+                                for (idx = 0, cidx = 0; cidx < specs[curSpec].len && idx < 128; idx++, cidx++) {
                                     if ('$' == cformat[loc + cidx]) {
                                         if (idx > -1) {
-                                            for (idx--; '0' <= formatBuffer[idx] && formatBuffer[idx] <= '9'; idx--);
+                                            for (idx--; idx >= 0 && '0' <= formatBuffer[idx] && formatBuffer[idx] <= '9'; idx--);
                                         }
                                     } else {
                                         formatBuffer[idx] = cformat[loc + cidx];
                                     }
                                 }
                             } else {
-                                for (idx = 0, cidx = 0; cidx < specs[curSpec].len; idx++, cidx++) {
+                                for (idx = 0, cidx = 0; cidx < specs[curSpec].len && idx < 128; idx++, cidx++) {
                                     if ('$' == uformat[loc + cidx]) {
                                         if (idx > -1) {
-                                            for (idx--; '0' <= formatBuffer[idx] && formatBuffer[idx] <= '9'; idx--);
+                                            for (idx--; idx >= 0 && '0' <= formatBuffer[idx] && formatBuffer[idx] <= '9'; idx--);
                                         }
                                     } else {
                                         formatBuffer[idx] = (int8_t)uformat[loc + cidx];
@@ -6967,7 +7042,6 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 	    } else {
 		specs[curSpec].len = newFmtIdx - formatIdx;
 	    }
-	    if (NULL != configKey) CFRelease(configKey);
 	}
 	formatIdx = newFmtIdx;
 
@@ -7091,7 +7165,10 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
     }
 
     SInt32 numSpecsContext = 0;
-    CFFormatSpec *specsContext = (CFFormatSpec *)calloc(numSpecs, sizeof(CFFormatSpec));
+    CFFormatSpec *specsContext = NULL;
+    if (numSpecs > 0) {
+        specsContext = (CFFormatSpec *)calloc(numSpecs, sizeof(CFFormatSpec));
+    }
     const CFStringRef replacement = CFSTR("%@NSCONTEXT");
     
     for (curSpec = 0; curSpec < numSpecs; curSpec++) {

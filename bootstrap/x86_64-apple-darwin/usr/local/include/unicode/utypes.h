@@ -1,6 +1,8 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
-*   Copyright (C) 1996-2015, International Business Machines
+*   Copyright (C) 1996-2016, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -61,11 +63,27 @@
  */
 #ifdef __cplusplus
 #   ifndef U_SHOW_CPLUSPLUS_API
-#       define U_SHOW_CPLUSPLUS_API 1
+#       define U_SHOW_CPLUSPLUS_API 0
 #   endif
 #else
 #   undef U_SHOW_CPLUSPLUS_API
 #   define U_SHOW_CPLUSPLUS_API 0
+#endif
+
+
+/* 
+ * Apple-specific warning if U_SHOW_CPLUSPLUS_API set and the compile
+ * is not for a build of ICU itself (ICU_DATA_DIR is always defined
+ * for ICU builds, and is unlikely to be defined for client builds).
+ * Windows VSC compliler does not like #warning, skip for it.
+ */
+#if U_SHOW_CPLUSPLUS_API
+#ifndef ICU_DATA_DIR
+#if U_PLATFORM!=U_PF_WINDOWS
+#warning Do not set U_SHOW_CPLUSPLUS_API for code that ships with the OS, it is only for local tools.
+#warning ICU C++ functionality may not be used by any OS client, it is not binary compatible across updates.
+#endif
+#endif
 #endif
 
 /** @{ API visibility control */
@@ -145,7 +163,7 @@
 /**
  *  U_ICU_ENTRY_POINT is the name of the DLL entry point to the ICU data library.
  *    Defined as a literal, not a string.
- *    Tricky Preprocessor use - ## operator replaces macro paramters with the literal string
+ *    Tricky Preprocessor use - ## operator replaces macro parameters with the literal string
  *                              from the corresponding macro invocation, _before_ other macro substitutions.
  *                              Need a nested \#defines to get the actual version numbers rather than
  *                              the literal text U_ICU_VERSION_MAJOR_NUM into the name.
@@ -178,12 +196,12 @@
 
 /**
  * \def NULL
- * Define NULL if necessary, to 0 for C++ and to ((void *)0) for C.
+ * Define NULL if necessary, to nullptr for C++ and to ((void *)0) for C.
  * @stable ICU 2.0
  */
 #ifndef NULL
 #ifdef __cplusplus
-#define NULL    0
+#define NULL    nullptr
 #else
 #define NULL    ((void *)0)
 #endif
@@ -294,6 +312,11 @@ typedef double UDate;
  * @stable ICU 3.4
  */
 
+#ifdef U_IN_DOXYGEN
+// This definition is required when generating the API docs.
+#define U_COMBINED_IMPLEMENTATION 1
+#endif
+
 #if defined(U_COMBINED_IMPLEMENTATION)
 #define U_DATA_API     U_EXPORT
 #define U_COMMON_API   U_EXPORT
@@ -379,88 +402,6 @@ typedef double UDate;
 #define U_STANDARD_CPP_NAMESPACE
 #endif
 
-
-/*===========================================================================*/
-/* Global delete operator                                                    */
-/*===========================================================================*/
-
-/*
- * The ICU4C library must not use the global new and delete operators.
- * These operators here are defined to enable testing for this.
- * See Jitterbug 2581 for details of why this is necessary.
- *
- * Verification that ICU4C's memory usage is correct, i.e.,
- * that global new/delete are not used:
- *
- * a) Check for imports of global new/delete (see uobject.cpp for details)
- * b) Verify that new is never imported.
- * c) Verify that delete is only imported from object code for interface/mixin classes.
- * d) Add global delete and delete[] only for the ICU4C library itself
- *    and define them in a way that crashes or otherwise easily shows a problem.
- *
- * The following implements d).
- * The operator implementations crash; this is intentional and used for library debugging.
- *
- * Note: This is currently only done on Windows because
- * some Linux/Unix compilers have problems with defining global new/delete.
- * On Windows, it is _MSC_VER>=1200 for MSVC 6.0 and higher.
- */
-#if defined(__cplusplus) && U_DEBUG && U_OVERRIDE_CXX_ALLOCATION && (_MSC_VER>=1200) && !defined(U_STATIC_IMPLEMENTATION) && (defined(U_COMMON_IMPLEMENTATION) || defined(U_I18N_IMPLEMENTATION) || defined(U_IO_IMPLEMENTATION) || defined(U_LAYOUT_IMPLEMENTATION) || defined(U_LAYOUTEX_IMPLEMENTATION))
-
-#ifndef U_HIDE_INTERNAL_API
-/**
- * Global operator new, defined only inside ICU4C, must not be used.
- * Crashes intentionally.
- * @internal
- */
-inline void *
-operator new(size_t /*size*/) {
-    char *q=NULL;
-    *q=5; /* break it */
-    return q;
-}
-
-#ifdef _Ret_bytecap_
-/* This is only needed to suppress a Visual C++ 2008 warning for operator new[]. */
-_Ret_bytecap_(_Size)
-#endif
-/**
- * Global operator new[], defined only inside ICU4C, must not be used.
- * Crashes intentionally.
- * @internal
- */
-inline void *
-operator new[](size_t /*size*/) {
-    char *q=NULL;
-    *q=5; /* break it */
-    return q;
-}
-
-/**
- * Global operator delete, defined only inside ICU4C, must not be used.
- * Crashes intentionally.
- * @internal
- */
-inline void
-operator delete(void * /*p*/) {
-    char *q=NULL;
-    *q=5; /* break it */
-}
-
-/**
- * Global operator delete[], defined only inside ICU4C, must not be used.
- * Crashes intentionally.
- * @internal
- */
-inline void
-operator delete[](void * /*p*/) {
-    char *q=NULL;
-    *q=5; /* break it */
-}
-
-#endif /* U_HIDE_INTERNAL_API */
-#endif
-
 /*===========================================================================*/
 /* UErrorCode */
 /*===========================================================================*/
@@ -505,8 +446,13 @@ typedef enum UErrorCode {
     
     U_PLUGIN_CHANGED_LEVEL_WARNING = -120, /**< A plugin caused a level change. May not be an error, but later plugins may not load. */
 
-    U_ERROR_WARNING_LIMIT,              /**< This must always be the last warning value to indicate the limit for UErrorCode warnings (last warning code +1) */
-
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal UErrorCode warning value.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_ERROR_WARNING_LIMIT,
+#endif  // U_HIDE_DEPRECATED_API
 
     U_ZERO_ERROR              =  0,     /**< No error, no warning. */
 
@@ -527,14 +473,14 @@ typedef enum UErrorCode {
     U_BUFFER_OVERFLOW_ERROR   = 15,     /**< A result would not fit in the supplied buffer */
     U_UNSUPPORTED_ERROR       = 16,     /**< Requested operation not supported in current context */
     U_RESOURCE_TYPE_MISMATCH  = 17,     /**< an operation is requested over a resource that does not support it */
-    U_ILLEGAL_ESCAPE_SEQUENCE = 18,     /**< ISO-2022 illlegal escape sequence */
+    U_ILLEGAL_ESCAPE_SEQUENCE = 18,     /**< ISO-2022 illegal escape sequence */
     U_UNSUPPORTED_ESCAPE_SEQUENCE = 19, /**< ISO-2022 unsupported escape sequence */
     U_NO_SPACE_AVAILABLE      = 20,     /**< No space available for in-buffer expansion for Arabic shaping */
     U_CE_NOT_FOUND_ERROR      = 21,     /**< Currently used only while setting variable top, but can be used generally */
     U_PRIMARY_TOO_LONG_ERROR  = 22,     /**< User tried to set variable top to a primary that is longer than two bytes */
     U_STATE_TOO_OLD_ERROR     = 23,     /**< ICU cannot construct a service from this state, as it is no longer supported */
     U_TOO_MANY_ALIASES_ERROR  = 24,     /**< There are too many aliases in the path to the requested resource.
-                                             It is very possible that a circular alias definition has occured */
+                                             It is very possible that a circular alias definition has occurred */
     U_ENUM_OUT_OF_SYNC_ERROR  = 25,     /**< UEnumeration out of sync with underlying collection */
     U_INVARIANT_CONVERSION_ERROR = 26,  /**< Unable to convert a UChar* string to char* with the invariant converter. */
     U_INVALID_STATE_ERROR     = 27,     /**< Requested operation can not be completed with ICU in its current state */
@@ -542,9 +488,16 @@ typedef enum UErrorCode {
     U_USELESS_COLLATOR_ERROR  = 29,     /**< Collator is options only and no base is specified */
     U_NO_WRITE_PERMISSION     = 30,     /**< Attempt to modify read-only or constant data. */
 
-    U_STANDARD_ERROR_LIMIT,             /**< This must always be the last value to indicate the limit for standard errors */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest standard error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_STANDARD_ERROR_LIMIT,
+#endif  // U_HIDE_DEPRECATED_API
+
     /*
-     * the error code range 0x10000 0x10100 are reserved for Transliterator
+     * Error codes in the range 0x10000 0x10100 are reserved for Transliterator.
      */
     U_BAD_VARIABLE_DEFINITION=0x10000,/**< Missing '$' or duplicate variable name */
     U_PARSE_ERROR_START = 0x10000,    /**< Start of Transliterator errors */
@@ -573,7 +526,7 @@ typedef enum UErrorCode {
     U_MULTIPLE_COMPOUND_FILTERS,      /**< More than one compound filter */
     U_INVALID_RBT_SYNTAX,             /**< A "::id" rule was passed to the RuleBasedTransliterator parser */
     U_INVALID_PROPERTY_PATTERN,       /**< UNUSED as of ICU 2.4 */
-    U_MALFORMED_PRAGMA,               /**< A 'use' pragma is invlalid */
+    U_MALFORMED_PRAGMA,               /**< A 'use' pragma is invalid */
     U_UNCLOSED_SEGMENT,               /**< A closing ')' is missing */
     U_ILLEGAL_CHAR_IN_SEGMENT,        /**< UNUSED as of ICU 2.4 */
     U_VARIABLE_RANGE_EXHAUSTED,       /**< Too many stand-ins generated for the given variable range */
@@ -582,10 +535,16 @@ typedef enum UErrorCode {
     U_INTERNAL_TRANSLITERATOR_ERROR,  /**< Internal transliterator system error */
     U_INVALID_ID,                     /**< A "::id" rule specifies an unknown transliterator */
     U_INVALID_FUNCTION,               /**< A "&fn()" rule specifies an unknown transliterator */
-    U_PARSE_ERROR_LIMIT,              /**< The limit for Transliterator errors */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal Transliterator error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_PARSE_ERROR_LIMIT,
+#endif  // U_HIDE_DEPRECATED_API
 
     /*
-     * the error code range 0x10100 0x10200 are reserved for formatting API parsing error
+     * Error codes in the range 0x10100 0x10200 are reserved for the formatting API.
      */
     U_UNEXPECTED_TOKEN=0x10100,       /**< Syntax error in format pattern */
     U_FMT_PARSE_ERROR_START=0x10100,  /**< Start of format library errors */
@@ -607,17 +566,25 @@ typedef enum UErrorCode {
     U_DEFAULT_KEYWORD_MISSING,        /**< Missing DEFAULT rule in plural rules */
     U_DECIMAL_NUMBER_SYNTAX_ERROR,    /**< Decimal number syntax error */
     U_FORMAT_INEXACT_ERROR,           /**< Cannot format a number exactly and rounding mode is ROUND_UNNECESSARY @stable ICU 4.8 */
-    U_FMT_PARSE_ERROR_LIMIT,          /**< The limit for format library errors */
+    U_NUMBER_ARG_OUTOFBOUNDS_ERROR,   /**< The argument to a NumberFormatter helper method was out of bounds; the bounds are usually 0 to 999. @stable ICU 61 */
+    U_NUMBER_SKELETON_SYNTAX_ERROR,   /**< The number skeleton passed to C++ NumberFormatter or C UNumberFormatter was invalid or contained a syntax error. @stable ICU 62 */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal formatting API error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_FMT_PARSE_ERROR_LIMIT = 0x10114,
+#endif  // U_HIDE_DEPRECATED_API
 
     /*
-     * the error code range 0x10200 0x102ff are reserved for Break Iterator related error
+     * Error codes in the range 0x10200 0x102ff are reserved for BreakIterator.
      */
     U_BRK_INTERNAL_ERROR=0x10200,          /**< An internal error (bug) was detected.             */
     U_BRK_ERROR_START=0x10200,             /**< Start of codes indicating Break Iterator failures */
     U_BRK_HEX_DIGITS_EXPECTED,             /**< Hex digits expected as part of a escaped char in a rule. */
     U_BRK_SEMICOLON_EXPECTED,              /**< Missing ';' at the end of a RBBI rule.            */
     U_BRK_RULE_SYNTAX,                     /**< Syntax error in RBBI rule.                        */
-    U_BRK_UNCLOSED_SET,                    /**< UnicodeSet witing an RBBI rule missing a closing ']'.  */
+    U_BRK_UNCLOSED_SET,                    /**< UnicodeSet writing an RBBI rule missing a closing ']'. */
     U_BRK_ASSIGN_ERROR,                    /**< Syntax error in RBBI rule assignment statement.   */
     U_BRK_VARIABLE_REDFINITION,            /**< RBBI rule $Variable redefined.                    */
     U_BRK_MISMATCHED_PAREN,                /**< Mis-matched parentheses in an RBBI rule.          */
@@ -626,11 +593,17 @@ typedef enum UErrorCode {
     U_BRK_INIT_ERROR,                      /**< Initialization failure.  Probable missing ICU Data. */
     U_BRK_RULE_EMPTY_SET,                  /**< Rule contains an empty Unicode Set.               */
     U_BRK_UNRECOGNIZED_OPTION,             /**< !!option in RBBI rules not recognized.            */
-    U_BRK_MALFORMED_RULE_TAG,              /**< The {nnn} tag on a rule is mal formed             */
-    U_BRK_ERROR_LIMIT,                     /**< This must always be the last value to indicate the limit for Break Iterator failures */
+    U_BRK_MALFORMED_RULE_TAG,              /**< The {nnn} tag on a rule is malformed              */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal BreakIterator error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_BRK_ERROR_LIMIT,
+#endif  // U_HIDE_DEPRECATED_API
 
     /*
-     * The error codes in the range 0x10300-0x103ff are reserved for regular expression related errrs
+     * Error codes in the range 0x10300-0x103ff are reserved for regular expression related errors.
      */
     U_REGEX_INTERNAL_ERROR=0x10300,       /**< An internal error (bug) was detected.              */
     U_REGEX_ERROR_START=0x10300,          /**< Start of codes indicating Regexp failures          */
@@ -655,14 +628,18 @@ typedef enum UErrorCode {
     U_REGEX_STACK_OVERFLOW,               /**< Regular expression backtrack stack overflow.       */
     U_REGEX_TIME_OUT,                     /**< Maximum allowed match time exceeded                */
     U_REGEX_STOPPED_BY_CALLER,            /**< Matching operation aborted by user callback fn.    */
-#ifndef U_HIDE_DRAFT_API
-    U_REGEX_PATTERN_TOO_BIG,              /**< Pattern exceeds limits on size or complexity. @draft ICU 55 */
-    U_REGEX_INVALID_CAPTURE_GROUP_NAME,   /**< Invalid capture group name. @draft ICU 55 */
-#endif  /* U_HIDE_DRAFT_API */
-    U_REGEX_ERROR_LIMIT=U_REGEX_STOPPED_BY_CALLER+3, /**< This must always be the last value to indicate the limit for regexp errors */
+    U_REGEX_PATTERN_TOO_BIG,              /**< Pattern exceeds limits on size or complexity. @stable ICU 55 */
+    U_REGEX_INVALID_CAPTURE_GROUP_NAME,   /**< Invalid capture group name. @stable ICU 55 */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal regular expression error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_REGEX_ERROR_LIMIT=U_REGEX_STOPPED_BY_CALLER+3,
+#endif  // U_HIDE_DEPRECATED_API
 
     /*
-     * The error code in the range 0x10400-0x104ff are reserved for IDNA related error codes
+     * Error codes in the range 0x10400-0x104ff are reserved for IDNA related error codes.
      */
     U_IDNA_PROHIBITED_ERROR=0x10400,
     U_IDNA_ERROR_START=0x10400,
@@ -674,7 +651,13 @@ typedef enum UErrorCode {
     U_IDNA_LABEL_TOO_LONG_ERROR,
     U_IDNA_ZERO_LENGTH_LABEL_ERROR,
     U_IDNA_DOMAIN_NAME_TOO_LONG_ERROR,
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal IDNA error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
     U_IDNA_ERROR_LIMIT,
+#endif  // U_HIDE_DEPRECATED_API
     /*
      * Aliases for StringPrep
      */
@@ -683,14 +666,26 @@ typedef enum UErrorCode {
     U_STRINGPREP_CHECK_BIDI_ERROR = U_IDNA_CHECK_BIDI_ERROR,
     
     /*
-     * The error code in the range 0x10500-0x105ff are reserved for Plugin related error codes
+     * Error codes in the range 0x10500-0x105ff are reserved for Plugin related error codes.
      */
     U_PLUGIN_ERROR_START=0x10500,         /**< Start of codes indicating plugin failures */
     U_PLUGIN_TOO_HIGH=0x10500,            /**< The plugin's level is too high to be loaded right now. */
     U_PLUGIN_DIDNT_SET_LEVEL,             /**< The plugin didn't call uplug_setPlugLevel in response to a QUERY */
-    U_PLUGIN_ERROR_LIMIT,                 /**< This must always be the last value to indicate the limit for plugin errors */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal plug-in error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_PLUGIN_ERROR_LIMIT,
+#endif  // U_HIDE_DEPRECATED_API
 
-    U_ERROR_LIMIT=U_PLUGIN_ERROR_LIMIT      /**< This must always be the last value to indicate the limit for UErrorCode (last error code +1) */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * One more than the highest normal error code.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
+    U_ERROR_LIMIT=U_PLUGIN_ERROR_LIMIT
+#endif  // U_HIDE_DEPRECATED_API
 } UErrorCode;
 
 /* Use the following to determine if an UErrorCode represents */

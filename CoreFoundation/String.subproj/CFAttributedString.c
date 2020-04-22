@@ -1,7 +1,7 @@
 /*	    CFAttributedString.c
-	Copyright (c) 2004-2018, Apple Inc. All rights reserved.
+	Copyright (c) 2004-2019, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -19,7 +19,7 @@
 #if (TARGET_OS_MAC || TARGET_OS_WIN32) && DEPLOYMENT_RUNTIME_OBJC
 #import <Foundation/NSAttributedString.h>
 @interface NSAttributedString (NSPrivate)
-- (NSAttributedString *)_createAttributedSubstringWithRange:(NSRange)range;
+- (NSAttributedString *)_createAttributedSubstringWithRange:(NSRange)range NS_RETURNS_RETAINED;
 @end
 #endif
 
@@ -87,7 +87,8 @@ static CFHashCode __CFAttributedStringHash(CFTypeRef cf) {
 
 #define createLocalArray(array, count) \
     CFTypeRef array ## Buf[localArrayStackSize];  \
-    CFTypeRef *array = (count <= localArrayStackSize) ? (array ## Buf) : ((count < LONG_MAX / sizeof(CFTypeRef)) ? malloc(count * sizeof(CFTypeRef)) : NULL);
+    if (!(count < LONG_MAX / sizeof(CFTypeRef))) { CRSetCrashLogMessage("Ridiculous size count"); HALT; } \
+    CFTypeRef *array = (count <= localArrayStackSize) ? (array ## Buf) : malloc(count * sizeof(CFTypeRef));
 
 #define freeLocalArray(array) \
     if (array != array ## Buf) free(array);

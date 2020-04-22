@@ -1,12 +1,14 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2013, International Business Machines
+*   Copyright (C) 1999-2015, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
 *   file name:  ubidi.h
-*   encoding:   US-ASCII
+*   encoding:   UTF-8
 *   tab size:   8 (not used)
 *   indentation:4
 *
@@ -321,6 +323,10 @@
  * these special values are designed that way. Also, the implementation
  * assumes that UBIDI_MAX_EXPLICIT_LEVEL is odd.
  *
+ * Note: The numeric values of the related constants will not change:
+ * They are tied to the use of 7-bit byte values (plus the override bit)
+ * and of the UBiDiLevel=uint8_t data type in this API.
+ *
  * @see UBIDI_DEFAULT_LTR
  * @see UBIDI_DEFAULT_RTL
  * @see UBIDI_LEVEL_OVERRIDE
@@ -384,6 +390,8 @@ typedef uint8_t UBiDiLevel;
 
 /**
  * Maximum explicit embedding level.
+ * Same as the max_depth value in the
+ * <a href="http://www.unicode.org/reports/tr9/#BD2">Unicode Bidirectional Algorithm</a>.
  * (The maximum resolved level can be up to <code>UBIDI_MAX_EXPLICIT_LEVEL+1</code>).
  * @stable ICU 2.0
  */
@@ -568,7 +576,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUBiDiPointer, UBiDi, ubidi_close);
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Modify the operation of the Bidi algorithm such that it
@@ -690,7 +698,7 @@ typedef enum UBiDiReorderingMode {
       * @stable ICU 3.6 */
     UBIDI_REORDER_DEFAULT = 0,
     /** Logical to Visual algorithm which handles numbers in a way which
-      * mimicks the behavior of Windows XP.
+      * mimics the behavior of Windows XP.
       * @stable ICU 3.6 */
     UBIDI_REORDER_NUMBERS_SPECIAL,
     /** Logical to Visual algorithm grouping numbers with adjacent R characters
@@ -718,9 +726,13 @@ typedef enum UBiDiReorderingMode {
       * <code>UBIDI_REORDER_NUMBERS_SPECIAL</code> Bidi algorithm.
       * @stable ICU 3.6 */
     UBIDI_REORDER_INVERSE_FOR_NUMBERS_SPECIAL,
-    /** Number of values for reordering mode.
-      * @stable ICU 3.6 */
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * Number of values for reordering mode.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
     UBIDI_REORDER_COUNT
+#endif  // U_HIDE_DEPRECATED_API
 } UBiDiReorderingMode;
 
 /**
@@ -1136,9 +1148,9 @@ ubidi_setContext(UBiDi *pBiDi,
 
 /**
  * Perform the Unicode Bidi algorithm. It is defined in the
- * <a href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Anned #9</a>,
- * version 13,
- * also described in The Unicode Standard, Version 4.0 .<p>
+ * <a href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Annex #9</a>,
+ * Unicode 8.0.0 / revision 33,
+ * also described in The Unicode Standard, Version 8.0 .<p>
  *
  * This function takes a piece of plain text containing one or more paragraphs,
  * with or without externally specified embedding levels from <i>styled</i>
@@ -1190,11 +1202,14 @@ ubidi_setContext(UBiDi *pBiDi,
  *        A level overrides the directional property of its corresponding
  *        (same index) character if the level has the
  *        <code>#UBIDI_LEVEL_OVERRIDE</code> bit set.<br><br>
- *        Except for that bit, it must be
+ *        Aside from that bit, it must be
  *        <code>paraLevel<=embeddingLevels[]<=UBIDI_MAX_EXPLICIT_LEVEL</code>,
- *        with one exception: a level of zero may be specified for a paragraph
- *        separator even if <code>paraLevel>0</code> when multiple paragraphs
- *        are submitted in the same call to <code>ubidi_setPara()</code>.<br><br>
+ *        except that level 0 is always allowed.
+ *        Level 0 for a paragraph separator prevents reordering of paragraphs;
+ *        this only works reliably if <code>#UBIDI_LEVEL_OVERRIDE</code>
+ *        is also set for paragraph separators.
+ *        Level 0 for other characters is treated as a wildcard
+ *        and is lifted up to the resolved level of the surrounding paragraph.<br><br>
  *        <strong>Caution: </strong>A copy of this pointer, not of the levels,
  *        will be stored in the <code>UBiDi</code> object;
  *        the <code>embeddingLevels</code> array must not be
@@ -1217,6 +1232,159 @@ U_STABLE void U_EXPORT2
 ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length,
               UBiDiLevel paraLevel, UBiDiLevel *embeddingLevels,
               UErrorCode *pErrorCode);
+
+#ifndef U_HIDE_INTERNAL_API
+/**
+ * Perform the Unicode Bidi algorithm. It is defined in the
+ * <a href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Annex #9</a>,
+ * Unicode 8.0.0 / revision 33,
+ * also described in The Unicode Standard, Version 8.0 .<p>
+ *
+ * This function takes a piece of plain text containing one or more paragraphs,
+ * with or without externally specified direction overrides (in the form of
+ * sequences of one or more bidi control characters for
+ * embeddings/overrides/isolates to be effectively inserted at specified points
+ * in the text), and computes the left-right-directionality of each character.
+ * Note that ubidi_setContext may be used to set the context before or after the
+ * text passed to ubidi_setPara, so ubidi_setParaWithControls is only needed if
+ * externally specified direction overrides need to be effectively inserted at
+ * other locations in the text.<p>
+ *
+ * Note: Currently the external specified direction overrides are only supported
+ * for the Logical to Visual values of UBiDiReorderingMode: UBIDI_REORDER_DEFAULT,
+ * UBIDI_REORDER_NUMBERS_SPECIAL, UBIDI_REORDER_GROUP_NUMBERS_WITH_R. With other
+ * UBiDiReorderingMode settings, this function behaves as if offsetCount is 0.<p>
+ *
+ * If the entire text is all of the same directionality, then the function may
+ * not perform all the steps described by the algorithm, i.e., some levels may
+ * not be the same as if all steps were performed. This is not relevant for
+ * unidirectional text.<br>
+ * For example, in pure LTR text with numbers the numbers would get a resolved
+ * level of 2 higher than the surrounding text according to the algorithm. This
+ * implementation may set all resolved levels to the same value in such a case.<p>
+ *
+ * The text can be composed of multiple paragraphs. Occurrence of a block
+ * separator in the text terminates a paragraph, and whatever comes next starts
+ * a new paragraph. The exception to this rule is when a Carriage Return (CR)
+ * is followed by a Line Feed (LF). Both CR and LF are block separators, but
+ * in that case, the pair of characters is considered as terminating the
+ * preceding paragraph, and a new paragraph will be started by a character
+ * coming after the LF.<p>
+ *
+ * @param pBiDi A <code>UBiDi</code> object allocated with <code>ubidi_open()</code>
+ *        which will be set to contain the reordering information,
+ *        especially the resolved levels for all the characters in <code>text</code>.
+ *
+ * @param text is a pointer to the text that the Bidi algorithm will be performed on.
+ *        This pointer is stored in the UBiDi object and can be retrieved
+ *        with <code>ubidi_getText()</code>.<br>
+ *        <strong>Note:</strong> the text must be (at least) <code>length</code> long.
+ *
+ * @param length is the length of the text; if <code>length==-1</code> then
+ *        the text must be zero-terminated.
+ *
+ * @param paraLevel specifies the default level for the text;
+ *        it is typically 0 (LTR) or 1 (RTL).
+ *        If the function shall determine the paragraph level from the text,
+ *        then <code>paraLevel</code> can be set to
+ *        either <code>#UBIDI_DEFAULT_LTR</code>
+ *        or <code>#UBIDI_DEFAULT_RTL</code>; if the text contains multiple
+ *        paragraphs, the paragraph level shall be determined separately for
+ *        each paragraph; if a paragraph does not include any strongly typed
+ *        character, then the desired default is used (0 for LTR or 1 for RTL).
+ *        Any other value between 0 and <code>#UBIDI_MAX_EXPLICIT_LEVEL</code>
+ *        is also valid, with odd levels indicating RTL.
+ *
+ * @param offsets    Array of text offsets at which sequences of one or more
+ *        bidi controls are to be effectively inserted. The offset values must
+ *        be >= 0 and < <code>length</code> (use <code>ubidi_setContext</code>
+ *        to provide the effect of inserting controls after the last character
+ *        of the text). This must be non-NULL if <code>offsetCount</code> > 0.
+ *
+ * @param offsetCount   The number of entries in the offsets array, and in the
+ *        controlStringIndices array if the latter is present (non NULL). If
+ *        <code>offsetCount</code> is 0, then no controls will be inserted and
+ *        the parameters <code>offsets</code>, <code>controlStringIndices</code>
+ *        and <code>controlStrings</code> will be ignored.
+ *
+ * @param controlStringIndices  If not NULL, this array must have the same
+ *        number of entries as the offsets array; each entry in this array
+ *        maps from the corresponding offset to the index in controlStrings
+ *        of the control sequence that is to be effectively inserted at that
+ *        offset. This indirection is useful when certain control sequences
+ *        are to be effectively inserted in many different places in the text.
+ *        If this array is NULL, then the entries in controlStrings correspond
+ *        directly to the entries in the offsets array.
+ *
+ * @param controlStrings    Array of const pointers to zero-terminated
+ *        const UChar strings each consisting of zero or more characters that
+ *        are bidi controls for embeddings, overrides, or isolates (see list
+ *        below). Other characters that might be supported in the future
+ *        (depending on need) include bidi marks an characters with
+ *        bidi class B (block separator) or class S (segment separator).
+ *        The characters in these strings only affect the bidi levels assigned
+ *        to the characters in he text array, they are not used for any other
+ *        purpose.<br>
+ *        If controlStringIndices is NULL, then controlStrings must have the
+ *        same number of entries as the offsets array, and each entry provides
+ *        the UChar string that is effectively inserted at the corresponding
+ *        offset. If controlStringIndices is not NULL, then controlStrings must
+ *        have at least enough entries to accommodate to all of the index values
+ *        in the controlStringIndices array. This must be non-NULL if
+ *        offsetCount > 0.<br>
+ *        Current limitations:<br>
+ *        Each zero-terminated const UChar string is limited a maximum length
+ *        of 4, not including the zero terminator.<br>
+ *        Each zero-terminated const UChar string may contain at most one
+ *        instance of FSI, LRI, or RLI.<br>
+ *
+ * @param pErrorCode must be a valid pointer to an error code value.
+ *
+ * @discussion
+ * <pre>
+ * Supported bidi controls for embeddings / overrides / isolates as of Unicode 8.0:
+ *   LRE   U+202A   LEFT-TO-RIGHT EMBEDDING
+ *   RLE   U+202B   RIGHT-TO-LEFT EMBEDDING
+ *   PDF   U+202C   POP DIRECTIONAL FORMATTING
+ *   LRO   U+202D   LEFT-TO-RIGHT OVERRIDE
+ *   RLO   U+202E   RIGHT-TO-LEFT OVERRIDE
+ *   #
+ *   LRI   U+2066   LEFT‑TO‑RIGHT ISOLATE
+ *   RLI   U+2067   RIGHT‑TO‑LEFT ISOLATE
+ *   FSI   U+2068   FIRST STRONG ISOLATE
+ *   PDI   U+2069   POP DIRECTIONAL ISOLATE
+ *
+ * Bidi marks as of Unicode 8.0:
+ *   ALM   U+061C   ARABIC LETTER MARK (bidi class AL)
+ *   LRM   U+200E   LEFT-TO-RIGHT MARK (bidi class L)
+ *   RLM   U+200F   RIGHT-TO-LEFT MARK (bidi class R)
+ * Characters with bidi class B (block separator) as of Unicode 8.0:
+ *   B     U+000A   LINE FEED (LF)
+ *   B     U+000D   CARRIAGE RETURN (CR)
+ *   B     U+001C   INFORMATION SEPARATOR FOUR
+ *   B     U+001D   INFORMATION SEPARATOR THREE
+ *   B     U+001E   INFORMATION SEPARATOR TWO
+ *   B     U+0085   NEXT LINE (NEL)
+ *   B     U+2029   PARAGRAPH SEPARATOR
+ * Characters with bidi class S (segment separator) as of Unicode 8.0:
+ *   S     U+0009   CHARACTER TABULATION
+ *   S     U+000B   LINE TABULATION
+ *   S     U+001F   INFORMATION SEPARATOR ONE
+ * </pre>
+ *
+ * @see ubidi_setContext
+ * @internal technology preview as of ICU 57
+ */
+U_INTERNAL void U_EXPORT2
+ubidi_setParaWithControls(UBiDi *pBiDi,
+                          const UChar *text, int32_t length,
+                          UBiDiLevel paraLevel,
+                          const int32_t *offsets, int32_t offsetCount,
+                          const int32_t *controlStringIndices,
+                          const UChar * const * controlStrings,
+                          UErrorCode *pErrorCode);
+                      
+#endif  /* U_HIDE_INTERNAL_API */
 
 /**
  * <code>ubidi_setLine()</code> sets a <code>UBiDi</code> to
@@ -1959,13 +2127,19 @@ U_STABLE int32_t U_EXPORT2
 ubidi_getResultLength(const UBiDi *pBiDi);
 
 U_CDECL_BEGIN
+
+#ifndef U_HIDE_DEPRECATED_API
 /**
- * value returned by <code>UBiDiClassCallback</code> callbacks when
+ * Value returned by <code>UBiDiClassCallback</code> callbacks when
  * there is no need to override the standard Bidi class for a given code point.
+ *
+ * This constant is deprecated; use u_getIntPropertyMaxValue(UCHAR_BIDI_CLASS)+1 instead.
+ *
  * @see UBiDiClassCallback
- * @stable ICU 3.6
+ * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
  */
 #define U_BIDI_CLASS_DEFAULT  U_CHAR_DIRECTION_COUNT
+#endif  // U_HIDE_DEPRECATED_API
 
 /**
  * Callback type declaration for overriding default Bidi class values with
@@ -1981,8 +2155,8 @@ U_CDECL_BEGIN
  *
  * @return The directional property / Bidi class for the given code point
  *         <code>c</code> if the default class has been overridden, or
- *         <code>#U_BIDI_CLASS_DEFAULT</code> if the standard Bidi class value
- *         for <code>c</code> is to be used.
+ *         <code>u_getIntPropertyMaxValue(UCHAR_BIDI_CLASS)+1</code>
+ *         if the standard Bidi class value for <code>c</code> is to be used.
  * @see ubidi_setClassCallback
  * @see ubidi_getClassCallback
  * @stable ICU 3.6
@@ -1995,8 +2169,8 @@ U_CDECL_END
 /**
  * Retrieve the Bidi class for a given code point.
  * <p>If a <code>#UBiDiClassCallback</code> callback is defined and returns a
- * value other than <code>#U_BIDI_CLASS_DEFAULT</code>, that value is used;
- * otherwise the default class determination mechanism is invoked.</p>
+ * value other than <code>u_getIntPropertyMaxValue(UCHAR_BIDI_CLASS)+1</code>,
+ * that value is used; otherwise the default class determination mechanism is invoked.</p>
  *
  * @param pBiDi is the paragraph <code>UBiDi</code> object.
  *

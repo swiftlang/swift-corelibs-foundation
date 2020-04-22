@@ -1,7 +1,7 @@
 /*	CFBase.h
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -64,11 +64,11 @@
 #include <stdbool.h>
 #endif
 
-#if __BLOCKS__ && ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
+#if __BLOCKS__ && (TARGET_OS_OSX || TARGET_OS_IPHONE)
 #include <Block.h>
 #endif
 
-  #if ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) && !DEPLOYMENT_RUNTIME_SWIFT
+  #if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !DEPLOYMENT_RUNTIME_SWIFT
     #include <libkern/OSTypes.h>
   #endif
 
@@ -311,6 +311,12 @@ CF_EXTERN_C_BEGIN
 #define CF_NO_TAIL_CALL __attribute__((not_tail_called))
 #else
 #define CF_NO_TAIL_CALL
+#endif
+
+#if __has_attribute(warn_unused_result)
+#define CF_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+#define CF_WARN_UNUSED_RESULT
 #endif
 
 #if !__has_feature(objc_generics_variance)
