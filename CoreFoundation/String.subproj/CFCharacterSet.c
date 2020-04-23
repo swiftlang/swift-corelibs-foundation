@@ -1303,10 +1303,10 @@ static bool __CFCheckForExapendedSet = false;
 
 CF_PRIVATE void __CFCharacterSetInitialize(void) {
     static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
+    DISPATCH_ONCE_BEGIN_BLOCK(initOnce)
         const char *checkForExpandedSet = __CFgetenv("__CF_DEBUG_EXPANDED_SET");
         if (checkForExpandedSet && (*checkForExpandedSet == 'Y')) __CFCheckForExapendedSet = true;
-    });
+    DISPATCH_ONCE_END_BLOCK(initOnce)
 }
 
 /* Public functions

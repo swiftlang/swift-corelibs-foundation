@@ -74,7 +74,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
     CFURLRef executableURL = NULL;
     if (!urlPath || !exeName) return NULL;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_WASI
     if (!executableURL) {
         executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLPOSIXPathStyle, false, urlPath);
         if (!_binaryLoadable(executableURL)) {

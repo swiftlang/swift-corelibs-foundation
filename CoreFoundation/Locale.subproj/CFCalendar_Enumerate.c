@@ -2120,6 +2120,8 @@ static CFDateRef _Nullable _CFCalendarCreateAdjustedDateForMismatches(CFCalendar
     }
 }
 
+#if __BLOCKS__
+
 #pragma mark -
 #pragma mark Enumerate Entry Point
 
@@ -2323,4 +2325,4 @@ CF_CROSS_PLATFORM_EXPORT void _CFCalendarEnumerateDates(CFCalendarRef calendar, 
     if (previouslyReturnedMatchDate) CFRelease(previouslyReturnedMatchDate);
     CFRelease(searchingDate);
 }
-
+#endif

@@ -56,6 +56,7 @@ CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRef allocato
     return (CFArrayRef)CFDateFormatterCreateDateFormatFromTemplate(allocator, (CFStringRef)tmplates, options, locale);
 }
 
+#if __BLOCKS__
 static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDateTimePatternGenerator *ptg)) {
     static UDateTimePatternGenerator *ptg;
     static _CFMutex ptgLock = _CF_MUTEX_STATIC_INITIALIZER;
@@ -91,6 +92,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
     _CFMutexUnlock(&ptgLock);
     return result;
 }
+#endif
 
 /*
  1) Scan the string for an AM/PM indicator
@@ -121,6 +123,7 @@ static void _CFDateFormatterStripAMPMIndicators(UniChar **bpat, int32_t *bpatlen
     }
 }
 
+#if __BLOCKS__
 CFStringRef CFDateFormatterCreateDateFormatFromTemplate(CFAllocatorRef allocator, CFStringRef tmplate, CFOptionFlags options, CFLocaleRef locale) {
     if (allocator) __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
     if (locale) __CFGenericValidateType(locale, CFLocaleGetTypeID());
@@ -197,6 +200,7 @@ CFStringRef CFDateFormatterCreateDateFormatFromTemplate(CFAllocatorRef allocator
     
     return (CFStringRef)result;
 }
+#endif
 
 struct __CFDateFormatter {
     CFRuntimeBase _base;
@@ -1287,11 +1291,16 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
 #endif
     if (options == UDATPG_MATCH_NO_OPTIONS) return (CFStringRef)CFRetain(inString);
     
-    static CFCharacterSetRef hourCharacters;
+    static CFCharacterSetRef hourCharacters = NULL;
+
+#if __BLOCKS__
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         hourCharacters = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("hHkK"));
     });
+#else
+    hourCharacters = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("hHkK"));
+#endif
     
     CFRange hourRange = CFRangeMake(kCFNotFound, 0);
     if (!CFStringFindCharacterFromSet(inString, hourCharacters, CFRangeMake(0, CFStringGetLength(inString)), 0, &hourRange) || hourRange.location == kCFNotFound) {

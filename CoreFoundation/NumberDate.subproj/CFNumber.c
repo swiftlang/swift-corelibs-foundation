@@ -180,7 +180,7 @@ static const Float64Bits doubleOneBits = {.floatValue = 1.0f};
 #define BITSFORDOUBLEZERO doubleZeroBits.bits
 #define BITSFORDOUBLEONE  doubleOneBits.bits
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #define FLOAT_POSITIVE_2_TO_THE_64	0x1.0p+64L
 #define FLOAT_NEGATIVE_2_TO_THE_127	-0x1.0p+127L
 #define FLOAT_POSITIVE_2_TO_THE_127	0x1.0p+127L
@@ -1002,12 +1002,10 @@ const CFRuntimeClass __CFNumberClass = {
 CFTypeID CFNumberGetTypeID(void) {
     // TODO: Move other work out of here
     static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        
-
+    DISPATCH_ONCE_BEGIN_BLOCK(initOnce)
         const char *caching = __CFgetenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
         if (caching) __CFNumberCaching = (!strcmp(caching, "all")) ? kCFNumberCachingFullyDisabled : kCFNumberCachingDisabled;	// initial state above is kCFNumberCachingEnabled
-    });
+    DISPATCH_ONCE_END_BLOCK(initOnce)
     return _kCFRuntimeIDCFNumber;
 }
 

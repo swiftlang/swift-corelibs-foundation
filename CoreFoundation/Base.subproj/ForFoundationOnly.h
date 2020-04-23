@@ -27,7 +27,11 @@
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFBag.h>
 #include <CoreFoundation/CFCalendar.h>
+
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStreamPriv.h>
+#endif
+
 #include <math.h>
 #include <limits.h>
 
@@ -59,6 +63,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <objc/message.h>
 #endif
 
+#if __BLOCKS__
 /* These functions implement standard error handling for reallocation. Their parameters match their unsafe variants (realloc/CFAllocatorReallocate). They differ from reallocf as they provide a chance for you to clean up a buffers contents (in addition to freeing the buffer, etc.)
  
    The optional reallocationFailureHandler is called only when the reallocation fails (with the original buffer passed in, so you can clean up the buffer/throw/abort/etc.
@@ -67,7 +72,9 @@ CF_IMPLICIT_BRIDGING_DISABLED
  */
 CF_EXPORT void *_Nonnull __CFSafelyReallocate(void * _Nullable destination, size_t newCapacity, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
 CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nullable, void * _Nullable destination, size_t newCapacity, CFOptionFlags options, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
+#endif
 
+#if !TARGET_OS_WASI
 // ---- CFBundle material ----------------------------------------
 
 #include <CoreFoundation/CFBundlePriv.h>
@@ -82,14 +89,12 @@ CF_EXPORT const CFStringRef _kCFBundleResourcesFileMappedKey;
 CF_EXPORT const CFStringRef _kCFBundleAllowMixedLocalizationsKey;
 CF_EXPORT const CFStringRef _kCFBundlePrincipalClassKey;
 
-#if __BLOCKS__
 CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef _Nullable bundle, CFURLRef _Nullable bundleURL, CFArrayRef _Nullable _unused_pass_null_, CFStringRef _Nullable resourceName, CFStringRef _Nullable resourceType, CFStringRef _Nullable subPath, CFStringRef _Nullable lproj, Boolean returnArray, Boolean localized, Boolean (^_Nullable predicate)(CFStringRef filename, Boolean *_Nullable stop));
-#endif
-
 CF_EXPORT Boolean _CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, Boolean forceGlobal, CFErrorRef *error);
 CF_EXPORT CFErrorRef _CFBundleCreateError(CFAllocatorRef _Nullable allocator, CFBundleRef bundle, CFIndex code);
 
 _CF_EXPORT_SCOPE_END
+#endif
 
 // ---- CFPreferences material ----------------------------------------
 
@@ -538,12 +543,14 @@ CF_CROSS_PLATFORM_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRe
 CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
 
+#if !TARGET_OS_WASI
 CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef mode);
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 CF_EXPORT Boolean _CFRunLoopIsCurrent(CFRunLoopRef rl);
 
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(_Nullable CFAllocatorRef alloc, CFDataRef data);
+#endif
 
 #if TARGET_OS_MAC
 typedef struct {

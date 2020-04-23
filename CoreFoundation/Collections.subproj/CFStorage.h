@@ -56,6 +56,7 @@ typedef struct CF_BRIDGED_MUTABLE_TYPE(id) __CFStorage *CFStorageRef;
 */
 typedef void (*CFStorageApplierFunction)(const void *val, void *context);
 
+#if __BLOCKS__
 /*!
 	@typedef CFStorageRangeApplierBlock
 	Type of the callback block used by the apply functions of
@@ -67,7 +68,6 @@ typedef void (*CFStorageApplierFunction)(const void *val, void *context);
 	 @param stop An "out" parameter that, if set to true from within the block, indicates that the enumeration may stop.
  
 */
-#if __BLOCKS__
 typedef void (^CFStorageApplierBlock)(const void *vals, CFRange range, bool *stop);
 #endif
 
@@ -197,6 +197,7 @@ CF_EXPORT const void *CFStorageGetConstValueAtIndex(CFStorageRef storage, CFInde
 */
 CF_EXPORT void CFStorageGetValues(CFStorageRef storage, CFRange range, void *values);
 
+#if __BLOCKS__
 /*!
 	@function CFStorageApplyFunction
 	Calls a function once for each value in the set.
@@ -240,7 +241,6 @@ CF_EXPORT void CFStorageApplyFunction(CFStorageRef storage, CFRange range, CFSto
   		the contents of the CFStorage, the behavior is undefined.
  
  */
-#if __BLOCKS__
 CF_EXPORT void CFStorageApplyBlock(CFStorageRef storage, CFRange range, CFStorageEnumerationOptionFlags options, CFStorageApplierBlock CF_NOESCAPE applier);
 #endif
 

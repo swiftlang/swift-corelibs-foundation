@@ -184,6 +184,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, data._cfObject)
     }
     
+#if !os(WASI)
     public convenience init?(contentsOfFile fName: String) {
         do {
            let data = try Data(contentsOf: URL(fileURLWithPath: fName))
@@ -192,6 +193,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             return nil
         }
     }
+#endif
     
     open class var supportsSecureCoding: Bool { return true }
     

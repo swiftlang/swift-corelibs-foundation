@@ -157,6 +157,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
         _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(bitmapRepresentation: data))
     }
     
+#if !os(WASI)
     /// Initialize with the contents of a file.
     ///
     /// Returns `nil` if there was an error reading the file.
@@ -168,6 +169,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
             return nil
         }
     }
+#endif
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(_mapUnmanaged { $0 })

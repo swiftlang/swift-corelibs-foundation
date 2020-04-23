@@ -440,6 +440,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return objects
     }
 
+#if !os(WASI)
     open func write(to url: URL) throws {
         let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
         try pListData.write(to: url, options: .atomic)
@@ -463,6 +464,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             return false
         }
     }
+#endif
 
     open func objects(at indexes: IndexSet) -> [Any] {
         var objs = [Any]()
@@ -653,6 +655,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return lastEqual ? result + 1 : result
     }
 
+#if !os(WASI)
     public convenience init(contentsOf url: URL, error: ()) throws {
         let plistDoc = try Data(contentsOf: url)
         guard let plistArray = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Array<Any>
@@ -679,6 +682,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             return nil
         }
     }
+#endif
 
     open func pathsMatchingExtensions(_ filterTypes: [String]) -> [String] {
         guard !filterTypes.isEmpty else {

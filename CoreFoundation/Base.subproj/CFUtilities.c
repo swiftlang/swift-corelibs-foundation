@@ -12,7 +12,9 @@
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include "CFLocaleInternal.h"
+#if !TARGET_OS_WASI
 #include "CFBundle_Internal.h"
+#endif
 #include <CoreFoundation/CFPriv.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32
 #include <CoreFoundation/CFBundle.h>
@@ -59,7 +61,7 @@
 #include <os/lock.h>
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <string.h>
 #include <sys/mman.h>
 #endif
@@ -85,11 +87,12 @@
 #endif
 
 CF_PRIVATE os_log_t _CFOSLog(void) {
-    static os_log_t logger;
+    static os_log_t logger = NULL;
+
     static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    DISPATCH_ONCE_BEGIN_BLOCK(onceToken)
         logger = os_log_create("com.apple.foundation", "general");
-    });
+    DISPATCH_ONCE_END_BLOCK(onceToken)
     return logger;
 }
 
@@ -316,6 +319,7 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     return (CFDictionaryRef)plist;
 }
 
+#if !TARGET_OS_WASI
 CFStringRef CFCopySystemVersionString(void) {
     CFStringRef versionString;
     CFDictionaryRef dict = _CFCopyServerVersionDictionary();
@@ -373,9 +377,7 @@ CONST_STRING_DECL(_kCFSystemVersionBuildStringKey, "Build")
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
     return true;
 }
-
-
-
+#endif
 
 #if TARGET_OS_OSX
 CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
@@ -541,7 +543,8 @@ CF_INLINE BOOL _CFCanChangeEUIDs(void) {
     return true;
 #endif
 }
-    
+
+#if !TARGET_OS_WASI
 typedef struct _ugids {
     uid_t _euid;
     uid_t _egid;
@@ -592,6 +595,7 @@ CF_EXPORT uid_t _CFGetEGID(void) {
     __CFGetUGIDs(NULL, &egid);
     return egid;
 }
+#endif
 
 const char *_CFPrintForDebugger(const void *obj) {
 	static char *result = NULL;
@@ -980,7 +984,12 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
 void CFLog(int32_t lev, CFStringRef format, ...) {
     va_list args;
     va_start(args, format); 
+    
+    #if !TARGET_OS_WASI
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
+    #else
+    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
+    #endif
     va_end(args);
 }
     
@@ -1232,7 +1241,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     if (0LL == statBuf.st_size) {
         bytes = malloc(8); // don't return constant string -- it's freed!
 	length = 0;
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
     } else if (map) {
         if((void *)-1 == (bytes = mmap(0, (size_t)statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0))) {
 	    int32_t savederrno = errno;
@@ -1527,7 +1536,7 @@ CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) {
 }
 
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_RUNTIME_SWIFT && !TARGET_OS_WASI
 
 CFDictionaryRef __CFGetEnvironment() {
     static dispatch_once_t once = 0L;
@@ -1536,7 +1545,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN || TARGET_OS_WASI
         extern char **environ;
         char **envp = environ;
 #elif TARGET_OS_LINUX

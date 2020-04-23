@@ -50,7 +50,7 @@ __kCFRetainEvent = 28,
 __kCFReleaseEvent = 29
 };
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
@@ -223,9 +223,11 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFXMLNode] = &__CFXMLNodeClass,
 #endif // TARGET_OS_OSX
     
+#if !TARGET_OS_WASI
     [_kCFRuntimeIDCFBundle] = &__CFBundleClass,
     [_kCFRuntimeIDCFPFactory] = &__CFPFactoryClass,
     [_kCFRuntimeIDCFPlugInInstance] = &__CFPlugInInstanceClass,
+#endif
 
     [_kCFRuntimeIDCFPreferencesDomain] = &__CFPreferencesDomainClass,
 
@@ -234,7 +236,7 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFMessagePort] = &__CFMessagePortClass,
 #endif
 
-
+#if !TARGET_OS_WASI
     [_kCFRuntimeIDCFRunLoopMode] = &__CFRunLoopModeClass,
     [_kCFRuntimeIDCFRunLoop] = &__CFRunLoopClass,
     [_kCFRuntimeIDCFRunLoopSource] = &__CFRunLoopSourceClass,
@@ -243,6 +245,8 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFSocket] = &__CFSocketClass,
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
+#endif
+
     [_kCFRuntimeIDCFAttributedString] = &__CFAttributedStringClass,
     [_kCFRuntimeIDCFRunArray] = &__CFRunArrayClass,
     [_kCFRuntimeIDCFCharacterSet] = &__CFCharacterSetClass,

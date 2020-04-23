@@ -10,7 +10,9 @@
 // @_exported import of Dispatch here makes it available to all
 // classes in Foundation and all sources that import Foundation.
 // This brings it into line with Darwin usage for compatibility.
+#if !os(WASI)
 @_exported import Dispatch
+#endif
 
 import CoreFoundation
 

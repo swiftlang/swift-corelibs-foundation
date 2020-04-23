@@ -207,6 +207,7 @@ open class JSONSerialization : NSObject {
         
     }
     
+    #if !os(WASI)
     /* Write JSON data into a stream. The stream should be opened and configured. The return value is the number of bytes written to the stream, or 0 on error. All other behavior of this method is the same as the dataWithJSONObject:options:error: method.
      */
     open class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
@@ -238,6 +239,7 @@ open class JSONSerialization : NSObject {
         } while stream.hasBytesAvailable
         return try jsonObject(with: data, options: opt)
     }
+    #endif
 }
 
 //MARK: - Encoding Detection
