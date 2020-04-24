@@ -1031,19 +1031,22 @@ private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] 
     let scanner = Scanner(string: aString)
     var digitSet = CharacterSet.decimalDigits
     digitSet.insert(charactersIn: "-")
-    var result = [Double](repeating: 0.0, count: number)
-    var index = 0
-
-    let _ = scanner.scanUpToCharacters(from: digitSet)
-    while !scanner.isAtEnd && index < number {
-        if let num = scanner.scanDouble() {
-            result[index] = num
-        }
+    return [Double](unsafeUninitializedCapacity: number) { buffer, initializedCount in
+        var index = 0
         let _ = scanner.scanUpToCharacters(from: digitSet)
-        index += 1
+        while !scanner.isAtEnd && index < number {
+            if let num = scanner.scanDouble() {
+                buffer[index] = num
+            }
+            let _ = scanner.scanUpToCharacters(from: digitSet)
+            index += 1
+        }
+        while index < number {
+            buffer[index] = 0.0
+            index += 1
+        }
+        initializedCount = number
     }
-
-    return result
 }
 
 public func NSPointFromString(_ aString: String) -> NSPoint {
