@@ -1755,6 +1755,55 @@ VIDEOS=StopgapVideos
         }
         #endif
     }
+
+    func test_windowsPaths() throws {
+        let fm = FileManager.default
+        let tmpPath = writableTestDirectoryURL.path
+        do {
+            try fm.createDirectory(atPath: tmpPath, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            XCTFail()
+        }
+        fm.changeCurrentDirectoryPath(tmpPath)
+        func checkPath(path: String) throws {
+            XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
+            XCTAssertTrue(fm.fileExists(atPath: path))
+            try fm.removeItem(atPath: path)
+            XCTAssertFalse(fm.fileExists(atPath: path))
+
+            let url = URL(fileURLWithPath: path)
+            try "hello world".write(to: url, atomically: false, encoding: .utf8)
+            try fm.removeItem(atPath: path)
+            XCTAssertFalse(fm.fileExists(atPath: path))
+        }
+        let paths = [
+            // Absolute Paths
+            "\(tmpPath)\\testfile",       // C:/Users/...\testfile
+            "\(tmpPath)/testfile",        // C:/Users.../testfile
+            "\(tmpPath)/testfile",        // /Users/user/.../testfile
+            "\(tmpPath.first!):testfile", // C:testfile
+
+            // Relative Paths
+            ".\\testfile",
+            "..\\\(tmpPath.lastPathComponent)\\.\\testfile",
+            "testfile",
+            "./testfile",
+            "../\(tmpPath.lastPathComponent)/./testfile",
+
+            // UNC Paths
+            "\\\\.\\\(tmpPath)\\testfile",
+            "\\\\.\\\(tmpPath)/testfile",
+            "\\\\?\\\(String(tmpPath.map({ $0 == "/" ? "\\" : $0})))\\testfile",
+
+            // Unicode characters which require a single WCHAR
+            "λf.(λx.f(x x) λx.f(x x))",
+            // Unicode characters which require more than a single WCHAR
+            "👁️💖🐦",
+        ]
+        for path in paths {
+            try checkPath(path: path)
+        }
+    }
     
     // -----
     
@@ -1827,7 +1876,13 @@ VIDEOS=StopgapVideos
             ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
             ])
         #endif
-        
+
+        #if os(Windows)
+        tests.append(contentsOf: [
+            ("test_windowsPaths", test_windowsPaths),
+            ])
+        #endif
+
         return tests
     }
 }
