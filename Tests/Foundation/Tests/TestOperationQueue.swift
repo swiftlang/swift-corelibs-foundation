@@ -13,7 +13,7 @@ class TestOperationQueue : XCTestCase {
     static var allTests: [(String, (TestOperationQueue) -> () throws -> Void)] {
         return [
             ("test_OperationPriorities", test_OperationPriorities),
-            /* ⚠️ */ ("test_OperationCount", testExpectedToFail(test_OperationCount, "OperationQueue can't count to more than 1")),
+            ("test_OperationCount", test_OperationCount),
             ("test_AsyncOperation", test_AsyncOperation),
             ("test_SyncOperationWithoutAQueue", test_SyncOperationWithoutAQueue),
             ("test_isExecutingWorks", test_isExecutingWorks),
