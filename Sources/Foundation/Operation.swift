@@ -1086,7 +1086,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         defer { _unlock() }
         var op = __firstOperation
         var cnt = 0
-        if let operation = op?.takeUnretainedValue() {
+        while let operation = op?.takeUnretainedValue() {
             if !(operation is _BarrierOperation) {
                 cnt += 1
             }
@@ -1100,7 +1100,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         defer { _unlock() }
         var operations = [Operation]()
         var op = __firstOperation
-        if let operation = op?.takeUnretainedValue() {
+        while let operation = op?.takeUnretainedValue() {
             if includingBarriers || !(operation is _BarrierOperation) {
                 operations.append(operation)
             }
