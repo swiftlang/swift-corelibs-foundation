@@ -244,18 +244,20 @@ class TestCalendar: XCTestCase {
         calendar.locale = Locale(identifier: "en_US_POSIX")
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
 
+        let expectedDescription = calendar.timeZone == TimeZone.current ? "GMT (current)" : "GMT (fixed)"
+
         let calendarCopy = calendar
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-        XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
+        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
 
         let dc = try calendarCopy.dateComponents(in: XCTUnwrap(TimeZone(identifier: "America/New_York")), from: XCTUnwrap(df.date(from: "2019-01-01")))
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-        XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
+        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
 
         let dt = try XCTUnwrap(calendarCopy.date(from: dc))
         XCTAssertEqual(dt.description, "2019-01-01 00:00:00 +0000")
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-        XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
+        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
         XCTAssertEqual(calendarCopy.timeZone, calendar.timeZone)
         XCTAssertEqual(calendarCopy, calendar)
     }
