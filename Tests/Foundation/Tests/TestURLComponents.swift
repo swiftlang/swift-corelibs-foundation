@@ -247,6 +247,224 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(c6?.percentEncodedPath, "/foo/b%20r")
     }
 
+    func test_percentEncodedQueryItems() {
+        var components = URLComponents()
+        // no query component
+        var items = components.queryItems
+        XCTAssertNil(items, "nil expected from queryItems when there's no query component.")
+        components.queryItems = items
+        XCTAssertNil(components.percentEncodedQuery, "nil query component expected when queryItems is set to nil.")
+        // again with percentEncodedQueryItems
+        components.percentEncodedQueryItems = items
+        XCTAssertNil(components.percentEncodedQuery, "nil query component expected when percentEncodedQueryItems is set to nil.")
+
+        // query component zero-length string
+        components.percentEncodedQuery = ""
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 0)
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "", "\"\" query component expected when queryItems is set to empty array.")
+        // again with percentEncodedQueryItems
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "")
+
+        // query component with normal name-value pairs at beginning, in middle, and at end
+        components.percentEncodedQuery = "name1=value1&name2=value2&name3=value3"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1", value: "value1"),
+            URLQueryItem(name: "name2", value: "value2"),
+            URLQueryItem(name: "name3", value: "value3"),
+        ])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1=value1&name2=value2&name3=value3")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1", value: "value1"),
+            URLQueryItem(name: "name2", value: "value2"),
+            URLQueryItem(name: "name3", value: "value3"),
+        ])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1=value1&name2=value2&name3=value3")
+
+        // query component with zero-length name-value pairs at beginning, in middle, and at end
+        components.percentEncodedQuery = "&&"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "", value: nil),
+            URLQueryItem(name: "", value: nil),
+            URLQueryItem(name: "", value: nil),
+        ])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "&&")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "", value: nil),
+            URLQueryItem(name: "", value: nil),
+            URLQueryItem(name: "", value: nil),
+        ])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "&&")
+
+        // query component not in "name=value&name=value" format
+        components.percentEncodedQuery = "query"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 1)
+        XCTAssertEqual(items, [URLQueryItem(name: "query", value: nil)])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "query")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 1)
+        XCTAssertEqual(items, [URLQueryItem(name: "query", value: nil)])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "query")
+
+        // query component with a name and a zero-length value at beginning, in middle, and at end
+        components.percentEncodedQuery = "name1=&name2=&name3="
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1", value: ""),
+            URLQueryItem(name: "name2", value: ""),
+            URLQueryItem(name: "name3", value: ""),
+        ])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1=&name2=&name3=")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1", value: ""),
+            URLQueryItem(name: "name2", value: ""),
+            URLQueryItem(name: "name3", value: ""),
+        ])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1=&name2=&name3=")
+
+        // query component with a zero-length name and a value at beginning, in middle, and at end
+        components.percentEncodedQuery = "=value1&=value2&=value3"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "", value: "value1"),
+            URLQueryItem(name: "", value: "value2"),
+            URLQueryItem(name: "", value: "value3"),
+        ])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "=value1&=value2&=value3")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "", value: "value1"),
+            URLQueryItem(name: "", value: "value2"),
+            URLQueryItem(name: "", value: "value3"),
+        ])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "=value1&=value2&=value3")
+
+        // query component with name-value pair containing an equal character in the value at beginning, in middle, and at end
+        components.percentEncodedQuery = "name1=value1=withEqual&name2=value2=withEqual&name3=value3=withEqual"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1", value: "value1=withEqual"),
+            URLQueryItem(name: "name2", value: "value2=withEqual"),
+            URLQueryItem(name: "name3", value: "value3=withEqual"),
+        ])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1=value1%3DwithEqual&name2=value2%3DwithEqual&name3=value3%3DwithEqual")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1", value: "value1%3DwithEqual"),
+            URLQueryItem(name: "name2", value: "value2%3DwithEqual"),
+            URLQueryItem(name: "name3", value: "value3%3DwithEqual"),
+        ])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1=value1%3DwithEqual&name2=value2%3DwithEqual&name3=value3%3DwithEqual")
+
+        // query component with name-value pair containing percent-encoded characters at beginning, in middle, and at end
+        components.percentEncodedQuery = "name1%E2%80%A2=value1%E2%80%A2&name2%E2%80%A2=value2%E2%80%A2&name3%E2%80%A2=value3%E2%80%A2"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1•", value: "value1•"),
+            URLQueryItem(name: "name2•", value: "value2•"),
+            URLQueryItem(name: "name3•", value: "value3•"),
+        ])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1%E2%80%A2=value1%E2%80%A2&name2%E2%80%A2=value2%E2%80%A2&name3%E2%80%A2=value3%E2%80%A2")
+        // again with percentEncodedQueryItems
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 3)
+        XCTAssertEqual(items, [
+            URLQueryItem(name: "name1%E2%80%A2",value: "value1%E2%80%A2"),
+            URLQueryItem(name: "name2%E2%80%A2",value: "value2%E2%80%A2"),
+            URLQueryItem(name: "name3%E2%80%A2",value: "value3%E2%80%A2"),
+        ])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "name1%E2%80%A2=value1%E2%80%A2&name2%E2%80%A2=value2%E2%80%A2&name3%E2%80%A2=value3%E2%80%A2")
+
+        // query component with name-value pair containing percent-encoded characters that didn't need to be percent-encoded
+        components.percentEncodedQuery = "%41%42%43%44=%61%62%63%64"
+        items = components.queryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 1)
+        XCTAssertEqual(items, [URLQueryItem(name: "ABCD", value: "abcd")])
+        components.queryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "ABCD=abcd")
+        // again with percentEncodedQueryItems
+        components.percentEncodedQuery = "%41%42%43%44=%61%62%63%64"
+        items = components.percentEncodedQueryItems
+        XCTAssertNotNil(items, "Expected queryItems array.")
+        XCTAssertEqual(items?.count, 1)
+        XCTAssertEqual(items, [URLQueryItem(name: "%41%42%43%44", value: "%61%62%63%64")])
+        components.percentEncodedQueryItems = items
+        XCTAssertEqual(components.percentEncodedQuery, "%41%42%43%44=%61%62%63%64")
+
+        /* These cases cannot be tested by XCTest since `URLComponents.percentEncodedQueryItems` will fatalError on invalid inputs.
+         * Ideally, once swift gains throwing accessors percentEncodedQueryItems:setter can be marked as throws instead and tested properly.
+         * Forum thread: https://forums.swift.org/t/throwable-accessors/20509
+         *
+         * // invalid NSURLQueryItem name with '='
+         * items = [URLQueryItem(name: "name", value: "value")]
+         * XCTAssertThrowsError(try components.percentEncodedQueryItems = items, "percentEncodedQueryItems.set should have thrown an error when the name has an unpercent-encoded '='.")
+         * // invalid NSURLQueryItem name with '&'
+         * items = [URLQueryItem(name: "name&", value:"value")]
+         * XCTAssertThrowsError(try components.percentEncodedQueryItems = items, "percentEncodedQueryItems.set should have thrown an error when the name has an unpercent-encoded '&'.")
+         * // invalid NSURLQueryItem name with '•'
+         * items = [URLQueryItem(name: "name•", value:"value")]
+         * XCTAssertThrowsError(try components.percentEncodedQueryItems = items, "percentEncodedQueryItems.set should have thrown an error when the name has an unpercent-encoded '•'.")
+         * // invalid NSURLQueryItem value with '•'
+         * items = [URLQueryItem(name: "name", value:"value•")]
+         * XCTAssertThrowsError(try components.percentEncodedQueryItems = items, "percentEncodedQueryItems.set should have thrown an error when the value has an unpercent-encoded '•'.")
+         */
+    }
+
     static var allTests: [(String, (TestURLComponents) -> () throws -> Void)] {
         return [
             ("test_queryItems", test_queryItems),
@@ -258,6 +476,7 @@ class TestURLComponents: XCTestCase {
             ("test_createURLWithComponents", test_createURLWithComponents),
             ("test_path", test_path),
             ("test_percentEncodedPath", test_percentEncodedPath),
+            ("test_percentEncodedQueryItems", test_percentEncodedQueryItems),
         ]
     }
 }

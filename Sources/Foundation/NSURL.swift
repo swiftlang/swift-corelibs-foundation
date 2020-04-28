@@ -1430,9 +1430,15 @@ open class NSURLComponents: NSObject, NSCopying {
         return NSRange(_CFURLComponentsGetRangeOfFragment(_components))
     }
     
-    // The getter method that underlies the queryItems property parses the query string based on these delimiters and returns an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, in the order in which they appear in the original query string.  Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the NSURLComponents object has an empty query component, queryItems returns an empty NSArray. If the NSURLComponents object has no query component, queryItems returns nil.
-    // The setter method that underlies the queryItems property combines an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, into a query string and sets the NSURLComponents' query property. Passing an empty NSArray to setQueryItems sets the query component of the NSURLComponents object to an empty string. Passing nil to setQueryItems removes the query component of the NSURLComponents object.
-    // Note: If a name-value pair in a query is empty (i.e. the query string starts with '&', ends with '&', or has "&&" within it), you get a NSURLQueryItem with a zero-length name and and a nil value. If a query's name-value pair has nothing before the equals sign, you get a zero-length name. If a query's name-value pair has nothing after the equals sign, you get a zero-length value. If a query's name-value pair has no equals sign, the query name-value pair string is the name and you get a nil value.
+    /// Returns an array of query items for this `URLComponents`, in the order in which they appear in the original query string.
+    ///
+    /// Each `URLQueryItem` represents a single key-value pair,
+    ///
+    /// Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the `URLComponents` has an empty query component, returns an empty array. If the `URLComponents` has no query component, returns nil.
+    ///
+    /// The setter combines an array containing any number of `URLQueryItem`s, each of which represents a single key-value pair, into a query string and sets the `URLComponents` query property. Passing an empty array sets the query component of the `URLComponents` to an empty string. Passing nil removes the query component of the `URLComponents`.
+    ///
+    /// - note: If a name-value pair in a query is empty (i.e. the query string starts with '&', ends with '&', or has "&&" within it), you get a `URLQueryItem` with a zero-length name and a nil value. If a query's name-value pair has nothing before the equals sign, you get a zero-length name. If a query's name-value pair has nothing after the equals sign, you get a zero-length value. If a query's name-value pair has no equals sign, the query name-value pair string is the name and you get a nil value.
     open var queryItems: [URLQueryItem]? {
         get {
             // This CFURL implementation returns a CFArray of CFDictionary; each CFDictionary has an entry for name and optionally an entry for value
@@ -1444,8 +1450,8 @@ open class NSURLComponents: NSObject, NSCopying {
             return (0..<count).map { idx in
                 let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
                 let swiftEntry = oneEntry._swiftObject
-                let entryName = swiftEntry["name"] as! String
-                let entryValue = swiftEntry["value"] as? String
+                let entryName = swiftEntry[_kCFURLComponentsNameKey as! String] as! String
+                let entryValue = swiftEntry[_kCFURLComponentsValueKey as! String] as? String
                 return URLQueryItem(name: entryName, value: entryValue)
             }
         }
@@ -1467,6 +1473,49 @@ open class NSURLComponents: NSObject, NSCopying {
                 }
             }
             _CFURLComponentsSetQueryItems(_components, names._cfObject, values._cfObject)
+        }
+    }
+
+    /// Returns an array of query items for this `URLComponents`, in the order in which they appear in the original query string. Any percent-encoding in a query item name or value is retained
+    ///
+    /// The setter combines an array containing any number of `URLQueryItem`s, each of which represents a single key-value pair, into a query string and sets the `URLComponents` query property. This property assumes the query item names and values are already correctly percent-encoded, and that the query item names do not contain the query item delimiter characters '&' and '='. Attempting to set an incorrectly percent-encoded query item or a query item name with the query item delimiter characters '&' and '=' will cause a `fatalError`.
+    open var percentEncodedQueryItems: [URLQueryItem]? {
+        get {
+            // This CFURL implementation returns a CFArray of CFDictionary; each CFDictionary has an entry for name and optionally an entry for value
+            guard let queryArray = _CFURLComponentsCopyPercentEncodedQueryItems(_components) else {
+                return nil
+            }
+
+            let count = CFArrayGetCount(queryArray)
+            return (0..<count).map { idx in
+                let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
+                let swiftEntry = oneEntry._swiftObject
+                let entryName = swiftEntry[_kCFURLComponentsNameKey as! String] as! String
+                let entryValue = swiftEntry[_kCFURLComponentsValueKey as! String] as? String
+                return URLQueryItem(name: entryName, value: entryValue)
+            }
+        }
+        // This setter essentially acts like `throws!` as described in https://forums.swift.org/t/handling-c-exceptions/34823/7 as throwing accessors are not yet supported, see https://forums.swift.org/t/throwable-accessors/20509 for more details.
+        set(new) /* throws! */ {
+            guard let new = new else {
+                self.percentEncodedQuery = nil
+                return
+            }
+
+            // The CFURL implementation requires two CFArrays, one for names and one for values
+            var names = [CFTypeRef]()
+            var values = [CFTypeRef]()
+            for entry in new {
+                names.append(entry.name._cfObject)
+                if let v = entry.value {
+                    values.append(v._cfObject)
+                } else {
+                    values.append(kCFNull)
+                }
+            }
+            guard _CFURLComponentsSetPercentEncodedQueryItems(_components, names._cfObject, values._cfObject) else {
+                fatalError("NSInvalidArgumentException: invalid characters in percentEncodedQueryItems")
+            }
         }
     }
 }

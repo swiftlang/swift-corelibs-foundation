@@ -1409,6 +1409,9 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
                 if ( name && name != kCFNull ) {
                     if ( addPercentEncoding ) {
                         CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, name, queryNameValueAllowed);
+                        if ( !stringWithPercentEncoding ) {
+                            stringWithPercentEncoding = (CFStringRef)CFRetain(CFSTR(""));
+                        }
                         CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
                         CFRelease(stringWithPercentEncoding);
                     }
@@ -1426,6 +1429,9 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
                     CFStringAppendCharactersToAppendBuffer(&buf, chars, 1);
                     if ( addPercentEncoding ) {
                         CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, value, queryNameValueAllowed);
+                        if ( !stringWithPercentEncoding ) {
+                            stringWithPercentEncoding = (CFStringRef)CFRetain(CFSTR(""));
+                        }
                         CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
                         CFRelease(stringWithPercentEncoding);
                     }
@@ -1460,6 +1466,8 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
     }
     return ( result );
 }
+
+
 
 CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values ) {
     (void)_CFURLComponentsSetQueryItemsInternal(components, names, values, true); // _CFURLComponentsSetQueryItemsInternal cannot fail if addPercentEncoding is true
