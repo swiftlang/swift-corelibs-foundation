@@ -853,6 +853,12 @@ class TestJSONEncoder : XCTestCase {
         XCTAssertEqual(jsonObject, camelCaseDictionary)
     }
 
+    func test_OutputFormattingValues() {
+        XCTAssertEqual(JSONEncoder.OutputFormatting.prettyPrinted.rawValue, 1)
+        XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
+        XCTAssertEqual(JSONEncoder.OutputFormatting.withoutEscapingSlashes.rawValue, 8)
+    }
+
     // MARK: - Helper Functions
     private var _jsonEmptyDictionary: Data {
         return "{}".data(using: .utf8)!
@@ -1454,6 +1460,7 @@ extension TestJSONEncoder {
             ("test_snake_case_encoding", test_snake_case_encoding),
             ("test_dictionary_snake_case_decoding", test_dictionary_snake_case_decoding),
             ("test_dictionary_snake_case_encoding", test_dictionary_snake_case_encoding),
+            ("test_OutputFormattingValues", test_OutputFormattingValues),
         ]
     }
 }
