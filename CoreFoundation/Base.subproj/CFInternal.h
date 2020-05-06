@@ -579,6 +579,7 @@ CF_INLINE void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlo
 #define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION 0
 #define OS_UNFAIR_LOCK_INIT CFLockInit
 #define os_unfair_lock CFLock_t
+#define os_unfair_lock_t CFLock_t *
 #define os_unfair_lock_lock __CFLock
 #define os_unfair_lock_lock_with_options(lock, options) __CFLock(lock)
 #define os_unfair_lock_unlock __CFUnlock
