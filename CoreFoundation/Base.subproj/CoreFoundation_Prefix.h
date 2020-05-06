@@ -10,10 +10,10 @@
 #ifndef __COREFOUNDATION_PREFIX_H__
 #define __COREFOUNDATION_PREFIX_H__ 1
 
-#if TARGET_OS_MAC
-#include <TargetConditionals.h>
-#else
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
+#else
+#include <TargetConditionals.h>
 #endif
 
 #define _DARWIN_UNLIMITED_SELECT 1
