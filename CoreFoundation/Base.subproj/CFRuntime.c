@@ -420,7 +420,7 @@ CF_INLINE CFRuntimeBase *_cf_aligned_calloc(size_t align, CFIndex size, const ch
     CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but memory could not be so allocated: %s"), className, align, errorStringPointer);
 #elif TARGET_OS_WIN32
     CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but aligned memory is not supported on this platform"), className, align);
-    memory = (CFRuntimeBase *)calloc(size);
+    memory = (CFRuntimeBase *)calloc(1, size);
 #else
     CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but aligned memory is not supported on this platform"), className, align);
     memory = NULL;
@@ -1208,9 +1208,6 @@ void __CFInitialize(void) {
         CFNumberGetTypeID();		// NB: This does other work
 
         __CFCharacterSetInitialize();
-#if TARGET_OS_WIN32
-        __CFWindowsNamedPipeInitialize();
-#endif
         __CFDateInitialize();
         
 #if DEPLOYMENT_RUNTIME_SWIFT
