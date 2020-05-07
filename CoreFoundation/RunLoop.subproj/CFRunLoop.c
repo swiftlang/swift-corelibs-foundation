@@ -33,10 +33,6 @@
 extern void objc_terminate(void);
 
 
-#if TARGET_OS_WIN32
-#include <typeinfo.h>
-#endif
-
 #include "CFOverflow.h"
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || !DEPLOYMENT_RUNTIME_OBJC
