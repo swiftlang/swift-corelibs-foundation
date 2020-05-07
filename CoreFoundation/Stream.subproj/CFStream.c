@@ -1664,7 +1664,7 @@ static CFRunLoopRef sLegacyRL = NULL;
 static volatile OSAtomic_int64_aligned64_t sPerformCount = 0;
 #endif
 
-extern pthread_t _CFMainPThread;
+extern _CFThreadRef _CFMainPThread;
 
 static void _perform(void* info)
 {
