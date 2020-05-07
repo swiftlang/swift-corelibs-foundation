@@ -66,6 +66,10 @@ set_target_properties(FoundationNetworking PROPERTIES
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
+  target_link_options(FoundationNetworking PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
+endif()
+
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationNetworking)
 install(TARGETS FoundationNetworking
