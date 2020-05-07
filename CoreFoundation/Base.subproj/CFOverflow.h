@@ -75,4 +75,18 @@ CF_INLINE _CFOverflowResult _CFPointerSumWouldOverflow(void const *p, size_t n, 
     return result;
 }
 
+#if TARGET_OS_WIN32
+CF_INLINE bool _CFMultiplyBufferSizeWithoutOverflow(size_t a, size_t b, size_t *res) {
+    int32_t res32 = 0;
+    if (!os_mul_overflow((int32_t)a, (int32_t)b, &res32)) {
+        *res = res32;
+        return true;
+    } else {
+        return false;
+    }
+}
+#else
+#define _CFMultiplyBufferSizeWithoutOverflow(a, b, res) (os_mul_overflow((a), (b), (res)) == 0)
+#endif
+
 #endif /* CFOverflow_h */
