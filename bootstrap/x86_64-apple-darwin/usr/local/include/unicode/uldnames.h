@@ -1,7 +1,9 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
-*   Copyright (C) 2010-2014, International Business Machines Corporation and       * 
-*   others.  All Rights Reserved.                                             *
+*   Copyright (C) 2010-2016, International Business Machines Corporation and
+*   others.  All Rights Reserved.
 *******************************************************************************
 */
 
@@ -55,7 +57,7 @@ typedef struct ULocaleDisplayNames ULocaleDisplayNames;
  * Returns an instance of LocaleDisplayNames that returns names
  * formatted for the provided locale, using the provided
  * dialectHandling.  The usual value for dialectHandling is
- * ULOC_STANDARD_NAMES.
+ * ULDN_STANDARD_NAMES.
  *
  * @param locale the display locale 
  * @param dialectHandling how to select names for locales 
@@ -93,7 +95,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalULocaleDisplayNamesPointer, ULocaleDisplayNames
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /* getters for state */
 

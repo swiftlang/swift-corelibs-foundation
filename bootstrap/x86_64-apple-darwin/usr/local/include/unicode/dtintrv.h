@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
 * Copyright (C) 2008-2009, International Business Machines Corporation and
@@ -21,6 +23,7 @@
  */
 
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 
@@ -51,14 +54,14 @@ public:
      * @return  the from date in dateInterval.
      * @stable ICU 4.0
      */
-    UDate getFromDate() const;
+    inline UDate getFromDate() const;
 
     /** 
      * Get the to date.
      * @return  the to date in dateInterval.
      * @stable ICU 4.0
      */
-    UDate getToDate() const;
+    inline UDate getToDate() const;
 
 
     /**
@@ -67,7 +70,7 @@ public:
      * <pre>
      * .   Base* polymorphic_pointer = createPolymorphicObject();
      * .   if (polymorphic_pointer->getDynamicClassID() ==
-     * .       erived::getStaticClassID()) ...
+     * .       derived::getStaticClassID()) ...
      * </pre>
      * @return          The class ID for all objects of this class.
      * @stable ICU 4.0
@@ -112,7 +115,7 @@ public:
      * @return TRUE if the two DateIntervals are not the same
      * @stable ICU 4.0
      */
-    UBool operator!=(const DateInterval& other) const;
+    inline UBool operator!=(const DateInterval& other) const;
 
 
     /**
@@ -154,5 +157,6 @@ DateInterval::operator!=(const DateInterval& other) const {
 
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif

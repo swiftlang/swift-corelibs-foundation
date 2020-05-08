@@ -1,7 +1,7 @@
 /*	CFInternal.h
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -17,6 +17,12 @@
 
 #if !defined(__COREFOUNDATION_CFINTERNAL__)
 #define __COREFOUNDATION_CFINTERNAL__ 1
+
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
+#include <CoreFoundation/TargetConditionals.h>
+#else
+#include <TargetConditionals.h>
+#endif
 
 
 #define __CF_COMPILE_YEAR__	(__DATE__[7] * 1000 + __DATE__[8] * 100 + __DATE__[9] * 10 + __DATE__[10] - 53328)
@@ -82,6 +88,9 @@
 #define _CF_RELEASES_ARGUMENT_OBJ
 #endif
 
+// For places where we need to return a +1 to satisfy the analyzer but the returned value is actually an un-deallocable singleton, use this macro.
+#define _CF_RETURNS_SINGLETON CF_RETURNS_RETAINED
+
 CF_EXTERN_C_BEGIN
 
 #include <CoreFoundation/CFBase.h>
@@ -122,6 +131,7 @@ typedef struct os_log_s *os_log_t;
 #define os_log_debug(...) do { } while (0)
 #define os_log_error(...) do { } while (0)
 #define os_log_create(...) (NULL)
+#define os_log_debug_enabled(...) (0)
 #endif
 
 // We want to eventually note that some objects are immortal to the Swift runtime, but this stopgap lets things work while we work to make an ABI for them.
@@ -173,8 +183,28 @@ CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 
 
 CF_PRIVATE os_log_t _CFOSLog(void);
+CF_PRIVATE os_log_t _CFMethodSignatureROMLog(void);
+
+// Messages logged with os_log_fault() to this log will show in the IDE as
+// Runtime Issues warnings to framework clients, including external developers,
+// and will be attributed to CoreFoundation.
+// This log should only be used for warnings that the client can take action to
+// address, such as API misuse, for APIs that are conceptually part of
+// CoreFoundation from the client's perspective.
+CF_PRIVATE os_log_t _CFRuntimeIssuesLog(void);
+
+// Messages logged with os_log_fault() to this log will show in the IDE as
+// Runtime Issues warnings to framework clients, including external developers.
+// The warnings will be attributed to Foundation not CoreFoundation.
+// This log should only be used for warnings that the client can take action to
+// address, such as API misuse, for APIs that are conceptually part of Foundation
+// from the client's perspective.
+CF_PRIVATE os_log_t _CFFoundationRuntimeIssuesLog(void);
 
 CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
+
+#define HALT __builtin_trap()
+#define HALT_MSG(str) do { CRSetCrashLogMessage(str); HALT; } while (0)
 
 #ifndef CLANG_ANALYZER_NORETURN
 #if __has_feature(attribute_analyzer_noreturn)
@@ -184,12 +214,34 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 #endif
 #endif
 
+// Use this in places where the result may be nil but the function is marked as nonnull (http://clang-analyzer.llvm.org/faq.html#nullability_intentional_violation)
+// e.g. `return _CLANG_ANALYZER_IGNORE_NONNULL(nil);` or `id x = nil; return _CLANG_ANALYZER_IGNORE_NONNULL(x);`
+#define _CLANG_ANALYZER_IGNORE_NONNULL(x) ((id _Nonnull)x)
+
+// For places where we need to return a +1 to satisfy the analyzer but the returned value is actually an un-deallocable singleton, use this macro.
+#ifdef __clang_analyzer__
+#define _CLANG_ANALYZER_IGNORE_RETAIN(x) do { CFAutorelease(x); } while (0)
+#else
+#define _CLANG_ANALYZER_IGNORE_RETAIN(x)
+#endif
+
+// For places where we want to assert something is true, but only for analyzer purposes.
+#ifdef __clang_analyzer__
+#define _CLANG_ANALYZER_ASSERT(x) do { if (!(x)) HALT_MSG("Analyzer-only assert failed"); } while (0)
+#else
+#define _CLANG_ANALYZER_ASSERT(x)
+#endif
+
+#ifdef __clang_analyzer__
+#define _CLANG_ANALYZER_IGNORE_UNINITIALIZED_BUFFER(buf, size) do { memset((buf), 0, (size)); } while (0)
+#else
+#define _CLANG_ANALYZER_IGNORE_UNINITIALIZED_BUFFER(buf, size)
+#endif
+
+
 #if TARGET_OS_WIN32
 #define __builtin_unreachable() do { } while (0)
 #endif
-
-#define HALT __builtin_trap()
-#define HALT_MSG(str) do { CRSetCrashLogMessage(str); HALT; } while (0)
 
 #if defined(DEBUG)
     #define CFAssert(cond, prio, desc) do { if (!(cond)) { CFLog(prio, CFSTR(desc)); /* HALT; */ } } while (0)
@@ -319,8 +371,7 @@ enum {
         __CFTSDKeyMachMessageHasVoucher = 13,
         __CFTSDKeyWeakReferenceHandler = 14,
         __CFTSDKeyIsInPreferences = 15,
-        __CFTSDKeyIsHoldingGlobalPreferencesLock = 16, // this can be removed if we run out of TSD keys, it's just for assertions
-        __CFTSDKeyPendingPreferencesKVONotifications = 17,
+        __CFTSDKeyPendingPreferencesKVONotifications = 16,
 	// autorelease pool stuff must be higher than run loop constants
 	__CFTSDKeyAutoreleaseData2 = 61,
 	__CFTSDKeyAutoreleaseData1 = 62,
@@ -501,12 +552,18 @@ extern void __CFTypeCollectionRelease(CFAllocatorRef allocator, const void *ptr)
 
 extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
+__attribute__((cold))
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
 CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 
+#if __OBJC2__
+CF_EXPORT id const __NSDictionary0__;
+CF_EXPORT id const __NSArray0__;
+#else
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
+#endif // __OBJC2__
 
 #include <CoreFoundation/CFLocking.h>
 
@@ -516,14 +573,23 @@ CF_EXPORT id __NSArray0__;
 #define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
 typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
-static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
-static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
+CF_INLINE void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
+CF_INLINE void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
 #elif defined(_WIN32)
 #define OS_UNFAIR_LOCK_INIT CFLockInit
 #define os_unfair_lock CFLock_t
+#define os_unfair_lock_t CFLock_t *
 #define os_unfair_lock_lock __CFLock
 #define os_unfair_lock_unlock __CFUnlock
 #endif // __has_include(<os/lock.h>)
+
+#if __has_include(<os/lock_private.h>)
+#include <os/lock_private.h>
+#else
+// Private:
+#define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION 0
+CF_INLINE void os_unfair_lock_lock_with_options(os_unfair_lock_t lock, uint32_t options) { os_unfair_lock_lock(lock); }
+#endif
 
 #if _POSIX_THREADS
 typedef pthread_mutex_t _CFMutex;
@@ -612,12 +678,24 @@ CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 #endif
 
 #if TARGET_OS_MAC
-CF_PRIVATE _Atomic(uint8_t) __CF120293;
-CF_PRIVATE _Atomic(uint8_t) __CF120290;
+#define __CF_FORK_STATE_FORKED_FLAG         (1 << 0)
+#define __CF_FORK_STATE_CF_USED_FLAG        (1 << 1)
+#define __CF_FORK_STATE_MULTITHREADED_FLAG  (1 << 2)
+CF_PRIVATE _Atomic(uint8_t) __CF_FORK_STATE;
 extern void __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(void);
-#define CHECK_FOR_FORK() do { __CF120290 = true; if (__CF120293) __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(); } while (0)
-#define CHECK_FOR_FORK_RET(...) do { CHECK_FOR_FORK(); if (__CF120293) return __VA_ARGS__; } while (0)
-#define HAS_FORKED() (__CF120293)
+extern void __CF_USED(void);
+#define CHECK_FOR_FORK() do { \
+    /* Write __CF_FORK_STATE_CF_USED_FLAG only once, avoiding a memory barrier for subsequent reads. */ \
+    if (0 == (atomic_load_explicit(&__CF_FORK_STATE, memory_order_relaxed) & __CF_FORK_STATE_CF_USED_FLAG)) { \
+        __CF_USED(); \
+    } \
+    if (atomic_load_explicit(&__CF_FORK_STATE, memory_order_relaxed) & __CF_FORK_STATE_FORKED_FLAG) { \
+        __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(); \
+    } \
+} while (0)
+
+#define HAS_FORKED() ({ CHECK_FOR_FORK(); (atomic_load_explicit(&__CF_FORK_STATE, memory_order_relaxed) & __CF_FORK_STATE_FORKED_FLAG) != 0;})
+#define CHECK_FOR_FORK_RET(...) do { if (HAS_FORKED()) return __VA_ARGS__; } while (0)
 #endif
 
 #if !defined(CHECK_FOR_FORK)
@@ -735,27 +813,16 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #define CF_SWIFT_CALLV(obj, fn, ...) (0)
 #endif
 
-#ifndef __has_attribute
-#define __has_attribute(...) 0
-#endif
+CF_PRIVATE CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize * 2];
 
-#if TARGET_OS_WIN32
-#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
-#elif __has_attribute(visibility)
-#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE __attribute__((visibility("hidden")))
-#else
-#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
-#endif
-
-// an undeclared array length is only valid with extern, but CF_PRIVATE may or may not include extern as part of its expansion. Redefine the visibility attribute so we can explicitly make it an extern declaration.
-extern _CF_VISIBILITY_HIDDEN_ATTRIBUTE uintptr_t __CFRuntimeObjCClassTable[];
+#define __CFRuntimeObjCClassTable (((uintptr_t *)__CFRuntimeClassTable) + __CFRuntimeClassTableSize)
 
 CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
     return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
 }
 
-
 #define CF_OBJC_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
+#define CF_OBJC_RETAINED_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
 #define CF_OBJC_CALLV(obj, ...) (0)
 #define CF_IS_OBJC(typeID, obj) (0)
 
@@ -1002,6 +1069,7 @@ CF_INLINE dispatch_queue_t __CFDispatchQueueGetGenericBackground(void) {
 CF_PRIVATE CFStringRef _CFStringCopyBundleUnloadingProtectedString(CFStringRef str);
 
 CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data);
+CF_PRIVATE dispatch_data_t _CFDataCreateDispatchData(CFDataRef data); //avoids copying in most cases
 
 // Use this for functions that are intended to be breakpoint hooks. If you do not, the compiler may optimize them away.
 // Based on: BREAKPOINT_FUNCTION in objc-os.h
@@ -1041,6 +1109,13 @@ CF_PRIVATE uint8_t __CFDeallocateZombies;
 CF_PRIVATE Boolean __CFInitialized;
 CF_PRIVATE _Atomic(bool) __CFMainThreadHasExited;
 CF_PRIVATE const CFStringRef __kCFLocaleCollatorID;
+
+#if __OBJC__
+#import <Foundation/NSArray.h>
+@interface NSArray (CFBufferAdoption)
+- (instancetype)_initByAdoptingBuffer:(id *)buffer count:(NSUInteger)count size:(size_t)size;
+@end
+#endif
 
 CF_EXTERN_C_END
 

@@ -30,6 +30,22 @@ class TestBridging : XCTestCase {
     }
 
     func testBridgedDescription() throws {
+        #if canImport(Foundation) && canImport(SwiftFoundation)
+        /*
+          Do not test this on Darwin.
+          On systems where swift-corelibs-foundation is the Foundation module,
+         the stdlib gives us the ability to specify how bridging works
+         (by using our __SwiftValue class), which is what we're testing
+         here when we do 'a as AnyObject'. But on Darwin, bridging is out
+         of SCF's hands — there is an ObjC __SwiftValue class vended by
+         the runtime.
+          Deceptively, below, when we say 'NSObject', we mean SwiftFoundation.NSObject,
+         not the ObjC NSObject class — which is what __SwiftValue actually
+         derives from. So, as? NSObject below returns nil on Darwin.
+          Since this functionality is tested by the stdlib tests on Darwin,
+         just skip this test here.
+        */
+        #else
         // Struct with working (debug)description properties:
         let a = StructWithDescriptionAndDebugDescription()
         XCTAssertEqual("description", a.description)
@@ -44,5 +60,6 @@ class TestBridging : XCTestCase {
         // to the wrapped description property.
         XCTAssertEqual("description", c.description)
         XCTAssertEqual("description", c.debugDescription)
+        #endif
     }
 }

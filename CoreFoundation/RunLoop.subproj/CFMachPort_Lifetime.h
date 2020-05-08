@@ -1,7 +1,7 @@
 /*
     CFMachPort_Lifetime.h
     
-    Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+    Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
     
     Utilities for orchestrating the exact time/circumstances we decrement 
     mach_port rights for CF types that make use of: deallocate, invalidate

@@ -1,7 +1,7 @@
 /*	CFCalendar.c
-	Copyright (c) 2004-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -568,21 +568,51 @@ CF_PRIVATE void __CFCalendarZapCal(CFCalendarRef calendar) {
     ICU_LOG("    if (cal) ucal_close(cal);\n");
 }
 
-CFCalendarRef CFCalendarCopyCurrent(void) {
-    CFLocaleRef locale = CFLocaleCopyCurrent();
-    CFStringRef calID = (CFStringRef)CFLocaleGetValue(locale, kCFLocaleCalendarIdentifierKey);
-    if (calID) {
-        CFCalendarRef calendar = CFCalendarCreateWithIdentifier(kCFAllocatorSystemDefault, calID);
-        if (calendar) CFCalendarSetLocale(calendar, locale);
-        CFRelease(locale);
-        return calendar;
-    } else if(locale) {
-        CFRelease(locale);
+// Applies user-editable settings (first weekday, minimum days in first week) from the given locale onto the given calendar without applying the locale onto the calendar.
+static void __CFCalendarApplyUserSettingsFromLocale(CFCalendarRef calendar, CFLocaleRef locale) {
+    CFDictionaryRef prefs = __CFLocaleGetPrefs(locale);
+    if (prefs && !calendar->_userSet_firstWeekday) {
+        CFPropertyListRef metapref = (CFPropertyListRef)CFDictionaryGetValue(prefs, CFSTR("AppleFirstWeekday"));
+        if (NULL != metapref && CFGetTypeID(metapref) == CFDictionaryGetTypeID()) {
+            metapref = (CFNumberRef)CFDictionaryGetValue((CFDictionaryRef)metapref, calendar->_identifier);
+        }
+        if (NULL != metapref && CFGetTypeID(metapref) == CFNumberGetTypeID()) {
+            CFIndex wkdy;
+            if (CFNumberGetValue((CFNumberRef)metapref, kCFNumberCFIndexType, &wkdy)) {
+                calendar->_firstWeekday = wkdy;
+                if (calendar->_cal) {
+                    __cficu_ucal_setAttribute(calendar->_cal, UCAL_FIRST_DAY_OF_WEEK, wkdy);
+                    ICU_LOG("    ucal_setAttribute(cal, UCAL_FIRST_DAY_OF_WEEK, %ld);\n", wkdy);
+                }
+            }
+        }
     }
-    return NULL;
+    
+    if (prefs && !calendar->_userSet_minDaysInFirstWeek) {
+        CFPropertyListRef metapref = (CFPropertyListRef)CFDictionaryGetValue(prefs, CFSTR("AppleMinDaysInFirstWeek"));
+        if (NULL != metapref && CFGetTypeID(metapref) == CFDictionaryGetTypeID()) {
+            metapref = (CFNumberRef)CFDictionaryGetValue((CFDictionaryRef)metapref, calendar->_identifier);
+        }
+        if (NULL != metapref && CFGetTypeID(metapref) == CFNumberGetTypeID()) {
+            CFIndex mwd;
+            if (CFNumberGetValue((CFNumberRef)metapref, kCFNumberCFIndexType, &mwd)) {
+                calendar->_minDaysInFirstWeek = mwd;
+                if (calendar->_cal) {
+                    __cficu_ucal_setAttribute(calendar->_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, mwd);
+                    ICU_LOG("    ucal_setAttribute(cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, %ld);\n", mwd);
+                }
+            }
+        }
+    }
 }
 
-static CFStringRef _CFCalendarGetCanonicalIdentifier(CFStringRef identifier) {
+
+static bool _CFCalendarInitialize(CFCalendarRef calendar, CFAllocatorRef allocator, CFStringRef identifier, CFTimeZoneRef tz, CFLocaleRef locale, CFIndex firstDayOfWeek, CFIndex minDaysInFirstWeek, CFDateRef gregorianStartDate) {
+    ICU_LOG("                // CFCalendarCreateWithIdentifier enter\n");
+    if (allocator == NULL) allocator = __CFGetDefaultAllocator();
+    __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
+    __CFGenericValidateType(identifier, CFStringGetTypeID());
+    
     CFStringRef canonicalIdent = NULL;
     if (CFEqual(kCFCalendarIdentifierGregorian, identifier)) canonicalIdent = kCFCalendarIdentifierGregorian;
     else if (CFEqual(kCFCalendarIdentifierJapanese, identifier)) canonicalIdent = kCFCalendarIdentifierJapanese;
@@ -600,54 +630,49 @@ static CFStringRef _CFCalendarGetCanonicalIdentifier(CFStringRef identifier) {
     else if (CFEqual(kCFCalendarIdentifierISO8601, identifier)) canonicalIdent = kCFCalendarIdentifierISO8601;
     else if (CFEqual(kCFCalendarIdentifierIslamicTabular, identifier)) canonicalIdent = kCFCalendarIdentifierIslamicTabular;
     else if (CFEqual(kCFCalendarIdentifierIslamicUmmAlQura, identifier)) canonicalIdent = kCFCalendarIdentifierIslamicUmmAlQura;
-    
-    return canonicalIdent;
-}
-
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
-    CFStringRef canonicalIdent = _CFCalendarGetCanonicalIdentifier(identifier);
-    if (!canonicalIdent) ICU_LOG("                // _CFCalendarInitWithIdentifier exit false 1\n");
+    if (!canonicalIdent) ICU_LOG("                // CFCalendarCreateWithIdentifier exit NULL 1\n");
     if (!canonicalIdent) return false;
-    
-    calendar->_identifier = (CFStringRef)CFRetain(canonicalIdent);
-    calendar->_locale = CFRetain(CFLocaleGetSystem());
-    calendar->_tz = CFTimeZoneCopyDefault();
 
-    UCalendar *ucalendar = __CFCalendarCreateUCalendar(calendar->_identifier, CFLocaleGetIdentifier(calendar->_locale), calendar->_tz);
-    if (!ucalendar) {
-        ICU_LOG("                // _CFCalendarInitWithIdentifier exit false 2\n");
+    calendar->_identifier = (CFStringRef)CFRetain(canonicalIdent);
+    calendar->_locale = locale ? CFLocaleCreateCopy(allocator, locale) : CFRetain(CFLocaleGetSystem());
+    calendar->_tz = tz ? CFRetain(tz) : CFTimeZoneCopyDefault();
+    calendar->_cal = __CFCalendarCreateUCalendar(calendar->_identifier, CFLocaleGetIdentifier(calendar->_locale), calendar->_tz);
+    if (!calendar->_cal) {
+        ICU_LOG("                // CFCalendarCreateWithIdentifier exit NULL 3\n");
         return false;
     }
-    calendar->_cal = ucalendar;
-    
-    calendar->_firstWeekday = __cficu_ucal_getAttribute(calendar->_cal, UCAL_FIRST_DAY_OF_WEEK);
-    calendar->_minDaysInFirstWeek = __cficu_ucal_getAttribute(calendar->_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
+    calendar->_firstWeekday = firstDayOfWeek == kCFNotFound ? __cficu_ucal_getAttribute(calendar->_cal, UCAL_FIRST_DAY_OF_WEEK) : firstDayOfWeek;
+    calendar->_minDaysInFirstWeek = minDaysInFirstWeek == kCFNotFound ? __cficu_ucal_getAttribute(calendar->_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK) : minDaysInFirstWeek;
     ICU_LOG("    int32_t firstWeekday = ucal_getAttribute(cal, UCAL_FIRST_DAY_OF_WEEK);\n");
     ICU_LOG("    int32_t minDaysInFirstWeek = ucal_getAttribute(cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);\n");
     if (kCFCalendarIdentifierGregorian == calendar->_identifier) {
         ICU_LOG("    UErrorCode status = U_ZERO_ERROR;\n");
         ICU_LOG("    UDate udate = ucal_getGregorianChange(cal, &status);\n");
         ICU_LOG("    CFAbsoluteTime gregorianStart = U_SUCCESS(status) ? (udate / 1000.0 - kCFAbsoluteTimeIntervalSince1970) : -13197600000.0;\n");
+        CFAbsoluteTime at = 0;
+        if (gregorianStartDate) {
+            at = CFDateGetAbsoluteTime(gregorianStartDate);
+            calendar->_gregorianStart = CFRetain(gregorianStartDate);
+        } else {
+            UErrorCode status = U_ZERO_ERROR;
+            UDate udate = __cficu_ucal_getGregorianChange(calendar->_cal, &status);
+            at = U_SUCCESS(status) ? (udate / 1000.0 - kCFAbsoluteTimeIntervalSince1970) : -13197600000.0; // Oct 15, 1582
+            calendar->_gregorianStart = CFDateCreate(CFGetAllocator(calendar), at);
+        }
         UErrorCode status = U_ZERO_ERROR;
-        UDate udate = __cficu_ucal_getGregorianChange(calendar->_cal, &status);
-        CFAbsoluteTime at = U_SUCCESS(status) ? (udate / 1000.0 - kCFAbsoluteTimeIntervalSince1970) : -13197600000.0; // Oct 15, 1582
-        calendar->_gregorianStart = CFDateCreate(CFGetAllocator(calendar), at);
-        udate = (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
-        status = U_ZERO_ERROR;
+        UDate udate = (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
         __cficu_ucal_setGregorianChange(calendar->_cal, udate, &status);
     }
     calendar->_userSet_firstWeekday = false;
     calendar->_userSet_minDaysInFirstWeek = false;
     calendar->_userSet_gregorianStart = false;
-    ICU_LOG("                // _CFCalendarInitWithIdentifier exit true\n");
+    ICU_LOG("                // CFCalendarCreateWithIdentifier exit\n");
     return true;
 }
 
-CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringRef identifier) {
-    ICU_LOG("                // CFCalendarCreateWithIdentifier enter\n");
+static CFCalendarRef _CFCalendarCreate(CFAllocatorRef allocator, CFStringRef identifier, CFTimeZoneRef tz, CFLocaleRef locale, CFIndex firstDayOfWeek, CFIndex minDaysInFirstWeek, CFDateRef gregorianStartDate) {
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
     __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
-    __CFGenericValidateType(identifier, CFStringGetTypeID());
 
     struct __CFCalendar *calendar = NULL;
     size_t size = sizeof(struct __CFCalendar) - sizeof(CFRuntimeBase);
@@ -657,37 +682,59 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
         return NULL;
     }
     
-    if (_CFCalendarInitWithIdentifier(calendar, identifier)) {
-        return calendar;
-    } else {
+    if (!_CFCalendarInitialize(calendar, allocator, identifier, tz, locale, firstDayOfWeek, minDaysInFirstWeek, gregorianStartDate)) {
+        // _CFCalendarInitialize will have already logged which exit path was taken.
         CFRelease(calendar);
         return NULL;
     }
+    
+    return calendar;
+}
+
+CFCalendarRef CFCalendarCopyCurrent(void) {
+    CFLocaleRef locale = CFLocaleCopyCurrent();
+    CFStringRef calID = (CFStringRef)CFLocaleGetValue(locale, kCFLocaleCalendarIdentifierKey);
+    if (calID) {
+        CFCalendarRef calendar = _CFCalendarCreate(kCFAllocatorSystemDefault, calID, NULL, locale, kCFNotFound, kCFNotFound, NULL);
+        
+        // `calendar` has the default first weekday and other locale settings set on it.
+        // We need to explicitly apply the settings from the locale without creating a new copy of it (via `CFCalendarSetLocale`).
+        __CFCalendarApplyUserSettingsFromLocale(calendar, locale);
+        
+        CFRelease(locale);
+        return calendar;
+    } else if(locale) {
+        CFRelease(locale);
+    }
+    return NULL;
+}
+
+CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringRef identifier) {
+    return _CFCalendarCreate(allocator, identifier, NULL, NULL, kCFNotFound, kCFNotFound, NULL);
+}
+
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
+    return _CFCalendarInitialize(calendar, kCFAllocatorSystemDefault, identifier, NULL, NULL, kCFNotFound, kCFNotFound, NULL) ? true : false;
 }
 
 CFCalendarRef _CFCalendarCreateCopy(CFAllocatorRef allocator, CFCalendarRef calendar) {
-    CFCalendarRef result = CFCalendarCreateWithIdentifier(allocator, CFCalendarGetIdentifier(calendar));
-    
-    CFLocaleRef locale = CFCalendarCopyLocale(calendar);
-    if (locale) {
-        CFCalendarSetLocale(result, locale);
-        CFRelease(locale);
+    //We should probably just conditionally call -copyWithZone: here but I'm concerned that it could expose incorrect third party subclasses that have just happened to get away with it until now
+    Boolean isObjC = CF_IS_OBJC(_kCFRuntimeIDCFCalendar, calendar);
+    CFCalendarRef result = NULL;
+    if (isObjC) {
+        CFTimeZoneRef tz = CFCalendarCopyTimeZone(calendar);
+        CFLocaleRef locale = CFCalendarCopyLocale(calendar);
+        CFDateRef gsd = CFCalendarCopyGregorianStartDate(calendar);
+        CFIndex firstWeekday = CFCalendarGetFirstWeekday(calendar);
+        CFIndex minDaysInFirstWeek = CFCalendarGetMinimumDaysInFirstWeek(calendar);
+        //Do not attempt to refactor _CFCalendarCreate to take fewer arguments with the idea of using the setter functions instead, the setters also set the _userSet_* flags
+        result = _CFCalendarCreate(allocator, CFCalendarGetIdentifier(calendar), tz, locale, firstWeekday, minDaysInFirstWeek, gsd);
+        if (tz) CFRelease(tz);
+        if (locale) CFRelease(locale);
+        if (gsd) CFRelease(gsd);
+    } else {
+        result = _CFCalendarCreate(allocator, calendar->_identifier, calendar->_tz, calendar->_locale, calendar->_firstWeekday, calendar->_minDaysInFirstWeek, calendar->_gregorianStart);
     }
-    
-    CFTimeZoneRef tz = CFCalendarCopyTimeZone(calendar);
-    if (tz) {
-        CFCalendarSetTimeZone(result, tz);
-        CFRelease(tz);
-    }
-    
-    CFDateRef gsd = CFCalendarCopyGregorianStartDate(calendar);
-    if (gsd) {
-        CFCalendarSetGregorianStartDate(result, gsd);
-        CFRelease(gsd);
-    }
-    
-    CFCalendarSetFirstWeekday(result, CFCalendarGetFirstWeekday(calendar));
-    CFCalendarSetMinimumDaysInFirstWeek(result, CFCalendarGetMinimumDaysInFirstWeek(calendar));
     
     return result;
 }
@@ -760,40 +807,8 @@ void CFCalendarSetLocale(CFCalendarRef calendar, CFLocaleRef locale) {
             ICU_LOG("    UErrorCode status = U_ZERO_ERROR;\n");
             ICU_LOG("    if (cal) ucal_setGregorianChange(cal, udate, &status);\n");
         }
-
-        CFDictionaryRef prefs = __CFLocaleGetPrefs(locale);
-        if (!calendar->_userSet_firstWeekday) {
-            CFPropertyListRef metapref = (CFPropertyListRef)(prefs ? CFDictionaryGetValue(prefs, CFSTR("AppleFirstWeekday")) : NULL);
-            if (NULL != metapref && CFGetTypeID(metapref) == CFDictionaryGetTypeID()) {
-                metapref = (CFNumberRef)CFDictionaryGetValue((CFDictionaryRef)metapref, calendar->_identifier);
-            }
-            if (NULL != metapref && CFGetTypeID(metapref) == CFNumberGetTypeID()) {
-                CFIndex wkdy;
-                if (CFNumberGetValue((CFNumberRef)metapref, kCFNumberCFIndexType, &wkdy)) {
-                    calendar->_firstWeekday = wkdy;
-                    if (calendar->_cal) {
-                        __cficu_ucal_setAttribute(calendar->_cal, UCAL_FIRST_DAY_OF_WEEK, wkdy);
-                        ICU_LOG("    ucal_setAttribute(cal, UCAL_FIRST_DAY_OF_WEEK, %ld);\n", wkdy);
-                    }
-                }
-            }
-        }
-        if (!calendar->_userSet_minDaysInFirstWeek) {
-            CFPropertyListRef metapref = (CFPropertyListRef)(prefs ? CFDictionaryGetValue(prefs, CFSTR("AppleMinDaysInFirstWeek")) : NULL);
-            if (NULL != metapref && CFGetTypeID(metapref) == CFDictionaryGetTypeID()) {
-                metapref = (CFNumberRef)CFDictionaryGetValue((CFDictionaryRef)metapref, calendar->_identifier);
-            }
-            if (NULL != metapref && CFGetTypeID(metapref) == CFNumberGetTypeID()) {
-                CFIndex mwd;
-                if (CFNumberGetValue((CFNumberRef)metapref, kCFNumberCFIndexType, &mwd)) {
-                    calendar->_minDaysInFirstWeek = mwd;
-                    if (calendar->_cal) {
-                        __cficu_ucal_setAttribute(calendar->_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, mwd);
-                        ICU_LOG("    ucal_setAttribute(cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, %ld);\n", mwd);
-                    }
-                }
-            }
-        }
+        
+        __CFCalendarApplyUserSettingsFromLocale(calendar, locale);
     }
     ICU_LOG("                // CFCalendarSetLocale exit\n");
 }

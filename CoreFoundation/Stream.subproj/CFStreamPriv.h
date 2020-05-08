@@ -1,7 +1,7 @@
 /*	CFStreamPriv.h
-	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -82,7 +82,7 @@ CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, in
 #define SECURITY_SSLv32 (3)
 #define SECURITY_TLS    (4)    
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 // This symbol is exported from CFNetwork (see CFSocketStream.i).  Only __MACH__ systems will
 // get this symbol from CoreFoundation.
 extern const int kCFStreamErrorDomainSSL;

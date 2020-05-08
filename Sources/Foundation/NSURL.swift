@@ -559,6 +559,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return CFURLCopyFragment(_cfObject, nil)?._swiftObject
     }
     
+    @available(swift, deprecated: 5.3, message: "The parameterString property is deprecated. When executing on Swift 5.3 or later, parameterString will always return nil, and the path method will return the complete path including the semicolon separator and params component if the URL string contains them.")
     open var parameterString: String? {
         return CFURLCopyParameterString(_cfObject, nil)?._swiftObject
     }

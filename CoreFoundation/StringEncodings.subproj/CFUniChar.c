@@ -1,7 +1,7 @@
 /*	CFUniChar.c
-	Copyright (c) 2001-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2001-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -114,7 +114,9 @@ CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC
+    strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
 #elif TARGET_OS_WIN32
     wchar_t frameworkPath[MAXPATHLEN];
@@ -430,7 +432,7 @@ static char __CFUniCharUnicodeVersionString[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 static uint32_t __CFUniCharNumberOfBitmaps = 0;
 static __CFUniCharBitmapData *__CFUniCharBitmapDataArray = NULL;
 
-static CFLock_t __CFUniCharBitmapLock = CFLockInit;
+static os_unfair_lock __CFUniCharBitmapLock = OS_UNFAIR_LOCK_INIT;
 
 static bool __CFUniCharLoadBitmapData(void) {
     __CFUniCharBitmapData *array;
@@ -444,10 +446,10 @@ static bool __CFUniCharLoadBitmapData(void) {
     int idx, bitmapIndex;
     int64_t fileSize;
 
-    __CFLock(&__CFUniCharBitmapLock);
+    os_unfair_lock_lock(&__CFUniCharBitmapLock);
 
     if (__CFUniCharBitmapDataArray || !__CFUniCharLoadFile(CF_UNICHAR_BITMAP_FILE, &bytes, &fileSize) || !__CFSimpleFileSizeVerification(bytes, fileSize)) {
-        __CFUnlock(&__CFUniCharBitmapLock);
+        os_unfair_lock_unlock(&__CFUniCharBitmapLock);
         return false;
     }
 
@@ -495,7 +497,7 @@ static bool __CFUniCharLoadBitmapData(void) {
 
     __CFUniCharBitmapDataArray = array;
 
-    __CFUnlock(&__CFUniCharBitmapLock);
+    os_unfair_lock_unlock(&__CFUniCharBitmapLock);
 
     return true;
 }
@@ -719,27 +721,27 @@ CF_PRIVATE uint32_t CFUniCharGetNumberOfPlanes(uint32_t charset) {
 // Mapping data loading
 static const void **__CFUniCharMappingTables = NULL;
 
-static CFLock_t __CFUniCharMappingTableLock = CFLockInit;
+static os_unfair_lock __CFUniCharMappingTableLock = OS_UNFAIR_LOCK_INIT;
 
 CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 
-    __CFLock(&__CFUniCharMappingTableLock);
+    os_unfair_lock_lock(&__CFUniCharMappingTableLock);
 
     if (NULL == __CFUniCharMappingTables) {
         const void *bytes;
         const void *bodyBase;
-        int headerSize;
-        int idx, count;
+        int32_t headerSize;
+        size_t idx, count;
 	int64_t fileSize;
 
         if (!__CFUniCharLoadFile(MAPPING_TABLE_FILE, &bytes, &fileSize) || !__CFSimpleFileSizeVerification(bytes, fileSize)) {
-            __CFUnlock(&__CFUniCharMappingTableLock);
+            os_unfair_lock_unlock(&__CFUniCharMappingTableLock);
             return NULL;
         }
 
 #if defined (__cplusplus)
-		bytes = (uint8_t *)bytes + 4; // Skip Unicode version
-		headerSize = *((uint8_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
+        bytes = (uint8_t *)bytes + 4; // Skip Unicode version
+        headerSize = *((uint8_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
 		bytes += 4; // Skip Unicode version
         headerSize = unaligned_load32(bytes);
@@ -754,7 +756,7 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 
         for (idx = 0;idx < count;idx++) {
 #if defined (__cplusplus)            
-			__CFUniCharMappingTables[idx] = (char *)bodyBase + *((uint32_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
+            __CFUniCharMappingTables[idx] = (char *)bodyBase + *((uint32_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
 			__CFUniCharMappingTables[idx] = (char *)bodyBase + unaligned_load32(bytes);
             bytes += sizeof(uint32_t);
@@ -762,7 +764,7 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
         }
     }
 
-    __CFUnlock(&__CFUniCharMappingTableLock);
+    os_unfair_lock_unlock(&__CFUniCharMappingTableLock);
 
     return __CFUniCharMappingTables[type];
 }
@@ -812,10 +814,10 @@ static bool __CFUniCharLoadCaseMappingTable(void) {
     if (NULL == __CFUniCharMappingTables) (void)CFUniCharGetMappingData(kCFUniCharToLowercase);
     if (NULL == __CFUniCharMappingTables) return false;
 
-    __CFLock(&__CFUniCharMappingTableLock);
+    os_unfair_lock_lock(&__CFUniCharMappingTableLock);
 
     if (__CFUniCharCaseMappingTableCounts) {
-        __CFUnlock(&__CFUniCharMappingTableLock);
+        os_unfair_lock_unlock(&__CFUniCharMappingTableLock);
         return true;
     }
 
@@ -831,7 +833,7 @@ static bool __CFUniCharLoadCaseMappingTable(void) {
 
     __CFUniCharCaseMappingTableCounts = countArray;
 
-    __CFUnlock(&__CFUniCharMappingTableLock);
+    os_unfair_lock_unlock(&__CFUniCharMappingTableLock);
     return true;
 }
 

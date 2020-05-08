@@ -202,10 +202,14 @@ class TestURL : XCTestCase {
 
     internal func compareResults(_ url : URL, expected : [String : Any], got : [String : Any]) -> (Bool, [String]) {
         var differences = [String]()
-        for (key, obj) in expected {
+        for (key, expectation) in expected {
             // Skip non-string expected results
             if ["port", "standardizedURL", "pathComponents"].contains(key) {
                 continue
+            }
+            var obj: Any? = expectation
+            if obj as? String == kNullString {
+                obj = nil
             }
             if let expectedValue = obj as? String {
                 if let testedValue = got[key] as? String {
@@ -230,6 +234,10 @@ class TestURL : XCTestCase {
                     }
                 } else {
                     differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(String(describing: got[key]))'")
+                }
+            } else if obj == nil {
+                if got[key] != nil && got[key] as? String != kNullString {
+                    differences.append(" \(key)  Expected = '\(String(describing: obj))',  Got = '\(String(describing: got[key]))'")
                 }
             }
 

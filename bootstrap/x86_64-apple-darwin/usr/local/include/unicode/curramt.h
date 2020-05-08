@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 * Copyright (c) 2004-2006, International Business Machines
@@ -23,6 +25,7 @@
  * \brief C++ API: Currency Amount Object.
  */
  
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 /**
@@ -44,7 +47,7 @@ class U_I18N_API CurrencyAmount: public Measure {
      * is invalid, then this will be set to a failing value.
      * @stable ICU 3.0
      */
-    CurrencyAmount(const Formattable& amount, const UChar* isoCode,
+    CurrencyAmount(const Formattable& amount, ConstChar16Ptr isoCode,
                    UErrorCode &ec);
 
     /**
@@ -57,7 +60,7 @@ class U_I18N_API CurrencyAmount: public Measure {
      * then this will be set to a failing value.
      * @stable ICU 3.0
      */
-    CurrencyAmount(double amount, const UChar* isoCode,
+    CurrencyAmount(double amount, ConstChar16Ptr isoCode,
                    UErrorCode &ec);
 
     /**
@@ -113,18 +116,19 @@ class U_I18N_API CurrencyAmount: public Measure {
      * Return the ISO currency code of this object.
      * @stable ICU 3.0
      */
-    inline const UChar* getISOCurrency() const;
+    inline const char16_t* getISOCurrency() const;
 };
 
 inline const CurrencyUnit& CurrencyAmount::getCurrency() const {
     return (const CurrencyUnit&) getUnit();
 }
 
-inline const UChar* CurrencyAmount::getISOCurrency() const {
+inline const char16_t* CurrencyAmount::getISOCurrency() const {
     return getCurrency().getISOCurrency();
 }
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif // !UCONFIG_NO_FORMATTING
 #endif // __CURRENCYAMOUNT_H__

@@ -1,11 +1,11 @@
 /*	CFDate.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Kevin Perry
 */
 
 #include <CoreFoundation/CFDate.h>
@@ -17,6 +17,7 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <math.h>
+#include <assert.h>
 
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
@@ -196,7 +197,7 @@ CFDateRef CFDateCreate(CFAllocatorRef allocator, CFAbsoluteTime at) {
     CFDateRef memory; 
     uint32_t size;
     size = sizeof(struct __CFDate) - sizeof(CFRuntimeBase);
-    memory = (CFDateRef)_CFRuntimeCreateInstance(allocator, CFDateGetTypeID(), size, NULL);
+    memory = (CFDateRef)_CFRuntimeCreateInstance(allocator, _kCFRuntimeIDCFDate, size, NULL);
     if (NULL == memory) {
         return NULL;
     }
@@ -205,20 +206,20 @@ CFDateRef CFDateCreate(CFAllocatorRef allocator, CFAbsoluteTime at) {
 }
 
 CFTimeInterval CFDateGetAbsoluteTime(CFDateRef date) {
-    CF_OBJC_FUNCDISPATCHV(CFDateGetTypeID(), CFTimeInterval, (NSDate *)date, timeIntervalSinceReferenceDate);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFDate, CFTimeInterval, (NSDate *)date, timeIntervalSinceReferenceDate);
     __CFGenericValidateType(date, CFDateGetTypeID());
     return date->_time;
 }
 
 CFTimeInterval CFDateGetTimeIntervalSinceDate(CFDateRef date, CFDateRef otherDate) {
-    CF_OBJC_FUNCDISPATCHV(CFDateGetTypeID(), CFTimeInterval, (NSDate *)date, timeIntervalSinceDate:(NSDate *)otherDate);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFDate, CFTimeInterval, (NSDate *)date, timeIntervalSinceDate:(NSDate *)otherDate);
     __CFGenericValidateType(date, CFDateGetTypeID());
     __CFGenericValidateType(otherDate, CFDateGetTypeID());
     return date->_time - otherDate->_time;
 }   
     
 CFComparisonResult CFDateCompare(CFDateRef date, CFDateRef otherDate, void *context) {
-    CF_OBJC_FUNCDISPATCHV(CFDateGetTypeID(), CFComparisonResult, (NSDate *)date, compare:(NSDate *)otherDate);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFDate, CFComparisonResult, (NSDate *)date, compare:(NSDate *)otherDate);
     __CFGenericValidateType(date, CFDateGetTypeID());
     __CFGenericValidateType(otherDate, CFDateGetTypeID());
     if (date->_time < otherDate->_time) return kCFCompareLessThan;
@@ -242,7 +243,8 @@ CF_INLINE double __CFDoubleMod(double d, int32_t modulus) {
 
 #define INVALID_MONTH_RESULT (0xffff)
 #define CHECK_BOUNDS(month, array) ((month) >= 0 && (month) < (sizeof(array) / sizeof(*(array))))
-#define ASSERT_VALID_MONTH(month) do { if (!((month) >= 1 && (month) <= 12)) { /* os_log_error(OS_LOG_DEFAULT, "Month %d is out of bounds", (int)month); HALT */ } } while(0)
+#define IS_VALID_MONTH(month) ((month) >= 1 && (month) <= 12)
+#define ASSERT_VALID_MONTH(month) do { if (!IS_VALID_MONTH(month)) { os_log_error(OS_LOG_DEFAULT, "Month %d is out of bounds", (int)month); /* HALT */ } } while(0)
 
 static const uint8_t daysInMonth[16] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0, 0, 0};
 static const uint16_t daysBeforeMonth[16] = {INVALID_MONTH_RESULT, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365, INVALID_MONTH_RESULT, INVALID_MONTH_RESULT};
@@ -307,12 +309,10 @@ static void __CFYMDFromAbsolute(int64_t absolute, int64_t *year, int8_t *month, 
 	int8_t m = absolute / 33 + 1; /* search from the approximation */
 	bool leap = isleap(y);
         
-        // Calculations above should guarantee that 0 <= absolute < 336, meaning 1 <= m <= 11 and that __CFDaysBeforeMonth(m + 1, …) will at some point be > absolute.
+        // Calculations above should guarantee that 0 <= absolute < 365, meaning 1 <= m <= 12. However, m+1 may well become out of bounds.
         ASSERT_VALID_MONTH(m);
-        ASSERT_VALID_MONTH(m + 1);
-        while (__CFDaysBeforeMonth(m + 1, y, leap) <= absolute) {
+        while (IS_VALID_MONTH(m + 1) && __CFDaysBeforeMonth(m + 1, y, leap) <= absolute) {
             m++;
-            ASSERT_VALID_MONTH(m + 1);
         }
         if (month) *month = m;
         if (day) *day = absolute - __CFDaysBeforeMonth(m, y, leap) + 1;

@@ -1,7 +1,7 @@
 /*      CFBundle.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -48,7 +48,6 @@
 #endif
 
 
-static void _CFBundleFlushBundleCachesAlreadyLocked(CFBundleRef bundle, Boolean alreadyLocked);
 static void _CFBundleUnloadScheduledBundles(void);
 
 #define LOG_BUNDLE_LOAD 0
@@ -195,6 +194,15 @@ CF_PRIVATE os_log_t _CFBundleLocalizedStringLogger(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _log = os_log_create("com.apple.CFBundle", "strings");
+    });
+    return _log;
+}
+
+CF_PRIVATE os_log_t _CFBundleLoadingLogger(void) {
+    static os_log_t _log;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _log = os_log_create("com.apple.CFBundle", "loading");
     });
     return _log;
 }
@@ -436,7 +444,8 @@ CF_EXPORT CFBundleRef _CFBundleCreateIfMightBeBundle(CFAllocatorRef allocator, C
     return bundle;
 }
         
-static void _CFBundleFlushBundleCachesAlreadyLocked(CFBundleRef bundle, Boolean alreadyLocked) {
+CF_EXPORT void _CFBundleFlushBundleCaches(CFBundleRef bundle) {
+    __CFLock(&bundle->_lock);
     CFDictionaryRef oldInfoDict = bundle->_infoDict;
     CFTypeRef val;
     
@@ -465,37 +474,15 @@ static void _CFBundleFlushBundleCachesAlreadyLocked(CFBundleRef bundle, Boolean 
         CFRelease(bundle->_stringTable);
         bundle->_stringTable = NULL;
     }
-    CFBundleGetInfoDictionary(bundle);
+    _CFBundleRefreshInfoDictionaryAlreadyLocked(bundle);
     if (oldInfoDict) {
         if (!bundle->_infoDict) bundle->_infoDict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
         val = CFDictionaryGetValue(oldInfoDict, _kCFBundlePrincipalClassKey);
         if (val) CFDictionarySetValue((CFMutableDictionaryRef)bundle->_infoDict, _kCFBundlePrincipalClassKey, val);
         CFRelease(oldInfoDict);
     }
-    
     _CFBundleFlushQueryTableCache(bundle);
-}
-
-CF_EXPORT void _CFBundleFlushBundleCaches(CFBundleRef bundle) {
-    _CFBundleFlushBundleCachesAlreadyLocked(bundle, false);
-}
-
-#if !(__OBJC__ || __OBJC2__)
-static void _CFBundleArrayApplyFlushBundleCaches(const void *value, void *unusedContext) {
-    _CFBundleFlushBundleCachesAlreadyLocked((CFBundleRef)value, true);
-}
-#endif
-
-CF_PRIVATE void _CFBundleFlushAllBundleCaches(void) {
-    _CFMutexLock(&CFBundleGlobalDataLock);
-#if __OBJC__ || __OBJC2__
-    for (id value in (id)_allBundles) {
-        _CFBundleFlushBundleCachesAlreadyLocked((CFBundleRef)value, true);
-    }
-#else
-    CFArrayApplyFunction(_allBundles, CFRangeMake(0, CFArrayGetCount(_allBundles)), &_CFBundleArrayApplyFlushBundleCaches, NULL);
-#endif
-    _CFMutexUnlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&bundle->_lock);
 }
 
 CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
@@ -651,9 +638,6 @@ const CFRuntimeClass __CFBundleClass = {
     __CFBundleCopyDescription
 };
 
-// From CFBundle_Resources.c
-CF_PRIVATE void _CFBundleResourcesInitialize(void);
-
 CFTypeID CFBundleGetTypeID(void) {
     return _kCFRuntimeIDCFBundle;
 }
@@ -673,6 +657,7 @@ CFBundleRef _CFBundleGetExistingBundleWithBundleURL(CFURLRef bundleURL) {
     // First check the main bundle; otherwise fallback to the other tables
     CFBundleRef main = CFBundleGetMainBundle();
     if (main->_url && newURL && CFEqual(main->_url, newURL)) {
+        CFRelease(newURL);
         return main;
     }
 
@@ -731,27 +716,18 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
 #endif
 
     bundle->_version = localVersion;
-    bundle->_infoDict = NULL;
-    bundle->_localInfoDict = NULL;
-    bundle->_searchLanguages = NULL;
-    bundle->_executablePath = NULL;
-    bundle->_developmentRegion = NULL;
-    bundle->_infoPlistUrl = NULL;
-    bundle->_developmentRegionCalculated = 0;
+
 #if defined(BINARY_SUPPORT_DYLD)
     /* We'll have to figure it out later */
     bundle->_binaryType = __CFBundleUnknownBinary;
 #elif defined(BINARY_SUPPORT_DLL)
     /* We support DLL only */
     bundle->_binaryType = __CFBundleDLLBinary;
-    bundle->_hModule = NULL;
 #else
     /* We'll have to figure it out later */
     bundle->_binaryType = __CFBundleUnknownBinary;
 #endif /* BINARY_SUPPORT_DYLD */
 
-    bundle->_isLoaded = false;
-    bundle->_sharesStringsFiles = false;
     bundle->_isUnique = unique;
     
 #if TARGET_OS_MAC
@@ -760,51 +736,33 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
         (strncmp(buff + strlen(buff) - 10, ".framework", 10) == 0)) bundle->_sharesStringsFiles = true;
 #endif
 
-    bundle->_connectionCookie = NULL;
-    bundle->_handleCookie = NULL;
-    bundle->_imageCookie = NULL;
-    bundle->_moduleCookie = NULL;
-
-    bundle->_resourceData._executableLacksResourceFork = false;
-    bundle->_resourceData._infoDictionaryFromResourceFork = false;
-
-    bundle->_stringTable = NULL;
-
-    bundle->_plugInData._isPlugIn = false;
-    bundle->_plugInData._loadOnDemand = false;
-    bundle->_plugInData._isDoingDynamicRegistration = false;
-    bundle->_plugInData._instanceCount = 0;
-    bundle->_plugInData._registeredFactory = false;
-    bundle->_plugInData._factories = NULL;
-
     _CFMutexCreate(&(bundle->_bundleLoadingLock));
 
     bundle->_lock = CFLockInit;
-    bundle->_resourceDirectoryContents = NULL;
-    
-    bundle->_localizations = NULL;
-    bundle->_lookedForLocalizations = false;
-    
     bundle->_queryLock = CFLockInit;
-    bundle->_queryTable = NULL;
+
     CFURLRef absoURL = CFURLCopyAbsoluteURL(bundle->_url);
     bundle->_bundleBasePath = CFURLCopyFileSystemPath(absoURL, PLATFORM_PATH_STYLE);
     CFRelease(absoURL);
     
     bundle->_additionalResourceLock = CFLockInit;
-    bundle->_additionalResourceBundles = NULL;
     
     CFBundleGetInfoDictionary(bundle);
     
     // Do this so that we can use the dispatch_once on the ivar of this bundle safely
     OSMemoryBarrier();
+
+    // _CFBundleCreateUnique will never load plugins
+    if (!unique && doFinalProcessing) {
+        // We have to do this before adding the bundle to the tables, otherwise another thread coming along and fetching the bundle will get the bundle ref but the factories for PlugIn have not yet been registered.
+        _CFBundleInitPlugIn(bundle);
+    }
     
     if (addToTables) {
         _CFBundleAddToTables(bundle);
     }
 
     if (doFinalProcessing) {
-        _CFBundleInitPlugIn(bundle);
     }
     
     return bundle;
@@ -839,14 +797,20 @@ CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef alloc, CFURLRef dir
     CFMutableArrayRef bundles = CFArrayCreateMutable(alloc, 0, &kCFTypeArrayCallBacks);
     CFArrayRef URLs = _CFCreateContentsOfDirectory(alloc, NULL, NULL, directoryURL, bundleType);
     if (URLs) {
-        CFIndex i, c = CFArrayGetCount(URLs);
+        CFIndex c = CFArrayGetCount(URLs);
         CFURLRef curURL;
         CFBundleRef curBundle;
 
-        for (i = 0; i < c; i++) {
+        for (CFIndex i = 0; i < c; i++) {
             curURL = (CFURLRef)CFArrayGetValueAtIndex(URLs, i);
             curBundle = CFBundleCreate(alloc, curURL);
-            if (curBundle) CFArrayAppendValue(bundles, curBundle);
+            if (curBundle) {
+                CFArrayAppendValue(bundles, curBundle);
+#ifdef __clang_analyzer__
+                // The contract of this function is that the bundles created inside here are 'not released'.
+                CFRelease(curBundle);
+#endif
+            }
         }
         CFRelease(URLs);
     }
@@ -1240,7 +1204,9 @@ Boolean _CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, Boolean forceG
             }
             break;
     }
-    if (result && bundle->_plugInData._isPlugIn) _CFBundlePlugInLoaded(bundle);
+    if (result && bundle->_plugInData._isPlugIn) {
+        _CFBundlePlugInLoaded(bundle);
+    }
     if (!result && error) *error = localError;
     return result;
 }
@@ -1397,12 +1363,14 @@ CF_PRIVATE void _CFBundleScheduleForUnloading(CFBundleRef bundle) {
         _bundlesToUnload = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &nonRetainingCallbacks);
     }
     CFSetAddValue(_bundlesToUnload, bundle);
+    os_log_debug(_CFBundleLoadingLogger(), "Bundle %@ is now scheduled for unloading", bundle);
     _CFMutexUnlock(&CFBundleGlobalDataLock);
 }
 
 CF_PRIVATE void _CFBundleUnscheduleForUnloading(CFBundleRef bundle) {
     _CFMutexLock(&CFBundleGlobalDataLock);
     if (_bundlesToUnload) CFSetRemoveValue(_bundlesToUnload, bundle);
+    os_log_debug(_CFBundleLoadingLogger(), "Bundle %@ is now unscheduled for unloading", bundle);
     _CFMutexUnlock(&CFBundleGlobalDataLock);
 }
 
@@ -1416,7 +1384,9 @@ static void _CFBundleUnloadScheduledBundles(void) {
             _scheduledBundlesAreUnloading = true;
             for (i = 0; i < c; i++) {
                 // This will cause them to be removed from the set.  (Which is why we copied all the values out of the set up front.)
-                CFBundleUnloadExecutable(unloadThese[i]);
+                CFBundleRef unloadMe = unloadThese[i];
+                os_log_debug(_CFBundleLoadingLogger(), "Bundle %@ is about to be unloaded", unloadMe);
+                CFBundleUnloadExecutable(unloadMe);
             }
             _scheduledBundlesAreUnloading = false;
             CFAllocatorDeallocate(kCFAllocatorSystemDefault, unloadThese);
@@ -1607,6 +1577,13 @@ static void _CFBundleEnsureBundlesUpToDateWithHint(CFStringRef hint) {
         _CFBundleEnsureBundlesExistForImagePaths(imagePaths);
         CFRelease(imagePaths);
     }
+}
+
+CFBundleRef _CFBundleGetBundleWithIdentifierAndLibraryName(CFStringRef bundleID, CFStringRef libraryName) {
+    if (libraryName) {
+        _CFBundleEnsureBundlesUpToDateWithHint(libraryName);
+    }
+    return _CFBundleGetFromTables(bundleID);
 }
 
 static void _CFBundleEnsureAllBundlesUpToDate(void) {

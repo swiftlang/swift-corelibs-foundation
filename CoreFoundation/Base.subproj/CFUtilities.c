@@ -1,12 +1,18 @@
 /*	CFUtilities.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Tony Parker
 */
+
+#if __has_include(<xpc/xpc_transaction_deprecate.h>)
+#import <xpc/xpc_transaction_deprecate.h>
+#undef XPC_TRANSACTION_DEPRECATED
+#define XPC_TRANSACTION_DEPRECATED
+#endif
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFPriv.h>
@@ -89,6 +95,33 @@ CF_PRIVATE os_log_t _CFOSLog(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         logger = os_log_create("com.apple.foundation", "general");
+    });
+    return logger;
+}
+
+CF_PRIVATE os_log_t _CFMethodSignatureROMLog(void) {
+    static os_log_t logger;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        logger = os_log_create("com.apple.foundation", "MethodSignatureROM");
+    });
+    return logger;
+}
+
+CF_PRIVATE os_log_t _CFRuntimeIssuesLog(void) {
+    static os_log_t logger;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        logger = os_log_create(OS_LOG_SUBSYSTEM_RUNTIME_ISSUES, "CoreFoundation");
+    });
+    return logger;
+}
+
+CF_PRIVATE os_log_t _CFFoundationRuntimeIssuesLog(void) {
+    static os_log_t logger;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        logger = os_log_create(OS_LOG_SUBSYSTEM_RUNTIME_ISSUES, "Foundation");
     });
     return logger;
 }
@@ -246,6 +279,14 @@ static CFStringRef _CFCopyLocalizedVersionKey(CFBundleRef *bundlePtr, CFStringRe
 }
 #endif
 
+#if TARGET_OS_WIN32
+static BOOL _CFGetWindowsSystemVersion(OSVERSIONINFOEX *osvi) {
+    ZeroMemory(osvi, sizeof(OSVERSIONINFOEX));
+    osvi->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    return GetVersionEx((OSVERSIONINFO *)osvi);
+}
+#endif
+
 static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     CFPropertyListRef plist = NULL;
     
@@ -293,10 +334,7 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     }
 #elif TARGET_OS_WIN32
     OSVERSIONINFOEX osvi;
-    ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    BOOL result = GetVersionEx((OSVERSIONINFO *)&osvi);
-    if (!result) return NULL;
+    if (!_CFGetWindowsSystemVersion(&osvi)) return NULL;
 
     plist = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 10, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     
@@ -316,15 +354,19 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     return (CFDictionaryRef)plist;
 }
 
-CFStringRef CFCopySystemVersionString(void) {
+CFStringRef _CFCopySystemVersionDictionaryValue(CFStringRef key) {
     CFStringRef versionString;
     CFDictionaryRef dict = _CFCopyServerVersionDictionary();
     if (!dict) dict = _CFCopySystemVersionDictionary();
     if (!dict) return NULL;
-    versionString = (CFStringRef)CFDictionaryGetValue(dict, CFSTR("FullVersionString"));
+    versionString = (CFStringRef)CFDictionaryGetValue(dict, key);
     if (versionString) CFRetain(versionString);
     CFRelease(dict);
     return versionString;
+}
+
+CFStringRef CFCopySystemVersionString(void) {
+    return _CFCopySystemVersionDictionaryValue(CFSTR("FullVersionString"));
 }
 
 CFDictionaryRef _CFCopySystemVersionDictionary(void) {
@@ -358,6 +400,58 @@ CFDictionaryRef _CFCopyServerVersionDictionary(void) {
     } else {
         return NULL;
     }
+}
+
+static CFOperatingSystemVersion _CFCalculateOSVersion(void) {
+    CFOperatingSystemVersion versionStruct = {-1, 0, 0};
+#if TARGET_OS_WIN32
+    OSVERSIONINFOEX windowsVersion;
+    if (_CFGetWindowsSystemVersion(&windowsVersion)) {
+        versionStruct.majorVersion = windowsVersion.dwMajorVersion;
+        versionStruct.minorVersion = windowsVersion.dwMinorVersion;
+        versionStruct.patchVersion = windowsVersion.dwBuildNumber;
+    }
+#else
+    CFStringRef productVersion = _CFCopySystemVersionDictionaryValue(_kCFSystemVersionProductVersionKey);
+    if (productVersion) {
+        CFArrayRef components = CFStringCreateArrayBySeparatingStrings(kCFAllocatorDefault, productVersion, CFSTR("."));
+        if (components) {
+            const CFIndex cnt = CFArrayGetCount(components);
+            if (0 < cnt) {
+                versionStruct.majorVersion = CFStringGetIntValue(CFArrayGetValueAtIndex(components, 0));
+                if (1 < cnt) {
+                    versionStruct.minorVersion = CFStringGetIntValue(CFArrayGetValueAtIndex(components, 1));
+                    if (2 < cnt) {
+                        versionStruct.patchVersion = CFStringGetIntValue(CFArrayGetValueAtIndex(components, 2));
+                    }
+                }
+            }
+            CFRelease(components);
+        }
+        CFRelease(productVersion);
+    }
+#endif
+    return versionStruct;
+}
+
+CFOperatingSystemVersion _CFOperatingSystemVersionGetCurrent(void) {
+    static CFOperatingSystemVersion version;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        version = _CFCalculateOSVersion();
+    });
+    return version;
+}
+
+Boolean _CFOperatingSystemVersionIsAtLeastVersion(CFOperatingSystemVersion version) {
+    const CFOperatingSystemVersion ourVersion = _CFOperatingSystemVersionGetCurrent();
+    if (ourVersion.majorVersion < version.majorVersion) return false;
+    if (ourVersion.majorVersion > version.majorVersion) return true;
+    if (ourVersion.minorVersion < version.minorVersion) return false;
+    if (ourVersion.minorVersion > version.minorVersion) return true;
+    if (ourVersion.patchVersion < version.patchVersion) return false;
+    if (ourVersion.patchVersion > version.patchVersion) return true;
+    return true;
 }
 
 CONST_STRING_DECL(_kCFSystemVersionProductNameKey, "ProductName")
@@ -424,7 +518,9 @@ CF_PRIVATE void *__CFLookupCFNetworkFunction(const char *name) {
 }
 #endif
 
-CF_PRIVATE CFIndex __CFActiveProcessorCount() {
+// TSAN does not know about the commpage: [39153032]
+__attribute__((no_sanitize_thread))
+CF_PRIVATE CFIndex __CFActiveProcessorCount(void) {
 #if CF_HAVE_HW_CONFIG_COMMPAGE
     static const uintptr_t p = _COMM_PAGE_ACTIVE_CPUS;
     return (CFIndex)(*(uint8_t*)p);
@@ -546,7 +642,11 @@ typedef struct _ugids {
     uid_t _euid;
     uid_t _egid;
 } ugids;
-    
+
+// work around 33477678 by making these file-level globals
+static ugids __CFGetUGIDs_cachedUGIDs = { -1, -1 };
+static dispatch_once_t __CFGetUGIDs_onceToken;
+
 CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
     ugids(^lookup)(void) = ^{
         ugids ids;
@@ -565,12 +665,10 @@ CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
     if (_CFCanChangeEUIDs()) {
         ids = lookup();
     } else {
-        static ugids cachedUGIDs = { -1, -1 };
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            cachedUGIDs = lookup();
+        dispatch_once(&__CFGetUGIDs_onceToken, ^{
+            __CFGetUGIDs_cachedUGIDs = lookup();
         });
-        ids = cachedUGIDs;
+        ids = __CFGetUGIDs_cachedUGIDs;
     }
     
     if (euid) *euid = ids._euid;
@@ -764,6 +862,9 @@ static bool also_do_stderr(const _cf_logging_style style) {
         if (!(S_IFIFO == m || S_IFCHR == m)) return false; // disallow any whacky stuff
         result = true;
     }
+#else
+    // just log to stderr, other logging facilities are out
+    result = true;
 #endif
     return result;
 }
@@ -781,7 +882,7 @@ static struct tm *localtime_r(time_t *tv, struct tm *result) {
 static void _populateBanner(char **banner, char **time, char **thread, int *bannerLen) {
     double dummy;
     CFAbsoluteTime at = CFAbsoluteTimeGetCurrent();
-    time_t tv = floor(at + kCFAbsoluteTimeIntervalSince1970);
+    time_t tv = (time_t)floor(at + kCFAbsoluteTimeIntervalSince1970);
     struct tm mine;
     localtime_r(&tv, &mine);
     int32_t year = mine.tm_year + 1900;
@@ -816,10 +917,10 @@ static void _logToStderr(char *banner, const char *message, size_t length) {
     v[2].iov_base = "\n";
     v[2].iov_len = (message[length - 1] != '\n') ? 1 : 0;
     int nv = (v[0].iov_base ? 1 : 0) + 1 + (v[2].iov_len ? 1 : 0);
-    static CFLock_t lock = CFLockInit;
-    __CFLock(&lock);
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+    os_unfair_lock_lock(&lock);
     writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
-    __CFUnlock(&lock);
+    os_unfair_lock_unlock(&lock);
 #elif TARGET_OS_WIN32
     size_t bannerLen = strlen(banner);
     size_t bufLen = bannerLen + length + 1;

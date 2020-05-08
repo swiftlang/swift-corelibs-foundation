@@ -1,7 +1,7 @@
 /*	CFRuntime.h
-	Copyright (c) 1999-2018, Apple Inc. All rights reserved.
+	Copyright (c) 1999-2019, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -16,7 +16,7 @@
 
 CF_EXTERN_C_BEGIN
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) && !__x86_64h__)
+#if (TARGET_OS_MAC && !TARGET_OS_IPHONE && !__x86_64h__)
 
 // Although we no longer support GC, we leave exported symbols in place for now to avoid any lockstep dependency issues.
 CF_EXPORT bool kCFUseCollectableAllocator;
@@ -228,8 +228,8 @@ CF_EXPORT CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID 
 	 * number of bytes to allocate for the instance (BEYOND that
 	 * needed for the CFRuntimeBase).  If the specified CFTypeID
 	 * is unknown to the CF runtime, this function returns NULL.
-	 * No part of the new memory other than base header is
-	 * initialized (the extra bytes are not zeroed, for example).
+	 * The base header is initialized and the extra bytes if
+	 * requested will be zeroed.
 	 * All instances created with this function must be destroyed
 	 * only through use of the CFRelease() function -- instances
 	 * must not be destroyed by using CFAllocatorDeallocate()

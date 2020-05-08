@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 * Copyright (C) 1999-2010, International Business Machines Corporation and others.
@@ -18,6 +20,7 @@
  * \brief C++ API: Unicode Filter
  */
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 /**
@@ -28,7 +31,7 @@ U_NAMESPACE_BEGIN
  * defined range.
  * @stable ICU 3.0
  */
-#define U_ETHER ((UChar)0xFFFF)
+#define U_ETHER ((char16_t)0xFFFF)
 
 /**
  *
@@ -116,5 +119,6 @@ protected:
 /*inline UnicodeFilter::UnicodeFilter() {}*/
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif

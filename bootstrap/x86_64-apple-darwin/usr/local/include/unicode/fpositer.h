@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
 *   Copyright (C) 2010-2012, International Business Machines
@@ -26,6 +28,7 @@
 
 #if UCONFIG_NO_FORMATTING
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 /*
@@ -35,12 +38,14 @@ U_NAMESPACE_BEGIN
 class FieldPositionIterator;
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #else
 
 #include "unicode/fieldpos.h"
 #include "unicode/umisc.h"
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class UVector32;
@@ -97,8 +102,6 @@ public:
     UBool next(FieldPosition& fp);
 
 private:
-    friend class FieldPositionIteratorHandler;
-
     /**
      * Sets the data used by the iterator, and resets the position.
      * Returns U_ILLEGAL_ARGUMENT_ERROR in status if the data is not valid 
@@ -106,11 +109,14 @@ private:
      */
     void setData(UVector32 *adopt, UErrorCode& status);
 
+    friend class FieldPositionIteratorHandler;
+
     UVector32 *data;
     int32_t pos;
 };
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

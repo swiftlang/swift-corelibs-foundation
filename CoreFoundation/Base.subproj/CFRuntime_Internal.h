@@ -1,7 +1,7 @@
 /*	CFRuntime_Internal.h
-	Copyright (c) 2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2018-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -76,8 +76,10 @@ enum {
     _kCFRuntimeIDCFSocket = 61,
     _kCFRuntimeIDCFAttributedString = 62,
     _kCFRuntimeIDCFRunArray = 63,
-    _kCFRuntimeIDCFDateIntervalFormatter = 64,
-    // If you are adding a new value, it goes below this line.
+    _kCFRuntimeIDCFDateComponents = 66,
+    _kCFRuntimeIDCFDateIntervalFormatter = 69,
+
+    // If you are adding a new value, it goes below this line.:
     
     // Stuff not in CF goes here. This value should be one more than the last one above.
     _kCFRuntimeStartingClassID
@@ -125,9 +127,7 @@ CF_PRIVATE const CFRuntimeClass __CFPreferencesDomainClass;
 
 CF_PRIVATE const CFRuntimeClass __CFMachPortClass;
 
-#if (TARGET_OS_MAC || TARGET_OS_WIN32 || DEPLOYMENT_RUNTIME_SWIFT)
-CF_PRIVATE const CFRuntimeClass __CFMessagePortClass;
-#endif
+
 CF_PRIVATE const CFRuntimeClass __CFRunLoopModeClass;
 CF_PRIVATE const CFRuntimeClass __CFRunLoopClass;
 CF_PRIVATE const CFRuntimeClass __CFRunLoopSourceClass;
@@ -143,6 +143,7 @@ CF_PRIVATE const CFRuntimeClass __CFWindowsNamedPipeClass;
 #endif
 CF_PRIVATE const CFRuntimeClass __CFTimeZoneClass;
 CF_PRIVATE const CFRuntimeClass __CFCalendarClass;
+CF_PRIVATE const CFRuntimeClass __CFDateComponentsClass;
 CF_PRIVATE const CFRuntimeClass __CFDateIntervalFormatterClass;
 
 #pragma mark - Private initialiers to run at process start time
@@ -157,5 +158,6 @@ CF_PRIVATE void __CFTSDWindowsInitialize(void);
 #if TARGET_OS_MAC || TARGET_OS_IPHONE || TARGET_OS_WIN32
 CF_PRIVATE void __CFXPreferencesInitialize(void);
 #endif
+
 
 #endif /* CFRuntime_Internal_h */

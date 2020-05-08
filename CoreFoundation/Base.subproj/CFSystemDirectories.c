@@ -1,7 +1,7 @@
 /*	CFSystemDirectories.c
-	Copyright (c) 1997-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1997-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -27,6 +27,9 @@
 #include <stdlib.h>
 #include <pwd.h>
 #include <sysdir.h>
+#if __has_include(<sys/persona.h>)
+#include <sys/persona.h>
+#endif
 
 // For now, CFSystemDirectories SPIs are exactly equivalent to (or at least a subset of) sysdir's. NSSearchPath* APIs in Foundation are not a subset of sysdir, so don't attempt to push that functionality down here without accommodating the differences.
 #define CFSearchPathToSysdir(dir) ((sysdir_search_path_directory_t)dir)
