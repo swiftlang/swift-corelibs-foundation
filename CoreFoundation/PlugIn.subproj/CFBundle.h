@@ -1,5 +1,5 @@
 /*	CFBundle.h
-	Copyright (c) 1999-2018, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2019, Apple Inc.  All rights reserved.
 */
 
 #if !defined(__COREFOUNDATION_CFBUNDLE__)
@@ -311,7 +311,7 @@ typedef SInt16 CFBundleRefNum;
 #endif
 
 CF_EXPORT
-CFBundleRefNum CFBundleOpenBundleResourceMap(CFBundleRef bundle);
+CFBundleRefNum CFBundleOpenBundleResourceMap(CFBundleRef bundle) API_DEPRECATED("The Carbon Resource Manager is deprecated. This should only be used to access Resource Manager-style resources in old bundles.", macosx(10.0, 10.15)) API_UNAVAILABLE(ios, watchos, tvos);
    /* This function opens the non-localized and the localized resource files */
    /* (if any) for the bundle, creates and makes current a single read-only */
    /* resource map combining both, and returns a reference number for it. */
@@ -319,12 +319,12 @@ CFBundleRefNum CFBundleOpenBundleResourceMap(CFBundleRef bundle);
    /* and returns distinct reference numbers.  */
 
 CF_EXPORT
-SInt32 CFBundleOpenBundleResourceFiles(CFBundleRef bundle, CFBundleRefNum *refNum, CFBundleRefNum *localizedRefNum);
+SInt32 CFBundleOpenBundleResourceFiles(CFBundleRef bundle, CFBundleRefNum *refNum, CFBundleRefNum *localizedRefNum) API_DEPRECATED("The Carbon Resource Manager is deprecated. This should only be used to access Resource Manager-style resources in old bundles.", macosx(10.0, 10.15)) API_UNAVAILABLE(ios, watchos, tvos);
    /* Similar to CFBundleOpenBundleResourceMap(), except that it creates two */
    /* separate resource maps and returns reference numbers for both. */
 
 CF_EXPORT
-void CFBundleCloseBundleResourceMap(CFBundleRef bundle, CFBundleRefNum refNum);
+void CFBundleCloseBundleResourceMap(CFBundleRef bundle, CFBundleRefNum refNum) API_DEPRECATED("The Carbon Resource Manager is deprecated. This should only be used to access Resource Manager-style resources in old bundles.", macosx(10.0, 10.15)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

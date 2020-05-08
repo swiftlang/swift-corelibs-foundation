@@ -1,7 +1,7 @@
 /*      CFBundle_Binary.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -549,7 +549,8 @@ CF_EXPORT Boolean _CFBundleDlfcnPreflight(CFBundleRef bundle, CFErrorRef *error)
 }
 
 CF_PRIVATE Boolean _CFBundleDlfcnLoadBundle(CFBundleRef bundle, Boolean forceGlobal, CFErrorRef *error) {
-    CFErrorRef localError = NULL, *subError = (error ? &localError : NULL);
+    CFErrorRef localError = NULL;
+    CFErrorRef *subError = (error ? &localError : NULL);
     if (!bundle->_isLoaded) {
         CFURLRef executableURL = CFBundleCopyExecutableURL(bundle);
         char buff[CFMaxPathSize];
@@ -591,7 +592,11 @@ CF_PRIVATE Boolean _CFBundleDlfcnLoadBundle(CFBundleRef bundle, Boolean forceGlo
         }
         if (executableURL) CFRelease(executableURL);
     }
-    if (!bundle->_isLoaded && error) *error = localError;
+    if (!bundle->_isLoaded && error) {
+        *error = localError;
+    } else if (localError) {
+        CFRelease(localError);
+    }
     return bundle->_isLoaded;
 }
 
@@ -625,6 +630,7 @@ CF_PRIVATE Boolean _CFBundleDlfcnLoadFramework(CFBundleRef bundle, CFErrorRef *e
                 } else {
                     CFStringRef executableString = CFStringCreateWithFileSystemRepresentation(kCFAllocatorSystemDefault, buff);
                     CFLog(__kCFLogBundle, CFSTR("Error loading %@:  %@"), executableString, errorString ? errorString : CFSTR("(no additional info)"));
+                    CFRelease(executableString);
                 }
                 if (errorString) CFRelease(errorString);
             }
@@ -637,7 +643,11 @@ CF_PRIVATE Boolean _CFBundleDlfcnLoadFramework(CFBundleRef bundle, CFErrorRef *e
         }
         if (executableURL) CFRelease(executableURL);
     }
-    if (!bundle->_isLoaded && error) *error = localError;
+    if (!bundle->_isLoaded && error) {
+        *error = localError;
+    } else if (localError) {
+        CFRelease(localError);
+    }
     return bundle->_isLoaded;
 }
 

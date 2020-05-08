@@ -1,7 +1,7 @@
 /*	CFUnicodeDecomposition.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -24,20 +24,20 @@ static UTF32Char *__CFUniCharMultipleDecompositionTable = NULL;
 static const uint8_t *__CFUniCharDecomposableBitmapForBMP = NULL;
 static const uint8_t *__CFUniCharHFSPlusDecomposableBitmapForBMP = NULL;
 
-static CFLock_t __CFUniCharDecompositionTableLock = CFLockInit;
+static os_unfair_lock __CFUniCharDecompositionTableLock = OS_UNFAIR_LOCK_INIT;
 
 static const uint8_t **__CFUniCharCombiningPriorityTable = NULL;
 static uint8_t __CFUniCharCombiningPriorityTableNumPlane = 0;
 
 static void __CFUniCharLoadDecompositionTable(void) {
 
-    __CFLock(&__CFUniCharDecompositionTableLock);
+    os_unfair_lock_lock(&__CFUniCharDecompositionTableLock);
 
     if (NULL == __CFUniCharDecompositionTable) {
         const uint32_t *bytes = (uint32_t *)CFUniCharGetMappingData(kCFUniCharCanonicalDecompMapping);
 
         if (NULL == bytes) {
-            __CFUnlock(&__CFUniCharDecompositionTableLock);
+            os_unfair_lock_unlock(&__CFUniCharDecompositionTableLock);
             return;
         }
 
@@ -56,7 +56,7 @@ static void __CFUniCharLoadDecompositionTable(void) {
         for (idx = 0;idx < __CFUniCharCombiningPriorityTableNumPlane;idx++) __CFUniCharCombiningPriorityTable[idx] = (const uint8_t *)CFUniCharGetUnicodePropertyDataForPlane(kCFUniCharCombiningProperty, idx);
     }
 
-    __CFUnlock(&__CFUniCharDecompositionTableLock);
+    os_unfair_lock_unlock(&__CFUniCharDecompositionTableLock);
 }
 
 static CFLock_t __CFUniCharCompatibilityDecompositionTableLock = CFLockInit;

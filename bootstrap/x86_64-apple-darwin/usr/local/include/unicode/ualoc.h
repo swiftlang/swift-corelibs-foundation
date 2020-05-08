@@ -263,8 +263,9 @@ ualoc_getAppleParent(const char* localeID,
  *          Unordered array of pointers to identifiers for available
  *          localizations (lprojs); handles old Apple-style
  *          identifiers such as "English", as well as currently-
- *          superseded identifiers such as "no", "tl". Must not
- *          be NULL.
+ *          superseded identifiers such as "no", "tl". Must not be
+ *          NULL. Entries with the following values will be ignored:
+ *          NULL, "", "root", any entry beginning with '-' or '_'.
  * @param availableLocalizationsCount
  *          Count of entries in availableLocalizations.
  * @param localizationsToUse

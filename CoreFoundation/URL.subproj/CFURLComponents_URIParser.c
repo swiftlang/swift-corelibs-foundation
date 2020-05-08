@@ -1,20 +1,11 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURLComponents_URIParser.c
-	Copyright (c) 2015, Apple Inc. All rights reserved.
+	Copyright (c) 2015-2019, Apple Inc. All rights reserved.
 	Responsibility: Jim Luther/Chris Linn
 */
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFString.h>
+#include "CFOverflow.h"
 #include "CFURLComponents_Internal.h"
 #include "CFInternal.h"
 
@@ -71,100 +62,100 @@ static const unsigned short sURLAllowedCharacters[128] = {
     /* rs  */ 0,
     /* us  */ 0,
     /* sp  */ 0,
-    /* '!' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
+    /* '!' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
     /* '"' */ 0,
     /* '#' */ 0,
-    /* '$' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
+    /* '$' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
     /* '%' */ 0,
     /* '&' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* ''' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '(' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* ')' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '*' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '+' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* ',' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '-' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '.' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '/' */                                                                                                 kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* '0' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '1' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '2' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '3' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '4' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '5' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '6' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '7' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '8' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* '9' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed,
-    /* ':' */                                                                                                 kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* ';' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
+    /* ''' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '(' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* ')' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '*' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '+' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* ',' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '-' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '.' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '/' */                                                                                                 kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '0' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '1' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '2' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '3' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '4' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '5' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '6' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '7' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '8' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* '9' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed | kURLPortAllowed | kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed |                    kURLQueryItemNameAllowed,
+    /* ':' */                                                                                                 kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* ';' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
     /* '<' */ 0,
-    /* '=' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
+    /* '=' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed ,
     /* '>' */ 0,
-    /* '?' */                                                                                                                   kURLQueryAllowed | kURLFragmentAllowed,
-    /* '@' */                                                                                                 kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
-    /* 'A' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'B' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'C' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'D' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'E' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'F' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'G' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'H' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'I' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'J' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'K' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'L' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'M' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'N' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'O' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'P' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'Q' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'R' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'S' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'T' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'U' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'V' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'W' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'X' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'Y' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'Z' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
+    /* '?' */                                                                                                                   kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* '@' */                                                                                                 kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
+    /* 'A' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'B' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'C' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'D' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'E' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'F' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'G' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'H' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'I' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'J' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'K' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'L' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'M' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'N' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'O' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'P' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'Q' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'R' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'S' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'T' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'U' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'V' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'W' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'X' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'Y' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'Z' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
     /* '[' */ 0,
     /* '\' */ 0,
     /* ']' */ 0,
     /* '^' */ 0,
-    /* '_' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
+    /* '_' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
     /* '`' */ 0,
-    /* 'a' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'b' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'c' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'd' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'e' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'f' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed,
-    /* 'g' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'h' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'i' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'j' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'k' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'l' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'm' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'n' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'o' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'p' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'q' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'r' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 's' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 't' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'u' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'v' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'w' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'x' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'y' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
-    /* 'z' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed,
+    /* 'a' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'b' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'c' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'd' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'e' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'f' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed | kURLHexDigAllowed | kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'g' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'h' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'i' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'j' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'k' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'l' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'm' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'n' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'o' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'p' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'q' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'r' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 's' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 't' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'u' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'v' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'w' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'x' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'y' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
+    /* 'z' */ kURLSchemeAllowed | kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                     kURLAlphaAllowed | kURLQueryItemNameAllowed,
     /* '{' */ 0,
     /* '|' */ 0,
     /* '}' */ 0,
-    /* '~' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed,
+    /* '~' */                     kURLUserAllowed | kURLPasswordAllowed | kURLHostAllowed |                   kURLPathAllowed | kURLQueryAllowed | kURLFragmentAllowed |                                        kURLQueryItemNameAllowed,
     /* del */ 0,
 };
 
@@ -273,82 +264,135 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
     else {
         static const UInt8 hexchars[] = "0123456789ABCDEF";
         CFIndex maxBufferSize = CFStringGetMaximumSizeForEncoding(inLength, kCFStringEncodingUTF8);
-        enum {
-            kStackBufferSize = 4096,
-            kInStackBufferSize = kStackBufferSize / 4,
-            kOutStackBufferSize = kInStackBufferSize * 3,
-        };
-        STACK_BUFFER_DECL(UInt8, stackBuffer, kStackBufferSize);
-        UInt8 *inBuf;
-        UInt8 *outBuf;
-        // choose a buffer to put the input bytes AND output bytes into
-        if ( maxBufferSize <= kInStackBufferSize ) {
-            inBuf = &stackBuffer[0];
-        }
-        else {
-            // not big enough? malloc it.
-            inBuf = (UInt8 *)malloc(maxBufferSize * 4);
-        }
-        if ( inBuf ) {
-            CFIndex charsConverted;
-            CFIndex inLen;
-            // use the other 3/4 of the buffer for the percent-encoded bytes
-            outBuf = &inBuf[maxBufferSize];
-            
-            charsConverted = CFStringGetBytes(string, CFRangeMake(0, inLength), kCFStringEncodingUTF8, 0, false, inBuf, maxBufferSize, &inLen);
-            if ( charsConverted ) {
-                UInt8 *inBytePtr = inBuf;
-                UInt8 *outBytePtr = outBuf;
-                CFIndex idx;
+        // CFStringGetMaximumSizeForEncoding returns kCFNotFound if the result would be too big
+        if ( maxBufferSize != kCFNotFound ) {
+            enum {
+                kStackBufferSize = 4096,
+                kInStackBufferSize = kStackBufferSize / 4,
+                kOutStackBufferSize = kInStackBufferSize * 3,
+            };
+            STACK_BUFFER_DECL(UInt8, stackBuffer, kStackBufferSize);
+            UInt8 *inBuf = NULL;
+            UInt8 *outBuf;
+            // choose a buffer to put the input bytes AND output bytes into
+            if ( maxBufferSize <= kInStackBufferSize ) {
+                inBuf = &stackBuffer[0];
+            }
+            else {
+                // not big enough? malloc it.
+                size_t mallocSize;
+                if ( _CFMultiplyBufferSizeWithoutOverflow(maxBufferSize, 4, &mallocSize) ) {
+                    inBuf = (UInt8 *)malloc(mallocSize);
+                }
+            }
+            if ( inBuf ) {
+                CFIndex charsConverted;
+                CFIndex inLen;
+                // use the other 3/4 of the buffer for the percent-encoded bytes
+                outBuf = &inBuf[maxBufferSize];
                 
-                // there are two very similar loops below -- they aren't combined because I didn't want an extra comparison per character to determine which code was going to set the allowed variable.
-                
-                URLPredefinedCharacterSet allowedSet = GetURLPredefinedCharacterSet(allowedCharacters);
-                if ( allowedSet != kURLAllowedCharacterSetIllegal ) {
-                    // fastest -- allowedCharacters is one of the predefined sets so use sURLAllowedCharacters to determine what characters are allowed
-                    unsigned char allowedMask;
-                    Boolean isIPLiteral = false;
+                charsConverted = CFStringGetBytes(string, CFRangeMake(0, inLength), kCFStringEncodingUTF8, 0, false, inBuf, maxBufferSize, &inLen);
+                if ( charsConverted ) {
+                    UInt8 *inBytePtr = inBuf;
+                    UInt8 *outBytePtr = outBuf;
+                    CFIndex idx;
                     
-                    // determine the allowedMask
-                    switch (allowedSet) {
-                        case kURLUserAllowedCharacterSet:
-                            allowedMask = kURLUserAllowed;
-                            break;
-                        case kURLPasswordAllowedCharacterSet:
-                            allowedMask = kURLPasswordAllowed;
-                            break;
-                        case kURLHostAllowedCharacterSet:
-                            allowedMask = kURLHostAllowed;
-                            // if the host is an IP-Literal, percent-encode everything within the brackets but not the brackets
-                            if ( (inLen >= 2)  && (*inBytePtr == '[') && (inBytePtr[inLen - 1] == ']') ) {
-                                isIPLiteral = true;
-                                ++inBytePtr;
-                                // copy the open bracket
-                                *outBytePtr++ = '[';
-                                inLen -= 2;
+                    // there are two very similar loops below -- they aren't combined because I didn't want an extra comparison per character to determine which code was going to set the allowed variable.
+                    
+                    URLPredefinedCharacterSet allowedSet = GetURLPredefinedCharacterSet(allowedCharacters);
+                    if ( allowedSet != kURLAllowedCharacterSetIllegal ) {
+                        // fastest -- allowedCharacters is one of the predefined sets so use sURLAllowedCharacters to determine what characters are allowed
+                        unsigned char allowedMask;
+                        Boolean isIPLiteral = false;
+                        
+                        // determine the allowedMask
+                        switch (allowedSet) {
+                            case kURLUserAllowedCharacterSet:
+                                allowedMask = kURLUserAllowed;
+                                break;
+                            case kURLPasswordAllowedCharacterSet:
+                                allowedMask = kURLPasswordAllowed;
+                                break;
+                            case kURLHostAllowedCharacterSet:
+                                allowedMask = kURLHostAllowed;
+                                // if the host is an IP-Literal, percent-encode everything within the brackets but not the brackets
+                                if ( (inLen >= 2)  && (*inBytePtr == '[') && (inBytePtr[inLen - 1] == ']') ) {
+                                    isIPLiteral = true;
+                                    ++inBytePtr;
+                                    // copy the open bracket
+                                    *outBytePtr++ = '[';
+                                    inLen -= 2;
+                                }
+                                break;
+                            case kURLPathAllowedCharacterSet:
+                                allowedMask = kURLPathAllowed;
+                                break;
+                            case kURLQueryAllowedCharacterSet:
+                                allowedMask = kURLQueryAllowed;
+                                break;
+                            case kURLFragmentAllowedCharacterSet:
+                                allowedMask = kURLFragmentAllowed;
+                                break;
+                            default:
+                                // GetURLPredefinedCharacterSet will return one of the above or kURLAllowedCharacterSetIllegal so this will never be hit
+                                allowedMask = 0;
+                                break;
+                        }
+                        if ( allowedSet == kURLPathAllowedCharacterSet ) {
+                            Boolean pastSlash = false;
+                            for ( idx = 0; idx < inLen; ++idx ) {
+                                UInt8 ch = *inBytePtr++;
+                                if ( pastSlash ) {
+                                    // !!!: percent encode ';' for backwards compatibility with API which uses rfc1808 parsing
+                                    Boolean allowed = (ch <= 127) && (ch != ';') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                                    if ( allowed ) {
+                                        *outBytePtr++ = ch;
+                                    }
+                                    else {
+                                        *outBytePtr++ = '%';
+                                        *outBytePtr++ = hexchars[ch >> 4];
+                                        *outBytePtr++ = hexchars[ch & 0x0f];
+                                    }
+                                }
+                                else {
+                                    if ( ch == '/' ) {
+                                        pastSlash = true;
+                                    }
+                                    // !!!: percent encode ';' for backwards compatibility with API which uses rfc1808 parsing
+                                    Boolean allowed = (ch <= 127) && (ch != ';') && (ch != ':') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                                    if ( allowed ) {
+                                        *outBytePtr++ = ch;
+                                    }
+                                    else {
+                                        *outBytePtr++ = '%';
+                                        *outBytePtr++ = hexchars[ch >> 4];
+                                        *outBytePtr++ = hexchars[ch & 0x0f];
+                                    }
+                                }
                             }
-                            break;
-                        case kURLPathAllowedCharacterSet:
-                            allowedMask = kURLPathAllowed;
-                            break;
-                        case kURLQueryAllowedCharacterSet:
-                            allowedMask = kURLQueryAllowed;
-                            break;
-                        case kURLFragmentAllowedCharacterSet:
-                            allowedMask = kURLFragmentAllowed;
-                            break;
-                        default:
-                            // GetURLPredefinedCharacterSet will return one of the above or kURLAllowedCharacterSetIllegal so this will never be hit
-                            allowedMask = 0;
-                            break;
-                    }
-                    if ( allowedSet == kURLPathAllowedCharacterSet ) {
-                        Boolean pastSlash = false;
-                        for ( idx = 0; idx < inLen; ++idx ) {
-                            UInt8 ch = *inBytePtr++;
-                            if ( pastSlash ) {
-                                // !!!: percent encode ';' for backwards compatibility with API which uses rfc1808 parsing
-                                Boolean allowed = (ch <= 127) && (ch != ';') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                        }
+                        else if ( allowedSet == kURLHostAllowedCharacterSet ) {
+                            for ( idx = 0; idx < inLen; ++idx ) {
+                                UInt8 ch = *inBytePtr++;
+                                Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                                if ( allowed || (isIPLiteral && ch == ':') ) {  // the colon is allowed in IP-Literal
+                                    *outBytePtr++ = ch;
+                                }
+                                else {
+                                    *outBytePtr++ = '%';
+                                    *outBytePtr++ = hexchars[ch >> 4];
+                                    *outBytePtr++ = hexchars[ch & 0x0f];
+                                }
+                            }
+                            if ( isIPLiteral ) {
+                                // copy the close bracket
+                                *outBytePtr++ = ']';
+                            }
+                        }
+                        else {
+                            for ( idx = 0; idx < inLen; ++idx ) {
+                                UInt8 ch = *inBytePtr++;
+                                Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
                                 if ( allowed ) {
                                     *outBytePtr++ = ch;
                                 }
@@ -358,45 +402,15 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                                     *outBytePtr++ = hexchars[ch & 0x0f];
                                 }
                             }
-                            else {
-                                if ( ch == '/' ) {
-                                    pastSlash = true;
-                                }
-                                // !!!: percent encode ';' for backwards compatibility with API which uses rfc1808 parsing
-                                Boolean allowed = (ch <= 127) && (ch != ';') && (ch != ':') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
-                                if ( allowed ) {
-                                    *outBytePtr++ = ch;
-                                }
-                                else {
-                                    *outBytePtr++ = '%';
-                                    *outBytePtr++ = hexchars[ch >> 4];
-                                    *outBytePtr++ = hexchars[ch & 0x0f];
-                                }
-                            }
-                        }
-                    }
-                    else if ( allowedSet == kURLHostAllowedCharacterSet ) {
-                        for ( idx = 0; idx < inLen; ++idx ) {
-                            UInt8 ch = *inBytePtr++;
-                            Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
-                            if ( allowed || (isIPLiteral && ch == ':') ) {  // the colon is allowed in IP-Literal
-                                *outBytePtr++ = ch;
-                            }
-                            else {
-                                *outBytePtr++ = '%';
-                                *outBytePtr++ = hexchars[ch >> 4];
-                                *outBytePtr++ = hexchars[ch & 0x0f];
-                            }
-                        }
-                        if ( isIPLiteral ) {
-                            // copy the close bracket
-                            *outBytePtr++ = ']';
                         }
                     }
                     else {
+                        // use the allowedCharacters NSCharacterSet to determine what characters are allowed
+                        // non-ASCII characters are ignored
                         for ( idx = 0; idx < inLen; ++idx ) {
                             UInt8 ch = *inBytePtr++;
-                            Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                            // CFCharacterSet
+                            Boolean allowed = (ch <= 127) && CFCharacterSetIsCharacterMember((CFCharacterSetRef)allowedCharacters, ch);
                             if ( allowed ) {
                                 *outBytePtr++ = ch;
                             }
@@ -407,30 +421,13 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                             }
                         }
                     }
-                }
-                else {
-                    // use the allowedCharacters NSCharacterSet to determine what characters are allowed
-                    // non-ASCII characters are ignored
-                    for ( idx = 0; idx < inLen; ++idx ) {
-                        UInt8 ch = *inBytePtr++;
-                        // CFCharacterSet
-                        Boolean allowed = (ch <= 127) && CFCharacterSetIsCharacterMember((CFCharacterSetRef)allowedCharacters, ch);
-                        if ( allowed ) {
-                            *outBytePtr++ = ch;
-                        }
-                        else {
-                            *outBytePtr++ = '%';
-                            *outBytePtr++ = hexchars[ch >> 4];
-                            *outBytePtr++ = hexchars[ch & 0x0f];
-                        }
-                    }
+                    
+                    result = CFStringCreateWithBytes(kCFAllocatorDefault, outBuf, outBytePtr - outBuf, kCFStringEncodingUTF8, false);
                 }
                 
-                result = CFStringCreateWithBytes(kCFAllocatorDefault, outBuf, outBytePtr - outBuf, kCFStringEncodingUTF8, false);
-            }
-            
-            if ( inBuf != stackBuffer ) {
-                free(inBuf);
+                if ( inBuf != stackBuffer ) {
+                    free(inBuf);
+                }
             }
         }
     }
@@ -442,112 +439,118 @@ CF_EXPORT CFStringRef _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef al
     CFIndex strLength = CFStringGetLength(string);
     if ( strLength ) {
         CFIndex maxBufferSize = CFStringGetMaximumSizeForEncoding(strLength, kCFStringEncodingUTF8);
-        enum {
-            kStackBufferSize = 4096,
-            kHalfStackBufferSize = kStackBufferSize / 2,
-            
-        };
-        STACK_BUFFER_DECL(UInt8, stackBuffer, kStackBufferSize);
-        UInt8 *encodedBuf;
-        UInt8 *decodedBuf;
-        // choose a buffer to put the percent-encoded bytes AND to percent-decode into
-        if ( maxBufferSize <= kHalfStackBufferSize ) {
-            encodedBuf = &stackBuffer[0];
-        }
-        else {
-            // not big enough? malloc it.
-            encodedBuf = (UInt8 *)malloc(maxBufferSize * 2);
-        }
-        if ( encodedBuf ) {
-            CFIndex charsConverted;
-            CFIndex usedBufLen;
-            // use the other half of the buffer for the percent-decoded bytes
-            decodedBuf = &encodedBuf[maxBufferSize];
-            charsConverted = CFStringGetBytes(string, CFRangeMake(0, strLength), kCFStringEncodingUTF8, 0, false, encodedBuf, maxBufferSize, &usedBufLen);
-            if ( charsConverted ) {
-                // 0x80 marks invalid hex digits so this table can validate the digits while getting the values
-                static const UInt8 hexvalues[] = {
-                    /* 00 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 08 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 10 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 18 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 20 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 28 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 30 */  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-                    /* 38 */  0x08, 0x09, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 40 */  0x80, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x80,
-                    /* 48 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 50 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 58 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 60 */  0x80, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x80,
-                    /* 68 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 70 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 78 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+        // CFStringGetMaximumSizeForEncoding returns kCFNotFound if the result would be too big
+        if ( maxBufferSize != kCFNotFound ) {
+            enum {
+                kStackBufferSize = 4096,
+                kHalfStackBufferSize = kStackBufferSize / 2,
+                
+            };
+            STACK_BUFFER_DECL(UInt8, stackBuffer, kStackBufferSize);
+            UInt8 *encodedBuf = NULL;
+            UInt8 *decodedBuf;
+            // choose a buffer to put the percent-encoded bytes AND to percent-decode into
+            if ( maxBufferSize <= kHalfStackBufferSize ) {
+                encodedBuf = &stackBuffer[0];
+            }
+            else {
+                // not big enough? malloc it.
+                size_t mallocSize;
+                if ( _CFMultiplyBufferSizeWithoutOverflow(maxBufferSize, 2, &mallocSize) ) {
+                    encodedBuf = (UInt8 *)malloc(mallocSize);
+                }
+            }
+            if ( encodedBuf ) {
+                CFIndex charsConverted;
+                CFIndex usedBufLen;
+                // use the other half of the buffer for the percent-decoded bytes
+                decodedBuf = &encodedBuf[maxBufferSize];
+                charsConverted = CFStringGetBytes(string, CFRangeMake(0, strLength), kCFStringEncodingUTF8, 0, false, encodedBuf, maxBufferSize, &usedBufLen);
+                if ( charsConverted ) {
+                    // 0x80 marks invalid hex digits so this table can validate the digits while getting the values
+                    static const UInt8 hexvalues[] = {
+                        /* 00 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 08 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 10 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 18 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 20 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 28 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 30 */  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                        /* 38 */  0x08, 0x09, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 40 */  0x80, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x80,
+                        /* 48 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 50 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 58 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 60 */  0x80, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x80,
+                        /* 68 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 70 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 78 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        
+                        /* 80 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 88 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 90 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* 98 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* A0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* A8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* B0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* B8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* C0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* C8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* D0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* D8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* E0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* E8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* F0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                        /* F8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                    };
+                    UInt8 *bufStartPtr;
+                    UInt8 *bufPtr;
+                    const UInt8 *bytePtr = encodedBuf;
+                    CFIndex idx;
                     
-                    /* 80 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 88 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 90 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* 98 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* A0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* A8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* B0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* B8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* C0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* C8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* D0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* D8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* E0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* E8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* F0 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                    /* F8 */  0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                };
-                UInt8 *bufStartPtr;
-                UInt8 *bufPtr;
-                const UInt8 *bytePtr = encodedBuf;
-                CFIndex idx;
-                
-                bufPtr = bufStartPtr = decodedBuf;
-                Boolean conversionOK = TRUE;
-                
-                for ( idx = 0; (idx < usedBufLen) && conversionOK; ++idx ) {
-                    switch ( *bytePtr ) {
-                        case '%':
-                            idx += 2;
-                            if ( idx < usedBufLen ) {
-                                UInt8 hex1, hex2;
-                                // skip over %
-                                bytePtr++;
-                                // get the hex digits
-                                hex1 = hexvalues[*bytePtr++];
-                                hex2 = hexvalues[*bytePtr++];
-                                // validate them
-                                if ( ((hex1 | hex2) & 0x80) == 0 ) {
-                                    // convert hex digits
-                                    *bufPtr = (hex1 << 4) + hex2;
+                    bufPtr = bufStartPtr = decodedBuf;
+                    Boolean conversionOK = TRUE;
+                    
+                    for ( idx = 0; (idx < usedBufLen) && conversionOK; ++idx ) {
+                        switch ( *bytePtr ) {
+                            case '%':
+                                idx += 2;
+                                if ( idx < usedBufLen ) {
+                                    UInt8 hex1, hex2;
+                                    // skip over %
+                                    bytePtr++;
+                                    // get the hex digits
+                                    hex1 = hexvalues[*bytePtr++];
+                                    hex2 = hexvalues[*bytePtr++];
+                                    // validate them
+                                    if ( ((hex1 | hex2) & 0x80) == 0 ) {
+                                        // convert hex digits
+                                        *bufPtr = (hex1 << 4) + hex2;
+                                    }
+                                    else {
+                                        conversionOK = FALSE;
+                                    }
                                 }
                                 else {
                                     conversionOK = FALSE;
                                 }
-                            }
-                            else {
-                                conversionOK = FALSE;
-                            }
-                            break;
-                        default:
-                            // copy everything else
-                            *bufPtr = *bytePtr++;
-                            break;
+                                break;
+                            default:
+                                // copy everything else
+                                *bufPtr = *bytePtr++;
+                                break;
+                        }
+                        ++bufPtr;
                     }
-                    ++bufPtr;
+                    if ( conversionOK ) {
+                        result = CFStringCreateWithBytes(kCFAllocatorDefault, decodedBuf, bufPtr - bufStartPtr, kCFStringEncodingUTF8, false);
+                    }
                 }
-                if ( conversionOK ) {
-                    result = CFStringCreateWithBytes(kCFAllocatorDefault, decodedBuf, bufPtr - bufStartPtr, kCFStringEncodingUTF8, false);
+                
+                // free the buffer if we malloc'd it
+                if ( encodedBuf != &stackBuffer[0] ) {
+                    free(encodedBuf);
                 }
-            }
-            
-            // free the buffer if we malloc'd it
-            if ( encodedBuf != &stackBuffer[0] ) {
-                free(encodedBuf);
             }
         }
     }
@@ -701,11 +704,11 @@ CF_PRIVATE Boolean _CFURIParserParseURIReference(CFStringRef urlString, struct _
     unsigned long currentCharIndex;
     unsigned long urlStringLength = CFStringGetLength(urlString);
     UniChar currentUniChar;
-
+    
     // clear the parseInfo
-    memset(parseInfo, 0, sizeof(*parseInfo));
-
-    // Make sure the URL string isn't too long. We're limiting it to 2GB for backwards compatibility with 32-bit executables using NS/CFURL
+    bzero(parseInfo, sizeof(*parseInfo));
+    
+    // Make sure the URL string isn't too long. We're limiting it to 2GB for backwards compatibility with 32-bit excutables using NS/CFURL
     if ( (urlStringLength > 0) && (urlStringLength <= INT_MAX) )
     {
         CFStringInitInlineBuffer(urlString, &buf, CFRangeMake(0, urlStringLength));
@@ -719,53 +722,56 @@ CF_PRIVATE Boolean _CFURIParserParseURIReference(CFStringRef urlString, struct _
         currentCharIndex = 0;
         currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
         
-        doneParsingComponent = false;
-        while ( !doneParsingComponent ) {
-            if ( currentUniChar == 0 ) {
-                doneParsingComponent = true;
-                // there was no scheme so this is a relative-ref -- reset currentChar and we're done looking for a scheme
-                currentCharIndex = 0;
-                currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
-            }
-            else {
-                switch ( currentUniChar ) {
-                    case ':':
-                        // !!!: This checks to make sure the scheme is at least 1 character. However, it makes this parser completely different than CFURL's parser when the string starts with a ":" character.
-                        if ( currentCharIndex > 0 ) {
-                            parseInfo->schemeExists = true;
-                            // the scheme's offset is always 0
-                            ++currentCharIndex;
-                            currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
-                            doneParsingComponent = true;
-                        }
-                        else {
-                            // there were no valid scheme characters before the ':' -- reset currentChar and we're done looking for a scheme
-                            currentCharIndex = 0;
-                            currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
-                            doneParsingComponent = true;
-                        }
-                        break;
-                        // !!!: These cases are commented out because default handles them. The scheme is validated as the URI string is parsed (unlike CFURL's parser).
-                        //                    case '/':
-                        //                    case '?':
-                        //                    case '#':
-                        //                        // there was no scheme so this is a relative-ref -- reset currentChar and we're done looking for a scheme
-                        //                        currentCharIndex = 0;
-                        //                        currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
-                        //                        doneParsingComponent = true;
-                        //                        break;
-                    default:
-                        if ( (currentUniChar <= 127) && ((sURLAllowedCharacters[currentUniChar] & kURLSchemeAllowed) != 0) ) {
-                            ++currentCharIndex;
-                            currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
-                        }
-                        else {
-                            // invalid scheme characters  -- reset currentChar and we're done looking for a scheme
-                            currentCharIndex = 0;
-                            currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
-                            doneParsingComponent = true;
-                        }
-                        break;
+        // The first character of scheme has to be ALPHA so this is a quick outside the while loop check for that. In the switch statement below, the default case makes sure all characters are valid in a scheme, so only the lower bounds ('A') check is needed here to make sure the character is not a DIGIT.
+        if ( currentUniChar >= 'A' ) {
+            doneParsingComponent = false;
+            while ( !doneParsingComponent ) {
+                if ( currentUniChar == 0 ) {
+                    doneParsingComponent = true;
+                    // there was no scheme so this is a relative-ref -- reset currentChar and we're done looking for a scheme
+                    currentCharIndex = 0;
+                    currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
+                }
+                else {
+                    switch ( currentUniChar ) {
+                        case ':':
+                            // !!!: This checks to make sure the scheme is at least 1 character. However, it makes this parser completely different than CFURL's parser when the string starts with a ":" character.
+                            if ( currentCharIndex > 0 ) {
+                                parseInfo->schemeExists = true;
+                                // the scheme's offset is always 0
+                                ++currentCharIndex;
+                                currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
+                                doneParsingComponent = true;
+                            }
+                            else {
+                                // there were no valid scheme characters before the ':' -- reset currentChar and we're done looking for a scheme
+                                currentCharIndex = 0;
+                                currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
+                                doneParsingComponent = true;
+                            }
+                            break;
+                            // !!!: These cases are commented out because default handles them. The scheme is validated as the URI string is parsed (unlike CFURL's parser).
+                            //                    case '/':
+                            //                    case '?':
+                            //                    case '#':
+                            //                        // there was no scheme so this is a relative-ref -- reset currentChar and we're done looking for a scheme
+                            //                        currentCharIndex = 0;
+                            //                        currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
+                            //                        doneParsingComponent = true;
+                            //                        break;
+                        default:
+                            if ( (currentUniChar <= 127) && ((sURLAllowedCharacters[currentUniChar] & kURLSchemeAllowed) != 0) ) {
+                                ++currentCharIndex;
+                                currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
+                            }
+                            else {
+                                // invalid scheme characters  -- reset currentChar and we're done looking for a scheme
+                                currentCharIndex = 0;
+                                currentUniChar = CFStringGetCharacterFromInlineBuffer(&buf, currentCharIndex);
+                                doneParsingComponent = true;
+                            }
+                            break;
+                    }
                 }
             }
         }
@@ -829,10 +835,7 @@ CF_PRIVATE Boolean _CFURIParserParseURIReference(CFStringRef urlString, struct _
                         break;
                     case ';':
                         // keep track of the obsolete param subcomponent
-                        if ( !(parseInfo->paramExists) ) {
-                            parseInfo->paramExists = true;
-                            parseInfo->paramOffset = currentCharIndex + 1;
-                        }
+                        parseInfo->semicolonInPathExists = true;
                         // fall through to get next character
                     default:
                         ++currentCharIndex;
@@ -1140,15 +1143,11 @@ CF_PRIVATE CFRange _CFURIParserGetPortRange(const struct _URIParseInfo *parseInf
  *	is true, the path component ends at the first ';' character and the rest of
  *	the rfc3986 path after ';' is considered the obsolete rfc1808 param component.
  */
-CF_PRIVATE CFRange _CFURIParserGetPathRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators, Boolean minusParam)
+CF_PRIVATE CFRange _CFURIParserGetPathRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators)
 {
     CFRange result;
     
-    if ( minusParam && parseInfo->paramExists ) {
-        // end is paramOffset minus the ';'
-        result = CFRangeMake(parseInfo->pathOffset, parseInfo->paramOffset - parseInfo->pathOffset - (includeSeparators ? 0 : 1));
-    }
-    else if ( parseInfo->queryExists ) {
+    if ( parseInfo->queryExists ) {
         // end is queryOffset minus the '?'
         result = CFRangeMake(parseInfo->pathOffset, parseInfo->queryOffset - parseInfo->pathOffset - (includeSeparators ? 0 : 1));
     }
@@ -1167,42 +1166,6 @@ CF_PRIVATE CFRange _CFURIParserGetPathRange(const struct _URIParseInfo *parseInf
 #if 0 // unused but might be needed in the future
 
 /*
- *	Returns the range of the obsolete rfc1808 param component.
- *
- *	If includeSeparators is true, the characters that separate the param
- *	from other components/subcomponents are included.
- */
-static CFRange _CFURIParserGetParamRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators)
-{
-    CFRange result;
-    
-    if ( parseInfo->paramExists ) {
-        if ( parseInfo->queryExists ) {
-            // end is queryOffset minus the '?'
-            result = CFRangeMake(parseInfo->paramOffset, parseInfo->queryOffset - parseInfo->paramOffset - 1);
-        }
-        else if ( parseInfo->fragmentExists ) {
-            // end fragmentOffset is minus the '#'
-            result = CFRangeMake(parseInfo->paramOffset, parseInfo->fragmentOffset - parseInfo->paramOffset - 1);
-        }
-        else {
-            // end is endOffset
-            result = CFRangeMake(parseInfo->paramOffset, parseInfo->endOffset - parseInfo->paramOffset);
-        }
-        
-        if ( includeSeparators ) {
-            result.location--;
-            result.length += (parseInfo->queryExists || parseInfo->fragmentExists) ? 2 : 1;
-        }
-    }
-    else {
-        result = CFRangeMake(kCFNotFound, 0);
-    }
-    return ( result );
-}
-
-
-/*
  *	Returns the range of the obsolete resource specifier component.
  *
  *	If includeSeparators is true, the characters that separate the resource specifier
@@ -1212,11 +1175,7 @@ static CFRange _CFURIParserGetResourceSpecifierRange(const struct _URIParseInfo 
 {
     CFRange result;
     
-    if ( parseInfo->paramExists ) {
-        // start is paramOffset; end is endOffset
-        result = CFRangeMake(parseInfo->paramOffset, parseInfo->endOffset - parseInfo->paramOffset);
-    }
-    else if ( parseInfo->queryExists ) {
+    if ( parseInfo->queryExists ) {
         // start is queryOffset; end is endOffset
         result = CFRangeMake(parseInfo->queryOffset, parseInfo->endOffset - parseInfo->queryOffset);
     }
@@ -1382,7 +1341,7 @@ CF_PRIVATE Boolean _CFURIParserURLStringIsValid(CFStringRef urlString, struct _U
     if ( !result ) goto invalidComponent;
     
     // validate the path
-    componentRange = _CFURIParserGetPathRange(parseInfo, false, false);
+    componentRange = _CFURIParserGetPathRange(parseInfo, false);
     result = _CFURIParserValidateComponent(urlString, componentRange, kURLPathAllowed, true);
     if ( !result ) goto invalidComponent;
     

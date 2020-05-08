@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
 *
@@ -13,6 +15,7 @@
 #include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "unicode/locid.h"
+#include "unicode/unistr.h"
 
 #if !UCONFIG_NO_COLLATION
 
@@ -66,6 +69,7 @@ typedef enum UAlphabeticIndexLabelType {
 struct UHashtable;
 U_CDECL_END
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 // Forward Declarations
@@ -263,6 +267,8 @@ public:
          * Use getBucket() to get the bucket's properties.
          *
          * @param name the string to be sorted into an index bucket
+         * @param errorCode Error code, will be set with the reason if the
+         *                  operation fails.
          * @return the bucket number for the name
          * @stable ICU 51
          */
@@ -374,9 +380,10 @@ public:
 
 
    /**
-     * Get the default label used for abbreviated buckets <i>between</i> other index characters.
-     * For example, consider the labels when Latin and Greek are used:
-     *     X Y Z ... &#x0391; &#x0392; &#x0393;.
+     * Get the default label used for abbreviated buckets *between* other index characters.
+     * For example, consider the labels when Latin (X Y Z) and Greek (Α Β Γ) are used:
+     *
+     *     X Y Z ... Α Β Γ.
      *
      * @return inflow label
      * @stable ICU 4.8
@@ -645,7 +652,7 @@ private:
      /**
       *   No assignment.
       */
-     AlphabeticIndex &operator =(const AlphabeticIndex & /*other*/) { return *this;};
+     AlphabeticIndex &operator =(const AlphabeticIndex & /*other*/) { return *this;}
 
     /**
      * No Equality operators.
@@ -697,6 +704,7 @@ public:
     /**
      * A (name, data) pair, to be sorted by name into one of the index buckets.
      * The user data is not used by the index implementation.
+     * \cond
      * @internal
      */
     struct Record: public UMemory {
@@ -705,6 +713,7 @@ public:
         Record(const UnicodeString &name, const void *data);
         ~Record();
     };
+    /** \endcond */
 #endif  /* U_HIDE_INTERNAL_API */
 
 private:
@@ -747,6 +756,7 @@ private:
 };
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif  // !UCONFIG_NO_COLLATION
 #endif

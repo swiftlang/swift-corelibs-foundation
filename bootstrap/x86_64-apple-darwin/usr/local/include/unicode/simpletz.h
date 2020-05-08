@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
  ********************************************************************************
  * Copyright (C) 1997-2013, International Business Machines                     *
@@ -35,6 +37,7 @@
 
 #include "unicode/basictz.h"
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 // forward declaration
@@ -645,7 +648,8 @@ public:
      * Sets the amount of time in ms that the clock is advanced during DST.
      * @param millisSavedDuringDST the number of milliseconds the time is
      * advanced with respect to standard time when the daylight savings rules
-     * are in effect. A positive number, typically one hour (3600000).
+     * are in effect. Typically one hour (+3600000). The amount could be negative,
+     * but not 0.
      * @param status  An UErrorCode to receive the status.
      * @stable ICU 2.0
      */
@@ -655,7 +659,8 @@ public:
      * Returns the amount of time in ms that the clock is advanced during DST.
      * @return the number of milliseconds the time is
      * advanced with respect to standard time when the daylight savings rules
-     * are in effect. A positive number, typically one hour (3600000).
+     * are in effect. Typically one hour (+3600000). The amount could be negative,
+     * but not 0.
      * @stable ICU 2.0
      */
     virtual int32_t getDSTSavings(void) const;
@@ -922,6 +927,7 @@ SimpleTimeZone::getOffset(UDate date, UBool local, int32_t& rawOffsetRef,
 }
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

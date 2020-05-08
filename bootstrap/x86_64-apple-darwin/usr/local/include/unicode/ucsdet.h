@@ -1,10 +1,12 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
  *   Copyright (C) 2005-2013, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  *   file name:  ucsdet.h
- *   encoding:   US-ASCII
+ *   encoding:   UTF-8
  *   indentation:4
  *
  *   created on: 2005Aug04
@@ -43,6 +45,10 @@
  * in a single language, and a minimum of a few hundred bytes worth of plain text
  * in the language are needed.  The detection process will attempt to
  * ignore html or xml style markup that could otherwise obscure the content.
+ * <p>
+ * An alternative to the ICU Charset Detector is the
+ * Compact Encoding Detector, https://github.com/google/compact_enc_det.
+ * It often gives more accurate results, especially with short input samples.
  */
  
 
@@ -101,7 +107,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUCharsetDetectorPointer, UCharsetDetector, ucsd
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
   * Set the input byte data whose charset is to detected.
@@ -348,7 +354,8 @@ ucsdet_getAllDetectableCharsets(const UCharsetDetector *ucsd,  UErrorCode *statu
   *  Test whether input filtering is enabled for this charset detector.
   *  Input filtering removes text that appears to be HTML or xml
   *  markup from the input before applying the code page detection
-  *  heuristics.
+  *  heuristics. Apple addition per <rdar://problem/48093252>: Will also
+  *  remove text that appears to be CSS declaration blocks.
   *
   *  @param ucsd  The charset detector to check.
   *  @return TRUE if filtering is enabled.
@@ -363,6 +370,8 @@ ucsdet_isInputFilterEnabled(const UCharsetDetector *ucsd);
  * Enable filtering of input text. If filtering is enabled,
  * text within angle brackets ("<" and ">") will be removed
  * before detection, which will remove most HTML or xml markup.
+ * Apple addition per <rdar://problem/48093252>: Will also
+ * remove text between '{' and '}', e.g. CSS declaration blocks.
  *
  * @param ucsd   the charset detector to be modified.
  * @param filter <code>true</code> to enable input text filtering.
@@ -393,7 +402,7 @@ ucsdet_getDetectableCharsets(const UCharsetDetector *ucsd,  UErrorCode *status);
 /**
   * Enable or disable individual charset encoding.
   * A name of charset encoding must be included in the names returned by
-  * {@link #getAllDetectableCharsets()}.
+  * {@link #ucsdet_getAllDetectableCharsets()}.
   *
   * @param ucsd a Charset detector.
   * @param encoding encoding the name of charset encoding.

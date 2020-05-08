@@ -1,7 +1,7 @@
 /*      CFBundle_Resources.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -9,6 +9,7 @@
 */
 
 #include "CFBundle_Internal.h"
+#include "CFBundle_SplitFileName.h"
 #include <CoreFoundation/CFURLAccess.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFByteOrder.h>
@@ -366,13 +367,6 @@ static void _CFBundleAddValueForType(CFStringRef type, CFMutableDictionaryRef qu
     }
 }
 
-typedef enum {
-    _CFBundleFileVersionNoProductNoPlatform = 1,
-    _CFBundleFileVersionWithProductNoPlatform,
-    _CFBundleFileVersionNoProductWithPlatform,
-    _CFBundleFileVersionWithProductWithPlatform,
-    _CFBundleFileVersionUnmatched
-} _CFBundleFileVersion;
 
 static _CFBundleFileVersion _CFBundleCheckFileProductAndPlatform(CFStringRef file, CFRange searchRange, CFStringRef product, CFStringRef platform)
 {
@@ -416,125 +410,11 @@ static _CFBundleFileVersion _CFBundleCheckFileProductAndPlatform(CFStringRef fil
     return version;
 }
 
-static _CFBundleFileVersion _CFBundleVersionForFileName(CFStringRef fileName, CFStringRef expectedProduct, CFStringRef expectedPlatform, CFRange *outProductRange, CFRange *outPlatformRange) {
-    // Search for a product name, e.g.: foo~iphone.jpg or bar~ipad
-    Boolean foundProduct = false;
-    Boolean foundPlatform = false;
-    CFIndex fileNameLen = CFStringGetLength(fileName);
-    CFRange productRange;
-    CFRange platformRange;
-    
-    CFIndex dotLocation = fileNameLen;
-    for (CFIndex i = fileNameLen - 1; i > 0; i--) {
-        UniChar c = CFStringGetCharacterAtIndex(fileName, i);
-        if (c == '.') {
-            dotLocation = i;
-        }
-#if TARGET_OS_IPHONE
-        // Product names are only supported on iOS
-        // ref docs here: "iOS Supports Device-Specific Resources" in "Resource Programming Guide"
-        else if (c == '~' && !foundProduct) {
-            productRange = CFRangeMake(i, dotLocation - i);
-            foundProduct = (CFStringCompareWithOptions(fileName, expectedProduct, productRange, kCFCompareAnchored) == kCFCompareEqualTo);
-            if (foundProduct && outProductRange) *outProductRange = productRange;
-        }
-#endif
-        else if (c == '-') {
-            if (foundProduct) {
-                platformRange = CFRangeMake(i, productRange.location - i);
-            } else {
-                platformRange = CFRangeMake(i, dotLocation - i);
-            }
-            foundPlatform = (CFStringCompareWithOptions(fileName, expectedPlatform, platformRange, kCFCompareAnchored) == kCFCompareEqualTo);
-            if (foundPlatform && outPlatformRange) *outPlatformRange = platformRange;
-            break;
-        }
-    }
-    
-    _CFBundleFileVersion version;
-    if (foundPlatform && foundProduct) {
-        version = _CFBundleFileVersionWithProductWithPlatform;
-    } else if (foundPlatform) {
-        version = _CFBundleFileVersionNoProductWithPlatform;
-    } else if (foundProduct) {
-        version = _CFBundleFileVersionWithProductNoPlatform;
-    } else {
-        version = _CFBundleFileVersionNoProductNoPlatform;
-    }
-    return version;
-}
-
-// Splits up a string into its various parts. Note that the out-types must be released by the caller if they exist.
-static void _CFBundleSplitFileName(CFStringRef fileName, CFStringRef *noProductOrPlatform, CFStringRef *endType, CFStringRef *startType, CFStringRef expectedProduct, CFStringRef expectedPlatform, _CFBundleFileVersion *version) {
-    CFIndex fileNameLen = CFStringGetLength(fileName);
-    
-    if (endType || startType) {
-        // Search for the type from the end (type defined as everything after the last '.')
-        // e.g., a file name like foo.jpg has a type of 'jpg'
-        Boolean foundDot = false;
-        uint16_t dotLocation = 0;
-        for (CFIndex i = fileNameLen; i > 0; i--) {
-            if (CFStringGetCharacterAtIndex(fileName, i - 1) == '.') {
-                foundDot = true;
-                dotLocation = i - 1;
-                break;
-            }
-        }
-        
-        if (foundDot && dotLocation != fileNameLen - 1) {
-            if (endType) *endType = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fileName, CFRangeMake(dotLocation + 1, CFStringGetLength(fileName) - dotLocation - 1));
-        }
-        
-        // Search for the type from the beginning (type defined as everything after the first '.')
-        // e.g., a file name like foo.jpg.gz has a type of 'jpg.gz'
-        if (startType) {
-            for (CFIndex i = 0; i < fileNameLen; i++) {
-                if (CFStringGetCharacterAtIndex(fileName, i) == '.') {
-                    // no need to create this again if it's the same as previous
-                    if (i != dotLocation) {
-                        *startType = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fileName, CFRangeMake(i + 1, CFStringGetLength(fileName) - i - 1));
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    
-    CFRange productRange, platformRange;
-    *version = _CFBundleVersionForFileName(fileName, expectedProduct, expectedPlatform, &productRange, &platformRange);
-    
-    Boolean foundPlatform = (*version == _CFBundleFileVersionNoProductWithPlatform || *version == _CFBundleFileVersionWithProductWithPlatform);
-    Boolean foundProduct = (*version == _CFBundleFileVersionWithProductNoPlatform || *version == _CFBundleFileVersionWithProductWithPlatform);
-    // Create a string that excludes both platform and product name
-    // e.g., foo-iphone~iphoneos.jpg -> foo.jpg
-    if (foundPlatform || foundProduct) {
-        CFMutableStringRef fileNameScratch = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, fileName);
-        CFIndex start, length = 0;
-        
-        // Because the platform always comes first and is immediately followed by product if it exists, we'll use the platform start location as the start of our range to delete.
-        if (foundPlatform) {
-            start = platformRange.location;
-        } else {
-            start = productRange.location;
-        }
-        
-        if (foundPlatform && foundProduct) {
-            length = platformRange.length + productRange.length;
-        } else if (foundPlatform) {
-            length = platformRange.length;
-        } else if (foundProduct) {
-            length = productRange.length;
-        }
-        CFStringDelete(fileNameScratch, CFRangeMake(start, length));
-        *noProductOrPlatform = (CFStringRef)fileNameScratch;
-    }    
-}
-
 static Boolean _CFBundleReadDirectory(CFStringRef pathOfDir, CFStringRef subdirectory, CFMutableArrayRef allFiles, Boolean hasFileAdded, CFMutableDictionaryRef queryTable, CFMutableDictionaryRef typeDir, CFMutableDictionaryRef addedTypes, Boolean firstLproj, CFStringRef lprojName) {
     
     CFStringRef product = _CFBundleGetProductNameSuffix();
     CFStringRef platform = _CFBundleGetPlatformNameSuffix();
-    
+
     CFArrayRef stuffToPrefix = NULL;
     if (lprojName && subdirectory) {
         CFTypeRef thingsInTheArray[2] = {lprojName, subdirectory};
@@ -544,12 +424,14 @@ static Boolean _CFBundleReadDirectory(CFStringRef pathOfDir, CFStringRef subdire
     } else if (subdirectory) {
         stuffToPrefix = CFArrayCreate(kCFAllocatorSystemDefault, (const void **)&subdirectory, 1, &kCFTypeArrayCallBacks);
     }
-    
+
+    Boolean searchForFallbackProduct = false;
+
     // If this file is a directory, the path needs to include a trailing slash so we can later create the right kind of CFURL object
     _CFIterateDirectory(pathOfDir, true, stuffToPrefix, ^Boolean(CFStringRef fileName, CFStringRef pathToFile, uint8_t fileType) {
         CFStringRef startType = NULL, endType = NULL, noProductOrPlatform = NULL;
         _CFBundleFileVersion fileVersion;
-        _CFBundleSplitFileName(fileName, &noProductOrPlatform, &endType, &startType, product, platform, &fileVersion);
+        _CFBundleSplitFileName(fileName, &noProductOrPlatform, &endType, &startType, product, platform, searchForFallbackProduct, &fileVersion);
         
         // put it into all file array
         if (!hasFileAdded) {
@@ -1027,7 +909,7 @@ static CFTypeRef _copyResourceURLsFromBundle(CFBundleRef bundle, CFURLRef bundle
 // Research shows that by far the most common scenario is to pass in a bundle object, a resource name, and a resource type, using the default localization.
 // It is probably the case that more than a few resources will be looked up, making the cost of a readdir less than repeated stats. But it is a relative waste of memory to create strings for every file name in the bundle, especially since those are not what are returned to the caller (URLs are). So, an idea: cache the existence of the most common file names (Info.plist, en.lproj, etc) instead of creating entries for them. If other resources are requested, then go ahead and do the readdir and cache the rest of the file names.
 // Another idea: if you want caching, you should create a bundle object. Otherwise we'll happily readdir each time.
-CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bundleURL, CFArrayRef _unused_pass_null_, CFStringRef resourceName, CFStringRef resourceType, CFStringRef subPath, CFStringRef lproj, Boolean returnArray, Boolean localized, Boolean (^predicate)(CFStringRef filename, Boolean *stop))
+CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bundleURL, CFArrayRef _unused_pass_null_, CFStringRef resourceName, CFStringRef resourceType, CFStringRef subPath, CFStringRef lproj, Boolean returnArray, Boolean localized, Boolean (^predicate)(CFStringRef filename, Boolean *stop))
 {
     CFTypeRef returnValue = NULL;
 

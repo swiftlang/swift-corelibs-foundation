@@ -1,7 +1,7 @@
 /*      CFBundle_InfoPlist.c
-	Copyright (c) 2012-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2012-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -23,65 +23,6 @@
 #include <sys/mman.h>
 #endif
 
-
-// The following strings are initialized 'later' (i.e., not at static initialization time) because static init time is too early for CFSTR to work, on platforms without constant CF strings
-#if !__CONSTANT_CFSTRINGS__
-
-#define _CFBundleNumberOfPlatforms 7
-static CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-static const char *_CFBundleSupportedPlatformStrings[_CFBundleNumberOfPlatforms] = { "iphoneos", "macos", "windows", "linux", "freebsd", "solaris", "hpux" };
-
-#define _CFBundleNumberOfProducts 3
-static CFStringRef _CFBundleSupportedProducts[_CFBundleNumberOfProducts] = { NULL, NULL, NULL };
-static const char *_CFBundleSupportedProductStrings[_CFBundleNumberOfProducts] = { "iphone", "ipod", "ipad" };
-
-#define _CFBundleNumberOfiPhoneOSPlatformProducts 3
-static CFStringRef _CFBundleSupportediPhoneOSPlatformProducts[_CFBundleNumberOfiPhoneOSPlatformProducts] = { NULL, NULL, NULL };
-static const char *_CFBundleSupportediPhoneOSPlatformProductStrings[_CFBundleNumberOfiPhoneOSPlatformProducts] = { "iphone", "ipod", "ipad" };
-
-CF_PRIVATE void _CFBundleResourcesInitialize() {
-    for (unsigned int i = 0; i < _CFBundleNumberOfPlatforms; i++) _CFBundleSupportedPlatforms[i] = CFStringCreateWithCString(kCFAllocatorSystemDefault, _CFBundleSupportedPlatformStrings[i], kCFStringEncodingUTF8);
-    
-    for (unsigned int i = 0; i < _CFBundleNumberOfProducts; i++) _CFBundleSupportedProducts[i] = CFStringCreateWithCString(kCFAllocatorSystemDefault, _CFBundleSupportedProductStrings[i], kCFStringEncodingUTF8);
-    
-    for (unsigned int i = 0; i < _CFBundleNumberOfiPhoneOSPlatformProducts; i++) _CFBundleSupportediPhoneOSPlatformProducts[i] = CFStringCreateWithCString(kCFAllocatorSystemDefault, _CFBundleSupportediPhoneOSPlatformProductStrings[i], kCFStringEncodingUTF8);
-}
-
-#else
-
-#if TARGET_OS_IPHONE
-// On iOS, we only support one platform
-#define _CFBundleNumberOfPlatforms 1
-static const CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = { CFSTR("iphoneos") };
-#else
-// On other platforms, we support the following platforms
-#define _CFBundleNumberOfPlatforms 7
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_iphoneos, "iphoneos");
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_macos, "macos");
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_windows, "windows");
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_linux, "linux");
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_freebsd, "freebsd");
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_solaris, "solaris");
-STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_hpux, "hpux");
-static const CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = {
-    _CFBundleSupportedPlatform_iphoneos,
-    _CFBundleSupportedPlatform_macos,
-    _CFBundleSupportedPlatform_windows,
-    _CFBundleSupportedPlatform_linux,
-    _CFBundleSupportedPlatform_freebsd,
-    _CFBundleSupportedPlatform_solaris,
-    _CFBundleSupportedPlatform_hpux,
-};
-#endif
-
-#define _CFBundleNumberOfProducts 3
-static const CFStringRef _CFBundleSupportedProducts[_CFBundleNumberOfProducts] = { _CFBundleiPhoneDeviceName, _CFBundleiPodDeviceName, _CFBundleiPadDeviceName };
-
-#define _CFBundleNumberOfiPhoneOSPlatformProducts 3
-static const CFStringRef _CFBundleSupportediPhoneOSPlatformProducts[_CFBundleNumberOfiPhoneOSPlatformProducts] = { _CFBundleiPhoneDeviceName, _CFBundleiPodDeviceName, _CFBundleiPadDeviceName };
-
-CF_PRIVATE void _CFBundleResourcesInitialize() { }
-#endif
 
 #pragma mark -
 #pragma mark Product and Platform Getters - Exported
@@ -123,13 +64,29 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
             size_t buflen = sizeof(buffer);
             int ret = sysctlbyname("hw.machine", buffer, &buflen, NULL, 0);
             if (0 == ret || (-1 == ret && ENOMEM == errno)) {
+#if TARGET_OS_IOS
                 if (6 <= buflen && 0 == memcmp(buffer, "iPhone", 6)) {
                     _cfBundlePlatform = _CFBundleiPhoneDeviceName;
-                } else if (4 <= buflen && 0 == memcmp(buffer, "iPod", 4)) {
+                } else
+                if (4 <= buflen && 0 == memcmp(buffer, "iPod", 4)) {
                     _cfBundlePlatform = _CFBundleiPodDeviceName;
-                } else if (4 <= buflen && 0 == memcmp(buffer, "iPad", 4)) {
+                } else
+                if (4 <= buflen && 0 == memcmp(buffer, "iPad", 4)) {
                     _cfBundlePlatform = _CFBundleiPadDeviceName;
-                } else {
+                }
+#elif TARGET_OS_WATCH
+                if (5 <= buflen && 0 == memcmp(buffer, "Watch", 5)) {
+                    _cfBundlePlatform = _CFBundleAppleWatchDeviceName;
+                }
+#elif TARGET_OS_TV
+                if (7 <= buflen && 0 == memcmp(buffer, "AppleTV", 7)) {
+                    _cfBundlePlatform = _CFBundleAppleTVDeviceName;
+                }
+#else
+                // Fallback path for other TARGET_OS_IPHONE child macros we don't know or care about
+                if (false) { }
+#endif
+                else {
                     const char *env = __CFgetenv("SIMULATOR_LEGACY_ASSET_SUFFIX");
                     if (env) {
                         if (0 == strcmp(env, "iphone")) {
@@ -145,7 +102,8 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
                 }
             }
         }
-        if (!_cfBundlePlatform) _cfBundlePlatform = _CFBundleiPhoneDeviceName; // fallback
+        // This used to fall back to "iphone" on all unknown TARGET_OS_IPHONE platforms, but since that macro covers a wide swath of platforms, it now falls back to an empty string.
+        if (!_cfBundlePlatform) _cfBundlePlatform = CFSTR(""); // fallback
     }
     return _cfBundlePlatform;
 #endif
@@ -172,8 +130,15 @@ CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void) {
 CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
 #if TARGET_OS_OSX
     return _CFBundleMacOSXPlatformNameSuffix;
-#elif TARGET_OS_IPHONE
+#elif TARGET_OS_IOS
     return _CFBundleiPhoneOSPlatformNameSuffix;
+#elif TARGET_OS_WATCH
+    return _CFBundleWatchOSPlatformNameSuffix;
+#elif TARGET_OS_TV
+    return _CFBundletvOSPlatformNameSuffix;
+#elif TARGET_OS_IPHONE
+    // Fallback path for other TARGET_OS_IPHONE targets we do not know about
+    return CFSTR("");
 #elif TARGET_OS_WIN32
     return _CFBundleWindowsPlatformNameSuffix;
 #elif DEPLOYMENT_TARGET_SOLARIS
@@ -193,8 +158,15 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
 CF_EXPORT CFStringRef _CFGetPlatformName(void) {
 #if TARGET_OS_OSX
     return _CFBundleMacOSXPlatformName;
-#elif TARGET_OS_IPHONE
+#elif TARGET_OS_IOS
     return _CFBundleiPhoneOSPlatformName;
+#elif TARGET_OS_WATCH
+    return _CFBundleWatchOSPlatformName;
+#elif TARGET_OS_TV
+    return _CFBundletvOSPlatformName;
+#elif TARGET_OS_IPHONE
+    // Fallback path for other TARGET_OS_IPHONE targets we do not know about
+    return CFSTR("");
 #elif TARGET_OS_WIN32
     return _CFBundleWindowsPlatformName;
 #elif DEPLOYMENT_TARGET_SOLARIS
@@ -237,61 +209,45 @@ CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
 #pragma mark -
 #pragma mark Product and Platform Suffix Processing - Internal
 
-// TODO: Merge with below function, they do the same thing
-static Boolean _isValidPlatformSuffix(CFStringRef suffix) {
-    for (CFIndex idx = 0; idx < _CFBundleNumberOfPlatforms; idx++) {
-        if (CFEqual(suffix, _CFBundleSupportedPlatforms[idx])) return true;
-    }
-    return false;
-}
-
-// Returns true if the searchRange of the fileName is equal to a valid platform name (e.g., macos, iphoneos)
+// Returns true if the searchRange of the fileName is equal to a valid platform name (e.g., macos, iphoneos).
 CF_PRIVATE Boolean _CFBundleSupportedPlatformName(CFStringRef fileName, CFRange searchRange) {
-    for (CFIndex i = 0; i < _CFBundleNumberOfPlatforms; i++) {
-        if (CFStringFindWithOptions(fileName, _CFBundleSupportedPlatforms[i], searchRange, kCFCompareAnchored, NULL)) {
-            return true;
-        }
-    }
+#if TARGET_OS_IOS
+    return CFStringFindWithOptions(fileName, _CFBundleiPhoneOSPlatformName, searchRange, kCFCompareAnchored, NULL);
+#elif TARGET_OS_WATCH
+    return CFStringFindWithOptions(fileName, _CFBundleWatchOSPlatformName   , searchRange, kCFCompareAnchored, NULL);
+#elif TARGET_OS_TV
+    return CFStringFindWithOptions(fileName, _CFBundletvOSPlatformName, searchRange, kCFCompareAnchored, NULL);
+#elif TARGET_OS_OSX
+    return CFStringFindWithOptions(fileName, _CFBundleMacOSXPlatformName, searchRange, kCFCompareAnchored, NULL);
+#else
+    // This OS supports no platform suffixes
     return false;
-}
-
-// TODO: Merge with below function, they do the same thing
-static Boolean _isValidProductSuffix(CFStringRef suffix) {
-    for (CFIndex idx = 0; idx < _CFBundleNumberOfProducts; idx++) {
-        if (CFEqual(suffix, _CFBundleSupportedProducts[idx])) return true;
-    }
-    return false;
+#endif
 }
 
 // Returns true if the searchRange of the fileName is equal to a a valid product name (e.g., ipod, ipad)
 CF_PRIVATE Boolean _CFBundleSupportedProductName(CFStringRef fileName, CFRange searchRange) {
-    for (CFIndex i = 0; i < _CFBundleNumberOfProducts; i++) {
-        if (CFStringFindWithOptions(fileName, _CFBundleSupportedProducts[i], searchRange, kCFCompareAnchored, NULL)) {
+#if TARGET_OS_IOS
+#define _CFBundleNumberOfPlatforms 3
+    static const CFIndex numberOfPlatforms = 3;
+    static const CFStringRef platforms[numberOfPlatforms] = { CFSTR("iphone"), CFSTR("ipad"), CFSTR("ipod") };
+    for (CFIndex i = 0; i < numberOfPlatforms; i++) {
+        if (CFStringFindWithOptions(fileName, platforms[i], searchRange, kCFCompareAnchored, NULL)) {
             return true;
         }
     }
     return false;
-}
-
-static Boolean _isValidiPhoneOSPlatformProductSuffix(CFStringRef suffix) {
-    for (CFIndex idx = 0; idx < _CFBundleNumberOfiPhoneOSPlatformProducts; idx++) {
-        if (CFEqual(suffix, _CFBundleSupportediPhoneOSPlatformProducts[idx])) return true;
-    }
+#elif TARGET_OS_WATCH
+    return CFStringFindWithOptions(fileName, CFSTR("applewatch"), searchRange, kCFCompareAnchored, NULL);
+#elif TARGET_OS_TV
+    return CFStringFindWithOptions(fileName, CFSTR("appletv"), searchRange, kCFCompareAnchored, NULL);
+#elif TARGET_OS_OSX
+    // MacOS uses an empty string for a product name. We do not distinguish at this time between kinds of Mac products
     return false;
-}
-
-static Boolean _isValidPlatformAndProductSuffixPair(CFStringRef platform, CFStringRef product) {
-    if (!platform && !product) return true;
-    if (!platform) {
-        return _isValidProductSuffix(product);
-    }
-    if (!product) {
-        return _isValidPlatformSuffix(platform);
-    }
-    if (CFEqual(platform, _CFBundleiPhoneOSPlatformName)) {
-        return _isValidiPhoneOSPlatformProductSuffix(product);
-    }
+#else
+    // This OS supports no product suffixes
     return false;
+#endif
 }
 
 static Boolean _isBlacklistedKey(CFStringRef keyName) {
@@ -306,7 +262,7 @@ static Boolean _isBlacklistedKey(CFStringRef keyName) {
     return false;
 }
 
-static Boolean _isOverrideKey(CFStringRef fullKey, CFStringRef *outBaseKey, CFStringRef *outPlatformSuffix, CFStringRef *outProductSuffix) {
+static Boolean _isPlatformAndProductKey(CFStringRef fullKey, Boolean const useFallbackKey, CFStringRef *outBaseKey, CFStringRef *outPlatformSuffix, CFStringRef *outProductSuffix) {
     if (outBaseKey) {
         *outBaseKey = NULL;
     }
@@ -316,8 +272,7 @@ static Boolean _isOverrideKey(CFStringRef fullKey, CFStringRef *outBaseKey, CFSt
     if (outProductSuffix) {
         *outProductSuffix = NULL;
     }
-    if (!fullKey)
-        return false;
+    if (!fullKey) return false;
     CFRange minusRange = CFStringFind(fullKey, CFSTR("-"), kCFCompareBackwards);
     CFRange tildeRange = CFStringFind(fullKey, CFSTR("~"), kCFCompareBackwards);
     if (minusRange.location == kCFNotFound && tildeRange.location == kCFNotFound) return false;
@@ -340,27 +295,72 @@ static Boolean _isOverrideKey(CFStringRef fullKey, CFStringRef *outBaseKey, CFSt
     if (platformRange.location != kCFNotFound && platformRange.length < 1) return false;
     if (productRange.location != kCFNotFound && productRange.length < 1) return false;
     
-    CFStringRef platform = (platformRange.location != kCFNotFound) ? CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, platformRange) : NULL;
-    CFStringRef product = (productRange.location != kCFNotFound) ? CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, productRange) : NULL;
-    Boolean result = _isValidPlatformAndProductSuffixPair(platform, product);
+    Boolean isValidPlatformAndProduct = true;
+    if (platformRange.location == kCFNotFound && productRange.location != kCFNotFound) {
+        // With no platform, only check the product
+        isValidPlatformAndProduct = _CFBundleSupportedProductName(fullKey, productRange);
+    } else if (platformRange.location != kCFNotFound && productRange.location == kCFNotFound) {
+        // With no product, check only the platform
+        isValidPlatformAndProduct = _CFBundleSupportedPlatformName(fullKey, platformRange);
+    } else {
+        // Check both
+        isValidPlatformAndProduct = _CFBundleSupportedProductName(fullKey, productRange) && _CFBundleSupportedPlatformName(fullKey, platformRange);
+    }
+    
+
+    if (isValidPlatformAndProduct) {
+        if (outBaseKey) {
+            *outBaseKey = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, baseKeyRange);
+        }
+        if (outPlatformSuffix) {
+            CFStringRef platform = (platformRange.location != kCFNotFound) ? CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, platformRange) : NULL;
+            *outPlatformSuffix = platform;
+        }
+        if (outProductSuffix) {
+            CFStringRef product = (productRange.location != kCFNotFound) ? CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, productRange) : NULL;
+            *outProductSuffix = product;
+        }
+    }
+    return isValidPlatformAndProduct;
+}
+
+
+static Boolean _isValidSpecialCase(CFStringRef specialCase) {
+    // NOTE: Adding any special case to this check must be paired with adding the suffix in __addSuffixesToKeys
+    return false;
+}
+
+// Special case keys replace base keys in Info.plist and InfoPlist.strings files. They take the form of KeyName#SpecialCase. The special cases are checked in _isValidSpecialCase. If this function returns true then the special case key exists and the replacement behavior should be triggered, according to whatever the criteria are.
+static Boolean _isSpecialCaseKey(CFStringRef fullKey, CFStringRef *outBaseKey, CFStringRef *outSpecialCase) {
+    if (outBaseKey) {
+        *outBaseKey = NULL;
+    }
+    if (outSpecialCase) {
+        *outSpecialCase = NULL;
+    }
+    if (!fullKey) return false;
+    
+    CFRange hashRange = CFStringFind(fullKey, CFSTR("#"), kCFCompareBackwards);
+    if (hashRange.location == kCFNotFound) return false;
+    CFRange baseKeyRange = CFRangeMake(0, hashRange.location);
+    if (baseKeyRange.length < 1) return false;
+    CFIndex strLen = CFStringGetLength(fullKey);
+    CFIndex specialCaseStart = hashRange.location + hashRange.length;
+    CFRange specialCaseRange = CFRangeMake(specialCaseStart, strLen - specialCaseStart);
+    CFStringRef specialCase = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, specialCaseRange);
+    Boolean result = _isValidSpecialCase(specialCase);
     
     if (result) {
         if (outBaseKey) {
             *outBaseKey = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, fullKey, baseKeyRange);
         }
-        if (outPlatformSuffix) {
-            *outPlatformSuffix = platform;
-        } else {
-            if (platform) CFRelease(platform);
+        if (outSpecialCase) {
+            *outSpecialCase = specialCase;
+        } else if (specialCase) {
+            CFRelease(specialCase);
         }
-        if (outProductSuffix) {
-            *outProductSuffix = product;
-        } else {
-            if (product) CFRelease(product);
-        }
-    } else {
-        if (platform) CFRelease(platform);
-        if (product) CFRelease(product);
+    } else if (specialCase) {
+        CFRelease(specialCase);
     }
     return result;
 }
@@ -377,7 +377,7 @@ static Boolean _isCurrentPlatformAndProduct(CFStringRef platform, CFStringRef pr
     return CFEqual(_CFGetProductName(), product) && CFEqual(_CFGetPlatformName(), platform);
 }
 
-static CFArrayRef _CopySortedOverridesForBaseKey(CFStringRef keyName, CFDictionaryRef dict) {
+static CFArrayRef _CopySortedOverridesForBaseKey(CFStringRef keyName, CFDictionaryRef dict, Boolean const useFallbackKey) {
     CFMutableArrayRef overrides = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
     CFStringRef keyNameWithBoth = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@-%@~%@"), keyName, _CFGetPlatformName(), _CFGetProductName());
     CFStringRef keyNameWithProduct = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@~%@"), keyName, _CFGetProductName());
@@ -408,6 +408,7 @@ static CFArrayRef _CopySortedOverridesForBaseKey(CFStringRef keyName, CFDictiona
                 break;
             }
         }
+
         for (CFIndex idx = 0; idx < count; idx++) {
             if (CFEqual(keys[idx], keyName)) {
                 CFArrayAppendValue(overrides, keys[idx]);
@@ -438,11 +439,28 @@ CF_PRIVATE void _CFBundleInfoPlistProcessInfoDictionary(CFMutableDictionaryRef d
         
         CFDictionaryGetKeysAndValues(dict, keys, values);
         for (CFIndex idx = 0; idx < count; idx++) {
-            CFStringRef keyPlatformSuffix, keyProductSuffix, keyName;
-            if (_isOverrideKey((CFStringRef)keys[idx], &keyName, &keyPlatformSuffix, &keyProductSuffix)) {
+            CFStringRef keyPlatformSuffix, keyProductSuffix, keySpecialCaseSuffix, keyName;
+            CFStringRef key = (CFStringRef)keys[idx];
+
+            Boolean const useFallbackPlatformAndProductKey = false;
+            if (_isSpecialCaseKey(key, &keyName, &keySpecialCaseSuffix)) {
+                // This special case key overrides the base value
+                CFDictionarySetValue(dict, keyName, CFDictionaryGetValue(dict, key));
+                
+                // Remove the special case key
+                CFDictionaryRemoveValue(dict, key);
+                
+                CFRelease(keyName);
+                if (keySpecialCaseSuffix) CFRelease(keySpecialCaseSuffix);
+                
+            } else if (_isPlatformAndProductKey(key, useFallbackPlatformAndProductKey, &keyName, &keyPlatformSuffix, &keyProductSuffix)) {
                 CFArrayRef keysForBaseKey = NULL;
-                if (_isCurrentPlatformAndProduct(keyPlatformSuffix, keyProductSuffix) && !_isBlacklistedKey(keyName) && CFDictionaryContainsKey(dict, keys[idx])) {
-                    keysForBaseKey = _CopySortedOverridesForBaseKey(keyName, dict);
+
+                Boolean isSupportedPlatformAndProduct = _isCurrentPlatformAndProduct(keyPlatformSuffix, keyProductSuffix);
+
+
+                if (isSupportedPlatformAndProduct && !_isBlacklistedKey(keyName) && CFDictionaryContainsKey(dict, key)) {
+                    keysForBaseKey = _CopySortedOverridesForBaseKey(keyName, dict, useFallbackPlatformAndProductKey);
                     CFIndex keysForBaseKeyCount = CFArrayGetCount(keysForBaseKey);
                     
                     //make sure the other keys for this base key don't get released out from under us until we're done
@@ -452,14 +470,15 @@ CF_PRIVATE void _CFBundleInfoPlistProcessInfoDictionary(CFMutableDictionaryRef d
                     CFTypeRef highestPriorityKey = CFArrayGetValueAtIndex(keysForBaseKey, 0);
                     CFDictionarySetValue(dict, keyName, CFDictionaryGetValue(dict, highestPriorityKey));
                     
-                    //remove everything except the now-overridden key; this will cause them to fail the CFDictionaryContainsKey(dict, keys[idx]) check in the enclosing if() and not be reprocessed
+                    //remove everything except the now-overridden key; this will cause them to fail the CFDictionaryContainsKey(dict, key) check in the enclosing if() and not be reprocessed
                     for (CFIndex presentKeysIdx = 0; presentKeysIdx < keysForBaseKeyCount; presentKeysIdx++) {
                         CFStringRef currentKey = (CFStringRef)CFArrayGetValueAtIndex(keysForBaseKey, presentKeysIdx);
-                        if (!CFEqual(currentKey, keyName))
+                        if (!CFEqual(currentKey, keyName)) {
                             CFDictionaryRemoveValue(dict, currentKey);
+                        }
                     }
                 } else {
-                    CFDictionaryRemoveValue(dict, keys[idx]);
+                    CFDictionaryRemoveValue(dict, key);
                 }
                 
                 
@@ -977,8 +996,7 @@ static void _CFBundleInfoPlistFixupInfoDictionary(CFBundleRef bundle, CFMutableD
     }    
 }
 
-CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
-    __CFLock(&bundle->_lock);
+CF_PRIVATE void _CFBundleRefreshInfoDictionaryAlreadyLocked(CFBundleRef bundle) {
     if (!bundle->_infoDict) {
         CFURLRef infoPlistUrl = NULL;
         bundle->_infoDict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(kCFAllocatorSystemDefault, bundle->_url, &infoPlistUrl, bundle->_version);
@@ -990,8 +1008,12 @@ CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
         // Add or fixup any keys that will be expected later
         if (bundle->_infoDict) _CFBundleInfoPlistFixupInfoDictionary(bundle, (CFMutableDictionaryRef)bundle->_infoDict);
     }
+}
+
+CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
+    __CFLock(&bundle->_lock);
+    _CFBundleRefreshInfoDictionaryAlreadyLocked(bundle);
     __CFUnlock(&bundle->_lock);
-    
     return bundle->_infoDict;
 }
 
@@ -1068,8 +1090,7 @@ CFStringRef CFBundleGetIdentifier(CFBundleRef bundle) {
     return bundleID;
 }
 
-
-static void __addPlatformAndProductNamesToKeys(const void *value, void *context) {
+static void __addSuffixesToKeys(const void *value, void *context) {
     CFMutableSetRef newKeys = (CFMutableSetRef)context;
     CFStringRef key = (CFStringRef)value;
     CFStringRef firstPartOfKey = NULL;
@@ -1095,11 +1116,17 @@ static void __addPlatformAndProductNamesToKeys(const void *value, void *context)
     CFSetAddValue(newKeys, newKeyWithProduct);
     CFSetAddValue(newKeys, newKeyWithProductAndPlatform);
     
-    if (firstPartOfKey) CFRelease(firstPartOfKey);
-    if (restOfKey) CFRelease(restOfKey);
     CFRelease(newKeyWithPlatform);
     CFRelease(newKeyWithProduct);
     CFRelease(newKeyWithProductAndPlatform);
+
+    // Add special case keys
+    CFStringRef overrideSpecialCase = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@#override%@%@"), firstPartOfKey, restOfKey ? CFSTR(":") : CFSTR(""), restOfKey ? restOfKey : CFSTR(""));
+    CFSetAddValue(newKeys, overrideSpecialCase);
+    CFRelease(overrideSpecialCase);
+    
+    if (firstPartOfKey) CFRelease(firstPartOfKey);
+    if (restOfKey) CFRelease(restOfKey);
 }
 
 // from CFUtilities.c
@@ -1131,7 +1158,7 @@ static CFPropertyListRef _CFBundleCreateFilteredInfoPlistWithURL(CFURLRef infoPl
     CFDataRef infoPlistData = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, (const UInt8 *)bytes, length, kCFAllocatorNull);
     // We need to include all possible variants of the platform/product combo as possible keys.
     CFMutableSetRef newKeyPaths = CFSetCreateMutable(kCFAllocatorSystemDefault, CFSetGetCount(keyPaths), &kCFTypeSetCallBacks);
-    CFSetApplyFunction(keyPaths, __addPlatformAndProductNamesToKeys, newKeyPaths);
+    CFSetApplyFunction(keyPaths, __addSuffixesToKeys, newKeyPaths);
     
     success = _CFPropertyListCreateFiltered(kCFAllocatorSystemDefault, infoPlistData, kCFPropertyListMutableContainers, newKeyPaths, &result, NULL);
     

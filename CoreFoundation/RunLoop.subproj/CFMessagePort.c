@@ -1,11 +1,11 @@
 /*	CFMessagePort.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Michael LeHew
 */
 
 #include <CoreFoundation/CFBase.h>
@@ -54,7 +54,7 @@ extern pid_t getpid(void);
 
 #define __CFMessagePortMaxDataSize 0x60000000L
 
-static CFLock_t __CFAllMessagePortsLock = CFLockInit;
+static os_unfair_lock __CFAllMessagePortsLock = OS_UNFAIR_LOCK_INIT;
 static CFMutableDictionaryRef __CFAllLocalMessagePorts = NULL;
 static CFMutableDictionaryRef __CFAllRemoteMessagePorts = NULL;
 
@@ -254,7 +254,7 @@ static void __CFMessagePortDeallocate(CFTypeRef cf) {
     // auto-invalidating; so we manually implement the 'auto-invalidation' here by
     // tickling each remote port to check its state after any message port is destroyed,
     // but most importantly after local message ports are destroyed.
-    __CFLock(&__CFAllMessagePortsLock);
+    os_unfair_lock_lock(&__CFAllMessagePortsLock);
     CFMessagePortRef *remotePorts = NULL;
     CFIndex cnt = 0;
     if (NULL != __CFAllRemoteMessagePorts) {
@@ -265,7 +265,7 @@ static void __CFMessagePortDeallocate(CFTypeRef cf) {
 	    CFRetain(remotePorts[idx]);
 	}
     }
-    __CFUnlock(&__CFAllMessagePortsLock);
+    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     if (remotePorts) {
 	for (CFIndex idx = 0; idx < cnt; idx++) {
 	    // as a side-effect, this will auto-invalidate the CFMessagePort if the CFMachPort is invalid
@@ -292,7 +292,7 @@ CFTypeID CFMessagePortGetTypeID(void) {
     return _kCFRuntimeIDCFMessagePort;
 }
 
-static CFStringRef __CFMessagePortSanitizeStringName(CFStringRef name, uint8_t **utfnamep, CFIndex *utfnamelenp) CF_RETURNS_RETAINED {
+static CFStringRef __CFMessagePortCreateSanitizedStringName(CFStringRef name, uint8_t **utfnamep, CFIndex *utfnamelenp) {
     uint8_t *utfname;
     CFIndex utflen;
     CFStringRef result = NULL;
@@ -339,15 +339,15 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
 
     CFStringRef name = NULL;
     if (inName != NULL) {
-        name = __CFMessagePortSanitizeStringName(inName, &utfname, NULL);
+        name = __CFMessagePortCreateSanitizedStringName(inName, &utfname, NULL);
     }
     
-    __CFLock(&__CFAllMessagePortsLock);
+    os_unfair_lock_lock(&__CFAllMessagePortsLock);
     if (!perPID && NULL != name) {
 	CFMessagePortRef existing;
 	if (NULL != __CFAllLocalMessagePorts && CFDictionaryGetValueIfPresent(__CFAllLocalMessagePorts, name, (const void **)&existing)) {
 	    CFRetain(existing);
-	    __CFUnlock(&__CFAllMessagePortsLock);
+	    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
 	    CFRelease(name);
 	    CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
             if (!CFMessagePortIsValid(existing)) { // must do this outside lock to avoid deadlock
@@ -357,7 +357,7 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
 	    return (CFMessagePortRef)(existing);
 	}
     }
-    __CFUnlock(&__CFAllMessagePortsLock);
+    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     CFIndex size = sizeof(struct __CFMessagePort) - sizeof(CFRuntimeBase);
     memory = (CFMessagePortRef)_CFRuntimeCreateInstance(allocator, CFMessagePortGetTypeID(), size, NULL);
     if (NULL == memory) {
@@ -371,29 +371,18 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
     __CFMessagePortUnsetExtraMachRef(memory);
     __CFMessagePortUnsetRemote(memory);
     memory->_lock = CFLockInit;
-    memory->_name = name; // memory takes ownership of name henceforth
-    memory->_port = NULL;
-    memory->_replies = NULL;
-    memory->_convCounter = 0;
-    memory->_perPID = perPID ? getpid() : 0;	// actual value not terribly useful for local ports
-    memory->_replyPort = NULL;
-    memory->_source = NULL;
-    memory->_dispatchSource = NULL;
-    memory->_dispatchQ = NULL;
-    memory->_icallout = NULL;
+    memory->_name = name;
+    if (perPID) {
+        memory->_perPID = getpid(); // actual value not terribly useful for local ports
+    }
     memory->_callout = callout;
     memory->_calloutEx = calloutEx;
-    memory->_context.info = NULL;
-    memory->_context.retain = NULL;
-    memory->_context.release = NULL;
-    memory->_context.copyDescription = NULL;
 
     // sadly this is mostly a repeat of SetName function below sans locks...
     if (NULL != name) {
 	CFMachPortRef native = NULL;
 	kern_return_t ret;
-	mach_port_t bs, mp;
-	task_get_bootstrap_port(mach_task_self(), &bs);
+	mach_port_t mp;
 	if (!perPID) {
 	}
 	if (!native) {
@@ -417,12 +406,12 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
 	memmove(&memory->_context, context, sizeof(CFMessagePortContext));
 	memory->_context.info = context->retain ? (void *)context->retain(context->info) : context->info;
     }
-    __CFLock(&__CFAllMessagePortsLock);
+    os_unfair_lock_lock(&__CFAllMessagePortsLock);
     if (!perPID && NULL != name) {
         CFMessagePortRef existing;
         if (NULL != __CFAllLocalMessagePorts && CFDictionaryGetValueIfPresent(__CFAllLocalMessagePorts, name, (const void **)&existing)) {
             CFRetain(existing);
-            __CFUnlock(&__CFAllMessagePortsLock); 
+            os_unfair_lock_unlock(&__CFAllMessagePortsLock);
 	    CFRelease(memory);
             return (CFMessagePortRef)(existing);
         }       
@@ -431,7 +420,7 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
 	}
 	CFDictionaryAddValue(__CFAllLocalMessagePorts, name, memory);
     }
-    __CFUnlock(&__CFAllMessagePortsLock);
+    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     if (shouldFreeInfo) *shouldFreeInfo = false;
     return memory;
 }
@@ -454,19 +443,19 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     CFMachPortContext ctx;
     uint8_t *utfname = NULL;
     CFIndex size;
-    mach_port_t bp, port;
+    mach_port_t port;
     kern_return_t ret;
 
-    CFStringRef const name = __CFMessagePortSanitizeStringName(inName, &utfname, NULL);
+    CFStringRef const name = __CFMessagePortCreateSanitizedStringName(inName, &utfname, NULL);
     if (NULL == name) {
 	return NULL;
     }
-    __CFLock(&__CFAllMessagePortsLock);
+    os_unfair_lock_lock(&__CFAllMessagePortsLock);
     if (!perPID && NULL != name) {
 	CFMessagePortRef existing;
 	if (NULL != __CFAllRemoteMessagePorts && CFDictionaryGetValueIfPresent(__CFAllRemoteMessagePorts, name, (const void **)&existing)) {
 	    CFRetain(existing);
-	    __CFUnlock(&__CFAllMessagePortsLock);
+	    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
 	    CFRelease(name);
 	    CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
             if (!CFMessagePortIsValid(existing)) { // must do this outside lock to avoid deadlock
@@ -476,7 +465,7 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
 	    return (CFMessagePortRef)(existing);
 	}
     }
-    __CFUnlock(&__CFAllMessagePortsLock);
+    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     size = sizeof(struct __CFMessagePort) - sizeof(CFMessagePortContext) - sizeof(CFRuntimeBase);
     memory = (CFMessagePortRef)_CFRuntimeCreateInstance(allocator, CFMessagePortGetTypeID(), size, NULL);
     if (NULL == memory) {
@@ -491,23 +480,15 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     __CFMessagePortSetRemote(memory);
     memory->_lock = CFLockInit;
     memory->_name = name;
-    memory->_port = NULL;
-    memory->_replies = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, NULL);
-    memory->_convCounter = 0;
-    memory->_perPID = perPID ? pid : 0;
-    memory->_replyPort = NULL;
-    memory->_source = NULL;
-    memory->_dispatchSource = NULL;
-    memory->_dispatchQ = NULL;
-    memory->_icallout = NULL;
-    memory->_callout = NULL;
-    memory->_calloutEx = NULL;
+    memory->_replies = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
+    if (perPID) {
+        memory->_perPID = pid;
+    }
     ctx.version = 0;
     ctx.info = memory;
     ctx.retain = NULL;
     ctx.release = NULL;
     ctx.copyDescription = NULL;
-    task_get_bootstrap_port(mach_task_self(), &bp);
     native = (KERN_SUCCESS == ret) ? CFMachPortCreateWithPort(allocator, port, __CFMessagePortDummyCallback, &ctx, NULL) : NULL;
     CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
     if (NULL == native) {
@@ -517,12 +498,12 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     }
     memory->_port = native;
     __CFMessagePortSetValid(memory);
-    __CFLock(&__CFAllMessagePortsLock);
+    os_unfair_lock_lock(&__CFAllMessagePortsLock);
     if (!perPID && NULL != name) {
 	CFMessagePortRef existing;
 	if (NULL != __CFAllRemoteMessagePorts && CFDictionaryGetValueIfPresent(__CFAllRemoteMessagePorts, name, (const void **)&existing)) {
 	    CFRetain(existing);
-	    __CFUnlock(&__CFAllMessagePortsLock);
+	    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
 	    CFRelease(memory);
 	    return (CFMessagePortRef)(existing);
 	}
@@ -532,7 +513,7 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
 	CFDictionaryAddValue(__CFAllRemoteMessagePorts, name, memory);
     }
     CFRetain(native);
-    __CFUnlock(&__CFAllMessagePortsLock);
+    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     CFMachPortSetInvalidationCallBack(native, __CFMessagePortInvalidationCallBack);
     // that set-invalidation-callback might have called back into us
     // if the CFMachPort is already bad, but that was a no-op since
@@ -571,22 +552,22 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef inName) {
 
     __CFGenericValidateType(ms, CFMessagePortGetTypeID());
     if (ms->_perPID || __CFMessagePortIsRemote(ms)) return false;
-    CFStringRef const name = __CFMessagePortSanitizeStringName(inName, &utfname, NULL);
+    CFStringRef const name = __CFMessagePortCreateSanitizedStringName(inName, &utfname, NULL);
     if (NULL == name) {
 	return false;
     }
     
-    __CFLock(&__CFAllMessagePortsLock);
+    os_unfair_lock_lock(&__CFAllMessagePortsLock);
     if (NULL != name) {
 	CFMessagePortRef existing;
 	if (NULL != __CFAllLocalMessagePorts && CFDictionaryGetValueIfPresent(__CFAllLocalMessagePorts, name, (const void **)&existing)) {
-	    __CFUnlock(&__CFAllMessagePortsLock);
+	    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
 	    CFRelease(name);
 	    CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
 	    return false;
 	}
     }
-    __CFUnlock(&__CFAllMessagePortsLock);
+    os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     
     
     __CFMessagePortLock(ms);
@@ -655,7 +636,7 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef inName) {
 	    CFMachPortInvalidate(oldPort);
 	    CFRelease(oldPort);
 	}
-	__CFLock(&__CFAllMessagePortsLock);
+	os_unfair_lock_lock(&__CFAllMessagePortsLock);
 	// This relocking without checking to see if something else has grabbed
 	// that name in the cache is rather suspect, but what would that even
 	// mean has happened?  We'd expect the bootstrap_* calls above to have
@@ -672,7 +653,7 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef inName) {
 	}
 	ms->_name = name; // consumes the +1 from sanitize above
 	CFDictionaryAddValue(__CFAllLocalMessagePorts, name, ms);
-	__CFUnlock(&__CFAllMessagePortsLock);
+	os_unfair_lock_unlock(&__CFAllMessagePortsLock);
     }
     else if (name) {
         // if setting the same name on the message port, then avoid leak
@@ -692,6 +673,9 @@ void CFMessagePortGetContext(CFMessagePortRef ms, CFMessagePortContext *context)
 
 void CFMessagePortInvalidate(CFMessagePortRef ms) {
     __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    if (ms == NULL) {
+        return;
+    }
     if (!__CFMessagePortIsDeallocing(ms)) {
 	CFRetain(ms);
     }
@@ -720,11 +704,11 @@ void CFMessagePortInvalidate(CFMessagePortRef ms) {
         ms->_port = NULL;
 	__CFMessagePortUnlock(ms);
 
-	__CFLock(&__CFAllMessagePortsLock);
+	os_unfair_lock_lock(&__CFAllMessagePortsLock);
 	if (0 == ms->_perPID && NULL != name && NULL != (__CFMessagePortIsRemote(ms) ? __CFAllRemoteMessagePorts : __CFAllLocalMessagePorts)) {
 	    CFDictionaryRemoveValue(__CFMessagePortIsRemote(ms) ? __CFAllRemoteMessagePorts : __CFAllLocalMessagePorts, name);
 	}
-	__CFUnlock(&__CFAllMessagePortsLock);
+	os_unfair_lock_unlock(&__CFAllMessagePortsLock);
 	if (NULL != callout) {
 	    callout(ms, info);
 	}
@@ -818,6 +802,7 @@ static void __CFMessagePortReplyCallBack(CFMachPortRef port, void *msg, CFIndex 
         invalidComplex = (msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) && ((1 != msgp->body.msgh_descriptor_count) || MSGP_GET(msgp, ool).type != MACH_MSG_OOL_DESCRIPTOR);
         wayTooBig = ((int32_t)MSGP_SIZE(msgp) + __CFMessagePortMaxInlineBytes) < msgp->header.msgh_size; // also less than a 32-bit signed int can hold
     }
+
     Boolean wrongSize = false;
     if (!(invalidComplex || wayTooBig || wayTooSmall)) {
         byteslen = CFSwapInt32LittleToHost(MSGP_INFO(msgp, byteslen));
@@ -837,7 +822,7 @@ static void __CFMessagePortReplyCallBack(CFMachPortRef port, void *msg, CFIndex 
     }
 
     if (CFDictionaryContainsKey(ms->_replies, (void *)(uintptr_t)MSGP_INFO(msgp, convid))) {
-	CFDataRef reply = NULL;
+	CFTypeRef reply = NULL;
 	replymsg = (mach_msg_base_t *)msg;
 	if (!(replymsg->header.msgh_bits & MACH_MSGH_BITS_COMPLEX)) {
 	    uintptr_t msgp_extent = (uintptr_t)((uint8_t *)msgp + msgp->header.msgh_size);
@@ -845,15 +830,16 @@ static void __CFMessagePortReplyCallBack(CFMachPortRef port, void *msg, CFIndex 
             if (byteslen < 0) byteslen = 0; // from here on, treat negative same as zero -- this is historical behavior: a NULL return from the callback on the other side results in empty data to the original requestor
 	    if (0 <= byteslen && data_extent <= msgp_extent) {
 		reply = CFDataCreate(kCFAllocatorSystemDefault, MSGP_INFO(replymsg, bytes), byteslen);
-	    } else {
-		reply = (void *)~0;	// means NULL data
-	    }
-	} else {
-//#warning CF: should create a no-copy data here that has a custom VM-freeing allocator, and not vm_dealloc here
+            } else {
+                reply = CFRetain(kCFBooleanFalse);    // means NULL data
+            }
+        } else {
+            //#warning CF: should create a no-copy data here that has a custom VM-freeing allocator, and not vm_dealloc here
 	    reply = CFDataCreate(kCFAllocatorSystemDefault, MSGP_GET(replymsg, ool).address, MSGP_GET(replymsg, ool).size);
 	    vm_deallocate(mach_task_self(), (vm_address_t)MSGP_GET(replymsg, ool).address, MSGP_GET(replymsg, ool).size);
 	}
-	CFDictionarySetValue(ms->_replies, (void *)(uintptr_t)MSGP_INFO(msgp, convid), (void *)reply);
+        CFDictionarySetValue(ms->_replies, (void *)(uintptr_t)MSGP_INFO(msgp, convid), reply);
+        CFRelease(reply);
     } else {	/* discard message */
 	if (msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) {
 	    vm_deallocate(mach_task_self(), (vm_address_t)MSGP_GET(msgp, ool).address, MSGP_GET(msgp, ool).size);
@@ -866,7 +852,7 @@ SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef
     mach_msg_base_t *sendmsg;
     CFRunLoopRef currentRL = CFRunLoopGetCurrent();
     CFRunLoopSourceRef source = NULL;
-    CFDataRef reply = NULL;
+    CFTypeRef reply = NULL;
     uint64_t termTSR;
     uint32_t sendOpts = 0, sendTimeOut = 0;
     int32_t desiredReply;
@@ -903,7 +889,7 @@ SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef
         return kCFMessagePortTransportError;
     }
     if (replyMode != NULL) {
-        CFDictionarySetValue(remote->_replies, (void *)(uintptr_t)desiredReply, NULL);
+        CFDictionarySetValue(remote->_replies, (void *)(uintptr_t)desiredReply, kCFNull);
         source = CFMachPortCreateRunLoopSource(CFGetAllocator(remote), remote->_replyPort, -100);
         didRegister = !CFRunLoopContainsSource(currentRL, source, replyMode);
 	if (didRegister) {
@@ -915,14 +901,16 @@ SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef
 	sendOpts = MACH_SEND_TIMEOUT;
 	sendTimeout *= 1000.0;
 	if (sendTimeout < 1.0) sendTimeout = 0.0;
-	sendTimeOut = floor(sendTimeout);
+	sendTimeOut = (uint32_t)floor(sendTimeout);
     }
     __CFMessagePortUnlock(remote);
     ret = mach_msg((mach_msg_header_t *)sendmsg, MACH_SEND_MSG|sendOpts, sendmsg->header.msgh_size, 0, MACH_PORT_NULL, sendTimeOut, MACH_PORT_NULL);
     __CFMessagePortLock(remote);
     if (KERN_SUCCESS != ret) {
 	// need to deallocate the send-once right that might have been created
-        if (replyMode != NULL) {
+        if (replyMode != NULL &&
+            (ret == MACH_SEND_INVALID_DEST || ret == MACH_SEND_TIMED_OUT) // [55207069] it is only valid to clean cleaup the local port for these two return values; to do otherwise is unsafe/undefined-behavior
+        ) {
             mach_port_deallocate(mach_task_self(), ((mach_msg_header_t *)sendmsg)->msgh_local_port);
         }
 	if (didRegister) {
@@ -946,7 +934,7 @@ SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef
 	CFRunLoopRunInMode(replyMode, __CFTimeIntervalUntilTSR(termTSR), true);
 	// warning: what, if anything, should be done if remote is now invalid?
 	reply = CFDictionaryGetValue(remote->_replies, (void *)(uintptr_t)desiredReply);
-	if (NULL != reply || termTSR < mach_absolute_time()) {
+	if (!(NULL == reply || kCFNull == reply) || termTSR < mach_absolute_time()) {
 	    break;
 	}
 	if (!CFMessagePortIsValid(remote)) {
@@ -959,15 +947,15 @@ SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef
         CFRunLoopRemoveSource(currentRL, source, replyMode);
     }
     if (source) CFRelease(source);
-    if (NULL == reply) {
+    // kCFNull is the placeholder for a reply mode
+    if (NULL == reply || kCFNull == reply) {
 	CFDictionaryRemoveValue(remote->_replies, (void *)(uintptr_t)desiredReply);
 	CFRelease(remote);
 	return CFMessagePortIsValid(remote) ? kCFMessagePortReceiveTimeout : kCFMessagePortBecameInvalidError;
     }
     if (NULL != returnDatap) {
-	*returnDatap = ((void *)~0 == reply) ? NULL : reply;
-    } else if ((void *)~0 != reply) {
-	CFRelease(reply);
+        // kCFBooleanFalse is the placeholder for a null data
+        *returnDatap = (kCFBooleanFalse == reply) ? NULL : CFRetain((CFDataRef)reply);
     }
     CFDictionaryRemoveValue(remote->_replies, (void *)(uintptr_t)desiredReply);
     CFRelease(remote);
