@@ -17,7 +17,6 @@
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
 		15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */; };
 		15500FB722EA24D10088F082 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1550102C22EA24D10088F082 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		1550106D22EA25280088F082 /* module.map in Headers */ = {isa = PBXBuildFile; fileRef = 1550106B22EA25140088F082 /* module.map */; settings = {ATTRIBUTES = (Public, ); }; };
 		1550107322EA266B0088F082 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		1550110D22EA268E0088F082 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
@@ -27,7 +26,6 @@
 		1550111122EA26CA0088F082 /* XMLElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8C1BD15DFF00C49C64 /* XMLElement.swift */; };
 		1550111222EA26CA0088F082 /* XMLNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8D1BD15DFF00C49C64 /* XMLNode.swift */; };
 		1550111322EA26CA0088F082 /* XMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8F1BD15DFF00C49C64 /* XMLParser.swift */; };
-		1550111422EA42780088F082 /* libCFXMLInterface.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1550106A22EA24D10088F082 /* libCFXMLInterface.a */; };
 		1550111722EA43E00088F082 /* SwiftFoundationXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1550110922EA266B0088F082 /* SwiftFoundationXML.framework */; };
 		1550111822EA43E00088F082 /* SwiftFoundationXML.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1550110922EA266B0088F082 /* SwiftFoundationXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1550111B22EA43E20088F082 /* SwiftFoundationNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15B8043A228F376000B30FF6 /* SwiftFoundationNetworking.framework */; };
@@ -50,11 +48,16 @@
 		1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA12212B4C35003C9516 /* CFOverflow.h */; };
 		1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA14212B6F33003C9516 /* CFCollections_Internal.h */; };
 		1581706322B1A29100348861 /* TestURLCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1581706222B1A29100348861 /* TestURLCache.swift */; };
+		158B66A32450D72E00892EFB /* CFNumber_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 158B66A22450D72E00892EFB /* CFNumber_Private.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		158B66A62450F0C400892EFB /* CFBundle_SplitFileName.c in Sources */ = {isa = PBXBuildFile; fileRef = 158B66A42450F0C300892EFB /* CFBundle_SplitFileName.c */; };
+		158B66A72450F0C400892EFB /* CFBundle_SplitFileName.h in Headers */ = {isa = PBXBuildFile; fileRef = 158B66A52450F0C400892EFB /* CFBundle_SplitFileName.h */; };
 		158BCCAA2220A12600750239 /* TestDateIntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */; };
 		158BCCAD2220A18F00750239 /* CFDateIntervalFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		158BCCAE2220A18F00750239 /* CFDateIntervalFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */; };
 		159870BE228F73F800ADE509 /* SwiftFoundationNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15B8043A228F376000B30FF6 /* SwiftFoundationNetworking.framework */; };
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
+		15A619DC245A2895003C8C62 /* libCFXMLInterface.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1550106A22EA24D10088F082 /* libCFXMLInterface.a */; };
+		15A619E0245A298C003C8C62 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 15A619DF245A298C003C8C62 /* CFXMLInterface.c */; };
 		15B80388228F376000B30FF6 /* libcurl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */; };
 		15B8039E228F376000B30FF6 /* URLProtectionSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B821BD15DFF00C49C64 /* URLProtectionSpace.swift */; };
 		15B803B4228F376000B30FF6 /* URLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B7F1BD15DFF00C49C64 /* URLCredential.swift */; };
@@ -141,7 +144,6 @@
 		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
 		5B4092101D1B304C0022B067 /* StringEncodings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40920F1D1B304C0022B067 /* StringEncodings.swift */; };
 		5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */; };
-		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		5B424C761D0B6E5B007B39C8 /* IndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B424C751D0B6E5B007B39C8 /* IndexPath.swift */; };
@@ -188,10 +190,6 @@
 		5B7C8A8F1BEA7FEC00C5B690 /* CFBinaryPList.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89891BBDB1EF00234F36 /* CFBinaryPList.c */; };
 		5B7C8A901BEA7FEC00C5B690 /* CFOldStylePList.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D898F1BBDBFB100234F36 /* CFOldStylePList.c */; };
 		5B7C8A911BEA7FEC00C5B690 /* CFPropertyList.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88FB1BBC9B9500234F36 /* CFPropertyList.c */; };
-		5B7C8A921BEA7FEC00C5B690 /* CFXMLInputStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89961BBDBFDA00234F36 /* CFXMLInputStream.c */; };
-		5B7C8A931BEA7FEC00C5B690 /* CFXMLNode.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D899A1BBDBFEA00234F36 /* CFXMLNode.c */; };
-		5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89931BBDBFCE00234F36 /* CFXMLParser.c */; };
-		5B7C8A951BEA7FEC00C5B690 /* CFXMLTree.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D899B1BBDBFEA00234F36 /* CFXMLTree.c */; };
 		5B7C8A961BEA7FF900C5B690 /* CFBundle_Binary.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88EE1BBC9B5C00234F36 /* CFBundle_Binary.c */; };
 		5B7C8A971BEA7FF900C5B690 /* CFBundle_Grok.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88ED1BBC9B5C00234F36 /* CFBundle_Grok.c */; };
 		5B7C8A981BEA7FF900C5B690 /* CFBundle_InfoPlist.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88EB1BBC9B5C00234F36 /* CFBundle_InfoPlist.c */; };
@@ -199,9 +197,6 @@
 		5B7C8A9A1BEA7FF900C5B690 /* CFBundle_Resources.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88EA1BBC9B5C00234F36 /* CFBundle_Resources.c */; };
 		5B7C8A9B1BEA7FF900C5B690 /* CFBundle_Strings.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88EC1BBC9B5C00234F36 /* CFBundle_Strings.c */; };
 		5B7C8A9C1BEA7FF900C5B690 /* CFBundle.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88E91BBC9B5C00234F36 /* CFBundle.c */; };
-		5B7C8A9D1BEA7FF900C5B690 /* CFPlugIn_Factory.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D894A1BBDA9EE00234F36 /* CFPlugIn_Factory.c */; };
-		5B7C8A9E1BEA7FF900C5B690 /* CFPlugIn_Instance.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D894B1BBDA9EE00234F36 /* CFPlugIn_Instance.c */; };
-		5B7C8A9F1BEA7FF900C5B690 /* CFPlugIn_PlugIn.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89491BBDA9EE00234F36 /* CFPlugIn_PlugIn.c */; };
 		5B7C8AA01BEA7FF900C5B690 /* CFPlugIn.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89481BBDA9EE00234F36 /* CFPlugIn.c */; };
 		5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D886A1BBC948300234F36 /* CFApplicationPreferences.c */; };
 		5B7C8AA21BEA800400C5B690 /* CFPreferences.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D898B1BBDBF6500234F36 /* CFPreferences.c */; };
@@ -245,8 +240,6 @@
 		5B7C8AD01BEA80FC00C5B690 /* CFNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88D31BBC9AC500234F36 /* CFNumber.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5B7C8AD11BEA80FC00C5B690 /* CFTimeZone.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88BE1BBC980100234F36 /* CFTimeZone.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5B7C8AD21BEA80FC00C5B690 /* CFPropertyList.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88FA1BBC9B9500234F36 /* CFPropertyList.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5B7C8AD31BEA80FC00C5B690 /* CFXMLNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89991BBDBFEA00234F36 /* CFXMLNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5B7C8AD41BEA80FC00C5B690 /* CFXMLParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89911BBDBFC500234F36 /* CFXMLParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5B7C8AD51BEA80FC00C5B690 /* CFBundle.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88E51BBC9B5C00234F36 /* CFBundle.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5B7C8AD61BEA80FC00C5B690 /* CFPlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89451BBDA9EE00234F36 /* CFPlugIn.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5B7C8AD71BEA80FC00C5B690 /* CFPlugInCOM.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89461BBDA9EE00234F36 /* CFPlugInCOM.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -270,7 +263,6 @@
 		5B7C8AE91BEA81AC00C5B690 /* CFLocaleInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88AE1BBC974700234F36 /* CFLocaleInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8AEA1BEA81AC00C5B690 /* CFICULogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F191BCC440100ED97BB /* CFICULogging.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8AEB1BEA81AC00C5B690 /* CFBigNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D891D1BBDA65F00234F36 /* CFBigNumber.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		5B7C8AEC1BEA81AC00C5B690 /* CFXMLInputStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89951BBDBFDA00234F36 /* CFXMLInputStream.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8AED1BEA81AC00C5B690 /* CFBundle_BinaryTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88E71BBC9B5C00234F36 /* CFBundle_BinaryTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8AEE1BEA81AC00C5B690 /* CFBundle_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88E81BBC9B5C00234F36 /* CFBundle_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B7C8AEF1BEA81AC00C5B690 /* CFBundlePriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D88E61BBC9B5C00234F36 /* CFBundlePriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -530,13 +522,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1550110B22EA26780088F082 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 15500FA722EA24D10088F082;
-			remoteInfo = CFXMLInterface;
-		};
 		1550111922EA43E00088F082 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
@@ -557,6 +542,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 15B80384228F376000B30FF6;
 			remoteInfo = SwiftFoundationNetworking;
+		};
+		15A619DD245A2895003C8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 15500FA722EA24D10088F082;
+			remoteInfo = CFXMLInterface;
 		};
 		15B80386228F376000B30FF6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -778,10 +770,14 @@
 		1578DA12212B4C35003C9516 /* CFOverflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFOverflow.h; sourceTree = "<group>"; };
 		1578DA14212B6F33003C9516 /* CFCollections_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCollections_Internal.h; sourceTree = "<group>"; };
 		1581706222B1A29100348861 /* TestURLCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLCache.swift; sourceTree = "<group>"; };
+		158B66A22450D72E00892EFB /* CFNumber_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFNumber_Private.h; sourceTree = "<group>"; };
+		158B66A42450F0C300892EFB /* CFBundle_SplitFileName.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBundle_SplitFileName.c; sourceTree = "<group>"; };
+		158B66A52450F0C400892EFB /* CFBundle_SplitFileName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFBundle_SplitFileName.h; sourceTree = "<group>"; };
 		158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateIntervalFormatter.swift; sourceTree = "<group>"; };
 		158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateIntervalFormatter.h; sourceTree = "<group>"; };
 		158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateIntervalFormatter.c; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
+		15A619DF245A298C003C8C62 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
 		15B8043A228F376000B30FF6 /* SwiftFoundationNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundationNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		15F10CDB218909BF00D88114 /* TestNSCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		15FCF4E223021C020095E52E /* TestSocketPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSocketPort.swift; sourceTree = "<group>"; };
@@ -817,7 +813,6 @@
 		5B2A98CC1D021886008A0B75 /* NSCFCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFCharacterSet.swift; sourceTree = "<group>"; };
 		5B40920F1D1B304C0022B067 /* StringEncodings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringEncodings.swift; sourceTree = "<group>"; };
 		5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtraStringAPIs.swift; sourceTree = "<group>"; };
-		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
 		5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInterface.h; sourceTree = "<group>"; };
 		5B40F9F11C125187000E72E3 /* TestXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestXMLParser.swift; sourceTree = "<group>"; };
 		5B40F9F31C12524C000E72E3 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
@@ -928,9 +923,6 @@
 		5B5D89461BBDA9EE00234F36 /* CFPlugInCOM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPlugInCOM.h; sourceTree = "<group>"; };
 		5B5D89471BBDA9EE00234F36 /* CFPlugIn_Factory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPlugIn_Factory.h; sourceTree = "<group>"; };
 		5B5D89481BBDA9EE00234F36 /* CFPlugIn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFPlugIn.c; sourceTree = "<group>"; };
-		5B5D89491BBDA9EE00234F36 /* CFPlugIn_PlugIn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFPlugIn_PlugIn.c; sourceTree = "<group>"; };
-		5B5D894A1BBDA9EE00234F36 /* CFPlugIn_Factory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFPlugIn_Factory.c; sourceTree = "<group>"; };
-		5B5D894B1BBDA9EE00234F36 /* CFPlugIn_Instance.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFPlugIn_Instance.c; sourceTree = "<group>"; };
 		5B5D89531BBDAA0100234F36 /* CFUUID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFUUID.h; sourceTree = "<group>"; };
 		5B5D89541BBDAA0100234F36 /* CFUUID.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFUUID.c; sourceTree = "<group>"; };
 		5B5D89571BBDAAC600234F36 /* CFBasicHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFBasicHash.h; sourceTree = "<group>"; };
@@ -962,13 +954,6 @@
 		5B5D898B1BBDBF6500234F36 /* CFPreferences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFPreferences.c; sourceTree = "<group>"; };
 		5B5D898D1BBDBF8C00234F36 /* CFBuiltinConverters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBuiltinConverters.c; sourceTree = "<group>"; };
 		5B5D898F1BBDBFB100234F36 /* CFOldStylePList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFOldStylePList.c; sourceTree = "<group>"; };
-		5B5D89911BBDBFC500234F36 /* CFXMLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLParser.h; sourceTree = "<group>"; };
-		5B5D89931BBDBFCE00234F36 /* CFXMLParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLParser.c; sourceTree = "<group>"; };
-		5B5D89951BBDBFDA00234F36 /* CFXMLInputStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLInputStream.h; sourceTree = "<group>"; };
-		5B5D89961BBDBFDA00234F36 /* CFXMLInputStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInputStream.c; sourceTree = "<group>"; };
-		5B5D89991BBDBFEA00234F36 /* CFXMLNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFXMLNode.h; sourceTree = "<group>"; };
-		5B5D899A1BBDBFEA00234F36 /* CFXMLNode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLNode.c; sourceTree = "<group>"; };
-		5B5D899B1BBDBFEA00234F36 /* CFXMLTree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLTree.c; sourceTree = "<group>"; };
 		5B5D899F1BBDC01E00234F36 /* CFICUConverters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFICUConverters.c; sourceTree = "<group>"; };
 		5B5D89A31BBDC04100234F36 /* CFPlatformConverters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFPlatformConverters.c; sourceTree = "<group>"; };
 		5B5D89A51BBDC06800234F36 /* CFStringEncodingDatabase.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringEncodingDatabase.c; sourceTree = "<group>"; };
@@ -1298,7 +1283,7 @@
 			files = (
 				1550110D22EA268E0088F082 /* SwiftFoundation.framework in Frameworks */,
 				1550107322EA266B0088F082 /* libxml2.dylib in Frameworks */,
-				1550111422EA42780088F082 /* libCFXMLInterface.a in Frameworks */,
+				15A619DC245A2895003C8C62 /* libCFXMLInterface.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1593,6 +1578,7 @@
 				5B5D88B81BBC97D100234F36 /* CFDate.h */,
 				5B5D88D41BBC9AC500234F36 /* CFNumber.c */,
 				5B5D88D31BBC9AC500234F36 /* CFNumber.h */,
+				158B66A22450D72E00892EFB /* CFNumber_Private.h */,
 				5B5D88BF1BBC980100234F36 /* CFTimeZone.c */,
 				5B5D88BE1BBC980100234F36 /* CFTimeZone.h */,
 			);
@@ -1633,10 +1619,7 @@
 				5B5D88E91BBC9B5C00234F36 /* CFBundle.c */,
 				5B5D88E51BBC9B5C00234F36 /* CFBundle.h */,
 				5B5D88E61BBC9B5C00234F36 /* CFBundlePriv.h */,
-				5B5D894A1BBDA9EE00234F36 /* CFPlugIn_Factory.c */,
 				5B5D89471BBDA9EE00234F36 /* CFPlugIn_Factory.h */,
-				5B5D894B1BBDA9EE00234F36 /* CFPlugIn_Instance.c */,
-				5B5D89491BBDA9EE00234F36 /* CFPlugIn_PlugIn.c */,
 				5B5D89481BBDA9EE00234F36 /* CFPlugIn.c */,
 				5B5D89451BBDA9EE00234F36 /* CFPlugIn.h */,
 				5B5D89461BBDA9EE00234F36 /* CFPlugInCOM.h */,
@@ -1645,6 +1628,8 @@
 				5BF9B7F41FABD5D300EE1A7C /* CFBundle_Main.c */,
 				5BF9B7F61FABD5D400EE1A7C /* CFBundle_ResourceFork.c */,
 				5BF9B7F71FABD5D400EE1A7C /* CFBundle_Tables.c */,
+				158B66A52450F0C400892EFB /* CFBundle_SplitFileName.h */,
+				158B66A42450F0C300892EFB /* CFBundle_SplitFileName.c */,
 			);
 			name = PlugIn;
 			path = CoreFoundation/PlugIn.subproj;
@@ -1660,15 +1645,8 @@
 				5B5D88FB1BBC9B9500234F36 /* CFPropertyList.c */,
 				5B5D88FA1BBC9B9500234F36 /* CFPropertyList.h */,
 				5BF9B7F11FABBDB000EE1A7C /* CFPropertyList_Private.h */,
-				5B5D89961BBDBFDA00234F36 /* CFXMLInputStream.c */,
-				5B5D89951BBDBFDA00234F36 /* CFXMLInputStream.h */,
-				5B5D899A1BBDBFEA00234F36 /* CFXMLNode.c */,
-				5B5D89991BBDBFEA00234F36 /* CFXMLNode.h */,
-				5B5D89931BBDBFCE00234F36 /* CFXMLParser.c */,
-				5B5D89911BBDBFC500234F36 /* CFXMLParser.h */,
-				5B5D899B1BBDBFEA00234F36 /* CFXMLTree.c */,
-				5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */,
 				5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */,
+				15A619DF245A298C003C8C62 /* CFXMLInterface.c */,
 			);
 			name = Parsing;
 			path = CoreFoundation/Parsing.subproj;
@@ -2321,7 +2299,6 @@
 				5B7C8AC81BEA80FC00C5B690 /* CFSet.h in Headers */,
 				5B7C8ADC1BEA80FC00C5B690 /* CFSocket.h in Headers */,
 				5B7C8ACC1BEA80FC00C5B690 /* CFDateFormatter.h in Headers */,
-				5B7C8AD41BEA80FC00C5B690 /* CFXMLParser.h in Headers */,
 				1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */,
 				5B7C8AD11BEA80FC00C5B690 /* CFTimeZone.h in Headers */,
 				5B7C8AC31BEA80FC00C5B690 /* CFBag.h in Headers */,
@@ -2345,7 +2322,6 @@
 				5B7C8ACB1BEA80FC00C5B690 /* CFCalendar.h in Headers */,
 				5B7C8AF81BEA81AC00C5B690 /* CFStringEncodingConverterPriv.h in Headers */,
 				5B7C8AC71BEA80FC00C5B690 /* CFDictionary.h in Headers */,
-				5B7C8AEC1BEA81AC00C5B690 /* CFXMLInputStream.h in Headers */,
 				5B7C8ADF1BEA80FC00C5B690 /* CFString.h in Headers */,
 				5B7C8ABD1BEA806100C5B690 /* CFBase.h in Headers */,
 				5B7C8AED1BEA81AC00C5B690 /* CFBundle_BinaryTypes.h in Headers */,
@@ -2374,7 +2350,6 @@
 				5B7C8AE61BEA81AC00C5B690 /* ForSwiftFoundationOnly.h in Headers */,
 				5B7C8AC61BEA80FC00C5B690 /* CFData.h in Headers */,
 				5B7C8AC01BEA807A00C5B690 /* CFUUID.h in Headers */,
-				5B7C8AD31BEA80FC00C5B690 /* CFXMLNode.h in Headers */,
 				5B7C8AC21BEA80FC00C5B690 /* CFArray.h in Headers */,
 				1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */,
 				5B7C8AFD1BEA81AC00C5B690 /* CFUnicodePrecomposition.h in Headers */,
@@ -2394,6 +2369,7 @@
 				5B7C8AEE1BEA81AC00C5B690 /* CFBundle_Internal.h in Headers */,
 				5B7C8AF01BEA81AC00C5B690 /* CFPlugIn_Factory.h in Headers */,
 				5B7C8AE41BEA81AC00C5B690 /* CFPriv.h in Headers */,
+				158B66A32450D72E00892EFB /* CFNumber_Private.h in Headers */,
 				5B7C8AD91BEA80FC00C5B690 /* CFMachPort.h in Headers */,
 				5B7C8AE71BEA81AC00C5B690 /* CFBasicHash.h in Headers */,
 				5B7C8AC41BEA80FC00C5B690 /* CFBinaryHeap.h in Headers */,
@@ -2413,6 +2389,7 @@
 				5B6228BD1C179049009587FE /* CFRunArray.h in Headers */,
 				5B7C8ACE1BEA80FC00C5B690 /* CFNumberFormatter.h in Headers */,
 				1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */,
+				158B66A72450F0C400892EFB /* CFBundle_SplitFileName.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2451,8 +2428,8 @@
 			);
 			dependencies = (
 				F023078423F0BDF40023DBEC /* PBXTargetDependency */,
-				1550110C22EA26780088F082 /* PBXTargetDependency */,
 				15F14D3A22EB9F80001598B5 /* PBXTargetDependency */,
+				15A619DE245A2895003C8C62 /* PBXTargetDependency */,
 			);
 			name = SwiftFoundationXML;
 			productName = CoreFoundation;
@@ -2772,7 +2749,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1550102C22EA24D10088F082 /* CFXMLInterface.c in Sources */,
+				15A619E0245A298C003C8C62 /* CFXMLInterface.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2982,7 +2959,6 @@
 				5B7C8AB71BEA801700C5B690 /* CFUnicodePrecomposition.c in Sources */,
 				5BF9B7FE1FABD5DA00EE1A7C /* CFBundle_DebugStrings.c in Sources */,
 				5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */,
-				5B7C8A951BEA7FEC00C5B690 /* CFXMLTree.c in Sources */,
 				5B7C8AB81BEA802100C5B690 /* CFURLComponents_URIParser.c in Sources */,
 				5B7C8A8E1BEA7FE200C5B690 /* CFTimeZone.c in Sources */,
 				5B7C8A791BEA7FCE00C5B690 /* CFUUID.c in Sources */,
@@ -2998,7 +2974,6 @@
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
 				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
-				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
 				5B2B59821C24D00500271109 /* CFStream.c in Sources */,
 				5B7C8A8B1BEA7FE200C5B690 /* CFBigNumber.c in Sources */,
@@ -3011,7 +2986,6 @@
 				5B7C8AB41BEA801700C5B690 /* CFStringEncodingDatabase.c in Sources */,
 				5B7C8A831BEA7FCE00C5B690 /* CFTree.c in Sources */,
 				5B7C8A981BEA7FF900C5B690 /* CFBundle_InfoPlist.c in Sources */,
-				5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */,
 				5B7C8A961BEA7FF900C5B690 /* CFBundle_Binary.c in Sources */,
 				5B7C8AAC1BEA800D00C5B690 /* CFString.c in Sources */,
 				5B7C8A821BEA7FCE00C5B690 /* CFStorage.c in Sources */,
@@ -3023,19 +2997,17 @@
 				5B7C8A751BEA7FCE00C5B690 /* CFRuntime.c in Sources */,
 				5B7C8A7C1BEA7FCE00C5B690 /* CFBasicHash.c in Sources */,
 				61E011821C1B599A000037DD /* CFMachPort.c in Sources */,
-				5B7C8A921BEA7FEC00C5B690 /* CFXMLInputStream.c in Sources */,
 				5B7C8AAA1BEA800D00C5B690 /* CFBurstTrie.c in Sources */,
-				5B7C8A9E1BEA7FF900C5B690 /* CFPlugIn_Instance.c in Sources */,
 				D51239DF1CD9DA0800D433EE /* CFSocket.c in Sources */,
 				5B7C8A801BEA7FCE00C5B690 /* CFDictionary.c in Sources */,
 				5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */,
+				158B66A62450F0C400892EFB /* CFBundle_SplitFileName.c in Sources */,
 				5B7C8AAE1BEA800D00C5B690 /* CFStringScanner.c in Sources */,
 				5B7C8A771BEA7FCE00C5B690 /* CFSystemDirectories.c in Sources */,
 				5B7C8AAD1BEA800D00C5B690 /* CFStringEncodings.c in Sources */,
 				5B7C8AB21BEA801700C5B690 /* CFPlatformConverters.c in Sources */,
 				5B7C8AB91BEA802100C5B690 /* CFURLComponents.c in Sources */,
 				1569BFA12187D04C009518FA /* CFCalendar_Enumerate.c in Sources */,
-				5B7C8A9D1BEA7FF900C5B690 /* CFPlugIn_Factory.c in Sources */,
 				5B7C8A861BEA7FDB00C5B690 /* CFDateFormatter.c in Sources */,
 				5B7C8AAB1BEA800D00C5B690 /* CFCharacterSet.c in Sources */,
 				5B7C8A7A1BEA7FCE00C5B690 /* CFArray.c in Sources */,
@@ -3056,14 +3028,12 @@
 				5B7C8A9B1BEA7FF900C5B690 /* CFBundle_Strings.c in Sources */,
 				5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */,
 				5B7C8A851BEA7FDB00C5B690 /* CFCalendar.c in Sources */,
-				5B7C8A9F1BEA7FF900C5B690 /* CFPlugIn_PlugIn.c in Sources */,
 				5B7C8AB11BEA801700C5B690 /* CFICUConverters.c in Sources */,
 				1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */,
 				5B7C8A841BEA7FDB00C5B690 /* CFError.c in Sources */,
 				5B7C8A8D1BEA7FE200C5B690 /* CFNumber.c in Sources */,
 				5B7C8A991BEA7FF900C5B690 /* CFBundle_Locale.c in Sources */,
 				5B7C8A741BEA7FCE00C5B690 /* CFPlatform.c in Sources */,
-				5B7C8A931BEA7FEC00C5B690 /* CFXMLNode.c in Sources */,
 				5B7C8A781BEA7FCE00C5B690 /* CFUtilities.c in Sources */,
 				5B7C8AB31BEA801700C5B690 /* CFStringEncodingConverter.c in Sources */,
 				5B6228BF1C179052009587FE /* CFAttributedString.c in Sources */,
@@ -3213,11 +3183,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1550110C22EA26780088F082 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 15500FA722EA24D10088F082 /* CFXMLInterface */;
-			targetProxy = 1550110B22EA26780088F082 /* PBXContainerItemProxy */;
-		};
 		1550111A22EA43E00088F082 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1550106E22EA266B0088F082 /* SwiftFoundationXML */;
@@ -3232,6 +3197,11 @@
 			isa = PBXTargetDependency;
 			target = 15B80384228F376000B30FF6 /* SwiftFoundationNetworking */;
 			targetProxy = 159870BF228F741000ADE509 /* PBXContainerItemProxy */;
+		};
+		15A619DE245A2895003C8C62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 15500FA722EA24D10088F082 /* CFXMLInterface */;
+			targetProxy = 15A619DD245A2895003C8C62 /* PBXContainerItemProxy */;
 		};
 		15B80385228F376000B30FF6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3987,6 +3957,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_FLOAT_CONVERSION = YES_ERROR;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
@@ -4035,6 +4006,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_FLOAT_CONVERSION = YES_ERROR;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;

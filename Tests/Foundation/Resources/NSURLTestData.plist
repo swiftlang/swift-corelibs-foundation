@@ -3008,9 +3008,9 @@
 				<key>baseURLString</key>
 				<string>&lt;null&gt;</string>
 				<key>deletingLastPathComponent</key>
-				<string>http://sega.com/pc/catalog/;$sessionid$MMBAWYIAABHS4CRSBUKCM4YKGIGQUMS0?PRODID=193</string>
+				<string>http://sega.com/pc/catalog/?PRODID=193</string>
 				<key>deletingLastPathExtension</key>
-				<string>http://sega.com/pc/catalog/SegaProduct;$sessionid$MMBAWYIAABHS4CRSBUKCM4YKGIGQUMS0?PRODID=193</string>
+				<string>http://sega.com/pc/catalog/SegaProduct?PRODID=193</string>
 				<key>fragment</key>
 				<string>&lt;null&gt;</string>
 				<key>host</key>
@@ -3018,7 +3018,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>SegaProduct.jhtml</string>
+				<string>SegaProduct.jhtml;$sessionid$MMBAWYIAABHS4CRSBUKCM4YKGIGQUMS0</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -3028,10 +3030,10 @@
 					<string>/</string>
 					<string>pc</string>
 					<string>catalog</string>
-					<string>SegaProduct.jhtml</string>
+					<string>SegaProduct.jhtml;$sessionid$MMBAWYIAABHS4CRSBUKCM4YKGIGQUMS0</string>
 				</array>
 				<key>pathExtension</key>
-				<string>jhtml</string>
+				<string>jhtml;$sessionid$MMBAWYIAABHS4CRSBUKCM4YKGIGQUMS0</string>
 				<key>port</key>
 				<string>&lt;null&gt;</string>
 				<key>query</key>
@@ -3224,9 +3226,9 @@
 				<key>baseURLString</key>
 				<string>&lt;null&gt;</string>
 				<key>deletingLastPathComponent</key>
-				<string>scheme://user:pass@host:1/path/path2/;params?query#fragment</string>
+				<string>scheme://user:pass@host:1/path/path2/?query#fragment</string>
 				<key>deletingLastPathExtension</key>
-				<string>scheme://user:pass@host:1/path/path2/file;params?query#fragment</string>
+				<string>scheme://user:pass@host:1/path/path2/file?query#fragment</string>
 				<key>fragment</key>
 				<string>fragment</string>
 				<key>host</key>
@@ -3234,7 +3236,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>file.html</string>
+				<string>file.html;params</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>pass</string>
 				<key>path</key>
@@ -3244,10 +3248,10 @@
 					<string>/</string>
 					<string>path</string>
 					<string>path2</string>
-					<string>file.html</string>
+					<string>file.html;params</string>
 				</array>
 				<key>pathExtension</key>
-				<string>html</string>
+				<string>html;params</string>
 				<key>port</key>
 				<integer>1</integer>
 				<key>query</key>
@@ -3442,7 +3446,7 @@
 				<key>baseURLString</key>
 				<string>&lt;null&gt;</string>
 				<key>deletingLastPathComponent</key>
-				<string>scheme://us%60%58er:pass%60%58word@host%60%58name.com:80/pa%60%58th/;par%60%58ameter?qu%60%58ery=val%60%58ue&amp;foo%60%58=bar#frag%60%58ment</string>
+				<string>scheme://us%60%58er:pass%60%58word@host%60%58name.com:80/pa%60%58th/?qu%60%58ery=val%60%58ue&amp;foo%60%58=bar#frag%60%58ment</string>
 				<key>deletingLastPathExtension</key>
 				<string>scheme://us%60%58er:pass%60%58word@host%60%58name.com:80/pa%60%58th/na%60%58me;par%60%58ameter?qu%60%58ery=val%60%58ue&amp;foo%60%58=bar#frag%60%58ment</string>
 				<key>fragment</key>
@@ -3452,16 +3456,18 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>na`Xme</string>
+				<string>na`Xme;par`Xameter</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>pass%60%58word</string>
 				<key>path</key>
-				<string>/pa`Xth/na`Xme;par%60%58ameter</string>
+				<string>/pa`Xth/na`Xme;par`Xameter</string>
 				<key>pathComponents</key>
 				<array>
 					<string>/</string>
 					<string>pa`Xth</string>
-					<string>na`Xme</string>
+					<string>na`Xme;par`Xameter</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -3470,7 +3476,7 @@
 				<key>query</key>
 				<string>qu%60%58ery=val%60%58ue&amp;foo%60%58=bar</string>
 				<key>relativePath</key>
-				<string>/pa`Xth/na`Xme;par%60%58ameter</string>
+				<string>/pa`Xth/na`Xme;par`Xameter</string>
 				<key>relativeString</key>
 				<string>scheme://us%60%58er:pass%60%58word@host%60%58name.com:80/pa%60%58th/na%60%58me;par%60%58ameter?qu%60%58ery=val%60%58ue&amp;foo%60%58=bar#frag%60%58ment</string>
 				<key>scheme</key>
@@ -3553,7 +3559,7 @@
 				<string>http://test.com/unescaped%7Cpipe</string>
 				<key>user</key>
 				<string>&lt;null&gt;</string>
-		    </dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>In-Title</key>
@@ -4950,9 +4956,9 @@
 				<key>baseURLString</key>
 				<string>&lt;null&gt;</string>
 				<key>deletingLastPathComponent</key>
-				<string>http://ad.doubleclick.net/;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/playgames.jsp</string>
+				<string>http://ad.doubleclick.net/click;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/</string>
 				<key>deletingLastPathExtension</key>
-				<string>http://ad.doubleclick.net/click;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/playgames.jsp</string>
+				<string>http://ad.doubleclick.net/click;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/playgames</string>
 				<key>fragment</key>
 				<string>&lt;null&gt;</string>
 				<key>host</key>
@@ -4960,24 +4966,28 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>click</string>
+				<string>playgames.jsp</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
-				<string>/click;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/playgames.jsp</string>
+				<string>/click;h=v2|2e88|0|0|*|o;4461766;0-0;0;7314133;255-0|0;1407955|1406690|1;;?http://meninblack2.station.sony.com/playgames.jsp</string>
 				<key>pathComponents</key>
 				<array>
 					<string>/</string>
-					<string>click</string>
+					<string>click;h=v2|2e88|0|0|*|o;4461766;0-0;0;7314133;255-0|0;1407955|1406690|1;;?http:</string>
+					<string>meninblack2.station.sony.com</string>
+					<string>playgames.jsp</string>
 				</array>
 				<key>pathExtension</key>
-				<string></string>
+				<string>jsp</string>
 				<key>port</key>
 				<string>&lt;null&gt;</string>
 				<key>query</key>
 				<string>&lt;null&gt;</string>
 				<key>relativePath</key>
-				<string>/click;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/playgames.jsp</string>
+				<string>/click;h=v2|2e88|0|0|*|o;4461766;0-0;0;7314133;255-0|0;1407955|1406690|1;;?http://meninblack2.station.sony.com/playgames.jsp</string>
 				<key>relativeString</key>
 				<string>http://ad.doubleclick.net/click;h=v2%7C2e88%7C0%7C0%7C%2a%7Co;4461766;0-0;0;7314133;255-0%7C0;1407955%7C1406690%7C1;;%3fhttp://meninblack2.station.sony.com/playgames.jsp</string>
 				<key>scheme</key>
@@ -5730,7 +5740,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>path</string>
+				<string>path;param</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>pass</string>
 				<key>path</key>
@@ -5739,7 +5751,7 @@
 				<array>
 					<string>/</string>
 					<string>some</string>
-					<string>path</string>
+					<string>path;param</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -5748,7 +5760,7 @@
 				<key>query</key>
 				<string>name=value</string>
 				<key>relativePath</key>
-				<string>;param</string>
+				<string></string>
 				<key>relativeString</key>
 				<string>#zoo</string>
 				<key>scheme</key>
@@ -6311,7 +6323,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>path</string>
+				<string>path;param</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>pass</string>
 				<key>path</key>
@@ -6320,7 +6334,7 @@
 				<array>
 					<string>/</string>
 					<string>some</string>
-					<string>path</string>
+					<string>path;param</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -6329,7 +6343,7 @@
 				<key>query</key>
 				<string>??</string>
 				<key>relativePath</key>
-				<string>;param</string>
+				<string></string>
 				<key>relativeString</key>
 				<string>???</string>
 				<key>scheme</key>
@@ -6704,7 +6718,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>d</string>
+				<string>d;p</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -6714,7 +6730,7 @@
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>d</string>
+					<string>d;p</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -6723,7 +6739,7 @@
 				<key>query</key>
 				<string>y</string>
 				<key>relativePath</key>
-				<string>;p</string>
+				<string></string>
 				<key>relativeString</key>
 				<string>?y</string>
 				<key>scheme</key>
@@ -6820,7 +6836,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>d</string>
+				<string>d;p</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -6830,7 +6848,7 @@
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>d</string>
+					<string>d;p</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -6839,7 +6857,7 @@
 				<key>query</key>
 				<string>q</string>
 				<key>relativePath</key>
-				<string>;p</string>
+				<string></string>
 				<key>relativeString</key>
 				<string>#s</string>
 				<key>scheme</key>
@@ -6978,13 +6996,13 @@
 			<key>Out-NSResults</key>
 			<dict>
 				<key>absoluteString</key>
-				<string>http://a/b/c/d;x</string>
+				<string>http://a/b/c/;x</string>
 				<key>absoluteURLString</key>
-				<string>http://a/b/c/d;x</string>
+				<string>http://a/b/c/;x</string>
 				<key>baseURLString</key>
 				<string>http://a/b/c/d;p?q</string>
 				<key>deletingLastPathComponent</key>
-				<string>;x</string>
+				<string>./</string>
 				<key>deletingLastPathExtension</key>
 				<string>;x</string>
 				<key>fragment</key>
@@ -6994,17 +7012,19 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>d</string>
+				<string>;x</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
-				<string>/b/c/d;x</string>
+				<string>/b/c/;x</string>
 				<key>pathComponents</key>
 				<array>
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>d</string>
+					<string>;x</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -7042,7 +7062,7 @@
 				<key>baseURLString</key>
 				<string>http://a/b/c/d;p?q</string>
 				<key>deletingLastPathComponent</key>
-				<string>./;x</string>
+				<string>./</string>
 				<key>deletingLastPathExtension</key>
 				<string>g;x</string>
 				<key>fragment</key>
@@ -7052,7 +7072,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>g</string>
+				<string>g;x</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -7062,7 +7084,7 @@
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>g</string>
+					<string>g;x</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -7100,7 +7122,7 @@
 				<key>baseURLString</key>
 				<string>http://a/b/c/d;p?q</string>
 				<key>deletingLastPathComponent</key>
-				<string>./;x?y#s</string>
+				<string>./?y#s</string>
 				<key>deletingLastPathExtension</key>
 				<string>g;x?y#s</string>
 				<key>fragment</key>
@@ -7110,7 +7132,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>g</string>
+				<string>g;x</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -7120,7 +7144,7 @@
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>g</string>
+					<string>g;x</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -8306,13 +8330,13 @@
 			<key>Out-NSResults</key>
 			<dict>
 				<key>absoluteString</key>
-				<string>http://a/b/c/g;x=1/./y</string>
+				<string>http://a/b/c/g;x=1/y</string>
 				<key>absoluteURLString</key>
-				<string>http://a/b/c/g;x=1/./y</string>
+				<string>http://a/b/c/g;x=1/y</string>
 				<key>baseURLString</key>
 				<string>http://a/b/c/d;p?q</string>
 				<key>deletingLastPathComponent</key>
-				<string>./;x=1/./y</string>
+				<string>g;x=1/./</string>
 				<key>deletingLastPathExtension</key>
 				<string>g;x=1/./y</string>
 				<key>fragment</key>
@@ -8322,17 +8346,20 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>g</string>
+				<string>y</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
-				<string>/b/c/g;x=1/./y</string>
+				<string>/b/c/g;x=1/y</string>
 				<key>pathComponents</key>
 				<array>
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>g</string>
+					<string>g;x=1</string>
+					<string>y</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -8347,7 +8374,7 @@
 				<key>scheme</key>
 				<string>http</string>
 				<key>standardizedURL</key>
-				<string>g;x=1/./y</string>
+				<string>g;x=1/y</string>
 				<key>user</key>
 				<string>&lt;null&gt;</string>
 			</dict>
@@ -8364,13 +8391,13 @@
 			<key>Out-NSResults</key>
 			<dict>
 				<key>absoluteString</key>
-				<string>http://a/b/c/g;x=1/../y</string>
+				<string>http://a/b/c/y</string>
 				<key>absoluteURLString</key>
-				<string>http://a/b/c/g;x=1/../y</string>
+				<string>http://a/b/c/y</string>
 				<key>baseURLString</key>
 				<string>http://a/b/c/d;p?q</string>
 				<key>deletingLastPathComponent</key>
-				<string>./;x=1/../y</string>
+				<string>g;x=1/../</string>
 				<key>deletingLastPathExtension</key>
 				<string>g;x=1/../y</string>
 				<key>fragment</key>
@@ -8380,17 +8407,19 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>g</string>
+				<string>y</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
-				<string>/b/c/g;x=1/../y</string>
+				<string>/b/c/y</string>
 				<key>pathComponents</key>
 				<array>
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>g</string>
+					<string>y</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -8405,7 +8434,7 @@
 				<key>scheme</key>
 				<string>http</string>
 				<key>standardizedURL</key>
-				<string>g;x=1/../y</string>
+				<string>y</string>
 				<key>user</key>
 				<string>&lt;null&gt;</string>
 			</dict>
@@ -9052,19 +9081,19 @@
 			<key>In-URLCreator</key>
 			<string>NSURLWithString</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<dict>
 				<key>absoluteString</key>
-				<string>http://[fe80::7e6d:62ff:fe75:9e88%25en0]:3689/databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>http://[fe80::7e6d:62ff:fe75:9e88%25en0]:3689/databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>absoluteURLString</key>
-				<string>http://[fe80::7e6d:62ff:fe75:9e88%25en0]:3689/databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>http://[fe80::7e6d:62ff:fe75:9e88%25en0]:3689/databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>baseURLString</key>
 				<string>http://[fe80::7e6d:62ff:fe75:9e88%25en0]:3689</string>
 				<key>deletingLastPathComponent</key>
-				<string>databases/76/containers/2891/?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>databases/76/containers/2891/?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>deletingLastPathExtension</key>
-				<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>fragment</key>
 				<string>&lt;null&gt;</string>
 				<key>host</key>
@@ -9091,15 +9120,15 @@
 				<key>port</key>
 				<integer>3689</integer>
 				<key>query</key>
-				<string>sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>relativePath</key>
 				<string>databases/76/containers/2891/items</string>
 				<key>relativeString</key>
-				<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>scheme</key>
 				<string>http</string>
 				<key>standardizedURL</key>
-				<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+				<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 				<key>user</key>
 				<string>&lt;null&gt;</string>
 			</dict>
@@ -10319,7 +10348,7 @@
 				<key>baseURLString</key>
 				<string>&lt;null&gt;</string>
 				<key>deletingLastPathComponent</key>
-				<string>http://a/b/c/;x=1/./y</string>
+				<string>http://a/b/c/g;x=1/./</string>
 				<key>deletingLastPathExtension</key>
 				<string>http://a/b/c/g;x=1/./y</string>
 				<key>fragment</key>
@@ -10329,7 +10358,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>g</string>
+				<string>y</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -10339,7 +10370,9 @@
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>g</string>
+					<string>g;x=1</string>
+					<string>.</string>
+					<string>y</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -10354,7 +10387,7 @@
 				<key>scheme</key>
 				<string>http</string>
 				<key>standardizedURL</key>
-				<string>http://a/b/c/g;x=1/./y</string>
+				<string>http://a/b/c/g;x=1/y</string>
 				<key>user</key>
 				<string>&lt;null&gt;</string>
 			</dict>
@@ -10375,7 +10408,7 @@
 				<key>baseURLString</key>
 				<string>&lt;null&gt;</string>
 				<key>deletingLastPathComponent</key>
-				<string>http://a/b/c/;x=1/../y</string>
+				<string>http://a/b/c/g;x=1/../</string>
 				<key>deletingLastPathExtension</key>
 				<string>http://a/b/c/g;x=1/../y</string>
 				<key>fragment</key>
@@ -10385,7 +10418,9 @@
 				<key>isFileURL</key>
 				<string>NO</string>
 				<key>lastPathComponent</key>
-				<string>g</string>
+				<string>y</string>
+				<key>parameterString</key>
+				<string>&lt;null&gt;</string>
 				<key>password</key>
 				<string>&lt;null&gt;</string>
 				<key>path</key>
@@ -10395,7 +10430,9 @@
 					<string>/</string>
 					<string>b</string>
 					<string>c</string>
-					<string>g</string>
+					<string>g;x=1</string>
+					<string>..</string>
+					<string>y</string>
 				</array>
 				<key>pathExtension</key>
 				<string></string>
@@ -10410,7 +10447,7 @@
 				<key>scheme</key>
 				<string>http</string>
 				<key>standardizedURL</key>
-				<string>http://a/b/c/g;x=1/../y</string>
+				<string>http://a/b/c/y</string>
 				<key>user</key>
 				<string>&lt;null&gt;</string>
 			</dict>
@@ -12563,7 +12600,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithString</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -14669,7 +14706,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -16775,7 +16812,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateAbsoluteURLWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -19219,7 +19256,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -21721,7 +21758,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -24223,7 +24260,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -26725,7 +26762,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -29227,7 +29264,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>
@@ -31729,7 +31766,7 @@
 			<key>In-URLCreator</key>
 			<string>CFURLCreateWithBytes</string>
 			<key>In-Url</key>
-			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=(('com.apple.itunes.extended-media-kind:1','com.apple.itunes.extended-media-kind:32')+'daap.songdatakind:0')&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
+			<string>databases/76/containers/2891/items?sort=dateadded&amp;invert-sort-order=1&amp;session-id=1866048351&amp;query=((&apos;com.apple.itunes.extended-media-kind:1&apos;,&apos;com.apple.itunes.extended-media-kind:32&apos;)+&apos;daap.songdatakind:0&apos;)&amp;meta=dmap.persistentid,dmap.itemname,daap.songalbum,com.apple.itunes.extended-media-kind,daap.songalbumid,daap.songformat,com.apple.itunes.gapless-heur,com.apple.itunes.gapless-enc-del,com.apple.itunes.gapless-enc-dr,com.apple.itunes.gapless-dur,com.apple.itunes.gapless-resy,com.apple.itunes.norm-volume,daap.songbookmark,daap.songhasbeenplayed,daap.songuserplaycount,daap.songtime,com.apple.itunes.is-hd-video,daap.songcontentrating,com.apple.itunes.content-rating,daap.songcontentdescription,daap.songlongcontentdescription,com.apple.itunes.movie-info-xml,daap.songstarttime,daap.songstoptime,com.apple.itunes.drm-key1-id,com.apple.itunes.rental-start,com.apple.itunes.drm-user-id,com.apple.itunes.rental-duration,com.apple.itunes.rental-pb-start,com.apple.itunes.rental-pb-duration,daap.songdateadded,com.apple.itunes.itms-songid,daap.songdisabled,dmap.itemid,com.apple.itunes.artworkchecksum&amp;index=0-99</string>
 			<key>Out-NSResults</key>
 			<string>&lt;null url&gt;</string>
 		</dict>

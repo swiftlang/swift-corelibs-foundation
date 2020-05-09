@@ -1,7 +1,7 @@
 /*	CFURL.h
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -254,8 +254,7 @@ CFStringRef CFURLCopyPassword(CFURLRef anURL);
 /* corresponding characters.  If charactersToLeaveEscaped is NULL, */
 /* then no escape sequences are removed at all */
 CF_EXPORT
-CFStringRef CFURLCopyParameterString(CFURLRef anURL, CFStringRef charactersToLeaveEscaped);
-
+CFStringRef CFURLCopyParameterString(CFURLRef anURL, CFStringRef charactersToLeaveEscaped) API_DEPRECATED("The CFURLCopyParameterString function is deprecated. Post deprecation for applications linked with or after the macOS 10.15, and for all iOS, watchOS, and tvOS applications, CFURLCopyParameterString will always return NULL, and the CFURLCopyPath(), CFURLCopyStrictPath(), and CFURLCopyFileSystemPath() functions will return the complete path including the semicolon separator and params component if the URL string contains them.", macosx(10.2,10.15), ios(2.0,13.0), watchos(2.0,6.0), tvos(9.0,13.0));
 CF_EXPORT
 CFStringRef CFURLCopyQueryString(CFURLRef anURL, CFStringRef charactersToLeaveEscaped);
 
@@ -403,7 +402,7 @@ CF_EXPORT
 CFStringRef CFURLCreateStringByAddingPercentEscapes(CFAllocatorRef allocator, CFStringRef originalString, CFStringRef charactersToLeaveUnescaped, CFStringRef legalURLCharactersToBeEscaped, CFStringEncoding encoding) API_DEPRECATED("Use [NSString stringByAddingPercentEncodingWithAllowedCharacters:] instead, which always uses the recommended UTF-8 encoding, and which encodes for a specific URL component or subcomponent (since each URL component or subcomponent has different rules for what characters are valid).", macos(10.0,10.11), ios(2.0,9.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 
-#if (TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || CF_BUILDING_CF || NSBUILDINGFOUNDATION
+#if TARGET_OS_MAC || CF_BUILDING_CF || NSBUILDINGFOUNDATION
 CF_IMPLICIT_BRIDGING_DISABLED
 
 /*
@@ -470,7 +469,7 @@ CF_IMPLICIT_BRIDGING_ENABLED
 
 
 
-#if (TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || CF_BUILDING_CF || NSBUILDINGFOUNDATION || DEPLOYMENT_RUNTIME_SWIFT
+#if TARGET_OS_MAC || CF_BUILDING_CF || NSBUILDINGFOUNDATION || DEPLOYMENT_RUNTIME_SWIFT
 CF_IMPLICIT_BRIDGING_DISABLED
 
 /* Resource access
@@ -837,7 +836,7 @@ const CFStringRef kCFURLDocumentIdentifierKey API_AVAILABLE(macos(10.10), ios(8.
 
 CF_EXPORT
 const CFStringRef kCFURLAddedToDirectoryDateKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
-    /* The date the resource was created, or renamed into or within its parent directory. Note that inconsistent behavior may be observed when this attribute is requested on hard-linked items. This property is not supported by all volumes. (Read-only, value type CFDate) */
+    /* The date the resource was created, or renamed into or within its parent directory. Note that inconsistent behavior may be observed when this attribute is requested on hard-linked items. This property is not supported by all volumes. (Read-only before macOS 10.15, iOS 13.0, watchOS 6.0, and tvOS 13.0; Read-write after, value type CFDate) */
 
 CF_EXPORT
 const CFStringRef kCFURLQuarantinePropertiesKey API_AVAILABLE(macos(10.10)) API_UNAVAILABLE(ios, watchos, tvos);
@@ -1143,17 +1142,18 @@ const CFStringRef kCFURLUbiquitousItemDownloadingStatusCurrent API_AVAILABLE(mac
 typedef CF_OPTIONS(CFOptionFlags, CFURLBookmarkCreationOptions) {
     kCFURLBookmarkCreationMinimalBookmarkMask = ( 1UL << 9 ), // creates bookmark data with "less" information, which may be smaller but still be able to resolve in certain ways
     kCFURLBookmarkCreationSuitableForBookmarkFile = ( 1UL << 10 ), // include the properties required by CFURLWriteBookmarkDataToFile() in the bookmark data created
-    kCFURLBookmarkCreationWithSecurityScope CF_ENUM_AVAILABLE(10_7, NA) = ( 1UL << 11 ), // Mac OS X 10.7.3 and later, include information in the bookmark data which allows the same sandboxed process to access the resource after being relaunched
-    kCFURLBookmarkCreationSecurityScopeAllowOnlyReadAccess CF_ENUM_AVAILABLE(10_7, NA) = ( 1UL << 12 ), // Mac OS X 10.7.3 and later, if used with kCFURLBookmarkCreationWithSecurityScope, at resolution time only read access to the resource will be granted
+    kCFURLBookmarkCreationWithSecurityScope API_AVAILABLE(macos(10.7))  API_UNAVAILABLE(ios, watchos, tvos) = ( 1UL << 11 ), // Mac OS X 10.7.3 and later, include information in the bookmark data which allows the same sandboxed process to access the resource after being relaunched
+    kCFURLBookmarkCreationSecurityScopeAllowOnlyReadAccess API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos) = ( 1UL << 12 ), // Mac OS X 10.7.3 and later, if used with kCFURLBookmarkCreationWithSecurityScope, at resolution time only read access to the resource will be granted
     
     // deprecated
-    kCFURLBookmarkCreationPreferFileIDResolutionMask CF_ENUM_DEPRECATED(10_6, 10_9, 4_0, 7_0, "kCFURLBookmarkCreationPreferFileIDResolutionMask does nothing and has no effect on bookmark resolution" ) = ( 1UL << 8 ),
+    kCFURLBookmarkCreationPreferFileIDResolutionMask
+    API_DEPRECATED("kCFURLBookmarkCreationPreferFileIDResolutionMask does nothing and has no effect on bookmark resolution", macos(10.6,10.9), ios(4.0,7.0)) = ( 1UL << 8 ),
 } API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 typedef CF_OPTIONS(CFOptionFlags, CFURLBookmarkResolutionOptions) {
     kCFURLBookmarkResolutionWithoutUIMask = ( 1UL << 8 ), // don't perform any user interaction during bookmark resolution
     kCFURLBookmarkResolutionWithoutMountingMask = ( 1UL << 9 ), // don't mount a volume during bookmark resolution
-    kCFURLBookmarkResolutionWithSecurityScope CF_ENUM_AVAILABLE(10_7, NA) = ( 1UL << 10 ), // Mac OS X 10.7.3 and later, use the secure information included at creation time to provide the ability to access the resource in a sandboxed process.
+    kCFURLBookmarkResolutionWithSecurityScope API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos) = ( 1UL << 10 ), // Mac OS X 10.7.3 and later, use the secure information included at creation time to provide the ability to access the resource in a sandboxed process.
     
     kCFBookmarkResolutionWithoutUIMask = kCFURLBookmarkResolutionWithoutUIMask,
     kCFBookmarkResolutionWithoutMountingMask = kCFURLBookmarkResolutionWithoutMountingMask,
@@ -1211,7 +1211,7 @@ CF_EXPORT
 void CFURLStopAccessingSecurityScopedResource(CFURLRef url) API_AVAILABLE(macos(10.7), ios(8.0), watchos(2.0), tvos(9.0)); // On OSX, available in MacOS X 10.7.3 and later
 
 #endif /* !DEPLOYMENT_TARGET_SWIFT */
-#endif /* TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_SWIFT */
+#endif /*  TARGET_OS_MAC || CF_BUILDING_CF || NSBUILDINGFOUNDATION || DEPLOYMENT_RUNTIME_SWIFT */
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

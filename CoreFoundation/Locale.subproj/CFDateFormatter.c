@@ -1,11 +1,11 @@
 /*      CFDateFormatter.c
-	Copyright (c) 2002-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-        Responsibility: David Smith
+        Responsibility: Itai Ferber
 */
 
 #define U_SHOW_INTERNAL_API 1
@@ -592,7 +592,13 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
     UChar tz_buffer[BUFFER_SIZE];
     tz_buffer[0] = 0;
     CFStringRef tmpTZName = df->_property._TimeZone ? CFTimeZoneGetName(df->_property._TimeZone) : CFSTR("GMT");
-    CFStringGetCharacters(tmpTZName, CFRangeMake(0, CFStringGetLength(tmpTZName)), (UniChar *)tz_buffer);
+    if (tmpTZName == NULL) {
+        os_log_error(_CFOSLog(), "Error: CFDateFormatter time zone has an empty name: %@", df->_property._TimeZone);
+        return;
+    }
+
+    CFIndex const tz_length = __CFMin(BUFFER_SIZE, CFStringGetLength(tmpTZName));
+    CFStringGetCharacters(tmpTZName, CFRangeMake(0, tz_length), (UniChar *)tz_buffer);
 
     int32_t udstyle = 0, utstyle = 0; // effectively this makes UDAT_FULL the default for unknown dateStyle/timeStyle values
     switch (df->_dateStyle) {
@@ -616,7 +622,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
     }
 
     UErrorCode status = U_ZERO_ERROR;
-    UDateFormat *icudf = __cficu_udat_open((UDateFormatStyle)utstyle, (UDateFormatStyle)udstyle, loc_buffer, tz_buffer, CFStringGetLength(tmpTZName), NULL, 0, &status);
+    UDateFormat *icudf = __cficu_udat_open((UDateFormatStyle)utstyle, (UDateFormatStyle)udstyle, loc_buffer, tz_buffer, tz_length, NULL, 0, &status);
 
     if (NULL == icudf || U_FAILURE(status)) {
         return;
@@ -673,7 +679,6 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
 
     __ApplyUDateFormatSymbol(df);
     
-
     if (wantRelative && !hasFormat && kCFDateFormatterNoStyle != df->_dateStyle) {
         UChar dateBuffer[BUFFER_SIZE];
         UChar timeBuffer[BUFFER_SIZE];
@@ -765,7 +770,7 @@ CFTypeID CFDateFormatterGetTypeID(void) {
     return _kCFRuntimeIDCFDateFormatter;
 }
 
-static CFDateFormatterRef __SetUpCFDateFormatter(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle, CFBooleanRef calculateISO8601) {
+static CFDateFormatterRef __CreateCFDateFormatter(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle, CFBooleanRef calculateISO8601) {
     struct __CFDateFormatter *memory;
     uint32_t size = sizeof(struct __CFDateFormatter) - sizeof(CFRuntimeBase);
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
@@ -775,70 +780,8 @@ static CFDateFormatterRef __SetUpCFDateFormatter(CFAllocatorRef allocator, CFLoc
     if (NULL == memory) {
         return NULL;
     }
-    memory->_df = NULL;
-    memory->_locale = NULL;
-    memory->_format = NULL;
-    memory->_defformat = NULL;
     memory->_dateStyle = dateStyle;
     memory->_timeStyle = timeStyle;
-    memory->_property._IsLenient = NULL;
-    memory->_property._DoesRelativeDateFormatting = NULL;
-    memory->_property._HasCustomFormat = NULL;
-    memory->_property._TimeZone = NULL;
-    memory->_property._Calendar = NULL;
-    memory->_property._CalendarName = NULL;
-    memory->_property._TwoDigitStartDate = NULL;
-    memory->_property._DefaultDate = NULL;
-    memory->_property._GregorianStartDate = NULL;
-    memory->_property._EraSymbols = NULL;
-    memory->_property._LongEraSymbols = NULL;
-    memory->_property._MonthSymbols = NULL;
-    memory->_property._ShortMonthSymbols = NULL;
-    memory->_property._VeryShortMonthSymbols = NULL;
-    memory->_property._StandaloneMonthSymbols = NULL;
-    memory->_property._ShortStandaloneMonthSymbols = NULL;
-    memory->_property._VeryShortStandaloneMonthSymbols = NULL;
-    memory->_property._WeekdaySymbols = NULL;
-    memory->_property._ShortWeekdaySymbols = NULL;
-    memory->_property._VeryShortWeekdaySymbols = NULL;
-    memory->_property._StandaloneWeekdaySymbols = NULL;
-    memory->_property._ShortStandaloneWeekdaySymbols = NULL;
-    memory->_property._VeryShortStandaloneWeekdaySymbols = NULL;
-    memory->_property._QuarterSymbols = NULL;
-    memory->_property._ShortQuarterSymbols = NULL;
-    memory->_property._StandaloneQuarterSymbols = NULL;
-    memory->_property._ShortStandaloneQuarterSymbols = NULL;
-    memory->_property._AMSymbol = NULL;
-    memory->_property._PMSymbol = NULL;
-    memory->_property._AmbiguousYearStrategy = NULL;
-    memory->_property._UsesCharacterDirection = NULL;
-    memory->_property._FormattingContext = NULL;
-    memory->_property._CustomEraSymbols = NULL;
-    memory->_property._CustomMonthSymbols = NULL;
-    memory->_property._CustomShortMonthSymbols = NULL;
-    memory->_property._CustomWeekdaySymbols = NULL;
-    memory->_property._CustomShortWeekdaySymbols = NULL;
-    memory->_property._CustomLongEraSymbols = NULL;
-    memory->_property._CustomVeryShortMonthSymbols = NULL;
-    memory->_property._CustomVeryShortWeekdaySymbols = NULL;
-    memory->_property._CustomStandaloneMonthSymbols = NULL;
-    memory->_property._CustomShortStandaloneMonthSymbols = NULL;
-    memory->_property._CustomVeryShortStandaloneMonthSymbols = NULL;
-    memory->_property._CustomStandaloneWeekdaySymbols = NULL;
-    memory->_property._CustomShortStandaloneWeekdaySymbols = NULL;
-    memory->_property._CustomVeryShortStandaloneWeekdaySymbols = NULL;
-    memory->_property._CustomQuarterSymbols = NULL;
-    memory->_property._CustomShortQuarterSymbols = NULL;
-    memory->_property._CustomStandaloneQuarterSymbols = NULL;
-    memory->_property._CustomShortStandaloneQuarterSymbols = NULL;
-    memory->_property._CustomDateFormat = NULL;
-    memory->_property._CustomTimeFormat = NULL;
-    memory->_property._Custom24Hour = NULL;
-    memory->_property._Custom12Hour = NULL;
-    memory->_property._CustomAMSymbol = NULL;
-    memory->_property._CustomPMSymbol = NULL;
-    memory->_property._CustomFirstWeekday = NULL;
-    memory->_property._CustomMinDaysInFirstWeek = NULL;
 
     switch (dateStyle) {
     case kCFDateFormatterNoStyle:
@@ -1037,7 +980,7 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
 CFDateFormatterRef CFDateFormatterCreateISO8601Formatter(CFAllocatorRef allocator, CFISO8601DateFormatOptions formatOptions) {
     CFStringRef localeStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, "en_US_POSIX", kCFStringEncodingUTF8);
     CFLocaleRef locale = CFLocaleCreate(kCFAllocatorSystemDefault, localeStr);
-    CFDateFormatterRef ISO8601Formatter = __SetUpCFDateFormatter(allocator, locale, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle, kCFBooleanTrue);  // dateStyle and timeStyle are not relevant for ISO8601
+    CFDateFormatterRef ISO8601Formatter = __CreateCFDateFormatter(allocator, locale, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle, kCFBooleanTrue);  // dateStyle and timeStyle are not relevant for ISO8601
 
     if (formatOptions != 0) {
         CFStringRef formatStr = __createISO8601FormatString(formatOptions);
@@ -1054,7 +997,7 @@ CFDateFormatterRef CFDateFormatterCreateISO8601Formatter(CFAllocatorRef allocato
 }
 
 CFDateFormatterRef CFDateFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle) {
-    return __SetUpCFDateFormatter(allocator, locale, dateStyle, timeStyle, kCFBooleanFalse);
+    return __CreateCFDateFormatter(allocator, locale, dateStyle, timeStyle, kCFBooleanFalse);
 }
 
 
@@ -1328,7 +1271,13 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
 #else
     Boolean success = false;
 #endif
-    return success && result && newPatternLen > 0 ? result : CFRetain(inString);
+    Boolean returnResult = success && result && newPatternLen > 0;
+    if (returnResult) {
+        return result;
+    } else {
+        if (result) CFRelease(result);
+        return CFRetain(inString);
+    }
 }
 
 CFLocaleRef CFDateFormatterGetLocale(CFDateFormatterRef formatter) {

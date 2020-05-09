@@ -1,5 +1,5 @@
 /*	CFArray.h
-	Copyright (c) 1998-2018, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2019, Apple Inc. All rights reserved.
 */
 
 /*!

@@ -1,11 +1,11 @@
 /*	CFTimeZone.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Itai Ferber
 */
 
 
@@ -894,6 +894,15 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
+#if TARGET_OS_ANDROID
+    // Timezone database by name not available on Android.
+    // Approximate with gmtoff - could be general default.
+    struct tm info;
+    time_t now = time(NULL);
+    if (NULL != localtime_r(&now, &info)) {
+        return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, info.tm_gmtoff);
+    }
+#endif
     return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0);
 }
 
@@ -1110,18 +1119,19 @@ static int32_t __tryParseGMTName(CFStringRef name) {
     CFStringGetCharacters(name, CFRangeMake(0, len), ustr);
     ustr[len] = 0;
     
-    // GMT, GMT{+|-}HH, GMT{+|-}HHMM, GMT{+|-}{H|HH}{:|.}MM
-    // UTC, UTC{+|-}HH, UTC{+|-}HHMM, UTC{+|-}{H|HH}{:|.}MM
+    // GMT, GMT{+|-}H, GMT{+|-}HH, GMT{+|-}HHMM, GMT{+|-}{H|HH}{:|.}MM
+    // UTC, UTC{+|-}H, UTC{+|-}HH, UTC{+|-}HHMM, UTC{+|-}{H|HH}{:|.}MM
     //   where "00" <= HH <= "18", "00" <= MM <= "59", and if HH==18, then MM must == 00
-    
+
     Boolean isGMT = ('G' == ustr[0] && 'M' == ustr[1] && 'T' == ustr[2]);
     Boolean isUTC = ('U' == ustr[0] && 'T' == ustr[1] && 'C' == ustr[2]);
     if (!isGMT && !isUTC) return -1;
     if (3 == len) return 0;
     
-    if (len < 6) return -1;
+    if (len < 5) return -1;
     if (!('+' == ustr[3] || '-' == ustr[3])) return -1;
     if (!('0' <= ustr[4] && ustr[4] <= '9')) return -1;
+    if (5 == len) return (('-' == ustr[3]) ? -1 : 1) * (ustr[4] - '0') * 3600; // GMT{+|-}H
     Boolean twoHourDigits = ('0' <= ustr[5] && ustr[5] <= '9');
     Boolean fiveIsPunct = (':' == ustr[5] || '.' == ustr[5]);
     if (!(twoHourDigits || fiveIsPunct)) return -1;

@@ -140,7 +140,7 @@ static void __CFDateComponentsDeallocate(CFTypeRef cf) {
     if (dc->_timeZone) CFRelease(dc->_timeZone);
 }
 
-static const CFRuntimeClass __CFDateComponentsClass = {
+const CFRuntimeClass __CFDateComponentsClass = {
     0,
     "CFDateComponents",
     NULL,   // init

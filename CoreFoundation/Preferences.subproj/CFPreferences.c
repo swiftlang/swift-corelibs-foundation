@@ -1,7 +1,7 @@
 /*	CFPreferences.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -423,7 +423,7 @@ static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
-#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_OSX || TARGET_OS_WIN32 || TARGET_OS_LINUX
     CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;

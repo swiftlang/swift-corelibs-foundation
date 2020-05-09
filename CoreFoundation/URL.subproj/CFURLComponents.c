@@ -1,7 +1,7 @@
 /*	CFURLComponents.c
-	Copyright (c) 2015-2018, Apple Inc. All rights reserved.
+	Copyright (c) 2015-2019, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -119,7 +119,6 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreate(CFAllocatorRef alloc) {
     
     memory->_lock = CFLockInit;
     
-    memory->_urlString = NULL;
     memory->_schemeComponentValid = true;
     memory->_userComponentValid = true;
     memory->_passwordComponentValid = true;
@@ -128,16 +127,7 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreate(CFAllocatorRef alloc) {
     memory->_pathComponentValid = true;
     memory->_queryComponentValid = true;
     memory->_fragmentComponentValid = true;
-    
-    memory->_schemeComponent = NULL;
-    memory->_userComponent = NULL;
-    memory->_passwordComponent = NULL;
-    memory->_hostComponent = NULL;
-    memory->_portComponent = NULL;
-    memory->_pathComponent = NULL;
-    memory->_queryComponent = NULL;
-    memory->_fragmentComponent = NULL;
-    
+
     return memory;
 }
 
@@ -156,49 +146,32 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateWithURL(CFAllocatorRef alloc,
 }
 
 CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateWithString(CFAllocatorRef alloc, CFStringRef string) {
-    CFIndex size = sizeof(struct __CFURLComponents) - sizeof(CFRuntimeBase);
-    CFURLComponentsRef memory = (CFURLComponentsRef)_CFRuntimeCreateInstance(alloc, _CFURLComponentsGetTypeID(), size, NULL);
-    if (NULL == memory) {
-        return NULL;
-    }
-    
-    _CFURIParserParseURIReference(string, &memory->_parseInfo);
-    if (!_CFURIParserURLStringIsValid(string, &memory->_parseInfo)) {
-        CFAllocatorDeallocate(alloc, memory);
-        return NULL;
-    }
-    
-    memory->_lock = CFLockInit;
-    
-    memory->_urlString = CFStringCreateCopy(alloc, string);
-    memory->_schemeComponentValid = false;
-    memory->_userComponentValid = false;
-    memory->_passwordComponentValid = false;
-    memory->_hostComponentValid = false;
-    memory->_portComponentValid = false;
-    memory->_pathComponentValid = false;
-    memory->_queryComponentValid = false;
-    memory->_fragmentComponentValid = false;
-    
-    memory->_schemeComponent = NULL;
-    memory->_userComponent = NULL;
-    memory->_passwordComponent = NULL;
-    memory->_hostComponent = NULL;
-    memory->_portComponent = NULL;
-    memory->_pathComponent = NULL;
-    memory->_queryComponent = NULL;
-    memory->_fragmentComponent = NULL;
-    
-    // if paramExists, there's a semi-colon in the path
-    if (memory->_parseInfo.paramExists) {
-        CFStringRef path = _CFURLComponentsCopyPath(memory);
-        _CFURLComponentsSetPath(memory, path);
-        if ( path ) {
-            CFRelease(path);
+    CFURLComponentsRef result = NULL;
+    struct _URIParseInfo parseInfo;
+    _CFURIParserParseURIReference(string, &parseInfo);
+    if ( _CFURIParserURLStringIsValid(string, &parseInfo) ) {
+        CFIndex size = sizeof(struct __CFURLComponents) - sizeof(CFRuntimeBase);
+        result = (CFURLComponentsRef)_CFRuntimeCreateInstance(alloc, _CFURLComponentsGetTypeID(), size, NULL);
+        if ( result) {
+            // copy the _URIParseInfo into the result
+            memcpy(&result->_parseInfo, &parseInfo, sizeof(parseInfo));
+            
+            result->_lock = CFLockInit;
+            
+            result->_urlString = CFStringCreateCopy(alloc, string);
+            
+            // if there's a semi-colon in the path (what used to delimit the deprecated param component)
+            if (result->_parseInfo.semicolonInPathExists) {
+                // this will percent-encode it
+                CFStringRef path = _CFURLComponentsCopyPath(result);
+                _CFURLComponentsSetPath(result, path);
+                if ( path ) {
+                    CFRelease(path);
+                }
+            }
         }
     }
-    
-    return memory;
+    return ( result );
 }
 
 CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateCopy(CFAllocatorRef alloc, CFURLComponentsRef components) {
@@ -222,21 +195,32 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateCopy(CFAllocatorRef alloc, CF
     memory->_queryComponentValid = components->_queryComponentValid;
     memory->_fragmentComponentValid = components->_fragmentComponentValid;
 
-    memory->_schemeComponent = components->_schemeComponent ? CFStringCreateCopy(alloc, components->_schemeComponent) : NULL;
-    memory->_userComponent = components->_userComponent ? CFStringCreateCopy(alloc, components->_userComponent) : NULL;;
-    memory->_passwordComponent = components->_passwordComponent ? CFStringCreateCopy(alloc, components->_passwordComponent) : NULL;;
-    memory->_hostComponent = components->_hostComponent ? CFStringCreateCopy(alloc, components->_hostComponent) : NULL;;
+    if (components->_schemeComponent) {
+        memory->_schemeComponent = CFStringCreateCopy(alloc, components->_schemeComponent);
+    }
+    if (components->_userComponent) {
+        memory->_userComponent = CFStringCreateCopy(alloc, components->_userComponent);
+    }
+    if (components->_passwordComponent) {
+        memory->_passwordComponent = CFStringCreateCopy(alloc, components->_passwordComponent);
+    }
+    if (components->_hostComponent) {
+        memory->_hostComponent = CFStringCreateCopy(alloc, components->_hostComponent);
+    }
     if (components->_portComponent) {
         long long port = 0;
         CFNumberGetValue(components->_portComponent, kCFNumberLongLongType, &port);
         memory->_portComponent = CFNumberCreate(alloc, kCFNumberLongLongType, &port);
-    } else {
-        memory->_portComponent = NULL;
     }
-    memory->_pathComponent = components->_pathComponent ? CFStringCreateCopy(alloc, components->_pathComponent) : NULL;;
-    memory->_queryComponent = components->_queryComponent ? CFStringCreateCopy(alloc, components->_queryComponent) : NULL;;
-    memory->_fragmentComponent = components->_fragmentComponent ? CFStringCreateCopy(alloc, components->_fragmentComponent) : NULL;;
-
+    if (components->_pathComponent) {
+        memory->_pathComponent = CFStringCreateCopy(alloc, components->_pathComponent);
+    }
+    if (components->_queryComponent) {
+        memory->_queryComponent = CFStringCreateCopy(alloc, components->_queryComponent);
+    }
+    if (components->_fragmentComponent) {
+        memory->_fragmentComponent = CFStringCreateCopy(alloc, components->_fragmentComponent);
+    }
     __CFUnlock(&components->_lock);
     
     return memory;
@@ -664,7 +648,7 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPath(CFURLComponentsRef components) {
     
     __CFLock(&components->_lock);
     if ( !components->_pathComponentValid ) {
-        components->_pathComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetPathRange(&components->_parseInfo, false, false));
+        components->_pathComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetPathRange(&components->_parseInfo, false));
         components->_pathComponentValid = true;
     }
     if (!components->_pathComponent) {
@@ -708,25 +692,38 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyFragment(CFURLComponentsRef components
     return ( result );
 }
 
-CF_EXPORT Boolean _CFURLComponentsSetScheme(CFURLComponentsRef components, CFStringRef scheme) {
+CF_EXPORT Boolean _CFURLComponentsSchemeIsValid(CFStringRef scheme) {
+    Boolean valid = false;
     if ( scheme ) {
-        Boolean valid = false;
         CFIndex length = CFStringGetLength(scheme);
         if ( length != 0 ) {
             UniChar ch = CFStringGetCharacterAtIndex(scheme, 0);
             valid = (ch <= 127) && _CFURIParserAlphaAllowed(ch) && _CFURIParserValidateComponent(scheme, CFRangeMake(1, length - 1), kURLSchemeAllowed, false);
         }
-        if ( !valid ) {
-            // invalid characters in scheme
-            return false;
-        }
     }
-    __CFLock(&components->_lock);
-    if (components->_schemeComponent) CFRelease(components->_schemeComponent);
-    components->_schemeComponent = scheme ? CFStringCreateCopy(kCFAllocatorSystemDefault, scheme) : NULL;
-    components->_schemeComponentValid = true;
-    __CFUnlock(&components->_lock);
-    return true;
+    else {
+        // NULL is valid because it can be passed to _CFURLComponentsSetScheme to clear the scheme component
+        valid = true;
+    }
+    return ( valid );
+}
+
+CF_EXPORT Boolean _CFURLComponentsSetScheme(CFURLComponentsRef components, CFStringRef scheme) {
+    Boolean result;
+    if ( _CFURLComponentsSchemeIsValid(scheme) ) {
+        __CFLock(&components->_lock);
+        if (components->_schemeComponent) {
+            CFRelease(components->_schemeComponent);
+        }
+        components->_schemeComponent = scheme ? CFStringCreateCopy(kCFAllocatorSystemDefault, scheme) : NULL;
+        components->_schemeComponentValid = true;
+        __CFUnlock(&components->_lock);
+        result = true;
+    }
+    else {
+        result = false;
+    }
+    return ( result );
 }
 
 CF_EXPORT Boolean _CFURLComponentsSetUser(CFURLComponentsRef components, CFStringRef user) {
@@ -905,7 +902,7 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPercentEncodedPath(CFURLComponentsRef 
     
     __CFLock(&components->_lock);
     if ( !components->_pathComponentValid ) {
-        components->_pathComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetPathRange(&components->_parseInfo, false, false));
+        components->_pathComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetPathRange(&components->_parseInfo, false));
         components->_pathComponentValid = true;
     }
     result = components->_pathComponent ? CFRetain(components->_pathComponent) : NULL;
@@ -1147,7 +1144,7 @@ CF_EXPORT CFRange _CFURLComponentsGetRangeOfPath(CFURLComponentsRef components) 
         _CFURIParserParseURIReference(str, theParseInfo);
         CFRelease(str);
     }
-    return ( _CFURIParserGetPathRange(theParseInfo, false, false) );
+    return ( _CFURIParserGetPathRange(theParseInfo, false) );
 }
 
 CF_EXPORT CFRange _CFURLComponentsGetRangeOfQuery(CFURLComponentsRef components) {
@@ -1409,6 +1406,9 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
                 if ( name && name != kCFNull ) {
                     if ( addPercentEncoding ) {
                         CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, name, queryNameValueAllowed);
+                        if ( !stringWithPercentEncoding ) {
+                            stringWithPercentEncoding = (CFStringRef)CFRetain(CFSTR(""));
+                        }
                         CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
                         CFRelease(stringWithPercentEncoding);
                     }
@@ -1426,6 +1426,9 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
                     CFStringAppendCharactersToAppendBuffer(&buf, chars, 1);
                     if ( addPercentEncoding ) {
                         CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, value, queryNameValueAllowed);
+                        if ( !stringWithPercentEncoding ) {
+                            stringWithPercentEncoding = (CFStringRef)CFRetain(CFSTR(""));
+                        }
                         CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
                         CFRelease(stringWithPercentEncoding);
                     }
