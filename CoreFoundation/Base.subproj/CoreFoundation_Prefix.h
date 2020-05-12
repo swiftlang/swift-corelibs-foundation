@@ -250,7 +250,7 @@ CF_INLINE int flsl( long mask ) {
 }
 #endif // TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__) || TARGET_OS_WASI
 
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_WASI
     
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __weak
@@ -258,7 +258,9 @@ CF_INLINE int flsl( long mask ) {
 #define strtoll_l(a,b,c,locale) strtoll(a,b,c)
 #define strncasecmp_l(a, b, c, d) strncasecmp(a, b, c)
 
+#if !TARGET_OS_WASI
 #include <pthread.h>
+#endif
 
 #if TARGET_OS_ANDROID
 typedef unsigned long fd_mask;

@@ -286,7 +286,6 @@ struct _CFSwiftBridge {
     struct _NSURLBridge NSURL;
 };
 
-#if !TARGET_OS_WASI
 struct _NSCFXMLBridge {
   CFIndex (* _Nonnull CFArrayGetCount)(CFArrayRef);
   const void * _Null_unspecified (* _Nonnull CFArrayGetValueAtIndex)(CFArrayRef, CFIndex);
@@ -315,7 +314,6 @@ struct _NSCFXMLBridge {
 };
 
 CF_EXPORT struct _NSCFXMLBridge __NSCFXMLBridge;
-#endif
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 

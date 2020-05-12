@@ -1677,7 +1677,6 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 struct _CFSwiftBridge __CFSwiftBridge = { { NULL } };
 
-#if !TARGET_OS_WASI
 struct _NSCFXMLBridge __NSCFXMLBridge = {
   CFArrayGetCount,
   CFArrayGetValueAtIndex,
@@ -1704,7 +1703,6 @@ struct _NSCFXMLBridge __NSCFXMLBridge = {
   &kCFTypeDictionaryValueCallBacks,
   &kCFErrorLocalizedDescriptionKey,
 };
-#endif
 
 // Call out to the CF-level finalizer, because the object is going to go away.
 CF_CROSS_PLATFORM_EXPORT void _CFDeinit(CFTypeRef cf) {

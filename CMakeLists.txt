@@ -82,8 +82,9 @@ if(NOT BUILD_SHARED_LIBS)
     install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
       DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
   else()
-    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation BlocksRuntime)
-    install(TARGETS CoreFoundation
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS 
+      CoreFoundation CFXMLInterface BlocksRuntime)
+    install(TARGETS CoreFoundation CFXMLInterface
       DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
   endif()
 endif()

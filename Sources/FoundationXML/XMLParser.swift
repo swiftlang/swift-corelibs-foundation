@@ -47,6 +47,7 @@ private func UTF8STRING(_ bytes: UnsafePointer<UInt8>?) -> String? {
     return nil
 }
 
+#if !os(WASI)
 internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
     if let parser = XMLParser.currentParser() {
         return parser.interface
@@ -54,6 +55,7 @@ internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
         return nil
     }
 }
+#endif
 
 internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, urlStr: UnsafePointer<Int8>, identifier: UnsafePointer<Int8>, context: _CFXMLInterfaceParserContext, originalLoaderFunction: _CFXMLInterfaceExternalEntityLoader) -> _CFXMLInterfaceParserInput? {
     let parser = interface.parser
@@ -62,11 +64,13 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
     if let allowedEntityURLs = parser.allowedExternalEntityURLs {
         if let url = URL(string: String(describing: urlStr)) {
             a = url
+            #if !os(WASI)
             if let scheme = url.scheme {
                 if scheme == "file" {
                     a = URL(fileURLWithPath: url.path)
                 }
             }
+            #endif
         }
         if let url = a {
             let allowed = allowedEntityURLs.contains(url)
@@ -395,7 +399,9 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
 
 open class XMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler
+#if !os(WASI)
     internal var _stream: InputStream?
+#endif
     internal var _data: Data?
 
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
@@ -406,7 +412,8 @@ open class XMLParser : NSObject {
     internal var _delegateAborted = false
     internal var _url: URL?
     internal var _namespaces = [[String:String]]()
-    
+
+#if !os(WASI)
     // initializes the parser with the specified URL.
     public convenience init?(contentsOf url: URL) {
         setupXMLParsing()
@@ -427,6 +434,7 @@ open class XMLParser : NSObject {
             }
         }
     }
+#endif
     
     // create the parser from data
     public init(data: Data) {
@@ -441,6 +449,7 @@ open class XMLParser : NSObject {
         _CFXMLInterfaceDestroyContext(_parserContext)
     }
     
+#if !os(WASI)
     //create a parser that incrementally pulls data from the specified stream and parses it.
     public init(stream: InputStream) {
         setupXMLParsing()
@@ -448,6 +457,7 @@ open class XMLParser : NSObject {
         _handler = _CFXMLInterfaceCreateSAXHandler()
         _parserContext = nil
     }
+#endif
     
     open weak var delegate: XMLParserDelegate?
     
@@ -459,6 +469,7 @@ open class XMLParser : NSObject {
     
     open var allowedExternalEntityURLs: Set<URL>?
     
+#if !os(WASI)
     internal static func currentParser() -> XMLParser? {
         if let current = Thread.current.threadDictionary["__CurrentNSXMLParser"] {
             return current as? XMLParser
@@ -474,6 +485,7 @@ open class XMLParser : NSObject {
             Thread.current.threadDictionary.removeObject(forKey: "__CurrentNSXMLParser")
         }
     }
+#endif
     
     internal func _handleParseResult(_ parseResult: Int32) -> Bool {
         if parseResult == 0 {
@@ -540,49 +552,63 @@ open class XMLParser : NSObject {
         return result
     }
 
-    internal func parseFromStream() -> Bool {
+#if !os(WASI)
+    internal func parse(from stream: InputStream) -> Bool {
         var result = true
-        XMLParser.setCurrentParser(self)
-        defer { XMLParser.setCurrentParser(nil) }
-        if let stream = _stream {
-            stream.open()
-            defer { stream.close() }
-            let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
-            defer { free(buffer) }
-            var len = stream.read(buffer, maxLength: _chunkSize)
-            if len != -1 {
-                while len > 0 {
-                    let data = Data(bytesNoCopy: buffer, count: len, deallocator: .none)
-                    result = parseData(data)
-                    len = stream.read(buffer, maxLength: _chunkSize)
-                }
-            } else {
-                result = false
-            }
-        } else if var data = _data {
-            let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
-            defer { free(buffer) }
-            var range = NSRange(location: 0, length: min(_chunkSize, data.count))
-            while result {
-                let chunk = data.withUnsafeMutableBytes { (rawBuffer: UnsafeMutableRawBufferPointer) -> Data in
-                    let ptr = rawBuffer.baseAddress!.advanced(by: range.location)
-                    return Data(bytesNoCopy: ptr, count: range.length, deallocator: .none)
-                }
-                result = parseData(chunk)
-                if range.location + range.length >= data.count {
-                    break
-                }
-                range = NSRange(location: range.location + range.length, length: min(_chunkSize, data.count - (range.location + range.length)))
+        result = false
+        stream.open()
+        defer { stream.close() }
+        let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
+        defer { free(buffer) }
+        var len = stream.read(buffer, maxLength: _chunkSize)
+        if len != -1 {
+            while len > 0 {
+                let data = Data(bytesNoCopy: buffer, count: len, deallocator: .none)
+                result = parseData(data)
+                len = stream.read(buffer, maxLength: _chunkSize)
             }
         } else {
             result = false
         }
         return result
     }
-    
+#endif
+
+    internal func parse(from data: Data) -> Bool {
+        var data = data
+        var result = true
+        let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
+        defer { free(buffer) }
+        var range = NSRange(location: 0, length: min(_chunkSize, data.count))
+        while result {
+            let chunk = data.withUnsafeMutableBytes { (rawBuffer: UnsafeMutableRawBufferPointer) -> Data in
+                let ptr = rawBuffer.baseAddress!.advanced(by: range.location)
+                return Data(bytesNoCopy: ptr, count: range.length, deallocator: .none)
+            }
+            result = parseData(chunk)
+            if range.location + range.length >= data.count {
+                break
+            }
+            range = NSRange(location: range.location + range.length, length: min(_chunkSize, data.count - (range.location + range.length)))
+        }
+        return result
+    }
+
     // called to start the event-driven parse. Returns YES in the event of a successful parse, and NO in case of error.
     open func parse() -> Bool {
-        return parseFromStream()
+        #if os(WASI)
+        return _data.map { parse(from: $0) } ?? false
+        #else
+        XMLParser.setCurrentParser(self)
+        defer { XMLParser.setCurrentParser(nil) }
+        if let stream = _stream {
+            return parse(from: stream)
+        } else if var data = _data {
+            return parse(from: data)
+        } else {
+            return false
+        }
+        #endif
     }
     
     // called by the delegate to stop the parse. The delegate will get an error message sent to it.
@@ -988,8 +1014,10 @@ extension NSObject {
 func setupXMLParsing() {
     _CFSetupXMLInterface()
     _CFSetupXMLBridgeIfNeededUsingBlock {
+#if !os(WASI)
         __CFSwiftXMLParserBridge.CF = _GetNSCFXMLBridge()
         __CFSwiftXMLParserBridge.currentParser = _NSXMLParserCurrentParser
+#endif
         __CFSwiftXMLParserBridge._xmlExternalEntityWithURL = _NSXMLParserExternalEntityWithURL
         __CFSwiftXMLParserBridge.getContext = _NSXMLParserGetContext
         __CFSwiftXMLParserBridge.internalSubset = _NSXMLParserInternalSubset

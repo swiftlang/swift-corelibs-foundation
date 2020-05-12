@@ -34,6 +34,8 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
     if(NOT CURL_FOUND)
       find_package(CURL REQUIRED)
     endif()
+  else()
+    include(libxml2)
   endif()
   find_package(ICU COMPONENTS uc i18n REQUIRED)
 endif()
@@ -146,8 +148,6 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     Stream.subproj/CFStreamPriv.h
     Stream.subproj/CFStream.h)
   list(APPEND CF_WASI_UNAVAILABLE_SOURCES 
-    # Base
-    Base.subproj/CFFileUtilities.c
     # PlugIn
     PlugIn.subproj/CFBundle_Binary.c
     PlugIn.subproj/CFBundle.c
@@ -325,6 +325,7 @@ add_framework(CoreFoundation
               SOURCES
                 # Base
                 Base.subproj/CFBase.c
+                Base.subproj/CFFileUtilities.c
                 Base.subproj/CFKnownLocations.c
                 Base.subproj/CFPlatform.c
                 Base.subproj/CFRuntime.c
@@ -472,24 +473,30 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL
     CURL::libcurl)
 endif()
 
+add_framework(CFXMLInterface
+                ${FRAMEWORK_LIBRARY_TYPE}
+              FRAMEWORK_DIRECTORY
+                CFXMLInterface_FRAMEWORK_DIRECTORY
+              MODULE_MAP
+                Parsing.subproj/module.modulemap
+              PRIVATE_HEADERS
+                Parsing.subproj/CFXMLInterface.h
+              PUBLIC_HEADERS
+                Parsing.subproj/CFXMLInterface.h
+              SOURCES
+                Parsing.subproj/CFXMLInterface.c)
+add_dependencies(CFXMLInterface CoreFoundation)
+
 if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
-  add_framework(CFXMLInterface
-                  ${FRAMEWORK_LIBRARY_TYPE}
-                FRAMEWORK_DIRECTORY
-                  CFXMLInterface_FRAMEWORK_DIRECTORY
-                MODULE_MAP
-                  Parsing.subproj/module.modulemap
-                PRIVATE_HEADERS
-                  Parsing.subproj/CFXMLInterface.h
-                PUBLIC_HEADERS
-                  Parsing.subproj/CFXMLInterface.h
-                SOURCES
-                  Parsing.subproj/CFXMLInterface.c)
-  add_dependencies(CFXMLInterface CoreFoundation)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
     target_link_libraries(CFXMLInterface PRIVATE
       LibXml2::LibXml2)
   endif()
+else()
+  target_include_directories(CFXMLInterface PRIVATE
+    "${PROJECT_SOURCE_DIR}/../Sources/BlocksRuntime"
+    "${LIBXML2_INCLUDE_DIRS}")
+  target_link_libraries(CFXMLInterface PRIVATE ${LIBXML2_LIBRARIES})
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
@@ -580,9 +587,10 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
             "${CMAKE_INSTALL_FULL_LIBDIR}")
 else()
   install(TARGETS
-    CoreFoundation
-    DESTINATION
-    "${CMAKE_INSTALL_FULL_LIBDIR}")
+            CoreFoundation
+            CFXMLInterface
+          DESTINATION
+            "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
