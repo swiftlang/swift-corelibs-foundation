@@ -159,6 +159,7 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     PlugIn.subproj/CFBundle_Main.c
     PlugIn.subproj/CFBundle_ResourceFork.c
     PlugIn.subproj/CFBundle_Resources.c
+    PlugIn.subproj/CFBundle_SplitFileName.c
     PlugIn.subproj/CFBundle_Strings.c
     PlugIn.subproj/CFBundle_Tables.c
     PlugIn.subproj/CFPlugIn.c
@@ -289,6 +290,8 @@ add_framework(CoreFoundation
                 Collections.subproj/CFBinaryHeap.h
                 Collections.subproj/CFBitVector.h
                 Collections.subproj/CFData.h
+                Collections.subproj/CFDictionary.h
+                Collections.subproj/CFSet.h
                 Collections.subproj/CFTree.h
                 # Error
                 Error.subproj/CFError.h
@@ -363,21 +366,6 @@ add_framework(CoreFoundation
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
-                # PlugIn
-                PlugIn.subproj/CFBundle_Binary.c
-                PlugIn.subproj/CFBundle.c
-                PlugIn.subproj/CFBundle_DebugStrings.c
-                PlugIn.subproj/CFBundle_Executable.c
-                PlugIn.subproj/CFBundle_Grok.c
-                PlugIn.subproj/CFBundle_InfoPlist.c
-                PlugIn.subproj/CFBundle_Locale.c
-                PlugIn.subproj/CFBundle_Main.c
-                PlugIn.subproj/CFBundle_ResourceFork.c
-                PlugIn.subproj/CFBundle_Resources.c
-                PlugIn.subproj/CFBundle_SplitFileName.c
-                PlugIn.subproj/CFBundle_Strings.c
-                PlugIn.subproj/CFBundle_Tables.c
-                PlugIn.subproj/CFPlugIn.c
                 # Preferences
                 Preferences.subproj/CFApplicationPreferences.c
                 Preferences.subproj/CFPreferences.c
@@ -434,8 +422,12 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     BlocksRuntime
     dispatch)
 else()
-  target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN)
-  target_compile_options(CoreFoundation PRIVATE -fno-blocks)
+  add_dependencies(CoreFoundation BlocksRuntime)
+  target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN __CONSTANT_CFSTRINGS__)
+  target_include_directories(CoreFoundation PRIVATE
+    "${PROJECT_SOURCE_DIR}/../Sources/BlocksRuntime")
+  target_link_libraries(CoreFoundation PRIVATE
+    BlocksRuntime)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE

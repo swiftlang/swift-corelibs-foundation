@@ -414,7 +414,8 @@ internal enum _NSNonfileURLContentLoader {
     }
 }
 
+#if !os(WASI)
 public func _GetNSCFXMLBridge() -> _NSCFXMLBridge {
   return __NSCFXMLBridge
 }
-
+#endif

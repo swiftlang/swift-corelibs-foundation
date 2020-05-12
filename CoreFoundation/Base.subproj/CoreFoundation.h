@@ -59,7 +59,9 @@
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFPreferences.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFPropertyList.h>
+#endif
 #include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>

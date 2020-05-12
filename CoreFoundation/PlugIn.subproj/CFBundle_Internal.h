@@ -38,6 +38,7 @@ CF_EXTERN_C_BEGIN
 #elif TARGET_OS_MAC
 #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
 #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
+#elif TARGET_OS_WASI
 #else // a non-covered DEPLOYMENT_TARGET…
 #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
 #endif // DEPLOYMENT_TARGET_…

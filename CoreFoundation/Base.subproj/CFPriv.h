@@ -56,16 +56,18 @@ CF_EXTERN_C_BEGIN
 
 CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 
+#if !TARGET_OS_WASI
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
 
-#if !TARGET_OS_WIN32 && !TARGET_OS_WASI
+#if !TARGET_OS_WIN32
 #include <sys/types.h>
 
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
+#endif
 #endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX))

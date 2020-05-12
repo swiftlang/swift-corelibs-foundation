@@ -202,6 +202,7 @@ static CFDictionaryRef _CFFileURLCreatePropertiesFromResource(CFAllocatorRef all
     return propertyDict;
 }
 
+#if !TARGET_OS_WASI
 static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef propertyDict, SInt32 *errorCode) {
     CFTypeRef buffer[16];
     CFTypeRef *keys;
@@ -257,6 +258,7 @@ static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef
     if (errorCode) *errorCode = result ? 0 : kCFURLUnknownError;
     return result;
 }
+#endif
 
 static Boolean _CFFileURLCreateDataAndPropertiesFromResource(CFAllocatorRef alloc, CFURLRef url, CFDataRef *fetchedData, CFArrayRef desiredProperties, CFDictionaryRef *fetchedProperties, SInt32 *errorCode) {
     Boolean success = true;
@@ -776,11 +778,13 @@ Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef data, CFDi
                 if (!success && errorCode) *errorCode = kCFURLUnknownError;
             }
         }
+#if !TARGET_OS_WASI
         if (propertyDict) {
             if (!_CFFileURLWritePropertiesToResource(url, propertyDict, errorCode))
                 success = false;
         }
         return success;
+#endif
     } else {
         CFRelease(scheme);
 #if TARGET_OS_MAC

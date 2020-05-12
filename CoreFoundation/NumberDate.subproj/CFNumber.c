@@ -1000,7 +1000,7 @@ CFTypeID CFNumberGetTypeID(void) {
 
         const char *caching = getenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
         if (caching) __CFNumberCaching = (!strcmp(caching, "all")) ? kCFNumberCachingFullyDisabled : kCFNumberCachingDisabled;	// initial state above is kCFNumberCachingEnabled
-    DISPATCH_ONCE_END_BLOCK(initOnce)
+    });
     return _kCFRuntimeIDCFNumber;
 }
 

@@ -26,7 +26,9 @@
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFURLAccess.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFPropertyList.h>
+#endif
 #if TARGET_OS_WIN32
 #include <process.h>
 #endif
@@ -96,9 +98,9 @@ CF_PRIVATE os_log_t _CFOSLog(void) {
     static os_log_t logger = NULL;
 
     static dispatch_once_t onceToken;
-    DISPATCH_ONCE_BEGIN_BLOCK(onceToken)
+    dispatch_once(&onceToken, ^{
         logger = os_log_create("com.apple.foundation", "general");
-    DISPATCH_ONCE_END_BLOCK(onceToken)
+    });
     return logger;
 }
 
@@ -466,12 +468,11 @@ CONST_STRING_DECL(_kCFSystemVersionProductUserVisibleVersionKey, "ProductUserVis
 CONST_STRING_DECL(_kCFSystemVersionBuildVersionKey, "ProductBuildVersion")
 CONST_STRING_DECL(_kCFSystemVersionProductVersionStringKey, "Version")
 CONST_STRING_DECL(_kCFSystemVersionBuildStringKey, "Build")
-
+#endif
 
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
     return true;
 }
-#endif
 
 #if TARGET_OS_OSX
 CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
@@ -904,6 +905,9 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
 #elif TARGET_OS_WIN32
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%lx] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
     asprintf(thread, "%lx", GetCurrentThreadId());
+#elif TARGET_OS_WASI
+    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%d:%x] ", year, month, day, hour, minute, second, ms, getpid(), (unsigned int)pthread_self());
+    asprintf(thread, "%lx", pthread_self());
 #else
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());

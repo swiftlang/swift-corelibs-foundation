@@ -43,6 +43,11 @@ set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  add_subdirectory(Sources/BlocksRuntime)
+endif()
+
 add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
 
@@ -55,6 +60,11 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h
 add_custom_target(uuid-headers
   DEPENDS ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h)
 add_dependencies(CoreFoundation uuid-headers)
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  add_dependencies(CoreFoundation BlocksRuntime)
+endif()
+
 target_include_directories(CoreFoundation PRIVATE
   ${CMAKE_BINARY_DIR}/uuid-headers
   ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
@@ -72,7 +82,7 @@ if(NOT BUILD_SHARED_LIBS)
     install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
       DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
   else()
-    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation BlocksRuntime)
     install(TARGETS CoreFoundation
       DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
   endif()

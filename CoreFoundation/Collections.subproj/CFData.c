@@ -43,7 +43,7 @@ CF_INLINE unsigned long __CFPageSize() {
     GetSystemInfo(&sysInfo);
     return sysInfo.dwPageSize;
 }
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <unistd.h>
 CF_INLINE unsigned long __CFPageSize() {
     return (unsigned long)getpagesize();

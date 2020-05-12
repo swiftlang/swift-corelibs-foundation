@@ -66,9 +66,9 @@ static struct ___CFRegularExpression *__CFRegularExpressionCreate(CFAllocatorRef
 CFStringRef _CFRegularExpressionCreateEscapedPattern(CFStringRef pattern) {
     static CFCharacterSetRef characterSet = NULL;
     static dispatch_once_t once = 0L;
-    DISPATCH_ONCE_BEGIN_BLOCK(once)
+    dispatch_once(&once, ^{
         characterSet = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("*?+[(){}^$|\\./"));
-    DISPATCH_ONCE_END_BLOCK(once)
+    });
     
     CFRange range = CFRangeMake(0, CFStringGetLength(pattern));
     CFIndex length;

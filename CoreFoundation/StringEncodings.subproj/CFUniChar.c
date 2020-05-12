@@ -1229,7 +1229,7 @@ static int __CFUniCharUnicodePropertyTableCount = 0;
 
 const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint32_t plane) {
     static dispatch_once_t once = 0;
-    DISPATCH_ONCE_BEGIN_BLOCK(once)
+    dispatch_once(&once, ^{
         __CFUniCharBitmapData *table;
         const void *bytes;
         const void *bodyBase;
@@ -1290,7 +1290,7 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
         }
 
         __CFUniCharUnicodePropertyTable = table;
-    DISPATCH_ONCE_END_BLOCK(once)
+    });
     return (plane < __CFUniCharUnicodePropertyTable[propertyType]._numPlanes ? __CFUniCharUnicodePropertyTable[propertyType]._planes[plane] : NULL);
 }
 
