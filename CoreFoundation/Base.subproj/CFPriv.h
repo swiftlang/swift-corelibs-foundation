@@ -46,8 +46,10 @@
 #include <CoreFoundation/CFMessagePort.h>
 #endif
 
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSocket.h>
+#endif
 #include <CoreFoundation/CFBundlePriv.h>
 
 CF_EXTERN_C_BEGIN
@@ -58,7 +60,7 @@ CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
 
-#if !TARGET_OS_WIN32
+#if !TARGET_OS_WIN32 && !TARGET_OS_WASI
 #include <sys/types.h>
 
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
@@ -161,6 +163,7 @@ CF_EXPORT Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, UInt8
 /* If this is publicized, we might need to create a GetBytesPtr type function as well. */
 CF_EXPORT CFStringRef _CFStringCreateWithBytesNoCopy(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean externalFormat, CFAllocatorRef contentsDeallocator);
 
+#if !TARGET_OS_WASI
 /* These return NULL on MacOS 8 */
 // This one leaks the returned string in order to be thread-safe.
 // CF cannot help you in this matter if you continue to use this SPI.
@@ -172,6 +175,7 @@ CFStringRef CFCopyUserName(void);
 
 CF_EXPORT
 CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName);	/* Pass NULL for the current user's home directory */
+#endif
 
 
 /*

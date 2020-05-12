@@ -546,9 +546,10 @@ static CFTypeRef _CFErrorMachCallBack(CFErrorRef err, CFStringRef key) CF_RETURN
 }
 #endif
 
-
+#if !TARGET_OS_WASI
 static const void *blockCopyValueCallBack(CFAllocatorRef allocator, const void *value) {return _Block_copy(value);}
 static void blockReleaseValueCallBack(CFAllocatorRef allocator, const void *value) {_Block_release(value);}
+
 static void __CFErrorSetCallBackForDomainNoLock(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack);
 
 /* This initialize function is meant to be called lazily, the first time a callback is registered or requested. It creates the table and registers the built-in callbacks. Clearly doing this non-lazily in _CFErrorInitialize() would be simpler, but this is a fine example of something that should not have to happen at launch time.
@@ -640,6 +641,4 @@ CFErrorUserInfoKeyCallBack CFErrorGetCallBackForDomain(CFStringRef domainName) {
     return NULL;
 }
 
-
-
-
+#endif

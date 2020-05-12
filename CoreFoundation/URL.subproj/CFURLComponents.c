@@ -1386,11 +1386,18 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
             CFStringInitAppendBuffer(kCFAllocatorDefault, &buf);
             UniChar chars[1];
             static CFMutableCharacterSetRef queryNameValueAllowed = NULL;
+#if __BLOCKS__
             static dispatch_once_t onceToken;
             dispatch_once(&onceToken, ^{
+#else
+            if (!queryNameValueAllowed) {
+#endif
                 queryNameValueAllowed = CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _CFURLComponentsGetURLQueryAllowedCharacterSet());
                 CFCharacterSetRemoveCharactersInString(queryNameValueAllowed, CFSTR("&="));
-            });
+            }
+#if __BLOCKS__
+            );
+#endif
             CFIndex namesLength = CFArrayGetCount(names);
             Boolean first = true;
             for (CFIndex i = 0; i < namesLength; i++) {

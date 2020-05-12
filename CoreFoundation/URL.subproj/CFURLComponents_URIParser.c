@@ -167,7 +167,7 @@ static CFCharacterSetRef *sURLAllowedCharacterSets = NULL;
 static void InitializeURLAllowedCharacterSets(void)
 {
     static dispatch_once_t static_init = 0;
-    dispatch_once(&static_init, ^{
+    DISPATCH_ONCE_BEGIN_BLOCK(static_init)
         sURLAllowedCharacterSets = (CFCharacterSetRef *)CFAllocatorAllocate(kCFAllocatorDefault, sizeof(CFCharacterSetRef) * kURLAllowedCharacterSetIllegal, 0);
         sURLAllowedCharacterSets[kURLUserAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLUserAllowedCharacters));
         sURLAllowedCharacterSets[kURLPasswordAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLPasswordAllowedCharacters));
@@ -175,7 +175,7 @@ static void InitializeURLAllowedCharacterSets(void)
         sURLAllowedCharacterSets[kURLPathAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLPathAllowedCharacters));
         sURLAllowedCharacterSets[kURLQueryAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLQueryAllowedCharacters));
         sURLAllowedCharacterSets[kURLFragmentAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLFragmentAllowedCharacters));
-    });
+    DISPATCH_ONCE_END_BLOCK
 }
 
 /* Returns the set from sURLAllowedCharacterSets for the given URLPredefinedCharacterSet.

@@ -9,7 +9,10 @@
 
 
 import CoreFoundation
+
+#if !os(WASI)
 import Dispatch
+#endif
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByDictionaryLiteral {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
@@ -48,6 +51,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return NSGeneratorEnumerator(_storage.keys.map { __SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
     
+#if !os(WASI)
     @available(*, deprecated)
     public convenience init?(contentsOfFile path: String) {
         self.init(contentsOf: URL(fileURLWithPath: path))
@@ -64,6 +68,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             return nil
         }
     }
+#endif
     
     public override convenience init() {
         self.init(objects: [], forKeys: [], count: 0)
@@ -494,6 +499,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return objects
     }
     
+#if !os(WASI)
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
     }
@@ -508,6 +514,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             return false
         }
     }
+#endif
     
     open func enumerateKeysAndObjects(_ block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         enumerateKeysAndObjects(options: [], using: block)
@@ -538,6 +545,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 }
             }
 
+            #if !os(WASI)
             if opts.contains(.concurrent) {
                 DispatchQueue.concurrentPerform(iterations: count, execute: iteration)
             } else {
@@ -545,6 +553,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                     iteration(idx)
                 }
             }
+            #else
+            for idx in 0..<count {
+                iteration(idx)
+            }
+            #endif
         }
     }
     

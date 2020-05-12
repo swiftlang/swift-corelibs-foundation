@@ -346,6 +346,7 @@ extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
 #define _CFBundleSolarisPlatformName CFSTR("solaris")
 #define _CFBundleLinuxPlatformName CFSTR("linux")
 #define _CFBundleFreeBSDPlatformName CFSTR("freebsd")
+#define _CFBundleWASIPlatformName CFSTR("wasi")
 #define _CFBundleMacOSXPlatformNameSuffix CFSTR("-macos")
 #define _CFBundleAlternateMacOSXPlatformNameSuffix CFSTR("-macosx")
 #define _CFBundleiPhoneOSPlatformNameSuffix CFSTR("-iphoneos")
@@ -356,6 +357,7 @@ extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
 #define _CFBundleSolarisPlatformNameSuffix CFSTR("-solaris")
 #define _CFBundleLinuxPlatformNameSuffix CFSTR("-linux")
 #define _CFBundleFreeBSDPlatformNameSuffix CFSTR("-freebsd")
+#define _CFBundleWASIPlatformNameSuffix CFSTR("-wasi")
 
 STATIC_CONST_STRING_DECL(_CFBundleMacDeviceName, "mac");
 STATIC_CONST_STRING_DECL(_CFBundleiPhoneDeviceName, "iphone");

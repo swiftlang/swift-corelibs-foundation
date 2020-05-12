@@ -1,9 +1,30 @@
+
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
+  Bundle.swift
+  FileHandle.swift
+  FileManager+POSIX.swift
+  FileManager+Win32.swift
+  FileManager+XDG.swift
+  Host.swift
+  Notification.swift
+  NotificationQueue.swift
+  NSNotification.swift
+  Port.swift
+  PortMessage.swift
+  Process.swift
+  ProcessInfo.swift
+  RunLoop.swift
+  Stream.swift
+  Thread.swift
+  Timer.swift)
+endif()
+
 add_library(Foundation
   AffineTransform.swift
   Array.swift
   Boxing.swift
   Bridging.swift
-  Bundle.swift
   ByteCountFormatter.swift
   Calendar.swift
   CGFloat.swift
@@ -24,14 +45,9 @@ add_library(Foundation
   DispatchData+DataProtocol.swift
   EnergyFormatter.swift
   ExtraStringAPIs.swift
-  FileHandle.swift
   FileManager.swift
-  FileManager+POSIX.swift
-  FileManager+Win32.swift
-  FileManager+XDG.swift
   Formatter.swift
   FoundationErrors.swift
-  Host.swift
   IndexPath.swift
   IndexSet.swift
   ISO8601DateFormatter.swift
@@ -42,8 +58,6 @@ add_library(Foundation
   MassFormatter.swift
   Measurement.swift
   MeasurementFormatter.swift
-  Notification.swift
-  NotificationQueue.swift
   NSArray.swift
   NSAttributedString.swift
   NSCache.swift
@@ -78,7 +92,6 @@ add_library(Foundation
   NSLock.swift
   NSLog.swift
   NSMeasurement.swift
-  NSNotification.swift
   NSNull.swift
   NSNumber.swift
   NSObjCRuntime.swift
@@ -107,30 +120,23 @@ add_library(Foundation
   PersonNameComponents.swift
   PersonNameComponentsFormatter.swift
   Pointers+DataProtocol.swift
-  Port.swift
-  PortMessage.swift
-  Process.swift
-  ProcessInfo.swift
   Progress.swift
   ProgressFraction.swift
   PropertyListEncoder.swift
   PropertyListSerialization.swift
   ReferenceConvertible.swift
-  RunLoop.swift
   Scanner.swift
   ScannerAPI.swift
   Set.swift
-  Stream.swift
   String.swift
   StringEncodings.swift
-  Thread.swift
-  Timer.swift
   TimeZone.swift
   Unit.swift
   URL.swift
   URLComponents.swift
   UserDefaults.swift
-  UUID.swift)
+  UUID.swift
+  ${FOUNDATION_WASI_UNAVAILABLE_SOURCES})
 target_compile_definitions(Foundation PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(Foundation PUBLIC
@@ -159,6 +165,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     $<TARGET_OBJECTS:CoreFoundationResources>)
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  target_compile_options(Foundation
+  PRIVATE
+    -sdk ${WASI_SDK_PREFIX}/share/wasi-sysroot
+    -target wasm32-unknown-wasi
+  )
+endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
 install(TARGETS Foundation

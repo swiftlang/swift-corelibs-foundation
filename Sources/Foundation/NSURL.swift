@@ -26,6 +26,7 @@ internal let kCFURLPlatformPathStyle = kCFURLWindowsPathStyle
 internal let kCFURLPlatformPathStyle = kCFURLPOSIXPathStyle
 #endif
 
+#if !os(WASI)
 private func _standardizedPath(_ path: String) -> String {
     if !path.isAbsolutePath {
         return path._nsObject.standardizingPath
@@ -36,6 +37,7 @@ private func _standardizedPath(_ path: String) -> String {
     return path
 #endif
 }
+#endif
 
 internal func _pathComponents(_ path: String?) -> [String]? {
     guard let p = path else {
@@ -237,6 +239,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
+#if !os(WASI)
     var _resourceStorage: URLResourceValuesStorage? {
         guard isFileURL else { return nil }
         
@@ -260,6 +263,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             return nil
         }
     }
+#endif
     
     open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
@@ -289,10 +293,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     open func copy(with zone: NSZone? = nil) -> Any {
         if isFileURL {
             let newURL = CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)!
+
+#if !os(WASI)
             if let storage = _resourceStorageIfPresent {
                 let newStorage = URLResourceValuesStorage(copying: storage)
                 _CFURLSetResourceInfo(newURL, newStorage)
             }
+#endif
             return newURL._nsObject
         } else {
             return self
@@ -323,6 +330,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
     }
     
+#if !os(WASI)
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
         super.init()
         
@@ -334,7 +342,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, baseURL.path._cfObject, kCFURLPlatformPathStyle, baseURL.hasDirectoryPath, nil)
         }
     }
-    
+
     public convenience init(fileURLWithPath path: String, relativeTo baseURL: URL?) {
         let thePath = _standardizedPath(path)
         
@@ -379,7 +387,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         let pathString = String(cString: path)
         self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeTo: baseURL)
     }
-    
+#endif
+
     public convenience init?(string URLString: String) {
         self.init(string: URLString, relativeTo:nil)
     }
@@ -656,6 +665,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return URLComponents!.url(relativeTo: baseURL)
     }
     
+#if !os(WASI)
     /* Returns whether the URL's resource exists and is reachable. This method synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. If this method returns NO, the optional error is populated. This method is currently applicable only to URLs for file system resources. For other URL types, NO is returned. Symbol is present in iOS 4, but performs no operation.
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
@@ -679,6 +689,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         
         return true
     }
+#endif
 
     /* Returns a file path URL that refers to the same resource as a specified URL. File path URLs use a file system style path. An error will occur if the url parameter is not a file URL. A file reference URL's resource must exist and be reachable to be converted to a file path URL. Symbol is present in iOS 4, but performs no operation.
     */
@@ -694,6 +705,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return CFURLGetTypeID()
     }
 
+#if !os(WASI)
     open func removeAllCachedResourceValues() {
         _resourceStorage?.removeAllCachedResourceValues()
     }
@@ -720,8 +732,10 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         guard let storage = _resourceStorage else { return }
         storage.setTemporaryResourceValue(value, forKey: key)
     }
+#endif
 }
 
+#if !os(WASI)
 internal class URLResourceValuesStorage: NSObject {
     let valuesCacheLock = NSLock()
     var valuesCache: [URLResourceKey: Any] = [:]
@@ -831,6 +845,7 @@ internal class URLResourceValuesStorage: NSObject {
         super.init()
     }
 }
+#endif
 
 extension NSCharacterSet {
     
@@ -881,7 +896,8 @@ extension NSString {
 }
 
 extension NSURL {
-    
+
+#if !os(WASI)
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
     open class func fileURL(withPathComponents components: [String]) -> URL? {
@@ -892,6 +908,7 @@ extension NSURL {
             return URL(fileURLWithPath: path)
         }
     }
+#endif
     
     internal func _pathByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String? {
         guard let p = path else {
@@ -962,6 +979,9 @@ extension NSURL {
     
     open func appendingPathComponent(_ pathComponent: String) -> URL? {
         var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
+
+        // File URLs can't be handled on WASI without file system access
+        #if !os(WASI)
         // Since we are appending to a URL, path seperators should
         // always be '/', even if we're on Windows
         if !pathComponent.hasSuffix("/") && isFileURL {
@@ -973,6 +993,7 @@ extension NSURL {
             }
     
         }
+        #endif
         return result
     }
     
@@ -992,6 +1013,7 @@ extension NSURL {
         return CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
+#if !os(WASI)
     /* The following methods work only on `file:` scheme URLs; for non-`file:` scheme URLs, these methods return the URL unchanged.
     */
     open var standardizingPath: URL? {
@@ -1059,6 +1081,7 @@ extension NSURL {
         
         return URL(fileURLWithPath: resolvedPath)
     }
+#endif
 
     fileprivate func _pathByRemovingDots(_ comps: [String]) -> String {
         var components = comps
@@ -1517,6 +1540,7 @@ extension NSURLQueryItem : _StructTypeBridgeable {
 
 // -----
 
+#if !os(WASI)
 internal func _CFSwiftURLCopyResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ valuePointer: UnsafeMutablePointer<Unmanaged<CFTypeRef>?>?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
     do {
         let key = URLResourceKey(rawValue: key._swiftObject)
@@ -2050,6 +2074,7 @@ fileprivate extension URLResourceValuesStorage {
         }
     }
 }
+#endif
 
 // -----
 

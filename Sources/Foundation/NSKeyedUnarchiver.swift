@@ -51,7 +51,9 @@ open class NSKeyedUnarchiver : NSCoder {
     
     private enum Stream {
         case data(Data)
+        #if !os(WASI)
         case stream(CFReadStream)
+        #endif
     }
     
     private var _stream : Stream
@@ -91,6 +93,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return try? unarchiveTopLevelObjectWithData(data)
     }
     
+    #if !os(WASI)
     @available(swift, deprecated: 9999, renamed: "unarchivedObject(ofClass:from:)")
     open class func unarchiveObject(withFile path: String) -> Any? {
         let url = URL(fileURLWithPath: path)
@@ -109,6 +112,7 @@ open class NSKeyedUnarchiver : NSCoder {
         
         return root
     }
+    #endif
     
     public init(forReadingFrom data: Data) throws {
         self._stream = .data(data)
@@ -143,8 +147,10 @@ open class NSKeyedUnarchiver : NSCoder {
         switch self._stream {
         case .data(let data):
             try plist = PropertyListSerialization.propertyList(from: data, options: [], format: &format)
+        #if !os(WASI)
         case .stream(let readStream):
             try plist = PropertyListSerialization.propertyList(with: readStream, options: [], format: &format)
+        #endif
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {

@@ -7,6 +7,10 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(WASI)
+import Glibc
+#endif
+
 public var NSDecimalMaxSize: Int32 { 8 }
 public var NSDecimalNoScale: Int32 { Int32(Int16.max) }
 

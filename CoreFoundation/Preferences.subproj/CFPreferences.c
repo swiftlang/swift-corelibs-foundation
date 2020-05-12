@@ -390,6 +390,7 @@ static CFStringRef  _CFPreferencesCachePrefixForUserHost(CFStringRef  userName, 
         return (CFStringRef)CFRetain(CFSTR("*/*/"));
     }
     CFMutableStringRef result = CFStringCreateMutable(__CFPreferencesAllocator(), 0);
+    #if !TARGET_OS_WASI
     if (userName == kCFPreferencesCurrentUser) {
         userName = CFCopyUserName();
         CFStringAppend(result, userName);
@@ -398,6 +399,9 @@ static CFStringRef  _CFPreferencesCachePrefixForUserHost(CFStringRef  userName, 
     } else if (userName == kCFPreferencesAnyUser) {
         CFStringAppend(result, CFSTR("*/"));
     }
+    #else
+    CFStringAppend(result, CFSTR("*/"));
+    #endif
     if (hostName == kCFPreferencesCurrentHost) {
         CFStringRef hostID = _CFPreferencesGetByHostIdentifierString();
         CFStringAppend(result, hostID);

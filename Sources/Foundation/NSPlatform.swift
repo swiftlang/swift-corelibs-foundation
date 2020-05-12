@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(WASI)
+import Glibc
+#endif
+
 #if os(macOS) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)
@@ -18,6 +22,9 @@ fileprivate var _NSPageSize: Int {
   GetSystemInfo(&siInfo)
   return Int(siInfo.dwPageSize)
 }
+#elseif os(WASI)
+// WebAssembly defines a fixed page size
+fileprivate let _NSPageSize: Int = 65_536
 #endif
 
 public func NSPageSize() -> Int {
