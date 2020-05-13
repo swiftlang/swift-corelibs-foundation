@@ -957,58 +957,47 @@ class TestFileManager : XCTestCase {
 
             // A) Check non-symbolic linking resolution
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
-
             try testData.write(to: testFileURL)
-
             let resolvedURL_A = testFileURL.resolvingSymlinksInPath().standardized.absoluteURL
-
             XCTAssertEqual(resolvedURL_A.path, testFileURL.path)
-
             try FileManager.default.removeItem(at: baseURL)
 
             // B) Check simple symbolic linking resolution
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
-
             try testData.write(to: testFileURL)
-
             try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: testFileURL)
-
             let resolvedURL_B = link1URL.resolvingSymlinksInPath().standardized.absoluteURL
-
             XCTAssertEqual(resolvedURL_B.path, testFileURL.path)
-
             try FileManager.default.removeItem(at: baseURL)
 
             // C) Check recursive symbolic linking resolution
+            //
+            // Note: The symbolic link creation order is important as in some platforms like Windows
+            // symlinks can only be created pointing to existing targets.
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
-
             try testData.write(to: testFileURL)
-
-            try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: link2URL)
             try FileManager.default.createSymbolicLink(at: link2URL, withDestinationURL: testFileURL)
-
+            try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: link2URL)
             let resolvedURL_C = link1URL.resolvingSymlinksInPath().standardized.absoluteURL
             XCTAssertEqual(resolvedURL_C.path, testFileURL.path)
 
-            let resolvedURL_NSString_C = NSString(link1URL.path).resolvingSymlinksInPath.standardizePath()
-            XCTAssertEqual(resolvedURL_NSString_C, testFileURL.path)
-
             // C-2) And that FileManager.destinationOfSymbolicLink(atPath:) does not recursively resolves them
             let destinationOfSymbolicLink1 = try FileManager.default.destinationOfSymbolicLink(atPath: link1URL.path)
-            XCTAssertEqual(destinationOfSymbolicLink1, link2URL.path)
-
+            let destinationOfSymbolicLink1URL = URL(fileURLWithPath: destinationOfSymbolicLink1).standardized.absoluteURL
+            XCTAssertEqual(destinationOfSymbolicLink1URL.path, link2URL.path)
             try FileManager.default.removeItem(at: baseURL)
 
+            #if !os(Windows)
             // D) Check infinite recursion loops are stopped and the function returns the intial symlink
+            //
+            // Note: This cannot be tested on platforms which only support creating symlinks pointing to existing targets.
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
-
             try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: link2URL)
             try FileManager.default.createSymbolicLink(at: link2URL, withDestinationURL: link3URL)
             try FileManager.default.createSymbolicLink(at: link3URL, withDestinationURL: link1URL)
-
             let resolvedURL_D = link1URL.resolvingSymlinksInPath()
-
             XCTAssertEqual(resolvedURL_D.lastPathComponent, link1URL.lastPathComponent)
+            #endif
         }
     }
 
