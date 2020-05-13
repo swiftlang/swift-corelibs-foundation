@@ -28,7 +28,6 @@
 #include "CFRuntime_Internal.h"
 #include <assert.h>
 #include <unicode/uchar.h>
-#include <unicode/uversion.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include "CFLocaleInternal.h"
 #include "CFStringLocalizedFormattingInternal.h"
@@ -47,10 +46,7 @@
 #endif
 
 
-// Build with older versions of ICU
-#if U_ICU_VERSION_MAJOR_NUM < 62
-#  define UCHAR_EXTENDED_PICTOGRAPHIC 64
-#endif
+
 
 #define USE_STRING_ROM 0
 
