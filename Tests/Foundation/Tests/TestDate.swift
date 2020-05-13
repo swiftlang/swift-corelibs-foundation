@@ -34,6 +34,8 @@ class TestDate : XCTestCase {
             ("test_timeIntervalSinceReferenceDate", test_timeIntervalSinceReferenceDate),
             ("test_recreateDateComponentsFromDate", test_recreateDateComponentsFromDate),
             ("test_Hashing", test_Hashing),
+            ("test_advancedBy", test_advancedBy),
+            ("test_distanceTo", test_distanceTo),
         ]
     }
     
@@ -171,5 +173,23 @@ class TestDate : XCTestCase {
             dateWithString("2010-05-17 14:49:48 -0700"),
         ]
         checkHashable(values, equalityOracle: { $0 == $1 })
+    }
+
+    func test_advancedBy() {
+        let date1 = dateWithString("2010-05-17 14:49:47 -0000")
+        let date2 = dateWithString("2010-05-18 14:49:47 -0000")
+
+        XCTAssertEqual(date1.advanced(by: 86400), date2)
+        XCTAssertEqual(date2.advanced(by: -86400), date1)
+        XCTAssertEqual(date1.advanced(by: 0), date1)
+    }
+
+    func test_distanceTo() {
+        let date1 = dateWithString("2010-05-17 14:49:47 -0000")
+        let date2 = dateWithString("2010-05-18 14:49:47 -0000")
+
+        XCTAssertEqual(date1.distance(to: date2), 86400)
+        XCTAssertEqual(date2.distance(to: date1), -86400)
+        XCTAssertEqual(date1.distance(to: date1), 0)
     }
 }
