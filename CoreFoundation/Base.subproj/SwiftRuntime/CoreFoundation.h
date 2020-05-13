@@ -75,7 +75,6 @@
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFNumberFormatter.h>
-#include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFString.h>
@@ -91,6 +90,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFPlugIn.h>
 #include <CoreFoundation/CFMessagePort.h>
+#include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFSocket.h>

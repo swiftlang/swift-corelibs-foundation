@@ -241,6 +241,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         _storage = string
     }
     
+#if !os(WASI)
     public convenience required init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -257,6 +258,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
             self.init(data: data, encoding: String.Encoding.utf8.rawValue)
         }
     }
+#endif
     
     public required convenience init(string aString: String) {
         self.init(aString)
@@ -296,6 +298,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         return result
     }
     
+#if !os(WASI)
     public static var supportsSecureCoding: Bool {
         return true
     }
@@ -307,6 +310,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
             aCoder.encode(self)
         }
     }
+#endif
     
     public init(characters: UnsafePointer<unichar>, length: Int) {
         _storage = String(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
@@ -1481,6 +1485,7 @@ open class NSMutableString : NSString {
         super.init(characters: [], length: 0)
     }
 
+#if !os(WASI)
     public convenience required init?(coder aDecoder: NSCoder) {
         guard let str = NSString(coder: aDecoder) else {
             return nil
@@ -1488,6 +1493,7 @@ open class NSMutableString : NSString {
         
         self.init(string: String._unconditionallyBridgeFromObjectiveC(str))
     }
+#endif
 
     public required convenience init(unicodeScalarLiteral value: StaticString) {
         self.init(stringLiteral: value)

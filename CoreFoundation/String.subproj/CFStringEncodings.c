@@ -656,7 +656,7 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
                     return numCharsProcessed;
                 }
 		
-                CFIndex uninterestingTailLen = buffer ? (rangeLen - MIN(max, rangeLen)) : 0;
+                CFIndex uninterestingTailLen = buffer ? (rangeLen - __CFMin(max, rangeLen)) : 0;
                 while (*ptr < 0x80 && rangeLen > uninterestingTailLen) {
                     ++ptr;
                     --rangeLen;

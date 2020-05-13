@@ -595,6 +595,7 @@ internal class __NSSwiftData : NSData {
         _range = range
     }
     
+#if !os(WASI)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("This should have been encoded as NSData.")
     }
@@ -603,6 +604,7 @@ internal class __NSSwiftData : NSData {
         // This should encode this object just like NSData does, and .classForCoder should do the rest.
         super.encode(with: aCoder)
     }
+#endif
     
     override var length: Int {
         return _range.upperBound - _range.lowerBound

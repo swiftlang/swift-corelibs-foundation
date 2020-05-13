@@ -139,6 +139,8 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     Stream.subproj/CFStreamInternal.h
     Stream.subproj/CFStreamPriv.h)
   list(APPEND CF_WASI_UNAVAILABLE_PUBLIC_HEADERS 
+    # Preferences
+    Preferences.subproj/CFPreferences.h
     # RunLoop
     RunLoop.subproj/CFMachPort.h
     RunLoop.subproj/CFMessagePort.h
@@ -166,6 +168,10 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
     PlugIn.subproj/CFPlugIn_Factory.c
     PlugIn.subproj/CFPlugIn_Instance.c
     PlugIn.subproj/CFPlugIn_PlugIn.c
+    # Preferences
+    Preferences.subproj/CFApplicationPreferences.c
+    Preferences.subproj/CFPreferences.c
+    Preferences.subproj/CFXMLPreferencesDomain.c
     # RunLoop
     RunLoop.subproj/CFRunLoop.c
     RunLoop.subproj/CFSocket.c
@@ -310,8 +316,6 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle.h
                 PlugIn.subproj/CFPlugIn.h
                 PlugIn.subproj/CFPlugInCOM.h
-                # Preferences
-                Preferences.subproj/CFPreferences.h
                 ${CF_WASI_UNAVAILABLE_PUBLIC_HEADERS}
                 # String
                 String.subproj/CFAttributedString.h
@@ -367,10 +371,6 @@ add_framework(CoreFoundation
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
-                # Preferences
-                Preferences.subproj/CFApplicationPreferences.c
-                Preferences.subproj/CFPreferences.c
-                Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
                 # TODO(compnerd) make this empty on non-Mach targets
                 # RunLoop.subproj/CFMachPort.c

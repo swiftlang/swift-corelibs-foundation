@@ -228,9 +228,8 @@ CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize * 2] __at
     [_kCFRuntimeIDCFBundle] = &__CFBundleClass,
     [_kCFRuntimeIDCFPFactory] = &__CFPFactoryClass,
     [_kCFRuntimeIDCFPlugInInstance] = &__CFPlugInInstanceClass,
-#endif
-
     [_kCFRuntimeIDCFPreferencesDomain] = &__CFPreferencesDomainClass,
+#endif
 
 #if TARGET_OS_MAC
     [_kCFRuntimeIDCFMachPort] = &__CFMachPortClass,
@@ -1258,7 +1257,9 @@ void __CFInitialize(void) {
 #endif
         }
 
+#if !TARGET_OS_WASI
         _CFProcessPath();	// cache this early
+#endif
 
         __CFOAInitialize();
         

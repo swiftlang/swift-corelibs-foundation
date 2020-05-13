@@ -274,7 +274,6 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (PersonNameComponentsFormatter.self, "NSPersonNameComponentsFormatter"),
         (PropertyListSerialization.self, "NSPropertyListSerialization"),
         (Scanner.self, "NSScanner"),
-        (UserDefaults.self, "NSUserDefaults"),
         (Dimension.self, "NSDimension"),
         (Unit.self, "NSUnit"),
         (UnitAcceleration.self, "NSUnitAcceleration"),
@@ -326,6 +325,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (Stream.self, "NSStream"),
         (Thread.self, "NSThread"),
         (Timer.self, "NSTimer"),
+        (UserDefaults.self, "NSUserDefaults"),
     ])
 #endif
     return map

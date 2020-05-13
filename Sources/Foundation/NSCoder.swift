@@ -36,7 +36,7 @@ extension NSCoder {
 /// Any object class that should be codable must adopt the NSCoding protocol and
 /// implement its methods.
 public protocol NSCoding {
-    
+#if !os(WASI)
     /// Encodes an instance of a conforming class using a given archiver.
     ///
     /// - Parameter aCoder: An archiver object.
@@ -46,6 +46,7 @@ public protocol NSCoding {
     ///
     /// - Parameter aDecoder: An unarchiver object.
     init?(coder aDecoder: NSCoder)
+#endif
 }
 
 /// Conforming to the `NSSecureCoding` protocol indicates that an object handles
@@ -76,8 +77,9 @@ public protocol NSCoding {
 ///   In addition, the class must override its `NSSecureCoding` method to return
 ///   `true`.
 public protocol NSSecureCoding : NSCoding {
-    
+#if !os(WASI)
     static var supportsSecureCoding: Bool { get }
+#endif
 }
 
 /// The `NSCoder` abstract class declares the interface used by concrete

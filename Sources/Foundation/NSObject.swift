@@ -269,6 +269,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
 
+#if !os(WASI)
     // TODO: Could perhaps be an extension of NSCoding instead.
     // The reason it is an extension of NSObject is the lack of default
     // implementations on protocols in Objective-C.
@@ -324,6 +325,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     open class func classForKeyedUnarchiver() -> AnyClass {
         return self
     }
+#endif
 
     /// The hash value.
     ///

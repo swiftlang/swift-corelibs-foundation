@@ -59,9 +59,11 @@ int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
 
 
+#if !TARGET_OS_WASI
 CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
+#endif
 
 #if TARGET_OS_WIN32
 // Returns the path to the CF DLL, which we can then use to find resources like char sets
@@ -98,6 +100,7 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
 }
 #endif
 
+#if !TARGET_OS_WASI
 static const char *__CFProcessPath = NULL;
 static const char *__CFprogname = NULL;
 
@@ -112,6 +115,7 @@ const char **_CFGetProcessPath(void) {
         _CFProcessPath();		// sets up __CFProcessPath as a side-effect
     return &__CFProcessPath;
 }
+#endif
 
 #if TARGET_OS_WIN32
 const char *_CFProcessPath(void) {
@@ -205,6 +209,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
+#if !TARGET_OS_WASI
 CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
@@ -217,7 +222,7 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     }
     return __CFProcessNameString;
 }
-
+#endif
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
@@ -312,7 +317,7 @@ static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHo
 
 #endif
 
-
+#if !TARGET_OS_WASI
 #define CFMaxHostNameLength	256
 #define CFMaxHostNameSize	(CFMaxHostNameLength+1)
 
@@ -324,7 +329,6 @@ CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
     return CFStringCreateWithCString(kCFAllocatorSystemDefault, myName, kCFPlatformInterfaceStringEncoding);
 }
 
-#if !TARGET_OS_WASI
 /* These are sanitized versions of the above functions. We might want to eliminate the above ones someday.
    These can return NULL.
 */
@@ -676,10 +680,12 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 static _CFThreadSpecificKey __CFTSDIndexKey;
 
 CF_PRIVATE void __CFTSDInitialize() {
+#if !TARGET_OS_WASI
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
     });
+#endif
 }
 
 #endif
@@ -707,10 +713,14 @@ static void *__CFTSDGetSpecific() {
 _Atomic(bool) __CFMainThreadHasExited = false;
 
 static void __CFTSDFinalize(void *arg) {
+#if !TARGET_OS_WASI
     if (pthread_main_np() == 1) {
+#endif
         // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
         __CFMainThreadHasExited = true;
+#if !TARGET_OS_WASI
     }
+#endif
     
     // Set our TSD so we're called again by pthreads. It will call the destructor PTHREAD_DESTRUCTOR_ITERATIONS times as long as a value is set in the thread specific data. We handle each case below.
     __CFTSDSetSpecific(arg);
@@ -1398,11 +1408,15 @@ typedef struct _CF_sema_s {
 } * _CF_sema_t;
 
 CF_INLINE void _CF_sem_signal(_CF_sema_t s) {
+#if !TARGET_OS_WASI
     sem_post(&s->sema);
+#endif
 }
 
 CF_INLINE void _CF_sem_wait(_CF_sema_t s) {
+#if !TARGET_OS_WASI
     sem_wait(&s->sema);
+#endif
 }
 
 static void _CF_sem_destroy(_CF_sema_t s) {
@@ -1411,6 +1425,7 @@ static void _CF_sem_destroy(_CF_sema_t s) {
 
 CF_INLINE _CFThreadSpecificKey _CF_thread_sem_key() {
     static _CFThreadSpecificKey key = 0;
+#if !TARGET_OS_WASI
     static OSSpinLock lock = OS_SPINLOCK_INIT;
     if (key == 0) {
         OSSpinLockLock(&lock);
@@ -1419,9 +1434,11 @@ CF_INLINE _CFThreadSpecificKey _CF_thread_sem_key() {
         }
         OSSpinLockUnlock(&lock);
     }
+#endif
     return key;
 }
 
+#if !TARGET_OS_WASI
 CF_INLINE _CF_sema_t _CF_get_thread_semaphore() {
     _CFThreadSpecificKey key = _CF_thread_sem_key();
     _CF_sema_t s = (_CF_sema_t)pthread_getspecific(key);
@@ -1436,6 +1453,7 @@ CF_INLINE _CF_sema_t _CF_get_thread_semaphore() {
 CF_INLINE void _CF_put_thread_semaphore(_CF_sema_t s) {
     pthread_setspecific(_CF_thread_sem_key(), s);
 }
+#endif
 
 #define CF_DISPATCH_ONCE_DONE ((_CF_dispatch_once_waiter_t)~0l)
 
@@ -1455,6 +1473,12 @@ defined(__arm64__)
 #endif
 
 void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
+#if TARGET_OS_WASI
+    if (!*predicate) {
+        block();
+        *predicate = 1;
+    }
+#else
     _CF_dispatch_once_waiter_t volatile *vval = (_CF_dispatch_once_waiter_t*)predicate;
     struct _CF_dispatch_once_waiter_s dow = { NULL };
     _CF_dispatch_once_waiter_t tail = &dow, next, tmp;
@@ -1485,6 +1509,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
         }
         _CF_put_thread_semaphore(dow.dow_sema);
     }
+#endif
 }
 
 #endif

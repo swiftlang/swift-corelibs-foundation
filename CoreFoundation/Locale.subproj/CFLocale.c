@@ -15,12 +15,12 @@
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDictionary.h>
-#include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFNumber.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #if !TARGET_OS_WASI
+#include <CoreFoundation/CFPreferences.h>
 #include "CFBundle_Internal.h"
 #else
 #include "CFBase.h"

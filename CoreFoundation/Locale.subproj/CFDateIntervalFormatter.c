@@ -148,14 +148,14 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
             timeZone = CFTimeZoneCopyDefault();
         }
         CFStringRef unretainedTimeZoneName = CFTimeZoneGetName(timeZone);
-        CFStringGetCharacters(unretainedTimeZoneName, CFRangeMake(0, MIN(CFStringGetLength(unretainedTimeZoneName), 100)), timeZoneID);
+        CFStringGetCharacters(unretainedTimeZoneName, CFRangeMake(0, __CFMin(CFStringGetLength(unretainedTimeZoneName), 100)), timeZoneID);
         
         CFStringRef unretainedTemplate = dif->_dateTemplateFromStyles;
         if (dif->_useTemplate) {
             unretainedTemplate = dif->_dateTemplate;
         }
         UniChar templateStr[100] = {0};
-        CFStringGetCharacters(unretainedTemplate, CFRangeMake(0, MIN(CFStringGetLength(unretainedTemplate), 100)), templateStr);
+        CFStringGetCharacters(unretainedTemplate, CFRangeMake(0, __CFMin(CFStringGetLength(unretainedTemplate), 100)), templateStr);
         
         UErrorCode status = U_ZERO_ERROR;
         dif->_formatter = udtitvfmt_open(localeBuffer, templateStr, CFStringGetLength(unretainedTemplate), timeZoneID, CFStringGetLength(unretainedTimeZoneName), &status);

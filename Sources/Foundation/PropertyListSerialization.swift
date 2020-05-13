@@ -42,6 +42,7 @@ open class PropertyListSerialization : NSObject {
         return CFPropertyListIsValid(plistObj, fmt)
     }
 
+#if !os(WASI)
     open class func data(fromPropertyList plist: Any, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
         var error: Unmanaged<CFError>? = nil
         let result = withUnsafeMutablePointer(to: &error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> CFData? in
@@ -57,6 +58,7 @@ open class PropertyListSerialization : NSObject {
             throw error!.takeRetainedValue()._nsObject
         }
     }
+#endif
 
     open class func propertyList(from data: Data, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0

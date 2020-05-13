@@ -9,15 +9,22 @@ list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
   Host.swift
   Notification.swift
   NotificationQueue.swift
+  NSKeyedArchiver.swift
+  NSKeyedArchiverHelpers.swift
+  NSKeyedCoderOldStyleArray.swift
+  NSKeyedUnarchiver.swift
   NSNotification.swift
+  NSSpecialValue.swift
   Port.swift
   PortMessage.swift
   Process.swift
   ProcessInfo.swift
+  PropertyListEncoder.swift
   RunLoop.swift
   Stream.swift
   Thread.swift
-  Timer.swift)
+  Timer.swift
+  UserDefaults.swift)
 endif()
 
 add_library(Foundation
@@ -84,10 +91,6 @@ add_library(Foundation
   NSGeometry.swift
   NSIndexPath.swift
   NSIndexSet.swift
-  NSKeyedArchiver.swift
-  NSKeyedArchiverHelpers.swift
-  NSKeyedCoderOldStyleArray.swift
-  NSKeyedUnarchiver.swift
   NSLocale.swift
   NSLock.swift
   NSLog.swift
@@ -105,7 +108,6 @@ add_library(Foundation
   NSRegularExpression.swift
   NSSet.swift
   NSSortDescriptor.swift
-  NSSpecialValue.swift
   NSString.swift
   NSStringAPI.swift
   NSSwiftRuntime.swift
@@ -122,7 +124,6 @@ add_library(Foundation
   Pointers+DataProtocol.swift
   Progress.swift
   ProgressFraction.swift
-  PropertyListEncoder.swift
   PropertyListSerialization.swift
   ReferenceConvertible.swift
   Scanner.swift
@@ -134,7 +135,6 @@ add_library(Foundation
   Unit.swift
   URL.swift
   URLComponents.swift
-  UserDefaults.swift
   UUID.swift
   ${FOUNDATION_WASI_UNAVAILABLE_SOURCES})
 target_compile_definitions(Foundation PRIVATE

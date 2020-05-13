@@ -39,7 +39,8 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
             return nil
         }
     }
-    
+
+#if !os(WASI)
     public convenience required init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -53,6 +54,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
         self.init(name: String._unconditionallyBridgeFromObjectiveC(name), data: data?._swiftObject)
     }
+#endif
     
     open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
@@ -101,6 +103,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         self.init(name: name._swiftObject , data: nil)
     }
 
+#if !os(WASI)
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -109,6 +112,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         // Darwin versions of this method can and will encode mutable data, however it is not required for compatibility
         aCoder.encode(self.data._bridgeToObjectiveC(), forKey:"NS.data")
     }
+#endif
     
     public static var supportsSecureCoding: Bool {
         return true
@@ -296,6 +300,7 @@ internal class __NSLocalTimeZone: NSTimeZone {
         super.init(_name: "GMT+0000")
     }
     
+#if !os(WASI)
     public convenience required init?(coder aDecoder: NSCoder) {
         // We do not encode details of the local time zone, merely the placeholder object.
         self.init()
@@ -304,6 +309,7 @@ internal class __NSLocalTimeZone: NSTimeZone {
     override func encode(with aCoder: NSCoder) {
         // We do not encode details of the local time zone, merely the placeholder object.
     }
+#endif
     
     private var system: NSTimeZone {
         return NSTimeZone.system._nsObject
