@@ -349,6 +349,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return "<\(byteDescription())>"
     }
 
+#if !os(WASI)
     // MARK: - NSCoding methods
     open func encode(with aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
@@ -383,6 +384,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public static var supportsSecureCoding: Bool {
         return true
     }
+#endif
 
     // MARK: - IO
     internal struct NSDataReadResult {
@@ -906,9 +908,11 @@ open class NSMutableData : NSData {
         self.length = length
     }
 
+#if !os(WASI)
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
+#endif
 
     public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int) {
         super.init(bytesNoCopy: bytes, length: length)
