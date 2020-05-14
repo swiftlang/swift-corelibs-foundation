@@ -23,3 +23,7 @@ set_target_properties(uuid PROPERTIES
 if(NOT BUILD_SHARED_LIBS)
   set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS uuid)
 endif()
+
+install(TARGETS uuid
+  ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
+  LIBRARY DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)

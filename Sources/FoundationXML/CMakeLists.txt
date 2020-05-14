@@ -21,7 +21,7 @@ set_target_properties(FoundationXML PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
   target_compile_options(FoundationXML
   PRIVATE
     -sdk ${CMAKE_SYSROOT}

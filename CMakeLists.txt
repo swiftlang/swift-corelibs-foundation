@@ -31,7 +31,7 @@ option(BUILD_SHARED_LIBS "build shared libraries" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   find_package(dispatch CONFIG REQUIRED)
 endif()
 
@@ -44,7 +44,7 @@ set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
   add_subdirectory(Sources/BlocksRuntime)
 endif()
 
@@ -61,7 +61,7 @@ add_custom_target(uuid-headers
   DEPENDS ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h)
 add_dependencies(CoreFoundation uuid-headers)
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
   add_dependencies(CoreFoundation BlocksRuntime)
 endif()
 
@@ -76,7 +76,7 @@ if(ENABLE_TESTING)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
       CoreFoundation CFXMLInterface CFURLSessionInterface)
     install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface

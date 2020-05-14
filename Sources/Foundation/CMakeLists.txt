@@ -1,5 +1,5 @@
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
 list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
   Bundle.swift
   FileHandle.swift
@@ -165,7 +165,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
     $<TARGET_OBJECTS:CoreFoundationResources>)
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
   target_compile_options(Foundation
   PRIVATE
     -sdk ${CMAKE_SYSROOT}
@@ -182,4 +182,4 @@ get_swift_host_arch(swift_arch)
 install(FILES
   $<TARGET_PROPERTY:Foundation,Swift_MODULE_DIRECTORY>/Foundation.swiftdoc
   $<TARGET_PROPERTY:Foundation,Swift_MODULE_DIRECTORY>/Foundation.swiftmodule
-  DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})
+  DESTINATION lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})

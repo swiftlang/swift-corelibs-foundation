@@ -21,14 +21,14 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
   set(THREADS_PREFER_PTHREAD_FLAG OFF)
   find_package(Threads REQUIRED)
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
     find_package(LibXml2 REQUIRED)
     find_package(CURL CONFIG)
     if(NOT CURL_FOUND)
@@ -122,7 +122,7 @@ set(CF_WASI_UNAVAILABLE_SOURCES)
 set(CF_WASI_UNAVAILABLE_PRIVATE_HEADERS)
 set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS)
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   list(APPEND CF_WASI_UNAVAILABLE_PRIVATE_HEADERS
     # Parsing
     Parsing.subproj/CFXMLInputStream.h
@@ -416,7 +416,7 @@ target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR})
                              
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   target_link_libraries(CoreFoundation PRIVATE
     Threads::Threads
     ${CMAKE_DL_LIBS}
@@ -468,7 +468,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   target_link_libraries(CFURLSessionInterface PRIVATE
     CURL::libcurl)
 endif()
@@ -487,7 +487,7 @@ add_framework(CFXMLInterface
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
     target_link_libraries(CFXMLInterface PRIVATE
       LibXml2::LibXml2)
@@ -539,7 +539,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
 endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows 
 AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin
-AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+AND NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           m)
@@ -551,7 +551,7 @@ AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
                           m)
 endif()
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           dispatch)
@@ -578,7 +578,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
 endif()
 
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL wasi)
   install(TARGETS
             CoreFoundation
             CFURLSessionInterface
@@ -590,7 +590,7 @@ else()
             CoreFoundation
             CFXMLInterface
           DESTINATION
-            "${CMAKE_INSTALL_FULL_LIBDIR}")
+            "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
 endif()
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
