@@ -21,6 +21,14 @@ set_target_properties(FoundationXML PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
 
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
+  target_compile_options(FoundationXML
+  PRIVATE
+    -sdk ${CMAKE_SYSROOT}
+    -target wasm32-unknown-wasi
+  )
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
 install(TARGETS FoundationXML
   ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>

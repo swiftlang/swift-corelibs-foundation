@@ -168,7 +168,7 @@ endif()
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL wasm32)
   target_compile_options(Foundation
   PRIVATE
-    -sdk ${WASI_SDK_PREFIX}/share/wasi-sysroot
+    -sdk ${CMAKE_SYSROOT}
     -target wasm32-unknown-wasi
   )
 endif()
