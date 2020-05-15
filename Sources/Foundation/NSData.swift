@@ -213,8 +213,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Initializes a data object with the given Base64 encoded string.
     public init?(base64Encoded base64String: String, options: Base64DecodingOptions = []) {
-        let encodedBytes = Array(base64String.utf8)
-        guard var decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+        guard var decodedBytes = NSData.base64DecodeBytes(base64String.utf8, options: options) else {
             return nil
         }
         super.init()
@@ -223,9 +222,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Initializes a data object with the given Base64 encoded data.
     public init?(base64Encoded base64Data: Data, options: Base64DecodingOptions = []) {
-        var encodedBytes = [UInt8](repeating: 0, count: base64Data.count)
-        base64Data._nsObject.getBytes(&encodedBytes, length: encodedBytes.count)
-        guard var decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
+        guard var decodedBytes = NSData.base64DecodeBytes(base64Data, options: options) else {
             return nil
         }
         super.init()
@@ -684,7 +681,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
      - parameter options:    Options for handling invalid input
      - returns:              The decoded bytes.
      */
-    private static func base64DecodeBytes(_ bytes: [UInt8], options: Base64DecodingOptions = []) -> [UInt8]? {
+    private static func base64DecodeBytes<T: Collection>(_ bytes: T, options: Base64DecodingOptions = []) -> [UInt8]? where T.Element == UInt8 {
         var decodedBytes = [UInt8]()
         decodedBytes.reserveCapacity((bytes.count/3)*2)
         
