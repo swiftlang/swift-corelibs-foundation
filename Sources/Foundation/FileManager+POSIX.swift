@@ -459,16 +459,17 @@ extension FileManager {
         This method replaces pathContentOfSymbolicLinkAtPath:
      */
     internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
-        let bufSize = Int(PATH_MAX + 1)
-        var buf = [Int8](repeating: 0, count: bufSize)
-        let len = try _fileSystemRepresentation(withPath: path) {
-            readlink($0, &buf, bufSize)
+        let bufferSize = Int(PATH_MAX + 1)
+        let buffer = try [Int8](unsafeUninitializedCapacity: bufferSize) { buffer, initializedCount in
+            let len = try _fileSystemRepresentation(withPath: path) {
+                readlink($0, buffer.baseAddress, bufferSize)
+            }
+            if len < 0 {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+            initializedCount = len
         }
-        if len < 0 {
-            throw _NSErrorWithErrno(errno, reading: true, path: path)
-        }
-
-        return self.string(withFileSystemRepresentation: buf, length: Int(len))
+        return self.string(withFileSystemRepresentation: buffer, length: buffer.count)
     }
         
     internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {

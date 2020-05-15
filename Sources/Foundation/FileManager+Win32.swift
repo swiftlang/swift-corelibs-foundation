@@ -413,7 +413,7 @@ extension FileManager {
         return substitutePath
     }
     
-    private func _nonThrowingDestinationOfSymbolicLink(atPath path: String) -> String {
+    private func _realpath(_ path: String) -> String {
         return (try? _destinationOfSymbolicLink(atPath: path)) ?? path
     }
     
@@ -424,7 +424,7 @@ extension FileManager {
         // Same recursion limit as in Darwin:
         let symbolicLinkRecursionLimit = 32
         for _ in 0..<symbolicLinkRecursionLimit {
-            let iterationDestination = _nonThrowingDestinationOfSymbolicLink(atPath: previousIterationDestination)
+            let iterationDestination = _realpath(previousIterationDestination)
             if previousIterationDestination == iterationDestination {
                 return iterationDestination
             }
