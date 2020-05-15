@@ -464,7 +464,7 @@ extension FileManager {
             let len = try _fileSystemRepresentation(withPath: path) {
                 readlink($0, buffer.baseAddress, bufferSize)
             }
-            if len < 0 {
+            guard len >= 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
             }
             initializedCount = len
