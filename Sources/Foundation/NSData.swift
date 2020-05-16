@@ -210,7 +210,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return nil
         }
         super.init()
-        _init(bytes: &decodedBytes, length: decodedBytes.count, copy: true)
+        _init(bytes: decodedBytes.baseAddress!, length: decodedBytes.count, copy: false, deallocator: { (ptr, length) in
+            ptr.deallocate()
+        })
     }
 
     /// Initializes a data object with the given Base64 encoded data.
@@ -219,7 +221,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return nil
         }
         super.init()
-        _init(bytes: &decodedBytes, length: decodedBytes.count, copy: true)
+        _init(bytes: decodedBytes.baseAddress!, length: decodedBytes.count, copy: false, deallocator: { (ptr, length) in
+            ptr.deallocate()
+        })
     }
     
     deinit {
@@ -634,7 +638,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
      - parameter options:    Options for handling invalid input
      - returns:              The decoded bytes.
      */
-    private static func base64DecodeBytes<T: Collection>(_ bytes: T, options: Base64DecodingOptions = []) -> [UInt8]? where T.Element == UInt8 {
+    private static func base64DecodeBytes<T: Collection>(_ bytes: T, options: Base64DecodingOptions = []) -> UnsafeMutableRawBufferPointer? where T.Element == UInt8 {
 
         // This table maps byte values 0-127, input bytes >127 are always invalid.
         // Map the ASCII characters "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" -> 0...63
@@ -659,14 +663,21 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return nil
         }
 
-        var decodedBytes: [UInt8] = []
         let capacity = (bytes.count * 3) / 4    // Every 4 valid ASCII bytes maps to 3 output bytes.
-        decodedBytes.reserveCapacity(capacity)
+        let buffer = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 1)
+        var outputIndex = 0
+
+        func append(_ byte: UInt8) {
+            assert(outputIndex < capacity)
+            buffer.storeBytes(of: byte, toByteOffset: outputIndex, as: UInt8.self)
+            outputIndex += 1
+        }
 
         var currentByte: UInt8 = 0
         var validCharacterCount = 0
         var paddingCount = 0
         var index = 0
+        var error = false
 
         for base64Char in bytes {
             var value: UInt8 = 0
@@ -690,14 +701,16 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 if ignoreUnknown {
                     continue
                 } else {
-                    return nil
+                    error = true
+                    break
                 }
             }
             validCharacterCount += 1
 
             // Padding found in the middle of the sequence is invalid.
             if paddingCount > 0 {
-                return nil
+                error = true
+                break
             }
 
             switch index {
@@ -705,15 +718,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 currentByte = (value << 2)
             case 1:
                 currentByte |= (value >> 4)
-                decodedBytes.append(currentByte)
+                append(currentByte)
                 currentByte = (value << 4)
             case 2:
                 currentByte |= (value >> 2)
-                decodedBytes.append(currentByte)
+                append(currentByte)
                 currentByte = (value << 6)
             case 3:
                 currentByte |= value
-                decodedBytes.append(currentByte)
+                append(currentByte)
                 index = -1
             default:
                 fatalError()
@@ -722,11 +735,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             index += 1
         }
 
-        guard (validCharacterCount + paddingCount) % 4 == 0 else {
+        guard error == false && (validCharacterCount + paddingCount) % 4 == 0 else {
             // Invalid character count of valid input characters.
+            buffer.deallocate()
             return nil
         }
-        return decodedBytes
+        return UnsafeMutableRawBufferPointer(start: buffer, count: outputIndex)
     }
 
     /**
