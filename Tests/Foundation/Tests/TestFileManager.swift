@@ -1785,10 +1785,10 @@ VIDEOS=StopgapVideos
 
             // Relative Paths
             ".\\testfile",
-            "..\\\(tmpPath.lastPathComponent)\\.\\testfile",
+            "..\\\((tmpPath as NSString).lastPathComponent)\\.\\testfile",
             "testfile",
             "./testfile",
-            "../\(tmpPath.lastPathComponent)/./testfile",
+            "../\((tmpPath as NSString).lastPathComponent)/./testfile",
 
             // UNC Paths
             "\\\\.\\\(tmpPath)\\testfile",
