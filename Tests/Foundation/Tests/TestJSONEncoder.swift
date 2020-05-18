@@ -855,7 +855,9 @@ class TestJSONEncoder : XCTestCase {
 
     func test_OutputFormattingValues() {
         XCTAssertEqual(JSONEncoder.OutputFormatting.prettyPrinted.rawValue, 1)
-        XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
+        if #available(OSX 10.13, *) {
+            XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
+        }
         XCTAssertEqual(JSONEncoder.OutputFormatting.withoutEscapingSlashes.rawValue, 8)
     }
 
