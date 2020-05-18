@@ -462,12 +462,7 @@ extension FileManager {
         let bufferSize = Int(PATH_MAX + 1)
         let buffer = try [Int8](unsafeUninitializedCapacity: bufferSize) { buffer, initializedCount in
             let len = try _fileSystemRepresentation(withPath: path) { (path) -> Int in
-                #if canImport(Darwin)
-                let bufferBaseAddress = buffer.baseAddress
-                #else
-                let bufferBaseAddress = buffer
-                #endif
-                return readlink(path, bufferBaseAddress, bufferSize)
+                return readlink(path, buffer.baseAddress!, bufferSize)
             }
             guard len >= 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
