@@ -461,8 +461,13 @@ extension FileManager {
     internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
         let bufferSize = Int(PATH_MAX + 1)
         let buffer = try [Int8](unsafeUninitializedCapacity: bufferSize) { buffer, initializedCount in
-            let len = try _fileSystemRepresentation(withPath: path) {
-                readlink($0, buffer.baseAddress, bufferSize)
+            let len = try _fileSystemRepresentation(withPath: path) { (path) -> Int in
+                #if canImport(Darwin)
+                let bufferBaseAddress = buffer.baseAddress
+                #else
+                let bufferBaseAddress = buffer
+                #endif
+                return readlink(path, bufferBaseAddress, bufferSize)
             }
             guard len >= 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
