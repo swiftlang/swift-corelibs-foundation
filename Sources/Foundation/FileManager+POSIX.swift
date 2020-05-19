@@ -459,18 +459,35 @@ extension FileManager {
         This method replaces pathContentOfSymbolicLinkAtPath:
      */
     internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
+        let bufferSize = Int(PATH_MAX + 1)
+        let buffer = try [Int8](unsafeUninitializedCapacity: bufferSize) { buffer, initializedCount in
+            let len = try _fileSystemRepresentation(withPath: path) { (path) -> Int in
+                return readlink(path, buffer.baseAddress!, bufferSize)
+            }
+            guard len >= 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+            initializedCount = len
+        }
+        return self.string(withFileSystemRepresentation: buffer, length: buffer.count)
+    }
+        
+    internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        // Throw error if path is not a symbolic link:
+        let path = try _destinationOfSymbolicLink(atPath: path)
+        
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
-        let len = try _fileSystemRepresentation(withPath: path) {
-            readlink($0, &buf, bufSize)
+        let _resolvedPath = try _fileSystemRepresentation(withPath: path) {
+            realpath($0, &buf)
         }
-        if len < 0 {
+        guard let resolvedPath = _resolvedPath else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
 
-        return self.string(withFileSystemRepresentation: buf, length: Int(len))
+        return String(cString: resolvedPath)
     }
-    
+
     /* Returns a String with a canonicalized path for the element at the specified path. */
     internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
         let bufSize = Int(PATH_MAX + 1)
