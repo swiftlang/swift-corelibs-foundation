@@ -630,6 +630,10 @@ open class FileManager : NSObject {
     open func destinationOfSymbolicLink(atPath path: String) throws -> String {
         return try _destinationOfSymbolicLink(atPath: path)
     }
+    
+    internal func recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        return try _recursiveDestinationOfSymbolicLink(atPath: path)
+    }
 
     internal func extraErrorInfo(srcPath: String?, dstPath: String?, userVariant: String?) -> [String : Any] {
         var result = [String : Any]()
@@ -1123,8 +1127,8 @@ open class FileManager : NSObject {
     }
 
     internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {
-        // destinationOfSymbolicLink(atPath:) will fail if the path is not a symbolic link
-        guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: path) else {
+        // FileManager.recursiveDestinationOfSymbolicLink(atPath:) will fail if the path is not a symbolic link
+        guard let destination = try? self.recursiveDestinationOfSymbolicLink(atPath: path) else {
             return nil
         }
 
