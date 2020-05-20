@@ -99,7 +99,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL WASI)
   install(FILES
             CoreFoundation/Base.subproj/module.map
           DESTINATION
-            lib/swift/CoreFoundation)
+            lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CoreFoundation)
   install(FILES
             CoreFoundation/URL.subproj/module.map
           DESTINATION
