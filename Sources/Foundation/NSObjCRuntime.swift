@@ -304,7 +304,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
     map.append((Process.self, "NSTask"))
 #endif
 #if !os(WASI)
-    map.append(contentsOf: [
+    map.append([
         (Bundle.self, "NSBundle"),
         (FileHandle.self, "NSFileHandle"),
         (FileManager.self, "NSFileManager"),
