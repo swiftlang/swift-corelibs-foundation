@@ -124,8 +124,6 @@ set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   list(APPEND CF_WASI_UNAVAILABLE_PRIVATE_HEADERS
-    # Parsing
-    Parsing.subproj/CFXMLInputStream.h
     # PlugIn
     PlugIn.subproj/CFBundlePriv.h
     PlugIn.subproj/CFBundle_BinaryTypes.h
