@@ -304,7 +304,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
     map.append((Process.self, "NSTask"))
 #endif
 #if !os(WASI)
-    map.append([
+    map += [
         (Bundle.self, "NSBundle"),
         (FileHandle.self, "NSFileHandle"),
         (FileManager.self, "NSFileManager"),
@@ -326,7 +326,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (Thread.self, "NSThread"),
         (Timer.self, "NSTimer"),
         (UserDefaults.self, "NSUserDefaults"),
-    ])
+    ]
 #endif
     return map
 }()
