@@ -619,90 +619,88 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }))
     }
 
-    /// The ranges of ASCII characters that are used to encode data in Base64.
-    private static let base64ByteMappings: [Range<UInt8>] = [
-        65 ..< 91,      // A-Z
-        97 ..< 123,     // a-z
-        48 ..< 58,      // 0-9
-        43 ..< 44,      // +
-        47 ..< 48,      // /
-    ]
     /**
      Padding character used when the number of bytes to encode is not divisible by 3
      */
     private static let base64Padding : UInt8 = 61 // =
-    
-    /**
-     This method takes a byte with a character from Base64-encoded string
-     and gets the binary value that the character corresponds to.
-     
-     - parameter byte:       The byte with the Base64 character.
-     - returns:              Base64DecodedByte value containing the result (Valid , Invalid, Padding)
-     */
-    private enum Base64DecodedByte {
-        case valid(UInt8)
-        case invalid
-        case padding
-    }
-
-    private static func base64DecodeByte(_ byte: UInt8) -> Base64DecodedByte {
-        guard byte != base64Padding else {return .padding}
-        var decodedStart: UInt8 = 0
-        for range in base64ByteMappings {
-            if range.contains(byte) {
-                let result = decodedStart + (byte - range.lowerBound)
-                return .valid(result)
-            }
-            decodedStart += range.upperBound - range.lowerBound
-        }
-        return .invalid
-    }
 
     /**
      This method decodes Base64-encoded data.
-     
+
      If the input contains any bytes that are not valid Base64 characters,
      this will return nil.
-     
+
      - parameter bytes:      The Base64 bytes
      - parameter options:    Options for handling invalid input
      - returns:              The decoded bytes.
      */
     private static func base64DecodeBytes<T: Collection>(_ bytes: T, options: Base64DecodingOptions = []) -> [UInt8]? where T.Element == UInt8 {
-        var decodedBytes = [UInt8]()
-        decodedBytes.reserveCapacity((bytes.count/3)*2)
-        
-        var currentByte : UInt8 = 0
+
+        // This table maps byte values 0-127, input bytes >127 are always invalid.
+        // Map the ASCII characters "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" -> 0...63
+        // Map '=' (ASCII 61) to 0x40.
+        // All other values map to 0x7f. This allows '=' and invalid bytes to be checked together by testing bit 6 (0x40).
+        let base64Decode: StaticString = """
+\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\
+\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\
+\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\u{3e}\u{7f}\u{7f}\u{7f}\u{3f}\
+\u{34}\u{35}\u{36}\u{37}\u{38}\u{39}\u{3a}\u{3b}\u{3c}\u{3d}\u{7f}\u{7f}\u{7f}\u{40}\u{7f}\u{7f}\
+\u{7f}\u{00}\u{01}\u{02}\u{03}\u{04}\u{05}\u{06}\u{07}\u{08}\u{09}\u{0a}\u{0b}\u{0c}\u{0d}\u{0e}\
+\u{0f}\u{10}\u{11}\u{12}\u{13}\u{14}\u{15}\u{16}\u{17}\u{18}\u{19}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}\
+\u{7f}\u{1a}\u{1b}\u{1c}\u{1d}\u{1e}\u{1f}\u{20}\u{21}\u{22}\u{23}\u{24}\u{25}\u{26}\u{27}\u{28}\
+\u{29}\u{2a}\u{2b}\u{2c}\u{2d}\u{2e}\u{2f}\u{30}\u{31}\u{32}\u{33}\u{7f}\u{7f}\u{7f}\u{7f}\u{7f}
+"""
+        assert(base64Decode.isASCII)
+        assert(base64Decode.utf8CodeUnitCount == 128)
+        assert(base64Decode.hasPointerRepresentation)
+
+        let ignoreUnknown = options.contains(.ignoreUnknownCharacters)
+        if !ignoreUnknown && !bytes.count.isMultiple(of: 4) {
+            return nil
+        }
+
+        var decodedBytes: [UInt8] = []
+        let capacity = (bytes.count * 3) / 4    // Every 4 valid ASCII bytes maps to 3 output bytes.
+        decodedBytes.reserveCapacity(capacity)
+
+        var currentByte: UInt8 = 0
         var validCharacterCount = 0
         var paddingCount = 0
         var index = 0
-        
-        
+
         for base64Char in bytes {
-            
-            let value : UInt8
-            
-            switch base64DecodeByte(base64Char) {
-            case .valid(let v):
-                value = v
-                validCharacterCount += 1
-            case .invalid:
-                if options.contains(.ignoreUnknownCharacters) {
+            var value: UInt8 = 0
+
+            var invalid = false
+            if base64Char >= base64Decode.utf8CodeUnitCount {
+                invalid = true
+            } else {
+                value = base64Decode.utf8Start[Int(base64Char)]
+                if value & 0x40 == 0x40 {       // Input byte is either '=' or an invalid value.
+                    if value == 0x7f {
+                        invalid = true
+                    } else if value == 0x40 {   // '=' padding at end of input.
+                        paddingCount += 1
+                        continue
+                    }
+                }
+            }
+
+            if invalid {
+                if ignoreUnknown {
                     continue
                 } else {
                     return nil
                 }
-            case .padding:
-                paddingCount += 1
-                continue
             }
-            
-            //padding found in the middle of the sequence is invalid
+            validCharacterCount += 1
+
+            // Padding found in the middle of the sequence is invalid.
             if paddingCount > 0 {
                 return nil
             }
-            
-            switch index%4 {
+
+            switch index {
             case 0:
                 currentByte = (value << 2)
             case 1:
@@ -716,15 +714,16 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             case 3:
                 currentByte |= value
                 decodedBytes.append(currentByte)
+                index = -1
             default:
                 fatalError()
             }
-            
+
             index += 1
         }
-        
-        guard (validCharacterCount + paddingCount)%4 == 0 else {
-            //invalid character count
+
+        guard (validCharacterCount + paddingCount) % 4 == 0 else {
+            // Invalid character count of valid input characters.
             return nil
         }
         return decodedBytes
