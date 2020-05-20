@@ -165,9 +165,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
     PlugIn.subproj/CFBundle_Strings.c
     PlugIn.subproj/CFBundle_Tables.c
     PlugIn.subproj/CFPlugIn.c
-    PlugIn.subproj/CFPlugIn_Factory.c
-    PlugIn.subproj/CFPlugIn_Instance.c
-    PlugIn.subproj/CFPlugIn_PlugIn.c
     # Preferences
     Preferences.subproj/CFApplicationPreferences.c
     Preferences.subproj/CFPreferences.c
