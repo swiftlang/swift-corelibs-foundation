@@ -572,22 +572,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
 
-
+(set WASI_UNAVAILABLE_TARGETS)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
-  install(TARGETS
-            CoreFoundation
-            CFURLSessionInterface
-            CFXMLInterface
-          DESTINATION
-            "${CMAKE_INSTALL_FULL_LIBDIR}")
-else()
-  message("will install CoreFoundation to ${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
-  install(TARGETS
-            CoreFoundation
-            CFXMLInterface
-          DESTINATION
-            "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+  list(APPEND WASI_UNAVAILABLE_TARGETS CFURLSessionInterface)
 endif()
+
+install(TARGETS
+    CoreFoundation
+    CFXMLInterface
+    ${WASI_UNAVAILABLE_TARGETS}
+  DESTINATION
+    "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
 # Double slash raise CMake error "file called with network path DESTINATION //System/Library/Frameworks".
