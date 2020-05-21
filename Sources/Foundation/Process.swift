@@ -825,7 +825,7 @@ open class Process: NSObject {
         let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
-        var fileActions = _CFPosixSpawnFileActionsAlloc()
+        let fileActions = _CFPosixSpawnFileActionsAlloc()
         posix(_CFPosixSpawnFileActionsInit(fileActions))
         defer {
             _CFPosixSpawnFileActionsDestroy(fileActions)
