@@ -750,7 +750,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         var currentLineCount = 0
         let separatorByte1: UInt8
         var separatorByte2: UInt8? = nil
-        var index = 0
 
         if options.isEmpty {
             lineLength = 0
@@ -784,38 +783,49 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
         // Read three bytes at a time, which convert to 4 ASCII characters, allowing for byte2 and byte3 being nil
         let dataBuffer = UnsafeRawBufferPointer(start: data.bytes, count: data.length)
-        var iterator = dataBuffer.makeIterator()
+        var inputIndex = 0
+        var outputIndex = 0
+        var bytesLeft = dataBuffer.count
 
-        while let byte1 = iterator.next() {
-            var finished = false
+        while bytesLeft > 0 {
+
+            let byte1 = dataBuffer[inputIndex]
 
             // outputBytes is a UInt32 to allow 4 bytes to be written out at once.
             var outputBytes = lookupBase64Value(UInt16(byte1 >> 2))
 
-            var value = UInt16(byte1 & 0x3) << 8
-            let byte2 = iterator.next()
-            value |= UInt16(byte2 ?? 0)
+            if bytesLeft > 2 {
+                // This is the main loop converting 3 bytes at a time.
+                let byte2 = dataBuffer[inputIndex + 1]
+                let byte3 = dataBuffer[inputIndex + 2]
+                var value = UInt16(byte1 & 0x3) << 8
+                value |= UInt16(byte2)
 
-            let outputByte2 = lookupBase64Value(value >> 4)
-            outputBytes |= (outputByte2 << 8)
+                let outputByte2 = lookupBase64Value(value >> 4)
+                outputBytes |= (outputByte2 << 8)
+                value = (value << 8) | UInt16(byte3)
 
-            if byte2 == nil {
-                outputBytes |= (UInt32(self.base64Padding) << 16)
-                outputBytes |= (UInt32(self.base64Padding) << 24)
-                finished = true
-            } else {
-                let byte3 = iterator.next()
-                value = (value << 8) | UInt16(byte3 ?? 0)
                 let outputByte3 = lookupBase64Value(value >> 6)
                 outputBytes |= (outputByte3 << 16)
 
-                if byte3 == nil {
-                    outputBytes |= (UInt32(self.base64Padding) << 24)
-                    finished = true
-                } else {
-                    let outputByte4 = lookupBase64Value(value)
-                    outputBytes |= (outputByte4 << 24)
-                }
+                let outputByte4 = lookupBase64Value(value)
+                outputBytes |= (outputByte4 << 24)
+                inputIndex += 3
+            } else {
+                // This runs once at the end of there were 1 or 2 bytes left, byte1 having already been read.
+                // Read byte2 or 0 if there isnt another byte
+                let byte2 = bytesLeft == 1 ? 0 : dataBuffer[inputIndex + 1]
+                var value = UInt16(byte1 & 0x3) << 8
+                value |= UInt16(byte2)
+
+                let outputByte2 = lookupBase64Value(value >> 4)
+                outputBytes |= (outputByte2 << 8)
+
+                let outputByte3 = bytesLeft == 1 ? UInt32(self.base64Padding) : lookupBase64Value(value << 2)
+                outputBytes |= (outputByte3 << 16)
+                outputBytes |= (UInt32(self.base64Padding) << 24)
+                inputIndex += bytesLeft
+                assert(inputIndex == dataBuffer.count)
             }
 
             // The lowest byte of outputBytes needs to be stored at the lowest address, so make sure
@@ -825,29 +835,29 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             // The output isnt guaranteed to be aligned on a 4 byte boundary if EOL markers (CR, LF or CRLF)
             // are written out so use .copyMemory() for safety. On x86 this still translates to a single store
             // anyway.
-            buffer.baseAddress!.advanced(by: index).copyMemory(from: &outputBytes, byteCount: 4)
-            index += 4
+            buffer.baseAddress!.advanced(by: outputIndex).copyMemory(from: &outputBytes, byteCount: 4)
+            outputIndex += 4
             if lineLength != 0 {
                 // Add required EOL markers.
                 currentLineCount += 4
                 assert(currentLineCount <= lineLength)
 
                 if currentLineCount == lineLength {
-                    buffer[index] = separatorByte1
-                    index += 1
+                    buffer[outputIndex] = separatorByte1
+                    outputIndex += 1
 
                     if let byte2 = separatorByte2 {
-                        buffer[index] = byte2
-                        index += 1
+                        buffer[outputIndex] = byte2
+                        outputIndex += 1
                     }
                     currentLineCount = 0
                 }
             }
-            if finished { break }
+            bytesLeft = dataBuffer.count - inputIndex
         }
 
-        // Return the number of ASCII bytes written to the buffer.
-        return index
+        // Return the number of ASCII bytes written to the buffer
+        return outputIndex
     }
 }
 
