@@ -90,39 +90,17 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 
-if(CMAKE_SYSTEM_NAME STREQUAL WASI)
-  install(DIRECTORY
-            ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
-          DESTINATION
-            lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CoreFoundation
-          FILES_MATCHING PATTERN "*.h")
-  install(FILES
-            CoreFoundation/Base.subproj/module.map
-          DESTINATION
-            lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CoreFoundation)
-  install(FILES
-            CoreFoundation/URL.subproj/module.map
-          DESTINATION
-            lib/swift/CFURLSessionInterface)
-  install(DIRECTORY
-            ${CMAKE_CURRENT_BINARY_DIR}/CFXMLInterface.framework/Headers/
-          DESTINATION
-            lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CFXMLInterface
-          FILES_MATCHING PATTERN "*.h")
-  install(FILES
-            CoreFoundation/Parsing.subproj/module.map
-          DESTINATION
-            lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CFXMLInterface)
-else()
-  install(DIRECTORY
-            ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
-          DESTINATION
-            lib/swift/CoreFoundation
-          FILES_MATCHING PATTERN "*.h")
-  install(FILES
-            CoreFoundation/Base.subproj/module.map
-          DESTINATION
-            lib/swift/CoreFoundation)
+install(DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
+        DESTINATION
+          lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CoreFoundation
+        FILES_MATCHING PATTERN "*.h")
+install(FILES
+          CoreFoundation/Base.subproj/module.map
+        DESTINATION
+          lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CoreFoundation)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   install(DIRECTORY
             ${CMAKE_CURRENT_BINARY_DIR}/CFURLSessionInterface.framework/Headers/
           DESTINATION
@@ -132,15 +110,16 @@ else()
             CoreFoundation/URL.subproj/module.map
           DESTINATION
             lib/swift/CFURLSessionInterface)
-  install(DIRECTORY
-            ${CMAKE_CURRENT_BINARY_DIR}/CFXMLInterface.framework/Headers/
-          DESTINATION
-            lib/swift/CFXMLInterface
-          FILES_MATCHING PATTERN "*.h")
-  install(FILES
-            CoreFoundation/Parsing.subproj/module.map
-          DESTINATION
-            lib/swift/CFXMLInterface)
 endif()
+
+install(DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR}/CFXMLInterface.framework/Headers/
+        DESTINATION
+          lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CFXMLInterface
+        FILES_MATCHING PATTERN "*.h")
+install(FILES
+          CoreFoundation/Parsing.subproj/module.map
+        DESTINATION
+          lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${CMAKE_SYSTEM_PROCESSOR}/CFXMLInterface)
 
 add_subdirectory(cmake/modules)
