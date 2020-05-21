@@ -572,7 +572,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
 
-(set WASI_UNAVAILABLE_TARGETS)
+set(WASI_UNAVAILABLE_TARGETS)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
   list(APPEND WASI_UNAVAILABLE_TARGETS CFURLSessionInterface)
 endif()
