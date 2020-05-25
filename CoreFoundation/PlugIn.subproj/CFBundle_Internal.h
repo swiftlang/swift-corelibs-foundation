@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFBUNDLE_INTERNAL__)
+#if !defined(__COREFOUNDATION_CFBUNDLE_INTERNAL__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFBUNDLE_INTERNAL__ 1
 
 #include <CoreFoundation/CFDate.h>

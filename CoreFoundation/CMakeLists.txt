@@ -119,34 +119,8 @@ else()
 endif()
 
 set(CF_WASI_UNAVAILABLE_SOURCES)
-set(CF_WASI_UNAVAILABLE_PRIVATE_HEADERS)
-set(CF_WASI_UNAVAILABLE_PUBLIC_HEADERS)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
-  list(APPEND CF_WASI_UNAVAILABLE_PRIVATE_HEADERS
-    # PlugIn
-    PlugIn.subproj/CFBundlePriv.h
-    PlugIn.subproj/CFBundle_BinaryTypes.h
-    PlugIn.subproj/CFBundle_Internal.h
-    PlugIn.subproj/CFPlugIn_Factory.h
-    # RunLoop
-    RunLoop.subproj/CFMachPort_Internal.h
-    RunLoop.subproj/CFMachPort_Lifetime.h
-    # Stream
-    Stream.subproj/CFStreamAbstract.h
-    Stream.subproj/CFStreamInternal.h
-    Stream.subproj/CFStreamPriv.h)
-  list(APPEND CF_WASI_UNAVAILABLE_PUBLIC_HEADERS 
-    # Preferences
-    Preferences.subproj/CFPreferences.h
-    # RunLoop
-    RunLoop.subproj/CFMachPort.h
-    RunLoop.subproj/CFMessagePort.h
-    RunLoop.subproj/CFRunLoop.h
-    RunLoop.subproj/CFSocket.h
-    # Stream
-    Stream.subproj/CFStreamPriv.h
-    Stream.subproj/CFStream.h)
   list(APPEND CF_WASI_UNAVAILABLE_SOURCES 
     # PlugIn
     PlugIn.subproj/CFBundle_Binary.c
@@ -249,8 +223,6 @@ add_framework(CoreFoundation
                 URL.subproj/CFURL.inc.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
-
-                ${CF_WASI_UNAVAILABLE_PRIVATE_HEADERS}
               PUBLIC_HEADERS
                 # FIXME: PrivateHeaders referenced by public headers
                 Base.subproj/CFKnownLocations.h
@@ -311,7 +283,16 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle.h
                 PlugIn.subproj/CFPlugIn.h
                 PlugIn.subproj/CFPlugInCOM.h
-                ${CF_WASI_UNAVAILABLE_PUBLIC_HEADERS}
+                # Preferences
+                Preferences.subproj/CFPreferences.h
+                # RunLoop
+                RunLoop.subproj/CFMachPort.h
+                RunLoop.subproj/CFMessagePort.h
+                RunLoop.subproj/CFRunLoop.h
+                RunLoop.subproj/CFSocket.h
+                # Stream
+                Stream.subproj/CFStreamPriv.h
+                Stream.subproj/CFStream.h
                 # String
                 String.subproj/CFAttributedString.h
                 String.subproj/CFCharacterSet.h

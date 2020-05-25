@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFBUNDLE_BINARYTYPES__)
+#if !defined(__COREFOUNDATION_CFBUNDLE_BINARYTYPES__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFBUNDLE_BINARYTYPES__ 1
 
 CF_EXTERN_C_BEGIN
