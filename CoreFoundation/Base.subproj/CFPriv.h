@@ -636,8 +636,10 @@ typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
     _CFBundleFilteredPlistMemoryMapped = 1
 } API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
+#if !TARGET_OS_WASI
 CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+#endif
 
 #if TARGET_OS_WIN32
 #include <CoreFoundation/CFNotificationCenter.h>
