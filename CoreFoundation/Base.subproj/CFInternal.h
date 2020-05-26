@@ -320,10 +320,16 @@ static inline void __CFRuntimeSetValue(CFTypeRef cf, uint8_t n1, uint8_t n2, uin
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     __CFInfoType newInfo;
     __CFInfoType mask = __CFInfoMask(n1, n2);
+    #if !TARGET_OS_WASI
     do {
+    #endif
         // maybe don't need to do the negation part because the right side promises that we are not going to touch the rest of the word
         newInfo = (info & ~mask) | ((x << n2) & mask);
+    #if !TARGET_OS_WASI
     } while (!atomic_compare_exchange_weak(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo));
+    #else
+    ((CFRuntimeBase *)cf)->_cfinfoa = newInfo;
+    #endif
 }
 
 /// Set a flag in a CFTypeRef info bitfield.
