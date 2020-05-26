@@ -679,6 +679,10 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 
 static _CFThreadSpecificKey __CFTSDIndexKey;
 
+#if TARGET_OS_WASI
+static void *__CFThreadSpecificData;
+#endif
+
 CF_PRIVATE void __CFTSDInitialize() {
 #if !TARGET_OS_WASI
     static dispatch_once_t once;
@@ -697,6 +701,8 @@ static void __CFTSDSetSpecific(void *arg) {
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif TARGET_OS_WIN32
     FlsSetValue(__CFTSDIndexKey, arg);
+#elif TARGET_OS_WASI
+    __CFThreadSpecificData = arg;
 #endif
 }
 
@@ -707,6 +713,8 @@ static void *__CFTSDGetSpecific() {
     return pthread_getspecific(__CFTSDIndexKey);
 #elif TARGET_OS_WIN32
     return FlsGetValue(__CFTSDIndexKey);
+#elif TARGET_OS_WASI
+    return __CFThreadSpecificData;
 #endif
 }
 
