@@ -125,6 +125,41 @@ class TestRunLoop : XCTestCase {
         XCTAssertTrue(didDeallocate)
     }
     
+    func test_mainDispatchQueueCallout() {
+        let runLoop = RunLoop.current
+
+        var asyncExecuted = false
+        DispatchQueue.main.async {
+            asyncExecuted = true
+        }
+
+        // RunLoop should service main queue
+        _ = runLoop.run(mode: .default, before: Date(timeIntervalSinceNow: 2))
+        XCTAssertTrue(asyncExecuted, "Main queue async code should be executed")
+
+        asyncExecuted = false
+        DispatchQueue.main.async {
+            asyncExecuted = true
+        }
+
+        // Second run to be sure RunLoop will not stuck
+        _ = runLoop.run(mode: .default, before: Date(timeIntervalSinceNow: 2))
+        XCTAssertTrue(asyncExecuted, "Main queue async code should be executed")
+
+        var timerFired = false
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+            timerFired = true
+        }
+        runLoop.add(dummyTimer, forMode: .default)
+
+        // At this moment RunLoop has no work to do except waiting for timer.
+        // But RunLoop will exit prematurely if event from previous async calls
+        // got stuck in wrong state.
+        _ = runLoop.run(mode: .default, before: Date(timeIntervalSinceNow: 2))
+        
+        XCTAssertTrue(timerFired, "Time should fire already")
+    }
+
     static var allTests : [(String, (TestRunLoop) -> () throws -> Void)] {
         return [
             ("test_constants", test_constants),
@@ -134,6 +169,7 @@ class TestRunLoop : XCTestCase {
             ("test_runLoopLimitDate", test_runLoopLimitDate),
             ("test_runLoopPoll", test_runLoopPoll),
             ("test_addingRemovingPorts", test_addingRemovingPorts),
+            ("test_mainDispatchQueueCallout", test_mainDispatchQueueCallout)
         ]
     }
 }
