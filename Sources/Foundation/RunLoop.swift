@@ -78,6 +78,7 @@ open class RunLoop: NSObject {
         }
     }
     
+    @available(*, deprecated, message: "Directly accessing the run loop may cause your code to not become portable in the future.")
     open func getCFRunLoop() -> CFRunLoop {
         return _cfRunLoop
     }
@@ -229,7 +230,7 @@ extension RunLoop {
     }
     
     @available(*, deprecated, message: "For XCTest use only.")
-    func _add(_ source: _Source, forMode mode: RunLoop.Mode) {
+    public func _add(_ source: _Source, forMode mode: RunLoop.Mode) {
         CFRunLoopAddSource(_cfRunLoop, source.cfSource, mode._cfStringUniquingKnown)
     }
 }
@@ -281,11 +282,11 @@ extension RunLoop {
             CFRunLoopObserverInvalidate(cfObserver)
         }
         
-        var order: Int {
+        public var order: Int {
             Int(CFRunLoopObserverGetOrder(cfObserver))
         }
         
-        var isValid: Bool {
+        public var isValid: Bool {
             CFRunLoopObserverIsValid(cfObserver)
         }
     }
@@ -357,11 +358,11 @@ extension RunLoop {
             CFRunLoopSourceInvalidate(cfSource)
         }
         
-        var order: Int {
+        open var order: Int {
             Int(CFRunLoopSourceGetOrder(cfSource))
         }
 
-        var isValid: Bool {
+        open var isValid: Bool {
             CFRunLoopSourceIsValid(cfSource)
         }
         
