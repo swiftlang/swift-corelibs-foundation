@@ -233,6 +233,11 @@ extension RunLoop {
     public func _add(_ source: _Source, forMode mode: RunLoop.Mode) {
         CFRunLoopAddSource(_cfRunLoop, source.cfSource, mode._cfStringUniquingKnown)
     }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    open func remove(_ source: _Source, for mode: RunLoop.Mode) {
+        CFRunLoopRemoveSource(_cfRunLoop, source.cfSource, mode._cfStringUniquingKnown)
+    }
 }
 
 extension RunLoop {
