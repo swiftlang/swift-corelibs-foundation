@@ -235,7 +235,7 @@ extension RunLoop {
     }
     
     @available(*, deprecated, message: "For XCTest use only.")
-    open func remove(_ source: _Source, for mode: RunLoop.Mode) {
+    open func _remove(_ source: _Source, for mode: RunLoop.Mode) {
         CFRunLoopRemoveSource(_cfRunLoop, source.cfSource, mode._cfStringUniquingKnown)
     }
 }
