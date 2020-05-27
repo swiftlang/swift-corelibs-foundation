@@ -294,6 +294,10 @@ extension RunLoop {
         public var isValid: Bool {
             CFRunLoopObserverIsValid(cfObserver)
         }
+        
+        deinit {
+            invalidate()
+        }
     }
     
     @available(*, deprecated, message: "For XCTest use only.")
@@ -373,6 +377,10 @@ extension RunLoop {
         
         open func signal() {
             CFRunLoopSourceSignal(cfSource)
+        }
+        
+        deinit {
+            invalidate()
         }
     }
 }
