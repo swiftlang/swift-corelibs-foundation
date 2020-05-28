@@ -316,7 +316,7 @@ extension RunLoop {
                     let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
                     return .passRetained(String(describing: me)._cfObject)
                 },
-                equal: { (infoA, infoB) -> DarwinBoolean in
+                equal: { (infoA, infoB) in
                     let a = Unmanaged<_Source>.fromOpaque(infoA!).takeUnretainedValue()
                     let b = Unmanaged<_Source>.fromOpaque(infoB!).takeUnretainedValue()
                     return a == b ? true : false
