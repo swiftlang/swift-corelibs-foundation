@@ -2514,22 +2514,39 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     ///
     /// - parameter options: The options to use for the encoding. Default value is `[]`.
     /// - returns: The Base-64 encoded string.
-    @inlinable // This is @inlinable as trivially forwarding.
     public func base64EncodedString(options: Data.Base64EncodingOptions = []) -> String {
-        return _representation.withInteriorPointerReference {
-            return $0.base64EncodedString(options: options)
+        let dataLength = self.count
+        if dataLength == 0 { return "" }
+
+        let capacity = NSData.estimateBase64Size(length: dataLength)
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 4)
+        defer { ptr.deallocate() }
+        let buffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
+        let length = self.withUnsafeBytes { inputBuffer in
+            NSData.base64EncodeBytes(inputBuffer, options: options, buffer: buffer)
         }
+
+        return String(decoding: UnsafeRawBufferPointer(start: ptr, count: length), as: Unicode.UTF8.self)
     }
     
     /// Returns a Base-64 encoded `Data`.
     ///
     /// - parameter options: The options to use for the encoding. Default value is `[]`.
     /// - returns: The Base-64 encoded data.
-    @inlinable // This is @inlinable as trivially forwarding.
     public func base64EncodedData(options: Data.Base64EncodingOptions = []) -> Data {
-        return _representation.withInteriorPointerReference {
-            return $0.base64EncodedData(options: options)
+        let dataLength = self.count
+        if dataLength == 0 { return Data() }
+
+        let capacity = NSData.estimateBase64Size(length: dataLength)
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 4)
+        let outputBuffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
+
+        let length = self.withUnsafeBytes { inputBuffer in
+            NSData.base64EncodeBytes(inputBuffer, options: options, buffer: outputBuffer)
         }
+        return Data(bytesNoCopy: ptr, count: length, deallocator: .custom({ (ptr, length) in
+            ptr.deallocate()
+        }))
     }
     
     // MARK: -

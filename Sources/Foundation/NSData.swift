@@ -604,7 +604,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - Base64 Methods
 
-    private func estimateBase64Size(length: Int) -> Int {
+    internal static func estimateBase64Size(length: Int) -> Int {
         // Worst case allow for 64bytes + \r\n per line  48 input bytes => 66 output bytes
         return ((length + 47) * 66) / 48
     }
@@ -614,11 +614,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let dataLength = self.length
         if dataLength == 0 { return "" }
 
-        let capacity = estimateBase64Size(length: dataLength)
+        let inputBuffer = UnsafeRawBufferPointer(start: self.bytes, count: dataLength)
+        let capacity = NSData.estimateBase64Size(length: dataLength)
         let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 4)
         defer { ptr.deallocate() }
-        let buffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
-        let length = NSData.base64EncodeBytes(self, options: options, buffer: buffer)
+        let outputBuffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
+        let length = NSData.base64EncodeBytes(inputBuffer, options: options, buffer: outputBuffer)
 
         return String(decoding: UnsafeRawBufferPointer(start: ptr, count: length), as: Unicode.UTF8.self)
     }
@@ -628,11 +629,13 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let dataLength = self.length
         if dataLength == 0 { return Data() }
 
-        let capacity = estimateBase64Size(length: dataLength)
-        let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 4)
-        let buffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
-        let length = NSData.base64EncodeBytes(self, options: options, buffer: buffer)
+        let inputBuffer = UnsafeRawBufferPointer(start: self.bytes, count: self.length)
 
+        let capacity = NSData.estimateBase64Size(length: dataLength)
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 4)
+        let outputBuffer = UnsafeMutableRawBufferPointer(start: ptr, count: capacity)
+
+        let length = NSData.base64EncodeBytes(inputBuffer, options: options, buffer: outputBuffer)
         return Data(bytesNoCopy: ptr, count: length, deallocator: .custom({ (ptr, length) in
             ptr.deallocate()
         }))
@@ -761,13 +764,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /**
      This method encodes data in Base64.
      
-     - parameter data:       The NSData object you want to encode
+     - parameter dataBuffer: The UnsafeRawBufferPointer buffer to encode
      - parameter options:    Options for formatting the result
      - parameter buffer:     The buffer to write the bytes into
      - returns:              The number of bytes written into the buffer
-     */
-    private static func base64EncodeBytes(_ data: NSData, options: Base64EncodingOptions = [], buffer: UnsafeMutableRawBufferPointer) -> Int {
 
+       NOTE: dataBuffer would be better expressed as a <T: Collection> where T.Element == UInt8, T.Index == Int but this currently gives much poorer performance.
+     */
+    static func base64EncodeBytes(_ dataBuffer: UnsafeRawBufferPointer, options: Base64EncodingOptions = [], buffer: UnsafeMutableRawBufferPointer) -> Int {
         // Use a StaticString for lookup of values 0-63 -> ASCII values
         let base64Chars = StaticString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
         assert(base64Chars.utf8CodeUnitCount == 64)
@@ -811,7 +815,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         // Read three bytes at a time, which convert to 4 ASCII characters, allowing for byte2 and byte3 being nil
-        let dataBuffer = UnsafeRawBufferPointer(start: data.bytes, count: data.length)
+
         var inputIndex = 0
         var outputIndex = 0
         var bytesLeft = dataBuffer.count
