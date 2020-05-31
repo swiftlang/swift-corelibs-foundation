@@ -138,6 +138,7 @@
 		B94B0837240185FF00B244E8 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B0836240185FF00B244E8 /* DarwinShims.swift */; };
 		B9ED84FD23641F7000A58AF2 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
 		B9F137A120B998D0000B7577 /* xdgTestHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B9F4492A2483FA1E00B30F02 /* TestNSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F449292483FA1E00B30F02 /* TestNSURL.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -310,6 +311,7 @@
 		B9C89EDB1F6BF77E00087AF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B9C89EDF1F6BF79000087AF4 /* TestFoundation */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TestFoundation; path = ../TestFoundation; sourceTree = "<group>"; };
 		B9F3269E1FC714DD003C3599 /* DarwinShims.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DarwinShims.swift; sourceTree = "<group>"; };
+		B9F449292483FA1E00B30F02 /* TestNSURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSURL.swift; path = Tests/Foundation/Tests/TestNSURL.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -341,6 +343,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B9F449292483FA1E00B30F02 /* TestNSURL.swift */,
 				B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */,
 				B94B08342401854E00B244E8 /* main.swift */,
 				B94B07822401849700B244E8 /* TestAffineTransform.swift */,
@@ -681,6 +684,7 @@
 				B94B07D62401849B00B244E8 /* TestUserDefaults.swift in Sources */,
 				B94B07D72401849B00B244E8 /* TestNSTextCheckingResult.swift in Sources */,
 				B94B07D82401849B00B244E8 /* TestNSNumberBridging.swift in Sources */,
+				B9F4492A2483FA1E00B30F02 /* TestNSURL.swift in Sources */,
 				B94B07D92401849B00B244E8 /* TestOperationQueue.swift in Sources */,
 				B94B07DA2401849B00B244E8 /* TestJSONEncoder.swift in Sources */,
 				B94B07DB2401849B00B244E8 /* TestNSKeyedArchiver.swift in Sources */,
