@@ -1900,6 +1900,14 @@ extension StringProtocol {
 
 }
 
+// Old method names
+extension NSString {
+    @available(*, unavailable, renamed: "path(withComponents:)")
+    public static func pathWithComponents(_ components: [String]) -> String {
+        fatalError("unavailable function can't be called")
+    }
+}
+
 // Pre-Swift-3 method names
 extension String {
     @available(*, unavailable, renamed: "localizedName(of:)")
