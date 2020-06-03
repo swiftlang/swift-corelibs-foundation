@@ -1351,7 +1351,8 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 
     return FALSE;
 #else
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
+
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
@@ -1370,7 +1371,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
         if (mapping) {
             name = mapping;
         }
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
         else if (CFStringHasPrefix(name, __tzZoneInfo)) {
             CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
             CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
@@ -1386,7 +1387,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             return false;
         }
     }
-    if (NULL == data) {
+    if (NULL == data && NULL != baseURL) {
         tzName = name;
         data = _CFTimeZoneDataCreate(baseURL, tzName);
     }
