@@ -1120,7 +1120,7 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static void __CFInitialize(void) __attribute__ ((constructor));
 static
 #endif

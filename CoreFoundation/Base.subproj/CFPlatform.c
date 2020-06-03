@@ -1278,7 +1278,7 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #pragma mark -
 #pragma mark Linux OSAtomic
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
 { 
@@ -1337,72 +1337,7 @@ void OSMemoryBarrier() {
     __sync_synchronize();
 }
 
-#elif TARGET_OS_WASI
-
-bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) {
-    if (*dst == oldp) {
-        *dst = newp;
-        return true;
-    }
-    return false;
-}
-
-bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst) {
-    if (*dst == oldl) {
-        *dst = newl;
-        return true;
-    }
-    return false;
-}
-
-bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst) {
-    return OSAtomicCompareAndSwapPtr(oldp, newp, dst);
-}
-
-int32_t OSAtomicAdd32Barrier(int32_t theAmount, volatile int32_t *theValue) {
-    *theValue += theAmount;
-    return theValue;
-}
-
-bool OSAtomicCompareAndSwap32Barrier(int32_t oldValue, int32_t newValue, volatile int32_t *theValue) {
-    if (*theValue == oldValue) {
-        *theValue = newValue;
-        return true;
-    }
-    return false;
-}
-
-bool OSAtomicCompareAndSwap64Barrier(int64_t oldValue, int64_t newValue, volatile int64_t *theValue) {
-    if (*theValue == oldValue) {
-        *theValue = newValue;
-        return true;
-    }
-    return false;
-}
-
-int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst) {
-    return OSAtomicAdd32Barrier(-1, dst);
-}
-
-int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst) {
-    return OSAtomicAdd32Barrier(1, dst);
-}
-
-int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue) {
-    return OSAtomicAdd32Barrier(theAmount, theValue);
-}
-
-int32_t OSAtomicIncrement32(volatile int32_t *theValue) {
-    return OSAtomicIncrement32Barrier(theValue);
-}
-
-int32_t OSAtomicDecrement32(volatile int32_t *theValue) {
-    return OSAtomicDecrement32Barrier(theValue);
-}
-
-void OSMemoryBarrier() {}
-
-#endif // TARGET_OS_LINUX
+#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 #pragma mark -
 #pragma mark Dispatch Replacements
