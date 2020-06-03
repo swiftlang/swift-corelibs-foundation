@@ -548,7 +548,7 @@ open class DateFormatter {
 
     open func string(from date: Date) -> String {
         let interval = date.timeIntervalSince1970
-        print("in \(#function) calculated interval is \(interval)")
+
         // FIXME: not very sensible estimate, but should work short-term
         let bufferSize = dateFormat.count * 10
         var buffer = ContiguousArray<Int8>(repeating: 0, count: bufferSize)
