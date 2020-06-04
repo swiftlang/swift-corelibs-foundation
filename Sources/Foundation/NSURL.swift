@@ -640,20 +640,23 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     /* A string constant for the "file" URL scheme. If you are using this to compare to a URL's scheme to see if it is a file URL, you should instead use the NSURL fileURL property -- the fileURL property is much faster. */
     open var standardized: URL? {
-        guard (path != nil) else {
+        guard path != nil else {
             return nil
         }
 
-        let URLComponents = NSURLComponents(string: relativeString)
-        guard ((URLComponents != nil) && (URLComponents!.path != nil)) else {
+        guard let components = NSURLComponents(string: relativeString), let componentPath = components.path else {
             return nil
         }
-        guard (URLComponents!.path!.contains("..") || URLComponents!.path!.contains(".")) else{
-            return URLComponents!.url(relativeTo: baseURL)
+
+        if componentPath.contains("..") || componentPath.contains(".") {
+            components.path = _pathByRemovingDots(pathComponents!)
         }
 
-        URLComponents!.path! = _pathByRemovingDots(pathComponents!)
-        return URLComponents!.url(relativeTo: baseURL)
+        if let filePath = components.path, isFileURL {
+            return URL(fileURLWithPath: filePath, isDirectory: hasDirectoryPath, relativeTo: baseURL)
+        }
+
+        return components.url(relativeTo: baseURL)
     }
     
     /* Returns whether the URL's resource exists and is reachable. This method synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. If this method returns NO, the optional error is populated. This method is currently applicable only to URLs for file system resources. For other URL types, NO is returned. Symbol is present in iOS 4, but performs no operation.
@@ -997,14 +1000,14 @@ extension NSURL {
     open var standardizingPath: URL? {
         // Documentation says it should expand initial tilde, but it does't do this on OS X.
         // In remaining cases it works just like URLByResolvingSymlinksInPath.
-        return resolvingSymlinksInPath
+        return _resolveSymlinksInPath(excludeSystemDirs: true, preserveDirectoryFlag: true)
     }
     
     open var resolvingSymlinksInPath: URL? {
         return _resolveSymlinksInPath(excludeSystemDirs: true)
     }
     
-    internal func _resolveSymlinksInPath(excludeSystemDirs: Bool) -> URL? {
+    internal func _resolveSymlinksInPath(excludeSystemDirs: Bool, preserveDirectoryFlag: Bool = false) -> URL? {
         guard isFileURL else {
             return URL(string: absoluteString)
         }
@@ -1056,8 +1059,12 @@ extension NSURL {
         if isExistingDirectory.boolValue && !resolvedPath.hasSuffix("/") {
             resolvedPath += "/"
         }
-        
-        return URL(fileURLWithPath: resolvedPath)
+
+        if preserveDirectoryFlag {
+            return URL(fileURLWithPath: resolvedPath, isDirectory: self.hasDirectoryPath)
+        } else {
+            return URL(fileURLWithPath: resolvedPath)
+        }
     }
 
     fileprivate func _pathByRemovingDots(_ comps: [String]) -> String {
