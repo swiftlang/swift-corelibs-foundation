@@ -92,6 +92,7 @@ var allTestCases = [
     testCase(TestURLProtectionSpace.allTests),
     testCase(TestURLProtocol.allTests),
     testCase(TestNSURLRequest.allTests),
+    testCase(TestNSURL.allTests),
     testCase(TestURLRequest.allTests),
     testCase(TestURLResponse.allTests),
     testCase(TestHTTPURLResponse.allTests),

@@ -409,6 +409,7 @@
 		B9D9734123D19E2E00AB249C /* TestNSDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D9734023D19E2E00AB249C /* TestNSDateComponents.swift */; };
 		B9D9734323D19FD100AB249C /* TestURLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D9734223D19FD100AB249C /* TestURLComponents.swift */; };
 		B9D9734523D1A36E00AB249C /* TestHTTPURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D9734423D1A36E00AB249C /* TestHTTPURLResponse.swift */; };
+		B9F4492D2483FFD700B30F02 /* TestNSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F4492B2483FFBF00B30F02 /* TestNSURL.swift */; };
 		BB3D7558208A1E500085CFDC /* Imports.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D7557208A1E500085CFDC /* Imports.swift */; };
 		BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8042151E09857800487EB8 /* TestLengthFormatter.swift */; };
 		BDBB65901E256BFA001A7286 /* TestEnergyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */; };
@@ -1108,6 +1109,7 @@
 		B9D9734023D19E2E00AB249C /* TestNSDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDateComponents.swift; sourceTree = "<group>"; };
 		B9D9734223D19FD100AB249C /* TestURLComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestURLComponents.swift; sourceTree = "<group>"; };
 		B9D9734423D1A36E00AB249C /* TestHTTPURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestHTTPURLResponse.swift; sourceTree = "<group>"; };
+		B9F4492B2483FFBF00B30F02 /* TestNSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURL.swift; sourceTree = "<group>"; };
 		BB3D7557208A1E500085CFDC /* Imports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Imports.swift; sourceTree = "<group>"; };
 		BD8042151E09857800487EB8 /* TestLengthFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestLengthFormatter.swift; sourceTree = "<group>"; };
 		BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestEnergyFormatter.swift; sourceTree = "<group>"; };
@@ -1832,6 +1834,7 @@
 				152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */,
 				EA66F6421BF1619600136161 /* TestNSString.swift */,
 				5FE52C941D147D1C00F7D270 /* TestNSTextCheckingResult.swift */,
+				B9F4492B2483FFBF00B30F02 /* TestNSURL.swift */,
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */,
 				D3047AEB1C38BC3300295652 /* TestNSValue.swift */,
@@ -2613,7 +2616,7 @@
 					};
 					5B7C8A6D1BEA7F8F00C5B690 = {
 						CreatedOnToolsVersion = 7.2;
-						LastSwiftMigration = 1140;
+						LastSwiftMigration = 1150;
 						ProvisioningStyle = Manual;
 					};
 					5BDC405B1BD6D83B00ED97BB = {
@@ -3046,6 +3049,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9F4492D2483FFD700B30F02 /* TestNSURL.swift in Sources */,
 				B91161AD242A363900BD2907 /* TestDataURLProtocol.swift in Sources */,
 				B95FC97622B84B0A005DEA0A /* TestNSSortDescriptor.swift in Sources */,
 				B940492D223B146800FB4384 /* TestProgressFraction.swift in Sources */,

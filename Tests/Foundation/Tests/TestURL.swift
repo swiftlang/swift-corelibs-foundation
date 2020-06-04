@@ -434,6 +434,11 @@ class TestURL : XCTestCase {
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
         XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
+
+        // SR-12366
+        let url1 = URL(fileURLWithPath: "/path/to/b/folder", isDirectory: true).standardizedFileURL.absoluteString
+        let url2 = URL(fileURLWithPath: "/path/to/b/folder", isDirectory: true).absoluteString
+        XCTAssertEqual(url1, url2)
     }
 
     func test_fileURLWithPath_isDirectory() {

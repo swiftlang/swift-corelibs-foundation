@@ -649,20 +649,23 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     /* A string constant for the "file" URL scheme. If you are using this to compare to a URL's scheme to see if it is a file URL, you should instead use the NSURL fileURL property -- the fileURL property is much faster. */
     open var standardized: URL? {
-        guard (path != nil) else {
+        guard path != nil else {
             return nil
         }
 
-        let URLComponents = NSURLComponents(string: relativeString)
-        guard ((URLComponents != nil) && (URLComponents!.path != nil)) else {
+        guard let components = NSURLComponents(string: relativeString), let componentPath = components.path else {
             return nil
         }
-        guard (URLComponents!.path!.contains("..") || URLComponents!.path!.contains(".")) else{
-            return URLComponents!.url(relativeTo: baseURL)
+
+        if componentPath.contains("..") || componentPath.contains(".") {
+            components.path = _pathByRemovingDots(pathComponents!)
         }
 
-        URLComponents!.path! = _pathByRemovingDots(pathComponents!)
-        return URLComponents!.url(relativeTo: baseURL)
+        if let filePath = components.path, isFileURL {
+            return URL(fileURLWithPath: filePath, isDirectory: hasDirectoryPath, relativeTo: baseURL)
+        }
+
+        return components.url(relativeTo: baseURL)
     }
     
 #if !os(WASI)
@@ -1019,14 +1022,14 @@ extension NSURL {
     open var standardizingPath: URL? {
         // Documentation says it should expand initial tilde, but it does't do this on OS X.
         // In remaining cases it works just like URLByResolvingSymlinksInPath.
-        return resolvingSymlinksInPath
+        return _resolveSymlinksInPath(excludeSystemDirs: true, preserveDirectoryFlag: true)
     }
     
     open var resolvingSymlinksInPath: URL? {
         return _resolveSymlinksInPath(excludeSystemDirs: true)
     }
     
-    internal func _resolveSymlinksInPath(excludeSystemDirs: Bool) -> URL? {
+    internal func _resolveSymlinksInPath(excludeSystemDirs: Bool, preserveDirectoryFlag: Bool = false) -> URL? {
         guard isFileURL else {
             return URL(string: absoluteString)
         }
@@ -1078,8 +1081,12 @@ extension NSURL {
         if isExistingDirectory.boolValue && !resolvedPath.hasSuffix("/") {
             resolvedPath += "/"
         }
-        
-        return URL(fileURLWithPath: resolvedPath)
+
+        if preserveDirectoryFlag {
+            return URL(fileURLWithPath: resolvedPath, isDirectory: self.hasDirectoryPath)
+        } else {
+            return URL(fileURLWithPath: resolvedPath)
+        }
     }
 #endif
 

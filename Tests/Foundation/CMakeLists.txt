@@ -68,6 +68,7 @@ target_sources(TestFoundation PRIVATE
   Tests/TestNSSortDescriptor.swift
   Tests/TestNSString.swift
   Tests/TestNSTextCheckingResult.swift
+  Tests/TestNSURL.swift
   Tests/TestNSURLRequest.swift
   Tests/TestNSUUID.swift
   Tests/TestNSValue.swift
