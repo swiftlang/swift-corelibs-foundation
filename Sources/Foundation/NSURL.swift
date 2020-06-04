@@ -661,9 +661,11 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             components.path = _pathByRemovingDots(pathComponents!)
         }
 
+#if !os(WASI)
         if let filePath = components.path, isFileURL {
             return URL(fileURLWithPath: filePath, isDirectory: hasDirectoryPath, relativeTo: baseURL)
         }
+#endif
 
         return components.url(relativeTo: baseURL)
     }

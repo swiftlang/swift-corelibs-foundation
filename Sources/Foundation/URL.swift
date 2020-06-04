@@ -535,6 +535,10 @@ public struct URL : ReferenceConvertible, Equatable {
     public init(fileURLWithPath path: String) {
         _url = URL._converted(from: NSURL(fileURLWithPath: path.isEmpty ? "." : path))
     }
+#else
+    public init(fileURLWithPath path: String) {
+        _url = NSURL(string: "file://\(path)")!
+    }
 #endif
     
     /// Initializes a newly created URL using the contents of the given data, relative to a base URL.

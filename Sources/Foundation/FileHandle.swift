@@ -41,6 +41,7 @@ extension NSError {
     }
 }
 
+#if !os(WASI)
 /* On Darwin, FileHandle conforms to NSSecureCoding for use with NSXPCConnection and related facilities only. On swift-corelibs-foundation, it does not conform to that protocol since those facilities are unavailable. */
  
 open class FileHandle : NSObject {
@@ -1054,4 +1055,24 @@ open class Pipe: NSObject {
         super.init()
     }
 }
+#else
+private let libcWrite = write
 
+public final class FileHandle {
+  public let fileDescriptor: Int32
+
+  public init(fileDescriptor: Int32) {
+    self.fileDescriptor = fileDescriptor
+  }
+
+  public static var standardError: FileHandle {
+    .init(fileDescriptor: STDERR_FILENO)
+  }
+
+  public func write(_ data: Data) {
+    _ = data.withUnsafeBytes {
+      libcWrite(fileDescriptor, $0.baseAddress, data.count)
+    }
+  }
+}
+#endif
