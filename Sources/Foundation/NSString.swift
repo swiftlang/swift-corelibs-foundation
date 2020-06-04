@@ -231,8 +231,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public override convenience init() {
-        var nul: unichar = 0
-        self.init(characters: &nul, length: 0)
+        self.init("")
     }
     
     internal init(_ string: String) {
