@@ -458,6 +458,9 @@ extension String {
         #endif
     }
 
+    public init(_ cocoaString: NSString) {
+        self = cocoaString._storage
+    }
 }
 
 extension StringProtocol where Index == String.Index {

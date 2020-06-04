@@ -1629,6 +1629,11 @@ class TestNSString: LoopbackServerTest {
         }
     }
 
+    func test_initStringWithNSString() {
+        let ns = NSString("Test")
+        XCTAssertEqual(String(ns), "Test")
+    }
+
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         var tests = [
             ("test_initData", test_initData),
@@ -1701,6 +1706,7 @@ class TestNSString: LoopbackServerTest {
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_enumerateSubstrings", test_enumerateSubstrings),
             ("test_paragraphRange", test_paragraphRange),
+            ("test_initStringWithNSString", test_initStringWithNSString),
         ]
 
 #if !os(Windows)
