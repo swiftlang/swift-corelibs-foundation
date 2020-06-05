@@ -169,7 +169,7 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
 
 static unsigned long __CFSafeLaunchLevel = 0;
 
-static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
+static CFURLRef _preferencesCreateDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef location = NULL;
     
     CFKnownLocationUser user;
@@ -196,7 +196,7 @@ static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName
 }
 
 static CFURLRef  _preferencesDirectoryForUserHost(CFStringRef  userName, CFStringRef  hostName) {
-    return _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, __CFSafeLaunchLevel);
+    return _preferencesCreateDirectoryForUserHostSafetyLevel(userName, hostName, __CFSafeLaunchLevel);
 }
 
 static Boolean __CFPreferencesWritesXML = true;
@@ -421,7 +421,7 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
 #if TARGET_OS_OSX || TARGET_OS_WIN32 || TARGET_OS_LINUX
-    CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
+    CFURLRef prefDir = _preferencesCreateDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;
     Boolean mustFreeAppName = false;
