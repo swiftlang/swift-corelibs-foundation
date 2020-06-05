@@ -281,7 +281,6 @@ void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove
 
     CFTypeRef *keys = NULL;
     CFTypeRef *values;
-    CFIndex numOfKeysToSet = 0;
     
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (!domain) return;
@@ -289,7 +288,6 @@ void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove
     CFAllocatorRef alloc = CFGetAllocator(domain);
     
     if (keysToSet && (count = CFDictionaryGetCount(keysToSet))) {
-        numOfKeysToSet = count;
         keys = (CFTypeRef *)CFAllocatorAllocate(alloc, 2*count*sizeof(CFTypeRef), 0);
         if (keys) {
             values = &(keys[count]);
