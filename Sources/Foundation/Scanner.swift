@@ -377,90 +377,106 @@ extension String {
         locationToScanFrom = buf.location
         return retval
     }
-    
-    private func _scan<T: BinaryFloatingPoint>(buffer buf: inout _NSStringBuffer, locale: Locale?, neg: Bool, to: (T) -> Void, base: UInt,
-                                               numericValue: ((_: unichar) -> Int?)) -> Bool {
+
+    internal func scan<T: BinaryFloatingPoint & LosslessStringConvertible>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         let ds = (locale ?? Locale.current).decimalSeparator?.first ?? Character(".")
-        var localResult: T! = nil
-        var neg = neg
 
-        while let numeral = numericValue(buf.currentCharacter) {
-            localResult = localResult ?? T(0)
-            // if (localResult >= T.greatestFiniteMagnitude / T(10)) && ((localResult > T.greatestFiniteMagnitude / T(10)) || T(numericValue(buf.currentCharacter) - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10))  is evidently too complex; so break it down to more "edible chunks"
-            let limit1 = localResult >= T.greatestFiniteMagnitude / T(base)
-            let limit2 = localResult > T.greatestFiniteMagnitude / T(base)
-            let limit3 = T(numeral - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(base)
-            if (limit1) && (limit2 || limit3) {
-                // apply the clamps and advance past the ending of the buffer where there are still digits
-                localResult = neg ? -T.infinity : T.infinity
-                neg = false
-                repeat {
-                    buf.advance()
-                } while numericValue(buf.currentCharacter) != nil
-                break
-            } else {
-                localResult = localResult * T(base) + T(numeral)
-            }
-            buf.advance()
-        }
-        
-        if let us = UnicodeScalar(buf.currentCharacter), Character(us) == ds {
-            var factor = 1 / T(base)
-            buf.advance()
-            while let numeral = numericValue(buf.currentCharacter) {
-                localResult = localResult ?? T(0)
-                localResult = localResult + T(numeral) * factor
-                factor = factor / T(base)
-                buf.advance()
-            }
-        }
-
-        guard localResult != nil else {
-            return false
-        }
-
-        // If this is used to parse a number in Hexadecimal, this will never be true as the 'e' or 'E' will be caught by the previous loop.
-        if buf.currentCharacter == unichar(unicodeScalarLiteral: "e") || buf.currentCharacter == unichar(unicodeScalarLiteral: "E") {
-            var exponent = Double(0)
-
-            buf.advance()
-            let negExponent = checkForNegative(inBuffer: &buf)
-
-            while let numeral = numericValue(buf.currentCharacter) {
-                buf.advance()
-                exponent *= Double(base)
-                exponent += Double(numeral)
-            }
-
-            if exponent > 0 {
-                let multiplier = pow(Double(base), exponent)
-                if negExponent {
-                    localResult /= T(multiplier)
-                } else {
-                    localResult *= T(multiplier)
+        func nextDigit() -> Character? {
+            if let s = UnicodeScalar(buf.currentCharacter) {
+                let ch = Character(s)
+                if ch.isASCII && ch.isWholeNumber {
+                    return ch
                 }
             }
+            return nil
         }
 
-        to(neg ? T(-1) * localResult : localResult)
-        return true
+        var hasValidCharacter = false
+        var stringToParse = checkForNegative(inBuffer: &buf, skipping: skipSet) ? "-" : ""
+
+        while let ch = nextDigit() {
+            hasValidCharacter = true
+            stringToParse.append(ch)
+            buf.advance()
+        }
+        if let us = UnicodeScalar(buf.currentCharacter), Character(us) == ds {
+            stringToParse += "."
+            buf.advance()
+            while let ch = nextDigit() {
+                hasValidCharacter = true
+                stringToParse.append(ch)
+                buf.advance()
+            }
+        }
+        guard hasValidCharacter else { return false }
+
+        if buf.currentCharacter == unichar(unicodeScalarLiteral: "e") || buf.currentCharacter == unichar(unicodeScalarLiteral: "E") {
+            hasValidCharacter = false
+            stringToParse += "e"
+            buf.advance()
+            if checkForNegative(inBuffer: &buf) {
+                stringToParse += "-"
+            }
+            while let ch = nextDigit() {
+                hasValidCharacter = true
+                stringToParse.append(ch)
+                buf.advance()
+            }
+        }
+        guard hasValidCharacter else { return false }
+
+        if let value = T(stringToParse) {
+            to(value)
+            locationToScanFrom = buf.location
+            return true
+        } else {
+            return false
+        }
     }
 
-    internal func scan<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: BinaryFloatingPoint & LosslessStringConvertible>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
-        let neg = checkForNegative(inBuffer: &buf, skipping: skipSet)
-        let result = _scan(buffer: &buf, locale: locale, neg: neg, to: to, base: 10, numericValue: decimalValue)
-        locationToScanFrom = buf.location
-        return result
-    }
+        let ds = (locale ?? Locale.current).decimalSeparator?.first ?? Character(".")
 
-    internal func scanHex<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
-        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
-        let neg = checkForNegative(inBuffer: &buf, skipping: skipSet)
+        func nextHexDigit() -> Character? {
+            if let s = UnicodeScalar(buf.currentCharacter), let ascii = Character(s).asciiValue {
+                switch ascii {
+                case 0x30...0x39, 0x41...0x46, 0x61...0x66: return Character(s)
+                default: return nil
+                }
+            } else {
+                return nil
+            }
+        }
+
+        var hasValidCharacter = false
+        var stringToParse = checkForNegative(inBuffer: &buf, skipping: skipSet) ? "-0x" : "0x"
         skipHexStart(inBuffer: &buf)
-        let result = _scan(buffer: &buf, locale: locale, neg: neg, to: to, base: 16, numericValue: decimalOrHexValue)
-        locationToScanFrom = buf.location
-        return result
+
+        while let ch = nextHexDigit() {
+            hasValidCharacter = true
+            stringToParse.append(ch)
+            buf.advance()
+        }
+        if let us = UnicodeScalar(buf.currentCharacter), Character(us) == ds {
+            stringToParse += "."
+            buf.advance()
+            while let ch = nextHexDigit() {
+                hasValidCharacter = true
+                stringToParse.append(ch)
+                buf.advance()
+            }
+        }
+        guard hasValidCharacter else { return false }
+
+        if let value = T(stringToParse) {
+            to(value)
+            locationToScanFrom = buf.location
+            return true
+        } else {
+            return false
+        }
     }
 }
 
