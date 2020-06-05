@@ -459,12 +459,12 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
 #elif TARGET_OS_WIN32
 		theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLWindowsPathStyle, false, prefDir);
 #endif
-        if (prefDir) CFRelease(prefDir);
         CFRelease(fileName);
     }
 #else
 //#error Do not know where to store NSUserDefaults on this platform
 #endif
+    if (prefDir) CFRelease(prefDir);
     return theURL;
 }
 
