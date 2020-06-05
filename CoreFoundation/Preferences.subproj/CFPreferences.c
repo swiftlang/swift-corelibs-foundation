@@ -735,9 +735,8 @@ static void freeVolatileDomain(CFAllocatorRef allocator, CFTypeRef  context, voi
     CFRelease((CFTypeRef)domain);
 }
 
-static CFTypeRef  fetchVolatileValue(CFTypeRef  context, void *domain, CFStringRef  key) {
-    CFTypeRef  result = CFDictionaryGetValue((CFMutableDictionaryRef  )domain, key);
-    if (result) CFRetain(result);
+static CFTypeRef fetchVolatileValue(CFTypeRef  context, void *domain, CFStringRef  key) {
+    CFTypeRef result = CFDictionaryGetValue((CFMutableDictionaryRef  )domain, key);
     return result;
 }
 
