@@ -25,7 +25,9 @@ import CoreFoundation
         return Glibc.getnameinfo(addr, addrlen, host, Int(hostlen), serv, Int(servlen), flags)
     }
 
-    // getifaddrs and freeifaddrs are not available in Android 6.0 or earlier, so call the functions dynamically.
+    // getifaddrs and freeifaddrs are not available in Android 6.0 or earlier, so call these functions dynamically.
+    // This only happens during the initial lookup of the addresses and then the results are cached and _resolved is marked true.
+    // If this API changes so these functions are called more frequently, it might be beneficial to cache the function pointers.
 
     private typealias GetIfAddrsFunc = @convention(c) (UnsafeMutablePointer<UnsafeMutablePointer<ifaddrs>?>) -> Int32
     private func getifaddrs(_ ifap: UnsafeMutablePointer<UnsafeMutablePointer<ifaddrs>?>) -> Int32 {
