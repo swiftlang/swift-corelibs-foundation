@@ -1644,3 +1644,23 @@ extension NSString : _StructTypeBridgeable {
         return _StructType._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSString : CVarArg {
+    @inlinable // c-abi
+    public var _cVarArgEncoding: [Int] {
+        return _encodeBitsAsWords(unsafeBitCast(self, to: CFString.self))
+    }
+}
+
+extension String : CVarArg {
+    @inlinable // c-abi
+    public var _cVarArgEncoding: [Int] {
+        // We don't have an autorelease pool to retain the NSString until the withVaList closure is complete.
+        // So add an operation to release on the next cycle of this thread.
+        let ns = Unmanaged.passRetained(NSString(string: self))
+        OperationQueue.current?.addOperation {
+            ns.release()
+        }
+        return ns.takeUnretainedValue()._cVarArgEncoding
+    }
+}

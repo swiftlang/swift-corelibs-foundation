@@ -813,6 +813,15 @@ class TestNSString: LoopbackServerTest {
         }
     }
 
+    func test_initializeWithFormat4() {
+        let argument: [CVarArg] = ["One", "Two", "Three"]
+        withVaList(argument) {
+            pointer in
+            let string = NSString(format: "Testing %@ %@ %@", arguments: pointer)
+            XCTAssertEqual(string, "Testing One Two Three")
+        }
+    }
+
     func test_appendingPathComponent() {
         do {
             let path: NSString = "/tmp"
@@ -1677,6 +1686,7 @@ class TestNSString: LoopbackServerTest {
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_initializeWithFormat2", test_initializeWithFormat2),
             ("test_initializeWithFormat3", test_initializeWithFormat3),
+            ("test_initializeWithFormat4", test_initializeWithFormat4),
             ("test_appendingPathComponent", test_appendingPathComponent),
             ("test_deletingLastPathComponent", test_deletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
