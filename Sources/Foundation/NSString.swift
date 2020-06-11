@@ -1652,15 +1652,14 @@ extension NSString : CVarArg {
     }
 }
 
-extension String : CVarArg {
+extension String : CVarArg, _CVarArgObject {
+    @inlinable // c-abi
+    public var _cVarArgObject: CVarArg {
+        return NSString(string: self)
+    }
+
     @inlinable // c-abi
     public var _cVarArgEncoding: [Int] {
-        // We don't have an autorelease pool to retain the NSString until the withVaList closure is complete.
-        // So add an operation to release on the next cycle of this thread.
-        let ns = Unmanaged.passRetained(NSString(string: self))
-        OperationQueue.current?.addOperation {
-            ns.release()
-        }
-        return ns.takeUnretainedValue()._cVarArgEncoding
+        fatalError("_cVarArgEncoding must be called on NSString instead")
     }
 }
