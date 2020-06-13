@@ -1352,7 +1352,11 @@ class TestNSGeometry : XCTestCase {
         rect = NSRectFromString(stringRect)
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
-    
+
+        // SR-443
+        let point1 = NSPointFromString("{1.0, 1.2234234234}")
+        let point2 = NSPoint(x: CGFloat(1.0), y: CGFloat(1.2234234234))
+        XCTAssertEqual(point1, point2)
     }
     
     func test_DecodeEmptyStrings() {
