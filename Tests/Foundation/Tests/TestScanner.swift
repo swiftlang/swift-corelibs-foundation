@@ -74,12 +74,14 @@ class TestScanner : XCTestCase {
             expectEqual($0.scanDouble(), atof("-100"), "Roundtrip: 2")
         }
 
-        withScanner(for: "0.5 bla 0. .1 1e2 e+3 e4") {
+        withScanner(for: "0.5 bla 0. .1 . 1e2 e+3 e4") {
             expectEqual($0.scanDouble(), 0.5, "Parse '0.5' as Double")
             expectEqual($0.scanDouble(), nil, "Dont parse 'bla' as a Double")     // "bla" doesnt parse as Double
             expectEqual($0.scanString("bla"), "bla", "Consume the 'bla'")
             expectEqual($0.scanDouble(), 0, "Parse '0.' as a Double")
             expectEqual($0.scanDouble(), 0.1, "Parse '.1' as a Double")
+            expectEqual($0.scanDouble(), nil, "Dont parse '.' as a Double")
+            expectEqual($0.scanString("."), ".", "Consue '.'")
             expectEqual($0.scanDouble(), 100, "Parse '1e2' as a Double")
             expectEqual($0.scanDouble(), nil, "Dont parse 'e+3' as a Double")     // "e+3" doesnt parse as Double
             expectEqual($0.scanString("e+3"), "e+3", "Consume the 'e+3'")
@@ -124,7 +126,7 @@ class TestScanner : XCTestCase {
     }
 
     func testHexFloatingPoint() {
-        withScanner(for: "0xAA 3.14 0.1x 1g 3xx .F00x 1e00 -0xabcdef.02") {
+        withScanner(for: "0xAA 3.14 0.1x 1g 3xx .F00x 1e00 . -0xabcdef.02") {
             expectEqual($0.scanDouble(representation: .hexadecimal), 0xAA, "Integer as Double")
             expectEqual($0.scanDouble(representation: .hexadecimal), 3.078125, "Double")
             expectEqual($0.scanDouble(representation: .hexadecimal), 0.0625, "Double")
@@ -136,6 +138,8 @@ class TestScanner : XCTestCase {
             expectEqual($0.scanDouble(representation: .hexadecimal), 0.9375, "Double")
             expectEqual($0.scanString("x"), "x", "Consume non-hex-digit")
             expectEqual($0.scanDouble(representation: .hexadecimal), 0x1E00, "E is not for exponent")
+            expectEqual($0.scanDouble(), nil, "Dont parse '.' as a Double")
+            expectEqual($0.scanString("."), ".", "Consue '.'")
             expectEqual($0.scanDouble(representation: .hexadecimal), -11259375.0078125, "negative decimal")
         }
     }
