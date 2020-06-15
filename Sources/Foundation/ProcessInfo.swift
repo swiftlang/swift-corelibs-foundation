@@ -80,11 +80,68 @@ open class ProcessInfo: NSObject {
         return CFUUIDCreateString(kCFAllocatorSystemDefault, uuid)._swiftObject
     }
 
+#if os(Windows)
+    internal var _rawOperatingSystemVersionInfo: RTL_OSVERSIONINFOEXW? {
+        guard let ntdll = ("ntdll.dll".withCString(encodedAs: UTF16.self) {
+            LoadLibraryExW($0, nil, DWORD(LOAD_LIBRARY_SEARCH_SYSTEM32))
+        }) else {
+            return nil
+        }
+        defer { FreeLibrary(ntdll) }
+        typealias RTLGetVersionTy = @convention(c) (UnsafeMutablePointer<RTL_OSVERSIONINFOEXW>) -> NTSTATUS
+        guard let pfnRTLGetVersion = unsafeBitCast(GetProcAddress(ntdll, "RtlGetVersion"), to: Optional<RTLGetVersionTy>.self) else {
+            return nil
+        }
+        var osVersionInfo = RTL_OSVERSIONINFOEXW()
+        osVersionInfo.dwOSVersionInfoSize = DWORD(MemoryLayout<RTL_OSVERSIONINFOEXW>.size)
+        guard pfnRTLGetVersion(&osVersionInfo) == 0 else {
+            return nil
+        }
+        return osVersionInfo
+    }
+#endif
+
     open var operatingSystemVersionString: String {
         let fallback = "Unknown"
 #if os(Linux)
-        let version = try? String(contentsOf: URL(fileURLWithPath: "/proc/version_signature", isDirectory: false), encoding: .utf8)
-        return version ?? fallback
+        var utsNameBuffer = utsname()
+        guard uname(&utsNameBuffer) == 0 else {
+            return fallback
+        }
+        let release = withUnsafePointer(to: &utsNameBuffer.release.0) { String(cString: $0) }
+
+        return release
+#elseif os(Windows)
+        guard let osVersionInfo = self._rawOperatingSystemVersionInfo else {
+            return fallback
+        }
+
+        // Windows has no canonical way to turn the fairly complex `RTL_OSVERSIONINFOW` version info into a string. We
+        // do our best here to construct something consistent. Unfortunately, to provide a useful result, this requires
+        // hardcoding several of the somewhat ambiguous values in the table provided here:
+        //  https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_osversioninfoexw#remarks
+        var versionString = ""
+        switch (osVersionInfo.dwMajorVersion, osVersionInfo.dwMinorVersion) {
+            case (5, 0): versionString += "Windows 2000"
+            case (5, 1): versionString += "Windows XP"
+            case (5, 2) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows XP Professional x64"
+            case (5, 2) where osVersionInfo.wSuiteMask == VER_SUITE_WH_SERVER: versionString += "Windows Home Server"
+            case (5, 2): versionString += "Windows Server 2003"
+            case (6, 0) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows Vista"
+            case (6, 0): versionString += "Windows Server 2008"
+            case (6, 1) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 7"
+            case (6, 1): versionString += "Windows Server 2008 R2"
+            case (6, 2) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 8"
+            case (6, 2): versionString += "Windows Server 2012"
+            case (6, 3) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 8.1"
+            case (6, 3): versionString += "Windows Server 2012 R2" // We assume the "10,0" numbers in the table for this are a typo
+            case (10, 0) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 10"
+            case (10, 0): versionString += "Windows Server 2019" // The table gives identical values for 2016 and 2019, so we just assume 2019 here
+            default: return fallback
+        }
+        versionString += " (build \(osVersionInfo.dwBuildNumber))"
+        // For now we ignore the `szCSDVersion`, `wServicePackMajor`, and `wServicePackMinor` values.
+        return versionString
 #else
         return CFCopySystemVersionString()?._swiftObject ?? fallback
 #endif
@@ -108,21 +165,10 @@ open class ProcessInfo: NSObject {
         }
         versionString = productVersion._swiftObject
 #elseif os(Windows)
-        guard let ntdll = ("ntdll.dll".withCString(encodedAs: UTF16.self) {
-          LoadLibraryExW($0, nil, DWORD(LOAD_LIBRARY_SEARCH_SYSTEM32)) 
-        }) else {
+        guard let osVersionInfo = self._rawOperatingSystemVersionInfo else {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
-        defer { FreeLibrary(ntdll) }
-        typealias RTLGetVersionTy = @convention(c) (UnsafeMutablePointer<RTL_OSVERSIONINFOW>) -> NTSTATUS
-        guard let pfnRTLGetVersion = unsafeBitCast(GetProcAddress(ntdll, "RtlGetVersion"), to: Optional<RTLGetVersionTy>.self) else {
-            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
-        }
-        var osVersionInfo = RTL_OSVERSIONINFOW()
-        osVersionInfo.dwOSVersionInfoSize = DWORD(MemoryLayout<RTL_OSVERSIONINFOW>.size)
-        guard pfnRTLGetVersion(&osVersionInfo) == 0 else {
-            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
-        }
+
         return OperatingSystemVersion(
             majorVersion: Int(osVersionInfo.dwMajorVersion),
             minorVersion: Int(osVersionInfo.dwMinorVersion),
