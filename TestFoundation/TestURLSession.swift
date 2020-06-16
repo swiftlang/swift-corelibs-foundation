@@ -846,6 +846,9 @@ class TestURLSession : LoopbackServerTest {
             XCTAssertNotNil(error as? URLError)
             if let urlError = error as? URLError {
                 XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
+                XCTAssertEqual(urlError.userInfo[NSURLErrorFailingURLErrorKey] as? URL, URL(string: urlString))
+                XCTAssertEqual(urlError.userInfo[NSURLErrorFailingURLStringErrorKey] as? String, urlString)
+                XCTAssertEqual(urlError.localizedDescription, "cancelled")
             }
 
             expect.fulfill()
