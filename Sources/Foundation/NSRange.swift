@@ -48,13 +48,13 @@ public func NSEqualRanges(_ range1: NSRange, _ range2: NSRange) -> Bool {
 }
 
 public func NSUnionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
-    let max1 = range1.location + range1.length
-    let max2 = range2.location + range2.length
+    let end1 = range1.location + range1.length
+    let end2 = range2.location + range2.length
     let maxend: Int
-    if max1 > max2 {
-        maxend = max1
+    if end1 > end2 {
+        maxend = end1
     } else {
-        maxend = max2
+        maxend = end2
     }
     let minloc: Int
     if range1.location < range2.location {
@@ -66,17 +66,17 @@ public func NSUnionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
 }
 
 public func NSIntersectionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
-    let max1 = range1.location + range1.length
-    let max2 = range2.location + range2.length
+    let end1 = range1.location + range1.length
+    let end2 = range2.location + range2.length
     let minend: Int
-    if max1 < max2 {
-        minend = max1
+    if end1 < end2 {
+        minend = end1
     } else {
-        minend = max2
+        minend = end2
     }
-    if range2.location <= range1.location && range1.location < max2 {
+    if range2.location <= range1.location && range1.location < end2 {
         return NSRange(location: range1.location, length: minend - range1.location)
-    } else if range1.location <= range2.location && range2.location < max1 {
+    } else if range1.location <= range2.location && range2.location < end1 {
         return NSRange(location: range2.location, length: minend - range2.location)
     }
     return NSRange(location: 0, length: 0)
@@ -221,20 +221,20 @@ extension NSRange {
     }
     
     public func union(_ other: NSRange) -> NSRange {
-        let max1 = location + length
-        let max2 = other.location + other.length
-        let maxend = (max1 < max2) ? max2 : max1
+        let end1 = location + length
+        let end2 = other.location + other.length
+        let maxend = (end1 < end2) ? end2 : end1
         let minloc = location < other.location ? location : other.location
         return NSRange(location: minloc, length: maxend - minloc)
     }
     
     public func intersection(_ other: NSRange) -> NSRange? {
-        let max1 = location + length
-        let max2 = other.location + other.length
-        let minend = (max1 < max2) ? max1 : max2
-        if other.location <= location && location < max2 {
+        let end1 = location + length
+        let end2 = other.location + other.length
+        let minend = (end1 < end2) ? end1 : end2
+        if other.location <= location && location < end2 {
             return NSRange(location: location, length: minend - location)
-        } else if location <= other.location && other.location < max1 {
+        } else if location <= other.location && other.location < end1 {
             return NSRange(location: other.location, length: minend - other.location);
         }
         return nil
