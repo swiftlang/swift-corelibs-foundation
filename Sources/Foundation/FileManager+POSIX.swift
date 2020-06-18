@@ -346,8 +346,16 @@ extension FileManager {
                         try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                     }
                     if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
-                    } else if let attr = attributes {
+                        let posixError = errno
+                        if posixError == EEXIST && fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue {
+                            // Continue; if there is an existing file and it is a directory, that is still a success.
+                            // There can be an existing file if another thread or process concurrently creates the
+                            // same file.
+                        } else {
+                            throw _NSErrorWithErrno(posixError, reading: false, path: path)
+                        }
+                    }
+                    if let attr = attributes {
                         try self.setAttributes(attr, ofItemAtPath: path)
                     }
                 } else if isDir.boolValue {
