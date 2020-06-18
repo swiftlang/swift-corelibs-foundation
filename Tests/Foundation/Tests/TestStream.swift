@@ -162,7 +162,7 @@ class TestStream : XCTestCase {
         XCTAssertEqual(try testSubdata(UInt64(str.count))!.count, 0) // It shouldbe end
         
         do {
-            try testSubdata(UInt64(str.count + 1)) // out of boundaries
+            _ = try testSubdata(UInt64(str.count + 1)) // out of boundaries
             XCTFail()
         } catch let error as InputStream._Error {
             XCTAssertEqual(error, .cantSeekInputStream)

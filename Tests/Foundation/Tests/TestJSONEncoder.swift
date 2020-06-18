@@ -623,7 +623,7 @@ class TestJSONEncoder : XCTestCase {
     // UInt and Int
     func test_codingOfUIntMinMax() {
 
-        struct MyValue: Codable {
+        struct MyValue: Encodable {
             let int64Min = Int64.min
             let int64Max = Int64.max
             let uint64Min = UInt64.min
