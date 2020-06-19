@@ -357,7 +357,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString): get request headers")
+        let expect = expectation(description: "POST \(urlString): get request headers")
         var req = URLRequest(url: URL(string: urlString)!)
         let headers = ["header1": "value1"]
         req.httpMethod = "POST"
@@ -384,7 +384,7 @@ class TestURLSession: LoopbackServerTest {
         config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3", "header4": "svalue4"]
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString) with additional headers")
+        let expect = expectation(description: "POST \(urlString) with additional headers")
         var req = URLRequest(url: URL(string: urlString)!)
         let headers = ["header1": "rvalue1", "header2": "rvalue2", "Header4": "rvalue4"]
         req.httpMethod = "POST"
@@ -411,7 +411,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "GET \(urlString): no timeout")
+        let expect = expectation(description: "GET \(urlString): no timeout")
         let req = URLRequest(url: URL(string: urlString)!)
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
@@ -427,7 +427,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 10
         let urlString = "http://127.0.0.1:-1/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "GET \(urlString): will timeout")
+        let expect = expectation(description: "GET \(urlString): will timeout")
         var req = URLRequest(url: URL(string: "http://127.0.0.1:-1/Peru")!)
         req.timeoutInterval = 1
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
@@ -754,7 +754,7 @@ class TestURLSession: LoopbackServerTest {
         var req = URLRequest(url: URL(string: urlString)!)
         req.timeoutInterval = 3
         let config = URLSessionConfiguration.default
-        var expect = expectation(description: "GET \(urlString): timeout with redirection ")
+        let expect = expectation(description: "GET \(urlString): timeout with redirection ")
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let task = session.dataTask(with: req) { data, response, error in
             defer { expect.fulfill() }
@@ -1176,7 +1176,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(config.httpCookieStorage?.cookies?.count, 0)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (data, response, error) -> Void in
@@ -1201,7 +1201,7 @@ class TestURLSession: LoopbackServerTest {
         emptyCookieStorage(storage: config.httpCookieStorage)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (data, response, error) -> Void in
@@ -1226,7 +1226,7 @@ class TestURLSession: LoopbackServerTest {
         emptyCookieStorage(storage: config.httpCookieStorage)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         let req = URLRequest(url: URL(string: urlString)!)
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
@@ -1294,7 +1294,7 @@ class TestURLSession: LoopbackServerTest {
 
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
@@ -1404,7 +1404,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString): post with empty body")
+        let expect = expectation(description: "POST \(urlString): post with empty body")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (_, response, error) -> Void in
@@ -1443,6 +1443,9 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertNotNil(error as? URLError)
             if let urlError = error as? URLError {
                 XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
+                XCTAssertEqual(urlError.userInfo[NSURLErrorFailingURLErrorKey] as? URL, URL(string: urlString))
+                XCTAssertEqual(urlError.userInfo[NSURLErrorFailingURLStringErrorKey] as? String, urlString)
+                XCTAssertEqual(urlError.localizedDescription, "cancelled")
             }
 
             expect.fulfill()
