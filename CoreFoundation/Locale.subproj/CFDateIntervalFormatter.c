@@ -132,7 +132,7 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
         
         char localeBuffer[100] = {0};
         CFStringGetCString(localeID, localeBuffer, 100, kCFStringEncodingUTF8);
-        
+
         UniChar timeZoneID[100] = {0};
         CFTimeZoneRef timeZone = dif->_timeZone;
         if (timeZone) {
@@ -179,6 +179,7 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
 #endif
         
         CFRelease(locale);
+        CFRelease(localeID);
         CFRelease(timeZone);
     }
 }
