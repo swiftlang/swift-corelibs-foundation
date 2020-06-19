@@ -364,11 +364,20 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open func cancel() {
         workQueue.sync {
-            guard self.state == .running || self.state == .suspended else { return }
-            self.state = .canceling
+            let canceled = self.syncQ.sync { () -> Bool in
+                guard self._state == .running || self._state == .suspended else { return true }
+                self._state = .canceling
+                return false
+            }
+            guard !canceled else { return }
             self._getProtocol { (urlProtocol) in
                 self.workQueue.async {
-                    let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
+                    var info = [NSLocalizedDescriptionKey: "\(URLError.Code.cancelled)" as Any]
+                    if let url = self.originalRequest?.url {
+                        info[NSURLErrorFailingURLErrorKey] = url
+                        info[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                    }
+                    let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: info))
                     self.error = urlError
                     if let urlProtocol = urlProtocol {
                         urlProtocol.stopLoading()
