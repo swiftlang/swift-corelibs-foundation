@@ -1162,6 +1162,20 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(formatter.multiplier, NSNumber(27))
     }
 
+    func test_scientificStrings() {
+        let formatter: NumberFormatter = NumberFormatter()
+        formatter.numberStyle = .scientific
+        formatter.positiveInfinitySymbol = ".inf"
+        formatter.negativeInfinitySymbol = "-.inf"
+        formatter.notANumberSymbol = ".nan"
+        XCTAssertEqual(formatter.string(for: Double.infinity), ".inf")
+        XCTAssertEqual(formatter.string(for: -1 * Double.infinity), "-.inf")
+        XCTAssertEqual(formatter.string(for: Double.nan), ".nan")
+#if (arch(i386) || arch(x86_64)) && !(os(Android) || os(Windows))
+        XCTAssertNil(formatter.string(for: Float80.infinity))
+#endif
+    }
+
     static var allTests: [(String, (TestNumberFormatter) -> () throws -> Void)] {
         return [
             ("test_defaultPropertyValues", test_defaultPropertyValues),
@@ -1223,6 +1237,7 @@ class TestNumberFormatter: XCTestCase {
             ("test_settingFormat", test_settingFormat),
             ("test_usingFormat", test_usingFormat),
             ("test_propertyChanges", test_propertyChanges),
+            ("test_scientificStrings", test_scientificStrings),
         ]
     }
 }
