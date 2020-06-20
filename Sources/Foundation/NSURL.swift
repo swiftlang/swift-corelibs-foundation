@@ -536,11 +536,11 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         
         // For historical reasons, the password string should _not_ have its percent escapes removed.
         let bufSize = CFURLGetBytes(absoluteURL, nil, 0)
-        var buf = [UInt8](repeating: 0, count: bufSize)
-        guard CFURLGetBytes(absoluteURL, &buf, bufSize) >= 0 else {
-            return nil
+        let buf = [UInt8](unsafeUninitializedCapacity: bufSize) { buffer, initializedCount in
+            initializedCount = CFURLGetBytes(absoluteURL, buffer.baseAddress, buffer.count)
+            precondition(initializedCount == bufSize, "Inconsistency in CFURLGetBytes")
         }
-        
+
         let passwordBuf = buf[passwordRange.location ..< passwordRange.location+passwordRange.length]
         return passwordBuf.withUnsafeBufferPointer { ptr in
             NSString(bytes: ptr.baseAddress!, length: passwordBuf.count, encoding: String.Encoding.utf8.rawValue)?._swiftObject
