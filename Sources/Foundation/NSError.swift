@@ -719,29 +719,29 @@ internal extension CocoaError {
 }
 
 public extension CocoaError {
-    private var _nsUserInfo: [AnyHashable : Any] {
+    private var _nsUserInfo: [String: Any] {
         return _nsError.userInfo
     }
 
     /// The file path associated with the error, if any.
     var filePath: String? {
-        return _nsUserInfo[NSFilePathErrorKey._bridgeToObjectiveC()] as? String
+        return _nsUserInfo[NSFilePathErrorKey] as? String
     }
 
     /// The string encoding associated with this error, if any.
     var stringEncoding: String.Encoding? {
-        return (_nsUserInfo[NSStringEncodingErrorKey._bridgeToObjectiveC()] as? NSNumber)
+        return (_nsUserInfo[NSStringEncodingErrorKey] as? NSNumber)
         .map { String.Encoding(rawValue: $0.uintValue) }
     }
 
     /// The underlying error behind this error, if any.
     var underlying: Error? {
-        return _nsUserInfo[NSUnderlyingErrorKey._bridgeToObjectiveC()] as? Error
+        return _nsUserInfo[NSUnderlyingErrorKey] as? Error
     }
 
     /// The URL associated with this error, if any.
     var url: URL? {
-        return _nsUserInfo[NSURLErrorKey._bridgeToObjectiveC()] as? URL
+        return _nsUserInfo[NSURLErrorKey] as? URL
     }
 }
 
@@ -913,18 +913,18 @@ public struct URLError : _BridgedStoredNSError {
 }
 
 extension URLError {
-    private var _nsUserInfo: [AnyHashable : Any] {
+    private var _nsUserInfo: [String: Any] {
         return _nsError.userInfo
     }
 
     /// The URL which caused a load to fail.
     public var failingURL: URL? {
-        return _nsUserInfo[NSURLErrorFailingURLErrorKey._bridgeToObjectiveC()] as? URL
+        return _nsUserInfo[NSURLErrorFailingURLErrorKey] as? URL
     }
 
     /// The string for the URL which caused a load to fail.
     public var failureURLString: String? {
-        return _nsUserInfo[NSURLErrorFailingURLStringErrorKey._bridgeToObjectiveC()] as? String
+        return _nsUserInfo[NSURLErrorFailingURLStringErrorKey] as? String
     }
 }
 

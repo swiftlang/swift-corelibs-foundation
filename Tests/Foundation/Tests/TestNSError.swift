@@ -107,3 +107,96 @@ class TestNSError : XCTestCase {
         }
     }
 }
+
+class TestURLError: XCTestCase {
+
+    static var allTests: [(String, (TestURLError) -> () throws -> Void)] {
+        return [
+          ("test_errorCode", TestURLError.test_errorCode),
+          ("test_failingURL", TestURLError.test_failingURL),
+          ("test_failingURLString", TestURLError.test_failingURLString),
+        ]
+    }
+
+    static let testURL = URL(string: "https://swift.org")!
+    let userInfo: [String: Any] =  [
+        NSURLErrorFailingURLErrorKey: TestURLError.testURL,
+        NSURLErrorFailingURLStringErrorKey: TestURLError.testURL.absoluteString,
+    ]
+
+    func test_errorCode() {
+        let e = URLError(.unsupportedURL)
+        XCTAssertEqual(e.errorCode, URLError.Code.unsupportedURL.rawValue)
+    }
+
+    func test_failingURL() {
+        let e = URLError(.badURL, userInfo: userInfo)
+        XCTAssertNotNil(e.failingURL)
+        XCTAssertEqual(e.failingURL, e.userInfo[NSURLErrorFailingURLErrorKey] as? URL)
+    }
+
+    func test_failingURLString() {
+        let e = URLError(.badURL, userInfo: userInfo)
+        XCTAssertNotNil(e.failureURLString)
+        XCTAssertEqual(e.failureURLString, e.userInfo[NSURLErrorFailingURLStringErrorKey] as? String)
+    }
+}
+
+class TestCocoaError: XCTestCase {
+
+    static var allTests: [(String, (TestCocoaError) -> () throws -> Void)] {
+        return [
+            ("test_errorCode", TestCocoaError.test_errorCode),
+            ("test_filePath", TestCocoaError.test_filePath),
+            ("test_url", TestCocoaError.test_url),
+            ("test_stringEncoding", TestCocoaError.test_stringEncoding),
+            ("test_underlying", TestCocoaError.test_underlying),
+        ]
+    }
+
+    static let testURL = URL(string: "file:///")!
+    let userInfo: [String: Any] =  [
+        NSURLErrorKey: TestCocoaError.testURL,
+        NSFilePathErrorKey: TestCocoaError.testURL.path,
+        NSUnderlyingErrorKey: POSIXError(.EACCES),
+        NSStringEncodingErrorKey: String.Encoding.utf16.rawValue,
+    ]
+
+    func test_errorCode() {
+        let e = CocoaError(.fileReadNoSuchFile)
+        XCTAssertEqual(e.errorCode, CocoaError.Code.fileReadNoSuchFile.rawValue)
+        XCTAssertEqual(e.isCoderError, false)
+        XCTAssertEqual(e.isExecutableError, false)
+        XCTAssertEqual(e.isFileError, true)
+        XCTAssertEqual(e.isFormattingError, false)
+        XCTAssertEqual(e.isPropertyListError, false)
+        XCTAssertEqual(e.isUbiquitousFileError, false)
+        XCTAssertEqual(e.isUserActivityError, false)
+        XCTAssertEqual(e.isValidationError, false)
+        XCTAssertEqual(e.isXPCConnectionError, false)
+    }
+
+    func test_filePath() {
+        let e = CocoaError(.fileWriteNoPermission, userInfo: userInfo)
+        XCTAssertNotNil(e.filePath)
+        XCTAssertEqual(e.filePath, TestCocoaError.testURL.path)
+    }
+
+    func test_url() {
+        let e = CocoaError(.fileReadNoSuchFile, userInfo: userInfo)
+        XCTAssertNotNil(e.url)
+        XCTAssertEqual(e.url, TestCocoaError.testURL)
+    }
+
+    func test_stringEncoding() {
+        let e = CocoaError(.fileReadUnknownStringEncoding, userInfo: userInfo)
+        XCTAssertNotNil(e.stringEncoding)
+        XCTAssertEqual(e.stringEncoding, .utf16)
+    }
+
+    func test_underlying() {
+        let e = CocoaError(.fileWriteNoPermission, userInfo: userInfo)
+        XCTAssertNotNil(e.underlying as? POSIXError)
+        XCTAssertEqual(e.underlying as? POSIXError, POSIXError.init(.EACCES))
+    }
+}
