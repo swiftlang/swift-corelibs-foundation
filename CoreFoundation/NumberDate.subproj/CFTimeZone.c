@@ -485,12 +485,13 @@ static CFIndex __CFBSearchTZPeriods(CFTimeZoneRef tz, CFAbsoluteTime at) {
 
 
 CF_INLINE int32_t __CFDetzcode(const unsigned char *bufp) {
-    int32_t result = (bufp[0] & 0x80) ? ~0L : 0L;
+     // `result` is uint32_t to avoid undefined behaviour of shifting left negative values
+    uint32_t result = (bufp[0] & 0x80) ? ~0L : 0L;
     result = (result << 8) | (bufp[0] & 0xff);
     result = (result << 8) | (bufp[1] & 0xff);
     result = (result << 8) | (bufp[2] & 0xff);
     result = (result << 8) | (bufp[3] & 0xff);
-    return result;
+    return (int32_t)result;
 }
 
 CF_INLINE void __CFEntzcode(int32_t value, unsigned char *bufp) {
