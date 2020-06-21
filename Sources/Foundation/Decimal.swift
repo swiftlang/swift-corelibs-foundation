@@ -1025,7 +1025,7 @@ fileprivate func integerMultiply<T:VariableLengthNumber>(_ big: inout T,
                 accumulator = UInt32(carry) + bigij + UInt32(right[j]) * UInt32(left[i])
                 carry = UInt16(truncatingIfNeeded:accumulator >> 16)
                 big[i+j] = UInt16(truncatingIfNeeded:accumulator)
-            } else if carry != 0 || (right[j] == 0 && left[j] == 0) {
+            } else if carry != 0 || (right[j] > 0 && left[i] > 0) {
                 return .overflow
             }
         }
