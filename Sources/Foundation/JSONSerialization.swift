@@ -832,7 +832,6 @@ private struct JSONReader {
         var string = ""
         var isInteger = true
         var exponent = 0
-        var positiveExponent = true
         var index = input
         var digitCount: Int?
         var ascii: UInt8 = 0    // set by nextASCII()
@@ -903,6 +902,8 @@ private struct JSONReader {
 
             // Process the exponent
             isInteger = false
+            let positiveExponent: Bool
+
             guard nextASCII() else { return false }
             if ascii == JSONReader.MINUS {
                 positiveExponent = false
@@ -910,6 +911,8 @@ private struct JSONReader {
             } else if ascii == JSONReader.PLUS {
                 positiveExponent = true
                 guard nextASCII() else { return false }
+            } else {
+                positiveExponent = true
             }
             guard JSONReader.allDigits.contains(ascii) else { return false }
             exponent = Int(ascii - JSONReader.ZERO)
@@ -921,6 +924,7 @@ private struct JSONReader {
                     return false
                 }
             }
+            exponent = positiveExponent ? exponent : -exponent
             return true
         }
 

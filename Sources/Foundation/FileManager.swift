@@ -894,8 +894,8 @@ open class FileManager : NSObject {
         guard let file1 = FileHandle(fileSystemRepresentation: file1Rep, flags: O_RDONLY, createMode: 0) else { return false }
         guard let file2 = FileHandle(fileSystemRepresentation: file2Rep, flags: O_RDONLY, createMode: 0) else { return false }
 
-        var buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
-        var buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        let buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        let buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
         defer {
             buffer1.deallocate()
             buffer2.deallocate()

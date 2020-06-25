@@ -1015,7 +1015,7 @@ open class Pipe: NSObject {
                                                closeOnDealloc: true)
 #else
         /// the `pipe` system call creates two `fd` in a malloc'ed area
-        var fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
+        let fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
         defer {
             fds.deallocate()
         }

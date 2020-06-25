@@ -138,7 +138,8 @@ class TestURLSession: LoopbackServerTest {
                         let error = delegate.error as? URLError
                         XCTAssertEqual(error?.code.rawValue, NSURLErrorDataLengthExceedsMaximum)
                         XCTAssertEqual(error?.localizedDescription, "resource exceeds maximum size")
-                        let userInfo = error?.userInfo as? [String: Any]
+                        let userInfo = error?.userInfo
+                        XCTAssertNotNil(userInfo)
                         let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
                         XCTAssertEqual(errorURL, url)
 
@@ -823,7 +824,8 @@ class TestURLSession: LoopbackServerTest {
             let error = delegate.error as? URLError
             XCTAssertEqual(error?.code.rawValue, NSURLErrorHTTPTooManyRedirects)
             XCTAssertEqual(error?.localizedDescription, "too many HTTP redirects")
-            let userInfo = error?.userInfo as? [String: Any]
+            let userInfo = error?.userInfo
+            XCTAssertNotNil(userInfo)
             let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
             XCTAssertEqual(errorURL, exceededCountUrl)
 
@@ -1092,7 +1094,8 @@ class TestURLSession: LoopbackServerTest {
                         let error = delegate.error as? URLError
                         XCTAssertEqual(error?.code.rawValue, NSURLErrorDataLengthExceedsMaximum)
                         XCTAssertEqual(error?.localizedDescription, "resource exceeds maximum size")
-                        let userInfo = error?.userInfo as? [String: Any]
+                        let userInfo = error?.userInfo
+                        XCTAssertNotNil(userInfo)
                         let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
                         XCTAssertEqual(errorURL, url)
 
@@ -1251,12 +1254,12 @@ class TestURLSession: LoopbackServerTest {
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
 
         let urlString1 = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
-        var expect1 = expectation(description: "POST \(urlString1)")
+        let expect1 = expectation(description: "POST \(urlString1)")
         var req1 = URLRequest(url: URL(string: urlString1)!)
         req1.httpMethod = "POST"
 
         let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
-        var expect2 = expectation(description: "POST \(urlString2)")
+        let expect2 = expectation(description: "POST \(urlString2)")
         var req2 = URLRequest(url: URL(string: urlString2)!)
         req2.httpMethod = "POST"
 
@@ -1320,12 +1323,12 @@ class TestURLSession: LoopbackServerTest {
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
 
         let urlString1 = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
-        var expect1 = expectation(description: "POST \(urlString1)")
+        let expect1 = expectation(description: "POST \(urlString1)")
         var req1 = URLRequest(url: URL(string: urlString1)!)
         req1.httpMethod = "POST"
 
         let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
-        var expect2 = expectation(description: "POST \(urlString2)")
+        let expect2 = expectation(description: "POST \(urlString2)")
         var req2 = URLRequest(url: URL(string: urlString2)!)
         req2.httpMethod = "POST"
 
@@ -1695,7 +1698,8 @@ class TestURLSession: LoopbackServerTest {
                     let error = delegate.error as? URLError
                     XCTAssertEqual(error?.code.rawValue, NSURLErrorDataLengthExceedsMaximum)
                     XCTAssertEqual(error?.localizedDescription, "resource exceeds maximum size")
-                    let userInfo = error?.userInfo as? [String: Any]
+                    let userInfo = error?.userInfo
+                    XCTAssertNotNil(userInfo)
                     let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
                     XCTAssertEqual(errorURL, url)
                     XCTAssertNil(delegate.response)
