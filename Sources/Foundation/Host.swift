@@ -31,7 +31,7 @@ import CoreFoundation
 
     private typealias GetIfAddrsFunc = @convention(c) (UnsafeMutablePointer<UnsafeMutablePointer<ifaddrs>?>) -> Int32
     private func getifaddrs(_ ifap: UnsafeMutablePointer<UnsafeMutablePointer<ifaddrs>?>) -> Int32 {
-        var result: Int32 = 0
+        var result: Int32 = -1
         if let handle = dlopen("libc.so", RTLD_NOLOAD) {
             if let entry = dlsym(handle, "getifaddrs") {
                 result = unsafeBitCast(entry, to: GetIfAddrsFunc.self)(ifap)
