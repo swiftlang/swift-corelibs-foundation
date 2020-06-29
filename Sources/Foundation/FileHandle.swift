@@ -8,7 +8,10 @@
 //
 
 import CoreFoundation
+
+#if !os(WASI)
 import Dispatch
+#endif
 
 // FileHandle has a .read(upToCount:) method. Just invoking read() will cause an ambiguity warning. Use _read instead.
 // Same with close()/.close().
@@ -38,6 +41,7 @@ extension NSError {
     }
 }
 
+#if !os(WASI)
 /* On Darwin, FileHandle conforms to NSSecureCoding for use with NSXPCConnection and related facilities only. On swift-corelibs-foundation, it does not conform to that protocol since those facilities are unavailable. */
  
 open class FileHandle : NSObject {
@@ -78,6 +82,7 @@ open class FileHandle : NSObject {
 
     private var _closeOnDealloc: Bool
 
+#if !os(WASI)
     private var currentBackgroundActivityOwner: AnyObject? // Guarded by privateAsyncVariablesLock
     
     private var readabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
@@ -201,6 +206,7 @@ open class FileHandle : NSObject {
             }
         }
     }
+#endif
 
     open var availableData: Data {
         _checkFileHandle()
@@ -597,6 +603,7 @@ open class FileHandle : NSObject {
     }
     
     private func performOnQueueIfExists(_ block: () throws -> Void) throws {
+#if !os(WASI)
         if let queue = queueIfExists {
             var theError: Swift.Error?
             queue.sync {
@@ -608,6 +615,9 @@ open class FileHandle : NSObject {
         } else {
             try block()
         }
+#else
+        try block()
+#endif
     }
     
     @available(swift 5.0)
@@ -621,6 +631,7 @@ open class FileHandle : NSObject {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         guard _isPlatformHandleValid else { return }
         
+        #if !os(WASI)
         privateAsyncVariablesLock.lock()
         writabilitySource?.cancel()
         readabilitySource?.cancel()
@@ -629,6 +640,7 @@ open class FileHandle : NSObject {
         writabilitySource = nil
         readabilitySource = nil
         privateAsyncVariablesLock.unlock()
+        #endif
         
         #if os(Windows)
         guard CloseHandle(_handle) else {
@@ -867,22 +879,25 @@ extension FileHandle {
 #endif
             }
 
+#if !os(WASI)
             DispatchQueue.main.async {
                 NotificationQueue.default.enqueue(Notification(name: FileHandle.readCompletionNotification, object: self, userInfo: userInfo), postingStyle: .asap, coalesceMask: .none, forModes: modes)
             }
+#endif
         }
 
 #if os(Windows)
         DispatchIO.read(fromHandle: handle, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
           operation(data, error)
         }
-#else
+#elseif !os(WASI)
         DispatchIO.read(fromFileDescriptor: fileDescriptor, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
           operation(data, error)
         }
 #endif
     }
     
+#if !os(WASI)
     open func readToEndOfFileInBackgroundAndNotify() {
         readToEndOfFileInBackgroundAndNotify(forModes: [.default])
     }
@@ -993,6 +1008,7 @@ extension FileHandle {
         
         owner.resume()
     }
+#endif
 }
 
 open class Pipe: NSObject {
@@ -1039,4 +1055,24 @@ open class Pipe: NSObject {
         super.init()
     }
 }
+#else
+private let libcWrite = write
 
+public final class FileHandle {
+  public let fileDescriptor: Int32
+
+  public init(fileDescriptor: Int32) {
+    self.fileDescriptor = fileDescriptor
+  }
+
+  public static var standardError: FileHandle {
+    .init(fileDescriptor: STDERR_FILENO)
+  }
+
+  public func write(_ data: Data) {
+    _ = data.withUnsafeBytes {
+      libcWrite(fileDescriptor, $0.baseAddress, data.count)
+    }
+  }
+}
+#endif

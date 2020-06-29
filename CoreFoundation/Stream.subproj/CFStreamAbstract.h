@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFSTREAMABSTRACT__)
+#if !defined(__COREFOUNDATION_CFSTREAMABSTRACT__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFSTREAMABSTRACT__ 1
 
 #include <CoreFoundation/CFStream.h>

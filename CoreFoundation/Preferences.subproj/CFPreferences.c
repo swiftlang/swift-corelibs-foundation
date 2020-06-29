@@ -390,6 +390,7 @@ static CFStringRef  _CFPreferencesCachePrefixForUserHost(CFStringRef  userName, 
         return (CFStringRef)CFRetain(CFSTR("*/*/"));
     }
     CFMutableStringRef result = CFStringCreateMutable(__CFPreferencesAllocator(), 0);
+    #if !TARGET_OS_WASI
     if (userName == kCFPreferencesCurrentUser) {
         userName = CFCopyUserName();
         CFStringAppend(result, userName);
@@ -398,6 +399,9 @@ static CFStringRef  _CFPreferencesCachePrefixForUserHost(CFStringRef  userName, 
     } else if (userName == kCFPreferencesAnyUser) {
         CFStringAppend(result, CFSTR("*/"));
     }
+    #else
+    CFStringAppend(result, CFSTR("*/"));
+    #endif
     if (hostName == kCFPreferencesCurrentHost) {
         CFStringRef hostID = _CFPreferencesGetByHostIdentifierString();
         CFStringAppend(result, hostID);
@@ -618,13 +622,17 @@ CF_PRIVATE CFArrayRef _CFPreferencesCreateDomainList(CFStringRef  userName, CFSt
         
         if (!CFStringHasPrefix(domainKey, suffix)) continue;
         domainName = CFStringCreateWithSubstring(prefAlloc, domainKey, CFRangeMake(suffixLen, CFStringGetLength(domainKey) - suffixLen));
+#if !TARGET_OS_WASI
         if (CFEqual(domainName, CFSTR("*"))) {
+#endif
             CFRelease(domainName);
             domainName = (CFStringRef)CFRetain(kCFPreferencesAnyApplication);
+#if !TARGET_OS_WASI
         } else if (CFEqual(domainName, kCFPreferencesCurrentApplication)) {
             CFRelease(domainName);
             domainName = (CFStringRef)CFRetain(_CFProcessNameString());
         }
+#endif
         CFDictionaryRef d = _CFPreferencesDomainDeepCopyDictionary(domain);
         keyCount = d ? CFDictionaryGetCount(d) : 0;
         if (keyCount) CFRelease(d);
