@@ -847,6 +847,7 @@ extension FileHandle {
             if error == 0 {
                 userInfo[NSFileHandleNotificationDataItem] = Data(data)
             } else {
+                userInfo[NSFileHandleNotificationDataItem] = Data()
 #if os(Windows)
                 // On Windows, reading from a directory results in an
                 // ERROR_ACCESS_DENIED. If we get ERROR_ACCESS_DENIED

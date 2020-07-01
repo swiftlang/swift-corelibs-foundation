@@ -513,7 +513,7 @@ class TestFileHandle : XCTestCase {
                 return true
             }
             
-            XCTAssertNil(notification.userInfo?[NSFileHandleNotificationDataItem])
+            XCTAssertEqual(notification.userInfo?[NSFileHandleNotificationDataItem] as? Data, Data())
 #if os(Windows)
             XCTAssertEqual(error, NSNumber(value: ERROR_DIRECTORY_NOT_SUPPORTED))
 #else
