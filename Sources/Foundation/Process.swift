@@ -439,6 +439,15 @@ open class Process: NSObject {
     #endif
 
     open func run() throws {
+
+        func _throwIfPosixError(_ posixErrno: Int32) throws {
+            if posixErrno != 0 {
+                // When this is called, self.executableURL is already known to be non-nil
+                let userInfo: [String: Any] = [ NSURLErrorKey: self.executableURL! ]
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(posixErrno), userInfo: userInfo)
+            }
+        }
+
         self.processLaunchedCondition.lock()
         defer {
             self.processLaunchedCondition.broadcast()
@@ -826,11 +835,11 @@ open class Process: NSObject {
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
         let fileActions = _CFPosixSpawnFileActionsAlloc()
-        posix(_CFPosixSpawnFileActionsInit(fileActions))
         defer {
             _CFPosixSpawnFileActionsDestroy(fileActions)
             _CFPosixSpawnFileActionsDealloc(fileActions)
         }
+        try _throwIfPosixError(_CFPosixSpawnFileActionsInit(fileActions))
 
         // File descriptors to duplicate in the child process. This allows
         // output redirection to NSPipe or NSFileHandle.
@@ -905,16 +914,16 @@ open class Process: NSObject {
         }
 
         for (new, old) in adddup2 {
-            posix(_CFPosixSpawnFileActionsAddDup2(fileActions, old, new))
+            try _throwIfPosixError(_CFPosixSpawnFileActionsAddDup2(fileActions, old, new))
         }
         for fd in addclose.filter({ $0 >= 0 }) {
-            posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
+            try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
         #if canImport(Darwin)
         var spawnAttrs: posix_spawnattr_t? = nil
-        posix_spawnattr_init(&spawnAttrs)
-        posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT))
+        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
+        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
         #else
         for fd in 3 ... findMaximumOpenFD() {
             guard adddup2[fd] == nil &&
@@ -922,7 +931,7 @@ open class Process: NSObject {
                   fd != taskSocketPair[1] else {
                     continue // Do not double-close descriptors, or close those pertaining to Pipes or FileHandles we want inherited.
             }
-            posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
+            try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
         #endif
 
@@ -1133,12 +1142,4 @@ open class Process: NSObject {
 extension Process {
     
     public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
-}
-    
-private func posix(_ code: Int32, file: StaticString = #file, line: UInt = #line) {
-    switch code {
-    case 0: return
-    case EBADF: fatalError("POSIX command failed with error: \(code) -- EBADF", file: file, line: line)
-    default: fatalError("POSIX command failed with error: \(code)", file: file, line: line)
-    }
 }
