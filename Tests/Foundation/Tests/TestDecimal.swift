@@ -1254,6 +1254,32 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(d8?._length, 1)
     }
 
+    func test_NSNumberEquality() {
+
+        let values = [
+            (NSNumber(value: Int.min), NSDecimalNumber(decimal: Decimal(Int.min))),
+            (NSNumber(value: Int.max), NSDecimalNumber(decimal: Decimal(Int.max))),
+            (NSNumber(value: Double(1.1)), NSDecimalNumber(decimal: Decimal(Double(1.1)))),
+            (NSNumber(value: Float(-1.0)), NSDecimalNumber(decimal: Decimal(-1))),
+            (NSNumber(value: Int8(1)), NSDecimalNumber(decimal: Decimal(1))),
+            (NSNumber(value: UInt8.max), NSDecimalNumber(decimal: Decimal(255))),
+            (NSNumber(value: Int16.min), NSDecimalNumber(decimal: Decimal(-32768))),
+        ]
+
+        for pair in values {
+            let number = pair.0
+            let decimalNumber = pair.1
+
+            XCTAssertEqual(number.compare(decimalNumber), .orderedSame)
+            XCTAssertTrue(number.isEqual(to: decimalNumber))
+            XCTAssertEqual(number, decimalNumber)
+
+            XCTAssertEqual(decimalNumber.compare(number), .orderedSame)
+            XCTAssertTrue(decimalNumber.isEqual(to: number))
+            XCTAssertEqual(decimalNumber, number)
+        }
+    }
+
     static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
         return [
             ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
@@ -1283,6 +1309,7 @@ class TestDecimal: XCTestCase {
             ("test_NSDecimalString", test_NSDecimalString),
             ("test_multiplyingByPowerOf10", test_multiplyingByPowerOf10),
             ("test_initExactly", test_initExactly),
+            ("test_NSNumberEquality", test_NSNumberEquality),
         ]
     }
 }
