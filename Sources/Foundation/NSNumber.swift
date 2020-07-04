@@ -590,7 +590,7 @@ open class NSNumber : NSValue {
     open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
-    
+
     open override func isEqual(_ value: Any?) -> Bool {
         // IMPORTANT:
         // .isEqual() is invoked by the bridging machinery that gets triggered whenever you use '(-a NSNumber value-) as{,?,!} Int', so using a refutable pattern ('case let other as NSNumber') below will cause an infinite loop if value is an Int, and similarly for other types we can bridge to.
@@ -960,6 +960,10 @@ open class NSNumber : NSValue {
             if lhs.low > rhs.low { return .orderedDescending }
             return .orderedSame
         }
+    }
+
+    open func isEqual(to number: NSNumber) -> Bool {
+        return compare(number) == .orderedSame
     }
 
     open func description(withLocale locale: Locale?) -> String {
