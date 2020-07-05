@@ -476,9 +476,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
-                    guard let task = self else { return }
-                    self?.task?.workQueue.async {
-                        task.didCompleteRedirectCallback(request)
+                    guard let self = self else { return }
+                    self.task?.workQueue.async {
+                        self.didCompleteRedirectCallback(request)
                     }
                 }
             }
@@ -651,7 +651,7 @@ internal extension _HTTPURLProtocol {
         //TODO: Do we ever want to redirect for HEAD requests?
         func methodAndURL() -> (String, URL)? {
             guard
-                let location = response.value(forHeaderField: .location, response: response),
+                let location = response.value(forHeaderField: .location),
                 let targetURL = URL(string: location)
                 else {
                     // Can't redirect when there's no location to redirect to.
@@ -728,10 +728,9 @@ fileprivate extension HTTPURLResponse {
         case location = "Location"
     }
 
-    func value(forHeaderField field: _Field, response: HTTPURLResponse?) -> String? {
+    func value(forHeaderField field: _Field) -> String? {
         let value = field.rawValue
-        guard let response = response else { fatalError("Response is nil") }
-        if let location = response.allHeaderFields[value] as? String {
+        if let location = self.allHeaderFields[value] as? String {
             return location
         }
         return nil
