@@ -689,28 +689,32 @@ internal extension _HTTPURLProtocol {
             return request
         }
 
-        let scheme = request.url?.scheme
-        let host = request.url?.host
-        let port = request.url?.port
+        guard
+            let fromUrl = fromRequest.url,
+            var components = URLComponents(url: fromUrl, resolvingAgainstBaseURL: false)
+            else { return nil }
 
-        var components = URLComponents()
-        components.scheme = scheme
-        components.host = host
-        // Use the original port if the new URL does not contain a host
-        // ie Location: /foo => <original host>:<original port>/Foo
-        // but Location: newhost/foo  will ignore the original port
-        if targetURL.host == nil {
-          components.port = port
+        // If the new URL contains a host, use the host and port from the new URL.
+        // Otherwise, the host and port from the original URL are used.
+        if targetURL.host != nil {
+            components.host = targetURL.host
+            components.port = targetURL.port
         }
-        //The path must either begin with "/" or be an empty string.
-        if targetURL.relativeString.first != "/" {
-            components.path = "/" + targetURL.relativeString
+        
+        // The path must either begin with "/" or be an empty string.
+        if targetURL.path.hasPrefix("/") {
+            components.path = targetURL.path
         } else {
-            components.path = targetURL.relativeString
+            components.path = "/" + targetURL.path
         }
+        
+        // The query and fragment components are set separately to prevent them from being
+        // percent encoded again.
+        components.percentEncodedQuery = targetURL.query
+        components.percentEncodedFragment = targetURL.fragment
 
-        guard let urlString = components.string else { fatalError("Invalid URL") }
-        request.url = URL(string: urlString)
+        guard let url = components.url else { fatalError("Invalid URL") }
+        request.url = url
 
         // Inherit the timeout from the previous request
         request.timeoutInterval = fromRequest.timeoutInterval
