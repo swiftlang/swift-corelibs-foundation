@@ -716,8 +716,6 @@ internal extension _HTTPURLProtocol {
         guard let url = components.url else { fatalError("Invalid URL") }
         request.url = url
 
-        // Inherit the timeout from the previous request
-        request.timeoutInterval = fromRequest.timeoutInterval
         return request
     }
 }
