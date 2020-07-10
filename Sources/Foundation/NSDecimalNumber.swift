@@ -324,13 +324,14 @@ open class NSDecimalNumber : NSNumber {
         NSDecimalRound(&result, &input, Int(scale), roundingMode)
         return NSDecimalNumber(decimal: result)
     }
-    
+
     // compare two NSDecimalNumbers
     open override func compare(_ decimalNumber: NSNumber) -> ComparisonResult {
         if let num = decimalNumber as? NSDecimalNumber {
-            return decimal.compare(to:num.decimal)
+            return decimal.compare(to: num.decimal)
         } else {
-            return decimal.compare(to:Decimal(decimalNumber.doubleValue))
+            // NOTE: The lhs must be an NSNumber and not self (an NSDecimalNumber) so that NSNumber.compare() is used
+            return decimalNumber.compare(self)
         }
     }
 
@@ -402,8 +403,14 @@ open class NSDecimalNumber : NSNumber {
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
-        guard let other = value as? NSDecimalNumber else { return false }
-        return self.decimal == other.decimal
+        if let other = value as? NSDecimalNumber {
+            return self.decimal == other.decimal
+        }
+        if  let other = value as? NSNumber {
+            // NOTE: The lhs must be an NSNumber and not self (an NSDecimalNumber) so that NSNumber.compare() is used
+            return other.compare(self) == .orderedSame
+        }
+        return false
     }
 
     override var _swiftValueOfOptimalType: Any {
