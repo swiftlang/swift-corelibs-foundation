@@ -64,9 +64,8 @@ public func NSTemporaryDirectory() -> String {
         }
     }
 #if os(Android)
-    // Bionic uses /data/local/tmp/ as temporary directory. TMPDIR is rarely
-    // defined.
-    return "/data/local/tmp/"
+    // Fall back to /data/local/tmp/, which is used by Bionic, if TMPDIR is not defined.
+    return ProcessInfo.processInfo.environment["TMPDIR"] ?? "/data/local/tmp/"
 #else
     return "/tmp/"
 #endif
