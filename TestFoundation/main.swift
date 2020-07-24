@@ -42,6 +42,8 @@ var allTestCases = [
     testCase(TestDecimal.allTests),
     testCase(TestNSDictionary.allTests),
     testCase(TestNSError.allTests),
+    testCase(TestCocoaError.allTests),
+    testCase(TestURLError.allTests),
     testCase(TestEnergyFormatter.allTests),
     testCase(TestFileManager.allTests),
     testCase(TestNSGeometry.allTests),
