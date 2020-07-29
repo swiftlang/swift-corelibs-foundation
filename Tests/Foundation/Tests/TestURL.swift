@@ -149,6 +149,22 @@ class TestURL : XCTestCase {
         XCTAssertEqual(url1, url3, "\(url1) was not equal to \(url3)")
     }
 
+    func test_relativeFilePath() {
+        let url1 = URL(fileURLWithPath: "/this/is/absolute", relativeTo: nil)
+        XCTAssertNil(url1.baseURL, "Absolute URLs should have no base URL")
+        XCTAssertEqual(url1.path, url1.relativePath, "URLs without base path should have equal path and relativePath")
+
+        let url2 = URL(fileURLWithPath: "this/is/relative", relativeTo: nil)
+        XCTAssertNotNil(url2.baseURL, "Relative URLs should have base URL assigned")
+        XCTAssertNotEqual(url2.path, url2.relativePath, "URLs without base path should have different path and relativePath")
+
+        #if os(Windows)
+        let url3 = URL(fileURLWithPath: "C:\\this\\is\\absolute", relativeTo: nil)
+        XCTAssertNil(url3.baseURL, "Absolute URLs should have no base URL")
+        XCTAssertEqual(url3.path, url3.relativePath, "URLs without base path should have equal path and relativePath")
+        #endif
+    }
+
     /// Returns a URL from the given url string and base
     private func URLWithString(_ urlString : String, baseString : String?) -> URL? {
         if let baseString = baseString {
@@ -780,6 +796,7 @@ class TestURL : XCTestCase {
         var tests: [(String, (TestURL) -> () throws -> Void)] = [
             ("test_URLStrings", test_URLStrings),
             ("test_fileURLWithPath_relativeTo", test_fileURLWithPath_relativeTo ),
+            ("test_relativeFilePath", test_relativeFilePath),
             // TODO: these tests fail on linux, more investigation is needed
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
