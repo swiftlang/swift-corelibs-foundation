@@ -756,7 +756,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             }
         }
 
-        @inlinable // This is @inlinable as tribially computable.
+        @inlinable // This is @inlinable as trivially computable.
         mutating func append(byte: UInt8) {
             let count = self.count
             assert(count + 1 <= MemoryLayout<Buffer>.size)
