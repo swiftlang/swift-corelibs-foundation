@@ -22,4 +22,10 @@ set_target_properties(uuid PROPERTIES
 
 if(NOT BUILD_SHARED_LIBS)
   set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS uuid)
+
+  get_swift_host_arch(swift_arch)
+  install(TARGETS uuid
+    ARCHIVE DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
+    LIBRARY DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
+    RUNTIME DESTINATION bin)
 endif()
