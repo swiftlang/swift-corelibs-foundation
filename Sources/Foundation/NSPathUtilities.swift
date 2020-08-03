@@ -760,7 +760,10 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
     let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
-    let fd = mkstemp(&buf)
+    guard let name = mktemp(&buf) else {
+        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    }
+    let fd = open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
     if fd == -1 {
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
