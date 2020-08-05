@@ -1,7 +1,7 @@
 /*	CFError.c
-	Copyright (c) 2006-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2006-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -70,7 +70,7 @@ static CFDictionaryRef _CFErrorCreateEmptyDictionary(CFAllocatorRef allocator);
 
 /* This lock is used in the few places in CFError where we create and access shared static objects. Should only be around tiny snippets of code; no recursion
 */
-static CFLock_t _CFErrorSpinlock = CFLockInit;
+static os_unfair_lock _CFErrorLock = OS_UNFAIR_LOCK_INIT;
 
 
 
@@ -169,16 +169,13 @@ CFTypeID CFErrorGetTypeID(void) {
 */
 static CFDictionaryRef _CFErrorCreateEmptyDictionary(CFAllocatorRef allocator) {
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
+#if DEPLOYMENT_TARGET_OBJC
     if (_CFAllocatorIsSystemDefault(allocator)) {
-        static CFDictionaryRef emptyErrorDictionary = NULL;
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            emptyErrorDictionary = CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-        });
-        return (CFDictionaryRef)CFRetain(emptyErrorDictionary);
-    } else {
-        return CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        return (CFDictionaryRef)CFRetain(__NSDictionary0__);
     }
+#endif
+    
+    return CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 }
 
 /* A non-retained accessor for the userInfo. Might return NULL in some cases, if the subclass of NSError returned nil for some reason. It works with a CF or NSError.
@@ -249,13 +246,13 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
             CFStringRef reason = _CFErrorCopyUserInfoKey(err, kCFErrorLocalizedFailureReasonKey);    // This can come from userInfo or callback
             if (reason) {
                 CFStringRef const backstopComboString = CFSTR("%@ %@");
-                CFStringRef comboString = backstopComboString;
+                CFStringRef comboString = NULL;
 #if TARGET_OS_MAC || TARGET_OS_WIN32
                 CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
                 if (cfBundle) comboString = CFCopyLocalizedStringFromTableInBundle(CFSTR("%@ %@"), CFSTR("Error"), cfBundle, "Used for presenting the 'what failed' and 'why it failed' sections of an error message, where each one is one or more complete sentences. The first %@ corresponds to the 'what failed' (For instance 'The file could not be saved.') and the second one 'why it failed' (For instance 'The volume is out of space.')");
 #endif
-                CFStringRef result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, comboString, failure, reason);
-                if (comboString && comboString != backstopComboString) CFRelease(comboString);
+                CFStringRef result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, comboString ?: backstopComboString, failure, reason);
+                if (comboString) CFRelease(comboString);
                 CFRelease(failure);
                 CFRelease(reason);
                 return result;
@@ -339,7 +336,10 @@ static void _CFErrorFormatDebugDescriptionAux(CFErrorRef err, errorFormattingCon
 
 static void userInfoKeyValueShow(const void *key, const void *value, void *ctxt) {
     errorFormattingContext *context = ctxt;
-    if (CFEqual(key, kCFErrorUnderlyingErrorKey)) {
+    if (context == NULL) {
+        HALT_MSG("*** userInfoKeyValueShow() called with NULL context ***");
+    }
+    if (CFEqual(key, kCFErrorUnderlyingErrorKey) && value != NULL && CFGetTypeID(value) == CFErrorGetTypeID()) {
         CFStringAppendFormat(context->result, NULL, CFSTR("%@=%p {"), key, value);
         _CFErrorFormatDebugDescriptionAux((CFErrorRef)value, context);
         CFStringAppend(context->result, CFSTR("}, "));
@@ -560,7 +560,7 @@ static void _CFErrorInitializeCallBackTable(void) {
     dictionaryValueCallBacks.release = blockReleaseValueCallBack;
     CFMutableDictionaryRef table = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, &kCFCopyStringDictionaryKeyCallBacks, &dictionaryValueCallBacks);
     
-    __CFLock(&_CFErrorSpinlock);
+    os_unfair_lock_lock_with_options(&_CFErrorLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     if (!_CFErrorCallBackTable) {
         _CFErrorCallBackTable = table;
         // Register the known providers, going thru a special variant of the function that doesn't lock
@@ -568,38 +568,38 @@ static void _CFErrorInitializeCallBackTable(void) {
 #if TARGET_OS_MAC
         __CFErrorSetCallBackForDomainNoLock(kCFErrorDomainMach, _CFErrorMachCallBack);
 #endif
-        __CFUnlock(&_CFErrorSpinlock);
+        os_unfair_lock_unlock(&_CFErrorLock);
     } else {
-        __CFUnlock(&_CFErrorSpinlock);
+        os_unfair_lock_unlock(&_CFErrorLock);
         CFRelease(table);
     }
 }
 
 void CFErrorSetCallBackBlockForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBackBlock block) {
     if (!_CFErrorCallBackTable) _CFErrorInitializeCallBackTable();
-    __CFLock(&_CFErrorSpinlock);
+    os_unfair_lock_lock_with_options(&_CFErrorLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     if (block) {
         CFDictionarySetValue(_CFErrorCallBackTable, domainName, (void *)block);
     } else {
         CFDictionaryRemoveValue(_CFErrorCallBackTable, domainName);
     }
-    __CFUnlock(&_CFErrorSpinlock);
+    os_unfair_lock_unlock(&_CFErrorLock);
 }
 
 CFErrorUserInfoKeyCallBackBlock CFErrorGetCallBackBlockForDomain(CFStringRef domainName) {
     if (!_CFErrorCallBackTable) _CFErrorInitializeCallBackTable();
-    __CFLock(&_CFErrorSpinlock);
+    os_unfair_lock_lock_with_options(&_CFErrorLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     CFErrorUserInfoKeyCallBackBlock callBack = _CFErrorCallBackTable ? (CFErrorUserInfoKeyCallBackBlock)CFDictionaryGetValue(_CFErrorCallBackTable, domainName) : NULL;
-    __CFUnlock(&_CFErrorSpinlock);
+    os_unfair_lock_unlock(&_CFErrorLock);
     return callBack;
 }
 
 CFErrorUserInfoKeyCallBackBlock CFErrorCopyCallBackBlockForDomain(CFStringRef domainName) {
     if (!_CFErrorCallBackTable) _CFErrorInitializeCallBackTable();
-    __CFLock(&_CFErrorSpinlock);
+    os_unfair_lock_lock_with_options(&_CFErrorLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     CFErrorUserInfoKeyCallBackBlock callBack = _CFErrorCallBackTable ? (CFErrorUserInfoKeyCallBackBlock)CFDictionaryGetValue(_CFErrorCallBackTable, domainName) : NULL;
     if (callBack) CFRetain(callBack);
-    __CFUnlock(&_CFErrorSpinlock);
+    os_unfair_lock_unlock(&_CFErrorLock);
     return callBack;
 }
 

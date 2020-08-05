@@ -346,8 +346,16 @@ extension FileManager {
                         try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                     }
                     if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
-                    } else if let attr = attributes {
+                        let posixError = errno
+                        if posixError == EEXIST && fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue {
+                            // Continue; if there is an existing file and it is a directory, that is still a success.
+                            // There can be an existing file if another thread or process concurrently creates the
+                            // same file.
+                        } else {
+                            throw _NSErrorWithErrno(posixError, reading: false, path: path)
+                        }
+                    }
+                    if let attr = attributes {
                         try self.setAttributes(attr, ofItemAtPath: path)
                     }
                 } else if isDir.boolValue {
@@ -459,18 +467,35 @@ extension FileManager {
         This method replaces pathContentOfSymbolicLinkAtPath:
      */
     internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
+        let bufferSize = Int(PATH_MAX + 1)
+        let buffer = try [Int8](unsafeUninitializedCapacity: bufferSize) { buffer, initializedCount in
+            let len = try _fileSystemRepresentation(withPath: path) { (path) -> Int in
+                return readlink(path, buffer.baseAddress!, bufferSize)
+            }
+            guard len >= 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+            initializedCount = len
+        }
+        return self.string(withFileSystemRepresentation: buffer, length: buffer.count)
+    }
+        
+    internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        // Throw error if path is not a symbolic link:
+        let path = try _destinationOfSymbolicLink(atPath: path)
+        
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
-        let len = try _fileSystemRepresentation(withPath: path) {
-            readlink($0, &buf, bufSize)
+        let _resolvedPath = try _fileSystemRepresentation(withPath: path) {
+            realpath($0, &buf)
         }
-        if len < 0 {
+        guard let resolvedPath = _resolvedPath else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
 
-        return self.string(withFileSystemRepresentation: buf, length: Int(len))
+        return String(cString: resolvedPath)
     }
-    
+
     /* Returns a String with a canonicalized path for the element at the specified path. */
     internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
         let bufSize = Int(PATH_MAX + 1)

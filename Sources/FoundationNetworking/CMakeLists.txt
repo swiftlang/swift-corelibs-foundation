@@ -1,5 +1,25 @@
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  find_package(CURL CONFIG)
+  if(CURL_FOUND)
+    set(CURL_VERSION_STRING ${CURL_VERSION})
+  else()
+    find_package(CURL REQUIRED)
+  endif()
+endif()
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  if((NS_CURL_ASSUME_FEATURES_MISSING) OR (CURL_VERSION_STRING VERSION_LESS "7.32.0"))
+    add_compile_definitions(NS_CURL_MISSING_XFERINFOFUNCTION)
+  endif()
+
+  if((NS_CURL_ASSUME_FEATURES_MISSING) OR (CURL_VERSION_STRING VERSION_LESS "7.30.0"))
+    add_compile_definitions(NS_CURL_MISSING_MAX_HOST_CONNECTIONS)
+  endif()
+endif()
+
 add_library(FoundationNetworking
   ../Foundation/Boxing.swift
+  DataURLProtocol.swift
   HTTPCookie.swift
   HTTPCookieStorage.swift
   NSURLRequest.swift

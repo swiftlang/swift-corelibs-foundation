@@ -57,6 +57,12 @@ open class JSONEncoder {
         /// Produce JSON with dictionary keys sorted in lexicographic order.
         @available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *)
         public static let sortedKeys    = OutputFormatting(rawValue: 1 << 1)
+
+        /// By default slashes get escaped ("/" → "\/", "http://apple.com/" → "http:\/\/apple.com\/")
+        /// for security reasons, allowing outputted JSON to be safely embedded within HTML/XML.
+        /// In contexts where this escaping is unnecessary, the JSON is known to not be embedded,
+        /// or is intended only for display, this option avoids this escaping.
+        public static let withoutEscapingSlashes = OutputFormatting(rawValue: 1 << 3)
     }
 
     /// The strategy to use for encoding `Date` values.
@@ -238,15 +244,8 @@ open class JSONEncoder {
             throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) did not encode any values."))
         }
 
-        if topLevel is NSNull {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) encoded as null JSON fragment."))
-        } else if topLevel is NSNumber {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) encoded as number JSON fragment."))
-        } else if topLevel is NSString {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) encoded as string JSON fragment."))
-        }
+        let writingOptions = JSONSerialization.WritingOptions(rawValue: self.outputFormatting.rawValue).union(.fragmentsAllowed)
 
-        let writingOptions = JSONSerialization.WritingOptions(rawValue: self.outputFormatting.rawValue)
         do {
             return try JSONSerialization.data(withJSONObject: topLevel, options: writingOptions)
         } catch {
@@ -1155,7 +1154,7 @@ open class JSONDecoder {
     open func decode<T : Decodable>(_ type: T.Type, from data: Data) throws -> T {
         let topLevel: Any
         do {
-            topLevel = try JSONSerialization.jsonObject(with: data)
+            topLevel = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
         } catch {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "The given data was not valid JSON.", underlyingError: error))
         }

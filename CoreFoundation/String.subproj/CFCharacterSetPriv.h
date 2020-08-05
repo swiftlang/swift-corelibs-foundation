@@ -1,7 +1,7 @@
 /*	CFCharacterSetPriv.h
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -66,6 +66,11 @@ CF_EXPORT CFRange _CFCharacterSetGetKeyedCodingRange(CFCharacterSetRef cset);
 CF_EXPORT CFStringRef _CFCharacterSetCreateKeyedCodingString(CFCharacterSetRef cset);
 CF_EXPORT bool _CFCharacterSetIsInverted(CFCharacterSetRef cset);
 CF_EXPORT void _CFCharacterSetSetIsInverted(CFCharacterSetRef cset, bool flag);
+
+/* For use ONLY by CoreText, contact the Foundation team before using.
+*/
+CF_EXPORT void _CFCharacterSetCompact(CFMutableCharacterSetRef cset);
+CF_EXPORT void _CFCharacterSetFast(CFMutableCharacterSetRef cset);
 
 CF_EXTERN_C_END
 

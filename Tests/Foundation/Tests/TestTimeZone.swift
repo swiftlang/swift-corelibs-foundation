@@ -256,6 +256,16 @@ class TestTimeZone: XCTestCase {
         XCTAssertEqual(aest.nextDaylightSavingTimeTransition(after: dt2)?.description, "2018-10-06 16:00:00 +0000")
     }
 
+    func test_isDaylightSavingTime() throws {
+        let eukv = try XCTUnwrap(TimeZone(identifier: "Europe/Kiev"))
+        
+        let dateNoDST = Date(timeIntervalSince1970: 1585432800.0) // March 29, 2020
+        let dateDST = Date(timeIntervalSince1970: 1585515600.0) // March 30, 2020
+        
+        XCTAssertFalse(eukv.isDaylightSavingTime(for: dateNoDST))
+        XCTAssertTrue(eukv.isDaylightSavingTime(for: dateDST))
+    }
+
     static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
         var tests: [(String, (TestTimeZone) -> () throws -> Void)] = [
             ("test_abbreviation", test_abbreviation),
@@ -275,6 +285,7 @@ class TestTimeZone: XCTestCase {
             ("test_systemTimeZoneName", test_systemTimeZoneName),
             ("test_autoupdatingTimeZone", test_autoupdatingTimeZone),
             ("test_nextDaylightSavingTimeTransition", test_nextDaylightSavingTimeTransition),
+            ("test_isDaylightSavingTime", test_isDaylightSavingTime),
         ]
         
         #if !os(Windows)

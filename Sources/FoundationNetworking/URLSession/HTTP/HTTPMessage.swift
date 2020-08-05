@@ -45,9 +45,9 @@ internal extension _HTTPURLProtocol._ResponseHeaderLines {
 extension HTTPURLResponse {
     fileprivate convenience init?(message: _HTTPURLProtocol._HTTPMessage, URL: URL) {
         /// This needs to be a request, i.e. it needs to have a status line.
-        guard case .statusLine(let statusLine) = message.startLine else { return nil }
+        guard case .statusLine(let version, let status, _) = message.startLine else { return nil }
         let fields = message.headersAsDictionary
-        self.init(url: URL, statusCode: statusLine.status, httpVersion: statusLine.version.rawValue, headerFields: fields)
+        self.init(url: URL, statusCode: status, httpVersion: version.rawValue, headerFields: fields)
     }
 }
 

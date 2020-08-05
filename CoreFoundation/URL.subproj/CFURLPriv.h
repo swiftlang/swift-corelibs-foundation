@@ -1,7 +1,7 @@
 /*	CFURLPriv.h
-	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -104,6 +104,18 @@ CF_EXPORT const CFStringRef _kCFURLIsRestrictedKey API_AVAILABLE(macos(10.11), i
 
 CF_EXPORT const CFStringRef _kCFURLIsSystemNoUnlinkKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's SF_NOUNLINK flag is set (CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLIsSystemFirmlinkKey API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
+    /* True if resource's SF_FIRMLINK flag is set (Read-only, value type CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLIsSystemDatalessFaultKey API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
+    /* True if resource's SF_DATALESS flag is set (Read-only, value type CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLFileFlagsKey API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
+    /* file flags from ATTR_CMN_FLAGS (same as stat(2)'s st_flags). (Read-only, UInt32 CFNumber) */
+
+CF_EXPORT const CFStringRef _kCFURLGenerationCountKey API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
+    /* the generation count from ATTR_CMN_GEN_COUNT. (Read-only, UInt32 CFNumber) */
 
 CF_EXPORT const CFStringRef _kCFURLIsApplicationKey API_DEPRECATED("Use kCFURLIsApplicationKey (API) instead", macos(10.6,10.11), ios(4.0,9.0), watchos(2.0,2.0), tvos(9.0,9.0));
 /* Deprecated and scheduled for removal in 10.12/10.0 - Use the kCFURLIsApplicationKey or NSURLIsApplicationKey public property keys */
@@ -228,6 +240,18 @@ CF_EXPORT const CFStringRef _kCFURLApplicationPrefersExternalGPUKey API_AVAILABL
 
 CF_EXPORT const CFStringRef _kCFURLCanSetApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
     /* False if app’s Info.plist specifies a eGPU policy, True if app does not specify an policy. Finder does not show a checkbox when this value is false. (Read-only, CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLApplicationDeviceManagementPolicyKey API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
+    /* For app bundle URLs, value is the Device Management framework's policy for the application. If the value is unavailable, returns DMFPolicyOK. For non-app URLs, value is nil. The calling process must be properly entitled with the Device Management framework to use this property. (Read-only, value type CFNumber) */
+
+CF_EXPORT const CFStringRef _kCFURLIsExcludedFromCloudBackupKey API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0));
+    /* true if resource should be excluded from iCloud backups, false otherwise (Read-write, value type CFBoolean). */
+
+CF_EXPORT const CFStringRef _kCFURLIsExcludedFromUnencryptedBackupKey API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0));
+    /* true if resource should be excluded from unencrypted backups, false otherwise (Read-write, value type CFBoolean). */
+
+CF_EXPORT const CFStringRef _kCFURLDeviceRefNumKey API_AVAILABLE(macos(10.15)) API_UNAVAILABLE(ios, watchos, tvos);
+    /* an unique per-volume non-persistent identifier for volumes (much like _kCFURLVolumeRefNumKey) that is also unique per-device when the volume is really two devices (i.e. ROSP) (64-bit integer CFNumber). */
 
 /* Additional volume properties */
 
@@ -432,7 +456,7 @@ typedef unsigned long long CFURLResourcePropertyFlags;
 CF_EXPORT
 Boolean _CFURLGetResourcePropertyFlags(CFURLRef url, CFURLResourcePropertyFlags mask, CFURLResourcePropertyFlags *flags, CFErrorRef *error) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
-#if TARGET_OS_MAC || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_MAC || TARGET_OS_IPHONE
 /*
     File resource properties which can be obtained with _CFURLCopyFilePropertyValuesAndFlags().
  */
@@ -506,23 +530,23 @@ typedef CF_OPTIONS(unsigned long long, CFURLVolumePropertyFlags) {
     kCFURLVolumeIsCD                                    =             0x4000LL,
     kCFURLVolumeIsDVD                                   =             0x8000LL,
     kCFURLVolumeIsDeviceFileSystem			=	     0x10000LL,
-    kCFURLVolumeIsTimeMachine CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsTimeMachine API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	     0x20000LL,
-    kCFURLVolumeIsAirport CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsAirport API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	     0x40000LL,
-    kCFURLVolumeIsVideoDisk CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsVideoDisk API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	     0x80000LL,
-    kCFURLVolumeIsDVDVideo CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsDVDVideo API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	    0x100000LL,
-    kCFURLVolumeIsBDVideo CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsBDVideo API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	    0x200000LL,
-    kCFURLVolumeIsMobileTimeMachine CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsMobileTimeMachine API_AVAILABLE(macos(10.9))  API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	    0x400000LL,
-    kCFURLVolumeIsNetworkOptical CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsNetworkOptical API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	    0x800000LL,
-    kCFURLVolumeIsBeingRepaired CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsBeingRepaired API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	   0x1000000LL,
-    kCFURLVolumeIsBeingUnmounted CF_ENUM_AVAILABLE_MAC(10_9)
+    kCFURLVolumeIsBeingUnmounted API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos) 
                                                         =	   0x2000000LL,
     kCFURLVolumeIsRootFileSystem API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0))
                                                         =	   0x4000000LL,
@@ -676,6 +700,10 @@ CF_EXPORT
 void __CFURLSetResourceInfoPtr(CFURLRef url, void *ptr) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 
+/* Creates a URL from posixFilePath (only kCFURLPOSIXPathStyle paths are supported). It determines if the file system object is a directory or not to ensure the URL path is correctly terminated with a '/' or not. It also pre-caches the file system properties specified by keys. Note: not all resource properties can be pre-cached -- just those properties that come from the file system. */
+CF_EXPORT
+CFURLRef _CFURLCreateWithFileSystemPathCachingResourcePropertiesForKeys(CFAllocatorRef allocator, CFStringRef posixFilePath, CFArrayRef keys, CFErrorRef *error) API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0));
+
 struct FSCatalogInfo;
 struct HFSUniStr255;
 
@@ -720,7 +748,7 @@ void _CFURLSetPermanentResourcePropertyForKey(CFURLRef url, CFStringRef key, CFT
 CF_EXPORT
 CFStringRef _CFURLBookmarkCopyDescription(CFDataRef bookmarkRef) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
-#if TARGET_OS_MAC || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_MAC || TARGET_OS_IPHONE
 // private CFURLBookmarkCreationOptions
 enum {
     kCFURLBookmarkCreationWithFileProvider API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0)) = ( 1UL << 26 ), // private option to create bookmarks with file provider string. The file provider string overrides the rest of the bookmark data at resolution time.
@@ -728,7 +756,7 @@ enum {
     kCFURLBookmarkCreationAllowCreationIfResourceDoesNotExistMask = ( 1UL << 28 ),    // allow creation of a bookmark to a file: scheme with a CFURLRef of item which may not exist.  If the filesystem item does not exist, the created bookmark contains essentially no properties beyond the url string. Available 10_7, 5_0.
     kCFURLBookmarkCreationDoNotIncludeSandboxExtensionsMask = ( 1UL << 29 ),  // If set, sandbox extensions are not included in created bookmarks. Ordinarily, bookmarks (except those created suitable for putting into a bookmark file) will have a sandbox extension added for the item. Available 10_7, NA.
     kCFURLBookmarkCreationAllowOnlyReadAccess API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 30 ), // at resolution time only read access to the resource will be granted (works with regular non-security scoped bookmarks)
-    kCFURLBookmarkCreationSuitableForOdocAppleEvent CF_ENUM_DEPRECATED(10_6, 10_11, NA, NA, "kCFURLBookmarkCreationSuitableForOdocAppleEvent does nothing and has no effect on bookmark resolution" ) = ( 1UL << 31 ),   // add properties we guarantee will be in an odoc AppleEvent. Available 10_10, NA (but supported back to 10.6).
+    kCFURLBookmarkCreationSuitableForOdocAppleEvent API_DEPRECATED("kCFURLBookmarkCreationSuitableForOdocAppleEvent does nothing and has no effect on bookmark resolution", macos(10.6, 10.11)) API_UNAVAILABLE(ios, watchos, tvos) = ( 1UL << 31 ),   // add properties we guarantee will be in an odoc AppleEvent. Available 10_10, NA (but supported back to 10.6).
 };
 
 // private CFURLBookmarkFileCreationOptions
@@ -760,7 +788,7 @@ CF_EXPORT
 CFURLBookmarkMatchResult _CFURLBookmarkDataCompare(CFDataRef bookmark1Ref, CFDataRef bookmark2Ref, CFURLRef relativeToURL, CFArrayRef* matchingPropertyKeys) API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-OSStatus _CFURLBookmarkDataToAliasHandle(CFDataRef bookmarkRef, void* aliasHandleP) API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
+OSStatus _CFURLBookmarkDataToAliasHandle(CFDataRef bookmarkRef, void* aliasHandleP) API_DEPRECATED("don't use AliasHandles", macos(10.7, 10.15)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
 CFURLRef _CFURLCreateByResolvingAliasFile(CFAllocatorRef allocator, CFURLRef url, CFURLBookmarkResolutionOptions options, CFArrayRef propertiesToInclude, CFErrorRef *error ) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));

@@ -1,8 +1,8 @@
 /*
         CFLocaleIdentifier.c
-	Copyright (c) 2002-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -919,6 +919,7 @@ static const KeyStringToResultString localeStringPrefixToDefaults[] = {
     { "ak-",    "-Latn"         },  // Akan
     { "am-",    "-Ethi"         },  // Amharic
     { "ar-",    "-Arab"         },  // Arabic
+    { "ars-",   "-Arab"         },  // Arabic, Najdi
     { "as-",    "-Beng"         },  // Assamese
     { "asa-",   "-Latn"         },  // Asu
     { "ay-",    "-Latn"         },  // Aymara
@@ -997,6 +998,7 @@ static const KeyStringToResultString localeStringPrefixToDefaults[] = {
     { "kn-",    "-Knda"         },  // Kannada
     { "ko-",    "-Hang"         },  // Korean (? not Suppress-Script)
     { "kok-",   "-Deva"         },  // Konkani
+    { "ks-",    "-Aran"         },  // Kashmiri (Arabic [Nastaliq])
     { "ksb-",   "-Latn"         },  // Shambala
     { "ksf-",   "-Latn"         },  // Bafia
     { "kw-",    "-Latn"         },  // Cornish
@@ -1081,8 +1083,8 @@ static const KeyStringToResultString localeStringPrefixToDefaults[] = {
     { "twq-",   "-Latn"         },  // Tasawaq
     { "tzm-",   "-Latn"         },  // Central Morocco Tamazight
     { "uk-",    "-Cyrl"         },  // Ukrainian
-    { "ur-",    "-Arab"         },  // Urdu
-    { "uz-",    "-Cyrl"         },  // Uzbek
+    { "ur-",    "-Aran"         },  // Urdu (Arabic [Nastaliq])
+    { "uz-",    "-Latn"         },  // Uzbek
     { "vai-",   "-Vaii"         },  // Vai
     { "vi-",    "-Latn"         },  // Vietnamese
     { "vun-",   "-Latn"         },  // Vunjo

@@ -28,6 +28,7 @@ if(CMAKE_VERSION VERSION_LESS 3.16.0)
 endif()
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
+option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
 find_package(dispatch CONFIG REQUIRED)
 

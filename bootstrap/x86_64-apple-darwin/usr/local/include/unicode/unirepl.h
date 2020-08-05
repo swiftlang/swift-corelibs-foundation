@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 *   Copyright (c) 2002-2005, International Business Machines Corporation
@@ -17,6 +19,7 @@
  * \brief C++ API: UnicodeReplacer
  */
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class Replaceable;
@@ -93,5 +96,6 @@ class U_I18N_API UnicodeReplacer /* not : public UObject because this is an inte
 };
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif

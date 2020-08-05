@@ -419,7 +419,7 @@ private func timeSpecFrom(date: Date) -> timespec? {
     let interval = date.timeIntervalSince1970
     let intervalNS = Int64(interval * Double(nsecPerSec))
 
-    return timespec(tv_sec: Int(intervalNS / nsecPerSec),
+    return timespec(tv_sec: time_t(intervalNS / nsecPerSec),
                     tv_nsec: Int(intervalNS % nsecPerSec))
 }
 #endif

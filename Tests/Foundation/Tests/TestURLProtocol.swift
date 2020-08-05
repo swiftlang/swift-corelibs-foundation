@@ -16,6 +16,7 @@ class TestURLProtocol : LoopbackServerTest {
             ("test_multipleCustomProtocols", test_multipleCustomProtocols),
             ("test_customProtocolResponseWithDelegate", test_customProtocolResponseWithDelegate),
             ("test_customProtocolSetDataInResponseWithDelegate", test_customProtocolSetDataInResponseWithDelegate),
+            ("test_finishLoadingWithNoResponse", test_finishLoadingWithNoResponse),
         ]
     }
     
@@ -103,6 +104,24 @@ class TestURLProtocol : LoopbackServerTest {
             XCTAssertEqual(d.capital, "Kathmandu", "test_dataTaskWithURLRequest returned an unexpected result")
         }
     }
+
+    func test_finishLoadingWithNoResponse() throws {
+        let url = try XCTUnwrap(URL(string: "https://test/url"))
+        let configuration = URLSessionConfiguration.default
+        configuration.protocolClasses = [TestURLServer.self]
+        let session = URLSession(configuration: configuration)
+
+        let expect = expectation(description: "GET \(url.absoluteString)")
+        let task = session.dataTask(with: url) { data, response, error in
+            defer { expect.fulfill() }
+            XCTAssertNil(data)
+            XCTAssertNil(response)
+            XCTAssertNotNil(error)
+        }
+
+        task.resume()
+        waitForExpectations(timeout: 2)
+    }
 }
 
 class InterceptableRequest : URLProtocol {
@@ -154,5 +173,31 @@ class CustomProtocol : URLProtocol {
     
     override func stopLoading() {
         return
+    }
+}
+
+
+public class TestURLServer: URLProtocol {
+    public override class func canInit(with request: URLRequest) -> Bool {
+        return true
+    }
+
+    public override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        return request
+    }
+
+    public override func startLoading() {
+        var info: [String: Any] = [:]
+        if let url = request.url {
+            info[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+            info[NSURLErrorFailingURLErrorKey] = url
+        }
+        let error = URLError(.networkConnectionLost, userInfo: info)
+
+        client?.urlProtocol(self, didFailWithError: error)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    public override func stopLoading() {
     }
 }

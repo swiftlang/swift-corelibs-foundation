@@ -458,6 +458,9 @@ extension String {
         #endif
     }
 
+    public init(_ cocoaString: NSString) {
+        self = cocoaString._storage
+    }
 }
 
 extension StringProtocol where Index == String.Index {
@@ -1257,7 +1260,7 @@ extension StringProtocol where Index == String.Index {
             in: _toRelativeNSRange(range),
             scheme: NSLinguisticTagScheme(rawValue: tagScheme._ephemeralString),
             options: opts,
-            orthography: orthography != nil ? orthography! : nil
+            orthography: orthography
         ) {
             var stop_ = false
             body($0!.rawValue, self._toRange($1), self._toRange($2), &stop_)
@@ -1892,6 +1895,14 @@ extension StringProtocol {
         fatalError("unavailable function can't be called")
     }
 
+}
+
+// Old method names
+extension NSString {
+    @available(*, unavailable, renamed: "path(withComponents:)")
+    public static func pathWithComponents(_ components: [String]) -> String {
+        fatalError("unavailable function can't be called")
+    }
 }
 
 // Pre-Swift-3 method names

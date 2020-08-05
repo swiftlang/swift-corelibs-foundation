@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
 *
@@ -6,7 +8,7 @@
 *
 *******************************************************************************
 *   file name:  utext.h
-*   encoding:   US-ASCII
+*   encoding:   UTF-8
 *   tab size:   8 (not used)
 *   indentation:4
 *
@@ -142,7 +144,7 @@
 #include "unicode/rep.h"
 #include "unicode/unistr.h"
 #include "unicode/chariter.h"
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 
 U_CDECL_BEGIN
@@ -198,7 +200,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUTextPointer, UText, utext_close);
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Open a read-only UText implementation for UTF-8 strings.
@@ -306,7 +308,7 @@ utext_openReplaceable(UText *ut, icu::Replaceable *rep, UErrorCode *status);
 U_STABLE UText * U_EXPORT2
 utext_openCharacterIterator(UText *ut, icu::CharacterIterator *ci, UErrorCode *status);
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 
 /**
@@ -387,7 +389,7 @@ utext_equals(const UText *a, const UText *b);
 
 /*****************************************************************************
  *
- *   Functions to work with the text represeted by a UText wrapper
+ *   Functions to work with the text represented by a UText wrapper
  *
  *****************************************************************************/
 
@@ -431,7 +433,7 @@ utext_isLengthExpensive(const UText *ut);
  *
  * The iteration position will be set to the start of the returned code point.
  *
- * This function is roughly equivalent to the the sequence
+ * This function is roughly equivalent to the sequence
  *    utext_setNativeIndex(index);
  *    utext_current32();
  * (There is a subtle difference if the index is out of bounds by being less than zero - 
@@ -590,7 +592,7 @@ U_STABLE void U_EXPORT2
 utext_setNativeIndex(UText *ut, int64_t nativeIndex);
 
 /**
- * Move the iterator postion by delta code points.  The number of code points
+ * Move the iterator position by delta code points.  The number of code points
  * is a signed number; a negative delta will move the iterator backwards,
  * towards the start of the text.
  * <p>
@@ -609,7 +611,7 @@ U_STABLE UBool U_EXPORT2
 utext_moveIndex32(UText *ut, int32_t delta);
 
 /**
- * Get the native index of the character preceeding the current position.
+ * Get the native index of the character preceding the current position.
  * If the iteration position is already at the start of the text, zero
  * is returned.
  * The value returned is the same as that obtained from the following sequence,
@@ -626,7 +628,7 @@ utext_moveIndex32(UText *ut, int32_t delta);
  *   native index of the character most recently returned from utext_next().
  *
  * @param ut the text to be accessed
- * @return the native index of the character preceeding the current index position,
+ * @return the native index of the character preceding the current index position,
  *         or zero if the current position is at the start of the text.
  * @stable ICU 3.6
  */
@@ -653,10 +655,10 @@ utext_getPreviousNativeIndex(UText *ut);
  * @param  ut    the UText from which to extract data.
  * @param  nativeStart the native index of the first character to extract.\
  *               If the specified index is out of range,
- *               it will be pinned to to be within 0 <= index <= textLength
+ *               it will be pinned to be within 0 <= index <= textLength
  * @param  nativeLimit the native string index of the position following the last
  *               character to extract.  If the specified index is out of range,
- *               it will be pinned to to be within 0 <= index <= textLength.
+ *               it will be pinned to be within 0 <= index <= textLength.
  *               nativeLimit must be >= nativeStart.
  * @param  dest  the UChar (UTF-16) buffer into which the extracted text is placed
  * @param  destCapacity  The size, in UChars, of the destination buffer.  May be zero
@@ -764,12 +766,24 @@ utext_extract(UText *ut,
   *
   * @stable ICU 3.8
   */
+#if LOG_UTEXT_SETNATIVEINDEX
+/* Add logging for <rdar://problem/44884660> */
 #define UTEXT_SETNATIVEINDEX(ut, ix)                       \
     { int64_t __offset = (ix) - (ut)->chunkNativeStart; \
-      if (__offset>=0 && __offset<=(int64_t)(ut)->nativeIndexingLimit) { \
+      if ((ut)->chunkContents!=0 && __offset>=0 && __offset<(int64_t)(ut)->nativeIndexingLimit && (ut)->chunkContents[__offset]<0xdc00) { \
+          (ut)->chunkOffset=(int32_t)__offset; \
+      } else if ((ut)->chunkContents==0 && __offset>=0 && __offset<(int64_t)(ut)->nativeIndexingLimit) { \
+          os_log(OS_LOG_DEFAULT, "# UTEXT_SETNATIVEINDEX (ut) %p, (ut)->chunkContents 0, __offset %lld", (ut), __offset); \
+      } else { \
+          utext_setNativeIndex((ut), (ix)); } }
+#else
+#define UTEXT_SETNATIVEINDEX(ut, ix)                       \
+    { int64_t __offset = (ix) - (ut)->chunkNativeStart; \
+      if ((ut)->chunkContents!=0 && __offset>=0 && __offset<(int64_t)(ut)->nativeIndexingLimit && (ut)->chunkContents[__offset]<0xdc00) { \
           (ut)->chunkOffset=(int32_t)__offset; \
       } else { \
           utext_setNativeIndex((ut), (ix)); } }
+#endif
 
 
 
@@ -904,7 +918,7 @@ utext_copy(UText *ut,
   *  Caution:  freezing a UText will disable changes made via the specific
   *   frozen UText wrapper only; it will not have any effect on the ability to
   *   directly modify the text by bypassing the UText.  Any such backdoor modifications
-  *   are always an error while UText access is occuring because the underlying
+  *   are always an error while UText access is occurring because the underlying
   *   text can get out of sync with UText's buffering.
   *  </p>
   *
@@ -1052,7 +1066,7 @@ UTextAccess(UText *ut, int64_t nativeIndex, UBool forward);
  * be NUL-terminated if there is sufficient space in the destination buffer.
  *
  * @param  ut            the UText from which to extract data.
- * @param  nativeStart   the native index of the first characer to extract.
+ * @param  nativeStart   the native index of the first character to extract.
  * @param  nativeLimit   the native string index of the position following the last
  *                       character to extract.
  * @param  dest          the UChar (UTF-16) buffer into which the extracted text is placed
@@ -1209,7 +1223,7 @@ UTextClose(UText *ut);
 struct UTextFuncs {
     /**
      *   (public)  Function table size, sizeof(UTextFuncs)
-     *             Intended for use should the table grow to accomodate added
+     *             Intended for use should the table grow to accommodate added
      *             functions in the future, to allow tests for older format
      *             function tables that do not contain the extensions.
      *
@@ -1343,7 +1357,7 @@ typedef struct UTextFuncs UTextFuncs;
 struct UText {
     /**
      *     (private)  Magic.  Used to help detect when UText functions are handed
-     *                        invalid or unitialized UText structs.
+     *                        invalid or uninitialized UText structs.
      *                        utext_openXYZ() functions take an initialized,
      *                        but not necessarily open, UText struct as an
      *                        optional fill-in parameter.  This magic field
@@ -1365,7 +1379,7 @@ struct UText {
 
 
     /**
-      *  Text provider properties.  This set of flags is maintainted by the
+      *  Text provider properties.  This set of flags is maintained by the
       *                             text provider implementation.
       *  @stable ICU 3.4
       */
@@ -1450,7 +1464,7 @@ struct UText {
     void          *pExtra;
 
     /**
-     * (protected) Pointer to string or text-containin object or similar.
+     * (protected) Pointer to string or text-containing object or similar.
      * This is the source of the text that this UText is wrapping, in a format
      *  that is known to the text provider functions.
      * @stable ICU 3.4
@@ -1553,7 +1567,7 @@ struct UText {
 U_STABLE UText * U_EXPORT2
 utext_setup(UText *ut, int32_t extraSpace, UErrorCode *status);
 
-#ifndef U_HIDE_INTERNAL_API
+// do not use #ifndef U_HIDE_INTERNAL_API around the following!
 /**
   * @internal
   *  Value used to help identify correctly initialized UText structs.
@@ -1562,7 +1576,6 @@ utext_setup(UText *ut, int32_t extraSpace, UErrorCode *status);
 enum {
     UTEXT_MAGIC = 0x345ad82c
 };
-#endif  /* U_HIDE_INTERNAL_API */
 
 /**
  * initializer to be used with local (stack) instances of a UText

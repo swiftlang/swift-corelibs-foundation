@@ -102,6 +102,20 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         if let response = validateHeaderComplete(transferState:ts) {
             ts.response = response
         }
+
+        // Note this excludes code 300 which should return the response of the redirect and not follow it.
+        // For other redirect codes dont notify the delegate of the data received in the redirect response.
+        if let httpResponse = ts.response as? HTTPURLResponse, 301...308 ~= httpResponse.statusCode {
+            if let _http = self as? _HTTPURLProtocol {
+                // Save the response body in case the delegate does not perform a redirect and the 3xx response
+                // including its body needs to be returned to the client.
+                var redirectBody = _http.lastRedirectBody ?? Data()
+                redirectBody.append(data)
+                _http.lastRedirectBody = redirectBody
+            }
+            return .proceed
+        }
+
         notifyDelegate(aboutReceivedData: data)
         internalState = .transferInProgress(ts.byAppending(bodyData: data))
         return .proceed
@@ -146,8 +160,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     }
 
     fileprivate func notifyDelegate(aboutUploadedData count: Int64) {
-        guard let task = self.task as? URLSessionUploadTask,
-            let session = self.task?.session as? URLSession,
+        guard let task = self.task, let session = task.session as? URLSession,
             case .taskDelegate(let delegate) = session.behaviour(for: task) else { return }
         task.countOfBytesSent += count
         session.delegateQueue.addOperation {
@@ -191,16 +204,16 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         // If everything went well, we will simply forward the resulting data
         // to the delegate. But in case of redirects etc. we might send another
         // request.
+        guard error == nil else {
+            internalState = .transferFailed
+            failWith(error: error!, request: request)
+            return
+        }
         guard case .transferInProgress(let ts) = internalState else {
             fatalError("Transfer completed, but it wasn't in progress.")
         }
         guard let request = task?.currentRequest else {
             fatalError("Transfer completed, but there's no current request.")
-        }
-        guard error == nil else {
-            internalState = .transferFailed
-            failWith(error: error!, request: request)
-            return
         }
 
         if let response = task?.response {
@@ -301,10 +314,11 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
     }
 
-    func updateProgressMeter(with propgress: _EasyHandle._Progress) {
-        //TODO: Update progress. Note that a single URLSessionTask might
-        // perform multiple transfers. The values in `progress` are only for
-        // the current transfer.
+    func updateProgressMeter(with progress: _EasyHandle._Progress) {
+        guard let progressReporter = self.task?.progress else { return }
+        
+        progressReporter.totalUnitCount = progress.totalBytesExpectedToReceive + progress.totalBytesExpectedToSend
+        progressReporter.completedUnitCount = progress.totalBytesReceived + progress.totalBytesSent
     }
 
     /// The data drain.

@@ -1,31 +1,23 @@
 /*	CFBigNumber.c
-	Copyright (c) 2012-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2012-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Philippe Hausler
 	Original author: Zhi Feng Huang
 */
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFBigNumber.h>
+#include <CoreFoundation/CFNumber_Private.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "CFInternal.h"
 
-
-typedef struct {
-    int64_t high;
-    uint64_t low;
-} CFSInt128Struct;
-
-#define kCFNumberSInt128Type 17
-
-CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
 
 #if TARGET_RT_64_BIT
 

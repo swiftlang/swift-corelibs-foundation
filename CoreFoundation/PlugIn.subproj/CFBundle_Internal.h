@@ -1,7 +1,7 @@
 /*	CFBundle_Internal.h
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -22,7 +22,6 @@
 CF_EXTERN_C_BEGIN
 
 #define __kCFLogBundle       3
-#define __kCFLogPlugIn       3
 
 #if TARGET_OS_WIN32
 #define PLATFORM_PATH_STYLE kCFURLWindowsPathStyle
@@ -70,6 +69,7 @@ typedef struct __CFPlugInData {
     Boolean _isPlugIn;
     Boolean _loadOnDemand;
     Boolean _isDoingDynamicRegistration;
+    Boolean _needsDynamicRegistration;
     Boolean _registeredFactory;
     UInt32 _instanceCount;
     CFMutableArrayRef _factories;
@@ -89,7 +89,7 @@ struct __CFBundle {
     CFArrayRef _searchLanguages;
     
     __CFPBinaryType _binaryType;
-    Boolean _isLoaded;
+    _Atomic(Boolean) _isLoaded;
     uint8_t _version;
     Boolean _sharesStringsFiles;
     Boolean _isUnique;
@@ -157,7 +157,6 @@ CF_EXPORT CFStringRef _CFGetPlatformName(void);
 CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void);
 
 CF_PRIVATE void _CFBundleFlushQueryTableCache(CFBundleRef bundle);
-CF_PRIVATE void _CFBundleFlushAllBundleCaches(void);
 
 CF_PRIVATE SInt32 _CFBundleCurrentArchitecture(void);
 CF_PRIVATE Boolean _CFBundleGetObjCImageInfo(CFBundleRef bundle, uint32_t *objcVersion, uint32_t *objcFlags);
@@ -195,6 +194,8 @@ CF_PRIVATE CFStringRef _CFBundleCopyBundleDevelopmentRegionFromVersResource(CFBu
 #endif
 CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInExecutable(CFURLRef url);
 CF_PRIVATE CFArrayRef _CFBundleCopyArchitecturesForExecutable(CFURLRef url);
+
+CF_PRIVATE void _CFBundleRefreshInfoDictionaryAlreadyLocked(CFBundleRef bundle);
 
 CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void);
 
@@ -243,12 +244,6 @@ extern void _CFBundlePlugInLoaded(CFBundleRef bundle);
 extern void _CFBundleDeallocatePlugIn(CFBundleRef bundle);
 
 extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
-
-extern void _CFPlugInAddPlugInInstance(CFPlugInRef plugIn);
-extern void _CFPlugInRemovePlugInInstance(CFPlugInRef plugIn);
-
-extern void _CFPlugInAddFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
-extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 
 /* Strings for parsing bundle structure */
 #define _CFBundleSupportFilesDirectoryName1 CFSTR("Support Files")
@@ -344,6 +339,8 @@ extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 #define _CFBundleMacOSXPlatformName CFSTR("macos")
 #define _CFBundleAlternateMacOSXPlatformName CFSTR("macosx")
 #define _CFBundleiPhoneOSPlatformName CFSTR("iphoneos")
+#define _CFBundleWatchOSPlatformName CFSTR("watchos")
+#define _CFBundletvOSPlatformName CFSTR("tvos")
 #define _CFBundleWindowsPlatformName CFSTR("windows")
 #define _CFBundleHPUXPlatformName CFSTR("hpux")
 #define _CFBundleSolarisPlatformName CFSTR("solaris")
@@ -352,6 +349,8 @@ extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 #define _CFBundleMacOSXPlatformNameSuffix CFSTR("-macos")
 #define _CFBundleAlternateMacOSXPlatformNameSuffix CFSTR("-macosx")
 #define _CFBundleiPhoneOSPlatformNameSuffix CFSTR("-iphoneos")
+#define _CFBundleWatchOSPlatformNameSuffix CFSTR("-watchos")
+#define _CFBundletvOSPlatformNameSuffix CFSTR("-tvos")
 #define _CFBundleWindowsPlatformNameSuffix CFSTR("-windows")
 #define _CFBundleHPUXPlatformNameSuffix CFSTR("-hpux")
 #define _CFBundleSolarisPlatformNameSuffix CFSTR("-solaris")
@@ -378,9 +377,6 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void);
 #define _CFBundleLocalizedResourceForkFileName CFSTR("Localized")
 
 #define _CFBundleSiblingResourceDirectoryExtension CFSTR("resources")
-
-#define _CFBundleMacOSXInfoPlistPlatformName_OLD CFSTR("macos")
-#define _CFBundleWindowsInfoPlistPlatformName_OLD CFSTR("win32")
 
 CF_EXTERN_C_END
 

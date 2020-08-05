@@ -19,6 +19,14 @@ import Dispatch
 
 internal class _HTTPURLProtocol: _NativeProtocol {
 
+    // When processing redirects, the intermediate 3xx response bodies are normally discarded.
+    // If the call to urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)
+    // results in the completion handler being called with a nil URLRequest, then processing stops
+    // and the 3xx response is returned to the client and the data is sent via the delegate notify
+    // mechanism. `lastRedirectBody` holds the body of the redirect currently being processed.
+    var lastRedirectBody: Data? = nil
+    private var redirectCount = 0
+
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         super.init(task: task, cachedResponse: cachedResponse, client: client)
     }
@@ -272,6 +280,22 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         // We would have to break that retain cycle once the handle completes
         // its transfer.
 
+
+        if request.httpMethod == "GET" {
+            // GET requests cannot have a body
+            guard case .none = body else {
+                NSLog("GET method must not have a body")
+                let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorDataLengthExceedsMaximum,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey: "resource exceeds maximum size",
+                                        NSURLErrorFailingURLStringErrorKey: request.url?.description ?? ""
+                ])
+                internalState = .transferFailed
+                transferCompleted(withError: error)
+                return
+            }
+        }
+
         // Behavior Options
         easyHandle.set(verboseModeOn: enableLibcurlDebugOutput)
         easyHandle.set(debugOutputOn: enableLibcurlDebugOutput, task: task!)
@@ -296,7 +320,11 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         do {
             switch (body, try body.getBodyLength()) {
             case (.none, _):
-                set(requestBodyLength: .noBody)
+                if request.httpMethod == "GET" {
+                    set(requestBodyLength: .noBody)
+                } else {
+                    set(requestBodyLength: .length(0))
+                }
             case (_, let length?):
                 set(requestBodyLength: .length(length))
                 task!.countOfBytesExpectedToSend = Int64(length)
@@ -349,8 +377,12 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
         let customHeaders: [String]
         let headersForRequest = curlHeaders(for: httpHeaders)
-        if ((request.httpMethod == "POST") && (request.httpBody?.count ?? 0 > 0)
-            && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+        var hasStream = (request.httpBodyStream != nil)
+        if case _Body.stream(_) = body {
+            hasStream = true
+        }
+        if (request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)
+            && ((request.httpBody?.count ?? 0 > 0) || hasStream) {
             customHeaders = headersForRequest + ["Content-Type:application/x-www-form-urlencoded"]
         } else {
             customHeaders = headersForRequest
@@ -369,21 +401,31 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             timeoutInterval = Int(request.timeoutInterval) * 1000
         }
         let timeoutHandler = DispatchWorkItem { [weak self] in
-            guard let _ = self?.task else {
+            guard let self = self, let task = self.task else {
                 fatalError("Timeout on a task that doesn't exist")
             } //this guard must always pass
-            self?.internalState = .transferFailed
-            let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
-            self?.completeTask(withError: urlError)
-            self?.client?.urlProtocol(self!, didFailWithError: urlError)
+
+            // If a timeout occurred while waiting for a redirect completion handler to be called by
+            // the delegate then terminate the task but DONT set the error to NSURLErrorTimedOut.
+            // This matches Darwin.
+            if case .waitingForRedirectCompletionHandler(response: let response,_) = self.internalState {
+                task.response = response
+                self.easyHandle.timeoutTimer = nil
+                self.internalState = .taskCompleted
+            } else {
+                self.internalState = .transferFailed
+                let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
+                self.completeTask(withError: urlError)
+                self.client?.urlProtocol(self, didFailWithError: urlError)
+            }
         }
+
         guard let task = self.task else { fatalError() }
         easyHandle.timeoutTimer = _TimeoutSource(queue: task.workQueue, milliseconds: timeoutInterval, handler: timeoutHandler)
         easyHandle.set(automaticBodyDecompression: true)
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
-        if request.httpMethod == "HEAD" {
-            easyHandle.set(noBody: true)
-        }
+        // Always set the status as it may change if a HEAD is converted to a GET.
+        easyHandle.set(noBody: request.httpMethod == "HEAD")
     }
 
     /// What action to take
@@ -399,11 +441,22 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     }
 
     override func redirectFor(request: URLRequest) {
-        //TODO: Should keep track of the number of redirects that this
-        // request has gone through and err out once it's too large, i.e.
-        // call into `failWith(errorCode: )` with NSURLErrorHTTPTooManyRedirects
         guard case .transferCompleted(response: let response, bodyDataDrain: let bodyDataDrain) = self.internalState else {
             fatalError("Trying to redirect, but the transfer is not complete.")
+        }
+
+        // Avoid a never ending redirect chain by having a hard limit on the number of redirects.
+        // This value mirrors Darwin.
+        redirectCount += 1
+        if redirectCount > 16 {
+            self.internalState = .transferFailed
+            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorHTTPTooManyRedirects,
+                                userInfo: [NSLocalizedDescriptionKey: "too many HTTP redirects"])
+            guard let request = task?.currentRequest else {
+                fatalError("In a redirect chain but no current task/request")
+            }
+            failWith(error: error, request: request)
+            return
         }
 
         guard let session = task?.session as? URLSession else { fatalError() }
@@ -543,8 +596,14 @@ extension _HTTPURLProtocol {
         // as the final response, i.e. not do any redirection.
         // Otherwise, we'll start a new transfer with the passed in request.
         if let r = request {
+            lastRedirectBody = nil
             startNewTransfer(with: r)
         } else {
+            // If the redirect is not followed, return the redirect itself as the response
+            self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            if let redirectBody = lastRedirectBody {
+                self.client?.urlProtocol(self, didLoad: redirectBody)
+            }
             self.internalState = .transferCompleted(response: response, bodyDataDrain: bodyDataDrain)
             completeTask()
         }
@@ -571,7 +630,7 @@ internal extension _HTTPURLProtocol {
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
             switch response.statusCode {
-            case 301, 302, 303, 307:
+            case 301, 302, 303, 305...308:
                 break
             default:
                 self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
@@ -599,19 +658,26 @@ internal extension _HTTPURLProtocol {
                     return nil
             }
 
+            let method = fromRequest.httpMethod ?? "GET"
             // Check for a redirect:
             switch response.statusCode {
-            //TODO: Should we do this for 300 "Multiple Choices", too?
-            case 301, 302, 303:
-                // Change into "GET":
-                return ("GET", targetURL)
-            case 307:
-                // Re-use existing method:
-                return (fromRequest.httpMethod ?? "GET", targetURL)
-            default:
-                return nil
+                case 301, 302:
+                    // Change "POST" into "GET" but leave other methods unchanged:
+                    let newMethod = (method == "POST") ? "GET" : method
+                    return (newMethod, targetURL)
+
+                case 303:
+                    return ("GET", targetURL)
+
+                case 305...308:
+                    // Re-use existing method:
+                    return (method, targetURL)
+
+                default:
+                    return nil
             }
         }
+
         guard let (method, targetURL) = methodAndURL() else { return nil }
         var request = fromRequest
         request.httpMethod = method
@@ -645,8 +711,9 @@ internal extension _HTTPURLProtocol {
 
         guard let urlString = components.string else { fatalError("Invalid URL") }
         request.url = URL(string: urlString)
-        let timeSpent = easyHandle.getTimeoutIntervalSpent()
-        request.timeoutInterval = fromRequest.timeoutInterval - timeSpent
+
+        // Inherit the timeout from the previous request
+        request.timeoutInterval = fromRequest.timeoutInterval
         return request
     }
 }

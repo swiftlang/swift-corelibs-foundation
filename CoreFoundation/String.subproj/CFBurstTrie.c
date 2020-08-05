@@ -1,7 +1,7 @@
 /*	CFBurstTrie.c
-	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -844,6 +844,10 @@ static void addCFBurstTrieBurstLevel(CFBurstTrieRef trie, TrieLevelRef root, con
         next = (uintptr_t) newNode;
         NextTrie_SetKind(next, ListKind);
         root->slots[*key] = next;
+#ifdef __clang_analyzer__
+        // The analyzer doesn't understand mangled pointers.
+        free(newNode);
+#endif
     } else { 
         // ** Handle payload.
         root->weight = weight;
@@ -862,8 +866,10 @@ static TrieLevelRef burstCFBurstTrieLevel(CFBurstTrieRef trie, ListNodeRef list,
     return newLevel;
 }
 
-static CFBTInsertCode addCFBurstTrieListNode(CFBurstTrieRef trie, ListNodeRef list, const uint8_t *key, uint32_t keylen, uint32_t weight, uint32_t payload, uint32_t *listCount)
+static CFBTInsertCode addCFBurstTrieListNode(CFBurstTrieRef trie, ListNodeRef _Nonnull list, const uint8_t *key, uint32_t keylen, uint32_t weight, uint32_t payload, uint32_t *listCount)
 {
+    if (!list) HALT_MSG("list is NULL");
+
     CFBTInsertCode code = FailedInsert;
     uint32_t count = 1;
     
@@ -904,14 +910,24 @@ static CFBTInsertCode addCFBurstTrieLevel(CFBurstTrieRef trie, TrieLevelRef root
                 ListNodeRef listNode = (ListNodeRef) NextTrie_GetPtr(next);
                 code = addCFBurstTrieListNode(trie, listNode, key+1, keylen-1, weight, payload, &listCount);
                 if (listCount > trie->containerSize) {
-                    next = (uintptr_t) burstCFBurstTrieLevel(trie, listNode, listCount);
+                    TrieLevelRef newLevel = burstCFBurstTrieLevel(trie, listNode, listCount);
+                    next = (uintptr_t)newLevel;
                     NextTrie_SetKind(next, TrieKind);
+#ifdef __clang_analyzer__
+                    // The analyzer doesn't understand mangled pointers.
+                    free(newLevel);
+#endif
                 }
             } else {
                 // ** Make a new list node
-                next = (uintptr_t) makeCFBurstTrieListNode(key+1, keylen-1, weight, payload);
+                ListNodeRef newNode = makeCFBurstTrieListNode(key+1, keylen-1, weight, payload);
+                next = (intptr_t)newNode;
                 NextTrie_SetKind(next, ListKind);
                 code = NewTerm;
+#ifdef __clang_analyzer__
+                // The analyzer doesn't understand mangled pointers.
+                free(newNode);
+#endif
             }
             root->slots[*key] = next;
         }

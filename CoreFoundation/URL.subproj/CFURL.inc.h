@@ -1,7 +1,7 @@
 /*	CFURL.inc.h
-	Copyright (c) 2012-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2012-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -65,42 +65,47 @@
         }
     }
     // 2: parse the scheme
-    for (idx = base_idx; idx < string_length; idx++) {
-        UniChar ch = characterArray[idx];
-        if (':' == ch) {
-            flags |= HAS_SCHEME;
-            unpackedRanges[scheme_index].location = base_idx;
-            unpackedRanges[scheme_index].length = idx;
-            numRanges ++;
-            base_idx = idx + 1;
-            // optimization for ftp urls
-            if (idx == 3 && characterArray[0] == 'f' && characterArray[1] == 't' && characterArray[2] == 'p') {
-                _setSchemeTypeInFlags(&flags, kHasFtpScheme);
-            }
-            else if (idx == 4) {
-                // optimization for http urls
-                if (characterArray[0] == 'h' && characterArray[1] == 't' && characterArray[2] == 't' && characterArray[3] == 'p') {
-                    _setSchemeTypeInFlags(&flags, kHasHttpScheme);
+    // Make sure the first character is an ALPHA character (schemes must start with ALPHA character),
+    // or the first character is a colon (this non-compliant parser has always returned "" for the scheme if the URL string starts with a colon)
+    UniChar firstCh = (string_length > 0) ? characterArray[base_idx] : 0;
+    if ( (scheme_valid(firstCh) && (firstCh >= 'A')) || (firstCh == ':') ) {
+        for (idx = base_idx; idx < string_length; idx++) {
+            UniChar ch = characterArray[idx];
+            if (':' == ch) {
+                flags |= HAS_SCHEME;
+                unpackedRanges[scheme_index].location = base_idx;
+                unpackedRanges[scheme_index].length = idx;
+                numRanges ++;
+                base_idx = idx + 1;
+                // optimization for ftp urls
+                if (idx == 3 && characterArray[0] == 'f' && characterArray[1] == 't' && characterArray[2] == 'p') {
+                    _setSchemeTypeInFlags(&flags, kHasFtpScheme);
                 }
-                // optimization for file urls
-                if (characterArray[0] == 'f' && characterArray[1] == 'i' && characterArray[2] == 'l' && characterArray[3] == 'e') {
-                    _setSchemeTypeInFlags(&flags, kHasFileScheme);
+                else if (idx == 4) {
+                    // optimization for http urls
+                    if (characterArray[0] == 'h' && characterArray[1] == 't' && characterArray[2] == 't' && characterArray[3] == 'p') {
+                        _setSchemeTypeInFlags(&flags, kHasHttpScheme);
+                    }
+                    // optimization for file urls
+                    if (characterArray[0] == 'f' && characterArray[1] == 'i' && characterArray[2] == 'l' && characterArray[3] == 'e') {
+                        _setSchemeTypeInFlags(&flags, kHasFileScheme);
+                    }
+                    // optimization for data urls
+                    if (characterArray[0] == 'd' && characterArray[1] == 'a' && characterArray[2] == 't' && characterArray[3] == 'a') {
+                        _setSchemeTypeInFlags(&flags, kHasDataScheme);
+                    }
                 }
-                // optimization for data urls
-                if (characterArray[0] == 'd' && characterArray[1] == 'a' && characterArray[2] == 't' && characterArray[3] == 'a') {
-                    _setSchemeTypeInFlags(&flags, kHasDataScheme);
+                // optimization for https urls
+                else if (idx == 5 && characterArray[0] == 'h' && characterArray[1] == 't' && characterArray[2] == 't' && characterArray[3] == 'p' && characterArray[4] == 's') {
+                    _setSchemeTypeInFlags(&flags, kHasHttpsScheme);
                 }
+                break;
+            } else if (!scheme_valid(ch)) {
+                break;    // invalid scheme character -- no scheme
             }
-            // optimization for https urls
-            else if (idx == 5 && characterArray[0] == 'h' && characterArray[1] == 't' && characterArray[2] == 't' && characterArray[3] == 'p' && characterArray[4] == 's') {
-                _setSchemeTypeInFlags(&flags, kHasHttpsScheme);
-            }
-            break;
-        } else if (!scheme_valid(ch)) {
-            break;	// invalid scheme character -- no scheme
         }
     }
-    
+
     // Make sure we have an RFC-1808 compliant URL - that's either something without a scheme, or scheme:/(stuff) or scheme://(stuff)
     // Strictly speaking, RFC 1808 & 2396 bar "scheme:" (with nothing following the colon); however, common usage
     // expects this to be treated identically to "scheme://" - REW, 12/08/03
@@ -212,17 +217,8 @@
         }
         
         // 5: parse the parameters; remainder after left-most ";" is parameters
-        for (idx = base_idx; idx < string_length; idx++) {
-            if (';' == characterArray[idx]) {
-                flags |= HAS_PARAMETERS;
-                numRanges ++;
-                unpackedRanges[parameters_index].location = idx + 1;
-                unpackedRanges[parameters_index].length = string_length - (idx+1);
-                string_length = idx;	// remove parameters from parse string
-                break;
-            }
-        }
-        
+        // parameters are deprecated and obsolete. What used to be parameter is part of the path.
+
         // 6: parse the path; it's whatever's left between string_length & base_idx
         if (string_length - base_idx != 0 || (flags & NET_LOCATION_MASK))
         {

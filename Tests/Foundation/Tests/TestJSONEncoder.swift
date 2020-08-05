@@ -21,6 +21,40 @@ struct TopLevelObjectWrapper<T: Codable & Equatable>: Codable, Equatable {
 
 class TestJSONEncoder : XCTestCase {
 
+    // MARK: - Encoding Top-Level fragments
+    func test_encodingTopLevelFragments() {
+
+        func _testFragment<T: Codable & Equatable>(value: T, fragment: String) {
+            let data: Data
+            let payload: String
+
+            do {
+                data = try JSONEncoder().encode(value)
+                payload = try XCTUnwrap(String.init(decoding: data, as: UTF8.self))
+                XCTAssertEqual(fragment, payload)
+            } catch {
+                XCTFail("Failed to encode \(T.self) to JSON: \(error)")
+                return
+            }
+            do {
+                let decodedValue = try JSONDecoder().decode(T.self, from: data)
+                XCTAssertEqual(value, decodedValue)
+            } catch {
+                XCTFail("Failed to decode \(payload) to \(T.self): \(error)")
+            }
+        }
+
+        _testFragment(value: 2, fragment: "2")
+        _testFragment(value: false, fragment: "false")
+        _testFragment(value: true, fragment: "true")
+        _testFragment(value: Float(1), fragment: "1")
+        _testFragment(value: Double(2), fragment: "2")
+        _testFragment(value: Decimal(Double.leastNormalMagnitude), fragment: "0.0000000000000000000000000000000000000000000000000002225073858507201792")
+        _testFragment(value: "test", fragment: "\"test\"")
+        let v: Int? = nil
+        _testFragment(value: v, fragment: "null")
+    }
+
     // MARK: - Encoding Top-Level Empty Types
     func test_encodingTopLevelEmptyStruct() {
         let empty = EmptyStruct()
@@ -34,20 +68,20 @@ class TestJSONEncoder : XCTestCase {
 
     // MARK: - Encoding Top-Level Single-Value Types
     func test_encodingTopLevelSingleValueEnum() {
-        _testEncodeFailure(of: Switch.off)
-        _testEncodeFailure(of: Switch.on)
+        _testRoundTrip(of: Switch.off)
+        _testRoundTrip(of: Switch.on)
 
         _testRoundTrip(of: TopLevelArrayWrapper(Switch.off))
         _testRoundTrip(of: TopLevelArrayWrapper(Switch.on))
     }
 
     func test_encodingTopLevelSingleValueStruct() {
-        _testEncodeFailure(of: Timestamp(3141592653))
+        _testRoundTrip(of: Timestamp(3141592653))
         _testRoundTrip(of: TopLevelArrayWrapper(Timestamp(3141592653)))
     }
 
     func test_encodingTopLevelSingleValueClass() {
-        _testEncodeFailure(of: Counter())
+        _testRoundTrip(of: Counter())
         _testRoundTrip(of: TopLevelArrayWrapper(Counter()))
     }
 
@@ -492,6 +526,11 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_codingOfNil() {
+        let x: Int? = nil
+        test_codingOf(value: x, toAndFrom: "null")
+    }
+
     func test_codingOfInt8() {
         test_codingOf(value: Int8(-42), toAndFrom: "-42")
     }
@@ -584,7 +623,7 @@ class TestJSONEncoder : XCTestCase {
     // UInt and Int
     func test_codingOfUIntMinMax() {
 
-        struct MyValue: Codable {
+        struct MyValue: Encodable {
             let int64Min = Int64.min
             let int64Max = Int64.max
             let uint64Min = UInt64.min
@@ -812,6 +851,14 @@ class TestJSONEncoder : XCTestCase {
             return
         }
         XCTAssertEqual(jsonObject, camelCaseDictionary)
+    }
+
+    func test_OutputFormattingValues() {
+        XCTAssertEqual(JSONEncoder.OutputFormatting.prettyPrinted.rawValue, 1)
+        if #available(OSX 10.13, *) {
+            XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
+        }
+        XCTAssertEqual(JSONEncoder.OutputFormatting.withoutEscapingSlashes.rawValue, 8)
     }
 
     // MARK: - Helper Functions
@@ -1364,6 +1411,7 @@ fileprivate struct JSON: Equatable {
 extension TestJSONEncoder {
     static var allTests: [(String, (TestJSONEncoder) -> () throws -> Void)] {
         return [
+            ("test_encodingTopLevelFragments", test_encodingTopLevelFragments),
             ("test_encodingTopLevelEmptyStruct", test_encodingTopLevelEmptyStruct),
             ("test_encodingTopLevelEmptyClass", test_encodingTopLevelEmptyClass),
             ("test_encodingTopLevelSingleValueEnum", test_encodingTopLevelSingleValueEnum),
@@ -1393,6 +1441,7 @@ extension TestJSONEncoder {
             ("test_nestedContainerCodingPaths", test_nestedContainerCodingPaths),
             ("test_superEncoderCodingPaths", test_superEncoderCodingPaths),
             ("test_codingOfBool", test_codingOfBool),
+            ("test_codingOfNil", test_codingOfNil),
             ("test_codingOfInt8", test_codingOfInt8),
             ("test_codingOfUInt8", test_codingOfUInt8),
             ("test_codingOfInt16", test_codingOfInt16),
@@ -1413,6 +1462,7 @@ extension TestJSONEncoder {
             ("test_snake_case_encoding", test_snake_case_encoding),
             ("test_dictionary_snake_case_decoding", test_dictionary_snake_case_decoding),
             ("test_dictionary_snake_case_encoding", test_dictionary_snake_case_encoding),
+            ("test_OutputFormattingValues", test_OutputFormattingValues),
         ]
     }
 }

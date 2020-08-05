@@ -40,6 +40,15 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
     
     @usableFromInline
     func contentsOf(url: URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
+
+        func cocoaError(with error: Error? = nil) -> Error {
+            var userInfo: [String: Any] = [:]
+            if let error = error {
+                userInfo[NSUnderlyingErrorKey] = error
+            }
+            return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: url)
+        }
+
         var urlResponse: URLResponse?
         let session = URLSession(configuration: URLSessionConfiguration.default)
         let cond = NSCondition()
@@ -63,10 +72,25 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
             cond.wait()
         }
         cond.unlock()
-        
-        guard let data = resData else {
-            throw resError!
+
+        guard resError == nil else {
+            throw cocoaError(with: resError)
         }
-        return (NSData(bytes: UnsafeMutableRawPointer(mutating: (data as NSData).bytes), length: data.count), urlResponse?.textEncodingName)
+
+        guard let data = resData else {
+            throw cocoaError()
+        }
+
+        if let statusCode = (urlResponse as? HTTPURLResponse)?.statusCode {
+            switch statusCode {
+                // These are the only valid response codes that data will be returned for, all other codes will be treated as error.
+                case 101, 200...399, 401, 407:
+                    return (NSData(bytes: UnsafeMutableRawPointer(mutating: (data as NSData).bytes), length: data.count), urlResponse?.textEncodingName)
+
+                default:
+                    break
+            }
+        }
+        throw cocoaError()
     }
 }

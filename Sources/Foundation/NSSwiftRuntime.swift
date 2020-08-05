@@ -147,6 +147,10 @@ internal func __CFSwiftGetBaseClass() -> UnsafeRawPointer {
     return unsafeBitCast(__NSCFType.self, to:UnsafeRawPointer.self)
 }
 
+@inline(never)
+private func blackhole(_: _NSCFConstantString?) {
+}
+
 @usableFromInline
 @_cdecl("__CFInitializeSwift")
 internal func __CFInitializeSwift() {
@@ -159,7 +163,7 @@ internal func __CFInitializeSwift() {
     // targets when the type cache is updated due to a type-cast.
     //
     // TODO: invoke `swift_getForeignTypeMetadata` to do this directly
-    if let _ = "" as? _NSCFConstantString {}
+    blackhole("" as? _NSCFConstantString)
 
     _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafeRawPointer.self))

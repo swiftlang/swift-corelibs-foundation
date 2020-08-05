@@ -1,7 +1,7 @@
 /*	CFStorage.c
-        Copyright (c) 1999-2018, Apple Inc. All rights reserved.
+        Copyright (c) 1999-2019, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -142,7 +142,8 @@ CF_INLINE void __CFStorageAllocLeafNodeMemory(CFAllocatorRef allocator, CFStorag
     }
 }
 
-#if 0
+
+#if 0 || defined (__clang_analyzer__)
 #define ASSERT(x) do { if (! (x)) { fprintf(stderr, "Assertion %s failed on line %d\n", #x, __LINE__); HALT; } } while (0)
 #else
 #define ASSERT(x) do { if (0 && ! (x)) { } } while(0)
@@ -200,7 +201,7 @@ CF_INLINE CFStorageNode *__CFStorageRetainNodeThreadUnsafe(CFStorageNode *node) 
 
 static void __CFStorageDeallocateNode(CFStorageRef storage, CFStorageNode *node);
 
-CF_INLINE void __CFStorageReleaseNode(CFStorageRef storage, CFStorageNode *node) {
+CF_INLINE void __CFStorageReleaseNode(CFStorageRef storage, CFStorageNode * _Nonnull node) {
     if (node->refCount > 0) {
 	uint32_t newRefCount = OSAtomicDecrement32((int32_t *)&node->refCount);
 	if (newRefCount == 0) {
@@ -244,7 +245,7 @@ static inline void __CFStorageSetChild(CFStorageNode *parentNode, CFIndex childI
     *((void **)&parentNode->info.notLeaf.child[childIndex]) = newChild;
 }
 
-static inline void __CFStorageGetChildren(const CFStorageNode *parent, CFStorageNode ** _CF_RESTRICT resultArray, bool shouldRetain, bool shouldFreeze) {
+static inline void __CFStorageGetChildren(const CFStorageNode * _Nonnull parent, CFStorageNode ** _CF_RESTRICT resultArray, bool shouldRetain, bool shouldFreeze) {
     ASSERT(! parent->isLeaf);
     CFIndex i;
     for (i=0; i < 3; i++) {
@@ -252,6 +253,10 @@ static inline void __CFStorageGetChildren(const CFStorageNode *parent, CFStorage
 	if (node != NULL && shouldRetain) __CFStorageRetainNode(node);
 	if (node != NULL && shouldFreeze) __CFStorageFreezeNode(node);
 	resultArray[i] = node;
+#ifdef __clang_analyzer__
+        // There's an implicit invariant that all non-NULL child nodes are at the front of the array, with all NULLs after. This check will satisfy to the analyzer that that invariant holds.
+        if (node == NULL) break;
+#endif
     }
 }
 
@@ -307,7 +312,7 @@ CF_INLINE uint8_t *__CFStorageGetFromCache(CFStorageRef storage, CFIndex loc, CF
  relativeByteNum (not optional, for performance reasons) returns the relative byte number of the specified byte in the child.
  Don't call with leaf nodes!
  */
-CF_INLINE CFStorageNode *__CFStorageFindChild(const CFStorageNode * _CF_RESTRICT node, CFIndex byteNum, bool forInsertionOrDeletion, CFIndex * _CF_RESTRICT childNum, CFIndex * _CF_RESTRICT relativeByteNum) {
+CF_INLINE CFStorageNode * _Nonnull __CFStorageFindChild(const CFStorageNode * _CF_RESTRICT node, CFIndex byteNum, bool forInsertionOrDeletion, CFIndex * _CF_RESTRICT childNum, CFIndex * _CF_RESTRICT relativeByteNum) {
     if (forInsertionOrDeletion) byteNum--;	/* If for insertion, we do <= checks, not <, so this accomplishes the same thing */
     CFStorageNode *result;
     result = node->info.notLeaf.child[0];
@@ -440,14 +445,14 @@ static void __CFStorageDeallocateNode(CFStorageRef storage, CFStorageNode *node)
  
  The Insertion functions return two nodes.  As an awful performance hack, if the first node returned from __CFStorageInsert* is the same as the node passed in, that node is *not* retained, so should not be relased.  If it is a different node, it is retained.
  */
-static CFStorageDoubleNodeReturn __CFStorageInsert(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
-static CFStorageNode *__CFStorageDelete(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFRange range, bool compact);
+static CFStorageDoubleNodeReturn __CFStorageInsert(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
+static CFStorageNode *__CFStorageDelete(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFRange range, bool compact);
 
-static CFStorageDoubleNodeReturn __CFStorageInsertFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
+static CFStorageDoubleNodeReturn __CFStorageInsertFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
 static CFStorageNode *__CFStorageDeleteFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode *node, CFRange range);
 
-static CFStorageDoubleNodeReturn __CFStorageInsertUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
-static CFStorageNode *__CFStorageDeleteUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFRange range, bool compact, bool isRootNode);
+static CFStorageDoubleNodeReturn __CFStorageInsertUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
+static CFStorageNode *__CFStorageDeleteUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFRange range, bool compact, bool isRootNode);
 
 #pragma mark Frozen Deletion
 
@@ -591,8 +596,8 @@ static CFStorageNode *__CFStorageDeleteUnfrozen(CFAllocatorRef allocator, CFStor
 	CFStorageNode *newChildren[3] = {NULL, NULL, NULL};
 	CFIndex newChildIndex = __CFStoragePopulateBranchChildrenAfterDeletion(allocator, storage, node, range, newChildren, false/*childrenAreDefinitelyFrozen*/, compact);
 	node->numBytes -= range.length;
-	ASSERT(newChildIndex >= 1); //we expect to have at least one child; else we would have deleted everything up above
-	
+	ASSERT(newChildIndex >= 1 && node->info.notLeaf.child[0]); //we expect to have at least one child; else we would have deleted everything up above
+
 	/* Release all of our existing children.  Either we are about to return a new child in place of us; or we are about to set our children to the new ones */
 	__CFStorageReleaseNode(storage, node->info.notLeaf.child[0]);
 	__CFStorageReleaseNodeWithNullCheck(storage, node->info.notLeaf.child[1]);
@@ -617,7 +622,7 @@ static CFStorageNode *__CFStorageDeleteUnfrozen(CFAllocatorRef allocator, CFStor
 #pragma mark Frozen Insertion
 
 /* Insertion into an frozen leaf.  We return two nodes, either of which may be 'node', or possibly two new nodes.  This always sets the cache. */
-static CFStorageDoubleNodeReturn __CFStorageInsertLeafFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsertLeafFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     /* Inserting into a frozen leaf.  If we can fit the new data along with our existing data into a single node, then do so (i.e. if we can return one node, do it).  Otherwise, all of the data would have to fit into a second node (we are never called with more data than storage->maxLeafCapacity) so just make a new node with the data and return that. */
     CFStorageNode *leftResult, *rightResult;
     CHECK_NODE_INTEGRITY(node);
@@ -683,7 +688,7 @@ static CFStorageDoubleNodeReturn __CFStorageInsertLeafFrozen(CFAllocatorRef allo
     return CFStorageDoubleNodeReturnMake(leftResult, rightResult);
 }
 
-static CFStorageDoubleNodeReturn __CFStorageInsertBranchFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsertBranchFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     /* Inserting into a frozen branch.  We definitely will need to make a new copy of us, so make that up front.  We may or may not need to make a new sibling.  Note that in some cases, we may be able to get away with not creating a new copy of us, e.g. inserting at the very end of the tree.  In that case, we could preserve us and make a sibling containing exactly one node.  However, we do not really want to have branches with exactly one child; because then why not just return the child?  And then the whole tree can become unbalanced.  So then instead, always distribute the children equally among our nodes. */
     CHECK_NODE_INTEGRITY(node);
     CFStorageNode *copyOfMe = __CFStorageCreateNode(allocator, storage, false, 0);
@@ -692,12 +697,14 @@ static CFStorageDoubleNodeReturn __CFStorageInsertBranchFrozen(CFAllocatorRef al
     CFIndex childNum;
     CFStorageNode *child = __CFStorageFindChild(node, byteNum, true, &childNum, &relativeByteNum);
     ASSERT(childNum >= 0 && childNum <= 2);
+    ASSERT(child);
     CFStorageDoubleNodeReturn childReturn = __CFStorageInsertFrozen(allocator, storage, child, relativeByteNum, size, absoluteByteNum);
     ASSERT(childReturn.child); //we always get at least one back
     
     /* Make a local array of all new children (retained).  We'll then move them to the new nodes. */
     CFStorageNode *newChildren[4] = {NULL};
     __CFStorageGetChildren(node, newChildren, true/*retain*/, true/*freeze*/);
+    ASSERT(newChildren[childNum]); // node's children is unchanged since __CFStorageFindChild.
     if (newChildren[childNum] != childReturn.child) {
 	__CFStorageReleaseNode(storage, newChildren[childNum]);
 	newChildren[childNum] = childReturn.child; // Transfers the retain
@@ -730,7 +737,7 @@ static CFStorageDoubleNodeReturn __CFStorageInsertBranchFrozen(CFAllocatorRef al
     return CFStorageDoubleNodeReturnMake(copyOfMe, siblingOfMe);
 }
 
-static CFStorageDoubleNodeReturn __CFStorageInsertFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsertFrozen(CFAllocatorRef allocator, CFStorageRef storage, const CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     if (node->isLeaf) {
 	return __CFStorageInsertLeafFrozen(allocator, storage, node, byteNum, size, absoluteByteNum); 
     }
@@ -743,7 +750,7 @@ static CFStorageDoubleNodeReturn __CFStorageInsertFrozen(CFAllocatorRef allocato
 #pragma mark Unfrozen Insertion
 
 /* Insertion into an unfrozen leaf.  We return two nodes, one of which is 'node'.  This always sets the cache. */
-static CFStorageDoubleNodeReturn __CFStorageInsertLeafUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsertLeafUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     if (size + node->numBytes > storage->maxLeafCapacity) {	// Need to create more child nodes
 	CFStorageNode *newNode;
 	if (byteNum == node->numBytes) {	// Inserting at end; easy...
@@ -796,13 +803,13 @@ static CFStorageDoubleNodeReturn __CFStorageInsertLeafUnfrozen(CFAllocatorRef al
     }
 }
 
-static CFStorageDoubleNodeReturn __CFStorageInsertBranchUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsertBranchUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     CFIndex relativeByteNum;
     CFIndex childNum; // we will insert after childNum, i.e. if childNum is 0, any new node becomes index 1.  This can have value 0, 1, or 2.
     CFStorageNode *childNode = __CFStorageFindChild(node, byteNum, true, &childNum, &relativeByteNum);
+    ASSERT(childNode != NULL);
     CFStorageDoubleNodeReturn newNodes = __CFStorageInsert(allocator, storage, childNode, relativeByteNum, size, absoluteByteNum);
     CFStorageDoubleNodeReturn result = {node, NULL}; // the default return value meaning we did all of the work ourselves and our parent does not need to do anything
-    ASSERT(childNode != NULL);
     ASSERT(newNodes.child != NULL);
     
     if (newNodes.child != childNode) {
@@ -851,7 +858,7 @@ static CFStorageDoubleNodeReturn __CFStorageInsertBranchUnfrozen(CFAllocatorRef 
 /* Returns NULL or additional node to come after this node
  Assumption: size is never > storage->maxLeafCapacity
  */
-static CFStorageDoubleNodeReturn __CFStorageInsertUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsertUnfrozen(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     ASSERT(! node->isFrozen);
     if (node->isLeaf) {
 	return __CFStorageInsertLeafUnfrozen(allocator, storage, node, byteNum, size, absoluteByteNum);
@@ -862,7 +869,7 @@ static CFStorageDoubleNodeReturn __CFStorageInsertUnfrozen(CFAllocatorRef alloca
 
 #pragma mark Frozen or Unfrozen Dispatch Functions
 
-static CFStorageDoubleNodeReturn __CFStorageInsert(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
+static CFStorageDoubleNodeReturn __CFStorageInsert(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum) {
     if (node->isFrozen && ! __CFStorageThawNodeDuringMutation(storage, node)) {
 	return __CFStorageInsertFrozen(allocator, storage, node, byteNum, size, absoluteByteNum);
     }
@@ -871,7 +878,7 @@ static CFStorageDoubleNodeReturn __CFStorageInsert(CFAllocatorRef allocator, CFS
     }
 }
 
-static CFStorageNode *__CFStorageDelete(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode *node, CFRange range, bool compact) {
+static CFStorageNode *__CFStorageDelete(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFRange range, bool compact) {
     if (node->isFrozen && ! __CFStorageThawNodeDuringMutation(storage, node)) {
 	return __CFStorageDeleteFrozen(allocator, storage, node, range);
     }
@@ -985,7 +992,7 @@ static bool __CFStorageEnumerateNodesInByteRangeWithBlock(CFStorageRef storage, 
 	    CFStorageNode ** childrenPtr = children;
 #if __HAS_DISPATCH__
 	    __block bool blockStop = false;
-	    dispatch_apply(numChildren, __CFDispatchQueueGetGenericMatchingCurrent(), ^(size_t ind) {
+	    dispatch_apply(numChildren, DISPATCH_APPLY_AUTO, ^(size_t ind) {
 		if (! blockStop && overlapsPtr[ind].length > 0) {
 		    if (__CFStorageEnumerateNodesInByteRangeWithBlock(storage, childrenPtr[ind], globalOffsetOfNode + offsetsPtr[ind], CFRangeMake(overlapsPtr[ind].location - offsetsPtr[ind], overlapsPtr[ind].length), concurrencyToken, applier)) {
 			blockStop = true;
@@ -1111,9 +1118,7 @@ CFStorageRef CFStorageCreate(CFAllocatorRef allocator, CFIndex valueSize) {
     if (valueSize && ((storage->maxLeafCapacity % valueSize) != 0)) {	
         storage->maxLeafCapacity = (storage->maxLeafCapacity / valueSize) * valueSize;	// Make it fit perfectly (3406853)
     }
-    memset(&(storage->rootNode), 0, sizeof(CFStorageNode));
     storage->rootNode.isLeaf = true;
-    storage->rootNode.refCount = 0;
     if (__CFOASafe) __CFSetLastAllocationEventName(storage, "CFStorage");
     return storage;    
 }

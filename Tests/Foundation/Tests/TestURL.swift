@@ -202,10 +202,14 @@ class TestURL : XCTestCase {
 
     internal func compareResults(_ url : URL, expected : [String : Any], got : [String : Any]) -> (Bool, [String]) {
         var differences = [String]()
-        for (key, obj) in expected {
+        for (key, expectation) in expected {
             // Skip non-string expected results
             if ["port", "standardizedURL", "pathComponents"].contains(key) {
                 continue
+            }
+            var obj: Any? = expectation
+            if obj as? String == kNullString {
+                obj = nil
             }
             if let expectedValue = obj as? String {
                 if let testedValue = got[key] as? String {
@@ -230,6 +234,10 @@ class TestURL : XCTestCase {
                     }
                 } else {
                     differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(String(describing: got[key]))'")
+                }
+            } else if obj == nil {
+                if got[key] != nil && got[key] as? String != kNullString {
+                    differences.append(" \(key)  Expected = '\(String(describing: obj))',  Got = '\(String(describing: got[key]))'")
                 }
             }
 
@@ -426,6 +434,11 @@ class TestURL : XCTestCase {
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
         XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
+
+        // SR-12366
+        let url1 = URL(fileURLWithPath: "/path/to/b/folder", isDirectory: true).standardizedFileURL.absoluteString
+        let url2 = URL(fileURLWithPath: "/path/to/b/folder", isDirectory: true).absoluteString
+        XCTAssertEqual(url1, url2)
     }
 
     func test_fileURLWithPath_isDirectory() {

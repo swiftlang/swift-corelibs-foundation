@@ -24,6 +24,32 @@ import CoreFoundation
     private func getnameinfo(_ addr: UnsafePointer<sockaddr>?, _ addrlen: socklen_t, _ host: UnsafeMutablePointer<Int8>?, _ hostlen: socklen_t, _ serv: UnsafeMutablePointer<Int8>?, _ servlen: socklen_t, _ flags: Int32) -> Int32 {
         return Glibc.getnameinfo(addr, addrlen, host, Int(hostlen), serv, Int(servlen), flags)
     }
+
+    // getifaddrs and freeifaddrs are not available in Android 6.0 or earlier, so call these functions dynamically.
+    // This only happens during the initial lookup of the addresses and then the results are cached and _resolved is marked true.
+    // If this API changes so these functions are called more frequently, it might be beneficial to cache the function pointers.
+
+    private typealias GetIfAddrsFunc = @convention(c) (UnsafeMutablePointer<UnsafeMutablePointer<ifaddrs>?>) -> Int32
+    private func getifaddrs(_ ifap: UnsafeMutablePointer<UnsafeMutablePointer<ifaddrs>?>) -> Int32 {
+        var result: Int32 = -1
+        if let handle = dlopen("libc.so", RTLD_NOLOAD) {
+            if let entry = dlsym(handle, "getifaddrs") {
+                result = unsafeBitCast(entry, to: GetIfAddrsFunc.self)(ifap)
+            }
+            dlclose(handle)
+        }
+        return result
+    }
+
+    private typealias FreeIfAddrsFunc = @convention(c) (UnsafeMutablePointer<ifaddrs>?) -> Void
+    private func freeifaddrs(_ ifa: UnsafeMutablePointer<ifaddrs>?) {
+        if let handle = dlopen("libc.so", RTLD_NOLOAD) {
+            if let entry = dlsym(handle, "freeifaddrs") {
+                unsafeBitCast(entry, to: FreeIfAddrsFunc.self)(ifa)
+            }
+            dlclose(handle)
+        }
+    }
 #endif
 
 open class Host: NSObject {

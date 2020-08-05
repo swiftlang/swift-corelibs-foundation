@@ -1,7 +1,7 @@
 /*	CFNumber.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -13,13 +13,11 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFPriv.h>
+#include <CoreFoundation/CFNumber_Private.h>
 #include <math.h>
 #include <float.h>
+#include <assert.h>
 
-
-enum {
-    kCFNumberSInt128Type = 17
-};
 
 typedef CF_ENUM(uint8_t, _CFNumberCanonicalTypeIndex) {
     kCFNumberSInt8CanonicalTypeIndex   = 0x0,
@@ -191,11 +189,6 @@ static const Float64Bits doubleOneBits = {.floatValue = 1.0f};
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-
-typedef struct {	// NOTE WELL: these two fields may switch position someday, do not use '= {high, low}' -style initialization
-    int64_t high;
-    uint64_t low;
-} CFSInt128Struct;
 
 static uint8_t isNeg128(const CFSInt128Struct *in) {
     return in->high < 0;
@@ -1005,7 +998,7 @@ CFTypeID CFNumberGetTypeID(void) {
     dispatch_once(&initOnce, ^{
         
 
-        const char *caching = __CFgetenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
+        const char *caching = getenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
         if (caching) __CFNumberCaching = (!strcmp(caching, "all")) ? kCFNumberCachingFullyDisabled : kCFNumberCachingDisabled;	// initial state above is kCFNumberCachingEnabled
     });
     return _kCFRuntimeIDCFNumber;
@@ -1174,8 +1167,8 @@ CFNumberRef CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, const vo
 }
 
 CFNumberType CFNumberGetType(CFNumberRef number) {
-    CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (NSNumber *)number, _cfNumberType);
-    CF_SWIFT_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (CFSwiftRef)number, NSNumber._cfNumberGetType);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFNumberType, (NSNumber *)number, _cfNumberType);
+    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFNumberType, (CFSwiftRef)number, NSNumber._cfNumberGetType);
     __CFAssertIsNumber(number);
     CFNumberType type = __CFNumberGetType(number);
     if (kCFNumberSInt128Type == type) type = kCFNumberSInt64Type; // must hide this type, since it is not public
@@ -1183,7 +1176,7 @@ CFNumberType CFNumberGetType(CFNumberRef number) {
 }
 
 CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number) {
-    CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), CFNumberType, (NSNumber *)number, _cfNumberType);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFNumberType, (NSNumber *)number, _cfNumberType);
     __CFAssertIsNumber(number);
     return __CFNumberGetType(number);
 }
@@ -1203,8 +1196,8 @@ Boolean CFNumberIsFloatType(CFNumberRef number) {
 Boolean CFNumberGetValue(CFNumberRef number, CFNumberType type, void *valuePtr) {
 //printf("+ [%p] CFNumberGetValue(%p, %d, %p)\n", pthread_self(), number, type, valuePtr);
 
-    CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), Boolean, (NSNumber *)number, _getValue:(void *)valuePtr forType:(CFNumberType)__CFNumberTypeTable[type].canonicalType);
-    CF_SWIFT_FUNCDISPATCHV(CFNumberGetTypeID(), Boolean, (CFSwiftRef)number, NSNumber._getValue, valuePtr, (CFNumberType)__CFNumberTypeTable[type].canonicalType);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, Boolean, (NSNumber *)number, _getValue:(void *)valuePtr forType:(CFNumberType)__CFNumberTypeTable[type].canonicalType);
+    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, Boolean, (CFSwiftRef)number, NSNumber._getValue, valuePtr, (CFNumberType)__CFNumberTypeTable[type].canonicalType);
     __CFAssertIsNumber(number);
     __CFAssertIsValidNumberType(type);
     uint8_t localMemory[128];
@@ -1213,8 +1206,8 @@ Boolean CFNumberGetValue(CFNumberRef number, CFNumberType type, void *valuePtr) 
 }
 
 static CFComparisonResult CFNumberCompare_new(CFNumberRef number1, CFNumberRef number2, void *context) {
-    CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), CFComparisonResult, (NSNumber *)number1, compare:(NSNumber *)number2);
-    CF_OBJC_FUNCDISPATCHV(CFNumberGetTypeID(), CFComparisonResult, (NSNumber *)number2, _reverseCompare:(NSNumber *)number1);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFComparisonResult, (NSNumber *)number1, compare:(NSNumber *)number2);
+    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFComparisonResult, (NSNumber *)number2, _reverseCompare:(NSNumber *)number1);
     __CFAssertIsNumber(number1);
     __CFAssertIsNumber(number2);
 

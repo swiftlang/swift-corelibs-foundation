@@ -199,6 +199,7 @@ open class URLSession : NSObject {
         // TODO: We register all the native protocols here.
         _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
         _ = URLProtocol.registerClass(_FTPURLProtocol.self)
+        _ = URLProtocol.registerClass(_DataURLProtocol.self)
     }()
     
     /*

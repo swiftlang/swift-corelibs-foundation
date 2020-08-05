@@ -1,7 +1,7 @@
 /*	CFUserNotification.h
-	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -69,116 +69,114 @@ of the textfields.  */
 typedef void (*CFUserNotificationCallBack)(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
 
 CF_EXPORT
-CFTypeID CFUserNotificationGetTypeID(void);
+CFTypeID CFUserNotificationGetTypeID(void) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-CFUserNotificationRef CFUserNotificationCreate(CFAllocatorRef allocator, CFTimeInterval timeout, CFOptionFlags flags, SInt32 *error, CFDictionaryRef dictionary);
+CFUserNotificationRef CFUserNotificationCreate(CFAllocatorRef allocator, CFTimeInterval timeout, CFOptionFlags flags, SInt32 *error, CFDictionaryRef dictionary) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-SInt32 CFUserNotificationReceiveResponse(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags *responseFlags);
+SInt32 CFUserNotificationReceiveResponse(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags *responseFlags) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-CFStringRef CFUserNotificationGetResponseValue(CFUserNotificationRef userNotification, CFStringRef key, CFIndex idx);
+CFStringRef CFUserNotificationGetResponseValue(CFUserNotificationRef userNotification, CFStringRef key, CFIndex idx) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-CFDictionaryRef CFUserNotificationGetResponseDictionary(CFUserNotificationRef userNotification);
+CFDictionaryRef CFUserNotificationGetResponseDictionary(CFUserNotificationRef userNotification) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-SInt32 CFUserNotificationUpdate(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags flags, CFDictionaryRef dictionary);
+SInt32 CFUserNotificationUpdate(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags flags, CFDictionaryRef dictionary) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-SInt32 CFUserNotificationCancel(CFUserNotificationRef userNotification);
+SInt32 CFUserNotificationCancel(CFUserNotificationRef userNotification) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-CFRunLoopSourceRef CFUserNotificationCreateRunLoopSource(CFAllocatorRef allocator, CFUserNotificationRef userNotification, CFUserNotificationCallBack callout, CFIndex order);
+CFRunLoopSourceRef CFUserNotificationCreateRunLoopSource(CFAllocatorRef allocator, CFUserNotificationRef userNotification, CFUserNotificationCallBack callout, CFIndex order) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 /* Convenience functions for handling the simplest and most common cases:  
 a one-way notification, and a notification with up to three buttons. */
     
 CF_EXPORT
-SInt32 CFUserNotificationDisplayNotice(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle);
+SInt32 CFUserNotificationDisplayNotice(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-SInt32 CFUserNotificationDisplayAlert(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle, CFStringRef alternateButtonTitle, CFStringRef otherButtonTitle, CFOptionFlags *responseFlags);
+SInt32 CFUserNotificationDisplayAlert(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle, CFStringRef alternateButtonTitle, CFStringRef otherButtonTitle, CFOptionFlags *responseFlags) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 
 /* Flags */
 
 CF_ENUM(CFOptionFlags) {
-    kCFUserNotificationStopAlertLevel 		= 0,
-    kCFUserNotificationNoteAlertLevel 		= 1,
-    kCFUserNotificationCautionAlertLevel 	= 2,
-    kCFUserNotificationPlainAlertLevel		= 3
+    kCFUserNotificationStopAlertLevel API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos)    = 0,
+    kCFUserNotificationNoteAlertLevel API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos)    = 1,
+    kCFUserNotificationCautionAlertLevel API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) = 2,
+    kCFUserNotificationPlainAlertLevel API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos)   = 3
 };
 
 CF_ENUM(CFOptionFlags) {
-    kCFUserNotificationDefaultResponse		= 0,
-    kCFUserNotificationAlternateResponse	= 1,
-    kCFUserNotificationOtherResponse		= 2,
-    kCFUserNotificationCancelResponse		= 3
+    kCFUserNotificationDefaultResponse API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos)   = 0,
+    kCFUserNotificationAlternateResponse API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) = 1,
+    kCFUserNotificationOtherResponse API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos)     = 2,
+    kCFUserNotificationCancelResponse API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos)    = 3
 };
 
 CF_ENUM(CFOptionFlags) {
-    kCFUserNotificationNoDefaultButtonFlag 	= (1UL << 5),
-    kCFUserNotificationUseRadioButtonsFlag 	= (1UL << 6)
+    kCFUserNotificationNoDefaultButtonFlag API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) = (1UL << 5),
+    kCFUserNotificationUseRadioButtonsFlag API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) = (1UL << 6)
 };
 
-CF_INLINE CFOptionFlags CFUserNotificationCheckBoxChecked(CFIndex i) {return ((CFOptionFlags)(1UL << (8 + i)));}
-CF_INLINE CFOptionFlags CFUserNotificationSecureTextField(CFIndex i) {return ((CFOptionFlags)(1UL << (16 + i)));}
-CF_INLINE CFOptionFlags CFUserNotificationPopUpSelection(CFIndex n) {return ((CFOptionFlags)(n << 24));}
+CF_INLINE CFOptionFlags CFUserNotificationCheckBoxChecked(CFIndex i) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) {return ((CFOptionFlags)(1UL << (8 + i)));}
+CF_INLINE CFOptionFlags CFUserNotificationSecureTextField(CFIndex i) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) {return ((CFOptionFlags)(1UL << (16 + i)));}
+CF_INLINE CFOptionFlags CFUserNotificationPopUpSelection(CFIndex n) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos) {return ((CFOptionFlags)(n << 24));}
 
 
 /* Keys */
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationIconURLKey;
+const CFStringRef kCFUserNotificationIconURLKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationSoundURLKey;
+const CFStringRef kCFUserNotificationSoundURLKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationLocalizationURLKey;
+const CFStringRef kCFUserNotificationLocalizationURLKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlertHeaderKey;
+const CFStringRef kCFUserNotificationAlertHeaderKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlertMessageKey;
+const CFStringRef kCFUserNotificationAlertMessageKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationDefaultButtonTitleKey;
+const CFStringRef kCFUserNotificationDefaultButtonTitleKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlternateButtonTitleKey;
+const CFStringRef kCFUserNotificationAlternateButtonTitleKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationOtherButtonTitleKey;
+const CFStringRef kCFUserNotificationOtherButtonTitleKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationProgressIndicatorValueKey;
+const CFStringRef kCFUserNotificationProgressIndicatorValueKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationPopUpTitlesKey;
+const CFStringRef kCFUserNotificationPopUpTitlesKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationTextFieldTitlesKey;
+const CFStringRef kCFUserNotificationTextFieldTitlesKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationCheckBoxTitlesKey;
+const CFStringRef kCFUserNotificationCheckBoxTitlesKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationTextFieldValuesKey;
+const CFStringRef kCFUserNotificationTextFieldValuesKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
 const CFStringRef kCFUserNotificationPopUpSelectionKey	API_AVAILABLE(macos(10.3)) API_UNAVAILABLE(ios, watchos, tvos);
 
-#if (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlertTopMostKey;
+const CFStringRef kCFUserNotificationAlertTopMostKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
         
 CF_EXPORT
-const CFStringRef kCFUserNotificationKeyboardTypesKey;
-#endif
+const CFStringRef kCFUserNotificationKeyboardTypesKey API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

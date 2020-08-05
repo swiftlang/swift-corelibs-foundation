@@ -25,6 +25,8 @@ extension JSONSerialization {
         
         public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)
         public static let sortedKeys = WritingOptions(rawValue: 1 << 1)
+        public static let fragmentsAllowed = WritingOptions(rawValue: 1 << 2)
+        public static let withoutEscapingSlashes = WritingOptions(rawValue: 1 << 3)
     }
 }
 
@@ -139,8 +141,7 @@ open class JSONSerialization : NSObject {
         var jsonStr = [UInt8]()
         
         var writer = JSONWriter(
-            pretty: opt.contains(.prettyPrinted),
-            sortedKeys: opt.contains(.sortedKeys),
+            options: opt,
             writer: { (str: String?) in
                 if let str = str {
                     jsonStr.append(contentsOf: str.utf8)
@@ -157,7 +158,10 @@ open class JSONSerialization : NSObject {
         } else if let container = value as? Dictionary<AnyHashable, Any> {
             try writer.serializeJSON(container)
         } else {
-            fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
+            guard opt.contains(.fragmentsAllowed) else {
+                fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
+            }
+            try writer.serializeJSON(value)
         }
 
         let count = jsonStr.count
@@ -302,11 +306,13 @@ private struct JSONWriter {
     var indent = 0
     let pretty: Bool
     let sortedKeys: Bool
+    let withoutEscapingSlashes: Bool
     let writer: (String?) -> Void
 
-    init(pretty: Bool = false, sortedKeys: Bool = false, writer: @escaping (String?) -> Void) {
-        self.pretty = pretty
-        self.sortedKeys = sortedKeys
+    init(options: JSONSerialization.WritingOptions, writer: @escaping (String?) -> Void) {
+        pretty = options.contains(.prettyPrinted)
+        sortedKeys = options.contains(.sortedKeys)
+        withoutEscapingSlashes = options.contains(.withoutEscapingSlashes)
         self.writer = writer
     }
     
@@ -380,7 +386,8 @@ private struct JSONWriter {
                 case "\\":
                     writer("\\\\") // U+005C reverse solidus
                 case "/":
-                    writer("\\/") // U+002F solidus
+                    if !withoutEscapingSlashes { writer("\\") }
+                    writer("/") // U+002F solidus
                 case "\u{8}":
                     writer("\\b") // U+0008 backspace
                 case "\u{c}":
@@ -825,7 +832,6 @@ private struct JSONReader {
         var string = ""
         var isInteger = true
         var exponent = 0
-        var positiveExponent = true
         var index = input
         var digitCount: Int?
         var ascii: UInt8 = 0    // set by nextASCII()
@@ -896,6 +902,8 @@ private struct JSONReader {
 
             // Process the exponent
             isInteger = false
+            let positiveExponent: Bool
+
             guard nextASCII() else { return false }
             if ascii == JSONReader.MINUS {
                 positiveExponent = false
@@ -903,6 +911,8 @@ private struct JSONReader {
             } else if ascii == JSONReader.PLUS {
                 positiveExponent = true
                 guard nextASCII() else { return false }
+            } else {
+                positiveExponent = true
             }
             guard JSONReader.allDigits.contains(ascii) else { return false }
             exponent = Int(ascii - JSONReader.ZERO)
@@ -914,6 +924,7 @@ private struct JSONReader {
                     return false
                 }
             }
+            exponent = positiveExponent ? exponent : -exponent
             return true
         }
 

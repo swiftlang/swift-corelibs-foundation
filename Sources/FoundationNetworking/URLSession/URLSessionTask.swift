@@ -38,7 +38,12 @@ open class URLSessionTask : NSObject, NSCopying {
         didSet { updateProgress() }
     }
     
+    #if NS_CURL_MISSING_XFERINFOFUNCTION
+    @available(*, deprecated, message: "This platform doesn't fully support reporting the progress of a URLSessionTask. The progress instance returned will be functional, but may not have continuous updates as bytes are sent or received.")
     open private(set) var progress = Progress(totalUnitCount: -1)
+    #else
+    open private(set) var progress = Progress(totalUnitCount: -1)
+    #endif
     
     func updateProgress() {
         self.workQueue.async {
@@ -240,14 +245,15 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
     internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
-        if let bodyData = request.httpBody {
+        if let bodyData = request.httpBody, !bodyData.isEmpty {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
         } else if let bodyStream = request.httpBodyStream {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.stream(bodyStream))
         } else {
-            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
+            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.none)
         }
     }
+
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body?) {
         self.session = session
         /* make sure we're actually having a serial queue as it's used for synchronization */
@@ -358,11 +364,20 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open func cancel() {
         workQueue.sync {
-            guard self.state == .running || self.state == .suspended else { return }
-            self.state = .canceling
+            let canceled = self.syncQ.sync { () -> Bool in
+                guard self._state == .running || self._state == .suspended else { return true }
+                self._state = .canceling
+                return false
+            }
+            guard !canceled else { return }
             self._getProtocol { (urlProtocol) in
                 self.workQueue.async {
-                    let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
+                    var info = [NSLocalizedDescriptionKey: "\(URLError.Code.cancelled)" as Any]
+                    if let url = self.originalRequest?.url {
+                        info[NSURLErrorFailingURLErrorKey] = url
+                        info[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                    }
+                    let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: info))
                     self.error = urlError
                     if let urlProtocol = urlProtocol {
                         urlProtocol.stopLoading()
@@ -438,8 +453,7 @@ open class URLSessionTask : NSObject, NSCopying {
     open func resume() {
         workQueue.sync {
             guard self.state != .canceling && self.state != .completed else { return }
-            self.suspendCount -= 1
-            guard 0 <= self.suspendCount else { fatalError("Resuming a task that's not suspended. Calls to resume() / suspend() need to be matched.") }
+            if self.suspendCount > 0 { self.suspendCount -= 1 }
             self.updateTaskState()
             if self.suspendCount == 0 {
                 self.hasTriggeredResume = true
@@ -783,7 +797,7 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocolDidFinishLoading(_ urlProtocol: URLProtocol) {
         guard let task = urlProtocol.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
-        guard let urlResponse = task.response else { fatalError("No response") }
+        let urlResponse = task.response
         if let response = urlResponse as? HTTPURLResponse, response.statusCode == 401 {
             if let protectionSpace = createProtectionSpace(response) {
 

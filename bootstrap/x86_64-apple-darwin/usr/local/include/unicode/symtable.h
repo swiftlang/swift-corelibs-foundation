@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 *   Copyright (c) 2000-2005, International Business Machines
@@ -19,6 +21,7 @@
  * symbolic names.
  */
  
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class ParsePosition;
@@ -108,5 +111,6 @@ public:
                                          ParsePosition& pos, int32_t limit) const = 0;
 };
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif

@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 *   Copyright (C) 1999-2006,2013 IBM Corp. All rights reserved.
@@ -20,6 +22,7 @@
  * \brief C++ API: Dictionary Based Break Iterator
  */
  
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 #ifndef U_HIDE_DEPRECATED_API
@@ -34,6 +37,7 @@ typedef RuleBasedBreakIterator DictionaryBasedBreakIterator;
 #endif  /* U_HIDE_DEPRECATED_API */
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 
