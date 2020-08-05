@@ -570,7 +570,19 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     // The same as path if baseURL is nil
     open var relativePath: String? {
-        return CFURLCopyFileSystemPath(_cfObject, kCFURLPOSIXPathStyle)?._swiftObject
+        guard var url = CFURLCopyFileSystemPath(_cfObject, kCFURLPOSIXPathStyle)?._swiftObject else {
+            return nil
+        }
+#if os(Windows)
+        // Per RFC 8089:E.2, if we have an absolute Windows/DOS path we can
+        // begin the URL with a drive letter rather than a `/`
+        let scalars = Array(url.unicodeScalars)
+        if isFileURL, url.isAbsolutePath,
+           scalars.count >= 3, scalars[0] == "/", scalars[2] == ":" {
+            url.removeFirst()
+        }
+#endif
+        return url
     }
     
     /* Determines if a given URL string's path represents a directory (i.e. the path component in the URL string ends with a '/' character). This does not check the resource the URL refers to.
