@@ -62,15 +62,16 @@ if(ENABLE_TESTING)
   add_subdirectory(Tests)
 endif()
 
-set(swift_lib_dir "lib/swift")
-
 if(NOT BUILD_SHARED_LIBS)
-  set(swift_lib_dir "lib/swift_static")
-  
   set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
     CoreFoundation CFXMLInterface CFURLSessionInterface)
   install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
     DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+endif()
+
+set(swift_lib_dir "lib/swift")
+if(NOT BUILD_SHARED_LIBS)
+  set(swift_lib_dir "lib/swift_static")
 endif()
 
 # TODO(compnerd) install as a Framework as that is how swift actually is built
