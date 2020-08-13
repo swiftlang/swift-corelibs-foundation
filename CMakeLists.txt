@@ -88,33 +88,39 @@ if(NOT BUILD_SHARED_LIBS)
       DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
   endif()
 endif()
+
+set(swift_lib_dir "lib/swift")
+if(NOT BUILD_SHARED_LIBS)
+  set(swift_lib_dir "lib/swift_static")
+endif()
+
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
         DESTINATION
-          lib/swift/CoreFoundation
+          ${swift_lib_dir}/CoreFoundation
         FILES_MATCHING PATTERN "*.h")
 install(FILES
-          CoreFoundation/Base.subproj/module.map
+          CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
         DESTINATION
-          lib/swift/CoreFoundation)
+          ${swift_lib_dir}/CoreFoundation)
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CFURLSessionInterface.framework/Headers/
         DESTINATION
-          lib/swift/CFURLSessionInterface
+          ${swift_lib_dir}/CFURLSessionInterface
         FILES_MATCHING PATTERN "*.h")
 install(FILES
-          CoreFoundation/URL.subproj/module.map
+          CoreFoundation/URL.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
         DESTINATION
-          lib/swift/CFURLSessionInterface)
+          ${swift_lib_dir}/CFURLSessionInterface)
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CFXMLInterface.framework/Headers/
         DESTINATION
-          lib/swift/CFXMLInterface
+          ${swift_lib_dir}/CFXMLInterface
         FILES_MATCHING PATTERN "*.h")
 install(FILES
-          CoreFoundation/Parsing.subproj/module.map
+          CoreFoundation/Parsing.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
         DESTINATION
-          lib/swift/CFXMLInterface)
+          ${swift_lib_dir}/CFXMLInterface)
 
 add_subdirectory(cmake/modules)
