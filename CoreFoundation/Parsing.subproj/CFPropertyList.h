@@ -19,7 +19,7 @@
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
 
-typedef CF_OPTIONS(CFOptionFlags, CFPropertyListMutabilityOptions) {
+CF_OPTIONS(CFOptionFlags, CFPropertyListMutabilityOptions) {
     kCFPropertyListImmutable = 0,
     kCFPropertyListMutableContainers = 1 << 0,
     kCFPropertyListMutableContainersAndLeaves = 1 << 1,
@@ -66,7 +66,7 @@ CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXPORT
 CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFOptionFlags mutabilityOption);
 
-typedef CF_ENUM(CFIndex, CFPropertyListFormat) {
+CF_ENUM(CFIndex, CFPropertyListFormat) {
     kCFPropertyListOpenStepFormat = 1,
     kCFPropertyListXMLFormat_v1_0 = 100,
     kCFPropertyListBinaryFormat_v1_0 = 200

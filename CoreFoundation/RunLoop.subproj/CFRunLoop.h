@@ -32,7 +32,7 @@ typedef struct CF_BRIDGED_MUTABLE_TYPE(id) __CFRunLoopObserver * CFRunLoopObserv
 typedef struct CF_BRIDGED_MUTABLE_TYPE(NSTimer) __CFRunLoopTimer * CFRunLoopTimerRef;
 
 /* Reasons for CFRunLoopRunInMode() to Return */
-typedef CF_ENUM(SInt32, CFRunLoopRunResult) {
+CF_ENUM(SInt32, CFRunLoopRunResult) {
     kCFRunLoopRunFinished = 1,
     kCFRunLoopRunStopped = 2,
     kCFRunLoopRunTimedOut = 3,
@@ -40,7 +40,7 @@ typedef CF_ENUM(SInt32, CFRunLoopRunResult) {
 };
 
 /* Run Loop Observer Activities */
-typedef CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
+CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
     kCFRunLoopEntry = (1UL << 0),
     kCFRunLoopBeforeTimers = (1UL << 1),
     kCFRunLoopBeforeSources = (1UL << 2),

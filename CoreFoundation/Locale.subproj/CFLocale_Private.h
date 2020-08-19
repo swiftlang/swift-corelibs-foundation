@@ -15,7 +15,7 @@
 /// Returns the user’s preferred locale as-is, without attempting to match the locale’s language to the main bundle, unlike `CFLocaleCopyCurrent`.
 CF_EXPORT CFLocaleRef _CFLocaleCopyPreferred(void) API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 
-typedef CF_ENUM(CFIndex, _CFLocaleCalendarDirection) {
+CF_ENUM(CFIndex, _CFLocaleCalendarDirection) {
     _kCFLocaleCalendarDirectionLeftToRight = 0,
     _kCFLocaleCalendarDirectionRightToLeft = 1
 } API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));

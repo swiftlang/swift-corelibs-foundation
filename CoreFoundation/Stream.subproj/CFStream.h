@@ -29,7 +29,7 @@ typedef struct {
 
 typedef CFStringRef CFStreamPropertyKey CF_EXTENSIBLE_STRING_ENUM;
 
-typedef CF_ENUM(CFIndex, CFStreamStatus) {
+CF_ENUM(CFIndex, CFStreamStatus) {
     kCFStreamStatusNotOpen = 0,
     kCFStreamStatusOpening,  /* open is in-progress */
     kCFStreamStatusOpen,
@@ -40,7 +40,7 @@ typedef CF_ENUM(CFIndex, CFStreamStatus) {
     kCFStreamStatusError
 };
 
-typedef CF_OPTIONS(CFOptionFlags, CFStreamEventType) {
+CF_OPTIONS(CFOptionFlags, CFStreamEventType) {
     kCFStreamEventNone = 0,
     kCFStreamEventOpenCompleted = 1,
     kCFStreamEventHasBytesAvailable = 2,
@@ -483,7 +483,7 @@ dispatch_queue_t _Null_unspecified CFWriteStreamCopyDispatchQueue(CFWriteStreamR
 
 
 /* The following API is deprecated starting in 10.5; please use CFRead/WriteStreamCopyError(), above, instead */
-typedef CF_ENUM(CFIndex, CFStreamErrorDomain) {
+CF_ENUM(CFIndex, CFStreamErrorDomain) {
     kCFStreamErrorDomainCustom = -1L,      /* custom to the kind of stream in question */
     kCFStreamErrorDomainPOSIX = 1,        /* POSIX errno; interpret using <sys/errno.h> */
     kCFStreamErrorDomainMacOSStatus      /* OSStatus type from Carbon APIs; interpret using <MacTypes.h> */

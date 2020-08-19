@@ -478,7 +478,7 @@ typedef struct CF_BRIDGED_MUTABLE_TYPE(NSMutableString) __CFString * CFMutableSt
 typedef CF_BRIDGED_TYPE(id) CFTypeRef CFPropertyListRef;
 
 /* Values returned from comparison functions */
-typedef CF_ENUM(CFIndex, CFComparisonResult) {
+CF_ENUM(CFIndex, CFComparisonResult) {
     kCFCompareLessThan = -1L,
     kCFCompareEqualTo = 0,
     kCFCompareGreaterThan = 1

@@ -59,7 +59,7 @@ typedef struct CF_BRIDGED_MUTABLE_TYPE(NSMutableCharacterSet) __CFCharacterSet *
         Type of the predefined CFCharacterSet selector values.
 */
    
-typedef CF_ENUM(CFIndex, CFCharacterSetPredefinedSet) {
+CF_ENUM(CFIndex, CFCharacterSetPredefinedSet) {
     kCFCharacterSetControl = 1, /* Control character set (Unicode General Category Cc and Cf) */
     kCFCharacterSetWhitespace, /* Whitespace character set (Unicode General Category Zs and U0009 CHARACTER TABULATION) */
     kCFCharacterSetWhitespaceAndNewline,  /* Whitespace and Newline character set (Unicode General Category Z*, U000A ~ U000D, and U0085) */

@@ -106,7 +106,7 @@ CFURLRef _CFCreateURLFromFSSpec(CFAllocatorRef alloc, const struct FSSpec *voids
 #endif
 #endif
 
-typedef CF_ENUM(CFIndex, CFURLComponentDecomposition) {
+CF_ENUM(CFIndex, CFURLComponentDecomposition) {
 	kCFURLComponentDecompositionNonHierarchical,
 	kCFURLComponentDecompositionRFC1808, /* use this for RFC 1738 decompositions as well */
 	kCFURLComponentDecompositionRFC2396
@@ -188,7 +188,7 @@ CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName);	/* Pass NULL for the 
 	directories!
 	??? On MacOS 8 this function currently returns an empty array.
 */
-typedef CF_ENUM(CFIndex, CFSearchPathDirectory) {
+CF_ENUM(CFIndex, CFSearchPathDirectory) {
     kCFApplicationDirectory = 1,	/* supported applications (Applications) */
     kCFDemoApplicationDirectory,	/* unsupported applications, demonstration versions (Demos) */
     kCFDeveloperApplicationDirectory,	/* developer applications (Developer/Applications) */
@@ -217,7 +217,7 @@ typedef CF_ENUM(CFIndex, CFSearchPathDirectory) {
     kCFAllLibrariesDirectory = 101	/* all directories where resources can occur (Library, Developer) */
 };
 
-typedef CF_OPTIONS(CFOptionFlags, CFSearchPathDomainMask) {
+CF_OPTIONS(CFOptionFlags, CFSearchPathDomainMask) {
     kCFUserDomainMask = 1,	/* user's home directory --- place to install user's personal items (~) */
     kCFLocalDomainMask = 2,	/* local to the current machine --- place to install items available to everyone on this machine (/Local) */
     kCFNetworkDomainMask = 4, 	/* publically available location in the local area network --- place to install items available on the network (/Network) */
@@ -261,7 +261,7 @@ CF_EXPORT void CFQSortArray(void *list, CFIndex count, CFIndex elementSize, CFCo
 
 // For non-Darwin platforms _CFExecutableLinkedOnOrAfter(…) always returns true.
 
-typedef CF_ENUM(CFIndex, CFSystemVersion) {
+CF_ENUM(CFIndex, CFSystemVersion) {
     CFSystemVersionCheetah = 0,         /* 10.0 */
     CFSystemVersionPuma = 1,            /* 10.1 */
     CFSystemVersionJaguar = 2,          /* 10.2 */
@@ -278,7 +278,7 @@ typedef CF_ENUM(CFIndex, CFSystemVersion) {
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version);
 
 
-typedef CF_ENUM(CFIndex, CFStringCharacterClusterType) {
+CF_ENUM(CFIndex, CFStringCharacterClusterType) {
     kCFStringGraphemeCluster = 1, /* Unicode Grapheme Cluster */
     kCFStringComposedCharacterCluster = 2, /* Compose all non-base (including spacing marks) */
     kCFStringCursorMovementCluster = 3, /* Cluster suitable for cursor movements */
@@ -626,7 +626,7 @@ CF_EXPORT CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFD
 CF_EXPORT bool _CFPropertyListValidateData(CFDataRef data, CFTypeID *outTopLevelTypeID) API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
 
 // Returns a subset of a bundle's Info.plist. The keyPaths follow the same rules as above CFPropertyList function. This function takes platform and product keys into account.
-typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
+CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
     _CFBundleFilteredPlistMemoryMapped = 1
 } API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 

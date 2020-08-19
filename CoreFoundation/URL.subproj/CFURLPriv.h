@@ -460,7 +460,7 @@ Boolean _CFURLGetResourcePropertyFlags(CFURLRef url, CFURLResourcePropertyFlags 
 /*
     File resource properties which can be obtained with _CFURLCopyFilePropertyValuesAndFlags().
  */
-typedef CF_OPTIONS(unsigned long long, CFURLFilePropertyBitmap) {
+CF_OPTIONS(unsigned long long, CFURLFilePropertyBitmap) {
     kCFURLName				    = 0x0000000000000001,
     kCFURLLinkCount			    = 0x0000000000000002,
     kCFURLVolumeIdentifier		    = 0x0000000000000004,
@@ -510,7 +510,7 @@ Boolean _CFURLCopyResourcePropertyValuesAndFlags( CFURLRef url, CFURLFilePropert
 /*
     Volume property flags
  */
-typedef CF_OPTIONS(unsigned long long, CFURLVolumePropertyFlags) {
+CF_OPTIONS(unsigned long long, CFURLVolumePropertyFlags) {
     kCFURLVolumeIsLocal                                 =                0x1LL,	// Local device (vs. network device)
     kCFURLVolumeIsAutomount				=                0x2LL,	// Mounted by the automounter
     kCFURLVolumeDontBrowse				=                0x4LL,	// Hidden from user browsing
@@ -774,7 +774,7 @@ enum {
     kCFBookmarkResolutionQuarantineMountedNetworkVolumesMask API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 13 ), // quarantine any network volume mounted during resolution
 };
 
-typedef CF_ENUM(CFIndex, CFURLBookmarkMatchResult) {
+CF_ENUM(CFIndex, CFURLBookmarkMatchResult) {
     kCFURLBookmarkComparisonUnableToCompare = 0x00000000,   /* the two bookmarks could not be compared for some reason */
     kCFURLBookmarkComparisonNoMatch         = 0x00001000,   /* Bookmarks do not refer to the same item */
     kCFURLBookmarkComparisonUnlikelyToMatch = 0x00002000,   /* it is unlikely that the two items refer to the same filesystem item */

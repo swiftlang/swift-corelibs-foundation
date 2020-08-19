@@ -52,7 +52,7 @@ CF_EXPORT Boolean CFCharacterSetIsSurrogatePairMember(CFCharacterSetRef theSet, 
 
 /* Keyed-coding support
 */
-typedef CF_ENUM(CFIndex, CFCharacterSetKeyedCodingType) {
+CF_ENUM(CFIndex, CFCharacterSetKeyedCodingType) {
     kCFCharacterSetKeyedCodingTypeBitmap = 1,
     kCFCharacterSetKeyedCodingTypeBuiltin = 2,
     kCFCharacterSetKeyedCodingTypeRange = 3,

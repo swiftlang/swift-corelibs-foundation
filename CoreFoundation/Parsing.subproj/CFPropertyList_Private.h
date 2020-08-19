@@ -10,7 +10,7 @@
 #include <CoreFoundation/CFPropertyList.h>
 
 // this is only allowed the first 8 bits
-typedef CF_OPTIONS(CFOptionFlags, CFPropertyListSupportedFormats) {
+CF_OPTIONS(CFOptionFlags, CFPropertyListSupportedFormats) {
     kCFPropertyListSupportedFormatOpenStepFormat = 1 << 8,
     kCFPropertyListSupportedFormatBinary_v1_0 = 1 << 9,
     kCFPropertyListSupportedFormatXML_v1_0 = 1 << 10,

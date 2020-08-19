@@ -14,7 +14,7 @@
 
 CF_EXTERN_C_BEGIN
 
-typedef CF_ENUM(CFIndex, CFStringEncodings) {
+CF_ENUM(CFIndex, CFStringEncodings) {
 /*  kCFStringEncodingMacRoman = 0L, defined in CoreFoundation/CFString.h */
     kCFStringEncodingMacJapanese = 1,
     kCFStringEncodingMacChineseTrad = 2,

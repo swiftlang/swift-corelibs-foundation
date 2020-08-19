@@ -632,7 +632,7 @@ CF_INLINE UInt64 __CFReadTSR(void) {
 
 /* Identical to CFStringGetFileSystemRepresentation, but returns additional information about the failure.
  */
-typedef CF_ENUM(CFIndex, _CFStringFileSystemRepresentationError) {
+CF_ENUM(CFIndex, _CFStringFileSystemRepresentationError) {
     _kCFStringFileSystemRepresentationErrorNone = 0,            // 'characterIndex' is undefined.
     _kCFStringFileSystemRepresentationErrorBufferFull,          // 'characterIndex' is undefined.
     _kCFStringFileSystemRepresentationErrorEmbeddedNull,        // 'characterIndex' == index of first NULL character in 'buffer'.

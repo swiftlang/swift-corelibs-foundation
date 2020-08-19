@@ -18,7 +18,7 @@
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
 
-typedef CF_ENUM(CFIndex, CFURLPathStyle) {
+CF_ENUM(CFIndex, CFURLPathStyle) {
     kCFURLPOSIXPathStyle = 0,
     kCFURLHFSPathStyle API_DEPRECATED("Carbon File Manager is deprecated, use kCFURLPOSIXPathStyle where possible", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0)), /* The use of kCFURLHFSPathStyle is deprecated. The Carbon File Manager, which uses HFS style paths, is deprecated. HFS style paths are unreliable because they can arbitrarily refer to multiple volumes if those volumes have identical volume names. You should instead use kCFURLPOSIXPathStyle wherever possible. */
     kCFURLWindowsPathStyle
@@ -290,7 +290,7 @@ CFURLRef CFURLCreateCopyDeletingPathExtension(CFAllocatorRef allocator, CFURLRef
 CF_EXPORT
 CFIndex CFURLGetBytes(CFURLRef url, UInt8 *buffer, CFIndex bufferLength);
 
-typedef CF_ENUM(CFIndex, CFURLComponentType) {
+CF_ENUM(CFIndex, CFURLComponentType) {
 	kCFURLComponentScheme = 1,
 	kCFURLComponentNetLocation = 2,
 	kCFURLComponentPath = 3,
@@ -1139,7 +1139,7 @@ const CFStringRef kCFURLUbiquitousItemDownloadingStatusCurrent API_AVAILABLE(mac
 
 #if !DEPLOYMENT_TARGET_SWIFT
 
-typedef CF_OPTIONS(CFOptionFlags, CFURLBookmarkCreationOptions) {
+CF_OPTIONS(CFOptionFlags, CFURLBookmarkCreationOptions) {
     kCFURLBookmarkCreationMinimalBookmarkMask = ( 1UL << 9 ), // creates bookmark data with "less" information, which may be smaller but still be able to resolve in certain ways
     kCFURLBookmarkCreationSuitableForBookmarkFile = ( 1UL << 10 ), // include the properties required by CFURLWriteBookmarkDataToFile() in the bookmark data created
     kCFURLBookmarkCreationWithSecurityScope API_AVAILABLE(macos(10.7))  API_UNAVAILABLE(ios, watchos, tvos) = ( 1UL << 11 ), // Mac OS X 10.7.3 and later, include information in the bookmark data which allows the same sandboxed process to access the resource after being relaunched
@@ -1150,7 +1150,7 @@ typedef CF_OPTIONS(CFOptionFlags, CFURLBookmarkCreationOptions) {
     API_DEPRECATED("kCFURLBookmarkCreationPreferFileIDResolutionMask does nothing and has no effect on bookmark resolution", macos(10.6,10.9), ios(4.0,7.0)) = ( 1UL << 8 ),
 } API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
-typedef CF_OPTIONS(CFOptionFlags, CFURLBookmarkResolutionOptions) {
+CF_OPTIONS(CFOptionFlags, CFURLBookmarkResolutionOptions) {
     kCFURLBookmarkResolutionWithoutUIMask = ( 1UL << 8 ), // don't perform any user interaction during bookmark resolution
     kCFURLBookmarkResolutionWithoutMountingMask = ( 1UL << 9 ), // don't mount a volume during bookmark resolution
     kCFURLBookmarkResolutionWithSecurityScope API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos) = ( 1UL << 10 ), // Mac OS X 10.7.3 and later, use the secure information included at creation time to provide the ability to access the resource in a sandboxed process.

@@ -15,7 +15,7 @@
 
 CF_ASSUME_NONNULL_BEGIN
 
-typedef CF_ENUM(CFIndex, CFKnownLocationUser) {
+CF_ENUM(CFIndex, CFKnownLocationUser) {
     _kCFKnownLocationUserAny,
     _kCFKnownLocationUserCurrent,
     _kCFKnownLocationUserByName,

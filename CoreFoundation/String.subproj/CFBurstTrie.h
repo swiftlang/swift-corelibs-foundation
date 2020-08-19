@@ -18,7 +18,7 @@ CF_EXTERN_C_BEGIN
 typedef struct CF_BRIDGED_MUTABLE_TYPE(id) _CFBurstTrie *CFBurstTrieRef;
 typedef struct CF_BRIDGED_MUTABLE_TYPE(id) _CFBurstTrieCursor *CFBurstTrieCursorRef;
 
-typedef CF_OPTIONS(CFOptionFlags, CFBurstTrieOpts) {
+CF_OPTIONS(CFOptionFlags, CFBurstTrieOpts) {
         /*!
          BurstTrie Options
          Use one or more of these options with CFBurstTrieCreate to tailor optimizations to the data

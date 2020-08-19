@@ -38,7 +38,7 @@ struct _URIParseInfo {
     unsigned long	fragmentExists          : 1;
 };
 
-typedef CF_ENUM(unsigned short, _CFURIParserURLAllowedCharacter) {
+CF_ENUM(unsigned short, _CFURIParserURLAllowedCharacter) {
     kURLSchemeAllowed	= 0x0001,
     kURLUserAllowed	= 0x0002,
     kURLPasswordAllowed	= 0x0004,

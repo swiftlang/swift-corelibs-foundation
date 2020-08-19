@@ -16,7 +16,7 @@ CF_EXTERN_C_BEGIN
 #include <mach/mach_port.h>
 #include <os/lock.h>
 
-typedef CF_ENUM(uint8_t, _CFMPLifetimeClient) {
+CF_ENUM(uint8_t, _CFMPLifetimeClient) {
     _CFMPLifetimeClientCFMachPort = 0,
     _CFMPLifetimeClientCFMessagePort = 1,
     // NOTE: We current support MAX_CLIENTS more clients (currently 2)

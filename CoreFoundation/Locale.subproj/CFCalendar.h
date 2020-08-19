@@ -60,7 +60,7 @@ CF_EXPORT
 void CFCalendarSetMinimumDaysInFirstWeek(CFCalendarRef calendar, CFIndex mwd);
 
 
-typedef CF_OPTIONS(CFOptionFlags, CFCalendarUnit) {
+CF_OPTIONS(CFOptionFlags, CFCalendarUnit) {
 	kCFCalendarUnitEra = (1UL << 1),
 	kCFCalendarUnitYear = (1UL << 2),
 	kCFCalendarUnitMonth = (1UL << 3),

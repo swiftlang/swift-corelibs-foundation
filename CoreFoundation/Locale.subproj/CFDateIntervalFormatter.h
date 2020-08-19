@@ -23,7 +23,7 @@ CF_EXTERN_C_BEGIN
 
 typedef struct CF_BRIDGED_TYPE(id) __CFDateIntervalFormatter * CFDateIntervalFormatterRef;
 
-typedef CF_ENUM(CFIndex, CFDateIntervalFormatterStyle) {
+CF_ENUM(CFIndex, CFDateIntervalFormatterStyle) {
     kCFDateIntervalFormatterNoStyle = 0,
     kCFDateIntervalFormatterShortStyle = 1,
     kCFDateIntervalFormatterMediumStyle = 2,
@@ -31,7 +31,7 @@ typedef CF_ENUM(CFIndex, CFDateIntervalFormatterStyle) {
     kCFDateIntervalFormatterFullStyle = 4,
 };
 
-typedef CF_ENUM(CFIndex, _CFDateIntervalFormatterBoundaryStyle) {
+CF_ENUM(CFIndex, _CFDateIntervalFormatterBoundaryStyle) {
     kCFDateIntervalFormatterBoundaryStyleDefault = 0,
 #if TARGET_OS_MAC
     kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths = 1,

@@ -76,7 +76,7 @@ CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef tz, CFAbsolut
 CF_EXPORT
 CFAbsoluteTime CFTimeZoneGetNextDaylightSavingTimeTransition(CFTimeZoneRef tz, CFAbsoluteTime at) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
-typedef CF_ENUM(CFIndex, CFTimeZoneNameStyle) {
+CF_ENUM(CFIndex, CFTimeZoneNameStyle) {
 	kCFTimeZoneNameStyleStandard,
 	kCFTimeZoneNameStyleShortStandard,
 	kCFTimeZoneNameStyleDaylightSaving,

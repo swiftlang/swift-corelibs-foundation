@@ -34,7 +34,7 @@ storage was a single block.
 
 #include <CoreFoundation/CFBase.h>
 
-typedef CF_OPTIONS(CFOptionFlags, CFStorageEnumerationOptionFlags) {
+CF_OPTIONS(CFOptionFlags, CFStorageEnumerationOptionFlags) {
         kCFStorageEnumerationConcurrent = (1UL << 0) /* Allow enumeration to proceed concurrently */
 };
 

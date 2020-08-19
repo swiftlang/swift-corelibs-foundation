@@ -21,7 +21,7 @@
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
 
-typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionOptions) {
+CF_OPTIONS(CFOptionFlags, _CFRegularExpressionOptions) {
     _kCFRegularExpressionCaseInsensitive             = 1 << 0,
     _kCFRegularExpressionAllowCommentsAndWhitespace  = 1 << 1,
     _kCFRegularExpressionIgnoreMetacharacters        = 1 << 2,
@@ -31,7 +31,7 @@ typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionOptions) {
     _kCFRegularExpressionUseUnicodeWordBoundaries    = 1 << 6
 };
 
-typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingOptions) {
+CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingOptions) {
     _kCFRegularExpressionMatchingReportProgress         = 1 << 0,
     _kCFRegularExpressionMatchingReportCompletion       = 1 << 1,
     _kCFRegularExpressionMatchingAnchored               = 1 << 2,
@@ -40,7 +40,7 @@ typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingOptions) {
     _kCFRegularExpressionMatchingOmitResult             = 1 << 13
 };
 
-typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingFlags) {
+CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingFlags) {
     _kCFRegularExpressionMatchingProgress               = 1 << 0,       /* Set when the block is called to report progress during a long-running match operation. */
     _kCFRegularExpressionMatchingCompleted              = 1 << 1,       /* Set when the block is called after completion of any matching. */
     _kCFRegularExpressionMatchingHitEnd                 = 1 << 2,       /* Set when the current match operation reached the end of the search range. */

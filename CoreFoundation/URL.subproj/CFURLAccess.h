@@ -79,7 +79,7 @@ CFTypeRef CFURLCreatePropertyFromResource(CFAllocatorRef alloc, CFURLRef url, CF
 
 
 /* Common error codes (returned only by the older APIs that predate CFError) */
-typedef CF_ENUM(CFIndex, CFURLError) {
+CF_ENUM(CFIndex, CFURLError) {
     kCFURLUnknownError = -10L,
     kCFURLUnknownSchemeError = -11L,
     kCFURLResourceNotFoundError = -12L,

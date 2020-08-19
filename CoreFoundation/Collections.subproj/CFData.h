@@ -64,7 +64,7 @@ void CFDataReplaceBytes(CFMutableDataRef theData, CFRange range, const UInt8 *ne
 CF_EXPORT
 void CFDataDeleteBytes(CFMutableDataRef theData, CFRange range);
 
-typedef CF_OPTIONS(CFOptionFlags, CFDataSearchFlags) {
+CF_OPTIONS(CFOptionFlags, CFDataSearchFlags) {
     kCFDataSearchBackwards = 1UL << 0,
     kCFDataSearchAnchored = 1UL << 1
 } API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));

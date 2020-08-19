@@ -22,7 +22,7 @@ typedef struct CF_BRIDGED_MUTABLE_TYPE(id) __CFNotificationCenter * CFNotificati
 
 typedef void (*CFNotificationCallback)(CFNotificationCenterRef center, void *observer, CFNotificationName name, const void *object, CFDictionaryRef userInfo);
 
-typedef CF_ENUM(CFIndex, CFNotificationSuspensionBehavior) {
+CF_ENUM(CFIndex, CFNotificationSuspensionBehavior) {
     CFNotificationSuspensionBehaviorDrop = 1,
         // The server will not queue any notifications with this name and object while the process/app is in the background.
     CFNotificationSuspensionBehaviorCoalesce = 2,

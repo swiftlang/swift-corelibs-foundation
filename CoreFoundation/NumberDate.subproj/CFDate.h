@@ -73,7 +73,7 @@ typedef struct {
     double seconds;
 } CFGregorianUnits API_DEPRECATED("Use CFCalendar or NSCalendar API instead", macos(10.4, 10.10), ios(2.0, 8.0), watchos(2.0, 2.0), tvos(9.0, 9.0));
 
-typedef CF_OPTIONS(CFOptionFlags, CFGregorianUnitFlags) {
+CF_OPTIONS(CFOptionFlags, CFGregorianUnitFlags) {
     kCFGregorianUnitsYears API_DEPRECATED("Use CFCalendar or NSCalendar API instead", macos(10.4, 10.10), ios(2.0, 8.0), watchos(2.0, 2.0), tvos(9.0, 9.0)) = (1UL << 0),
     kCFGregorianUnitsMonths API_DEPRECATED("Use CFCalendar or NSCalendar API instead", macos(10.4, 10.10), ios(2.0, 8.0), watchos(2.0, 2.0), tvos(9.0, 9.0)) = (1UL << 1),
     kCFGregorianUnitsDays API_DEPRECATED("Use CFCalendar or NSCalendar API instead", macos(10.4, 10.10), ios(2.0, 8.0), watchos(2.0, 2.0), tvos(9.0, 9.0)) = (1UL << 2),

@@ -96,7 +96,7 @@ filled in properly when passing in an address.
 */
 
 /* Values for CFSocketError */
-typedef CF_ENUM(CFIndex, CFSocketError) {
+CF_ENUM(CFIndex, CFSocketError) {
     kCFSocketSuccess = 0,
     kCFSocketError = -1L,
     kCFSocketTimeout = -2L
@@ -110,7 +110,7 @@ typedef struct {
 } CFSocketSignature;
 
 /* Values for CFSocketCallBackType */
-typedef CF_OPTIONS(CFOptionFlags, CFSocketCallBackType) {
+CF_OPTIONS(CFOptionFlags, CFSocketCallBackType) {
     kCFSocketNoCallBack = 0,
     kCFSocketReadCallBack = 1,
     kCFSocketAcceptCallBack = 2,

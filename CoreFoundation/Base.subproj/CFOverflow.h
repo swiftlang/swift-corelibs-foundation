@@ -31,7 +31,7 @@
     #endif
 #endif // __has_include(<os/overflow.h>)
 
-typedef CF_ENUM(uint8_t, _CFOverflowResult) {
+CF_ENUM(uint8_t, _CFOverflowResult) {
     _CFOverflowResultOK = 0,
     _CFOverflowResultNegativeParameters,
     _CFOverflowResultOverflows,

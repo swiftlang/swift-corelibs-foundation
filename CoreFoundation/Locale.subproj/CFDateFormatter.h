@@ -42,7 +42,7 @@ CFTypeID CFDateFormatterGetTypeID(void);
 // should not rely on styles and localization, but set the format string and
 // use nothing but numbers.
 
-typedef CF_ENUM(CFIndex, CFDateFormatterStyle) {	// date and time format styles
+CF_ENUM(CFIndex, CFDateFormatterStyle) {	// date and time format styles
     kCFDateFormatterNoStyle = 0,
     kCFDateFormatterShortStyle = 1,
     kCFDateFormatterMediumStyle = 2,
@@ -50,7 +50,7 @@ typedef CF_ENUM(CFIndex, CFDateFormatterStyle) {	// date and time format styles
     kCFDateFormatterFullStyle = 4
 };
 
-typedef CF_OPTIONS(CFOptionFlags, CFISO8601DateFormatOptions) {
+CF_OPTIONS(CFOptionFlags, CFISO8601DateFormatOptions) {
     /* The format for year is inferred based on whether or not the week of year option is specified.
      - if week of year is present, "YYYY" is used to display week dates.
      - if week of year is not present, "yyyy" is used by default.

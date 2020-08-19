@@ -102,7 +102,7 @@ typedef UInt32 CFStringEncoding;
    Call CFStringGetSystemEncoding() to get the default system encoding.
 */
 #define kCFStringEncodingInvalidId (0xffffffffU)
-typedef CF_ENUM(CFStringEncoding, CFStringBuiltInEncodings) {
+CF_ENUM(CFStringEncoding, CFStringBuiltInEncodings) {
     kCFStringEncodingMacRoman = 0,
     kCFStringEncodingWindowsLatin1 = 0x0500, /* ANSI codepage 1252 */
     kCFStringEncodingISOLatin1 = 0x0201, /* ISO 8859-1 */
@@ -407,7 +407,7 @@ CFStringRef CFStringCreateWithFileSystemRepresentation(CFAllocatorRef alloc, con
 
 /* Find and compare flags; these are OR'ed together and provided as CFStringCompareFlags in the various functions. 
 */
-typedef CF_OPTIONS(CFOptionFlags, CFStringCompareFlags) {
+CF_OPTIONS(CFOptionFlags, CFStringCompareFlags) {
     kCFCompareCaseInsensitive = 1,	
     kCFCompareBackwards = 4,		/* Starting from the end of the string */
     kCFCompareAnchored = 8,		/* Only at the specified starting point */
@@ -683,7 +683,7 @@ void CFStringCapitalize(CFMutableStringRef theString, CFLocaleRef locale);
 	Unicode Technical Report #15. To normalize for use with file
 	system calls, use CFStringGetFileSystemRepresentation().
 */
-typedef CF_ENUM(CFIndex, CFStringNormalizationForm) {
+CF_ENUM(CFIndex, CFStringNormalizationForm) {
 	kCFStringNormalizationFormD = 0, // Canonical Decomposition
 	kCFStringNormalizationFormKD, // Compatibility Decomposition
 	kCFStringNormalizationFormC, // Canonical Decomposition followed by Canonical Composition
