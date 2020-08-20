@@ -434,7 +434,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         let fm = FileManager.default
-        let permissions = try? fm._permissionsOfItem(atPath: path)
+        // The destination file path may not exist so provide a default file permissions of RW user only
+        let permissions = (try? fm._permissionsOfItem(atPath: path)) ?? 0o600
 
         if writeOptionsMask.contains(.atomic) {
             let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
@@ -445,9 +446,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 // requires that there be no open handles to the file
                 fh.closeFile()
                 try _NSCleanupTemporaryFile(auxFilePath, path)
-                if let permissions = permissions {
-                    try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
-                }
+                try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
             } catch {
                 let savedErrno = errno
                 try? fm.removeItem(atPath: auxFilePath)
@@ -458,15 +457,11 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             if writeOptionsMask.contains(.withoutOverwriting) {
                 flags |= O_EXCL
             }
-            let createMode = Int(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
-            guard let fh = FileHandle(path: path, flags: flags, createMode: createMode) else {
+            guard let fh = FileHandle(path: path, flags: flags, createMode: permissions) else {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
             try doWrite(fh)
-            if let permissions = permissions {
-                try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
-            }
         }
     }
 
