@@ -1595,6 +1595,8 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 #endif
 	CFRelease(dict);
 	if (CFEqual(CFSTR(""), name)) {
+	    if (baseURL) CFRelease(baseURL);
+	    if (data) CFRelease(data);
 	    return NULL;
 	}
     }
