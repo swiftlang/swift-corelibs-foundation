@@ -7078,7 +7078,8 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 	    newMaxArgNum = specs[curSpec].widthArgNum;
 	}
 	if (sizeArgNum < newMaxArgNum) {
-	    if (specs != localSpecsBuffer) CFAllocatorDeallocate(tmpAlloc, specs);
+	    if (numConfigs > 0) va_end(copiedArgs);
+	    if (specs != localSpecsBuffer) CFAllocatorDeallocate(tmpAlloc, specs);	
 	    if (values != localValuesBuffer) CFAllocatorDeallocate(tmpAlloc, values);
 	    if (formatChars && (formatChars != localFormatBuffer)) CFAllocatorDeallocate(tmpAlloc, formatChars);
             
