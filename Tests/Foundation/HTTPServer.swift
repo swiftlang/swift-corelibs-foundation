@@ -841,6 +841,11 @@ public class TestURLSessionServer {
                                            "Content-Encoding: gzip"].joined(separator: _HTTPUtils.CRLF),
                                  bodyData: helloWorld)
         }
+        
+        if uri == "/echo-query" {
+            let body = request.parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
+            return try _HTTPResponse(response: .OK, body: body)
+        }
 
         // Look for /xxx where xxx is a 3digit HTTP code
         if uri.hasPrefix("/") && uri.count == 4, let code = Int(String(uri.dropFirst())), code > 0 && code < 1000 {
