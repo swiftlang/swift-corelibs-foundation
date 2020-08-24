@@ -323,7 +323,7 @@ extension RunLoop {
                 },
                 hash: { (info) -> CFHashCode in
                     let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
-                    return CFHashCode(me.hashValue)
+                    return CFHashCode(bitPattern: me.hashValue)
                 },
                 schedule: { (info, cfRunLoop, cfRunLoopMode) in
                     let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
