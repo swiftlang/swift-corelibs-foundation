@@ -164,7 +164,6 @@ CF_PRIVATE Boolean _CFReadBytesFromFile(CFAllocatorRef alloc, CFURLRef url, void
 
 CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex length) {
     int fd = -1;
-    int mode;
     struct statinfo statBuf;
     char path[CFMaxPathSize];
     if (!CFURLGetFileSystemRepresentation(url, true, (uint8_t *)path, CFMaxPathSize)) {
@@ -172,14 +171,14 @@ CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex 
     }
 
     int no_hang_fd = openAutoFSNoWait();
-    mode = 0666;
+    int mode = 0666;
     if (0 == stat(path, &statBuf)) {
         mode = statBuf.st_mode;
     } else if (thread_errno() != ENOENT) {
         closeAutoFSNoWait(no_hang_fd);
         return false;
     }
-    fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|CF_OPENFLGS, 0666);
+    fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|CF_OPENFLGS, mode);
     if (fd < 0) {
         closeAutoFSNoWait(no_hang_fd);
         return false;
