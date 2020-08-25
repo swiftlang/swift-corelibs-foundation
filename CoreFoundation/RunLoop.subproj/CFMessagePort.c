@@ -443,7 +443,7 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     CFMachPortContext ctx;
     uint8_t *utfname = NULL;
     CFIndex size;
-    mach_port_t port = 0;
+    mach_port_t port = MACH_PORT_NULL;
 
     CFStringRef const name = __CFMessagePortCreateSanitizedStringName(inName, &utfname, NULL);
     if (NULL == name) {
