@@ -161,12 +161,4 @@ endif()
 
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
-install(TARGETS Foundation
-  ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
-  LIBRARY DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
-  RUNTIME DESTINATION bin)
-get_swift_host_arch(swift_arch)
-install(FILES
-  $<TARGET_PROPERTY:Foundation,Swift_MODULE_DIRECTORY>/Foundation.swiftdoc
-  $<TARGET_PROPERTY:Foundation,Swift_MODULE_DIRECTORY>/Foundation.swiftmodule
-  DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})
+_install_target(Foundation)

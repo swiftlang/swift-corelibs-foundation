@@ -113,18 +113,23 @@ const char **_CFGetProcessPath(void) {
     return &__CFProcessPath;
 }
 
-#if TARGET_OS_WIN32
+static inline void _CFSetProgramNameFromPath(const char *path) {
+    __CFProcessPath = strdup(path);
+    __CFprogname = strrchr(__CFProcessPath, PATH_SEP);
+    __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
+}
+
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
+
+#if TARGET_OS_WIN32
     wchar_t buf[CFMaxPathSize] = {0};
     DWORD rlen = GetModuleFileNameW(NULL, buf, sizeof(buf) / sizeof(buf[0]));
     if (0 < rlen) {
 	char asciiBuf[CFMaxPathSize] = {0};
 	int res = WideCharToMultiByte(CP_UTF8, 0, buf, rlen, asciiBuf, sizeof(asciiBuf) / sizeof(asciiBuf[0]), NULL, NULL);
 	if (0 < res) {
-	    __CFProcessPath = strdup(asciiBuf);
-	    __CFprogname = strrchr(__CFProcessPath, PATH_SEP);
-	    __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
+            _CFSetProgramNameFromPath(asciiBuf);
 	}
     }
     if (!__CFProcessPath) {
@@ -132,25 +137,12 @@ const char *_CFProcessPath(void) {
         __CFprogname = __CFProcessPath;
     }
     return __CFProcessPath;
-}
-#endif
-
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
-CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
-    return pthread_main_np() == 1;
-}
-#endif
-
-#if TARGET_OS_MAC
-const char *_CFProcessPath(void) {
-    if (__CFProcessPath) return __CFProcessPath;
+#elif TARGET_OS_MAC
 #if TARGET_OS_OSX
     if (!__CFProcessIsRestricted()) {
 	const char *path = (char *)__CFgetenv("CFProcessPath");
 	if (path) {
-	    __CFProcessPath = strdup(path);
-	    __CFprogname = strrchr(__CFProcessPath, PATH_SEP);
-	    __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
+            _CFSetProgramNameFromPath(path);
 	    return __CFProcessPath;
 	}
     }
@@ -160,9 +152,7 @@ const char *_CFProcessPath(void) {
         uint32_t size = CFMaxPathSize;
         char buffer[size];
         if (0 == _NSGetExecutablePath(buffer, &size)) {
-            __CFProcessPath = strdup(buffer);
-            __CFprogname = strrchr(__CFProcessPath, PATH_SEP);
-            __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
+            _CFSetProgramNameFromPath(buffer);
         }
     }
 
@@ -171,6 +161,38 @@ const char *_CFProcessPath(void) {
         __CFprogname = __CFProcessPath;
     }
     return __CFProcessPath;
+#elif TARGET_OS_LINUX
+    char buf[CFMaxPathSize + 1];
+
+    ssize_t res = readlink("/proc/self/exe", buf, CFMaxPathSize);
+    if (res > 0) {
+        // null terminate, readlink does not
+        buf[res] = 0;
+        _CFSetProgramNameFromPath(buf);
+    } else {
+        __CFProcessPath = "";
+        __CFprogname = __CFProcessPath;
+    }
+    return __CFProcessPath;
+#else // TARGET_OS_BSD
+    if (!__CFProcessIsRestricted()) {
+        char *path = getenv("_");
+        if (path != NULL) {
+            _CFSetProgramNameFromPath(path);
+            return __CFProcessPath;
+        }
+    }
+
+    // We don't yet have anything left to try.
+    __CFProcessPath = "";
+    __CFprogname = __CFProcessPath;
+    return __CFProcessPath;
+#endif
+}
+
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
+CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
+    return pthread_main_np() == 1;
 }
 #endif
 
@@ -184,24 +206,6 @@ const char *_CFProcessPath(void) {
 
 Boolean _CFIsMainThread(void) {
     return syscall(SYS_gettid) == getpid();
-}
-
-const char *_CFProcessPath(void) {
-    if (__CFProcessPath) return __CFProcessPath;
-    char buf[CFMaxPathSize + 1];
-    
-    ssize_t res = readlink("/proc/self/exe", buf, CFMaxPathSize);
-    if (res > 0) {
-        // null terminate, readlink does not
-        buf[res] = 0;
-        __CFProcessPath = strdup(buf);
-        __CFprogname = strrchr(__CFProcessPath, PATH_SEP);
-        __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
-    } else {
-        __CFProcessPath = "";
-        __CFprogname = __CFProcessPath;
-    }
-    return __CFProcessPath;
 }
 #endif
 

@@ -342,7 +342,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(otherBits + Decimal(1), highBit)
     }
 
-    func test_Misc() {
+    func test_Misc() throws {
         XCTAssertEqual(.minus, Decimal(-5.2).sign)
         XCTAssertEqual(.plus, Decimal(5.2).sign)
         var d = Decimal(5.2)
@@ -425,6 +425,23 @@ class TestDecimal: XCTestCase {
                 XCTAssertEqual(expected, actual, "\(actual) == \(i)^\(j)")
                 XCTAssertEqual(expected, pow(power, j))
             }
+        }
+
+        do {
+            // SR-13015
+            let a = try XCTUnwrap(Decimal(string: "119.993"))
+            let b = try XCTUnwrap(Decimal(string: "4.1565"))
+            let c = try XCTUnwrap(Decimal(string: "18.209"))
+            let d = try XCTUnwrap(Decimal(string: "258.469"))
+            let ab = a * b
+            let aDivD = a / d
+            let caDivD = c * aDivD
+            XCTAssertEqual(ab, try XCTUnwrap(Decimal(string: "498.7509045")))
+            XCTAssertEqual(aDivD, try XCTUnwrap(Decimal(string: "0.46424522863476857959755328492004843907")))
+            XCTAssertEqual(caDivD, try XCTUnwrap(Decimal(string: "8.453441368210501065891847765109162027")))
+
+            let result = (a * b) + (c * (a / d))
+            XCTAssertEqual(result, try XCTUnwrap(Decimal(string: "507.2043458682105010658918477651091")))
         }
     }
 
@@ -522,7 +539,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(0, result._isNegative, "0 * -1")
     }
 
-    func test_Normalise() {
+    func test_Normalise() throws {
         var one = Decimal(1)
         var ten = Decimal(-10)
         XCTAssertEqual(.noError, NSDecimalNormalize(&one, &ten, .plain))
@@ -558,6 +575,36 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&large, &small, .plain))
         XCTAssertEqual(small.exponent, 127)
         XCTAssertEqual(large.exponent, 127)
+
+        // Normalise with loss of precision
+        let a = try XCTUnwrap(Decimal(string: "498.7509045"))
+        let b = try XCTUnwrap(Decimal(string: "8.453441368210501065891847765109162027"))
+
+        var aNormalized = a
+        var bNormalized = b
+        let normalizeError = NSDecimalNormalize(&aNormalized, &bNormalized, .plain)
+        XCTAssertEqual(normalizeError, NSDecimalNumber.CalculationError.lossOfPrecision)
+
+        XCTAssertEqual(aNormalized.exponent, -31)
+        XCTAssertEqual(aNormalized._mantissa.0, 0)
+        XCTAssertEqual(aNormalized._mantissa.1, 21760)
+        XCTAssertEqual(aNormalized._mantissa.2, 45355)
+        XCTAssertEqual(aNormalized._mantissa.3, 11455)
+        XCTAssertEqual(aNormalized._mantissa.4, 62709)
+        XCTAssertEqual(aNormalized._mantissa.5, 14050)
+        XCTAssertEqual(aNormalized._mantissa.6, 62951)
+        XCTAssertEqual(aNormalized._mantissa.7, 0)
+        XCTAssertEqual(bNormalized.exponent, -31)
+        XCTAssertEqual(bNormalized._mantissa.0, 56467)
+        XCTAssertEqual(bNormalized._mantissa.1, 17616)
+        XCTAssertEqual(bNormalized._mantissa.2, 59987)
+        XCTAssertEqual(bNormalized._mantissa.3, 21635)
+        XCTAssertEqual(bNormalized._mantissa.4, 5988)
+        XCTAssertEqual(bNormalized._mantissa.5, 63852)
+        XCTAssertEqual(bNormalized._mantissa.6, 1066)
+        XCTAssertEqual(bNormalized._mantissa.7, 1628)
+        XCTAssertEqual(a, aNormalized)
+        XCTAssertNotEqual(b, bNormalized)   // b had a loss Of Precision when normalising
     }
 
     func test_NSDecimal() throws {
@@ -1207,6 +1254,32 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(d8?._length, 1)
     }
 
+    func test_NSNumberEquality() {
+
+        let values = [
+            (NSNumber(value: Int.min), NSDecimalNumber(decimal: Decimal(Int.min))),
+            (NSNumber(value: Int.max), NSDecimalNumber(decimal: Decimal(Int.max))),
+            (NSNumber(value: Double(1.1)), NSDecimalNumber(decimal: Decimal(Double(1.1)))),
+            (NSNumber(value: Float(-1.0)), NSDecimalNumber(decimal: Decimal(-1))),
+            (NSNumber(value: Int8(1)), NSDecimalNumber(decimal: Decimal(1))),
+            (NSNumber(value: UInt8.max), NSDecimalNumber(decimal: Decimal(255))),
+            (NSNumber(value: Int16.min), NSDecimalNumber(decimal: Decimal(-32768))),
+        ]
+
+        for pair in values {
+            let number = pair.0
+            let decimalNumber = pair.1
+
+            XCTAssertEqual(number.compare(decimalNumber), .orderedSame)
+            XCTAssertTrue(number.isEqual(to: decimalNumber))
+            XCTAssertEqual(number, decimalNumber)
+
+            XCTAssertEqual(decimalNumber.compare(number), .orderedSame)
+            XCTAssertTrue(decimalNumber.isEqual(to: number))
+            XCTAssertEqual(decimalNumber, number)
+        }
+    }
+
     static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
         return [
             ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
@@ -1236,6 +1309,7 @@ class TestDecimal: XCTestCase {
             ("test_NSDecimalString", test_NSDecimalString),
             ("test_multiplyingByPowerOf10", test_multiplyingByPowerOf10),
             ("test_initExactly", test_initExactly),
+            ("test_NSNumberEquality", test_NSNumberEquality),
         ]
     }
 }

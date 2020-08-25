@@ -1727,6 +1727,7 @@ const char *_NSPrintForDebugger(void *cf) {
         if (!desc) {
             return "<no description>";
         }
+        CFRelease(desc);
         const char *cheapResult = CFStringGetCStringPtr((CFTypeRef)cf, kCFStringEncodingUTF8);
         if (cheapResult) {
             return cheapResult;

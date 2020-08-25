@@ -33,7 +33,7 @@ class TestNSString: LoopbackServerTest {
         let testString = "\u{00} This is a test string"
         let data = testString.data(using: .utf8)!
         XCTAssertEqual(data.count, 23)
-        _ = data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+        data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
             if let text1 = NSString(bytes: bytes.baseAddress!, length: data.count, encoding: String.Encoding.utf8.rawValue) {
                 XCTAssertEqual(text1.length, data.count)
                 XCTAssertEqual(text1, testString as NSString)

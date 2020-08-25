@@ -138,7 +138,8 @@ class TestURLSession: LoopbackServerTest {
                         let error = delegate.error as? URLError
                         XCTAssertEqual(error?.code.rawValue, NSURLErrorDataLengthExceedsMaximum)
                         XCTAssertEqual(error?.localizedDescription, "resource exceeds maximum size")
-                        let userInfo = error?.userInfo as? [String: Any]
+                        let userInfo = error?.userInfo
+                        XCTAssertNotNil(userInfo)
                         let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
                         XCTAssertEqual(errorURL, url)
 
@@ -357,7 +358,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString): get request headers")
+        let expect = expectation(description: "POST \(urlString): get request headers")
         var req = URLRequest(url: URL(string: urlString)!)
         let headers = ["header1": "value1"]
         req.httpMethod = "POST"
@@ -384,7 +385,7 @@ class TestURLSession: LoopbackServerTest {
         config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3", "header4": "svalue4"]
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString) with additional headers")
+        let expect = expectation(description: "POST \(urlString) with additional headers")
         var req = URLRequest(url: URL(string: urlString)!)
         let headers = ["header1": "rvalue1", "header2": "rvalue2", "Header4": "rvalue4"]
         req.httpMethod = "POST"
@@ -411,7 +412,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "GET \(urlString): no timeout")
+        let expect = expectation(description: "GET \(urlString): no timeout")
         let req = URLRequest(url: URL(string: urlString)!)
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
@@ -427,7 +428,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 10
         let urlString = "http://127.0.0.1:-1/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "GET \(urlString): will timeout")
+        let expect = expectation(description: "GET \(urlString): will timeout")
         var req = URLRequest(url: URL(string: "http://127.0.0.1:-1/Peru")!)
         req.timeoutInterval = 1
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
@@ -747,6 +748,21 @@ class TestURLSession: LoopbackServerTest {
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
+    
+    func test_httpRedirectionWithEncodedQuery() {
+        let location = "echo-query%3Fparam%3Dfoo" // "echo-query?param=foo" url encoded
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=\(location)"
+        let url = URL(string: urlString)!
+        let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        
+        if let body = String(data: d.receivedData, encoding: .utf8) {
+            XCTAssertEqual(body, "param=foo")
+        } else {
+            XCTFail("No string body")
+        }
+    }
 
      // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
     func test_httpRedirectionTimeout() {
@@ -754,7 +770,7 @@ class TestURLSession: LoopbackServerTest {
         var req = URLRequest(url: URL(string: urlString)!)
         req.timeoutInterval = 3
         let config = URLSessionConfiguration.default
-        var expect = expectation(description: "GET \(urlString): timeout with redirection ")
+        let expect = expectation(description: "GET \(urlString): timeout with redirection ")
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let task = session.dataTask(with: req) { data, response, error in
             defer { expect.fulfill() }
@@ -823,7 +839,8 @@ class TestURLSession: LoopbackServerTest {
             let error = delegate.error as? URLError
             XCTAssertEqual(error?.code.rawValue, NSURLErrorHTTPTooManyRedirects)
             XCTAssertEqual(error?.localizedDescription, "too many HTTP redirects")
-            let userInfo = error?.userInfo as? [String: Any]
+            let userInfo = error?.userInfo
+            XCTAssertNotNil(userInfo)
             let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
             XCTAssertEqual(errorURL, exceededCountUrl)
 
@@ -1092,7 +1109,8 @@ class TestURLSession: LoopbackServerTest {
                         let error = delegate.error as? URLError
                         XCTAssertEqual(error?.code.rawValue, NSURLErrorDataLengthExceedsMaximum)
                         XCTAssertEqual(error?.localizedDescription, "resource exceeds maximum size")
-                        let userInfo = error?.userInfo as? [String: Any]
+                        let userInfo = error?.userInfo
+                        XCTAssertNotNil(userInfo)
                         let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
                         XCTAssertEqual(errorURL, url)
 
@@ -1176,7 +1194,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(config.httpCookieStorage?.cookies?.count, 0)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (data, response, error) -> Void in
@@ -1201,7 +1219,7 @@ class TestURLSession: LoopbackServerTest {
         emptyCookieStorage(storage: config.httpCookieStorage)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (data, response, error) -> Void in
@@ -1226,7 +1244,7 @@ class TestURLSession: LoopbackServerTest {
         emptyCookieStorage(storage: config.httpCookieStorage)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         let req = URLRequest(url: URL(string: urlString)!)
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
@@ -1251,12 +1269,12 @@ class TestURLSession: LoopbackServerTest {
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
 
         let urlString1 = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
-        var expect1 = expectation(description: "POST \(urlString1)")
+        let expect1 = expectation(description: "POST \(urlString1)")
         var req1 = URLRequest(url: URL(string: urlString1)!)
         req1.httpMethod = "POST"
 
         let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
-        var expect2 = expectation(description: "POST \(urlString2)")
+        let expect2 = expectation(description: "POST \(urlString2)")
         var req2 = URLRequest(url: URL(string: urlString2)!)
         req2.httpMethod = "POST"
 
@@ -1294,7 +1312,7 @@ class TestURLSession: LoopbackServerTest {
 
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString)")
+        let expect = expectation(description: "POST \(urlString)")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
@@ -1320,12 +1338,12 @@ class TestURLSession: LoopbackServerTest {
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
 
         let urlString1 = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
-        var expect1 = expectation(description: "POST \(urlString1)")
+        let expect1 = expectation(description: "POST \(urlString1)")
         var req1 = URLRequest(url: URL(string: urlString1)!)
         req1.httpMethod = "POST"
 
         let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
-        var expect2 = expectation(description: "POST \(urlString2)")
+        let expect2 = expectation(description: "POST \(urlString2)")
         var req2 = URLRequest(url: URL(string: urlString2)!)
         req2.httpMethod = "POST"
 
@@ -1404,7 +1422,7 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "POST \(urlString): post with empty body")
+        let expect = expectation(description: "POST \(urlString): post with empty body")
         var req = URLRequest(url: URL(string: urlString)!)
         req.httpMethod = "POST"
         let task = session.dataTask(with: req) { (_, response, error) -> Void in
@@ -1443,6 +1461,9 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertNotNil(error as? URLError)
             if let urlError = error as? URLError {
                 XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
+                XCTAssertEqual(urlError.userInfo[NSURLErrorFailingURLErrorKey] as? URL, URL(string: urlString))
+                XCTAssertEqual(urlError.userInfo[NSURLErrorFailingURLStringErrorKey] as? String, urlString)
+                XCTAssertEqual(urlError.localizedDescription, "cancelled")
             }
 
             expect.fulfill()
@@ -1692,7 +1713,8 @@ class TestURLSession: LoopbackServerTest {
                     let error = delegate.error as? URLError
                     XCTAssertEqual(error?.code.rawValue, NSURLErrorDataLengthExceedsMaximum)
                     XCTAssertEqual(error?.localizedDescription, "resource exceeds maximum size")
-                    let userInfo = error?.userInfo as? [String: Any]
+                    let userInfo = error?.userInfo
+                    XCTAssertNotNil(userInfo)
                     let errorURL = userInfo?[NSURLErrorFailingURLErrorKey] as? URL
                     XCTAssertEqual(errorURL, url)
                     XCTAssertNil(delegate.response)
@@ -1767,6 +1789,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
+            ("test_httpRedirectionWithEncodedQuery", test_httpRedirectionWithEncodedQuery),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
             ("test_httpRedirectionExceededMaxRedirects", test_httpRedirectionExceededMaxRedirects),

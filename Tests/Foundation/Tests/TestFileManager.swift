@@ -15,6 +15,8 @@
     #endif
 #endif
 
+import Dispatch
+
 class TestFileManager : XCTestCase {
 #if os(Windows)
     let pathSep = "\\"
@@ -1870,6 +1872,49 @@ VIDEOS=StopgapVideos
             try checkPath(path: path)
         }
     }
+
+    /**
+     Tests that we can get an item replacement directory concurrently.
+
+     - Bug: [SR-12272](https://bugs.swift.org/browse/SR-12272)
+     */
+    func test_concurrentGetItemReplacementDirectory() throws {
+        let fileManager = FileManager.default
+
+        let operationCount = 10
+
+        var directoryURLs = [URL?](repeating: nil, count: operationCount)
+        var errors = [Error?](repeating: nil, count: operationCount)
+
+        let dispatchGroup = DispatchGroup()
+        for operationIndex in 0..<operationCount {
+            DispatchQueue.global().async(group: dispatchGroup) {
+                do {
+                    let directory = try fileManager.url(for: .itemReplacementDirectory,
+                                                        in: .userDomainMask,
+                                                        appropriateFor: URL(fileURLWithPath: NSTemporaryDirectory(),
+                                                                            isDirectory: true),
+                                                        create: true)
+                    directoryURLs[operationIndex] = directory
+                } catch {
+                    errors[operationIndex] = error
+                }
+            }
+        }
+        dispatchGroup.wait()
+
+        for directoryURL in directoryURLs {
+            if let directoryURL = directoryURL {
+                try? fileManager.removeItem(at: directoryURL)
+            }
+        }
+
+        for error in errors {
+            if let error = error {
+                XCTFail("One of the concurrent calls to get the item replacement directory failed: \(error)")
+            }
+        }
+    }
     
     // -----
     
@@ -1928,6 +1973,7 @@ VIDEOS=StopgapVideos
             ("test_contentsEqual", test_contentsEqual),
             /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
             /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
+            ("test_concurrentGetItemReplacementDirectory", test_concurrentGetItemReplacementDirectory),
         ]
         
         #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)

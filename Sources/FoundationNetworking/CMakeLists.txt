@@ -1,6 +1,8 @@
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(CURL CONFIG)
-  if(NOT CURL_FOUND)
+  if(CURL_FOUND)
+    set(CURL_VERSION_STRING ${CURL_VERSION})
+  else()
     find_package(CURL REQUIRED)
   endif()
 endif()
@@ -68,12 +70,4 @@ set_target_properties(FoundationNetworking PROPERTIES
 
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationNetworking)
-install(TARGETS FoundationNetworking
-  ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
-  LIBRARY DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
-  RUNTIME DESTINATION bin)
-get_swift_host_arch(swift_arch)
-install(FILES
-  $<TARGET_PROPERTY:FoundationNetworking,Swift_MODULE_DIRECTORY>/FoundationNetworking.swiftdoc
-  $<TARGET_PROPERTY:FoundationNetworking,Swift_MODULE_DIRECTORY>/FoundationNetworking.swiftmodule
-  DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>/${swift_arch})
+_install_target(FoundationNetworking)
