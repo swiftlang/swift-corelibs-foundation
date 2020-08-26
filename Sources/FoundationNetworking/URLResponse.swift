@@ -197,6 +197,8 @@ open class HTTPURLResponse : URLResponse {
                 if key.isEmpty { continue }
                 if key.hasPrefix("x-") || key.hasPrefix("X-") {
                     canonicalizedFields[key] = value
+                } else if key.caseInsensitiveCompare("WWW-Authenticate") == .orderedSame {
+                    canonicalizedFields["WWW-Authenticate"] = value
                 } else {
                     canonicalizedFields[key.capitalized] = value
                 }
