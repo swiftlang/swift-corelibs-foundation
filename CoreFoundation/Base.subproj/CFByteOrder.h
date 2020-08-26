@@ -1,7 +1,7 @@
 /*	CFByteOrder.h
-	Copyright (c) 1995-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1995-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,7 +11,7 @@
 #define __COREFOUNDATION_CFBYTEORDER__ 1
 
 #include <CoreFoundation/CFBase.h>
-#if ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) && !defined(CF_USE_OSBYTEORDER_H)
+#if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !defined(CF_USE_OSBYTEORDER_H)
 #include <libkern/OSByteOrder.h>
 #define CF_USE_OSBYTEORDER_H 1
 #endif

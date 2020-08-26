@@ -1,7 +1,7 @@
 /*	CFFileUtilities.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -164,7 +164,6 @@ CF_PRIVATE Boolean _CFReadBytesFromFile(CFAllocatorRef alloc, CFURLRef url, void
 
 CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex length) {
     int fd = -1;
-    int mode;
     struct statinfo statBuf;
     char path[CFMaxPathSize];
     if (!CFURLGetFileSystemRepresentation(url, true, (uint8_t *)path, CFMaxPathSize)) {
@@ -172,14 +171,14 @@ CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex 
     }
 
     int no_hang_fd = openAutoFSNoWait();
-    mode = 0666;
+    int mode = 0666;
     if (0 == stat(path, &statBuf)) {
         mode = statBuf.st_mode;
     } else if (thread_errno() != ENOENT) {
         closeAutoFSNoWait(no_hang_fd);
         return false;
     }
-    fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|CF_OPENFLGS, 0666);
+    fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|CF_OPENFLGS, mode);
     if (fd < 0) {
         closeAutoFSNoWait(no_hang_fd);
         return false;
@@ -598,7 +597,7 @@ CF_PRIVATE SInt32 _CFGetFileProperties(CFAllocatorRef alloc, CFURLRef pathURL, B
 }
 
 CF_PRIVATE bool _CFURLExists(CFURLRef url) {
-    Boolean exists;
+    Boolean exists = false;
     return url && (0 == _CFGetFileProperties(kCFAllocatorSystemDefault, url, &exists, NULL, NULL, NULL, NULL, NULL)) && exists;
 }
 
@@ -1058,14 +1057,28 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 continue;
             }
 
-            assert(!stuffToPrefix && "prefix not yet implemented");
-            Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-            CFMutableStringRef filePath = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, nameLen + 1, fileName);
-            if (appendSlashForDirectories && isDirectory) {
-                UniChar slash = CFPreferredSlash;
-                CFStringAppendCharacters(filePath, &slash, 1);
+            const UniChar kSlash = CFPreferredSlash;
+
+            CFStringAppendBuffer buffer;
+            CFStringInitAppendBuffer(kCFAllocatorSystemDefault, &buffer);
+
+            if (stuffToPrefix) {
+              for (CFIndex i = 0, e = CFArrayGetCount(stuffToPrefix); i < e; i++) {
+                CFStringRef entry = CFArrayGetValueAtIndex(stuffToPrefix, i);
+                CFStringAppendStringToAppendBuffer(&buffer, entry);
+                if (CFStringGetCharacterAtIndex(entry, CFStringGetLength(entry) - 1) != _CFGetSlash()) {
+                  CFStringAppendCharactersToAppendBuffer(&buffer, &kSlash, 1);
+                }
+              }
             }
 
+            CFStringAppendStringToAppendBuffer(&buffer, fileName);
+            Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+            if (appendSlashForDirectories && isDirectory) {
+              CFStringAppendCharactersToAppendBuffer(&buffer, &kSlash, 1);
+            }
+
+            CFMutableStringRef filePath = CFStringCreateMutableWithAppendBuffer(&buffer);
             Boolean result = fileHandler(fileName, filePath, isDirectory ? DT_DIR : DT_REG);
             CFRelease(fileName);
             CFRelease(filePath);

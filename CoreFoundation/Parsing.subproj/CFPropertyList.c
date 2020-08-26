@@ -1,11 +1,11 @@
 /*	CFPropertyList.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Tony Parker
+	Responsibility: Itai Ferber
 */
 
 #include <CoreFoundation/CFPropertyList.h>
@@ -18,6 +18,7 @@
 #include <CoreFoundation/CFError_Private.h>
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFStringEncodingConverter.h>
+#include <CoreFoundation/CFNumber_Private.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFBurstTrie.h>
@@ -34,8 +35,6 @@
 #include <ctype.h>
 
 #include "CFOverflow.h"
-
-CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
 
 #define PLIST_IX    0
 #define ARRAY_IX    1
@@ -1293,7 +1292,7 @@ static Boolean parsePListTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
 static int allowImmutableCollections = -1;
 
 static void checkImmutableCollections(void) {
-    allowImmutableCollections = (NULL == __CFgetenv("CFPropertyListAllowImmutableCollections")) ? 0 : 1;
+    allowImmutableCollections = (NULL == getenv("CFPropertyListAllowImmutableCollections")) ? 0 : 1;
 }
 
 // This converts the input value, a set of strings, into the form that's efficient for using during recursive decent parsing, a set of arrays
@@ -1349,6 +1348,7 @@ CF_PRIVATE void __CFPropertyListCreateSplitKeypaths(CFAllocatorRef allocator, CF
             
         }
     }
+    free_cftype_array(currentKeyPaths);
     
     *theseKeys = outTheseKeys;
     *nextKeys = outNextKeys;
@@ -1834,15 +1834,6 @@ static Boolean parseRealTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
 		}					\
 		ch = *(pInfo->curr)
 
-typedef struct {
-    int64_t high;
-    uint64_t low;
-} CFSInt128Struct;
-
-enum {
-    kCFNumberSInt128Type = 17
-};
-
 CF_INLINE bool isWhitespace(const char *utf8bytes, const char *end) {
     // Converted UTF-16 isWhitespace from CFString to UTF8 bytes to get full list of UTF8 whitespace
     /*
@@ -2323,15 +2314,15 @@ static CFStringEncoding encodingForXMLData(CFDataRef data, CFErrorRef *error, CF
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
         CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(encodingName);
         if (enc != kCFStringEncodingInvalidId) {
-            CFRelease(encodingName);
+            if (encodingName) {CFRelease(encodingName); }
             return enc;
         }
 #endif
-
         if (error) {
             *error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unknown encoding (%@)"), encodingName);
-            CFRelease(encodingName);
         }
+        if (encodingName) { CFRelease(encodingName); }
+
         return 0;
     }
 }
@@ -2639,7 +2630,7 @@ CFTypeRef _CFPropertyListCreateFromXMLString(CFAllocatorRef allocator, CFStringR
     return result;
 }
 
-CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist);
+CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist, CFTypeID *outPlistTypeID);
 
 // Returns a subset of the property list, only including the key paths in the CFSet.
 Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) {
@@ -2665,7 +2656,7 @@ Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, 
 
         // Create a dictionary to cache objects in
         CFMutableDictionaryRef objects = CFDictionaryCreateMutable(allocator, 0, NULL, &kCFTypeDictionaryValueCallBacks);
-        success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, &trailer, allocator, option, objects, NULL, 0, splitKeyPaths, &out);
+        success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, &trailer, allocator, option, objects, NULL, 0, splitKeyPaths, &out, NULL);
         
         CFRelease(splitKeyPaths);
         CFRelease(objects);        
@@ -2745,7 +2736,7 @@ Boolean _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef dat
         // value could be null if the caller wanted to check for the existence of a key but not bother creating it
         if (success && value) {
             CFPropertyListRef pl;
-	    success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, &trailer, allocator, option, objects, NULL, 0, NULL, &pl);
+	    success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, &trailer, allocator, option, objects, NULL, 0, NULL, &pl, NULL);
 	    if (success) {
 		// caller's responsibility to release the created object
 		*value = pl;
@@ -3116,6 +3107,35 @@ CFPropertyListRef CFPropertyListCreateFromStream(CFAllocatorRef allocator, CFRea
     return result;
 }
 
+bool _CFPropertyListValidateData(CFDataRef data, CFTypeID *outTopLevelTypeID) {
+    uint8_t marker;
+    CFBinaryPlistTrailer trailer;
+    uint64_t offset;
+    const uint8_t *databytes = CFDataGetBytePtr(data);
+    uint64_t datalen = CFDataGetLength(data);
+    
+    bool result = true;
+    if (8 <= datalen && __CFBinaryPlistGetTopLevelInfo(databytes, datalen, &marker, &offset, &trailer)) {
+        // Object-less plist parsing does not use an objects dictionary.
+        CFTypeID typeID = _kCFRuntimeNotATypeID;
+        if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, offset, &trailer, kCFAllocatorSystemDefault, 0, NULL, NULL, 0, NULL, NULL, &typeID)) {
+            result = false;
+        }
+        if (outTopLevelTypeID) *outTopLevelTypeID = typeID;
+    } else {
+        // Try an XML property list
+        // Note: This is currently not any more efficient than grabbing the whole thing. This could be improved in the future.
+        CFPropertyListRef plist = CFPropertyListCreateWithData(kCFAllocatorSystemDefault, data, kCFPropertyListMutableContainers, NULL, NULL);
+        if (plist) {
+            if (outTopLevelTypeID) *outTopLevelTypeID = CFGetTypeID(plist);
+            CFRelease(plist);
+        } else {
+            result = false;
+        }
+    }
+    return result;
+}
+
 
 #pragma mark -
 #pragma mark Property List Copies
@@ -3166,7 +3186,7 @@ CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPrope
     CFAssert1(propertyList != NULL, __kCFLogAssertion, "%s(): cannot copy a NULL property list", __PRETTY_FUNCTION__);
     __CFAssertIsPList(propertyList);
     CFAssert2(mutabilityOption == kCFPropertyListImmutable || mutabilityOption == kCFPropertyListMutableContainers || mutabilityOption == kCFPropertyListMutableContainersAndLeaves, __kCFLogAssertion, "%s(): Unrecognized option %lu", __PRETTY_FUNCTION__, mutabilityOption);
-	if (!CFPropertyListIsValid(propertyList, kCFPropertyListBinaryFormat_v1_0)) return NULL;
+    if (!CFPropertyListIsValid(propertyList, kCFPropertyListBinaryFormat_v1_0)) return NULL;
     
     CFTypeID typeID = CFGetTypeID(propertyList);
     if (typeID == _kCFRuntimeIDCFDictionary) {

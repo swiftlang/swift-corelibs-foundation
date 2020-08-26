@@ -1,7 +1,7 @@
 /*	CFStorage.h
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -50,7 +50,7 @@ typedef struct CF_BRIDGED_MUTABLE_TYPE(id) __CFStorage *CFStorageRef;
 	@typedef CFStorageApplierFunction
 	Type of the callback function used by the apply functions of
 		CFStorage.
-	@param value The current value from the storage.
+	@param val The current value from the storage.
 	@param context The user-defined context parameter given to the apply
 		function.
 */

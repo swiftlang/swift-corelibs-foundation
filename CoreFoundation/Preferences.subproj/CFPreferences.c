@@ -1,7 +1,7 @@
 /*	CFPreferences.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -169,8 +169,7 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
 
 static unsigned long __CFSafeLaunchLevel = 0;
 
-static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
-    CFAllocatorRef alloc = __CFPreferencesAllocator();
+static CFURLRef _preferencesCreateDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef location = NULL;
     
     CFKnownLocationUser user;
@@ -197,7 +196,7 @@ static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName
 }
 
 static CFURLRef  _preferencesDirectoryForUserHost(CFStringRef  userName, CFStringRef  hostName) {
-    return _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, __CFSafeLaunchLevel);
+    return _preferencesCreateDirectoryForUserHostSafetyLevel(userName, hostName, __CFSafeLaunchLevel);
 }
 
 static Boolean __CFPreferencesWritesXML = true;
@@ -282,7 +281,6 @@ void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove
 
     CFTypeRef *keys = NULL;
     CFTypeRef *values;
-    CFIndex numOfKeysToSet = 0;
     
     domain = _CFPreferencesStandardDomain(appName, user, host);
     if (!domain) return;
@@ -290,7 +288,6 @@ void CFPreferencesSetMultiple(CFDictionaryRef keysToSet, CFArrayRef keysToRemove
     CFAllocatorRef alloc = CFGetAllocator(domain);
     
     if (keysToSet && (count = CFDictionaryGetCount(keysToSet))) {
-        numOfKeysToSet = count;
         keys = (CFTypeRef *)CFAllocatorAllocate(alloc, 2*count*sizeof(CFTypeRef), 0);
         if (keys) {
             values = &(keys[count]);
@@ -385,7 +382,7 @@ const CFRuntimeClass __CFPreferencesDomainClass = {
 };
 
 /* We spend a lot of time constructing these prefixes; we should cache.  REW, 7/19/99 */
-static CFStringRef  _CFPreferencesCachePrefixForUserHost(CFStringRef  userName, CFStringRef  hostName) {
+static CFStringRef  _CFPreferencesCreateCachePrefixForUserHost(CFStringRef  userName, CFStringRef  hostName) {
     if (userName == kCFPreferencesAnyUser && hostName == kCFPreferencesAnyHost) {
         return (CFStringRef)CFRetain(CFSTR("*/*/"));
     }
@@ -410,7 +407,7 @@ static CFStringRef  _CFPreferencesCachePrefixForUserHost(CFStringRef  userName, 
 
 // It would be nice if we could remember the key for "well-known" combinations, so we're not constantly allocing more strings....  - REW 2/3/99
 static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName, CFStringRef  userName, CFStringRef  hostName) {
-    CFStringRef  prefix = _CFPreferencesCachePrefixForUserHost(userName, hostName);
+    CFStringRef  prefix = _CFPreferencesCreateCachePrefixForUserHost(userName, hostName);
     CFStringRef  result = NULL;
     
     if (prefix) {
@@ -423,8 +420,8 @@ static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
-#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
-    CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
+#if TARGET_OS_OSX || TARGET_OS_WIN32 || TARGET_OS_LINUX
+    CFURLRef prefDir = _preferencesCreateDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;
     Boolean mustFreeAppName = false;
@@ -462,12 +459,12 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
 #elif TARGET_OS_WIN32
 		theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLWindowsPathStyle, false, prefDir);
 #endif
-        if (prefDir) CFRelease(prefDir);
         CFRelease(fileName);
     }
 #else
 //#error Do not know where to store NSUserDefaults on this platform
 #endif
+    if (prefDir) CFRelease(prefDir);
     return theURL;
 }
 
@@ -607,7 +604,7 @@ CF_PRIVATE CFArrayRef _CFPreferencesCreateDomainList(CFStringRef  userName, CFSt
     cachedDomains = (CFPreferencesDomainRef *)(cachedDomainKeys + cnt);
     CFDictionaryGetKeysAndValues(domainCache, (const void **)cachedDomainKeys, (const void **)cachedDomains);
     __CFUnlock(&domainCacheLock);
-    suffix = _CFPreferencesCachePrefixForUserHost(userName, hostName);
+    suffix = _CFPreferencesCreateCachePrefixForUserHost(userName, hostName);
     suffixLen = CFStringGetLength(suffix);
     
     for (idx = 0; idx < cnt; idx ++) {
@@ -738,9 +735,8 @@ static void freeVolatileDomain(CFAllocatorRef allocator, CFTypeRef  context, voi
     CFRelease((CFTypeRef)domain);
 }
 
-static CFTypeRef  fetchVolatileValue(CFTypeRef  context, void *domain, CFStringRef  key) {
-    CFTypeRef  result = CFDictionaryGetValue((CFMutableDictionaryRef  )domain, key);
-    if (result) CFRetain(result);
+static CFTypeRef fetchVolatileValue(CFTypeRef  context, void *domain, CFStringRef  key) {
+    CFTypeRef result = CFDictionaryGetValue((CFMutableDictionaryRef  )domain, key);
     return result;
 }
 

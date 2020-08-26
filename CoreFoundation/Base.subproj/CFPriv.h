@@ -1,7 +1,7 @@
 /*	CFPriv.h
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -41,7 +41,7 @@
 
 
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX)) || TARGET_OS_IPHONE
 #include <CoreFoundation/CFMachPort.h>
 #include <CoreFoundation/CFMessagePort.h>
 #endif
@@ -66,11 +66,12 @@ CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
 #endif
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
+#if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX))
 CF_EXPORT void _CFRunLoopSetCurrent(CFRunLoopRef rl);
 #endif
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+
+#if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX)) || TARGET_OS_IPHONE
 CF_EXPORT CFRunLoopRef CFRunLoopGetMain(void);
 CF_EXPORT SInt32 CFRunLoopRunSpecific(CFRunLoopRef rl, CFStringRef modeName, CFTimeInterval seconds, Boolean returnAfterSourceHandled);
 
@@ -244,6 +245,7 @@ CF_EXPORT const CFStringRef kCFHTTPURLStatusLine;
 CF_EXPORT CFStringRef CFCopySystemVersionString(void);			// Human-readable string containing both marketing and build version
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);
 CF_EXPORT CFDictionaryRef _CFCopyServerVersionDictionary(void);
+CF_EXPORT CFStringRef _CFCopySystemVersionDictionaryValue(CFStringRef key) API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
 CF_EXPORT const CFStringRef _kCFSystemVersionProductNameKey;
 CF_EXPORT const CFStringRef _kCFSystemVersionProductCopyrightKey;
 CF_EXPORT const CFStringRef _kCFSystemVersionProductVersionKey;
@@ -390,6 +392,15 @@ CF_INLINE void CFStringInitAppendBuffer(CFAllocatorRef alloc, CFStringAppendBuff
     buf->theString = CFStringCreateMutable(alloc, 0);
 }
 
+// Releases an initialized CFStringAppendBuffer
+CF_INLINE void CFStringReleaseAppendBuffer(CFStringAppendBuffer *buf)
+{
+    if ( buf->theString ) {
+        CFRelease(buf->theString);
+        buf->theString = NULL;
+    }
+}
+
 // Appends the characters of a string to the CFStringAppendBuffer.
 CF_INLINE void CFStringAppendStringToAppendBuffer(CFStringAppendBuffer *buf, CFStringRef appendedString)
 {
@@ -494,8 +505,8 @@ void CFCharacterSetInitInlineBuffer(CFCharacterSetRef cset, CFCharacterSetInline
  @result true, if the value is in the character set, otherwise false.
  */
 #if defined(CF_INLINE)
-CF_INLINE Boolean CFCharacterSetInlineBufferIsLongCharacterMember(const CFCharacterSetInlineBuffer *buffer, UTF32Char character) {
-    Boolean isInverted = ((0 == (buffer->flags & kCFCharacterSetIsInverted)) ? FALSE : TRUE);
+CF_INLINE bool CFCharacterSetInlineBufferIsLongCharacterMember(const CFCharacterSetInlineBuffer *buffer, UTF32Char character) {
+    bool isInverted = ((0 == (buffer->flags & kCFCharacterSetIsInverted)) ? false : true);
 
     if ((character >= buffer->rangeStart) && (character < buffer->rangeLimit)) {
         if ((character > 0xFFFF) || (0 != (buffer->flags & kCFCharacterSetNoBitmapAvailable))) return (CFCharacterSetIsLongCharacterMember(buffer->cset, character) != 0);
@@ -532,6 +543,12 @@ CF_EXPORT CFTypeRef _CFTryRetain(CFTypeRef cf);
 CF_EXPORT Boolean _CFIsDeallocating(CFTypeRef cf);
 #endif
 
+// The following functions can be used when you know for certain that the types involved are not objc types. Should only be used in the macro in NSPrivateDecls.h. You cannot generally guess which "CF" objects might secretly be ObjC ones.
+CF_EXPORT Boolean _CFNonObjCEqual(CFTypeRef cf1, CFTypeRef cf2);
+CF_EXPORT CFTypeRef _CFNonObjCRetain(CFTypeRef cf);
+CF_EXPORT void _CFNonObjCRelease(CFTypeRef cf);
+CF_EXPORT CFHashCode _CFNonObjCHash(CFTypeRef cf);
+
 /*
  CFLocaleGetLanguageRegionEncodingForLocaleIdentifier gets the appropriate language and region codes,
  and the default legacy script code and encoding, for the specified locale (or language) string.
@@ -547,12 +564,14 @@ CF_EXPORT
 Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeIdentifier, LangCode *langCode, RegionCode *regCode, ScriptCode *scriptCode, CFStringEncoding *stringEncoding);
 
 CF_EXPORT void _CFLocaleResetCurrent(void);
+CF_EXPORT void _CFCalendarResetCurrent(void);
 
 #if TARGET_OS_WIN32
 CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef alloc, int nFolder);
 #endif
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+
+#if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX)) || TARGET_OS_IPHONE
 #include <CoreFoundation/CFMessagePort.h>
 
 CF_EXPORT CFMessagePortRef CFMessagePortCreatePerProcessLocal(CFAllocatorRef allocator, CFStringRef name, CFMessagePortCallBack callout, CFMessagePortContext *context, Boolean *shouldFreeInfo);
@@ -595,13 +614,16 @@ CF_INLINE struct timespec _CFFileTimeSpecFromAbsoluteTime(CFAbsoluteTime at) {
 }
 
 // The 'filtered' function below is preferred to this older one
-CF_EXPORT Boolean _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error);
+CF_EXPORT bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error);
 
 // Returns a subset of the property list, only including the keyPaths in the CFSet. If the top level object is not a dictionary, you will get back an empty dictionary as the result.
-CF_EXPORT Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+CF_EXPORT bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
 // Returns a set of the keys of the top-level dictionary of a plist. Optimized for bplist (though it works with XML too).  Only supports string keys. 
 CF_EXPORT CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFErrorRef *outError) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+
+// Returns 'true' if the given 'data' can be determined to be a valid property list. If possible (right now, this means binary plist only) it does this without maintaining the entire object graph for lower overall memory usage.
+CF_EXPORT bool _CFPropertyListValidateData(CFDataRef data, CFTypeID *outTopLevelTypeID) API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
 
 // Returns a subset of a bundle's Info.plist. The keyPaths follow the same rules as above CFPropertyList function. This function takes platform and product keys into account.
 typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
@@ -616,6 +638,7 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 
 CF_EXPORT CFStringRef _CFGetWindowsAppleAppDataDirectory(void);
 CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
+CF_EXPORT CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
 
 // If your Windows application does not use a CFRunLoop on the main thread (perhaps because it is reserved for handling UI events via Windows API), then call this function to make distributed notifications arrive using a different run loop.
 CF_EXPORT void _CFNotificationCenterSetRunLoop(CFNotificationCenterRef nc, CFRunLoopRef rl);
@@ -636,7 +659,7 @@ CF_EXPORT void _CFRunLoopSetWindowsMessageQueueHandler(CFRunLoopRef rl, CFString
 
 CF_EXPORT CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRef allocator, CFArrayRef tmplates, CFOptionFlags options, CFLocaleRef locale);
 
-#if (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_IPHONE
 // Available for internal use on embedded
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void);
 #endif
@@ -677,6 +700,7 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void) CF_RETURNS_RETAINED;
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void) CF_RETURNS_RETAINED;
 
 #endif // !DEPLOYMENT_RUNTIME_OBJC
+
 
 CF_EXTERN_C_END
 

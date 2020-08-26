@@ -1,7 +1,7 @@
 /*	CFCharacterSet.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -375,7 +375,7 @@ CF_INLINE void __CFCSetBitmapRemoveCharactersInRange(uint8_t *bitmap, UniChar fi
 #define __CFCSetAnnexBitmapClearPlane(bitmap,plane)	((bitmap) &= (~(1 << (plane))))
 #define __CFCSetAnnexBitmapGetPlane(bitmap,plane)	((bitmap) & (1 << (plane)))
 
-CF_INLINE void __CFCSetAllocateAnnexForPlane(CFCharacterSetRef cset, int plane) {
+CF_INLINE void __CFCSetAllocateAnnexForPlane(CFCharacterSetRef cset, unsigned char plane) {
     if (cset->_annex == NULL) {
         ((CFMutableCharacterSetRef)cset)->_annex = (CFCharSetAnnexStruct *)CFAllocatorAllocate(CFGetAllocator(cset), sizeof(CFCharSetAnnexStruct), 0);
         cset->_annex->_numOfAllocEntries = plane;
@@ -397,10 +397,13 @@ CF_INLINE void __CFCSetAnnexSetIsInverted(CFCharacterSetRef cset, Boolean flag) 
     if (cset->_annex) ((CFMutableCharacterSetRef)cset)->_annex->_isAnnexInverted = flag;
 }
                                       
-CF_INLINE void __CFCSetPutCharacterSetToAnnexPlane(CFCharacterSetRef cset, CFCharacterSetRef annexCSet, int plane) {
+CF_INLINE void __CFCSetPutCharacterSetToAnnexPlane(CFCharacterSetRef cset, CFCharacterSetRef annexCSet, unsigned char plane) {
     if (plane < 1) { HALT; }
     __CFCSetAllocateAnnexForPlane(cset, plane);
-    if (__CFCSetAnnexBitmapGetPlane(cset->_annex->_validEntriesBitmap, plane)) CFRelease(cset->_annex->_nonBMPPlanes[plane - 1]);
+    if (__CFCSetAnnexBitmapGetPlane(cset->_annex->_validEntriesBitmap, plane)) {
+        _CLANG_ANALYZER_ASSERT(cset->_annex->_nonBMPPlanes[plane - 1] != NULL);
+        CFRelease(cset->_annex->_nonBMPPlanes[plane - 1]);
+    }
     if (annexCSet) {
         cset->_annex->_nonBMPPlanes[plane - 1] = (CFCharacterSetRef)CFRetain(annexCSet);
         __CFCSetAnnexBitmapSetPlane(cset->_annex->_validEntriesBitmap, plane);
@@ -409,8 +412,9 @@ CF_INLINE void __CFCSetPutCharacterSetToAnnexPlane(CFCharacterSetRef cset, CFCha
     }
 }
 
-CF_INLINE CFCharacterSetRef __CFCSetGetAnnexPlaneCharacterSet(CFCharacterSetRef cset, int plane) {
+CF_INLINE CFCharacterSetRef __CFCSetGetAnnexPlaneCharacterSet(CFCharacterSetRef cset, unsigned char plane) {
     if (plane < 1) { HALT; }
+    if (plane > MAX_ANNEX_PLANE) { return NULL; }
     __CFCSetAllocateAnnexForPlane(cset, plane);
     if (!__CFCSetAnnexBitmapGetPlane(cset->_annex->_validEntriesBitmap, plane)) {
         cset->_annex->_nonBMPPlanes[plane - 1] = (CFCharacterSetRef)CFCharacterSetCreateMutable(CFGetAllocator(cset));
@@ -419,9 +423,17 @@ CF_INLINE CFCharacterSetRef __CFCSetGetAnnexPlaneCharacterSet(CFCharacterSetRef 
     return cset->_annex->_nonBMPPlanes[plane - 1];
 }
 
-CF_INLINE CFCharacterSetRef __CFCSetGetAnnexPlaneCharacterSetNoAlloc(CFCharacterSetRef cset, int plane) {
+CF_INLINE CFCharacterSetRef __CFCSetGetAnnexPlaneCharacterSetNoAlloc(CFCharacterSetRef cset, unsigned char plane) {
     if (plane < 1) { HALT; }
-    return (cset->_annex && __CFCSetAnnexBitmapGetPlane(cset->_annex->_validEntriesBitmap, plane) ? cset->_annex->_nonBMPPlanes[plane - 1] : NULL);
+    if (plane > MAX_ANNEX_PLANE) { return NULL; }
+    if (cset->_annex) {
+        if (__CFCSetAnnexBitmapGetPlane(cset->_annex->_validEntriesBitmap, plane)) {
+            if (plane <= cset->_annex->_numOfAllocEntries) {
+                return cset->_annex->_nonBMPPlanes[plane - 1];
+            }
+        }
+    }
+    return NULL;
 }
 
 CF_INLINE void __CFCSetDeallocateAnnexPlane(CFCharacterSetRef cset) {
@@ -719,25 +731,41 @@ static void __CFCSetAddNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFRang
     int firstChar = (range.location & 0xFFFF);
     int maxChar = range.location + range.length;
     int idx = range.location >> 16; // first plane
-    int maxPlane = (maxChar - 1) >> 16; // last plane
+    int maxPlane = MIN((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
     CFRange planeRange;
     CFMutableCharacterSetRef annexPlane;
 
     maxChar &= 0xFFFF;
 
+    if (idx > MAX_ANNEX_PLANE) {
+        // no point going further, we're not going to be able to store any part of this range
+        return;
+    }
+    
+    Boolean const annex_inverted = __CFCSetAnnexIsInverted(cset);
+
     for (idx = (idx ? idx : 1);idx <= maxPlane;idx++) {
         planeRange.location = __CFMax(firstChar, 0);
         planeRange.length = (idx == maxPlane && maxChar ? maxChar : 0x10000) - planeRange.location;
-        if (__CFCSetAnnexIsInverted(cset)) {
+        if (annex_inverted) {
             if ((annexPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSetNoAlloc(cset, idx))) {
                 CFCharacterSetRemoveCharactersInRange(annexPlane, planeRange);
                 if (__CFCSetIsEmpty(annexPlane) && !__CFCSetIsInverted(annexPlane)) {
                     CFRelease(annexPlane);
                     __CFCSetAnnexBitmapClearPlane(cset->_annex->_validEntriesBitmap, idx);
                 }
+            } else {
+                CFAllocatorRef const allocator = CFGetAllocator(cset);
+                annexPlane = CFCharacterSetCreateMutable(allocator);
+                CFCharacterSetAddCharactersInRange(annexPlane, planeRange);
+                __CFCSetPutCharacterSetToAnnexPlane(cset, annexPlane, idx);
+                CFRelease(annexPlane);
             }
         } else {
-            CFCharacterSetAddCharactersInRange((CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(cset, idx), planeRange);
+            annexPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(cset, idx);
+            if (annexPlane) {
+                CFCharacterSetAddCharactersInRange(annexPlane, planeRange);
+            }
         }
     }
     if (!__CFCSetHasNonBMPPlane(cset) && !__CFCSetAnnexIsInverted(cset)) __CFCSetDeallocateAnnexPlane(cset);
@@ -747,9 +775,14 @@ static void __CFCSetRemoveNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFR
     int firstChar = (range.location & 0xFFFF);
     int maxChar = range.location + range.length;
     int idx = range.location >> 16; // first plane
-    int maxPlane = (maxChar - 1) >> 16; // last plane
+    int maxPlane = MIN((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
     CFRange planeRange;
     CFMutableCharacterSetRef annexPlane;
+
+    if (idx > MAX_ANNEX_PLANE) {
+        // no point going further, we're not going to be able to store any part of this range
+        return;
+    }
 
     maxChar &= 0xFFFF;
 
@@ -757,7 +790,10 @@ static void __CFCSetRemoveNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFR
         planeRange.location = __CFMax(firstChar, 0);
         planeRange.length = (idx == maxPlane && maxChar ? maxChar : 0x10000) - planeRange.location;
         if (__CFCSetAnnexIsInverted(cset)) {
-            CFCharacterSetAddCharactersInRange((CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(cset, idx), planeRange);
+            annexPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(cset, idx);
+            if (annexPlane) {
+                CFCharacterSetAddCharactersInRange(annexPlane, planeRange);
+            }
         } else {
             if ((annexPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSetNoAlloc(cset, idx))) {
                 CFCharacterSetRemoveCharactersInRange(annexPlane, planeRange);
@@ -799,10 +835,12 @@ static void __CFCSetMakeBitmap(CFMutableCharacterSetRef cset) {
                         while (bitmapLength-- > 0) *(bytes++) = (uint8_t)0xFF;
                     }
                     annexSet = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(cset, idx);
-                    __CFCSetPutClassType(annexSet, __kCFCharSetClassBitmap);
-                    __CFCSetPutBitmapBits(annexSet, annexBitmap);
-                    __CFCSetPutIsInverted(annexSet, false);
-                    __CFCSetPutHasHashValue(annexSet, false);
+                    if (annexSet) {
+                        __CFCSetPutClassType(annexSet, __kCFCharSetClassBitmap);
+                        __CFCSetPutBitmapBits(annexSet, annexBitmap);
+                        __CFCSetPutIsInverted(annexSet, false);
+                        __CFCSetPutHasHashValue(annexSet, false);
+                    }
                     annexBitmap = NULL;
                 }
                 if (annexBitmap) CFAllocatorDeallocate(allocator, annexBitmap);
@@ -896,7 +934,7 @@ CF_INLINE Boolean __CFCSetBsearchUniChar(const UniChar *theTable, CFIndex length
 
 /* Array of instantiated builtin set. Note builtin set ID starts with 1 so the array index is ID - 1
 */
-static CFCharacterSetRef __CFBuiltinSets[sizeof(CFCharacterSetRef) * __kCFLastBuiltinSetID] = {0};
+static CFCharacterSetRef __CFBuiltinSets[__kCFLastBuiltinSetID] = {0};
 
 /* Global lock for character set
 */
@@ -1304,7 +1342,7 @@ static bool __CFCheckForExapendedSet = false;
 CF_PRIVATE void __CFCharacterSetInitialize(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-        const char *checkForExpandedSet = __CFgetenv("__CF_DEBUG_EXPANDED_SET");
+        const char *checkForExpandedSet = getenv("__CF_DEBUG_EXPANDED_SET");
         if (checkForExpandedSet && (*checkForExpandedSet == 'Y')) __CFCheckForExapendedSet = true;
     });
 }
@@ -1588,7 +1626,7 @@ CFCharacterSetRef CFCharacterSetCreateWithBitmapRepresentation(CFAllocatorRef al
 CFCharacterSetRef CFCharacterSetCreateInvertedSet(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
     CFMutableCharacterSetRef cset;
     
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCharacterSet, CFCharacterSetRef , (NSCharacterSet *)theSet, invertedSet);
+    CF_OBJC_RETAINED_FUNCDISPATCHV(_kCFRuntimeIDCFCharacterSet, CFCharacterSetRef , (NSCharacterSet *)theSet, invertedSet);
 
     cset = CFCharacterSetCreateMutableCopy(alloc, theSet);
     CFCharacterSetInvert(cset);
@@ -1774,7 +1812,7 @@ Boolean CFCharacterSetIsCharacterMember(CFCharacterSetRef theSet, UniChar theCha
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar) {
     CFIndex length;
-    UInt32 plane = (theChar >> 16);
+    unsigned char plane = (theChar >> 16);
     Boolean isAnnexInverted = false;
     Boolean isInverted;
     Boolean result = false;
@@ -1950,6 +1988,9 @@ Boolean CFCharacterSetIsSupersetOfSet(CFCharacterSetRef theSet, CFCharacterSetRe
 
 Boolean CFCharacterSetHasMemberInPlane(CFCharacterSetRef theSet, CFIndex thePlane) {
     Boolean isInverted = __CFCSetIsInverted(theSet);
+    if (thePlane < 0 || thePlane > MAX_ANNEX_PLANE) {
+        return FALSE;
+    }
 
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCharacterSet, Boolean, (NSCharacterSet *)theSet, hasMemberInPlane:(uint8_t)thePlane);
 
@@ -2029,34 +2070,92 @@ Boolean CFCharacterSetHasMemberInPlane(CFCharacterSetRef theSet, CFIndex thePlan
 
 
 CFDataRef CFCharacterSetCreateBitmapRepresentation(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
-    CFMutableDataRef data;
-    int numNonBMPPlanes = 0;
-    int planeIndices[MAX_ANNEX_PLANE];
-    int idx;
-    int length;
-    bool isAnnexInverted;
-
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCharacterSet, CFDataRef , (NSCharacterSet *)theSet, _retainedBitmapRepresentation);
 
     __CFGenericValidateType(theSet, _kCFRuntimeIDCFCharacterSet);
 
-    isAnnexInverted = (__CFCSetAnnexIsInverted(theSet) != 0);
+    bool isAnnexInverted = (__CFCSetAnnexIsInverted(theSet) != 0);
 
     if (__CFCSetHasNonBMPPlane(theSet)) {
-        for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
+        int numNonBMPPlanes = 0;
+        unsigned char planeIndices[MAX_ANNEX_PLANE];
+
+        for (unsigned char idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
             if (isAnnexInverted || __CFCSetGetAnnexPlaneCharacterSetNoAlloc(theSet, idx)) {
                 planeIndices[numNonBMPPlanes++] = idx;
             }
         }
+        
+        const int length = __kCFBitmapSize + ((__kCFBitmapSize + 1) * numNonBMPPlanes);
+        CFMutableDataRef data = CFDataCreateMutable(alloc, length);
+        CFDataSetLength(data, length);
+        __CFCSetGetBitmap(theSet, CFDataGetMutableBytePtr(data));
+
+        if (numNonBMPPlanes > 0) {
+            uint8_t *bytes = CFDataGetMutableBytePtr(data) + __kCFBitmapSize;
+            
+            if (__CFCSetHasNonBMPPlane(theSet)) {
+                CFCharacterSetRef subset;
+                
+                for (int idx = 0;idx < numNonBMPPlanes; idx++) {
+                    *(bytes++) = planeIndices[idx];
+                    if ((subset = __CFCSetGetAnnexPlaneCharacterSetNoAlloc(theSet, planeIndices[idx])) == NULL) {
+                        __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, (isAnnexInverted ? 0xFF : 0));
+                    } else {
+                        __CFCSetGetBitmap(subset, bytes);
+                        if (isAnnexInverted) {
+                            uint32_t count = __kCFBitmapSize / sizeof(uint32_t);
+                            uint32_t *bits = (uint32_t *)bytes;
+                            
+                            while (count-- > 0) {
+                                *bits = ~(*bits);
+                                ++bits;
+                            }
+                        }
+                    }
+                    bytes += __kCFBitmapSize;
+                }
+            }
+        }
+        
+        return data;
     } else if (__CFCSetIsBuiltin(theSet)) {
-        numNonBMPPlanes = (__CFCSetIsInverted(theSet) ? MAX_ANNEX_PLANE : CFUniCharGetNumberOfPlanes(__CFCSetBuiltinType(theSet)) - 1);
+        int numNonBMPPlanes = (__CFCSetIsInverted(theSet) ? MAX_ANNEX_PLANE : CFUniCharGetNumberOfPlanes(__CFCSetBuiltinType(theSet)) - 1);
+        
+        const int length = __kCFBitmapSize + ((__kCFBitmapSize + 1) * numNonBMPPlanes);
+        CFMutableDataRef data = CFDataCreateMutable(alloc, length);
+        CFDataSetLength(data, length);
+        __CFCSetGetBitmap(theSet, CFDataGetMutableBytePtr(data));
+        
+        if (numNonBMPPlanes > 0) {
+            uint8_t *bytes = CFDataGetMutableBytePtr(data) + __kCFBitmapSize;
+            UInt8 result;
+            CFIndex delta;
+            Boolean isInverted = __CFCSetIsInverted(theSet);
+            
+            for (int idx = 0;idx < numNonBMPPlanes;idx++) {
+                if ((result = CFUniCharGetBitmapForPlane(__CFCSetBuiltinType(theSet), idx + 1, bytes + 1,  (isInverted != 0))) == kCFUniCharBitmapEmpty) continue;
+                *(bytes++) = idx + 1;
+                if (result == kCFUniCharBitmapAll) {
+                    CFIndex bitmapLength = __kCFBitmapSize;
+                    while (bitmapLength-- > 0) *(bytes++) = (uint8_t)0xFF;
+                } else {
+                    bytes += __kCFBitmapSize;
+                }
+            }
+            delta = bytes - (const uint8_t *)CFDataGetBytePtr(data);
+            if (delta < length) CFDataSetLength(data, delta);
+        }
+        
+        return data;
     } else if (__CFCSetIsRange(theSet)) {
+        int numNonBMPPlanes = 0;
         UInt32 firstChar = __CFCSetRangeFirstChar(theSet);
         UInt32 lastChar = __CFCSetRangeFirstChar(theSet) + __CFCSetRangeLength(theSet) - 1;
         int firstPlane = (firstChar >> 16);
         int lastPlane = (lastChar >> 16);
         bool isInverted = (__CFCSetIsInverted(theSet) != 0);
-
+        
         if (lastPlane > 0) {
             if (firstPlane == 0) {
                 firstPlane = 1;
@@ -2075,62 +2174,19 @@ CFDataRef CFCharacterSetCreateBitmapRepresentation(CFAllocatorRef alloc, CFChara
         } else if (isInverted) {
 	    numNonBMPPlanes = MAX_ANNEX_PLANE;
 	}
-    } else if (isAnnexInverted) {
-        numNonBMPPlanes = MAX_ANNEX_PLANE;
-    }
-
-    length = __kCFBitmapSize + ((__kCFBitmapSize + 1) * numNonBMPPlanes);
-    data = CFDataCreateMutable(alloc, length);
-    CFDataSetLength(data, length);
-    __CFCSetGetBitmap(theSet, CFDataGetMutableBytePtr(data));
-
-    if (numNonBMPPlanes > 0) {
-        uint8_t *bytes = CFDataGetMutableBytePtr(data) + __kCFBitmapSize;
-
-        if (__CFCSetHasNonBMPPlane(theSet)) {
-            CFCharacterSetRef subset;
-
-            for (idx = 0;idx < numNonBMPPlanes;idx++) {
-                *(bytes++) = planeIndices[idx];
-                if ((subset = __CFCSetGetAnnexPlaneCharacterSetNoAlloc(theSet, planeIndices[idx])) == NULL) {
-                    __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, (isAnnexInverted ? 0xFF : 0));
-                } else {
-                    __CFCSetGetBitmap(subset, bytes);
-		    if (isAnnexInverted) {
-			uint32_t count = __kCFBitmapSize / sizeof(uint32_t);
-			uint32_t *bits = (uint32_t *)bytes;
-
-			while (count-- > 0) {
-			    *bits = ~(*bits);
-			    ++bits;
-			}
-		    }
-                }
-                bytes += __kCFBitmapSize;
-            }
-        } else if (__CFCSetIsBuiltin(theSet)) {
-            UInt8 result;
-            CFIndex delta;
-            Boolean isInverted = __CFCSetIsInverted(theSet);
-
-            for (idx = 0;idx < numNonBMPPlanes;idx++) {
-                if ((result = CFUniCharGetBitmapForPlane(__CFCSetBuiltinType(theSet), idx + 1, bytes + 1,  (isInverted != 0))) == kCFUniCharBitmapEmpty) continue;
-                *(bytes++) = idx + 1;
-                if (result == kCFUniCharBitmapAll) {
-                    CFIndex bitmapLength = __kCFBitmapSize;
-                    while (bitmapLength-- > 0) *(bytes++) = (uint8_t)0xFF;
-                } else {
-                    bytes += __kCFBitmapSize;
-                }
-            }
-            delta = bytes - (const uint8_t *)CFDataGetBytePtr(data);
-            if (delta < length) CFDataSetLength(data, delta);
-        } else if (__CFCSetIsRange(theSet)) {
+        
+        const int length = __kCFBitmapSize + ((__kCFBitmapSize + 1) * numNonBMPPlanes);
+        CFMutableDataRef data = CFDataCreateMutable(alloc, length);
+        CFDataSetLength(data, length);
+        __CFCSetGetBitmap(theSet, CFDataGetMutableBytePtr(data));
+        
+        if (numNonBMPPlanes > 0) {
+            uint8_t *bytes = CFDataGetMutableBytePtr(data) + __kCFBitmapSize;
             UInt32 firstChar = __CFCSetRangeFirstChar(theSet);
             UInt32 lastChar = __CFCSetRangeFirstChar(theSet) + __CFCSetRangeLength(theSet) - 1;
             int firstPlane = (firstChar >> 16);
             int lastPlane = (lastChar >> 16);
-
+            
             if (firstPlane == 0) {
                 firstPlane = 1;
                 firstChar = 0x10000;
@@ -2139,7 +2195,9 @@ CFDataRef CFCharacterSetCreateBitmapRepresentation(CFAllocatorRef alloc, CFChara
                 // Mask out the plane byte
                 firstChar &= 0xFFFF;
                 lastChar &= 0xFFFF;
-
+                
+                // n.b. idx is used outside the loop here
+                int idx;
                 for (idx = 1;idx < firstPlane;idx++) { // Fill up until the first plane
                     *(bytes++) = idx;
                     __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0xFF);
@@ -2148,46 +2206,66 @@ CFDataRef CFCharacterSetCreateBitmapRepresentation(CFAllocatorRef alloc, CFChara
                 if (firstPlane == lastPlane) {
                     if ((firstChar > 0) || (lastChar < 0xFFFF)) {
                         *(bytes++) = idx;
-                   	__CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0xFF);
+                        __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0xFF);
                         __CFCSetBitmapRemoveCharactersInRange(bytes, firstChar, lastChar);
                         bytes += __kCFBitmapSize;
                     }
                 } else if (firstPlane < lastPlane) {
                     if (firstChar > 0) {
                         *(bytes++) = idx;
-                   	__CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0);
+                        __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0);
                         __CFCSetBitmapAddCharactersInRange(bytes, 0, firstChar - 1);
                         bytes += __kCFBitmapSize;
                     }
                     if (lastChar < 0xFFFF) {
                         *(bytes++) = idx;
-                   	__CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0);
+                        __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0);
                         __CFCSetBitmapAddCharactersInRange(bytes, lastChar, 0xFFFF);
                         bytes += __kCFBitmapSize;
                     }
                 }
-                for (idx = lastPlane + 1;idx <= MAX_ANNEX_PLANE;idx++) {
+                for (int idx = lastPlane + 1;idx <= MAX_ANNEX_PLANE;idx++) {
                     *(bytes++) = idx;
                     __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0xFF);
                     bytes += __kCFBitmapSize;
                 }
             } else {
-                for (idx = firstPlane;idx <= lastPlane;idx++) {
+                for (int idx = firstPlane;idx <= lastPlane;idx++) {
                     *(bytes++) = idx;
                     __CFCSetBitmapAddCharactersInRange(bytes, (idx == firstPlane ? firstChar : 0), (idx == lastPlane ? lastChar : 0xFFFF));
-		    bytes += __kCFBitmapSize;
+                    bytes += __kCFBitmapSize;
                 }
             }
-        } else if (isAnnexInverted) {
-            for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
+        }
+        
+        return data;
+    } else if (isAnnexInverted) {
+        int numNonBMPPlanes = MAX_ANNEX_PLANE;
+        
+        const int length = __kCFBitmapSize + ((__kCFBitmapSize + 1) * numNonBMPPlanes);
+        CFMutableDataRef data = CFDataCreateMutable(alloc, length);
+        CFDataSetLength(data, length);
+        __CFCSetGetBitmap(theSet, CFDataGetMutableBytePtr(data));
+        
+        if (numNonBMPPlanes > 0) {
+            uint8_t *bytes = CFDataGetMutableBytePtr(data) + __kCFBitmapSize;
+
+            for (int idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
                 *(bytes++) = idx;
                 __CFCSetBitmapFastFillWithValue((UInt32 *)bytes, 0xFF);
                 bytes += __kCFBitmapSize;
             }
         }
+        
+        return data;
+    } else {
+        const int length = __kCFBitmapSize;
+        CFMutableDataRef data = CFDataCreateMutable(alloc, length);
+        CFDataSetLength(data, length);
+        __CFCSetGetBitmap(theSet, CFDataGetMutableBytePtr(data));
+        
+        return data;
     }
-
-    return data;
 }
 
 /*** MutableCharacterSet functions ***/
@@ -2589,10 +2667,16 @@ void CFCharacterSetUnion(CFMutableCharacterSetRef theSet, CFCharacterSetRef theO
             if (__CFCSetHasNonBMPPlane(theOtherSet)) {
                 CFMutableCharacterSetRef otherSetPlane;
                 int idx;
+                
+                Boolean const otherSet_annexInverted = __CFCSetAnnexIsInverted(theOtherSet);
 
                 for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
                     if ((otherSetPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSetNoAlloc(theOtherSet, idx))) {
-                        CFCharacterSetUnion((CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(theSet, idx), otherSetPlane);
+                        if (otherSet_annexInverted) {
+                            CFCharacterSetIntersect((CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(theSet, idx), otherSetPlane);
+                        } else {
+                            CFCharacterSetUnion((CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(theSet, idx), otherSetPlane);
+                        }
                     }
                 }
 	    } else if (__CFCSetAnnexIsInverted(theOtherSet)) {
@@ -2602,7 +2686,7 @@ void CFCharacterSetUnion(CFMutableCharacterSetRef theSet, CFCharacterSetRef theO
                 CFMutableCharacterSetRef annexPlane;
                 uint8_t bitmapBuffer[__kCFBitmapSize];
                 uint8_t result;
-                int planeIndex;
+                unsigned char planeIndex;
                 Boolean isOtherAnnexPlaneInverted = __CFCSetAnnexIsInverted(theOtherSet);
                 UInt32 *bitmap1;
                 UInt32 *bitmap2;
@@ -2782,7 +2866,7 @@ void CFCharacterSetIntersect(CFMutableCharacterSetRef theSet, CFCharacterSetRef 
                 CFMutableCharacterSetRef annexPlane;
                 uint8_t bitmapBuffer[__kCFBitmapSize];
                 uint8_t result;
-                int planeIndex;
+                unsigned char planeIndex;
                 UInt32 *bitmap1;
                 UInt32 *bitmap2;
                 CFIndex length;
@@ -2818,29 +2902,48 @@ void CFCharacterSetIntersect(CFMutableCharacterSetRef theSet, CFCharacterSetRef 
 
                 __CFCSetAddNonBMPPlanesInRange(tempOtherSet, CFRangeMake(__CFCSetRangeFirstChar(theOtherSet), __CFCSetRangeLength(theOtherSet)));
                 
+                Boolean const theSet_annexInverted = __CFCSetAnnexIsInverted(theSet);
+                Boolean const otherSet_annexInverted = __CFCSetAnnexIsInverted(tempOtherSet);
+                
                 for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
-                    if ((otherSetPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSetNoAlloc(tempOtherSet, idx))) {
+
+                    otherSetPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSetNoAlloc(tempOtherSet, idx);
+                    if (otherSetPlane) {
                         annexPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(theSet, idx);
-                        if (__CFCSetAnnexIsInverted(tempOtherSet)) CFCharacterSetInvert(otherSetPlane);
-                        if (__CFCSetAnnexIsInverted(theSet)) CFCharacterSetInvert(annexPlane);
+                        
+                        if (otherSet_annexInverted) {
+                            CFCharacterSetInvert(otherSetPlane);
+                        }
+                        if (theSet_annexInverted) {
+                            CFCharacterSetInvert(annexPlane);
+                        }
+                        
                         CFCharacterSetIntersect(annexPlane, otherSetPlane);
-                        if (__CFCSetAnnexIsInverted(theSet)) CFCharacterSetInvert(annexPlane);
-                        if (__CFCSetAnnexIsInverted(tempOtherSet)) CFCharacterSetInvert(otherSetPlane);
-                        if (__CFCSetIsEmpty(annexPlane) && !__CFCSetIsInverted(annexPlane)) __CFCSetPutCharacterSetToAnnexPlane(theSet, NULL, idx);
+                        
+                        if (theSet_annexInverted) {
+                            CFCharacterSetInvert(annexPlane);
+                        }
+                        if (otherSet_annexInverted) {
+                            CFCharacterSetInvert(otherSetPlane);
+                        }
+                        
+                        if (__CFCSetIsEmpty(annexPlane) && !__CFCSetIsInverted(annexPlane)) {
+                            __CFCSetPutCharacterSetToAnnexPlane(theSet, NULL, idx);
+                        }
                     } else if ((annexPlane = (CFMutableCharacterSetRef) __CFCSetGetAnnexPlaneCharacterSetNoAlloc(theSet, idx))) {
-                        if (__CFCSetAnnexIsInverted(theSet)) {
+                        if (theSet_annexInverted) {
                             CFCharacterSetInvert(annexPlane);
                             CFCharacterSetIntersect(annexPlane, emptySet);
                             CFCharacterSetInvert(annexPlane);
                         } else {
                             __CFCSetPutCharacterSetToAnnexPlane(theSet, NULL, idx);
                         }
-                    } else if ((__CFCSetGetAnnexPlaneCharacterSetNoAlloc(theSet, idx) == NULL) && __CFCSetAnnexIsInverted(theSet)) {
+                    } else if ((__CFCSetGetAnnexPlaneCharacterSetNoAlloc(theSet, idx) == NULL) && theSet_annexInverted) {
                         // the set has no such annex plane and the annex plane is inverted, it means the set contains everything in the annex plane
                         annexPlane = (CFMutableCharacterSetRef)__CFCSetGetAnnexPlaneCharacterSet(theSet, idx);
-                        if (__CFCSetAnnexIsInverted(theSet)) CFCharacterSetInvert(annexPlane);
+                        if (theSet_annexInverted) CFCharacterSetInvert(annexPlane);
                         CFCharacterSetIntersect(annexPlane, emptySet);
-                        if (__CFCSetAnnexIsInverted(theSet)) CFCharacterSetInvert(annexPlane);
+                        if (theSet_annexInverted) CFCharacterSetInvert(annexPlane);
                     }
                 }
                 if (!__CFCSetHasNonBMPPlane(theSet)) __CFCSetDeallocateAnnexPlane(theSet);
@@ -2921,7 +3024,7 @@ void CFCharacterSetInvert(CFMutableCharacterSetRef theSet) {
     __CFCSetAnnexSetIsInverted(theSet, !__CFCSetAnnexIsInverted(theSet));
 }
 
-void CFCharacterSetCompact(CFMutableCharacterSetRef theSet) {
+void _CFCharacterSetCompact(CFMutableCharacterSetRef theSet) {
     if (__CFCSetIsBitmap(theSet) && __CFCSetBitmapBits(theSet)) __CFCSetMakeCompact(theSet);
     if (__CFCSetHasNonBMPPlane(theSet)) {
         CFMutableCharacterSetRef annex;
@@ -2935,7 +3038,7 @@ void CFCharacterSetCompact(CFMutableCharacterSetRef theSet) {
     }
 }
 
-void CFCharacterSetFast(CFMutableCharacterSetRef theSet) {
+void _CFCharacterSetFast(CFMutableCharacterSetRef theSet) {
     if (__CFCSetIsCompactBitmap(theSet) && __CFCSetCompactBitmapBits(theSet)) __CFCSetMakeBitmap(theSet);
     if (__CFCSetHasNonBMPPlane(theSet)) {
         CFMutableCharacterSetRef annex;

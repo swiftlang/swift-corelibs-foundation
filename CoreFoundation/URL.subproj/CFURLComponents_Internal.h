@@ -1,7 +1,7 @@
 /*	CFURLComponents_Internal.h
-	Copyright (c) 2015-2018, Apple Inc. All rights reserved.
+	Copyright (c) 2015-2019, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -21,7 +21,6 @@ struct _URIParseInfo {
     unsigned long	hostOffset;
     unsigned long	portOffset;
     unsigned long	pathOffset;
-    unsigned long	paramOffset;			// param is obsolete, but old API needs it.
     unsigned long	queryOffset;
     unsigned long	fragmentOffset;
     unsigned long	endOffset;
@@ -34,7 +33,7 @@ struct _URIParseInfo {
     unsigned long	hostExists              : 1;
     unsigned long	portExists              : 1;
     // pathExists is not needed because there's always a path... it just might be zero length.
-    unsigned long	paramExists             : 1;    // param is obsolete, but old API needs it.
+    unsigned long	semicolonInPathExists   : 1;    // param is obsolete, but we still percent-encode the ';' for backwards compatiblity with NSURL/CFURL.
     unsigned long	queryExists             : 1;
     unsigned long	fragmentExists          : 1;
 };
@@ -59,7 +58,7 @@ CF_PRIVATE CFRange _CFURIParserGetUserinfoNameRange(const struct _URIParseInfo *
 CF_PRIVATE CFRange _CFURIParserGetUserinfoPasswordRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators);
 CF_PRIVATE CFRange _CFURIParserGetHostRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators);
 CF_PRIVATE CFRange _CFURIParserGetPortRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators);
-CF_PRIVATE CFRange _CFURIParserGetPathRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators, Boolean minusParam);
+CF_PRIVATE CFRange _CFURIParserGetPathRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators);
 CF_PRIVATE CFRange _CFURIParserGetQueryRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators);
 CF_PRIVATE CFRange _CFURIParserGetFragmentRange(const struct _URIParseInfo *parseInfo, Boolean includeSeparators);
 CF_PRIVATE Boolean _CFURIParserAlphaAllowed(UniChar ch);

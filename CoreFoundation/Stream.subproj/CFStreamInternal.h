@@ -1,7 +1,7 @@
 /*	CFStreamInternal.h
-	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -12,10 +12,30 @@
 #include <CoreFoundation/CFStreamAbstract.h>
 #include <CoreFoundation/CFStreamPriv.h>
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFInternal.h>
 #include <CoreFoundation/CFRuntime.h>
 
 CF_EXTERN_C_BEGIN
 
+struct _CFStream {
+    CFRuntimeBase _cfBase;
+    CFOptionFlags flags;
+    CFErrorRef error; // if callBacks->version < 2, this is actually a pointer to a CFStreamError
+    struct _CFStreamClient *client;
+    void *info; /* callBacks info */
+    const struct _CFStreamCallBacks *callBacks;  // This will not exist (will not be allocated) if the callbacks are from our known, "blessed" set.
+    
+    CFLock_t streamLock;
+    CFArrayRef previousRunloopsAndModes;
+#if __HAS_DISPATCH__
+    dispatch_queue_t queue;
+#endif
+    Boolean pendingEventsToDeliver;
+};
+
+#ifndef _CFSTREAM_SIZE
+#define _CFSTREAM_SIZE  (sizeof(struct _CFStream) - sizeof(CFRuntimeBase))
+#endif
 
 // Older versions of the callbacks; v0 callbacks match v1 callbacks, except that create, finalize, and copyDescription are missing.
 typedef Boolean (*_CFStreamCBOpenV1)(struct _CFStream *stream, CFStreamError *error, Boolean *openComplete, void *info);
@@ -49,7 +69,7 @@ struct _CFStreamCallBacksV1 {
 };
 
 // These two are defined in CFSocketStream.c because that's where the glue for CFNetwork is.
-CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamError *err);
+CF_PRIVATE CFErrorRef _CFStreamCreateErrorFromStreamError(CFAllocatorRef alloc, CFStreamError *err);
 CF_PRIVATE CFStreamError _CFStreamErrorFromError(CFErrorRef error);
 
 CF_EXTERN_C_END

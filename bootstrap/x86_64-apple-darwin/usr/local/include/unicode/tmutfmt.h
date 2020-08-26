@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
  * Copyright (C) 2008-2014, Google, International Business Machines Corporation
@@ -45,10 +47,13 @@ enum UTimeUnitFormatStyle {
 typedef enum UTimeUnitFormatStyle UTimeUnitFormatStyle; /**< @deprecated ICU 53 */
 
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class Hashtable;
 class UVector;
+
+struct TimeUnitFormatReadSink;
 
 /**
  * Format or parse a TimeUnitAmount, using plural rules for the units where available.
@@ -227,6 +232,7 @@ private:
     // UTIMEUNIT_YEAR.
     static const char* getTimeUnitName(TimeUnit::UTimeUnitFields field, UErrorCode& status);
 
+    friend struct TimeUnitFormatReadSink;
 };
 
 inline UBool
@@ -235,6 +241,7 @@ TimeUnitFormat::operator!=(const Format& other) const  {
 }
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif /* U_HIDE_DEPRECATED_API */
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -1,7 +1,7 @@
 /*	CFURLAccess.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -318,7 +318,7 @@ const CFStringRef kCFDataURLTextEncodingName;
 /* kCFDataURLTextEncodingName is a CFString. */
 
 /* REMINDSMZ: From CFURLResponse.c */
-static CFStringRef mimeTypeFromContentTypeComponent(CFStringRef component) {
+static CFStringRef createMimeTypeFromContentTypeComponent(CFStringRef component) {
     CFIndex compLen = CFStringGetLength(component);
     CFStringInlineBuffer buf;
     CFIndex idx;
@@ -354,7 +354,7 @@ static CFStringRef mimeTypeFromContentTypeComponent(CFStringRef component) {
 }
 
 /* REMINDSMZ: From CFURLResponse.c */
-static CFStringRef charsetFromContentTypeHeader(CFStringRef contentType) {
+static CFStringRef createCharsetFromContentTypeHeader(CFStringRef contentType) {
     // FIXME: Should this use KeyValuePair parsing to handle quoting properly?
     CFRange range;
     CFIndex compLen = CFStringGetLength(contentType);
@@ -484,7 +484,7 @@ static UInt8 base64DigitValue(char c)
     }
 }
 
-static CFDataRef base64DecodeData(CFAllocatorRef alloc, CFDataRef data)
+static CFDataRef _createBase64DecodedData(CFAllocatorRef alloc, CFDataRef data)
 {
     const UInt8 *srcBuffer = CFDataGetBytePtr(data);
     CFIndex length = CFDataGetLength(data);
@@ -535,7 +535,7 @@ done:
     return result;
 }
 
-static inline CFStringRef percentExpandAndTrimContentType(CFAllocatorRef alloc, CFStringRef str, CFRange range)
+static inline CFStringRef createPercentExpandAndTrimContentType(CFAllocatorRef alloc, CFStringRef str, CFRange range)
 {
     CFMutableStringRef contentTypeHeader = NULL;
     CFStringRef contentTypeUnexpanded = CFStringCreateWithSubstring(alloc, str, range);
@@ -562,9 +562,9 @@ static Boolean parseDataRequestURL(CFURLRef url, CFDataRef* outData, CFStringRef
 		CFRange commaRange = CFStringFind(str, CFSTR(","), 0);
 		
 		if (commaRange.location != kCFNotFound) {
-			CFStringRef contentTypeHeader = percentExpandAndTrimContentType(alloc, str, CFRangeMake(0, commaRange.location));
-			CFStringRef mimeType = mimeTypeFromContentTypeComponent(contentTypeHeader);
-			CFStringRef textEncodingName = charsetFromContentTypeHeader(contentTypeHeader);
+			CFStringRef contentTypeHeader = createPercentExpandAndTrimContentType(alloc, str, CFRangeMake(0, commaRange.location));
+			CFStringRef mimeType = createMimeTypeFromContentTypeComponent(contentTypeHeader);
+			CFStringRef textEncodingName = createCharsetFromContentTypeHeader(contentTypeHeader);
 
 			Boolean base64 = CFStringFind(contentTypeHeader, CFSTR(";base64"), kCFCompareCaseInsensitive).location != kCFNotFound;
 
@@ -591,7 +591,7 @@ static Boolean parseDataRequestURL(CFURLRef url, CFDataRef* outData, CFStringRef
 			} else {
 				CFDataRef unescapedAndStripped = percentEscapeDecodeBuffer(alloc, srcBuffer, dataRange, true);
 				if (unescapedAndStripped) {
-					dataRef = base64DecodeData(alloc, unescapedAndStripped);
+					dataRef = _createBase64DecodedData(alloc, unescapedAndStripped);
 					CFRelease(unescapedAndStripped);
 				}
 			}
@@ -629,7 +629,9 @@ static Boolean _CFDataURLCreateDataAndPropertiesFromResource(CFAllocatorRef allo
 	if (! parseDataRequestURL(url, &data, &mimeType, &textEncodingName)) {
 		if (errorCode)
 			*errorCode = kCFURLUnknownError;
-		*fetchedData = NULL;
+                if (fetchedData) {
+                    *fetchedData = NULL;
+                }
 		success = false;
 	} else {
 		if (fetchedData) {
@@ -728,7 +730,7 @@ Boolean CFURLCreateDataAndPropertiesFromResource(CFAllocatorRef alloc, CFURLRef 
 
 CFTypeRef CFURLCreatePropertyFromResource(CFAllocatorRef alloc, CFURLRef url, CFStringRef property, SInt32 *errorCode) {
     CFArrayRef array = CFArrayCreate(alloc, (const void **)&property, 1, &kCFTypeArrayCallBacks);
-    CFDictionaryRef dict;
+    CFDictionaryRef dict = NULL;
 
     if (CFURLCreateDataAndPropertiesFromResource(alloc, url, NULL, &dict, array, errorCode)) {
         CFTypeRef result = CFDictionaryGetValue(dict, property);

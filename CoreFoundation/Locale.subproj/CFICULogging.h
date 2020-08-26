@@ -1,8 +1,8 @@
 /*
 	CFICULogging.h
-	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -19,8 +19,12 @@
 #include <unicode/udatpg.h>
 #include <unicode/udat.h>
 #include <unicode/unum.h>
+#include <unicode/ulistformatter.h>
 #include <unicode/ucurr.h>
 #include <unicode/ustring.h>
+#if __has_include(<unicode/ureldatefmt.h>)
+#include <unicode/ureldatefmt.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #include <os/log.h>
@@ -101,5 +105,9 @@
 // unum
 #define __cficu_unum_setContext unum_setContext
 #define __cficu_unum_getContext unum_getContext
-
+// ureldatefmt
+#define __cficu_ureldatefmt_open ureldatefmt_open
+#define __cficu_ureldatefmt_formatNumeric ureldatefmt_formatNumeric
+#define __cficu_ureldatefmt_format ureldatefmt_format
+#define __cficu_ureldatefmt_close ureldatefmt_close
 #endif

@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
  * Copyright (C) 1996-2015, International Business Machines Corporation and
@@ -103,7 +105,7 @@
  * <p>
  * <strong>Note:</strong> for some non-Gregorian calendars, different
  * fields may be necessary for complete disambiguation. For example, a full
- * specification of the historial Arabic astronomical calendar requires year,
+ * specification of the historical Arabic astronomical calendar requires year,
  * month, day-of-month <em>and</em> day-of-week in some cases.
  *
  * <p>
@@ -137,11 +139,25 @@
  * For example, subtracting 5 days from the date <code>September 12, 1996</code>
  * results in <code>September 7, 1996</code>.
  *
+ * <p>
+ * The Japanese calendar uses a combination of era name and year number.
+ * When an emperor of Japan abdicates and a new emperor ascends the throne,
+ * a new era is declared and year number is reset to 1. Even if the date of
+ * abdication is scheduled ahead of time, the new era name might not be
+ * announced until just before the date. In such case, ICU4C may include
+ * a start date of future era without actual era name, but not enabled
+ * by default. ICU4C users who want to test the behavior of the future era
+ * can enable the tentative era by:
+ * <ul>
+ * <li>Environment variable <code>ICU_ENABLE_TENTATIVE_ERA=true</code>.</li>
+ * </ul>
+ *
  * @stable ICU 2.0
  */
 
 /**
  * The time zone ID reserved for unknown time zone.
+ * It behaves like the GMT/UTC time zone but has the special ID "Etc/Unknown".
  * @stable ICU 4.8
  */
 #define UCAL_UNKNOWN_ZONE_ID "Etc/Unknown"
@@ -423,10 +439,12 @@ enum UCalendarDateFields {
    */
   UCAL_IS_LEAP_MONTH,
 
-  /**
-   * Field count
-   * @stable ICU 2.6
-   */
+    /* Do not conditionalize the following with #ifndef U_HIDE_DEPRECATED_API,
+     * it is needed for layout of Calendar, DateFormat, and other objects */
+    /**
+     * One more than the highest normal UCalendarDateFields value.
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
+     */
   UCAL_FIELD_COUNT,
 
  /**
@@ -603,8 +621,13 @@ ucal_openCountryTimeZones(const char* country, UErrorCode* ec);
 
 /**
  * Return the default time zone. The default is determined initially
- * by querying the host operating system. It may be changed with
- * ucal_setDefaultTimeZone() or with the C++ TimeZone API.
+ * by querying the host operating system. If the host system detection
+ * routines fail, or if they specify a TimeZone or TimeZone offset
+ * which is not recognized, then the special TimeZone "Etc/Unknown"
+ * is returned.
+ * 
+ * The default may be changed with `ucal_setDefaultTimeZone()` or with
+ * the C++ TimeZone API, `TimeZone::adoptDefault(TimeZone*)`.
  *
  * @param result A buffer to receive the result, or NULL
  *
@@ -614,7 +637,9 @@ ucal_openCountryTimeZones(const char* country, UErrorCode* ec);
  *
  * @return The result string length, not including the terminating
  * null
- *
+ * 
+ * @see #UCAL_UNKNOWN_ZONE_ID
+ * 
  * @stable ICU 2.6
  */
 U_STABLE int32_t U_EXPORT2
@@ -716,7 +741,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUCalendarPointer, UCalendar, ucal_close);
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Open a copy of a UCalendar.

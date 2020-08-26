@@ -46,6 +46,10 @@ typedef enum UATimeUnitStyle {
      * narrow style, e.g. "1.0 m"
      * @draft ICU 53 */
     UATIMEUNITSTYLE_NARROW,
+    /**
+     * shorter style,between abbreviated and narrow"
+     * @draft ICU 57 */
+    UATIMEUNITSTYLE_SHORTER,
     /** @draft ICU 53 */
     UATIMEUNITSTYLE_COUNT
 } UATimeUnitStyle;
@@ -69,8 +73,16 @@ typedef enum UATimeUnitField {
     UATIMEUNITFIELD_MINUTE,
     /** @draft ICU 53 */
     UATIMEUNITFIELD_SECOND,
-    /** @draft ICU 53 */
+    /** @draft ICU 63 */
+    UATIMEUNITFIELD_MILLISECOND,
+    /** @draft ICU 63 */
+    UATIMEUNITFIELD_MICROSECOND,
+    /** @draft ICU 63 */
+    UATIMEUNITFIELD_NANOSECOND,
+#ifndef U_HIDE_DEPRECATED_API
+     /** @deprecated The numeric value may change over time */
     UATIMEUNITFIELD_COUNT
+#endif  /* U_HIDE_DEPRECATED_API */
 } UATimeUnitField;
 
 /**
@@ -149,7 +161,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUATimeUnitFormatPointer, UATimeUnitFormat, uatm
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 
 /**

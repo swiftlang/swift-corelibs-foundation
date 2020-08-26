@@ -1,11 +1,11 @@
 /*	CFTimeZone.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Itai Ferber
 */
 
 
@@ -485,12 +485,13 @@ static CFIndex __CFBSearchTZPeriods(CFTimeZoneRef tz, CFAbsoluteTime at) {
 
 
 CF_INLINE int32_t __CFDetzcode(const unsigned char *bufp) {
-    int32_t result = (bufp[0] & 0x80) ? ~0L : 0L;
+     // `result` is uint32_t to avoid undefined behaviour of shifting left negative values
+    uint32_t result = (bufp[0] & 0x80) ? ~0L : 0L;
     result = (result << 8) | (bufp[0] & 0xff);
     result = (result << 8) | (bufp[1] & 0xff);
     result = (result << 8) | (bufp[2] & 0xff);
     result = (result << 8) | (bufp[3] & 0xff);
-    return result;
+    return (int32_t)result;
 }
 
 CF_INLINE void __CFEntzcode(int32_t value, unsigned char *bufp) {
@@ -865,7 +866,8 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
 #if !TARGET_OS_ANDROID
     if (!__tzZoneInfo) __InitTZStrings();
     ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
-    if (__tzZoneInfo && (0 < ret)) {
+    // The link can be relative, we treat this the same as if there was no link
+    if (__tzZoneInfo && (0 < ret) && (linkbuf[0] != '.')) {
         linkbuf[ret] = '\0';
         const char *tzZoneInfo = CFStringGetCStringPtr(__tzZoneInfo, kCFStringEncodingASCII);
         size_t zoneInfoDirLen = CFStringGetLength(__tzZoneInfo);
@@ -893,6 +895,15 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
+#if TARGET_OS_ANDROID
+    // Timezone database by name not available on Android.
+    // Approximate with gmtoff - could be general default.
+    struct tm info;
+    time_t now = time(NULL);
+    if (NULL != localtime_r(&now, &info)) {
+        return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, info.tm_gmtoff);
+    }
+#endif
     return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0);
 }
 
@@ -1109,18 +1120,19 @@ static int32_t __tryParseGMTName(CFStringRef name) {
     CFStringGetCharacters(name, CFRangeMake(0, len), ustr);
     ustr[len] = 0;
     
-    // GMT, GMT{+|-}HH, GMT{+|-}HHMM, GMT{+|-}{H|HH}{:|.}MM
-    // UTC, UTC{+|-}HH, UTC{+|-}HHMM, UTC{+|-}{H|HH}{:|.}MM
+    // GMT, GMT{+|-}H, GMT{+|-}HH, GMT{+|-}HHMM, GMT{+|-}{H|HH}{:|.}MM
+    // UTC, UTC{+|-}H, UTC{+|-}HH, UTC{+|-}HHMM, UTC{+|-}{H|HH}{:|.}MM
     //   where "00" <= HH <= "18", "00" <= MM <= "59", and if HH==18, then MM must == 00
-    
+
     Boolean isGMT = ('G' == ustr[0] && 'M' == ustr[1] && 'T' == ustr[2]);
     Boolean isUTC = ('U' == ustr[0] && 'T' == ustr[1] && 'C' == ustr[2]);
     if (!isGMT && !isUTC) return -1;
     if (3 == len) return 0;
     
-    if (len < 6) return -1;
+    if (len < 5) return -1;
     if (!('+' == ustr[3] || '-' == ustr[3])) return -1;
     if (!('0' <= ustr[4] && ustr[4] <= '9')) return -1;
+    if (5 == len) return (('-' == ustr[3]) ? -1 : 1) * (ustr[4] - '0') * 3600; // GMT{+|-}H
     Boolean twoHourDigits = ('0' <= ustr[5] && ustr[5] <= '9');
     Boolean fiveIsPunct = (':' == ustr[5] || '.' == ustr[5]);
     if (!(twoHourDigits || fiveIsPunct)) return -1;
@@ -1583,6 +1595,8 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 #endif
 	CFRelease(dict);
 	if (CFEqual(CFSTR(""), name)) {
+	    if (baseURL) CFRelease(baseURL);
+	    if (data) CFRelease(data);
 	    return NULL;
 	}
     }
@@ -1648,20 +1662,52 @@ CFTimeInterval CFTimeZoneGetSecondsFromGMT(CFTimeZoneRef tz, CFAbsoluteTime at) 
     return __CFTZPeriodGMTOffset(&(tz->_periods[idx]));
 }
 
+extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
+
 CFStringRef CFTimeZoneCopyAbbreviation(CFTimeZoneRef tz, CFAbsoluteTime at) {
     CFStringRef result;
     CFIndex idx;
     __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
+#if TARGET_OS_WIN32
+    UErrorCode status = U_ZERO_ERROR;
+    UCalendar *ucal = __CFCalendarCreateUCalendar(NULL, CFSTR("C"), tz);
+    if (ucal == NULL) {
+      return NULL;
+    }
+    ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
+
+    UCalendarDisplayNameType nameType = ucal_inDaylightTime(ucal, &status) ? UCAL_SHORT_DST : UCAL_SHORT_STANDARD;
+    UChar buffer[64];
+    int32_t length;
+    length = ucal_getTimeZoneDisplayName(ucal, nameType, "C", buffer, sizeof(buffer), &status);
+
+    ucal_close(ucal);
+
+    return length <= sizeof(buffer) ? CFStringCreateWithCharacters(kCFAllocatorSystemDefault, buffer, length) : NULL;
+#else
     idx = __CFBSearchTZPeriods(tz, at);
     result = __CFTZPeriodAbbreviation(&(tz->_periods[idx]));
     return result ? (CFStringRef)CFRetain(result) : NULL;
+#endif
 }
 
 Boolean CFTimeZoneIsDaylightSavingTime(CFTimeZoneRef tz, CFAbsoluteTime at) {
-    CFIndex idx;
     __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
+#if TARGET_OS_WIN32
+    UErrorCode status = U_ZERO_ERROR;
+    UCalendar *ucal = __CFCalendarCreateUCalendar(NULL, CFSTR("C"), tz);
+    if (ucal == NULL) {
+      return FALSE;
+    }
+    ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
+
+    UBool isDaylightTime = ucal_inDaylightTime(ucal, &status);
+    return isDaylightTime ? TRUE : FALSE;
+#else
+    CFIndex idx;
     idx = __CFBSearchTZPeriods(tz, at);
     return __CFTZPeriodIsDST(&(tz->_periods[idx]));
+#endif
 }
 
 CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef tz, CFAbsoluteTime at) {
@@ -1682,14 +1728,28 @@ CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef tz, CFAbsolut
 CFAbsoluteTime CFTimeZoneGetNextDaylightSavingTimeTransition(CFTimeZoneRef tz, CFAbsoluteTime at) {
     CF_OBJC_FUNCDISPATCHV(CFTimeZoneGetTypeID(), CFTimeInterval, (NSTimeZone *)tz, _nextDaylightSavingTimeTransitionAfterAbsoluteTime:at);
     __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
+#if TARGET_OS_WIN32
+    UErrorCode status = U_ZERO_ERROR;
+    UCalendar *ucal = __CFCalendarCreateUCalendar(NULL, CFSTR("C"), tz);
+    if (ucal == NULL) {
+      return 0.0;
+    }
+    ucal_setMillis(ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &status);
+
+    UDate date;
+    ucal_getTimeZoneTransitionDate(ucal, UCAL_TZ_TRANSITION_NEXT, &date, &status);
+
+    ucal_close(ucal);
+
+    return (date / 1000.0) - kCFAbsoluteTimeIntervalSince1970;
+#else
     CFIndex idx = __CFBSearchTZPeriods(tz, at);
     if (tz->_periodCnt <= idx + 1) {
         return 0.0;
     }
     return (CFAbsoluteTime)__CFTZPeriodStartSeconds(&(tz->_periods[idx + 1]));
+#endif
 }
-
-extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
 
 #define BUFFER_SIZE 768
 

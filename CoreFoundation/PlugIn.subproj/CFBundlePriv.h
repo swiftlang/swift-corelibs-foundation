@@ -1,7 +1,7 @@
 /*	CFBundlePriv.h
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -242,7 +242,11 @@ Boolean _CFBundleGetStringsFilesShared(CFBundleRef bundle);
 CF_EXPORT
 CFURLRef _CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executablePath);
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+/* This function returns the bundle with the identifier from already loaded (in-memory) bundles, after ensuring that any loaded (i.e. linked in the current process) library matching the specified name has its bundle loaded first. The libraryName should be the name of the executable in the bundle (e.g. "CoreFoundation"). If the libraryName doesn't match any library in the process, only bundle IDs of already-loaded bundles are considered, unlike CFBundleGetBundleWithIdentifier which will load the bundle for every library in the process when necessary to try and find the bundle identifier. Therefore, because this method avoids creating CFBundle instances for bundles as it searches, it can yield significantly faster lookups for a specific bundle when the name of the library is known, but when the bundle isn't already loaded and the library name does not match, it can return nil in cases where CFBundleGetBundleWithIdentifier wouldn't. */
+CF_EXPORT
+CFBundleRef _CFBundleGetBundleWithIdentifierAndLibraryName(CFStringRef bundleID, CFStringRef libraryName) API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
+
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <xpc/xpc.h>
 CF_EXPORT
 void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));

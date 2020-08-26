@@ -98,8 +98,3 @@ _kCFNumberFormatterZeroSymbolKey		_kCFNumberFormatterZeroSymbol
 _kCFNumberFormatterUsesCharacterDirectionKey	_kCFNumberFormatterUsesCharacterDirection
 _kCFDateFormatterUsesCharacterDirectionKey	_kCFDateFormatterUsesCharacterDirection
 _kCFDateFormatterCalendarIdentifierKey		_kCFDateFormatterCalendarName
-
-# Workaround for being able to compile with a swift compiler with the old mangling prefix $S.
-# This can eventually be removed if everyone compiles with the ABI-stable Swift 5.0 compiler.
-_$S15SwiftFoundation19_NSCFConstantStringCN	_$s15SwiftFoundation19_NSCFConstantStringCN
-

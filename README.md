@@ -60,13 +60,13 @@ There are several reasons why these types are useful in Swift as distinct types 
 * They provide reference semantics instead of value semantics, which is a useful tool to have in the toolbox.
 * They can be subclassed to specialize behavior while maintaining the same interface for the client.
 * They exist in archives, and we wish to maintain as much forward and backward compatibility with persistence formats as is possible.
-* They are the backing for almost all Swift Array, Dictionary, and Set objects that you receive from frameworks implemented in Objective-C on Darwin platforms. This may be considered an implementation detail, but it leaks into client code in many ways. We want to provide them here so that your code will remain portable.
+* They are the backing for almost all Swift `Array`, `Dictionary`, and `Set` objects that you receive from frameworks implemented in Objective-C on Darwin platforms. This may be considered an implementation detail, but it leaks into client code in many ways. We want to provide them here so that your code will remain portable.
 
 #### How do we decide if something belongs in the standard library or Foundation?
 
 In general, the dividing line should be drawn in overlapping area of what people consider the language and what people consider to be a library feature.
 
-For example, Optional is a type provided by the standard library. However, the compiler understands the concept to provide support for things like optional-chaining syntax. The compiler also has syntax for creating Arrays and Dictionaries.
+For example, `Optional` is a type provided by the standard library. However, the compiler understands the concept to provide support for things like optional-chaining syntax. The compiler also has syntax for creating instances of type `Array` and `Dictionary`.
 
 On the other hand, the compiler has no built-in support for types like `URL`. `URL` also ties into more complex functionality like basic networking support. Therefore this type is more appropriate for Foundation.
 
