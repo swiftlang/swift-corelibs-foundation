@@ -4805,7 +4805,7 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
                 newComp = CFURLCreateStringByAddingPercentEscapes(allocator, pathComponent, NULL, CFSTR(";?"), url->_encoding);
 #pragma GCC diagnostic pop
             }
-            if ( newComp ) {
+            if ( newComp && CFStringGetLength(newComp) > 0 ) {
                 pathRg = _rangeForComponent(url->_flags, url->_ranges, HAS_PATH);
                 if ( (!pathRg.length || CFStringGetCharacterAtIndex(url->_string, pathRg.location + pathRg.length - 1) != '/') && (CFStringGetCharacterAtIndex(newComp, 0) != '/') ) {
                     CFStringInsert(newString, pathRg.location + pathRg.length, CFSTR("/"));
