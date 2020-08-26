@@ -100,52 +100,71 @@ open class ProcessInfo: NSObject {
         return osVersionInfo
     }
 #endif
-
-    open var operatingSystemVersionString: String {
-        let fallback = "Unknown"
-#if os(Linux)
-        var utsNameBuffer = utsname()
-        guard uname(&utsNameBuffer) == 0 else {
-            return fallback
+    
+    internal lazy var _operatingSystemVersionString: String = {
+#if canImport(Darwin)
+        // Just use CoreFoundation on Darwin
+        return CFCopySystemVersionString()?._swiftObject ?? "Darwin"
+#elseif os(Linux)
+        // Try to parse a `PRETTY_NAME` out of `/etc/os-release`.
+        if let osReleaseContents = try? String(contentsOf: URL(fileURLWithPath: "/etc/os-release", isDirectory: false)),
+           let name = osReleaseContents.split(separator: "\n").first(where: { $0.hasPrefix("PRETTY_NAME=") })
+        {
+            // This is extremely simplistic but manages to work for all known cases.
+            return String(name.dropFirst("PRETTY_NAME=".count).trimmingCharacters(in: .init(charactersIn: "\"")))
         }
-        let release = withUnsafePointer(to: &utsNameBuffer.release.0) { String(cString: $0) }
-
-        return release
+        
+        // Okay, we can't get a distro name, so try for generic info.
+        var versionString = "Linux"
+        
+        // Try to get a release version number from `uname -r`.
+        var utsNameBuffer = utsname()
+        if uname(&utsNameBuffer) == 0 {
+            let release = withUnsafePointer(to: &utsNameBuffer.release.0) { String(cString: $0) }
+            if !release.isEmpty {
+                versionString += " \(release)"
+            }
+        }
+        
+        return versionString
 #elseif os(Windows)
+        var versionString = "Windows"
+        
         guard let osVersionInfo = self._rawOperatingSystemVersionInfo else {
-            return fallback
+            return versionString
         }
 
         // Windows has no canonical way to turn the fairly complex `RTL_OSVERSIONINFOW` version info into a string. We
         // do our best here to construct something consistent. Unfortunately, to provide a useful result, this requires
         // hardcoding several of the somewhat ambiguous values in the table provided here:
         //  https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_osversioninfoexw#remarks
-        var versionString = ""
         switch (osVersionInfo.dwMajorVersion, osVersionInfo.dwMinorVersion) {
-            case (5, 0): versionString += "Windows 2000"
-            case (5, 1): versionString += "Windows XP"
-            case (5, 2) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows XP Professional x64"
-            case (5, 2) where osVersionInfo.wSuiteMask == VER_SUITE_WH_SERVER: versionString += "Windows Home Server"
-            case (5, 2): versionString += "Windows Server 2003"
-            case (6, 0) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows Vista"
-            case (6, 0): versionString += "Windows Server 2008"
-            case (6, 1) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 7"
-            case (6, 1): versionString += "Windows Server 2008 R2"
-            case (6, 2) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 8"
-            case (6, 2): versionString += "Windows Server 2012"
-            case (6, 3) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 8.1"
-            case (6, 3): versionString += "Windows Server 2012 R2" // We assume the "10,0" numbers in the table for this are a typo
-            case (10, 0) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += "Windows 10"
-            case (10, 0): versionString += "Windows Server 2019" // The table gives identical values for 2016 and 2019, so we just assume 2019 here
-            default: return fallback
+            case (5, 0): versionString += " 2000"
+            case (5, 1): versionString += " XP"
+            case (5, 2) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += " XP Professional x64"
+            case (5, 2) where osVersionInfo.wSuiteMask == VER_SUITE_WH_SERVER: versionString += " Home Server"
+            case (5, 2): versionString += " Server 2003"
+            case (6, 0) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += " Vista"
+            case (6, 0): versionString += " Server 2008"
+            case (6, 1) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += " 7"
+            case (6, 1): versionString += " Server 2008 R2"
+            case (6, 2) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += " 8"
+            case (6, 2): versionString += " Server 2012"
+            case (6, 3) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += " 8.1"
+            case (6, 3): versionString += " Server 2012 R2" // We assume the "10,0" numbers in the table for this are a typo
+            case (10, 0) where osVersionInfo.wProductType == VER_NT_WORKSTATION: versionString += " 10"
+            case (10, 0): versionString += " Server 2019" // The table gives identical values for 2016 and 2019, so we just assume 2019 here
+            case let (maj, min): versionString += " \(maj).\(min)" // If all else fails, just give the raw version number
         }
         versionString += " (build \(osVersionInfo.dwBuildNumber))"
         // For now we ignore the `szCSDVersion`, `wServicePackMajor`, and `wServicePackMinor` values.
         return versionString
 #else
-        return CFCopySystemVersionString()?._swiftObject ?? fallback
+        // On other systems at least return something.
+        return "Unknown"
 #endif
-    }
+    }()
+    open var operatingSystemVersionString: String { return _operatingSystemVersionString }
     
     open var operatingSystemVersion: OperatingSystemVersion {
         // The following fallback values match Darwin Foundation
@@ -174,7 +193,7 @@ open class ProcessInfo: NSObject {
             minorVersion: Int(osVersionInfo.dwMinorVersion),
             patchVersion: Int(osVersionInfo.dwBuildNumber)
         )
-#else
+#elseif os(Linux) || os(FreeBSD) || os(OpenBSD) || os(Android)
         var utsNameBuffer = utsname()
         guard uname(&utsNameBuffer) == 0 else {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
@@ -184,6 +203,8 @@ open class ProcessInfo: NSObject {
         }
         let idx = release.firstIndex(of: "-") ?? release.endIndex
         versionString = String(release[..<idx])
+#else
+        return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
 #endif
         let versionComponents = versionString.split(separator: ".").map(String.init).compactMap({ Int($0) })
         let majorVersion = versionComponents.dropFirst(0).first ?? fallbackMajor
