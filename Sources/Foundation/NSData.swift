@@ -458,10 +458,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             if writeOptionsMask.contains(.withoutOverwriting) {
                 flags |= O_EXCL
             }
+
+            // NOTE: Each flag such as `S_IRUSR` may be literal depends on the system.
+            // Without explicity type them as `Int`, type inference will not complete in reasonable time
+            // and the compiler will throw an error.
 #if os(Windows)
-            let createMode = Int(ucrt.S_IREAD | ucrt.S_IWRITE)
+            let createMode = Int(ucrt.S_IREAD) | Int(ucrt.S_IWRITE)
 #else
-            let createMode = Int(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
+            let createMode = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
 #endif
             guard let fh = FileHandle(path: path, flags: flags, createMode: createMode) else {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
