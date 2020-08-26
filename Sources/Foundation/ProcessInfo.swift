@@ -159,6 +159,41 @@ open class ProcessInfo: NSObject {
         versionString += " (build \(osVersionInfo.dwBuildNumber))"
         // For now we ignore the `szCSDVersion`, `wServicePackMajor`, and `wServicePackMinor` values.
         return versionString
+#elseif os(FreeBSD)
+        // Try to get a release version from `uname -r`.
+        var versionString = "FreeBSD"
+        var utsNameBuffer = utsname()
+        if uname(&utsNameBuffer) == 0 {
+            let release = withUnsafePointer(to: &utsNameBuffer.release.0) { String(cString: $0) }
+            if !release.isEmpty {
+                versionString += " \(release)"
+            }
+        }
+        return versionString
+#elseif os(OpenBSD)
+        // TODO: `uname -r` probably works here too.
+        return "OpenBSD"
+#elseif os(Android)
+        /// In theory, we need to do something like this:
+        ///
+        ///     var versionString = "Android"
+        ///     let property = String(unsafeUninitializedCapacity: PROP_VALUE_MAX) { buf in
+        ///         __system_property_get("ro.build.description", buf.baseAddress!)
+        ///     }
+        ///     if !property.isEmpty {
+        ///         versionString += " \(property)"
+        ///     }
+        ///     return versionString
+        return "Android"
+#elseif os(PS4)
+        return "PS4"
+#elseif os(Cygwin)
+        // TODO: `uname -r` probably works here too.
+        return "Cygwin"
+#elseif os(Haiku)
+        return "Haiku"
+#elseif os(WASI)
+        return "WASI"
 #else
         // On other systems at least return something.
         return "Unknown"
