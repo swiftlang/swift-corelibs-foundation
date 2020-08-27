@@ -22,11 +22,24 @@ class TestProcessInfo : XCTestCase {
         let processInfo = ProcessInfo.processInfo
         let versionString = processInfo.operatingSystemVersionString
         XCTAssertFalse(versionString.isEmpty)
-        
+
+#if os(Linux)
+        // Since the list of supported distros tends to change, at least check that it used os-release (if it's there).
+        if let distroId = try? String(contentsOf: URL(fileURLWithPath: "/etc/os-release", isDirectory: false)),
+           distroId.contains("PRETTY_NAME")
+        {
+            XCTAssertTrue(distroId.contains(versionString))
+        } else {
+            XCTAssertTrue(versionString.contains("Linux"))
+        }
+#elseif os(Windows)
+        XCTAssertTrue(versionString.hasPrefix("Windows"))
+#endif
+
         let version = processInfo.operatingSystemVersion
         XCTAssert(version.majorVersion != 0)
 
-#if os(Linux) || canImport(Darwin)
+#if canImport(Darwin) || os(Linux) || os(Windows)
         let minVersion = OperatingSystemVersion(majorVersion: 1, minorVersion: 0, patchVersion: 0)
         XCTAssertTrue(processInfo.isOperatingSystemAtLeast(minVersion))
 #endif
