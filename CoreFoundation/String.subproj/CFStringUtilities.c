@@ -1,7 +1,7 @@
 /*	CFStringUtilities.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -15,6 +15,7 @@
 #include "CFStringEncodingConverterPriv.h"
 #include "CFStringEncodingDatabase.h"
 #include "CFICUConverters.h"
+#include "CFString_Internal.h"
 #include <limits.h>
 #include <stdlib.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
@@ -43,7 +44,6 @@ Boolean CFStringIsEncodingAvailable(CFStringEncoding theEncoding) {
         case kCFStringEncodingUTF32BE:
         case kCFStringEncodingUTF32LE:
             return true;
-
         default:
             return CFStringEncodingIsValidEncoding(theEncoding);
     }
@@ -178,16 +178,19 @@ enum {
 #define NSENCODING_MASK (1 << 31)
 
 unsigned long CFStringConvertEncodingToNSStringEncoding(CFStringEncoding theEncoding) {
+    //These two are frequently used in situations that are otherwise very fast (e.g. tagged strings), so check them first
+    if (theEncoding == kCFStringEncodingUTF8) return NSUTF8StringEncoding;
+    if (theEncoding == kCFStringEncodingASCII) return NSASCIIStringEncoding;
     switch (theEncoding & 0xFFF) {
         case kCFStringEncodingUnicode:
             if (theEncoding == kCFStringEncodingUTF16) return NSUnicodeStringEncoding;
-            else if (theEncoding == kCFStringEncodingUTF8) return NSUTF8StringEncoding;
+            //UTF8 handled above
             break;
 
         case kCFStringEncodingWindowsLatin1: return NSWindowsCP1252StringEncoding;
         case kCFStringEncodingMacRoman: return NSMacOSRomanStringEncoding;
 
-        case kCFStringEncodingASCII: return NSASCIIStringEncoding;
+        //ASCII handled above
 
         case kCFStringEncodingDOSJapanese: return NSShiftJISStringEncoding;
         case kCFStringEncodingWindowsCyrillic: return NSWindowsCP1251StringEncoding;
@@ -432,7 +435,10 @@ static void __collatorFinalize(UCollator *collator) {
     }
     __CFUnlock(&__CFDefaultCollatorLock);
     if (NULL != collator) ucol_close(collator);
+#ifndef __clang_analyzer__
+    // This release is unbalanced from perspective of analyzer, but it is retained when __CFTSDKeyCollatorLocale is set
     if (locale) CFRelease(locale);
+#endif
 }
 #endif
 
@@ -659,6 +665,9 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                             bufferSize = range1.length + (kCFStringCompareAllocationIncrement - (range1.length % kCFStringCompareAllocationIncrement));
                             if (0 == buffer1Len) {
                                 buffer1 = (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(UTF16Char) * bufferSize, 0);
+                                if (!buffer1) {
+                                    __CFStringHandleOutOfMemory(NULL);
+                                }
                             } else if (buffer1Len < range1.length) {
                                 buffer1 = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, buffer1, sizeof(UTF16Char) * bufferSize, 0, NULL);
                             }
@@ -684,6 +693,9 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                             bufferSize = range2.length + (kCFStringCompareAllocationIncrement - (range2.length % kCFStringCompareAllocationIncrement));
                             if (0 == buffer2Len) {
                                 buffer2 = (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(UTF16Char) * bufferSize, 0);
+                                if (!buffer2) {
+                                    __CFStringHandleOutOfMemory(NULL);
+                                }
                             } else if (buffer2Len < range2.length) {
                                 buffer2 = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, buffer2, sizeof(UTF16Char) * bufferSize, 0, NULL);
                             }
@@ -706,7 +718,14 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                 }
             } else 
 #endif
-            {
+            if ((NULL == characters1) || (NULL == characters2)) {
+                // We've reached here by producing invalid ranges for either string.
+                //
+                // If either range1 or range2 initially doesn't cover a valid portion of the corresponding characters buffer, CFStringGetCharactersPtrFromInlineBuffer will return NULL and we fall into this loop.
+                // Then, if either str1Range.location >= str1Max or str2Range.location >= str2Max (i.e. we got faulty input), then the matching range can't be advanced, and we won't attempt to allocate a new buffer.
+                // We'll then arrive here, and cannot reasonably perform the direct memcmp below.
+                HALT_MSG("Invalid string range produced for character buffer in _CFCompareStringsWithLocale.");
+            } else {
                 order = memcmp(characters1, characters2, sizeof(UTF16Char) * ((range1.length < range2.length) ? range1.length : range2.length));
                 if (0 == order) {
                     if (range1.length < range2.length) {
@@ -742,7 +761,10 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	if (threadLocale) __collatorFinalize((UCollator *)_CFGetTSD(__CFTSDKeyCollatorUCollator)); // need to dealloc collators
 
 	_CFSetTSD(__CFTSDKeyCollatorUCollator, collator, (void *)__collatorFinalize);
+#ifndef __clang_analyzer__
+        // This retain is unbalanced from perspective of analyzer, but it is released in __collatorFinalize
 	_CFSetTSD(__CFTSDKeyCollatorLocale, (void *)CFRetain(compareLocale), NULL);
+#endif
     }
 #endif
     

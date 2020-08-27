@@ -847,6 +847,7 @@ extension FileHandle {
             if error == 0 {
                 userInfo[NSFileHandleNotificationDataItem] = Data(data)
             } else {
+                userInfo[NSFileHandleNotificationDataItem] = Data()
 #if os(Windows)
                 // On Windows, reading from a directory results in an
                 // ERROR_ACCESS_DENIED. If we get ERROR_ACCESS_DENIED
@@ -1015,7 +1016,7 @@ open class Pipe: NSObject {
                                                closeOnDealloc: true)
 #else
         /// the `pipe` system call creates two `fd` in a malloc'ed area
-        var fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
+        let fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
         defer {
             fds.deallocate()
         }

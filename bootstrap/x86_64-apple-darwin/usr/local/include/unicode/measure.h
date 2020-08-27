@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 * Copyright (c) 2004-2015, International Business Machines
@@ -22,6 +24,7 @@
 
 #include "unicode/fmtable.h"
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class MeasureUnit;
@@ -154,6 +157,7 @@ inline const MeasureUnit& Measure::getUnit() const {
 }
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif // !UCONFIG_NO_FORMATTING
 #endif // __MEASURE_H__

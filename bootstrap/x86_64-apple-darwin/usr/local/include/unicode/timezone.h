@@ -1,5 +1,7 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*************************************************************************
-* Copyright (c) 1997-2015, International Business Machines Corporation
+* Copyright (c) 1997-2016, International Business Machines Corporation
 * and others. All Rights Reserved.
 **************************************************************************
 *
@@ -41,6 +43,7 @@
 #include "unicode/ures.h"
 #include "unicode/ucal.h"
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class StringEnumeration;
@@ -66,8 +69,8 @@ class StringEnumeration;
  * TimeZone *tz = TimeZone::createTimeZone("America/Los_Angeles");
  * </pre>
  * \htmlonly</blockquote>\endhtmlonly
- * You can use <code>getAvailableIDs</code> method to iterate through
- * all the supported time zone IDs, or getCanonicalID method to check
+ * You can use the <code>createEnumeration</code> method to iterate through
+ * all the supported time zone IDs, or the <code>getCanonicalID</code> method to check
  * if a time zone ID is supported or not.  You can then choose a
  * supported ID to get a <code>TimeZone</code>.
  * If the time zone you want is not represented by one of the
@@ -273,33 +276,42 @@ public:
     static const UnicodeString U_EXPORT2 getEquivalentID(const UnicodeString& id,
                                                int32_t index);
 
-#ifndef U_HIDE_DRAFT_API
     /**
      * Creates an instance of TimeZone detected from the current host
-     * system configuration. Note that ICU4C does not change the default
-     * time zone unless TimeZone::adoptDefault(TimeZone*) or
-     * TimeZone::setDefault(const TimeZone&) is explicitly called by a
+     * system configuration. If the host system detection routines fail,
+     * or if they specify a TimeZone or TimeZone offset which is not
+     * recognized, then the special TimeZone "Etc/Unknown" is returned.
+     * 
+     * Note that ICU4C does not change the default time zone unless
+     * `TimeZone::adoptDefault(TimeZone*)` or 
+     * `TimeZone::setDefault(const TimeZone&)` is explicitly called by a
      * user. This method does not update the current ICU's default,
      * and may return a different TimeZone from the one returned by
-     * TimeZone::createDefault().
+     * `TimeZone::createDefault()`.
+     *
+     * <p>This function is not thread safe.</p>
      *
      * @return  A new instance of TimeZone detected from the current host system
      *          configuration.
-     * @draft ICU 55
+     * @see adoptDefault
+     * @see setDefault
+     * @see createDefault
+     * @see getUnknown
+     * @stable ICU 55
      */
     static TimeZone* U_EXPORT2 detectHostTimeZone();
-#endif
 
     /**
      * Creates a new copy of the default TimeZone for this host. Unless the default time
      * zone has already been set using adoptDefault() or setDefault(), the default is
-     * determined by querying the system using methods in TPlatformUtilities. If the
-     * system routines fail, or if they specify a TimeZone or TimeZone offset which is not
-     * recognized, the TimeZone indicated by the ID kLastResortID is instantiated
-     * and made the default.
+     * determined by querying the host system configuration. If the host system detection
+     * routines fail, or if they specify a TimeZone or TimeZone offset which is not
+     * recognized, then the special TimeZone "Etc/Unknown" is instantiated and made the
+     * default.
      *
      * @return   A default TimeZone. Clients are responsible for deleting the time zone
      *           object returned.
+     * @see getUnknown
      * @stable ICU 2.0
      */
     static TimeZone* U_EXPORT2 createDefault(void);
@@ -655,13 +667,13 @@ public:
      * If the display name is not available for the locale,
      * then this method returns a string in the localized GMT offset format
      * such as <code>GMT[+-]HH:mm</code>.
-     * @param daylight if true, return the daylight savings name.
+     * @param inDaylight if true, return the daylight savings name.
      * @param style
      * @param result the human-readable name of this time zone in the default locale.
      * @return       A reference to 'result'.
      * @stable ICU 2.0
      */
-    UnicodeString& getDisplayName(UBool daylight, EDisplayType style, UnicodeString& result) const;
+    UnicodeString& getDisplayName(UBool inDaylight, EDisplayType style, UnicodeString& result) const;
 
     /**
      * Returns a name of this time zone suitable for presentation to the user
@@ -669,15 +681,15 @@ public:
      * If the display name is not available for the locale,
      * then this method returns a string in the localized GMT offset format
      * such as <code>GMT[+-]HH:mm</code>.
-     * @param daylight if true, return the daylight savings name.
+     * @param inDaylight if true, return the daylight savings name.
      * @param style
      * @param locale the locale in which to supply the display name.
      * @param result the human-readable name of this time zone in the given locale
      *               or in the default locale if the given locale is not recognized.
-     * @return       A refence to 'result'.
+     * @return       A reference to 'result'.
      * @stable ICU 2.0
      */
-    UnicodeString& getDisplayName(UBool daylight, EDisplayType style, const Locale& locale, UnicodeString& result) const;
+    UnicodeString& getDisplayName(UBool inDaylight, EDisplayType style, const Locale& locale, UnicodeString& result) const;
     
     /**
      * Queries if this time zone uses daylight savings time.
@@ -863,7 +875,7 @@ private:
      * @param id zone id string
      * @return the pointer of the ID resource, or NULL.
      */
-    static const UChar* findID(const UnicodeString& id);
+    static const char16_t* findID(const UnicodeString& id);
 
     /**
      * Resolve a link in Olson tzdata.  When the given id is known and it's not a link,
@@ -873,7 +885,7 @@ private:
      * @param id zone id string
      * @return the dereferenced zone or NULL
      */
-    static const UChar* dereferOlsonLink(const UnicodeString& id);
+    static const char16_t* dereferOlsonLink(const UnicodeString& id);
 
     /**
      * Returns the region code associated with the given zone,
@@ -881,7 +893,7 @@ private:
      * @param id zone id string
      * @return the region associated with the given zone
      */
-    static const UChar* getRegion(const UnicodeString& id);
+    static const char16_t* getRegion(const UnicodeString& id);
 
   public:
 #ifndef U_HIDE_INTERNAL_API
@@ -893,7 +905,7 @@ private:
      * @return the region associated with the given zone
      * @internal
      */
-    static const UChar* getRegion(const UnicodeString& id, UErrorCode& status);
+    static const char16_t* getRegion(const UnicodeString& id, UErrorCode& status);
 #endif  /* U_HIDE_INTERNAL_API */
 
   private:
@@ -924,7 +936,7 @@ private:
         UErrorCode& status);
 
     /**
-     * Returns the normalized custome time zone ID for the given offset fields.
+     * Returns the normalized custom time zone ID for the given offset fields.
      * @param hour offset hours
      * @param min offset minutes
      * @param sec offset seconds
@@ -958,6 +970,7 @@ TimeZone::setID(const UnicodeString& ID)
     fID = ID;
 }
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

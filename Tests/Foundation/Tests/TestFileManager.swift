@@ -15,6 +15,8 @@
     #endif
 #endif
 
+import Dispatch
+
 class TestFileManager : XCTestCase {
 #if os(Windows)
     let pathSep = "\\"
@@ -934,6 +936,72 @@ class TestFileManager : XCTestCase {
         }
         XCTAssertNil(try? fm.linkItem(atPath: srcLink, toPath: destLink), "Creating link where one already exists")
     }
+    
+    func test_resolvingSymlinksInPath() throws {
+        try withTemporaryDirectory { (temporaryDirectoryURL, _) in
+            // Initialization
+            var baseURL = temporaryDirectoryURL
+                .appendingPathComponent("test_resolvingSymlinksInPath")
+                .appendingPathComponent(UUID().uuidString)
+
+            try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+            let testData = Data([0x01])
+
+            baseURL.resolveSymlinksInPath()
+            baseURL.standardize()
+
+            let link1URL = baseURL.appendingPathComponent("link1")
+            let link2URL = baseURL.appendingPathComponent("link2")
+            let link3URL = baseURL.appendingPathComponent("link3")
+            let testFileURL = baseURL.appendingPathComponent("test").standardized.absoluteURL
+
+            try FileManager.default.removeItem(at: baseURL)
+
+            // A) Check non-symbolic linking resolution
+            try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+            try testData.write(to: testFileURL)
+            let resolvedURL_A = testFileURL.resolvingSymlinksInPath().standardized.absoluteURL
+            XCTAssertEqual(resolvedURL_A.path, testFileURL.path)
+            try FileManager.default.removeItem(at: baseURL)
+
+            // B) Check simple symbolic linking resolution
+            try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+            try testData.write(to: testFileURL)
+            try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: testFileURL)
+            let resolvedURL_B = link1URL.resolvingSymlinksInPath().standardized.absoluteURL
+            XCTAssertEqual(resolvedURL_B.path, testFileURL.path)
+            try FileManager.default.removeItem(at: baseURL)
+
+            // C) Check recursive symbolic linking resolution
+            //
+            // Note: The symbolic link creation order is important as in some platforms like Windows
+            // symlinks can only be created pointing to existing targets.
+            try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+            try testData.write(to: testFileURL)
+            try FileManager.default.createSymbolicLink(at: link2URL, withDestinationURL: testFileURL)
+            try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: link2URL)
+            let resolvedURL_C = link1URL.resolvingSymlinksInPath().standardized.absoluteURL
+            XCTAssertEqual(resolvedURL_C.path, testFileURL.path)
+
+            // C-2) And that FileManager.destinationOfSymbolicLink(atPath:) does not recursively resolves them
+            let destinationOfSymbolicLink1 = try FileManager.default.destinationOfSymbolicLink(atPath: link1URL.path)
+            let destinationOfSymbolicLink1URL = URL(fileURLWithPath: destinationOfSymbolicLink1).standardized.absoluteURL
+            XCTAssertEqual(destinationOfSymbolicLink1URL.path, link2URL.path)
+            try FileManager.default.removeItem(at: baseURL)
+
+            #if !os(Windows)
+            // D) Check infinite recursion loops are stopped and the function returns the intial symlink
+            //
+            // Note: This cannot be tested on platforms which only support creating symlinks pointing to existing targets.
+            try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+            try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: link2URL)
+            try FileManager.default.createSymbolicLink(at: link2URL, withDestinationURL: link3URL)
+            try FileManager.default.createSymbolicLink(at: link3URL, withDestinationURL: link1URL)
+            let resolvedURL_D = link1URL.resolvingSymlinksInPath()
+            XCTAssertEqual(resolvedURL_D.lastPathComponent, link1URL.lastPathComponent)
+            #endif
+        }
+    }
 
     func test_homedirectoryForUser() {
         let filemanger = FileManager.default
@@ -1785,10 +1853,10 @@ VIDEOS=StopgapVideos
 
             // Relative Paths
             ".\\testfile",
-            "..\\\(tmpPath.lastPathComponent)\\.\\testfile",
+            "..\\\((tmpPath as NSString).lastPathComponent)\\.\\testfile",
             "testfile",
             "./testfile",
-            "../\(tmpPath.lastPathComponent)/./testfile",
+            "../\((tmpPath as NSString).lastPathComponent)/./testfile",
 
             // UNC Paths
             "\\\\.\\\(tmpPath)\\testfile",
@@ -1802,6 +1870,49 @@ VIDEOS=StopgapVideos
         ]
         for path in paths {
             try checkPath(path: path)
+        }
+    }
+
+    /**
+     Tests that we can get an item replacement directory concurrently.
+
+     - Bug: [SR-12272](https://bugs.swift.org/browse/SR-12272)
+     */
+    func test_concurrentGetItemReplacementDirectory() throws {
+        let fileManager = FileManager.default
+
+        let operationCount = 10
+
+        var directoryURLs = [URL?](repeating: nil, count: operationCount)
+        var errors = [Error?](repeating: nil, count: operationCount)
+
+        let dispatchGroup = DispatchGroup()
+        for operationIndex in 0..<operationCount {
+            DispatchQueue.global().async(group: dispatchGroup) {
+                do {
+                    let directory = try fileManager.url(for: .itemReplacementDirectory,
+                                                        in: .userDomainMask,
+                                                        appropriateFor: URL(fileURLWithPath: NSTemporaryDirectory(),
+                                                                            isDirectory: true),
+                                                        create: true)
+                    directoryURLs[operationIndex] = directory
+                } catch {
+                    errors[operationIndex] = error
+                }
+            }
+        }
+        dispatchGroup.wait()
+
+        for directoryURL in directoryURLs {
+            if let directoryURL = directoryURL {
+                try? fileManager.removeItem(at: directoryURL)
+            }
+        }
+
+        for error in errors {
+            if let error = error {
+                XCTFail("One of the concurrent calls to get the item replacement directory failed: \(error)")
+            }
         }
     }
     
@@ -1849,6 +1960,7 @@ VIDEOS=StopgapVideos
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
             ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
             ("test_linkItemAtPathToPath", testExpectedToFailOnAndroid(test_linkItemAtPathToPath, "Android doesn't allow hard links")),
+            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
             ("test_homedirectoryForUser", test_homedirectoryForUser),
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
@@ -1861,6 +1973,7 @@ VIDEOS=StopgapVideos
             ("test_contentsEqual", test_contentsEqual),
             /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
             /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
+            ("test_concurrentGetItemReplacementDirectory", test_concurrentGetItemReplacementDirectory),
         ]
         
         #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)

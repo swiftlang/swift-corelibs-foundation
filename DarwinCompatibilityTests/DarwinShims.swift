@@ -45,16 +45,6 @@ extension Thread {
     }
 }
 
-extension Scanner {
-    public func scanString(_ searchString: String) -> String? {
-        var result: NSString? = nil
-        if scanString(searchString, into: &result), let str = result {
-            return str as String
-        }
-        return nil
-    }
-}
-
 extension JSONSerialization {
     class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
         var error: NSError?
@@ -81,29 +71,5 @@ extension CharacterSet {
 extension NSCharacterSet {
     func _bridgeToSwift() -> CharacterSet {
         return self as CharacterSet
-    }
-}
-
-
-extension FileHandle {
-    public func offset() throws -> UInt64 {
-        return self.offsetInFile
-    }
-
-    public func read(upToCount count: Int) throws -> Data? {
-        guard count > 0 else { return nil }
-        let data = readData(ofLength: count)
-        if data.count == 0 { return nil }
-        return data
-    }
-
-    public func readToEnd() throws -> Data? {
-        try read(upToCount: Int.max)
-    }
-
-    public func write<T: DataProtocol>(contentsOf data: T) throws {
-        if let d = data as? Data {
-            self.write(d)
-        }
     }
 }

@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
 *
@@ -6,7 +8,7 @@
 *
 *******************************************************************************
 *   file name:  uset.h
-*   encoding:   US-ASCII
+*   encoding:   UTF-8
 *   tab size:   8 (not used)
 *   indentation:4
 *
@@ -31,10 +33,14 @@
 #include "unicode/uchar.h"
 #include "unicode/localpointer.h"
 
-#ifndef UCNV_H
-struct USet;
+#ifndef USET_DEFINED
+
+#ifndef U_IN_DOXYGEN
+#define USET_DEFINED
+#endif
 /**
- * A UnicodeSet.  Use the uset_* API to manipulate.  Create with
+ * USet is the C API type corresponding to C++ class UnicodeSet.
+ * Use the uset_* API to manipulate.  Create with
  * uset_open*, and destroy with uset_close.
  * @stable ICU 2.4
  */
@@ -196,11 +202,13 @@ typedef enum USetSpanCondition {
      * @stable ICU 3.8
      */
     USET_SPAN_SIMPLE = 2,
+#ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the last span condition.
-     * @stable ICU 3.8
+     * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     USET_SPAN_CONDITION_COUNT
+#endif  // U_HIDE_DEPRECATED_API
 } USetSpanCondition;
 
 enum {
@@ -323,7 +331,7 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUSetPointer, USet, uset_close);
 
 U_NAMESPACE_END
 
-#endif
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Returns a copy of this object.

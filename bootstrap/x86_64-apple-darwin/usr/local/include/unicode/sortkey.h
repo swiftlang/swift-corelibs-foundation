@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
  *****************************************************************************
  * Copyright (C) 1996-2014, International Business Machines Corporation and others.
@@ -34,6 +36,7 @@
 #include "unicode/unistr.h"
 #include "unicode/coll.h"
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 /* forward declaration */
@@ -332,6 +335,7 @@ CollationKey::getByteArray(int32_t &count) const
 }
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif /* #if !UCONFIG_NO_COLLATION */
 

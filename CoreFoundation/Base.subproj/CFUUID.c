@@ -1,11 +1,11 @@
 /*	CFUUID.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: David Smith
+	Responsibility: Ben D. Jones
 */
 
 #include <CoreFoundation/CFUUID.h>
@@ -43,13 +43,6 @@ struct __CFUUID {
 };
 
 typedef struct __CFUUID __CFUUID_t;
-
-static Boolean __CFisEqualUUIDBytes(const void *ptr1, const void *ptr2) {
-    CFUUIDBytes *p1 = (CFUUIDBytes *)ptr1;
-    CFUUIDBytes *p2 = (CFUUIDBytes *)ptr2;
-
-    return (((p1->byte0 == p2->byte0) && (p1->byte1 == p2->byte1) && (p1->byte2 == p2->byte2) && (p1->byte3 == p2->byte3) && (p1->byte4 == p2->byte4) && (p1->byte5 == p2->byte5) && (p1->byte6 == p2->byte6) && (p1->byte7 == p2->byte7) && (p1->byte8 == p2->byte8) && (p1->byte9 == p2->byte9) && (p1->byte10 == p2->byte10) && (p1->byte11 == p2->byte11) && (p1->byte12 == p2->byte12) && (p1->byte13 == p2->byte13) && (p1->byte14 == p2->byte14) && (p1->byte15 == p2->byte15)) ? true : false);
-}
 
 static CFHashCode __CFhashUUIDBytes(const void *ptr) {
     return CFHashBytes((uint8_t *)ptr, 16);
@@ -125,6 +118,14 @@ static CFUUIDRef __CFUUIDCreateWithBytesPrimitive(CFAllocatorRef allocator, CFUU
         } else if (!isConst) {
             CFRetain(uuid);
         }
+        
+        if (isConst) {
+#if !DEPLOYMENT_RUNTIME_SWIFT
+            __CFRuntimeSetRC(uuid, 0); // constant CFUUIDs should be immortal. This applies even to equivalent UUIDs created earlier that were *not* constant.
+#else
+            CFRetain(uuid); // Swift doesn't support meddling with the retain count. Just ensure there is one retain here.
+#endif
+        }
     });
 
     return (CFUUIDRef)uuid;
@@ -152,16 +153,15 @@ CFUUIDRef CFUUIDCreate(CFAllocatorRef alloc) {
         if (RPC_S_OK != rStatus && RPC_S_UUID_LOCAL_ONLY != rStatus) retval = 1;
         memmove(&bytes, &u, sizeof(bytes));
 #elif TARGET_OS_MAC || TARGET_OS_LINUX
-        static Boolean useV1UUIDs = false, checked = false;
+        static int8_t useV1UUIDs = -1;
         uuid_t uuid;
-        if (!checked) {
+        if (useV1UUIDs == -1) {
             const char *value = __CFgetenv("CFUUIDVersionNumber");
             if (value) {
-                if (1 == strtoul_l(value, NULL, 0, NULL)) useV1UUIDs = true;
+                useV1UUIDs = (1 == strtoul_l(value, NULL, 0, NULL)) ? 1 : 0;
             }
-            checked = true;
         }
-        if (useV1UUIDs) uuid_generate_time(uuid); else uuid_generate_random(uuid);
+        if (useV1UUIDs == 1) uuid_generate_time(uuid); else uuid_generate_random(uuid);
         memcpy((void *)&bytes, uuid, sizeof(uuid));
 #else
         //This bzero works around <rdar://problem/23381916>. It isn't actually needed, since the function will simply return NULL on this deployment target, anyway.
@@ -354,7 +354,12 @@ CFUUIDRef CFUUIDGetConstantUUIDWithBytes(CFAllocatorRef alloc, uint8_t byte0, ui
     bytes.byte14 = byte14;
     bytes.byte15 = byte15;
 
+    // The analyzer can't understand functions like __CFUUIDCreateWithBytesPrimitive which return retained objects based on a parameter.
+#ifdef __clang_analyzer__
+    return NULL;
+#else
     return __CFUUIDCreateWithBytesPrimitive(alloc, bytes, true);
+#endif
 }
 
 CFUUIDBytes CFUUIDGetUUIDBytes(CFUUIDRef uuid) {

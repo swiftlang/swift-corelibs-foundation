@@ -1,7 +1,7 @@
 /*	CFAvailability.h
-	Copyright (c) 2013-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2013-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,7 +10,11 @@
 #if !defined(__COREFOUNDATION_CFAVAILABILITY__)
 #define __COREFOUNDATION_CFAVAILABILITY__ 1
 
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
+#else
+#include <TargetConditionals.h>
+#endif
 
 #if __has_include(<Availability.h>) && __has_include(<os/availability.h>) && __has_include(<AvailabilityMacros.h>)
 #include <Availability.h>
@@ -36,7 +40,7 @@
 // The arguments to these availability macros is a version number, e.g. 10_6, 3_0 or 'NA'
 // To use a deprecation message with the macro, add a string as the last argument.
 #if __has_feature(attribute_availability_with_version_underscores) || (__has_feature(attribute_availability_with_message) && __clang__ && __clang_major__ >= 7)
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
+#if TARGET_OS_OSX
 // This section is for compilers targeting OS X which support attribute_availability_with_message
 
 #define CF_AVAILABLE(_mac, _ios) __attribute__((availability(macosx,introduced=_mac)))
@@ -46,7 +50,7 @@
 #define CF_DEPRECATED_MAC(_macIntro, _macDep, ...) __attribute__((availability(macosx,introduced=_macIntro,deprecated=_macDep,message="" __VA_ARGS__)))
 #define CF_DEPRECATED_IOS(_iosIntro, _iosDep, ...) __attribute__((availability(macosx,unavailable)))
 
-#elif (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#elif TARGET_OS_IPHONE
 // This section is for compilers targeting iOS which support attribute_availability_with_message
 
 #define CF_AVAILABLE(_mac, _ios) __attribute__((availability(ios,introduced=_ios)))
@@ -58,7 +62,7 @@
 
 #endif
 
-#elif (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#elif TARGET_OS_OSX || TARGET_OS_IPHONE
 // This section is for OS X or iOS, and compilers without support for attribute_availability_with_message. We fall back to Availability.h.
 
 #ifndef __AVAILABILITY_INTERNAL__MAC_10_0_DEP__MAC_10_0
@@ -105,6 +109,17 @@
 #define CF_ENUM_DEPRECATED_IOS(_iosIntro, _iosDep, ...)
 #endif
 
+// "Soft" deprecation.
+#ifndef API_TO_BE_DEPRECATED
+/// This macro is used as a version number in API that will be deprecated in an upcoming release. We call this API "soft deprecated". Soft deprecation is an intermediate step before formal deprecation, used as a way to give you a heads-up about the API before you start getting a compiler warning.
+/// You can find all places in your code that use soft deprecated API by redefining the value of this macro to your current minimum deployment target, for example:
+///   (macOS)
+///    clang -DAPI_TO_BE_DEPRECATED=10.12 other compiler flags
+///   (iOS)
+///    clang -DAPI_TO_BE_DEPRECATED=11.0 other compiler flags
+#define API_TO_BE_DEPRECATED 100000
+#endif
+
 // Enums and Options
 #if __has_attribute(enum_extensibility)
 #define __CF_ENUM_ATTRIBUTES __attribute__((enum_extensibility(open)))
@@ -117,7 +132,9 @@
 #endif
 
 #define __CF_ENUM_GET_MACRO(_1, _2, NAME, ...) NAME
-#if (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && (__has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum)))
+#define __CF_ENUM_FIXED_IS_AVAILABLE (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && (__has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum)))
+
+#if __CF_ENUM_FIXED_IS_AVAILABLE
 #define __CF_NAMED_ENUM(_type, _name)     enum __CF_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
 #define __CF_ANON_ENUM(_type)             enum __CF_ENUM_ATTRIBUTES : _type
 #define CF_CLOSED_ENUM(_type, _name)      enum __CF_CLOSED_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type

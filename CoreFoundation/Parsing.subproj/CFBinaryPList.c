@@ -1,7 +1,7 @@
 /*	CFBinaryPList.c
-	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -22,6 +22,7 @@
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFRuntime.h>
 #include <CoreFoundation/CFUUID.h>
+#include <CoreFoundation/CFNumber_Private.h>
 #include "CFBasicHash.h"
 #include <stdio.h>
 #include <limits.h>
@@ -29,15 +30,6 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFStream.h>
-
-typedef struct {
-    int64_t high;
-    uint64_t low;
-} CFSInt128Struct;
-
-enum {
-    kCFNumberSInt128Type = 17
-};
 
 enum {
 	CF_NO_ERROR = 0,
@@ -339,8 +331,6 @@ static void _appendString(__CFBinaryPlistWriteBuffer *buf, CFStringRef str, Bool
     if (bytes != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, bytes);
 }
 
-CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
-
 static void _appendNumber(__CFBinaryPlistWriteBuffer *buf, CFNumberRef num, Boolean dryRun) {
     uint8_t marker;
     uint64_t bigint;
@@ -560,7 +550,7 @@ CF_PRIVATE CFIndex __CFBinaryPlistWriteOrPresize(CFPropertyListRef plist, CFType
      */
     CFBasicHashCallbacks callbacks = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     objtable = 	(CFMutableDictionaryRef)CFBasicHashCreate(kCFAllocatorSystemDefault, kCFBasicHashHasKeys | kCFBasicHashLinearHashing | kCFBasicHashAggressiveGrowth, &callbacks);
-    _CFRuntimeSetInstanceTypeIDAndIsa(objtable, CFDictionaryGetTypeID());
+    _CFRuntimeSetInstanceTypeIDAndIsa(objtable, _kCFRuntimeIDCFDictionary);
     
     const CFArrayCallBacks arrayCallbacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, 0, 0};
     objlist = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &arrayCallbacks);
@@ -708,7 +698,7 @@ CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPro
 #define FAIL_FALSE	do { return false; } while (0)
 #define FAIL_NULL	do { return NULL; } while (0)
 
-CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist);
+CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist, CFTypeID *outPlistTypeID);
 
 /* Grab a valSize-bytes integer out of the buffer pointed at by data and return it.
  */
@@ -821,9 +811,8 @@ bool __CFBinaryPlistGetTopLevelInfo(const uint8_t *databytes, uint64_t datalen, 
     return true;
 }
 
-CF_INLINE Boolean _plistIsPrimitive(CFPropertyListRef pl) {
-    CFTypeID type = CFGetTypeID(pl);
-    if (_kCFRuntimeIDCFDictionary == type || _kCFRuntimeIDCFArray == type || _kCFRuntimeIDCFSet == type) FAIL_FALSE;
+CF_INLINE Boolean _typeIsPlistPrimitive(CFTypeID type) {
+    if (_kCFRuntimeIDCFDictionary == type || _kCFRuntimeIDCFArray == type || _kCFRuntimeIDCFSet == type || _kCFRuntimeNotATypeID == type) FAIL_FALSE;
     return true;
 }
 
@@ -885,7 +874,7 @@ bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datalen, uint64_t
     return result;
 }
 
-bool __CFBinaryPlistGetOffsetForValueFromArray2(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFIndex idx, uint64_t *offset, CFMutableDictionaryRef objects) {
+bool __CFBinaryPlistGetOffsetForValueFromArray2(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFIndex idx, uint64_t *offset, CFMutableDictionaryRef _Nullable unused) {
     const uint8_t *ptr;
     uint8_t marker;
     uint64_t objectsRangeEnd;
@@ -998,8 +987,8 @@ CFSetRef __CFBinaryPlistCopyTopLevelKeys(CFAllocatorRef allocator, const uint8_t
 
         // Unlike in __CFBinaryPlistGetOffsetForValueFromDictionary3, we're accumulating keys, so we go through the CFObjectRef case always.
         CFPropertyListRef keyInData = NULL;
-        if (!(__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, kCFPropertyListImmutable, NULL, NULL, 0, NULL, &keyInData) &&
-              CFGetTypeID(keyInData) == _kCFRuntimeIDCFString)) {
+        CFTypeID typeID = _kCFRuntimeNotATypeID;
+        if (!(__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, kCFPropertyListImmutable, NULL, NULL, 0, NULL, &keyInData, &typeID) && typeID == _kCFRuntimeIDCFString)) {
             bad = true;
             if (keyInData) {
                 // we're not storing keyInData in the buffer, so we need to free it now; buffered keys are cleaned below
@@ -1054,10 +1043,11 @@ CFSetRef __CFBinaryPlistCopyTopLevelKeys(CFAllocatorRef allocator, const uint8_t
  @param objects Used for caching objects. Should be a valid CFMutableDictionaryRef.
  @return True if the key was found, false otherwise.
 */
-bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFTypeRef key, uint64_t *koffset, uint64_t *voffset, Boolean unused, CFMutableDictionaryRef objects) {
+bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFTypeRef key, uint64_t *koffset, uint64_t *voffset, Boolean unused, CFMutableDictionaryRef _Nullable unused2) {
     
     // Require a key that is a plist primitive
-    if (!key || !_plistIsPrimitive(key)) FAIL_FALSE;
+    CFTypeID const keyTypeID = key ? CFGetTypeID(key) : _kCFRuntimeNotATypeID;
+    if (!_typeIsPlistPrimitive(keyTypeID)) FAIL_FALSE;
     
     uint64_t cnt = 0;
     const uint8_t *ptr = NULL;
@@ -1068,7 +1058,7 @@ bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, u
     // For short keys (15 bytes or less) in ASCII form, we can do a quick comparison check
     // We get the pointer or copy the buffer here, outside of the loop
     CFIndex stringKeyLen = -1;
-    if (CFGetTypeID(key) == _kCFRuntimeIDCFString) {
+    if (keyTypeID == _kCFRuntimeIDCFString) {
 	stringKeyLen = CFStringGetLength((CFStringRef)key);
     }
     
@@ -1139,7 +1129,8 @@ bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, u
             // (what allocator __CFBinaryPlistCreateObjectFiltered() or __CFBinaryPlistCreateObject()
             //  will eventually be called with which results in that object)
 	    keyInData = NULL;
-	    if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, kCFAllocatorSystemDefault, kCFPropertyListImmutable, NULL /*objects*/, NULL, 0, NULL, &keyInData) || !_plistIsPrimitive(keyInData)) {
+            CFTypeID typeID = _kCFRuntimeNotATypeID;
+	    if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, kCFAllocatorSystemDefault, kCFPropertyListImmutable, NULL /*objects*/, NULL, 0, NULL, &keyInData, &typeID) || !_typeIsPlistPrimitive(typeID)) {
 		if (keyInData) CFRelease(keyInData);
 		FAIL_FALSE;
 	    }
@@ -1167,15 +1158,16 @@ extern CFSetRef __CFSetCreateTransfer(CFAllocatorRef allocator, const void * *kl
 extern CFArrayRef __CFArrayCreateTransfer(CFAllocatorRef allocator, const void * *klist, CFIndex numValues);
 CF_PRIVATE void __CFPropertyListCreateSplitKeypaths(CFAllocatorRef allocator, CFSetRef currentKeys, CFSetRef *theseKeys, CFSetRef *nextKeys);
 
-CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist) {
+CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *outPlist, CFTypeID *outPlistTypeID) {
 
-    if (objects) {
-	*plist = CFDictionaryGetValue(objects, (const void *)(uintptr_t)startOffset);
-	if (*plist) {
+    if (objects && outPlist) {
+        *outPlist = CFDictionaryGetValue(objects, (const void *)(uintptr_t)startOffset);
+        if (*outPlist) {
             // have to assume that '*plist' was previously created with same allocator that is now being passed in
-            CFRetain(*plist);
-	    return true;
-	}
+            CFRetain(*outPlist);
+            if (outPlistTypeID) *outPlistTypeID = CFGetTypeID(*outPlist);
+            return true;
+        }
     }
 
     // at any one invocation of this function, set should contain the offsets in the "path" down to this object
@@ -1188,20 +1180,23 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
     if (startOffset < objectsRangeStart || objectsRangeEnd < startOffset) FAIL_FALSE;
 
     uint64_t off;
-    CFPropertyListRef *list;
+    CFPropertyListRef *list = NULL;
 
     uint8_t marker = *(databytes + startOffset);
     switch (marker & 0xf0) {
     case kCFBinaryPlistMarkerNull:
 	switch (marker) {
 	case kCFBinaryPlistMarkerNull:
-	    *plist = kCFNull;
+	    if (outPlist) *outPlist = kCFNull;
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFNull;
 	    return true;
 	case kCFBinaryPlistMarkerFalse:
-	    *plist = CFRetain(kCFBooleanFalse);
+	    if (outPlist) *outPlist = kCFBooleanFalse;
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFBoolean;
 	    return true;
 	case kCFBinaryPlistMarkerTrue:
-	    *plist = CFRetain(kCFBooleanTrue);
+	    if (outPlist) *outPlist = kCFBooleanTrue;
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFBoolean;
 	    return true;
 	}
 	FAIL_FALSE;
@@ -1221,19 +1216,27 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	// negative 1, 2, 4-byte integers are always emitted as 8 bytes in format '00'
 	// integers are not required to be in the most compact possible representation, but only the last 64 bits are significant currently
 	uint64_t bigint = _getSizedInt(ptr, cnt);
-	if (8 < cnt) {
-	    CFSInt128Struct val;
-	    val.high = 0;
-	    val.low = bigint;
-	    *plist = CFNumberCreate(allocator, kCFNumberSInt128Type, &val);
-	} else {
-	    *plist = CFNumberCreate(allocator, kCFNumberSInt64Type, &bigint);
-	}
-	// these are always immutable
-	if (objects && *plist) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	}
-	return (*plist) ? true : false;
+        if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFNumber;
+        if (outPlist) {
+            CFNumberRef number = NULL;
+            if (8 < cnt) {
+                CFSInt128Struct val;
+                val.high = 0;
+                val.low = bigint;
+                number = CFNumberCreate(allocator, kCFNumberSInt128Type, &val);
+            } else {
+                number = CFNumberCreate(allocator, kCFNumberSInt64Type, &bigint);
+            }
+            // these are always immutable
+            if (objects && number) {
+                CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, number);
+            }
+            *outPlist = number;
+            return number ? true : false;
+        } else {
+            // Assume CFNumber creation would always succeed.
+            return true;
+        }
     }
     case kCFBinaryPlistMarkerReal:
 	switch (marker & 0x0f) {
@@ -1248,12 +1251,19 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	    CFSwappedFloat32 swapped32;
 	    memmove(&swapped32, ptr, 4);
 	    float f = CFConvertFloat32SwappedToHost(swapped32);
-	    *plist = CFNumberCreate(allocator, kCFNumberFloat32Type, &f);
-	    // these are always immutable
-	    if (objects && *plist) {
-		CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	    }
-	    return (*plist) ? true : false;
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFNumber;
+            if (outPlist) {
+                CFNumberRef number = CFNumberCreate(allocator, kCFNumberFloat32Type, &f);
+                // these are always immutable
+                if (objects && number) {
+                    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, number);
+                }
+                *outPlist = number;
+                return number ? true : false;
+            } else {
+                // Assume CFNumber creation would always succeed.
+                return true;
+            }
 	}
 	case 3: {
 	    const uint8_t *ptr = (databytes + startOffset);
@@ -1266,12 +1276,19 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	    CFSwappedFloat64 swapped64;
 	    memmove(&swapped64, ptr, 8);
 	    double d = CFConvertFloat64SwappedToHost(swapped64);
-	    *plist = CFNumberCreate(allocator, kCFNumberFloat64Type, &d);
-	    // these are always immutable
-	    if (objects && *plist) {
-		CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	    }
-	    return (*plist) ? true : false;
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFNumber;
+            if (outPlist) {
+                CFNumberRef number = CFNumberCreate(allocator, kCFNumberFloat64Type, &d);
+                // these are always immutable
+                if (objects && number) {
+                    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, number);
+                }
+                *outPlist = number;
+                return number ? true : false;
+            } else {
+                // Assume CFNumber creation would always succeed.
+                return true;
+            }
 	}
 	}
 	FAIL_FALSE;
@@ -1288,12 +1305,19 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	    CFSwappedFloat64 swapped64;
 	    memmove(&swapped64, ptr, 8);
 	    double d = CFConvertFloat64SwappedToHost(swapped64);
-	    *plist = CFDateCreate(allocator, d);
-	    // these are always immutable
-	    if (objects && *plist) {
-		CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	    }
-	    return (*plist) ? true : false;
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFDate;
+            if (outPlist) {
+                CFDateRef date = CFDateCreate(allocator, d);
+                // these are always immutable
+                if (objects && date) {
+                    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, date);
+                }
+                *outPlist = date;
+                return date ? true : false;
+            } else {
+                // Assume CFDate creation would always succeed.
+                return true;
+            }
 	}
 	}
 	FAIL_FALSE;
@@ -1312,16 +1336,24 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	const uint8_t *extent = check_ptr_add(ptr, cnt, &err) - 1;
 	if (CF_NO_ERROR != err) FAIL_FALSE;
 	if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
-	if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
-	    *plist = CFDataCreateMutable(allocator, 0);
-	    if (*plist) CFDataAppendBytes((CFMutableDataRef)*plist, ptr, cnt);
-	} else {
-	    *plist = CFDataCreate(allocator, ptr, cnt);
-	}
-        if (objects && *plist && (mutabilityOption != kCFPropertyListMutableContainersAndLeaves)) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	}
-	return (*plist) ? true : false;
+        if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFData;
+        if (outPlist) {
+            CFDataRef data = NULL;
+            if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
+                data = CFDataCreateMutable(allocator, 0);
+                if (data) CFDataAppendBytes((CFMutableDataRef)data, ptr, cnt);
+            } else {
+                data = CFDataCreate(allocator, ptr, cnt);
+            }
+            if (objects && data && (mutabilityOption != kCFPropertyListMutableContainersAndLeaves)) {
+                CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, data);
+            }
+            *outPlist = data;
+            return data ? true : false;
+        } else {
+            // Assume CFData creation would always succeed
+            return true;
+        }
 	}
     case kCFBinaryPlistMarkerASCIIString: {
 	const uint8_t *ptr = databytes + startOffset;
@@ -1338,17 +1370,25 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	const uint8_t *extent = check_ptr_add(ptr, cnt, &err) - 1;
 	if (CF_NO_ERROR != err) FAIL_FALSE;
 	if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
-	if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
-	    CFStringRef str = CFStringCreateWithBytes(allocator, ptr, cnt, kCFStringEncodingASCII, false);
-	    *plist = str ? CFStringCreateMutableCopy(allocator, 0, str) : NULL;
-            if (str) CFRelease(str);
-	} else {
-	    *plist = CFStringCreateWithBytes(allocator, ptr, cnt, kCFStringEncodingASCII, false);
-	}
-        if (objects && *plist && (mutabilityOption != kCFPropertyListMutableContainersAndLeaves)) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	}
-	return (*plist) ? true : false;
+        if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFString;
+        if (outPlist) {
+            CFStringRef string = CFStringCreateWithBytes(allocator, ptr, cnt, kCFStringEncodingASCII, false);
+            if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
+                if (string) {
+                    CFStringRef tmp = string;
+                    string = CFStringCreateMutableCopy(allocator, 0, string);
+                    CFRelease(tmp);
+                }
+            }
+            if (objects && string && (mutabilityOption != kCFPropertyListMutableContainersAndLeaves)) {
+                CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, string);
+            }
+            *outPlist = string;
+            return string ? true : false;
+        } else {
+            // Assume CFString creation with kCFStringEncodingASCII would always succeed.
+            return true;
+        }
 	}
     case kCFBinaryPlistMarkerUnicode16String: {
 	const uint8_t *ptr = databytes + startOffset;
@@ -1368,24 +1408,32 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
 	size_t byte_cnt = check_size_t_mul(cnt, sizeof(UniChar), &err);
 	if (CF_NO_ERROR != err) FAIL_FALSE;
-	UniChar *chars = (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
-	if (!chars) FAIL_FALSE;
-	memmove(chars, ptr, byte_cnt);
-	for (CFIndex idx = 0; idx < cnt; idx++) {
-	    chars[idx] = CFSwapInt16BigToHost(chars[idx]);
-	}
-	if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
-	    CFStringRef str = CFStringCreateWithCharacters(allocator, chars, cnt);
-	    *plist = str ? CFStringCreateMutableCopy(allocator, 0, str) : NULL;
-            if (str) CFRelease(str);
-	} else {
-	    *plist = CFStringCreateWithCharacters(allocator, chars, cnt);
-	}
-        CFAllocatorDeallocate(kCFAllocatorSystemDefault, chars);
-        if (objects && *plist && (mutabilityOption != kCFPropertyListMutableContainersAndLeaves)) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	}
-	return (*plist) ? true : false;
+        if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFString;
+        if (outPlist) {
+            UniChar *chars = (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
+            if (!chars) FAIL_FALSE;
+            memmove(chars, ptr, byte_cnt);
+            for (CFIndex idx = 0; idx < cnt; idx++) {
+                chars[idx] = CFSwapInt16BigToHost(chars[idx]);
+            }
+            CFStringRef string = CFStringCreateWithCharacters(allocator, chars, cnt);
+            if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
+                if (string) {
+                    CFStringRef tmp = string;
+                    string = CFStringCreateMutableCopy(allocator, 0, string);
+                    CFRelease(tmp);
+                }
+            }
+            CFAllocatorDeallocate(kCFAllocatorSystemDefault, chars);
+            if (objects && string && (mutabilityOption != kCFPropertyListMutableContainersAndLeaves)) {
+                CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, string);
+            }
+            *outPlist = string;
+            return string ? true : false;
+        } else {
+            // Assume CFStringCreateWithCharacters would always succeed.
+            return true;
+        }
 	}
     case kCFBinaryPlistMarkerUID: {
 	const uint8_t *ptr = databytes + startOffset;
@@ -1399,12 +1447,19 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	// uids are not required to be in the most compact possible representation, but only the last 64 bits are significant currently
 	uint64_t bigint = _getSizedInt(ptr, cnt);
 	if (UINT32_MAX < bigint) FAIL_FALSE;
-	*plist = _CFKeyedArchiverUIDCreate(allocator, (uint32_t)bigint);
-	// these are always immutable
-	if (objects && *plist) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
-	}
-	return (*plist) ? true : false;
+        if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFKeyedArchiverUID;
+        if (outPlist) {
+            CFKeyedArchiverUIDRef uid = _CFKeyedArchiverUIDCreate(allocator, (uint32_t)bigint);
+            // these are always immutable
+            if (objects && uid) {
+                CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, uid);
+            }
+            *outPlist = uid;
+            return (uid) ? true : false;
+        } else {
+            // Assume CFKeyedArchiverUID creation would always succeed.
+            return true;
+        }
 	}
     case kCFBinaryPlistMarkerArray:
     case kCFBinaryPlistMarkerSet: {
@@ -1426,27 +1481,31 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
 	byte_cnt = check_size_t_mul(arrayCount, sizeof(CFPropertyListRef), &err);
 	if (CF_NO_ERROR != err) FAIL_FALSE;
-        STACK_BUFFER_DECL(CFPropertyListRef, buffer, (arrayCount > 0 && arrayCount <= 256) ? arrayCount : 1);
-	list = (arrayCount <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
-	if (!list) FAIL_FALSE;
-	Boolean madeSet = false;
+        STACK_BUFFER_DECL(CFPropertyListRef, buffer, arrayCount <= 256 ? arrayCount : 1);
+        if (outPlist) {
+            list = (arrayCount <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
+            if (!list) FAIL_FALSE;
+        }
+        _CFReleaseDeferred CFMutableSetRef madeSet = NULL;
 	if (!set && 15 < curDepth) {
-	    set = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
-	    madeSet = set ? true : false;
+	    madeSet = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
+            set = madeSet;
 	}
         
+        Boolean success = true;
+        CFTypeID typeID = _kCFRuntimeNotATypeID;
         if (set) CFSetAddValue(set, (const void *)(uintptr_t)startOffset);
         if ((marker & 0xf0) == kCFBinaryPlistMarkerArray && keyPaths) {
             // Only get a subset of this array
             CFSetRef theseKeys, nextKeys;
             __CFPropertyListCreateSplitKeypaths(kCFAllocatorSystemDefault, keyPaths, &theseKeys, &nextKeys);
-                        
-            Boolean success = true;
+            
             CFMutableArrayRef array = CFArrayCreateMutable(allocator, CFSetGetCount(theseKeys), &kCFTypeArrayCallBacks);
             if (theseKeys) {
                 CFTypeRef *keys = (CFTypeRef *)malloc(CFSetGetCount(theseKeys) * sizeof(CFTypeRef));
                 CFSetGetValues(theseKeys, keys);
-                for (CFIndex i = 0; i < CFSetGetCount(theseKeys); i++) {
+                CFIndex theseKeysCount = CFSetGetCount(theseKeys);
+                for (CFIndex i = 0; i < theseKeysCount; i++) {
                     CFStringRef key = (CFStringRef)keys[i];
                     SInt32 intValue = CFStringGetIntValue(key);
                     if ((intValue == 0 && CFStringCompare(CFSTR("0"), key, 0) != kCFCompareEqualTo) || intValue == INT_MAX || intValue == INT_MIN || intValue < 0) {
@@ -1455,11 +1514,13 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
                         uint64_t valueOffset;
                         Boolean found = __CFBinaryPlistGetOffsetForValueFromArray2(databytes, datalen, startOffset, trailer, (CFIndex)intValue, &valueOffset, objects);
                         if (found) {
-                            CFPropertyListRef result;
-                            success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, nextKeys, &result);
+                            CFPropertyListRef result = NULL;
+                            success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, nextKeys, outPlist ? &result : NULL, NULL);
                             if (success) {
-                                CFArrayAppendValue(array, result);
-                                CFRelease(result);
+                                if (result) {
+                                    CFArrayAppendValue(array, result);
+                                    CFRelease(result);
+                                }
                             } else {
                                 break;
                             }
@@ -1472,73 +1533,82 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
             }
             if (nextKeys) CFRelease(nextKeys);
             
-            if (success) {
+            if (success && outPlist) {
                 if (!(mutabilityOption == kCFPropertyListMutableContainers || mutabilityOption == kCFPropertyListMutableContainersAndLeaves)) {
                     // make immutable
-                    *plist = CFArrayCreateCopy(allocator, array);
+                    *outPlist = CFArrayCreateCopy(allocator, array);
                     CFRelease(array);
                 } else {
-                    *plist = array;
+                    *outPlist = array;
                 }
             } else if (array) {
                 CFRelease(array);
             }
+            typeID = _kCFRuntimeIDCFArray;
         } else {            
-            for (CFIndex idx = 0; idx < arrayCount; idx++) {            
-                CFPropertyListRef pl;
+            for (CFIndex idx = 0; idx < arrayCount; idx++) {
                 if (!_getOffsetOfRefAt(databytes, ptr, trailer, &off)) {
-                    while (idx--) {
-                        CFRelease(list[idx]);
+                    if (list) {
+                        while (idx--) {
+                            CFRelease(list[idx]);
+                        }
+                        if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
                     }
-                    if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-                    if (madeSet) { CFRelease(set); }
                     FAIL_FALSE;
                 }
-                if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, NULL, &pl)) {
-                    while (idx--) {
-                        CFRelease(list[idx]);
-                    }	    
-                    if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-                    if (madeSet) { CFRelease(set); }
+                CFPropertyListRef pl = NULL;
+                if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, NULL, outPlist ? &pl : NULL, NULL)) {
+                    if (list) {
+                        while (idx--) {
+                            CFRelease(list[idx]);
+                        }
+                        if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
+                    }
                     FAIL_FALSE;
                 }
-                *((void **)list + idx) = (void *)pl;
+                if (list) {
+                    *((void **)list + idx) = (void *)pl;
+                }
                 ptr += trailer->_objectRefSize;
-            }            
+            }
+            success = true;
             if ((marker & 0xf0) == kCFBinaryPlistMarkerArray) {
-                if (mutabilityOption != kCFPropertyListImmutable) {
-                    *plist = CFArrayCreateMutable(allocator, 0, &kCFTypeArrayCallBacks);
-                    CFArrayReplaceValues((CFMutableArrayRef)*plist, CFRangeMake(0, 0), list, arrayCount);
-                    for (CFIndex idx = 0; idx < arrayCount; idx++) {
-                        CFRelease(list[idx]);
+                if (outPlist) {
+                    if (mutabilityOption != kCFPropertyListImmutable) {
+                        *outPlist = CFArrayCreateMutable(allocator, 0, &kCFTypeArrayCallBacks);
+                        CFArrayReplaceValues((CFMutableArrayRef)*outPlist, CFRangeMake(0, 0), list, arrayCount);
+                        for (CFIndex idx = 0; idx < arrayCount; idx++) {
+                            CFRelease(list[idx]);
+                        }
+                    } else {
+                        *outPlist = __CFArrayCreateTransfer(allocator, list, arrayCount);
                     }
-                } else {
-                    *plist = __CFArrayCreateTransfer(allocator, list, arrayCount);
                 }
+                typeID = _kCFRuntimeIDCFArray;
             } else {
-                if (mutabilityOption != kCFPropertyListImmutable) {
-                    *plist = CFSetCreateMutable(allocator, 0, &kCFTypeSetCallBacks);
-                    for (CFIndex idx = 0; idx < arrayCount; idx++) {
-                        CFSetAddValue((CFMutableSetRef)*plist, list[idx]);
+                if (outPlist) {
+                    if (mutabilityOption != kCFPropertyListImmutable) {
+                        *outPlist = CFSetCreateMutable(allocator, 0, &kCFTypeSetCallBacks);
+                        for (CFIndex idx = 0; idx < arrayCount; idx++) {
+                            CFSetAddValue((CFMutableSetRef)*outPlist, list[idx]);
+                        }
+                        for (CFIndex idx = 0; idx < arrayCount; idx++) {
+                            CFRelease(list[idx]);
+                        }
+                    } else {
+                        *outPlist = __CFSetCreateTransfer(allocator, list, arrayCount);
                     }
-                    for (CFIndex idx = 0; idx < arrayCount; idx++) {
-                        CFRelease(list[idx]);
-                    }
-                } else {
-                    *plist = __CFSetCreateTransfer(allocator, list, arrayCount);
                 }
+                typeID = _kCFRuntimeIDCFSet;
             }
         }
+        if (outPlistTypeID) *outPlistTypeID = typeID;
         if (set) CFSetRemoveValue(set, (const void *)(uintptr_t)startOffset);
-        if (madeSet) {
-            CFRelease(set);
-            set = NULL;
-        }
-	if (objects && *plist && (mutabilityOption == kCFPropertyListImmutable)) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
+        if (objects && success && outPlist && (mutabilityOption == kCFPropertyListImmutable)) {
+            CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *outPlist);
 	}
-	if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-	return (*plist) ? true : false;
+	if (list && list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
+	return success;
 	}
     case kCFBinaryPlistMarkerDict: {
 	const uint8_t *ptr = databytes + startOffset;
@@ -1562,21 +1632,23 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	byte_cnt = check_size_t_mul(dictionaryCount, sizeof(CFPropertyListRef), &err);
 	if (CF_NO_ERROR != err) FAIL_FALSE;
         STACK_BUFFER_DECL(CFPropertyListRef, buffer, 0 < dictionaryCount && dictionaryCount <= 256 ? dictionaryCount : 1);
-	list = (dictionaryCount <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
-	if (!list) FAIL_FALSE;
-	Boolean madeSet = false;
+        if (outPlist) {
+            list = (dictionaryCount <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
+            if (!list) FAIL_FALSE;
+        }
+        _CFReleaseDeferred CFMutableSetRef madeSet = NULL;
 	if (!set && 15 < curDepth) {
-	    set = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
-	    madeSet = set ? true : false;
+	    madeSet = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
+            set = madeSet;
 	}
         
+        Boolean success = true;
         if (set) CFSetAddValue(set, (const void *)(uintptr_t)startOffset);
         if (keyPaths) {
             // Only get a subset of this dictionary
             CFSetRef theseKeys, nextKeys;
             __CFPropertyListCreateSplitKeypaths(kCFAllocatorSystemDefault, keyPaths, &theseKeys, &nextKeys);
             
-            Boolean success = true;
             CFMutableDictionaryRef dict = CFDictionaryCreateMutable(allocator, CFSetGetCount(theseKeys), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             if (theseKeys) {
                 CFTypeRef *keys = (CFTypeRef *)malloc(CFSetGetCount(theseKeys) * sizeof(CFTypeRef));
@@ -1586,11 +1658,13 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
                     uint64_t keyOffset, valueOffset;
                     Boolean found = __CFBinaryPlistGetOffsetForValueFromDictionary3(databytes, datalen, startOffset, trailer, key, &keyOffset, &valueOffset, false, objects);
                     if (found) {
-                        CFPropertyListRef result;
-                        success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, nextKeys, &result);
+                        CFPropertyListRef result = NULL;
+                        success = __CFBinaryPlistCreateObjectFiltered(databytes, datalen, valueOffset, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, nextKeys, outPlist ? &result : NULL, NULL);
                         if (success) {
-                            CFDictionarySetValue(dict, key, result);
-                            CFRelease(result);
+                            if (result) {
+                                CFDictionarySetValue(dict, key, result);
+                                CFRelease(result);
+                            }
                         } else {
                             break;
                         }
@@ -1602,63 +1676,68 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
             }
             if (nextKeys) CFRelease(nextKeys);
             
-            if (success) {
+            if (success && outPlist) {
                 if (!(mutabilityOption == kCFPropertyListMutableContainers || mutabilityOption == kCFPropertyListMutableContainersAndLeaves)) {
                     // make immutable
-                    *plist = CFDictionaryCreateCopy(allocator, dict);
+                    *outPlist = CFDictionaryCreateCopy(allocator, dict);
                     CFRelease(dict);
                 } else {
-                    *plist = dict;
+                    *outPlist = dict;
                 }
             } else if (dict) {
                 CFRelease(dict);
             }
         } else {
+            CFIndex const halfDictionaryCount = dictionaryCount / 2;
             for (CFIndex idx = 0; idx < dictionaryCount; idx++) {
-                CFPropertyListRef pl = NULL;
                 if (!_getOffsetOfRefAt(databytes, ptr, trailer, &off)) {
-                    if (pl) CFRelease(pl);
-                    while (idx--) {
-                        CFRelease(list[idx]);
+                    if (list) {
+                        while (idx--) {
+                            CFRelease(list[idx]);
+                        }
+                        if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
                     }
-                    if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-                    if (madeSet) { CFRelease(set); }
                     FAIL_FALSE;
                 }
-                if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, NULL, &pl) || (idx < dictionaryCount / 2 && !_plistIsPrimitive(pl))) {
+                CFPropertyListRef pl = NULL;
+                CFTypeID typeID = _kCFRuntimeNotATypeID;
+                if (!__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, mutabilityOption, objects, set, curDepth + 1, NULL, (outPlist ? &pl : NULL), &typeID) || (idx < halfDictionaryCount && !_typeIsPlistPrimitive(typeID))) {
                     if (pl) CFRelease(pl);
-                    while (idx--) {
-                        CFRelease(list[idx]);
+                    if (list) {
+                        while (idx--) {
+                            CFRelease(list[idx]);
+                        }
+                        if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
                     }
-                    if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-                    if (madeSet) { CFRelease(set); }
                     FAIL_FALSE;
                 }
-                *((void **)list + idx) = (void *)pl;
+                if (list) {
+                    *((void **)list + idx) = (void *)pl;
+                }
                 ptr += trailer->_objectRefSize;
-            }            
-            if (mutabilityOption != kCFPropertyListImmutable) {
-                *plist = CFDictionaryCreateMutable(allocator, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-                for (CFIndex idx = 0; idx < dictionaryCount / 2; idx++) {
-                    CFDictionaryAddValue((CFMutableDictionaryRef)*plist, list[idx], list[idx + dictionaryCount / 2]);
-                }
-                for (CFIndex idx = 0; idx < dictionaryCount; idx++) {
-                    CFRelease(list[idx]);
-                }
-            } else {
-                *plist = __CFDictionaryCreateTransfer(allocator, list, list + dictionaryCount / 2, dictionaryCount / 2);
             }
+            if (outPlist) {
+                if (mutabilityOption != kCFPropertyListImmutable) {
+                    CFMutableDictionaryRef dict = CFDictionaryCreateMutable(allocator, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                    for (CFIndex idx = 0; idx < halfDictionaryCount; idx++) {
+                        CFDictionaryAddValue((CFMutableDictionaryRef)dict, list[idx], list[idx + halfDictionaryCount]);
+                    }
+                    for (CFIndex idx = 0; idx < dictionaryCount; idx++) {
+                        CFRelease(list[idx]);
+                    }
+                    *outPlist = dict;
+                } else {
+                    *outPlist = __CFDictionaryCreateTransfer(allocator, list, list + halfDictionaryCount, halfDictionaryCount);
+                }
+            }
+            if (outPlistTypeID) *outPlistTypeID = _kCFRuntimeIDCFDictionary;
         }
         if (set) CFSetRemoveValue(set, (const void *)(uintptr_t)startOffset);
-        if (madeSet) {
-            CFRelease(set);
-            set = NULL;
-        }
-	if (objects && *plist && (mutabilityOption == kCFPropertyListImmutable)) {
-	    CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *plist);
+        if (objects && success && outPlist && (mutabilityOption == kCFPropertyListImmutable)) {
+            CFDictionarySetValue(objects, (const void *)(uintptr_t)startOffset, *outPlist);
 	}
-	if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-	return (*plist) ? true : false;
+	if (list && list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
+	return success;
 	}
     }
     FAIL_FALSE;
@@ -1666,7 +1745,7 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 
 bool __CFBinaryPlistCreateObject(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFPropertyListRef *plist) {
 	// for compatibility with Foundation's use, need to leave this here
-    return __CFBinaryPlistCreateObjectFiltered(databytes, datalen, startOffset, trailer, allocator, mutabilityOption, objects, NULL, 0, NULL, plist);
+    return __CFBinaryPlistCreateObjectFiltered(databytes, datalen, startOffset, trailer, allocator, mutabilityOption, objects, NULL, 0, NULL, plist, NULL);
 }
 
 CF_PRIVATE bool __CFTryParseBinaryPlist(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFPropertyListRef *plist, CFStringRef *errorString) {
@@ -1687,7 +1766,7 @@ CF_PRIVATE bool __CFTryParseBinaryPlist(CFAllocatorRef allocator, CFDataRef data
 	_CFDictionarySetCapacity(objects, trailer._numObjects);
 	CFPropertyListRef pl = NULL;
         bool result = true;
-        if (__CFBinaryPlistCreateObjectFiltered(databytes, datalen, offset, &trailer, allocator, option, objects, NULL, 0, NULL, &pl)) {
+        if (__CFBinaryPlistCreateObjectFiltered(databytes, datalen, offset, &trailer, allocator, option, objects, NULL, 0, NULL, &pl, NULL)) {
 	    if (plist) *plist = pl;
 #if 0
 // code to check the 1.5 version code against any binary plist successfully parsed above

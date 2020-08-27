@@ -78,6 +78,7 @@ open class RunLoop: NSObject {
         }
     }
     
+    @available(*, deprecated, message: "Directly accessing the run loop may cause your code to not become portable in the future.")
     open func getCFRunLoop() -> CFRunLoop {
         return _cfRunLoop
     }
@@ -208,12 +209,178 @@ extension RunLoop {
     }
 }
 
-// SPI for XCTest
-#if os(Windows)
-extension RunLoop {
-  public func _stop() {
-    CFRunLoopStop(getCFRunLoop())
-  }
-}
-#endif
+// These exist as SPI for XCTest for now. Do not rely on their contracts or continued existence.
 
+extension RunLoop {
+    @available(*, deprecated, message: "For XCTest use only.")
+    public func _stop() {
+        CFRunLoopStop(getCFRunLoop())
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    public func _observe(_ activities: _Activities, in mode: RunLoop.Mode = .default, repeats: Bool = true, order: Int = 0, handler: @escaping (_Activity) -> Void) -> _Observer {
+        let observer = _Observer(activities: activities, repeats: repeats, order: order, handler: handler)
+        CFRunLoopAddObserver(self.getCFRunLoop(), observer.cfObserver, mode._cfStringUniquingKnown)
+        return observer
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    public func _observe(_ activity: _Activity, in mode: RunLoop.Mode = .default, repeats: Bool = true, order: Int = 0, handler: @escaping (_Activity) -> Void) -> _Observer {
+        return _observe(_Activities(activity), in: mode, repeats: repeats, order: order, handler: handler)
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    public func _add(_ source: _Source, forMode mode: RunLoop.Mode) {
+        CFRunLoopAddSource(_cfRunLoop, source.cfSource, mode._cfStringUniquingKnown)
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    open func _remove(_ source: _Source, for mode: RunLoop.Mode) {
+        CFRunLoopRemoveSource(_cfRunLoop, source.cfSource, mode._cfStringUniquingKnown)
+    }
+}
+
+extension RunLoop {
+    @available(*, deprecated, message: "For XCTest use only.")
+    public enum _Activity: UInt {
+        // These must match CFRunLoopActivity.
+        case entry = 0
+        case beforeTimers = 1
+        case beforeSources = 2
+        case beforeWaiting = 32
+        case afterWaiting = 64
+        case exit = 128
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    public struct _Activities: OptionSet {
+        public var rawValue: UInt
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+        
+        public init(_ activity: _Activity) {
+            self.rawValue = activity.rawValue
+        }
+        
+        public static let entry = _Activities(rawValue: _Activity.entry.rawValue)
+        public static let beforeTimers = _Activities(rawValue: _Activity.beforeTimers.rawValue)
+        public static let beforeSources = _Activities(rawValue: _Activity.beforeSources.rawValue)
+        public static let beforeWaiting = _Activities(rawValue: _Activity.beforeWaiting.rawValue)
+        public static let afterWaiting = _Activities(rawValue: _Activity.afterWaiting.rawValue)
+        public static let exit = _Activities(rawValue: _Activity.exit.rawValue)
+        public static let allActivities = _Activities(rawValue: 0x0FFFFFFF)
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    public class _Observer {
+        fileprivate let cfObserver: CFRunLoopObserver
+        
+        fileprivate init(activities: _Activities, repeats: Bool, order: Int, handler: @escaping (_Activity) -> Void) {
+            self.cfObserver = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
+                guard let activity = _Activity(rawValue: UInt(cfActivity.rawValue)) else { return }
+                handler(activity)
+            })
+        }
+        
+        public func invalidate() {
+            CFRunLoopObserverInvalidate(cfObserver)
+        }
+        
+        public var order: Int {
+            Int(CFRunLoopObserverGetOrder(cfObserver))
+        }
+        
+        public var isValid: Bool {
+            CFRunLoopObserverIsValid(cfObserver)
+        }
+        
+        deinit {
+            invalidate()
+        }
+    }
+    
+    @available(*, deprecated, message: "For XCTest use only.")
+    open class _Source: NSObject {
+        fileprivate var cfSource: CFRunLoopSource!
+        
+        public init(order: Int = 0) {
+            super.init()
+            
+            var context = CFRunLoopSourceContext(
+                version: 0,
+                info: Unmanaged.passUnretained(self).toOpaque(),
+                retain: nil,
+                release: nil,
+                copyDescription: { (info) -> Unmanaged<CFString>? in
+                    let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
+                    return .passRetained(String(describing: me)._cfObject)
+                },
+                equal: { (infoA, infoB) in
+                    let a = Unmanaged<_Source>.fromOpaque(infoA!).takeUnretainedValue()
+                    let b = Unmanaged<_Source>.fromOpaque(infoB!).takeUnretainedValue()
+                    return a == b ? true : false
+                },
+                hash: { (info) -> CFHashCode in
+                    let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
+                    return CFHashCode(me.hashValue)
+                },
+                schedule: { (info, cfRunLoop, cfRunLoopMode) in
+                    let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
+                    var mode: RunLoop.Mode = .default
+                    if let cfRunLoopMode = cfRunLoopMode {
+                        mode = RunLoop.Mode(rawValue: cfRunLoopMode._swiftObject)
+                    }
+                    
+                    me.didSchedule(in: mode)
+                },
+                cancel: { (info, cfRunLoop, cfRunLoopMode) in
+                    let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
+                    var mode: RunLoop.Mode = .default
+                    if let cfRunLoopMode = cfRunLoopMode {
+                        mode = RunLoop.Mode(rawValue: cfRunLoopMode._swiftObject)
+                    }
+                    
+                    me.didCancel(in: mode)
+                },
+                perform: { (info) in
+                    let me = Unmanaged<_Source>.fromOpaque(info!).takeUnretainedValue()
+                    me.perform()
+                })
+            
+            self.cfSource = CFRunLoopSourceCreate(kCFAllocatorSystemDefault, CFIndex(order), &context)
+        }
+        
+        open func didSchedule(in mode: RunLoop.Mode) {
+            // Override me.
+        }
+        
+        open func didCancel(in mode: RunLoop.Mode) {
+            // Override me.
+        }
+        
+        open func perform() {
+            // Override me.
+        }
+        
+        open func invalidate() {
+            CFRunLoopSourceInvalidate(cfSource)
+        }
+        
+        open var order: Int {
+            Int(CFRunLoopSourceGetOrder(cfSource))
+        }
+
+        open var isValid: Bool {
+            CFRunLoopSourceIsValid(cfSource)
+        }
+        
+        open func signal() {
+            CFRunLoopSourceSignal(cfSource)
+        }
+        
+        deinit {
+            invalidate()
+        }
+    }
+}

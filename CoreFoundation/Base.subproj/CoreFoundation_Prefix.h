@@ -1,7 +1,7 @@
 /*	CoreFoundation_Prefix.h
-	Copyright (c) 2005-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2005-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -9,6 +9,12 @@
 
 #ifndef __COREFOUNDATION_PREFIX_H__
 #define __COREFOUNDATION_PREFIX_H__ 1
+
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
+#include <CoreFoundation/TargetConditionals.h>
+#else
+#include <TargetConditionals.h>
+#endif
 
 #define _DARWIN_UNLIMITED_SELECT 1
 
@@ -27,7 +33,7 @@
 extern "C" {
 #endif
 
-#if DEPLOYMENT_TARGET_IPHONESIMULATOR // work around <rdar://problem/16507706>
+#if TARGET_OS_IPHONE && TARGET_OS_SIMULATOR // work around <rdar://problem/16507706>
 #include <pthread.h>
 #include <pthread/qos.h>
 #define qos_class_self() (QOS_CLASS_UTILITY)
@@ -257,6 +263,13 @@ typedef unsigned long fd_mask;
 
 #if !TARGET_OS_CYGWIN && !TARGET_OS_BSD
 #define issetugid() 0
+#endif
+
+#if TARGET_OS_CYGWIN
+#define HAVE_STRUCT_TIMESPEC 1
+#define strncasecmp_l(a, b, c, d) strncasecmp(a, b, c)
+#define _NO_BOOL_TYPEDEF
+#undef interface
 #endif
 
 #if TARGET_OS_CYGWIN

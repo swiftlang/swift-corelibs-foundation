@@ -1,3 +1,5 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 *   Copyright (C) 1998-2014, International Business Machines
@@ -401,7 +403,7 @@ u_strspn(const UChar *string, const UChar *matchSet);
  * @param saveState The current pointer within the original string,
  *              which is set by this function. The saveState
  *              parameter should the address of a local variable of type
- *              UChar *. (i.e. defined "Uhar *myLocalSaveState" and use
+ *              UChar *. (i.e. defined "UChar *myLocalSaveState" and use
  *              &myLocalSaveState for this parameter).
  * @return A pointer to the next token found in src, or NULL
  *         when there are no more tokens.
@@ -494,16 +496,6 @@ u_strCompare(const UChar *s1, int32_t length1,
  */
 U_STABLE int32_t U_EXPORT2
 u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2, UBool codePointOrder);
-
-#ifndef U_COMPARE_CODE_POINT_ORDER
-/* see also unistr.h and unorm.h */
-/**
- * Option bit for u_strCaseCompare, u_strcasecmp, unorm_compare, etc:
- * Compare strings in code point order instead of code unit order.
- * @stable ICU 2.2
- */
-#define U_COMPARE_CODE_POINT_ORDER  0x8000
-#endif
 
 /**
  * Compare two strings case-insensitively using full case folding.
@@ -892,7 +884,7 @@ u_memrchr32(const UChar *s, UChar32 c, int32_t count);
  * Unicode String literals in C.
  * We need one macro to declare a variable for the string
  * and to statically preinitialize it if possible,
- * and a second macro to dynamically intialize such a string variable if necessary.
+ * and a second macro to dynamically initialize such a string variable if necessary.
  *
  * The macros are defined for maximum performance.
  * They work only for strings that contain "invariant characters", i.e.,
@@ -903,35 +895,32 @@ u_memrchr32(const UChar *s, UChar32 c, int32_t count);
  * parameters.
  * The string parameter must be a C string literal.
  * The length of the string, not including the terminating
- * <code>NUL</code>, must be specified as a constant.
+ * `NUL`, must be specified as a constant.
  * The U_STRING_DECL macro should be invoked exactly once for one
  * such string variable before it is used.
  *
  * Usage:
- * <pre>
- *    U_STRING_DECL(ustringVar1, "Quick-Fox 2", 11);
- *    U_STRING_DECL(ustringVar2, "jumps 5%", 8);
- *    static UBool didInit=FALSE;
+ *
+ *     U_STRING_DECL(ustringVar1, "Quick-Fox 2", 11);
+ *     U_STRING_DECL(ustringVar2, "jumps 5%", 8);
+ *     static UBool didInit=FALSE;
+ *
+ *     int32_t function() {
+ *         if(!didInit) {
+ *             U_STRING_INIT(ustringVar1, "Quick-Fox 2", 11);
+ *             U_STRING_INIT(ustringVar2, "jumps 5%", 8);
+ *             didInit=TRUE;
+ *         }
+ *         return u_strcmp(ustringVar1, ustringVar2);
+ *     }
  * 
- *    int32_t function() {
- *        if(!didInit) {
- *            U_STRING_INIT(ustringVar1, "Quick-Fox 2", 11);
- *            U_STRING_INIT(ustringVar2, "jumps 5%", 8);
- *            didInit=TRUE;
- *        }
- *        return u_strcmp(ustringVar1, ustringVar2);
- *    }
- * </pre>
+ * Note that the macros will NOT consistently work if their argument is another #`define`.
+ * The following will not work on all platforms, don't use it.
  * 
- * Note that the macros will NOT consistently work if their argument is another <code>#define</code>. 
- *  The following will not work on all platforms, don't use it.
- * 
- * <pre>
  *     #define GLUCK "Mr. Gluck"
  *     U_STRING_DECL(var, GLUCK, 9)
  *     U_STRING_INIT(var, GLUCK, 9)
- * </pre>
- * 
+ *
  * Instead, use the string literal "Mr. Gluck"  as the argument to both macro
  * calls.
  *
@@ -1696,5 +1685,37 @@ u_strFromJavaModifiedUTF8WithSub(
         int32_t srcLength,
         UChar32 subchar, int32_t *pNumSubstitutions,
         UErrorCode *pErrorCode);
+
+#ifndef U_HIDE_INTERNAL_API
+/**
+ * Check whether the string is well-formed according to various criteria:
+ * - No code points that are defined as non-characters (e.g. 0xFFFF) or are undefined in
+ *   the version of Unicode currently supported.
+ * - No isolated surrogate code points.
+ * - No overly-long sequences of non-starter combining marks, i.e. more than 30 characters
+ *   in a row with non-zero combining class (which may have category Mn or Mc); this
+ *   violates Stream-Safe Text Format per UAX #15. This test does not ensure that the
+ *   string satisfies Stream-Safe Text Format (because it does not convert to NFKC first),
+ *   but any string that fails this test is certainly not Stream-Safe.
+ * - No emoji variation selectors applied to non-emoji code points. This function may
+ *   also check for other non-standard variation sequences.
+ * - No tag sequences that are ill-formed per definition ED-14a in UTS #51 (e.g. tag
+ *   sequences must have an emoji base and a terminator).
+ * - Bidi controls do not lead to a bidi embedding level of greater than max_depth (125)
+ *   approximately according to the algorithm in
+ *   [https://www.unicode.org/reports/tr9/#Explicit_Levels_and_Directions]
+ *   (we do not evaluate paragraph direction or FSI direction so may actually toerate a
+ *   level or two beyond the official limit in some cases)
+ *
+ * @param s      The input string.
+ * @param length The length of the string, or -1 if it is NUL-terminated.
+ * @return       Boolean value for whether the string is well-formed according to the
+ *               specified criteria.
+ * @internal Apple only 
+ */
+U_INTERNAL UBool U_EXPORT2
+u_strIsWellFormed(const UChar *s, int32_t length);
+
+#endif  /* U_HIDE_INTERNAL_API */
 
 #endif

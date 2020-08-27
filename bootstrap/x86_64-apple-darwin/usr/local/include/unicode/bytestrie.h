@@ -1,10 +1,12 @@
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
 *   Copyright (C) 2010-2012, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 *   file name:  bytestrie.h
-*   encoding:   US-ASCII
+*   encoding:   UTF-8
 *   tab size:   8 (not used)
 *   indentation:4
 *
@@ -25,6 +27,7 @@
 #include "unicode/uobject.h"
 #include "unicode/ustringtrie.h"
 
+#if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
 
 class ByteSink;
@@ -306,7 +309,7 @@ public:
          * @return The NUL-terminated byte sequence for the last successful next().
          * @stable ICU 4.8
          */
-        const StringPiece &getString() const { return sp_; }
+        StringPiece getString() const;
         /**
          * @return The value for the last successful next().
          * @stable ICU 4.8
@@ -325,7 +328,6 @@ public:
         int32_t initialRemainingMatchLength_;
 
         CharString *str_;
-        StringPiece sp_;
         int32_t maxLength_;
         int32_t value_;
 
@@ -515,5 +517,6 @@ private:
 };
 
 U_NAMESPACE_END
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif  // __BYTESTRIE_H__

@@ -1,7 +1,7 @@
 /*	CFStream.c
-	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -12,7 +12,6 @@
 #include <CoreFoundation/CFNumber.h>
 #include <string.h>
 #include "CFStreamInternal.h"
-#include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <stdio.h>
 #if TARGET_OS_WIN32
@@ -22,23 +21,6 @@
 #if defined(DEBUG)
 #include <assert.h>
 #endif
-
-
-struct _CFStream {
-    CFRuntimeBase _cfBase;
-    CFOptionFlags flags;
-    CFErrorRef error; // if callBacks->version < 2, this is actually a pointer to a CFStreamError
-    struct _CFStreamClient *client;
-    void *info; /* callBacks info */
-    const struct _CFStreamCallBacks *callBacks;  // This will not exist (will not be allocated) if the callbacks are from our known, "blessed" set.
-
-    CFLock_t streamLock;
-    CFArrayRef previousRunloopsAndModes;
-#if __HAS_DISPATCH__
-    dispatch_queue_t queue;
-#endif
-    Boolean pendingEventsToDeliver;
-};
 
 
 enum {
@@ -287,7 +269,7 @@ static void __CFStreamDeallocate(CFTypeRef cf) {
         CFAllocatorDeallocate(alloc, stream->client);
         stream->client = NULL; // Just in case finalize, below, calls back in to us
     }
-    if (cb->finalize) {
+    if (cb && cb->finalize) {
         if (cb->version == 0) {
             ((void(*)(void *))cb->finalize)(_CFStreamGetInfoPointer(stream));
         } else {
@@ -295,7 +277,7 @@ static void __CFStreamDeallocate(CFTypeRef cf) {
         }
     }
     if (stream->error) {
-        if (cb->version < 2) {
+        if (cb && cb->version < 2) {
             CFAllocatorDeallocate(alloc, (void *)stream->error);
         } else {
             CFRelease(stream->error);
@@ -355,22 +337,10 @@ CF_EXPORT CFTypeID CFWriteStreamGetTypeID(void) {
 }
 
 static struct _CFStream *_CFStreamCreate(CFAllocatorRef allocator, Boolean isReadStream) {
-    struct _CFStream *newStream = (struct _CFStream *)_CFRuntimeCreateInstance(allocator, isReadStream ? _kCFRuntimeIDCFReadStream : _kCFRuntimeIDCFWriteStream, sizeof(struct _CFStream) - sizeof(CFRuntimeBase), NULL);
+    struct _CFStream *newStream = (struct _CFStream *)_CFRuntimeCreateInstance(allocator, isReadStream ? _kCFRuntimeIDCFReadStream : _kCFRuntimeIDCFWriteStream, _CFSTREAM_SIZE, NULL);
     if (newStream) {
-//        numStreamInstances ++;
-        newStream->flags = 0;
         _CFStreamSetStatusCode(newStream, kCFStreamStatusNotOpen);
-        newStream->error = NULL;
-        newStream->client = NULL;
-        newStream->info = NULL;
-        newStream->callBacks = NULL;
-		
         newStream->streamLock = CFLockInit;
-        newStream->previousRunloopsAndModes = NULL;
-#if __HAS_DISPATCH__
-        newStream->queue = NULL;
-#endif
-        newStream->pendingEventsToDeliver = false;
     }
     return newStream;
 }
@@ -928,7 +898,7 @@ static CFErrorRef _CFStreamCopyError(struct _CFStream *stream) {
     if (!stream->error) {
         return NULL;
     } else if (_CFStreamGetCallBackPtr(stream)->version < 2) {
-        return _CFErrorFromStreamError(CFGetAllocator(stream), (CFStreamError *)(stream->error));
+        return _CFStreamCreateErrorFromStreamError(CFGetAllocator(stream), (CFStreamError *)(stream->error));
     } else {
         CFRetain(stream->error);
         return stream->error;
@@ -936,13 +906,13 @@ static CFErrorRef _CFStreamCopyError(struct _CFStream *stream) {
 }
 
 CF_EXPORT CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream) {
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFReadStream, CFErrorRef, (NSInputStream *)stream, streamError);
+    CF_OBJC_RETAINED_FUNCDISPATCHV(_kCFRuntimeIDCFReadStream, CFErrorRef, (NSInputStream *)stream, streamError);
     return _CFStreamCopyError((struct _CFStream *)stream);
 }
 
 CF_EXPORT CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream) {
+    CF_OBJC_RETAINED_FUNCDISPATCHV(_kCFRuntimeIDCFWriteStream, CFErrorRef, (NSOutputStream *)stream, streamError);
     return _CFStreamCopyError((struct _CFStream *)stream);
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFWriteStream, CFErrorRef, (NSOutputStream *)stream, streamError);
 }
 
 CF_PRIVATE Boolean _CFStreamOpen(struct _CFStream *stream) {
@@ -1229,12 +1199,12 @@ CF_PRIVATE CFTypeRef _CFStreamCopyProperty(struct _CFStream *stream, CFStringRef
 }
 
 CF_EXPORT CFTypeRef CFReadStreamCopyProperty(CFReadStreamRef stream, CFStringRef propertyName) {
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFReadStream, CFTypeRef, (NSInputStream *)stream, propertyForKey:(NSString *)propertyName);
+    CF_OBJC_RETAINED_FUNCDISPATCHV(_kCFRuntimeIDCFReadStream, CFTypeRef, (NSInputStream *)stream, propertyForKey:(NSString *)propertyName);
     return _CFStreamCopyProperty((struct _CFStream *)stream, propertyName);
 }
 
 CF_EXPORT CFTypeRef CFWriteStreamCopyProperty(CFWriteStreamRef stream, CFStringRef propertyName) {
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFWriteStream, CFTypeRef, (NSOutputStream *)stream, propertyForKey:(NSString *)propertyName);
+    CF_OBJC_RETAINED_FUNCDISPATCHV(_kCFRuntimeIDCFWriteStream, CFTypeRef, (NSOutputStream *)stream, propertyForKey:(NSString *)propertyName);
     return _CFStreamCopyProperty((struct _CFStream *)stream, propertyName);
 }
 
@@ -1264,8 +1234,6 @@ Boolean CFWriteStreamSetProperty(CFWriteStreamRef stream, CFStringRef propertyNa
 }
 
 static void _initializeClient(struct _CFStream *stream) {
-    const struct _CFStreamCallBacks *cb = _CFStreamGetCallBackPtr(stream);
-    if (!cb->schedule) return; // Do we wish to allow this?
     stream->client = (struct _CFStreamClient *)CFAllocatorAllocate(CFGetAllocator(stream), sizeof(struct _CFStreamClient), 0);
     memset(stream->client, 0, sizeof(struct _CFStreamClient));
 }
@@ -1315,6 +1283,28 @@ CF_PRIVATE Boolean _CFStreamSetClient(struct _CFStream *stream, CFOptionFlags st
         }
     }
     return TRUE;
+}
+
+CF_EXPORT void _CFReadStreamInitialize(CFReadStreamRef readStream) {
+    struct _CFStream *stream = (struct _CFStream *)readStream;
+    if (stream) {
+        stream->streamLock = CFLockInit;
+    }
+}
+
+CF_EXPORT void _CFWriteStreamInitialize(CFWriteStreamRef writeStream) {
+    struct _CFStream *stream = (struct _CFStream *)writeStream;
+    if (stream) {
+        stream->streamLock = CFLockInit;
+    }
+}
+
+CF_EXPORT void _CFReadStreamDeallocate(CFReadStreamRef readStream) {
+    __CFStreamDeallocate(readStream);
+}
+
+CF_EXPORT void _CFWriteStreamDeallocate(CFWriteStreamRef writeStream) {
+    __CFStreamDeallocate(writeStream);
 }
 
 CF_EXPORT Boolean CFReadStreamSetClient(CFReadStreamRef readStream, CFOptionFlags streamEvents, CFReadStreamClientCallBack clientCB, CFStreamClientContext *clientContext) {
@@ -1517,7 +1507,7 @@ CF_PRIVATE void _CFStreamScheduleWithRunLoop(struct _CFStream *stream, CFRunLoop
     checkRLMArray(stream->client->runLoopsAndModes);
     _CFStreamUnlock(stream);
 
-    if (cb->schedule) {
+    if (cb && cb->schedule) {
         __CFBitSet(stream->flags, CALLING_CLIENT);
         cb->schedule(stream, runLoop, runLoopMode, _CFStreamGetInfoPointer(stream));
         __CFBitClear(stream->flags, CALLING_CLIENT);
@@ -1618,7 +1608,7 @@ CF_PRIVATE void _CFStreamUnscheduleFromRunLoop(struct _CFStream *stream, CFRunLo
     checkRLMArray(stream->client->runLoopsAndModes);
     _CFStreamUnlock(stream);
 
-    if (cb->unschedule) {
+    if (cb && cb->unschedule) {
         cb->unschedule(stream, runLoop, runLoopMode, _CFStreamGetInfoPointer(stream));
     }
 }
@@ -1655,10 +1645,32 @@ void CFWriteStreamUnscheduleFromRunLoop(CFWriteStreamRef stream, CFRunLoopRef ru
 
 #if __HAS_DISPATCH__
 
+#if !DEPLOYMENT_RUNTIME_OBJC
+typedef _Atomic(int64_t) _OSAtomic_int64_t;
+
+#if __has_extension(c_alignof) && __has_attribute(aligned)
+typedef int64_t __attribute__((__aligned__(_Alignof(_OSAtomic_int64_t))))
+        OSAtomic_int64_aligned64_t;
+#elif __has_attribute(aligned)
+typedef int64_t __attribute__((__aligned__((sizeof(_OSAtomic_int64_t)))))
+        OSAtomic_int64_aligned64_t;
+#else
+typedef int64_t OSAtomic_int64_aligned64_t;
+#endif
+#endif
+
 static CFRunLoopRef sLegacyRL = NULL;
+#if TARGET_OS_MAC
+static volatile OSAtomic_int64_aligned64_t sPerformCount = 0;
+#endif
+
+extern _CFThreadRef _CFMainPThread;
 
 static void _perform(void* info)
 {
+#if TARGET_OS_MAC
+    OSAtomicAdd64(1, &sPerformCount);
+#endif
 }
 
 static void* _legacyStreamRunLoop_workThread(void* arg)
@@ -1754,7 +1766,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
             dispatch_release(sem);
         }
     });
-    
+
     return sLegacyRL;
 }
 
@@ -1905,7 +1917,7 @@ static Boolean _CFStreamRemoveRunLoopAndModeFromArray(CFMutableArrayRef runLoops
 
 // Used by NSStream to properly allocate the bridged objects
 CF_EXPORT CFIndex _CFStreamInstanceSize(void) {
-    return sizeof(struct _CFStream);
+    return _CFSTREAM_SIZE;
 }
 
 #if TARGET_OS_WIN32

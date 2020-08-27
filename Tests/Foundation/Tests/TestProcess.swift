@@ -217,9 +217,7 @@ class TestProcess : XCTestCase {
             let env = try parseEnv(output)
             XCTAssertGreaterThan(env.count, 0)
         } catch {
-            // FIXME: SR-9930 parseEnv fails if an environment variable contains
-            // a newline.
-            // XCTFail("Test failed: \(error)")
+            XCTFail("Test failed: \(error)")
         }
     }
 

@@ -1,7 +1,7 @@
 /*	CFStringEncodings.c
-	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -9,6 +9,7 @@
 */
 
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include "CFString_Internal.h"
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFByteOrder.h>
@@ -18,7 +19,7 @@
 #include "CFStringEncodingConverterPriv.h"
 #include <CoreFoundation/CFUniChar.h>
 #include <CoreFoundation/CFUnicodeDecomposition.h>
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <stdlib.h>
 #include <fcntl.h>
 #include <pwd.h>
@@ -128,6 +129,15 @@ Boolean __CFStringDecodeByteStream3(const uint8_t *bytes, CFIndex len, CFStringE
     if ((encoding == kCFStringEncodingUTF16) || (encoding == kCFStringEncodingUTF16BE) || (encoding == kCFStringEncodingUTF16LE)) { // UTF-16
         const UTF16Char *src = (const UTF16Char *)bytes;
         const UTF16Char *limit = src + (len / sizeof(UTF16Char)); // <rdar://problem/7854378> avoiding odd len issue
+        if (src == limit) {
+            // There weren't enough bytes to make a single UTF16Char, i.e., the encoding we were given is invalid.
+            // We've already checked `0 == len` above, so the buffer is not empty.
+            //
+            // NOTE: Because of the check for 7854378 above, we'll only effectively hit this if len == 1.
+            //       The division ensures that `limit` is a multiple of `sizeof(UTF16Char)` (2), so we'll ignore any odd bytes past the end. The issue lies in lopping off the odd byte in the first "character".
+            goto memoryErrorExit;
+        }
+
         bool swap = false;
 
         if (kCFStringEncodingUTF16 == encoding) {
@@ -208,6 +218,15 @@ Boolean __CFStringDecodeByteStream3(const uint8_t *bytes, CFIndex len, CFStringE
     } else if ((encoding == kCFStringEncodingUTF32) || (encoding == kCFStringEncodingUTF32BE) || (encoding == kCFStringEncodingUTF32LE)) {
         const UTF32Char *src = (const UTF32Char *)bytes;
         const UTF32Char *limit =  src + (len / sizeof(UTF32Char)); // <rdar://problem/7854378> avoiding odd len issue
+        if (src == limit) {
+            // There weren't enough bytes to make a single UTF32Char, i.e., the encoding we were given is invalid.
+            // We've already checked `0 == len` above, so the buffer is not empty.
+            //
+            // NOTE: Because of the check for 7854378 above, we'll only effectively hit this if `1 <= len <= 3`.
+            //       The division ensures that `limit` is a multiple of `sizeof(UTF32Char)` (4), so we'll ignore any bytes past the end. The issue lies in lopping off the extra bytes in the first "character".
+            goto memoryErrorExit;
+        }
+
         bool swap = false;
         static bool strictUTF32 = (bool)-1;
 
@@ -626,7 +645,7 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
 
         if (!CFStringEncodingIsValidEncoding(encoding)) return 0;
 
-        if (!CF_IS_OBJC(CFStringGetTypeID(), string) && isASCIISuperset) { // Checking for NSString to avoid infinite recursion
+        if (!CF_IS_OBJC(_kCFRuntimeIDCFString, string) && isASCIISuperset) { // Checking for NSString to avoid infinite recursion
             const unsigned char *ptr;
             if ((cString = (const unsigned char *)CFStringGetCStringPtr(string, __CFStringGetEightBitStringEncoding()))) {
                 ptr = (cString += rangeLoc);
@@ -904,7 +923,7 @@ Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, uint8_t *buffer
 }
 
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 
 /* This function is used to obtain users' default script/region code.
    The function first looks at environment variable __kCFUserEncodingEnvVariableName, then, reads the configuration file in user's home directory.

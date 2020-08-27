@@ -623,7 +623,7 @@ class TestJSONEncoder : XCTestCase {
     // UInt and Int
     func test_codingOfUIntMinMax() {
 
-        struct MyValue: Codable {
+        struct MyValue: Encodable {
             let int64Min = Int64.min
             let int64Max = Int64.max
             let uint64Min = UInt64.min
@@ -851,6 +851,14 @@ class TestJSONEncoder : XCTestCase {
             return
         }
         XCTAssertEqual(jsonObject, camelCaseDictionary)
+    }
+
+    func test_OutputFormattingValues() {
+        XCTAssertEqual(JSONEncoder.OutputFormatting.prettyPrinted.rawValue, 1)
+        if #available(OSX 10.13, *) {
+            XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
+        }
+        XCTAssertEqual(JSONEncoder.OutputFormatting.withoutEscapingSlashes.rawValue, 8)
     }
 
     // MARK: - Helper Functions
@@ -1454,6 +1462,7 @@ extension TestJSONEncoder {
             ("test_snake_case_encoding", test_snake_case_encoding),
             ("test_dictionary_snake_case_decoding", test_dictionary_snake_case_decoding),
             ("test_dictionary_snake_case_encoding", test_dictionary_snake_case_encoding),
+            ("test_OutputFormattingValues", test_OutputFormattingValues),
         ]
     }
 }

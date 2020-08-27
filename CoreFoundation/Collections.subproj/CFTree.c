@@ -1,11 +1,11 @@
 /*	CFTree.c
-	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Christopher Kane
+	Responsibility: Michael LeHew
 */
 
 #include <CoreFoundation/CFTree.h>
@@ -127,10 +127,6 @@ CFTreeRef CFTreeCreate(CFAllocatorRef allocator, const CFTreeContext *context) {
     if (NULL == memory) {
 	return NULL;
     }
-    memory->_parent = NULL;
-    memory->_sibling = NULL;
-    memory->_child = NULL;
-    memory->_rightmostChild = NULL;
 
     /* Start the context off in a recognizable state */
     __CFRuntimeSetValue(memory, 1, 0, __kCFTreeHasNullCallBacks);
