@@ -61,7 +61,7 @@ static inline void nanotime(struct timespec *tv) {
     tv->tv_nsec = now - (tv->tv_sec * 1000000000);
 }
 
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_WASI
 #include <time.h>
 
 static inline void nanotime(struct timespec *tv) {

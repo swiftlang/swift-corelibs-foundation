@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFPLUGIN_FACTORY__)
+#if !defined(__COREFOUNDATION_CFPLUGIN_FACTORY__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFPLUGIN_FACTORY__ 1
 
 #include "CFBundle_Internal.h"

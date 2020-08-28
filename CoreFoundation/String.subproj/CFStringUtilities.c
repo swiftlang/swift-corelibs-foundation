@@ -640,7 +640,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
         } else
 #endif
         {
-            compResult = ((memcmp(characters1, characters2, sizeof(UniChar) * MIN(range1.length, range2.length)) < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
+            compResult = ((memcmp(characters1, characters2, sizeof(UniChar) * __CFMin(range1.length, range2.length)) < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
         }
     } else {
         UniChar *buffer1 = NULL;
