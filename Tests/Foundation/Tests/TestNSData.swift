@@ -581,7 +581,12 @@ class TestNSData: LoopbackServerTest {
                 try data.write(to: url)
                 let fileManager = FileManager.default
                 let permission = try fileManager._permissionsOfItem(atPath: url.path)
-                XCTAssertEqual(0o666, permission)
+#if canImport(Darwin)
+                let expected = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
+#else
+                let expected = Int(Glibc.S_IRUSR) | Int(Glibc.S_IWUSR) | Int(Glibc.S_IRGRP) | Int(Glibc.S_IWGRP) | Int(Glibc.S_IROTH) | Int(Glibc.S_IWOTH)
+#endif
+                XCTAssertEqual(permission, expected)
                 try! fileManager.removeItem(atPath: url.path)
             } catch {
                 XCTFail()
@@ -599,7 +604,12 @@ class TestNSData: LoopbackServerTest {
                 try data.write(to: url, options: .atomic)
                 let fileManager = FileManager.default
                 let permission = try fileManager._permissionsOfItem(atPath: url.path)
-                XCTAssertEqual(0o666, permission)
+#if canImport(Darwin)
+                let expected = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
+#else
+                let expected = Int(Glibc.S_IRUSR) | Int(Glibc.S_IWUSR) | Int(Glibc.S_IRGRP) | Int(Glibc.S_IWGRP) | Int(Glibc.S_IROTH) | Int(Glibc.S_IWOTH)
+#endif
+                XCTAssertEqual(permission, expected)
                 try! fileManager.removeItem(atPath: url.path)
             } catch {
                 XCTFail()
