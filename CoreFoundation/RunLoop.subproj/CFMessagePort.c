@@ -443,8 +443,7 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     CFMachPortContext ctx;
     uint8_t *utfname = NULL;
     CFIndex size;
-    mach_port_t port;
-    kern_return_t ret;
+    mach_port_t port = MACH_PORT_NULL;
 
     CFStringRef const name = __CFMessagePortCreateSanitizedStringName(inName, &utfname, NULL);
     if (NULL == name) {
@@ -489,7 +488,7 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     ctx.retain = NULL;
     ctx.release = NULL;
     ctx.copyDescription = NULL;
-    native = (KERN_SUCCESS == ret) ? CFMachPortCreateWithPort(allocator, port, __CFMessagePortDummyCallback, &ctx, NULL) : NULL;
+    native = CFMachPortCreateWithPort(allocator, port, __CFMessagePortDummyCallback, &ctx, NULL);
     CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
     if (NULL == native) {
 	// name is released by deallocation

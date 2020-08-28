@@ -184,15 +184,9 @@ public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _Mutabl
     }
     
     private func _toStringRange(_ r : NSRange) -> Range<String.Index>? {
-        guard r.location != NSNotFound else { return nil }
-        
-        let utf16Start = String.UTF16View.Index(encodedOffset: r.location)
-        let utf16End = String.UTF16View.Index(encodedOffset: r.location + r.length)
-        
-        guard let s = self.string else { return nil }
-        guard let start = String.Index(utf16Start, within: s) else { return nil }
-        guard let end = String.Index(utf16End, within: s) else { return nil }
-        
+        guard let s = self.string, r.location != NSNotFound else { return nil }
+        let start = String.Index(utf16Offset: r.location, in: s)
+        let end = String.Index(utf16Offset: r.location + r.length, in: s)
         return start..<end
     }
     

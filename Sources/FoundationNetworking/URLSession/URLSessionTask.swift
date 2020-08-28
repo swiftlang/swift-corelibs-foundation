@@ -950,8 +950,7 @@ extension _ProtocolClient : URLProtocolClient {
             }
         }
         
-        switch session.behaviour(for: task) {
-        case .taskDelegate(let delegate):
+        if let delegate = session.delegate as? URLSessionTaskDelegate {
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didReceive: challenge) { disposition, credential in
                     
@@ -971,7 +970,7 @@ extension _ProtocolClient : URLProtocolClient {
                     
                 }
             }
-        default:
+        } else {
             attemptProceedingWithDefaultCredential()
         }
     }

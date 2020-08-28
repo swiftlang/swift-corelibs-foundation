@@ -748,6 +748,21 @@ class TestURLSession: LoopbackServerTest {
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
+    
+    func test_httpRedirectionWithEncodedQuery() {
+        let location = "echo-query%3Fparam%3Dfoo" // "echo-query?param=foo" url encoded
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=\(location)"
+        let url = URL(string: urlString)!
+        let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        
+        if let body = String(data: d.receivedData, encoding: .utf8) {
+            XCTAssertEqual(body, "param=foo")
+        } else {
+            XCTFail("No string body")
+        }
+    }
 
      // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
     func test_httpRedirectionTimeout() {
@@ -1774,6 +1789,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
+            ("test_httpRedirectionWithEncodedQuery", test_httpRedirectionWithEncodedQuery),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
             ("test_httpRedirectionExceededMaxRedirects", test_httpRedirectionExceededMaxRedirects),
