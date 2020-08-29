@@ -115,7 +115,6 @@ const char **_CFGetProcessPath(void) {
         _CFProcessPath();		// sets up __CFProcessPath as a side-effect
     return &__CFProcessPath;
 }
-#endif
 
 static inline void _CFSetProgramNameFromPath(const char *path) {
     __CFProcessPath = strdup(path);
@@ -193,6 +192,8 @@ const char *_CFProcessPath(void) {
     return __CFProcessPath;
 #endif
 }
+
+#endif // TARGET_OS_WASI
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
