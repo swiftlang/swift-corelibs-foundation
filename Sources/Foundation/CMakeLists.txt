@@ -1,7 +1,5 @@
-
 if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
 list(APPEND FOUNDATION_WASI_UNAVAILABLE_SOURCES
-  Bundle.swift
   FileManager+POSIX.swift
   FileManager+Win32.swift
   FileManager+XDG.swift
@@ -31,6 +29,7 @@ add_library(Foundation
   Array.swift
   Boxing.swift
   Bridging.swift
+  Bundle.swift
   ByteCountFormatter.swift
   Calendar.swift
   CGFloat.swift
