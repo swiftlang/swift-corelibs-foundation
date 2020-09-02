@@ -34,6 +34,7 @@
         TARGET_CPU_MIPS         - Compiler is generating MIPS instructions
         TARGET_CPU_SPARC        - Compiler is generating Sparc instructions
         TARGET_CPU_ALPHA        - Compiler is generating Dec Alpha instructions
+        TARGET_CPU_WASM32       - Compiler is generating WebAssembly instructions for 32-bit mode
 
 
     TARGET_OS_* 
@@ -47,6 +48,7 @@
         TARGET_OS_WIN32           - Generated code will run under 32-bit Windows
         TARGET_OS_UNIX            - Generated code will run under some Unix (not OSX) 
            TARGET_OS_CYGWIN           - Generated code will run under 64-bit Cygwin
+        TARGET_OS_WASI            - Generated code will run under WebAssembly System Interface
         TARGET_OS_MAC             - Generated code will run under Mac OS X variant
            TARGET_OS_IPHONE          - Generated code for firmware, devices, or simulator 
               TARGET_OS_IOS             - Generated code will run under iOS 
@@ -79,6 +81,7 @@
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
 #define TARGET_OS_CYGWIN       0
+#define TARGET_OS_WASI         0
 #elif __ANDROID__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        1
@@ -86,6 +89,7 @@
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      1
 #define TARGET_OS_CYGWIN       0
+#define TARGET_OS_WASI         0
 #elif __linux__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        1
@@ -93,6 +97,7 @@
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
 #define TARGET_OS_CYGWIN       0
+#define TARGET_OS_WASI         0
 #elif __CYGWIN__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        1
@@ -100,18 +105,28 @@
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
 #define TARGET_OS_CYGWIN       1
+#define TARGET_OS_WASI         0
 #elif _WIN32 || _WIN64
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      1
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_WASI         0
 #elif __unix__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          1
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_WASI         0
+#elif __wasi__
+#define TARGET_OS_DARWIN       0
+#define TARGET_OS_LINUX        0
+#define TARGET_OS_WINDOWS      0
+#define TARGET_OS_BSD          0
+#define TARGET_OS_ANDROID      0
+#define TARGET_OS_WASI         1
 #else
 #error unknown operating system
 #endif
@@ -130,6 +145,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __arm64__ || __aarch64__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
@@ -140,6 +156,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __mips64__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
@@ -150,6 +167,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       1
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __powerpc64__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        1
@@ -160,6 +178,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __i386__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
@@ -170,6 +189,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __arm__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
@@ -180,6 +200,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __mips__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
@@ -190,6 +211,7 @@
 #define TARGET_CPU_MIPS         1
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __powerpc__
 #define TARGET_CPU_PPC          1
 #define TARGET_CPU_PPC64        0
@@ -200,6 +222,7 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       0
 #elif __s390x__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
@@ -210,6 +233,18 @@
 #define TARGET_CPU_MIPS         0
 #define TARGET_CPU_MIPS64       0
 #define TARGET_CPU_S390X        1
+#define TARGET_CPU_WASM32       0
+#elif __wasm32__
+#define TARGET_CPU_PPC          0
+#define TARGET_CPU_PPC64        0
+#define TARGET_CPU_X86          0
+#define TARGET_CPU_X86_64       0
+#define TARGET_CPU_ARM          0
+#define TARGET_CPU_ARM64        0
+#define TARGET_CPU_MIPS         0
+#define TARGET_CPU_MIPS64       0
+#define TARGET_CPU_S390X        0
+#define TARGET_CPU_WASM32       1
 #else
 #error unknown architecture
 #endif
