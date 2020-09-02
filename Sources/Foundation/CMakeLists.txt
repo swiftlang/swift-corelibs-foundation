@@ -162,6 +162,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   add_dependencies(Foundation CoreFoundationResources)
   target_link_options(Foundation PRIVATE
     $<TARGET_OBJECTS:CoreFoundationResources>)
+elseif(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  target_link_options(Foundation PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL WASI)
