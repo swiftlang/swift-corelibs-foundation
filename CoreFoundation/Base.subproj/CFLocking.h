@@ -97,6 +97,8 @@ typedef CFLock_t OSSpinLock;
 #define OSSpinLockUnlock(lock) __CFUnlock(lock)
 
 #elif TARGET_OS_WASI
+
+// Empty shims until https://bugs.swift.org/browse/SR-12097 is resolved.
 typedef int32_t CFLock_t;
 typedef CFLock_t OSSpinLock;
 #define CFLockInit 0
