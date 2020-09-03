@@ -438,7 +438,7 @@ open class Bundle: NSObject {
 open class Bundle {
     public let bundlePath: String
 
-    static let main = Bundle(path: "")!
+    public static let main = Bundle(path: "")!
 
     public init?(path: String) {
         bundlePath = path
