@@ -1374,6 +1374,7 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
     }
 }
 
+#if !os(WASI)
 // This notification is posted through [NSNotificationCenter defaultCenter]
 // when the system day changes. Register with "nil" as the object of this
 // notification. If the computer/device is asleep when the day changed,
@@ -1387,6 +1388,7 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
 extension NSNotification.Name {
     public static let NSCalendarDayChanged = NSNotification.Name(rawValue: "NSCalendarDayChangedNotification")
 }
+#endif
 
 // This is a just used as an extensible struct, basically;
 // note that there are two uses: one for specifying a date

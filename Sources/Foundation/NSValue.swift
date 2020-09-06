@@ -93,6 +93,7 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
     }
     
+#if !os(WASI)
     private static func _isSpecialObjCType(_ type: UnsafePointer<Int8>) -> Bool {
         return NSSpecialValue._typeFromObjCType(type) != nil
     }
@@ -144,6 +145,7 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open class var supportsSecureCoding: Bool {
         return true
     }
+#endif
     
     open override func copy() -> Any {
         return copy(with: nil)

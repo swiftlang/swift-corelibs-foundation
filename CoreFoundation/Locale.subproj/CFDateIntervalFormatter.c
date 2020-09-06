@@ -21,10 +21,15 @@
 
 #include <unicode/udateintervalformat.h>
 
+#if TARGET_OS_WASI
+#define LOCK() do {} while (0)
+#define UNLOCK() do {} while (0)
+#else
 #include <dispatch/dispatch.h>
 
 #define LOCK() do { dispatch_semaphore_wait(formatter->_lock, DISPATCH_TIME_FOREVER); } while(0)
 #define UNLOCK() do { dispatch_semaphore_signal(formatter->_lock); } while(0)
+#endif
 
 CF_INLINE void __CFReleaseIfNotNull(CFTypeRef object) {
     if (object) {
@@ -51,7 +56,9 @@ struct __CFDateIntervalFormatter {
     CFDateIntervalFormatterStyle _dateStyle;
     CFDateIntervalFormatterStyle _timeStyle;
     _CFDateIntervalFormatterBoundaryStyle _boundaryStyle;
+#if !TARGET_OS_WASI
     dispatch_semaphore_t _lock;
+#endif
     bool _modified:1;
     bool _useTemplate:1;
 };
@@ -141,14 +148,14 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
             timeZone = CFTimeZoneCopyDefault();
         }
         CFStringRef unretainedTimeZoneName = CFTimeZoneGetName(timeZone);
-        CFStringGetCharacters(unretainedTimeZoneName, CFRangeMake(0, MIN(CFStringGetLength(unretainedTimeZoneName), 100)), timeZoneID);
+        CFStringGetCharacters(unretainedTimeZoneName, CFRangeMake(0, __CFMin(CFStringGetLength(unretainedTimeZoneName), 100)), timeZoneID);
         
         CFStringRef unretainedTemplate = dif->_dateTemplateFromStyles;
         if (dif->_useTemplate) {
             unretainedTemplate = dif->_dateTemplate;
         }
         UniChar templateStr[100] = {0};
-        CFStringGetCharacters(unretainedTemplate, CFRangeMake(0, MIN(CFStringGetLength(unretainedTemplate), 100)), templateStr);
+        CFStringGetCharacters(unretainedTemplate, CFRangeMake(0, __CFMin(CFStringGetLength(unretainedTemplate), 100)), templateStr);
         
         UErrorCode status = U_ZERO_ERROR;
         dif->_formatter = udtitvfmt_open(localeBuffer, templateStr, CFStringGetLength(unretainedTemplate), timeZoneID, CFStringGetLength(unretainedTimeZoneName), &status);
@@ -230,7 +237,9 @@ CFDateIntervalFormatterRef CFDateIntervalFormatterCreate(CFAllocatorRef allocato
     memory->_dateTemplate = CFRetain(CFSTR(""));
     memory->_formatter = NULL;
     memory->_boundaryStyle = kCFDateIntervalFormatterBoundaryStyleDefault;
+#if !TARGET_OS_WASI
     memory->_lock = dispatch_semaphore_create(1);
+#endif
     memory->_modified = false;
     memory->_useTemplate = false;
     
@@ -337,7 +346,9 @@ static void __CFDateIntervalFormatterDeallocate(CFTypeRef object) {
         udtitvfmt_close(formatter->_formatter);
     }
     
+#if !TARGET_OS_WASI
     dispatch_release(formatter->_lock);
+#endif
 }
 
 CFLocaleRef CFDateIntervalFormatterCopyLocale(CFDateIntervalFormatterRef formatter) {

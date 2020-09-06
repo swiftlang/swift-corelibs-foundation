@@ -85,6 +85,7 @@ open class XMLDocument : XMLNode {
         try self.init(data: data, options: mask)
     }
 
+#if !os(WASI)
     /*!
         @method initWithContentsOfURL:options:error:
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
@@ -95,6 +96,7 @@ open class XMLDocument : XMLNode {
 
         try self.init(data: data, options: mask)
     }
+#endif
 
     /*!
         @method initWithData:options:error:

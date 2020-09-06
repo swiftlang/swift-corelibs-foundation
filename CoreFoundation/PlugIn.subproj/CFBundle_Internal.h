@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFBUNDLE_INTERNAL__)
+#if !defined(__COREFOUNDATION_CFBUNDLE_INTERNAL__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFBUNDLE_INTERNAL__ 1
 
 #include <CoreFoundation/CFDate.h>
@@ -38,6 +38,7 @@ CF_EXTERN_C_BEGIN
 #elif TARGET_OS_MAC
 #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
 #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
+#elif TARGET_OS_WASI
 #else // a non-covered DEPLOYMENT_TARGET…
 #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
 #endif // DEPLOYMENT_TARGET_…
@@ -346,6 +347,7 @@ extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
 #define _CFBundleSolarisPlatformName CFSTR("solaris")
 #define _CFBundleLinuxPlatformName CFSTR("linux")
 #define _CFBundleFreeBSDPlatformName CFSTR("freebsd")
+#define _CFBundleWASIPlatformName CFSTR("wasi")
 #define _CFBundleMacOSXPlatformNameSuffix CFSTR("-macos")
 #define _CFBundleAlternateMacOSXPlatformNameSuffix CFSTR("-macosx")
 #define _CFBundleiPhoneOSPlatformNameSuffix CFSTR("-iphoneos")
@@ -356,6 +358,7 @@ extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
 #define _CFBundleSolarisPlatformNameSuffix CFSTR("-solaris")
 #define _CFBundleLinuxPlatformNameSuffix CFSTR("-linux")
 #define _CFBundleFreeBSDPlatformNameSuffix CFSTR("-freebsd")
+#define _CFBundleWASIPlatformNameSuffix CFSTR("-wasi")
 
 STATIC_CONST_STRING_DECL(_CFBundleMacDeviceName, "mac");
 STATIC_CONST_STRING_DECL(_CFBundleiPhoneDeviceName, "iphone");

@@ -22,7 +22,9 @@
 #include <limits.h>
 #include <locale.h>
 #include <math.h>
+#if !defined(__wasi__)
 #include <setjmp.h>
+#endif
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -56,7 +58,9 @@
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFNumberFormatter.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFPreferences.h>
+#endif
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFString.h>
