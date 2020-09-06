@@ -96,6 +96,22 @@ typedef CFLock_t OSSpinLock;
 #define OSSpinLockLock(lock) __CFLock(lock)
 #define OSSpinLockUnlock(lock) __CFUnlock(lock)
 
+#elif TARGET_OS_WASI
+
+// Empty shims until https://bugs.swift.org/browse/SR-12097 is resolved.
+typedef int32_t CFLock_t;
+typedef CFLock_t OSSpinLock;
+#define CFLockInit 0
+#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
+#define OS_SPINLOCK_INIT CFLockInit
+
+#define OSSpinLockLock(lock) __CFLock(lock)
+#define OSSpinLockUnlock(lock) __CFUnlock(lock)
+#define __CFLock(A)     do {} while (0)
+#define __CFUnlock(A)   do {} while (0)
+
+static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
+
 #else
 
 #warning CF locks not defined for this platform -- CF is not thread-safe
