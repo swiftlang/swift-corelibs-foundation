@@ -26,6 +26,7 @@ class TestBridging : XCTestCase {
     static var allTests: [(String, (TestBridging) -> () throws -> Void)] {
         return [
             ("testBridgedDescription", testBridgedDescription),
+            ("testDynamicCast", testDynamicCast),
         ]
     }
 
@@ -61,5 +62,12 @@ class TestBridging : XCTestCase {
         XCTAssertEqual("description", c.description)
         XCTAssertEqual("description", c.debugDescription)
         #endif
+    }
+
+    func testDynamicCast() throws {
+        // Covers https://github.com/apple/swift-corelibs-foundation/pull/2500
+        class TestClass {}
+        let anyArray: Any = [TestClass()]
+        XCTAssertNotNil(anyArray as? NSObject)
     }
 }
