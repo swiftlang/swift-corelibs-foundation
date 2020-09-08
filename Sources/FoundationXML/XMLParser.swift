@@ -486,8 +486,9 @@ open class XMLParser : NSObject {
         return false
     }
 
-    internal func parseData(_ data: Data) -> Bool {
+    internal func parseData(_ data: Data, lastChunkOfData: Bool = false) -> Bool {
         _CFXMLInterfaceSetStructuredErrorFunc(interface, _structuredErrorFunc)
+        defer { _CFXMLInterfaceSetStructuredErrorFunc(interface, nil) }
 
         let handler: _CFXMLInterfaceSAXHandler? = (delegate != nil ? _handler : nil)
         let unparsedData: Data
@@ -538,11 +539,10 @@ open class XMLParser : NSObject {
 
         let parseResult = unparsedData.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Int32 in
             let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: CChar.self)
-            return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(unparsedData.count), 0)
+            return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(unparsedData.count), lastChunkOfData ? 1 : 0)
         }
 
         let result = _handleParseResult(parseResult)
-        _CFXMLInterfaceSetStructuredErrorFunc(interface, nil)
         return result
     }
 
@@ -560,6 +560,7 @@ open class XMLParser : NSObject {
                 let data = Data(bytesNoCopy: buffer, count: len, deallocator: .none)
                 result = parseData(data)
             case 0:
+                result = parseData(Data(), lastChunkOfData: true)
                 break parseLoop
             default: // See SR-13516, should be `case ..<0:`
                 result = false
@@ -582,7 +583,7 @@ open class XMLParser : NSObject {
         if _stream != nil {
             return parseFrom(_stream!)
         } else if _data != nil {
-            return parseData(_data!)
+            return parseData(_data!, lastChunkOfData: true)
         }
 
         return false

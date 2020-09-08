@@ -95,6 +95,7 @@ class TestXMLParser : XCTestCase {
             .foundCharacters("bar"),
             .didEndElement("foo", uri, namespaces ? "foo" : nil),
             .didEndElement("test", uri, namespaces ? "test" : nil),
+            .endDocument,
         ]
     }
 
