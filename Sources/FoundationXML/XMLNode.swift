@@ -13,7 +13,7 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 import CFXMLInterface
 
 // initWithKind options
@@ -841,8 +841,12 @@ open class XMLNode: NSObject, NSCopying {
         }
         
         var result: [XMLNode] = []
-        for i in 0..<_GetNSCFXMLBridge().CFArrayGetCount(nodes) {
-            let nodePtr = _GetNSCFXMLBridge().CFArrayGetValueAtIndex(nodes, i)!
+        
+        let CFArrayGetCount = unsafeBitCast(CF.CFArrayGetCount, to: (@convention(c) (CFArray) -> CFIndex).self)
+        let CFArrayGetValueAtIndex = unsafeBitCast(CF.CFArrayGetValueAtIndex, to: (@convention(c) (CFArray, CFIndex) -> UnsafeRawPointer?).self)
+
+        for i in 0..<CFArrayGetCount(nodes) {
+            let nodePtr = CFArrayGetValueAtIndex(nodes, i)!
             result.append(XMLNode._objectNodeForNode(_CFXMLNodePtr(mutating: nodePtr)))
         }
         

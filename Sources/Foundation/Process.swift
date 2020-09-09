@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 #if canImport(Darwin)
 import Darwin
@@ -334,8 +334,17 @@ open class Process: NSObject {
         }
     }
     
-    private var runLoopSourceContext : CFRunLoopSourceContext?
-    private var runLoopSource : CFRunLoopSource?
+    private var _runLoopSourceContextStorage: Any? = nil
+    private var runLoopSourceContext: CFRunLoopSourceContext? {
+        get { _runLoopSourceContextStorage as! CFRunLoopSourceContext? }
+        set { _runLoopSourceContextStorage = newValue }
+    }
+    
+    private var _runLoopSourceStorage: Any? = nil
+    private var runLoopSource: CFRunLoopSource? {
+        get { _runLoopSourceStorage as! CFRunLoopSource? }
+        set { _runLoopSourceStorage = newValue }
+    }
     
     fileprivate weak var runLoop : RunLoop? = nil
     

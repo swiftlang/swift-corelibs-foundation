@@ -12,7 +12,7 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 import CFXMLInterface
 
 extension XMLParser {
@@ -988,7 +988,7 @@ extension NSObject {
 func setupXMLParsing() {
     _CFSetupXMLInterface()
     _CFSetupXMLBridgeIfNeededUsingBlock {
-        __CFSwiftXMLParserBridge.CF = _GetNSCFXMLBridge()
+        __CFSwiftXMLParserBridge.CFBridge = CF.originalBridge
         __CFSwiftXMLParserBridge.currentParser = _NSXMLParserCurrentParser
         __CFSwiftXMLParserBridge._xmlExternalEntityWithURL = _NSXMLParserExternalEntityWithURL
         __CFSwiftXMLParserBridge.getContext = _NSXMLParserGetContext

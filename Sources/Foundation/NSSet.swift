@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
@@ -190,7 +190,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return result
     }
     
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()
     }
 

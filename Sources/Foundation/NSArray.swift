@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByArrayLiteral {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
@@ -703,7 +703,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         } as! [String]
     }
 
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFArrayGetTypeID()
     }
     

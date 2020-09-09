@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 public typealias TimeInterval = Double
 
@@ -151,7 +151,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
     }
     
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFDateGetTypeID()
     }
 }

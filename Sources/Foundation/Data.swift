@@ -19,7 +19,7 @@ internal func malloc_good_size(_ size: Int) -> Int {
 }
 #endif
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutableRawPointer, _ length: Int) {
 #if os(Windows)
@@ -61,17 +61,10 @@ internal func __NSDataIsCompact(_ data: NSData) -> Bool {
 
 #endif
 
-#if os(Windows)
 @usableFromInline @discardableResult
-internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {
-  return _withStackOrHeapBuffer(size, block)
+internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutableRawPointer, Int, Bool) -> Void) -> Bool {
+  return _withStackOrHeapBufferWithResultInArguments(size, block)
 }
-#else
-@inlinable @inline(__always) @discardableResult
-internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {
-  return _withStackOrHeapBuffer(size, block)
-}
-#endif
 
 // Underlying storage representation for medium and large data.
 // Inlinability strategy: methods from here should not inline into InlineSlice or LargeSlice unless trivial.
@@ -2105,11 +2098,10 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 
             // Copy as much as we can in one shot from the sequence.
             let underestimatedCount = Swift.max(elements.underestimatedCount, 1)
-            __withStackOrHeapBuffer(underestimatedCount) { (buffer) in
+            __withStackOrHeapBuffer(underestimatedCount) { (memory, capacity, isOnStack) in
                 // In order to copy from the sequence, we have to bind the buffer to UInt8.
                 // This is safe since we'll copy out of this buffer as raw memory later.
-                let capacity = buffer.pointee.capacity
-                let base = buffer.pointee.memory.bindMemory(to: UInt8.self, capacity: capacity)
+                let base = memory.bindMemory(to: UInt8.self, capacity: capacity)
                 var (iter, endIndex) = elements._copyContents(initializing: UnsafeMutableBufferPointer(start: base, count: capacity))
 
                 // Copy the contents of buffer...
@@ -2398,11 +2390,10 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         // The sequence is really not contiguous.
         // Copy as much as we can in one shot.
         let underestimatedCount = Swift.max(elements.underestimatedCount, 1)
-        __withStackOrHeapBuffer(underestimatedCount) { (buffer) in
+        __withStackOrHeapBuffer(underestimatedCount)  { (memory, capacity, isOnStack) in
             // In order to copy from the sequence, we have to bind the temporary buffer to `UInt8`.
             // This is safe since we're the only owners of the buffer and we copy out as raw memory below anyway.
-            let capacity = buffer.pointee.capacity
-            let base = buffer.pointee.memory.bindMemory(to: UInt8.self, capacity: capacity)
+            let base = memory.bindMemory(to: UInt8.self, capacity: capacity)
             var (iter, endIndex) = elements._copyContents(initializing: UnsafeMutableBufferPointer(start: base, count: capacity))
 
             // Copy the contents of the buffer...
@@ -2477,14 +2468,14 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @inlinable // This is @inlinable as generic and reasonably small.
     public mutating func replaceSubrange<ByteCollection : Collection>(_ subrange: Range<Index>, with newElements: ByteCollection) where ByteCollection.Iterator.Element == Data.Iterator.Element {
         let totalCount = Int(newElements.count)
-        __withStackOrHeapBuffer(totalCount) { conditionalBuffer in
-            let buffer = UnsafeMutableBufferPointer(start: conditionalBuffer.pointee.memory.assumingMemoryBound(to: UInt8.self), count: totalCount)
+        __withStackOrHeapBuffer(totalCount) { (memory, capacity, isOnStack) in
+            let buffer = UnsafeMutableBufferPointer(start: memory.assumingMemoryBound(to: UInt8.self), count: totalCount)
             var (iterator, index) = newElements._copyContents(initializing: buffer)
             while let byte = iterator.next() {
                 buffer[index] = byte
                 index = buffer.index(after: index)
             }
-            replaceSubrange(subrange, with: conditionalBuffer.pointee.memory, count: totalCount)
+            replaceSubrange(subrange, with: memory, count: totalCount)
         }
     }
     

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 // In swift-corelibs-foundation, key-value coding is not available. Since encoding and decoding a NSSortDescriptor requires interpreting key paths, NSSortDescriptor does not conform to NSCoding or NSSecureCoding in swift-corelibs-foundation only.
 open class NSSortDescriptor: NSObject, NSCopying {

@@ -53,13 +53,18 @@ internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
 }
 
 open class RunLoop: NSObject {
-    internal var _cfRunLoop : CFRunLoop!
+    internal var _cfRunLoopStorage : AnyObject!
+    internal var _cfRunLoop: CFRunLoop! {
+        get { _cfRunLoopStorage as! CFRunLoop? }
+        set { _cfRunLoopStorage = newValue }
+    }
+    
     internal static var _mainRunLoop : RunLoop = {
         return RunLoop(cfObject: CFRunLoopGetMain())
     }()
 
     internal init(cfObject : CFRunLoop) {
-        _cfRunLoop = cfObject
+        _cfRunLoopStorage = cfObject
     }
 
     open class var current: RunLoop {
@@ -274,10 +279,11 @@ extension RunLoop {
     
     @available(*, deprecated, message: "For XCTest use only.")
     public class _Observer {
-        fileprivate let cfObserver: CFRunLoopObserver
+        fileprivate let _cfObserverStorage: AnyObject
+        fileprivate var cfObserver: CFRunLoopObserver { _cfObserverStorage as! CFRunLoopObserver }
         
         fileprivate init(activities: _Activities, repeats: Bool, order: Int, handler: @escaping (_Activity) -> Void) {
-            self.cfObserver = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
+            self._cfObserverStorage = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
                 guard let activity = _Activity(rawValue: UInt(cfActivity.rawValue)) else { return }
                 handler(activity)
             })
@@ -302,7 +308,9 @@ extension RunLoop {
     
     @available(*, deprecated, message: "For XCTest use only.")
     open class _Source: NSObject {
-        fileprivate var cfSource: CFRunLoopSource!
+        fileprivate var _cfSourceStorage: AnyObject!
+        fileprivate var cfSource: CFRunLoopSource { _cfSourceStorage as! CFRunLoopSource }
+        
         
         public init(order: Int = 0) {
             super.init()
@@ -348,7 +356,7 @@ extension RunLoop {
                     me.perform()
                 })
             
-            self.cfSource = CFRunLoopSourceCreate(kCFAllocatorSystemDefault, CFIndex(order), &context)
+            self._cfSourceStorage = CFRunLoopSourceCreate(kCFAllocatorSystemDefault, CFIndex(order), &context)
         }
         
         open func didSchedule(in mode: RunLoop.Mode) {

@@ -1674,7 +1674,34 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 struct _CFSwiftBridge __CFSwiftBridge = { { NULL } };
 
-struct _NSCFXMLBridge __NSCFXMLBridge = {
+struct _NSCFXMLBridgeStrong __NSCFXMLBridgeStrong = {
+  CFArrayGetCount,
+  CFArrayGetValueAtIndex,
+  CFErrorCreate,
+  CFStringCreateWithCString,
+  CFStringCreateMutable,
+  CFStringAppend,
+  CFStringAppendCString,
+  CFStringGetLength,
+  CFStringGetMaximumSizeForEncoding,
+  CFStringGetCString,
+  CFDataCreateWithBytesNoCopy,
+  CFRelease,
+  CFStringCreateWithBytes,
+  CFArrayCreateMutable,
+  CFArrayAppendValue,
+  CFDataGetLength,
+  CFDataGetBytePtr,
+  CFDictionaryCreateMutable,
+  CFDictionarySetValue,
+  &kCFAllocatorSystemDefault,
+  &kCFAllocatorNull,
+  &kCFCopyStringDictionaryKeyCallBacks,
+  &kCFTypeDictionaryValueCallBacks,
+  &kCFErrorLocalizedDescriptionKey,
+};
+
+struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped = {
   CFArrayGetCount,
   CFArrayGetValueAtIndex,
   CFErrorCreate,

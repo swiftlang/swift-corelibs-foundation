@@ -262,7 +262,7 @@ bool _CFXMLGetLengthOfPrefixInQualifiedName(const char *_Nonnull qname, size_t *
 // Bridging
 
 struct _NSXMLParserBridge {
-    struct _NSCFXMLBridge CF;
+    void *CFBridge;
 
     _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
     _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface /*interface*/, const char * /*url*/, const char * /*identifier*/, _CFXMLInterfaceParserContext /*context*/, _CFXMLInterfaceExternalEntityLoader /*originalLoaderFunction*/);

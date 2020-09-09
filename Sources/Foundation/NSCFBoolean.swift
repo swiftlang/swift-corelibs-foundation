@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal class __NSCFBoolean : NSNumber {
     override var hash: Int {
@@ -71,7 +71,7 @@ internal class __NSCFBoolean : NSNumber {
         return CFBooleanGetValue(unsafeBitCast(self, to: CFBoolean.self))
     }
     
-    override var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFBooleanGetTypeID()
     }
     

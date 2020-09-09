@@ -6,7 +6,7 @@
 //  Copyright © 2016 Apple. All rights reserved.
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal class _NSCFCharacterSet : NSMutableCharacterSet {
     

@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
@@ -214,9 +214,9 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     typealias CFType = CFURL
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
-    internal var _encoding : CFStringEncoding = 0
-    internal var _string : UnsafeMutablePointer<CFString>? = nil
-    internal var _baseURL : UnsafeMutablePointer<CFURL>? = nil
+    internal var _encoding : UInt32 = 0 // CFStringEncoding
+    internal var _string : UnsafeMutablePointer<AnyObject>? = nil // CFString
+    internal var _baseURL : UnsafeMutablePointer<AnyObject>? = nil // CFURL
     internal var _extra : OpaquePointer? = nil
     internal var _resourceInfo : OpaquePointer? = nil
     internal var _range1 = NSRange(location: 0, length: 0)
@@ -705,7 +705,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return URL(string: absoluteString)
     }
     
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
     }
 
@@ -1164,7 +1164,8 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 }
 
 open class NSURLComponents: NSObject, NSCopying {
-    private let _components : CFURLComponents!
+    private let _componentsStorage : AnyObject!
+    private var _components: CFURLComponents! { _componentsStorage as! CFURLComponents? }
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -1211,24 +1212,24 @@ open class NSURLComponents: NSObject, NSCopying {
     
     // Initialize a NSURLComponents with the components of a URL. If resolvingAgainstBaseURL is YES and url is a relative URL, the components of [url absoluteURL] are used. If the url string from the NSURL is malformed, nil is returned.
     public init?(url: URL, resolvingAgainstBaseURL resolve: Bool) {
-        _components = _CFURLComponentsCreateWithURL(kCFAllocatorSystemDefault, url._cfObject, resolve)
+        _componentsStorage = _CFURLComponentsCreateWithURL(kCFAllocatorSystemDefault, url._cfObject, resolve)
         super.init()
-        if _components == nil {
+        if _componentsStorage == nil {
             return nil
         }
     }
     
     // Initialize a NSURLComponents with a URL string. If the URLString is malformed, nil is returned.
     public init?(string URLString: String) {
-        _components = _CFURLComponentsCreateWithString(kCFAllocatorSystemDefault, URLString._cfObject)
+        _componentsStorage = _CFURLComponentsCreateWithString(kCFAllocatorSystemDefault, URLString._cfObject)
         super.init()
-        if _components == nil {
+        if _componentsStorage == nil {
             return nil
         }
     }
     
     public override init() {
-        _components = _CFURLComponentsCreate(kCFAllocatorSystemDefault)
+        _componentsStorage = _CFURLComponentsCreate(kCFAllocatorSystemDefault)
     }
     
     // Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.

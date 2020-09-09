@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
 internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
@@ -1009,7 +1009,7 @@ open class NSNumber : NSValue {
         }
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
     }
     

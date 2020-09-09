@@ -280,34 +280,62 @@ struct _CFSwiftBridge {
     struct _NSURLBridge NSURL;
 };
 
-struct _NSCFXMLBridge {
-  CFIndex (* _Nonnull CFArrayGetCount)(CFArrayRef);
-  const void * _Null_unspecified (* _Nonnull CFArrayGetValueAtIndex)(CFArrayRef, CFIndex);
-  _Null_unspecified CFErrorRef (* _Nonnull CFErrorCreate)(CFAllocatorRef _Nullable, CFStringRef, CFIndex, CFDictionaryRef _Nullable);
-  _Null_unspecified CFStringRef (* _Nonnull CFStringCreateWithCString)(CFAllocatorRef _Nullable, const char * _Null_unspecified, CFStringEncoding);
-  _Null_unspecified CFMutableStringRef (* _Nonnull CFStringCreateMutable)(CFAllocatorRef _Nullable, CFIndex);
-  void (* _Nonnull CFStringAppend)(CFMutableStringRef, CFStringRef);
-  void (* _Nonnull CFStringAppendCString)(CFMutableStringRef, const char * _Null_unspecified, CFStringEncoding);
-  CFIndex (* _Nonnull CFStringGetLength)(CFStringRef);
-  CFIndex (* _Nonnull CFStringGetMaximumSizeForEncoding)(CFIndex, CFStringEncoding);
-  Boolean (* _Nonnull CFStringGetCString)(CFStringRef, char *, CFIndex, CFStringEncoding);
-  _Null_unspecified CFDataRef (* _Nonnull CFDataCreateWithBytesNoCopy)(CFAllocatorRef _Nullable, const uint8_t *, CFIndex, CFAllocatorRef);
-  void (* _Nonnull CFRelease)(CFTypeRef);
-  _Null_unspecified CFStringRef (* _Nonnull CFStringCreateWithBytes)(CFAllocatorRef _Nullable, const UInt8 *, CFIndex, CFStringEncoding, Boolean);
-  _Null_unspecified CFMutableArrayRef (* _Nonnull CFArrayCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFArrayCallBacks *_Nullable);
-  void (* _Nonnull CFArrayAppendValue)(CFMutableArrayRef, const void *);
-  CFIndex (* _Nonnull CFDataGetLength)(CFDataRef);
-  const uint8_t * _Null_unspecified (* _Nonnull CFDataGetBytePtr)(CFDataRef);
-  _Null_unspecified CFMutableDictionaryRef (* _Nonnull CFDictionaryCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFDictionaryKeyCallBacks *, const CFDictionaryValueCallBacks *);
-  void (* _Nonnull CFDictionarySetValue)(CFMutableDictionaryRef, const void * _Null_Unspecified, const void * _Null_unspecified);
-  const _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorSystemDefault;
-  const _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorNull;
-  const CFDictionaryKeyCallBacks * _Nonnull kCFCopyStringDictionaryKeyCallBacks;
-  const CFDictionaryValueCallBacks * _Nonnull kCFTypeDictionaryValueCallBacks;
-  _Null_unspecified const CFStringRef * _Nonnull kCFErrorLocalizedDescriptionKey;
+struct _NSCFXMLBridgeStrong {
+    CFIndex (* _Nonnull CFArrayGetCount)(CFArrayRef);
+    const void * _Null_unspecified (* _Nonnull CFArrayGetValueAtIndex)(CFArrayRef, CFIndex);
+    _Null_unspecified CFErrorRef (* _Nonnull CFErrorCreate)(CFAllocatorRef _Nullable, CFStringRef, CFIndex, CFDictionaryRef _Nullable);
+    _Null_unspecified CFStringRef (* _Nonnull CFStringCreateWithCString)(CFAllocatorRef _Nullable, const char * _Null_unspecified, CFStringEncoding);
+    _Null_unspecified CFMutableStringRef (* _Nonnull CFStringCreateMutable)(CFAllocatorRef _Nullable, CFIndex);
+    void (* _Nonnull CFStringAppend)(CFMutableStringRef, CFStringRef);
+    void (* _Nonnull CFStringAppendCString)(CFMutableStringRef, const char * _Null_unspecified, CFStringEncoding);
+    CFIndex (* _Nonnull CFStringGetLength)(CFStringRef);
+    CFIndex (* _Nonnull CFStringGetMaximumSizeForEncoding)(CFIndex, CFStringEncoding);
+    Boolean (* _Nonnull CFStringGetCString)(CFStringRef, char *, CFIndex, CFStringEncoding);
+    _Null_unspecified CFDataRef (* _Nonnull CFDataCreateWithBytesNoCopy)(CFAllocatorRef _Nullable, const uint8_t *, CFIndex, CFAllocatorRef);
+    void (* _Nonnull CFRelease)(CFTypeRef);
+    _Null_unspecified CFStringRef (* _Nonnull CFStringCreateWithBytes)(CFAllocatorRef _Nullable, const UInt8 *, CFIndex, CFStringEncoding, Boolean);
+    _Null_unspecified CFMutableArrayRef (* _Nonnull CFArrayCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFArrayCallBacks *_Nullable);
+    void (* _Nonnull CFArrayAppendValue)(CFMutableArrayRef, const void *);
+    CFIndex (* _Nonnull CFDataGetLength)(CFDataRef);
+    const uint8_t * _Null_unspecified (* _Nonnull CFDataGetBytePtr)(CFDataRef);
+    _Null_unspecified CFMutableDictionaryRef (* _Nonnull CFDictionaryCreateMutable)(CFAllocatorRef _Nullable, CFIndex, const CFDictionaryKeyCallBacks *, const CFDictionaryValueCallBacks *);
+    void (* _Nonnull CFDictionarySetValue)(CFMutableDictionaryRef, const void * _Null_Unspecified, const void * _Null_unspecified);
+    const _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorSystemDefault;
+    const _Null_unspecified CFAllocatorRef * _Nonnull kCFAllocatorNull;
+    const CFDictionaryKeyCallBacks * _Nonnull kCFCopyStringDictionaryKeyCallBacks;
+    const CFDictionaryValueCallBacks * _Nonnull kCFTypeDictionaryValueCallBacks;
+    _Null_unspecified const CFStringRef * _Nonnull kCFErrorLocalizedDescriptionKey;
 };
 
-CF_EXPORT struct _NSCFXMLBridge __NSCFXMLBridge;
+struct _NSCFXMLBridgeUntyped {
+    void *CFArrayGetCount;
+    void *CFArrayGetValueAtIndex;
+    void *CFErrorCreate;
+    void *CFStringCreateWithCString;
+    void *CFStringCreateMutable;
+    void *CFStringAppend;
+    void *CFStringAppendCString;
+    void *CFStringGetLength;
+    void *CFStringGetMaximumSizeForEncoding;
+    void *CFStringGetCString;
+    void *CFDataCreateWithBytesNoCopy;
+    void *CFRelease;
+    void *CFStringCreateWithBytes;
+    void *CFArrayCreateMutable;
+    void *CFArrayAppendValue;
+    void *CFDataGetLength;
+    void *CFDataGetBytePtr;
+    void *CFDictionaryCreateMutable;
+    void *CFDictionarySetValue;
+    void *kCFAllocatorSystemDefault;
+    void *kCFAllocatorNull;
+    void *kCFCopyStringDictionaryKeyCallBacks;
+    void *kCFTypeDictionaryValueCallBacks;
+    void *kCFErrorLocalizedDescriptionKey;
+};
+
+CF_EXPORT struct _NSCFXMLBridgeStrong __NSCFXMLBridgeStrong;
+CF_EXPORT struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped;
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 
@@ -476,6 +504,12 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
         free(buffer.memory);
     }
     return true;
+}
+
+static inline _Bool _withStackOrHeapBufferWithResultInArguments(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(void *_Nonnull memory, size_t capacity, _Bool onStack)) {
+    return _withStackOrHeapBuffer(amount, ^(_ConditionalAllocationBuffer *buffer) {
+        applier(buffer->memory, buffer->capacity, buffer->onStack);
+    });
 }
 
 #pragma mark - Character Set
