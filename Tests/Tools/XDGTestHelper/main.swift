@@ -232,7 +232,7 @@ case "--echo-PWD":
     print(ProcessInfo.processInfo.environment["PWD"] ?? "")
 
 case "--env":
-    print(ProcessInfo.processInfo.environment.filter { $0.key != "__CF_USER_TEXT_ENCODING" }.map { "\($0.key)=\($0.value)" }.joined(separator: "\n"))
+    print(ProcessInfo.processInfo.environment.filter { $0.key != "__CF_USER_TEXT_ENCODING" }.map { "\($0.key)=\($0.value.filter { !$0.isNewline })" }.joined(separator: "\n"))
 
 case "--cat":
     cat(arguments)
