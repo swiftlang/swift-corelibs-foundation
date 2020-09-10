@@ -215,7 +215,12 @@ class TestProcess : XCTestCase {
         do {
             let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: nil)
             let env = try parseEnv(output)
+#if os(Windows)
+            // On Windows, Path is always passed to the sub process
+            XCTAssertGreaterThan(env.count, 1)
+#else
             XCTAssertGreaterThan(env.count, 0)
+#endif
         } catch {
             XCTFail("Test failed: \(error)")
         }
