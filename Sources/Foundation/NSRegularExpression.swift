@@ -30,7 +30,7 @@ extension NSRegularExpression {
 open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
     internal var _internalStorage: AnyObject
     internal var _internal: _CFRegularExpression {
-        _internalStorage as! _CFRegularExpression
+        unsafeBitCast(_internalStorage, to: _CFRegularExpression.self)
     }
     
     open override func copy() -> Any {

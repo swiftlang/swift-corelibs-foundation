@@ -1165,7 +1165,7 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 
 open class NSURLComponents: NSObject, NSCopying {
     private let _componentsStorage : AnyObject!
-    private var _components: CFURLComponents! { _componentsStorage as! CFURLComponents? }
+    private var _components: CFURLComponents! { unsafeBitCast(_componentsStorage, to: CFURLComponents?.self) }
     
     open override func copy() -> Any {
         return copy(with: nil)

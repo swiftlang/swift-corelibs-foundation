@@ -26,7 +26,7 @@ open class Timer : NSObject {
     }
     
     internal var _timerStorage: AnyObject?
-    internal var _timer: CFRunLoopTimer? { _timerStorage as! CFRunLoopTimer? } // has to be optional because this is a chicken/egg problem with initialization in swift
+    internal var _timer: CFRunLoopTimer? { unsafeBitCast(_timerStorage, to: CFRunLoopTimer?.self) } // has to be optional because this is a chicken/egg problem with initialization in swift
     internal var _fire: (Timer) -> Void = { (_: Timer) in }
     
     /// Alternative API for timer creation with a block.

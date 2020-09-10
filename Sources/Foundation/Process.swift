@@ -334,16 +334,24 @@ open class Process: NSObject {
         }
     }
     
-    private var _runLoopSourceContextStorage: Any? = nil
+    private class NonexportedCFRunLoopSourceContextStorage {
+        internal var value: CFRunLoopSourceContext?
+    }
+
+    private class NonexportedCFRunLoopSourceStorage {
+        internal var value: CFRunLoopSource?
+    }
+
+    private var _runLoopSourceContextStorage = NonexportedCFRunLoopSourceContextStorage()
     private var runLoopSourceContext: CFRunLoopSourceContext? {
-        get { _runLoopSourceContextStorage as! CFRunLoopSourceContext? }
-        set { _runLoopSourceContextStorage = newValue }
+        get { _runLoopSourceContextStorage.value }
+        set { _runLoopSourceContextStorage.value = newValue }
     }
     
-    private var _runLoopSourceStorage: Any? = nil
+    private var _runLoopSourceStorage = NonexportedCFRunLoopSourceStorage()
     private var runLoopSource: CFRunLoopSource? {
-        get { _runLoopSourceStorage as! CFRunLoopSource? }
-        set { _runLoopSourceStorage = newValue }
+        get { _runLoopSourceStorage.value }
+        set { _runLoopSourceStorage.value = newValue }
     }
     
     fileprivate weak var runLoop : RunLoop? = nil

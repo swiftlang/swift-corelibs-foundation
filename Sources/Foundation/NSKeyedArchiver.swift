@@ -223,7 +223,7 @@ open class NSKeyedArchiver : NSCoder {
                 success = true
             }
         } else {
-            let stream = self._stream as! CFWriteStream
+            let stream = unsafeBitCast(self._stream, to: CFWriteStream.self)
             success = CFPropertyListWrite(plist, stream, kCFPropertyListXMLFormat_v1_0, 0, nil) > 0
         }
         

@@ -55,7 +55,7 @@ internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
 open class RunLoop: NSObject {
     internal var _cfRunLoopStorage : AnyObject!
     internal var _cfRunLoop: CFRunLoop! {
-        get { _cfRunLoopStorage as! CFRunLoop? }
+        get { unsafeBitCast(_cfRunLoopStorage, to: CFRunLoop?.self) }
         set { _cfRunLoopStorage = newValue }
     }
     
@@ -280,7 +280,7 @@ extension RunLoop {
     @available(*, deprecated, message: "For XCTest use only.")
     public class _Observer {
         fileprivate let _cfObserverStorage: AnyObject
-        fileprivate var cfObserver: CFRunLoopObserver { _cfObserverStorage as! CFRunLoopObserver }
+        fileprivate var cfObserver: CFRunLoopObserver { unsafeBitCast(_cfObserverStorage, to: CFRunLoopObserver.self) }
         
         fileprivate init(activities: _Activities, repeats: Bool, order: Int, handler: @escaping (_Activity) -> Void) {
             self._cfObserverStorage = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
@@ -309,7 +309,7 @@ extension RunLoop {
     @available(*, deprecated, message: "For XCTest use only.")
     open class _Source: NSObject {
         fileprivate var _cfSourceStorage: AnyObject!
-        fileprivate var cfSource: CFRunLoopSource { _cfSourceStorage as! CFRunLoopSource }
+        fileprivate var cfSource: CFRunLoopSource { unsafeBitCast(_cfSourceStorage, to: CFRunLoopSource.self) }
         
         
         public init(order: Int = 0) {

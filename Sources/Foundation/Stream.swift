@@ -108,8 +108,8 @@ open class InputStream: Stream {
         case cantSeekInputStream
     }
     
-    internal let _streamStorage: Any!
-    internal var _stream: CFReadStream { _streamStorage as! CFReadStream }
+    internal let _streamStorage: AnyObject!
+    internal var _stream: CFReadStream { unsafeBitCast(_streamStorage, to: CFReadStream.self) }
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -185,8 +185,8 @@ open class InputStream: Stream {
 // Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class OutputStream : Stream {
     
-    internal let _streamStorage: Any!
-    internal var _stream: CFWriteStream { _streamStorage as! CFWriteStream }
+    internal let _streamStorage: AnyObject!
+    internal var _stream: CFWriteStream { unsafeBitCast(_streamStorage, to: CFWriteStream.self) }
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {

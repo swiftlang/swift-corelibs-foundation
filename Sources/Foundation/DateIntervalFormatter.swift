@@ -85,7 +85,7 @@ internal extension _CFDateIntervalFormatterBoundaryStyle {
 open class DateIntervalFormatter: Formatter {
     var _core: AnyObject
     var core: CFDateIntervalFormatter {
-        get { _core as! CFDateIntervalFormatter }
+        get { unsafeBitCast(_core, to: CFDateIntervalFormatter.self) }
         set { _core = newValue }
     }
     
