@@ -7,6 +7,16 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
+#endif
+
 class TestNSData: LoopbackServerTest {
     
     class AllOnesImmutableData : NSData {
@@ -223,6 +233,8 @@ class TestNSData: LoopbackServerTest {
             ("test_limitDebugDescription", test_limitDebugDescription),
             ("test_edgeDebugDescription", test_edgeDebugDescription),
             ("test_writeToURLOptions", test_writeToURLOptions),
+            ("test_writeToURLPermissions", test_writeToURLPermissions),
+            ("test_writeToURLPermissionsWithAtomic", test_writeToURLPermissionsWithAtomic),
             ("test_edgeNoCopyDescription", test_edgeNoCopyDescription),
             ("test_initializeWithBase64EncodedDataGetsDecodedData", test_initializeWithBase64EncodedDataGetsDecodedData),
             ("test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil", test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil),
@@ -549,6 +561,61 @@ class TestNSData: LoopbackServerTest {
         } catch {
             XCTFail()
         }
+    }
+
+#if !os(Windows)
+    // NOTE: `umask(3)` is process global. Therefore, the behavior is unknown if `withUmask(_:_:)` is used simultaniously.
+    private func withUmask(_ mode: mode_t, _ block: () -> Void) {
+        let original = umask(mode)
+        block()
+        umask(original)
+    }
+#endif
+
+    func test_writeToURLPermissions() {
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows)
+        withUmask(0) {
+            do {
+                let data = Data()
+                let url = URL(fileURLWithPath: NSTemporaryDirectory() + "meow")
+                try data.write(to: url)
+                let fileManager = FileManager.default
+                let permission = try fileManager._permissionsOfItem(atPath: url.path)
+#if canImport(Darwin)
+                let expected = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
+#else
+                let expected = Int(Glibc.S_IRUSR) | Int(Glibc.S_IWUSR) | Int(Glibc.S_IRGRP) | Int(Glibc.S_IWGRP) | Int(Glibc.S_IROTH) | Int(Glibc.S_IWOTH)
+#endif
+                XCTAssertEqual(permission, expected)
+                try! fileManager.removeItem(atPath: url.path)
+            } catch {
+                XCTFail()
+            }
+        }
+#endif
+    }
+
+    func test_writeToURLPermissionsWithAtomic() {
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows)
+        withUmask(0) {
+            do {
+                let data = Data()
+                let url = URL(fileURLWithPath: NSTemporaryDirectory() + "meow")
+                try data.write(to: url, options: .atomic)
+                let fileManager = FileManager.default
+                let permission = try fileManager._permissionsOfItem(atPath: url.path)
+#if canImport(Darwin)
+                let expected = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
+#else
+                let expected = Int(Glibc.S_IRUSR) | Int(Glibc.S_IWUSR) | Int(Glibc.S_IRGRP) | Int(Glibc.S_IWGRP) | Int(Glibc.S_IROTH) | Int(Glibc.S_IWOTH)
+#endif
+                XCTAssertEqual(permission, expected)
+                try! fileManager.removeItem(atPath: url.path)
+            } catch {
+                XCTFail()
+            }
+        }
+#endif
     }
 
     func test_emptyDescription() {
