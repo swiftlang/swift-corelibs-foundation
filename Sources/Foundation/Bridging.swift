@@ -187,17 +187,12 @@ internal final class __SwiftValue : NSObject, NSCopying {
         } else if let opt = value as? Unwrappable, opt.unwrap() == nil {
             return NSNull()
         } else {
-            #if canImport(ObjectiveC)
-                // On Darwin, this can be a native (ObjC) __SwiftValue.
-                let boxed = (value as AnyObject)
-                if !(boxed is NSObject) {
-                    return __SwiftValue(value) // Do not emit native boxes — wrap them in Swift Foundation boxes instead.
-                } else {
-                    return boxed as! NSObject
-                }
-            #else
-                return (value as AnyObject) as! NSObject
-            #endif
+            let boxed = (value as AnyObject)
+            if boxed is NSObject {
+                return boxed as! NSObject
+            } else {
+                return __SwiftValue(value) // Do not emit native boxes — wrap them in Swift Foundation boxes instead.                
+            }
         }
     }
     
