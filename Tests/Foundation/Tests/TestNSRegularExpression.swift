@@ -364,35 +364,41 @@ class TestNSRegularExpression : XCTestCase {
         XCTAssertEqual(regex!.replaceMatches(in: str, range: range, withTemplate: "$1-$2-$3"), 1)
     }
 
-    func test_badPattern() {
+    func test_badPattern() throws {
         do {
             _ = try NSRegularExpression(pattern: "(", options: [])
             XCTFail()
         } catch {
-            let err = String(describing: error)
-            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(}")
+            let err = try XCTUnwrap(error as? NSError)
+            XCTAssertEqual(err.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(err.code, CocoaError.formatting.rawValue)
+            XCTAssertEqual(err.userInfo["NSInvalidValue"] as? String, "(")
         }
     }
 
-    func test_unicodeNamedGroup() {
+    func test_unicodeNamedGroup() throws {
         let patternString = "(?<りんご>a)"
         do {
             _ = try NSRegularExpression(pattern: patternString, options: [])
             XCTFail("Building regular expression for pattern with unicode group name should fail.")
         } catch {
-            let err = String(describing: error)
-            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(?<りんご>a)}")
+            let err = try XCTUnwrap(error as? NSError)
+            XCTAssertEqual(err.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(err.code, CocoaError.formatting.rawValue)
+            XCTAssertEqual(err.userInfo["NSInvalidValue"] as? String, patternString)
         }
     }
 
-    func test_conflictingNamedGroups() {
+    func test_conflictingNamedGroups() throws {
         let patternString = "(?<name>a)(?<name>b)"
         do {
             _ = try NSRegularExpression(pattern: patternString, options: [])
             XCTFail("Building regular expression for pattern with identically named groups should fail.")
         } catch {
-            let err = String(describing: error)
-            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(?<name>a)(?<name>b)}")
+            let err = try XCTUnwrap(error as? NSError)
+            XCTAssertEqual(err.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(err.code, CocoaError.formatting.rawValue)
+            XCTAssertEqual(err.userInfo["NSInvalidValue"] as? String, patternString)
         }
     }
 
