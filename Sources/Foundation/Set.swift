@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension Set : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSSet

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 public struct OperatingSystemVersion {
     public var majorVersion: Int
@@ -248,15 +248,11 @@ open class ProcessInfo: NSObject {
         return OperatingSystemVersion(majorVersion: majorVersion, minorVersion: minorVersion, patchVersion: patchVersion)
     }
     
-    internal let _processorCount = __CFProcessorCount()
-    open var processorCount: Int {
-        return Int(_processorCount)
-    }
+    internal let _processorCount: Int = Int(__CFProcessorCount())
+    open var processorCount: Int { _processorCount }
     
-    internal let _activeProcessorCount = __CFActiveProcessorCount()
-    open var activeProcessorCount: Int {
-        return Int(_activeProcessorCount)
-    }
+    internal let _activeProcessorCount: Int = Int(__CFActiveProcessorCount())
+    open var activeProcessorCount: Int { _activeProcessorCount }
     
     internal let _physicalMemory = __CFMemorySize()
     open var physicalMemory: UInt64 {

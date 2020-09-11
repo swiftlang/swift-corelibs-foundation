@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 // Re-export Darwin and Glibc by importing Foundation
 // This mimics the behavior of the swift sdk overlay on Darwin
@@ -408,7 +408,58 @@ internal enum _NSNonfileURLContentLoader {
     }
 }
 
-public func _GetNSCFXMLBridge() -> _NSCFXMLBridge {
-  return __NSCFXMLBridge
+public struct _NSCFXMLBridgeForFoundationXMLUseOnly {
+    public var originalBridge: UnsafeMutableRawPointer
+    public var CFArrayGetCount: UnsafeMutableRawPointer
+    public var CFArrayGetValueAtIndex: UnsafeMutableRawPointer
+    public var CFErrorCreate: UnsafeMutableRawPointer
+    public var CFStringCreateWithCString: UnsafeMutableRawPointer
+    public var CFStringCreateMutable: UnsafeMutableRawPointer
+    public var CFStringAppend: UnsafeMutableRawPointer
+    public var CFStringAppendCString: UnsafeMutableRawPointer
+    public var CFStringGetLength: UnsafeMutableRawPointer
+    public var CFStringGetMaximumSizeForEncoding: UnsafeMutableRawPointer
+    public var CFStringGetCString: UnsafeMutableRawPointer
+    public var CFDataCreateWithBytesNoCopy: UnsafeMutableRawPointer
+    public var CFRelease: UnsafeMutableRawPointer
+    public var CFStringCreateWithBytes: UnsafeMutableRawPointer
+    public var CFArrayCreateMutable: UnsafeMutableRawPointer
+    public var CFArrayAppendValue: UnsafeMutableRawPointer
+    public var CFDataGetLength: UnsafeMutableRawPointer
+    public var CFDataGetBytePtr: UnsafeMutableRawPointer
+    public var CFDictionaryCreateMutable: UnsafeMutableRawPointer
+    public var CFDictionarySetValue: UnsafeMutableRawPointer
+    public var kCFAllocatorSystemDefault: UnsafeMutableRawPointer
+    public var kCFAllocatorNull: UnsafeMutableRawPointer
+    public var kCFCopyStringDictionaryKeyCallBacks: UnsafeMutableRawPointer
+    public var kCFTypeDictionaryValueCallBacks: UnsafeMutableRawPointer
+    public var kCFErrorLocalizedDescriptionKey: UnsafeMutableRawPointer
+    
+    public init() {
+        self.originalBridge = UnsafeMutableRawPointer(&__NSCFXMLBridgeUntyped)
+        self.CFArrayGetCount = __NSCFXMLBridgeUntyped.CFArrayGetCount
+        self.CFArrayGetValueAtIndex = __NSCFXMLBridgeUntyped.CFArrayGetValueAtIndex
+        self.CFErrorCreate = __NSCFXMLBridgeUntyped.CFErrorCreate
+        self.CFStringCreateWithCString = __NSCFXMLBridgeUntyped.CFStringCreateWithCString
+        self.CFStringCreateMutable = __NSCFXMLBridgeUntyped.CFStringCreateMutable
+        self.CFStringAppend = __NSCFXMLBridgeUntyped.CFStringAppend
+        self.CFStringAppendCString = __NSCFXMLBridgeUntyped.CFStringAppendCString
+        self.CFStringGetLength = __NSCFXMLBridgeUntyped.CFStringGetLength
+        self.CFStringGetMaximumSizeForEncoding = __NSCFXMLBridgeUntyped.CFStringGetMaximumSizeForEncoding
+        self.CFStringGetCString = __NSCFXMLBridgeUntyped.CFStringGetCString
+        self.CFDataCreateWithBytesNoCopy = __NSCFXMLBridgeUntyped.CFDataCreateWithBytesNoCopy
+        self.CFRelease = __NSCFXMLBridgeUntyped.CFRelease
+        self.CFStringCreateWithBytes = __NSCFXMLBridgeUntyped.CFStringCreateWithBytes
+        self.CFArrayCreateMutable = __NSCFXMLBridgeUntyped.CFArrayCreateMutable
+        self.CFArrayAppendValue = __NSCFXMLBridgeUntyped.CFArrayAppendValue
+        self.CFDataGetLength = __NSCFXMLBridgeUntyped.CFDataGetLength
+        self.CFDataGetBytePtr = __NSCFXMLBridgeUntyped.CFDataGetBytePtr
+        self.CFDictionaryCreateMutable = __NSCFXMLBridgeUntyped.CFDictionaryCreateMutable
+        self.CFDictionarySetValue = __NSCFXMLBridgeUntyped.CFDictionarySetValue
+        self.kCFAllocatorSystemDefault = __NSCFXMLBridgeUntyped.kCFAllocatorSystemDefault
+        self.kCFAllocatorNull = __NSCFXMLBridgeUntyped.kCFAllocatorNull
+        self.kCFCopyStringDictionaryKeyCallBacks = __NSCFXMLBridgeUntyped.kCFCopyStringDictionaryKeyCallBacks
+        self.kCFTypeDictionaryValueCallBacks = __NSCFXMLBridgeUntyped.kCFTypeDictionaryValueCallBacks
+        self.kCFErrorLocalizedDescriptionKey = __NSCFXMLBridgeUntyped.kCFErrorLocalizedDescriptionKey
+    }
 }
-

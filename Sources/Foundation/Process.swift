@@ -7,10 +7,17 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 #if canImport(Darwin)
 import Darwin
+#endif
+
+#if canImport(WinSDK)
+// We used to get the copy that was re-exported by CoreFoundation
+// but we want to explicitly depend on its types in this file,
+// so we need to make sure Swift doesn't think it's @_implementationOnly.
+import WinSDK
 #endif
 
 extension Process {
@@ -334,8 +341,25 @@ open class Process: NSObject {
         }
     }
     
-    private var runLoopSourceContext : CFRunLoopSourceContext?
-    private var runLoopSource : CFRunLoopSource?
+    private class NonexportedCFRunLoopSourceContextStorage {
+        internal var value: CFRunLoopSourceContext?
+    }
+
+    private class NonexportedCFRunLoopSourceStorage {
+        internal var value: CFRunLoopSource?
+    }
+
+    private var _runLoopSourceContextStorage = NonexportedCFRunLoopSourceContextStorage()
+    private var runLoopSourceContext: CFRunLoopSourceContext? {
+        get { _runLoopSourceContextStorage.value }
+        set { _runLoopSourceContextStorage.value = newValue }
+    }
+    
+    private var _runLoopSourceStorage = NonexportedCFRunLoopSourceStorage()
+    private var runLoopSource: CFRunLoopSource? {
+        get { _runLoopSourceStorage.value }
+        set { _runLoopSourceStorage.value = newValue }
+    }
     
     fileprivate weak var runLoop : RunLoop? = nil
     

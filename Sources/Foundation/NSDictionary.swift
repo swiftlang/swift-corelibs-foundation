@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 import Dispatch
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByDictionaryLiteral {
@@ -573,7 +573,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return matching
     }
     
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFDictionaryGetTypeID()
     }
 }

@@ -12,7 +12,7 @@
 // This brings it into line with Darwin usage for compatibility.
 @_exported import Dispatch
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
 ///
@@ -239,7 +239,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return description
     }
     
-    open var _cfTypeID: CFTypeID {
+    internal var _cfTypeID: CFTypeID {
         return 0
     }
     

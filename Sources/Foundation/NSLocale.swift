@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 open class NSLocale: NSObject, NSCopying, NSSecureCoding, _CFBridgeable {
     typealias CFType = CFLocale
@@ -18,7 +18,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding, _CFBridgeable {
     private var _identifier: UnsafeMutableRawPointer? = nil
     private var _cache: UnsafeMutableRawPointer? = nil
     private var _prefs: UnsafeMutableRawPointer? = nil
-    private var _lock: CFLock_t = __CFLockInit()
+    private var _lock: _NSCFLock = _NSCFLockInit()
     private var _nullLocale: Bool = false
 
     internal var _cfObject: CFType {

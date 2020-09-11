@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 // WORKAROUND_SR9811
 #if os(Windows)
@@ -196,9 +196,17 @@ open class Thread : NSObject {
     private var _thread: _swift_CFThreadRef? = nil
 
 #if os(Windows) && !CYGWIN
-    internal var _attr: _CFThreadAttributes =
-        _CFThreadAttributes(dwSizeOfAttributes: DWORD(MemoryLayout<_CFThreadAttributes>.size),
+    private class NonexportedAttrStorage {
+        var value = _CFThreadAttributes(dwSizeOfAttributes: DWORD(MemoryLayout<_CFThreadAttributes>.size),
                             dwThreadStackReservation: 0)
+    }
+
+    private let _attrStorage = NonexportedAttrStorage()
+
+    internal var _attr: _CFThreadAttributes {
+        get { _attrStorage.value }
+        set { _attrStorage.value = newValue }
+    }
 #elseif CYGWIN
     internal var _attr : pthread_attr_t? = nil
 #else

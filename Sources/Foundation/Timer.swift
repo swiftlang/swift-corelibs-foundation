@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal func __NSFireTimer(_ timer: CFRunLoopTimer?, info: UnsafeMutableRawPointer?) -> Void {
     let t: Timer = NSObject.unretainedReference(info!)
@@ -21,11 +21,12 @@ open class Timer : NSObject {
             return _timer!
         }
         set {
-            _timer = newValue
+            _timerStorage = newValue
         }
     }
     
-    internal var _timer: CFRunLoopTimer? // has to be optional because this is a chicken/egg problem with initialization in swift
+    internal var _timerStorage: AnyObject?
+    internal var _timer: CFRunLoopTimer? { unsafeBitCast(_timerStorage, to: CFRunLoopTimer?.self) } // has to be optional because this is a chicken/egg problem with initialization in swift
     internal var _fire: (Timer) -> Void = { (_: Timer) in }
     
     /// Alternative API for timer creation with a block.
@@ -47,7 +48,7 @@ open class Timer : NSObject {
             }
             return CFRunLoopTimerCreate(kCFAllocatorSystemDefault, date.timeIntervalSinceReferenceDate, t, 0, 0, __NSFireTimer, ctx)
         }
-        _timer = timer
+        _timerStorage = timer
     }
     
     // !!! The interface as exposed by Darwin marks init(fire date: Date, interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Swift.Void) with "convenience", but this constructor without.

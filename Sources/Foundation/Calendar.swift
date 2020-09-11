@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal func __NSCalendarIsAutoupdating(_ calendar: NSCalendar) -> Bool {
     return false

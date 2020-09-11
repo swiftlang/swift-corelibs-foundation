@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 public typealias unichar = UInt16
 
@@ -358,7 +358,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         return false
     }
     
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFStringGetTypeID()
     }
   
