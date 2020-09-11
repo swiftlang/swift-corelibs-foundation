@@ -446,8 +446,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         let fm = FileManager.default
-        // The destination file path may not exist so provide a default file permissions of RW user only
-        let permissions = (try? fm._permissionsOfItem(atPath: path)) ?? 0o600
+        let permissions = try? fm._permissionsOfItem(atPath: path)
 
         if writeOptionsMask.contains(.atomic) {
             let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
@@ -458,7 +457,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 // requires that there be no open handles to the file
                 fh.closeFile()
                 try _NSCleanupTemporaryFile(auxFilePath, path)
-                try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
+                if let permissions = permissions {
+                    try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
+                }
             } catch {
                 let savedErrno = errno
                 try? fm.removeItem(atPath: auxFilePath)
@@ -470,10 +471,23 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 flags |= O_EXCL
             }
 
-            guard let fh = FileHandle(path: path, flags: flags, createMode: permissions) else {
+            // NOTE: Each flag such as `S_IRUSR` may be literal depends on the system.
+            // Without explicity type them as `Int`, type inference will not complete in reasonable time
+            // and the compiler will throw an error.
+#if os(Windows)
+            let createMode = Int(ucrt.S_IREAD) | Int(ucrt.S_IWRITE)
+#elseif canImport(Darwin)
+            let createMode = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
+#else
+            let createMode = Int(Glibc.S_IRUSR) | Int(Glibc.S_IWUSR) | Int(Glibc.S_IRGRP) | Int(Glibc.S_IWGRP) | Int(Glibc.S_IROTH) | Int(Glibc.S_IWOTH)
+#endif
+            guard let fh = FileHandle(path: path, flags: flags, createMode: createMode) else {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
             try doWrite(fh)
+            if let permissions = permissions {
+                try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
+            }
         }
     }
 
