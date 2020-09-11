@@ -13,6 +13,13 @@
 import Darwin
 #endif
 
+#if canImport(WinSDK)
+// We used to get the copy that was re-exported by CoreFoundation
+// but we want to explicitly depend on its types in this file,
+// so we need to make sure Swift doesn't think it's @_implementationOnly.
+import WinSDK
+#endif
+
 extension Process {
     public enum TerminationReason : Int {
         case exit
