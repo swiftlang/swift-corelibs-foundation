@@ -659,7 +659,7 @@ open class SocketPort : Port {
     }
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        let loop = runLoop.getCFRunLoop()
+        let loop = runLoop.currentCFRunLoop
         let loopKey = ObjectIdentifier(loop)
         
         core.lock.synchronized {
@@ -685,7 +685,7 @@ open class SocketPort : Port {
     }
     
     open override func remove(from runLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        let loop = runLoop.getCFRunLoop()
+        let loop = runLoop.currentCFRunLoop
         let loopKey = ObjectIdentifier(loop)
         
         core.lock.synchronized {

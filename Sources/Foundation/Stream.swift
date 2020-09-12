@@ -172,11 +172,11 @@ open class InputStream: Stream {
     }
     
     open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
 }
 
@@ -251,11 +251,11 @@ open class OutputStream : Stream {
     }
     
     open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
 }
 
