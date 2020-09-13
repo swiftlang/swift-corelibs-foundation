@@ -48,6 +48,11 @@ CF_INLINE unsigned long __CFPageSize() {
 CF_INLINE unsigned long __CFPageSize() {
     return (unsigned long)getpagesize();
 }
+#elif TARGET_OS_WASI
+CF_INLINE unsigned long __CFPageSize() {
+    // WebAssembly linear memory pages are always 64KiB in size
+    return 65536;
+}
 #endif
 
 #define INLINE_BYTES_THRESHOLD ((4 * __CFPageSize()) - sizeof(struct __CFData) - 15)

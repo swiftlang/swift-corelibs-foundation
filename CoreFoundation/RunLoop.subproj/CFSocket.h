@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFSOCKET__)
+#if !defined(__COREFOUNDATION_CFSOCKET__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFSOCKET__ 1
 
 #include <CoreFoundation/CFRunLoop.h>

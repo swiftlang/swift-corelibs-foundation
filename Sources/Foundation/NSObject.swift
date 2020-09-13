@@ -10,7 +10,9 @@
 // @_exported import of Dispatch here makes it available to all
 // classes in Foundation and all sources that import Foundation.
 // This brings it into line with Darwin usage for compatibility.
+#if !os(WASI)
 @_exported import Dispatch
+#endif
 
 @_implementationOnly import CoreFoundation
 
@@ -267,6 +269,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
 
+#if !os(WASI)
     // TODO: Could perhaps be an extension of NSCoding instead.
     // The reason it is an extension of NSObject is the lack of default
     // implementations on protocols in Objective-C.
@@ -322,6 +325,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     open class func classForKeyedUnarchiver() -> AnyClass {
         return self
     }
+#endif
 
     /// The hash value.
     ///

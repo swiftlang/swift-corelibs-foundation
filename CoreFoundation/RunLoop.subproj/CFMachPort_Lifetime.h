@@ -8,7 +8,7 @@
     and dispatch_sources.
 */
 
-#if !defined(__COREFOUNDATION_CFMACHPORT_LIFETIME__)
+#if !defined(__COREFOUNDATION_CFMACHPORT_LIFETIME__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFMACHPORT_LIFETIME__ 1
 
 CF_EXTERN_C_BEGIN

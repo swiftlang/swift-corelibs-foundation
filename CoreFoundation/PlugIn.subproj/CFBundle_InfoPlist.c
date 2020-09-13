@@ -15,7 +15,7 @@
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFURLAccess.h>
 
-#if (TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD) && !TARGET_OS_CYGWIN
+#if (TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI) && !TARGET_OS_CYGWIN
 #include <dirent.h>
 #if TARGET_OS_MAC || TARGET_OS_BSD
 #include <sys/sysctl.h>
@@ -149,6 +149,8 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
     return _CFBundleLinuxPlatformNameSuffix;
 #elif TARGET_OS_BSD
     return _CFBundleFreeBSDPlatformNameSuffix;
+#elif TARGET_OS_WASI
+    return _CFBundleWASIPlatformNameSuffix;
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -181,6 +183,8 @@ CF_EXPORT CFStringRef _CFGetPlatformName(void) {
 #endif
 #elif TARGET_OS_BSD
     return _CFBundleFreeBSDPlatformName;
+#elif TARGET_OS_WASI
+    return _CFBundleWASIPlatformName;
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -201,6 +205,8 @@ CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
 #endif
 #elif TARGET_OS_BSD
     return CFSTR("FreeBSD");
+#elif TARGET_OS_WASI
+    return CFStr("WASI");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif

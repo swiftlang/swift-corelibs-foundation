@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFMESSAGEPORT__)
+#if !defined(__COREFOUNDATION_CFMESSAGEPORT__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFMESSAGEPORT__ 1
 
 #include <CoreFoundation/CFString.h>

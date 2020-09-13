@@ -184,6 +184,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, data._cfObject)
     }
     
+#if !os(WASI)
     public convenience init?(contentsOfFile fName: String) {
         do {
            let data = try Data(contentsOf: URL(fileURLWithPath: fName))
@@ -329,6 +330,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             aCoder.encode(true, forKey: .characterSetIsInvertedKey)
         }
     }
+#endif
     
     open func characterIsMember(_ aCharacter: unichar) -> Bool {
         return longCharacterIsMember(UInt32(aCharacter))

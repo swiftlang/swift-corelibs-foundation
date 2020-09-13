@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(WASI)
+import Glibc
+#endif
+
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
@@ -39,6 +43,7 @@ extension CGPoint: Equatable {
     }
 }
 
+#if !os(WASI)
 extension CGPoint: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.x = bytes.load(as: CGFloat.self)
@@ -58,7 +63,7 @@ extension CGPoint: NSSpecialValueCoding {
         }
         aCoder.encode(self, forKey: "NS.pointval")
     }
-    
+
     static func objCType() -> String {
         return "{CGPoint=dd}"
     }
@@ -84,6 +89,7 @@ extension CGPoint: NSSpecialValueCoding {
         return NSStringFromPoint(self)
     }
 }
+#endif
 
 extension CGPoint : Codable {
     public init(from decoder: Decoder) throws {
@@ -132,6 +138,7 @@ extension CGSize: Equatable {
     }
 }
 
+#if !os(WASI)
 extension CGSize: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.width = bytes.load(as: CGFloat.self)
@@ -177,6 +184,7 @@ extension CGSize: NSSpecialValueCoding {
         return NSStringFromSize(self)
     }
 }
+#endif
 
 extension CGSize : Codable {
     public init(from decoder: Decoder) throws {
@@ -451,6 +459,7 @@ public typealias NSRect = CGRect
 public typealias NSRectPointer = UnsafeMutablePointer<NSRect>
 public typealias NSRectArray = UnsafeMutablePointer<NSRect>
 
+#if !os(WASI)
 extension CGRect: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.origin = CGPoint(
@@ -500,6 +509,7 @@ extension CGRect: NSSpecialValueCoding {
         return NSStringFromRect(self)
     }
 }
+#endif
 
 public enum NSRectEdge : UInt {
     
@@ -547,6 +557,7 @@ public struct NSEdgeInsets {
     }
 }
 
+#if !os(WASI)
 extension NSEdgeInsets: NSSpecialValueCoding {
     init(bytes: UnsafeRawPointer) {
         self.top = bytes.load(as: CGFloat.self)
@@ -574,7 +585,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         aCoder._encodeCGFloat(self.bottom, forKey: "NS.edgeval.bottom")
         aCoder._encodeCGFloat(self.right, forKey: "NS.edgeval.right")
     }
-    
+
     static func objCType() -> String {
         return "{NSEdgeInsets=dddd}"
     }
@@ -603,6 +614,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         return ""
     }
 }
+#endif
 
 public struct AlignmentOptions : OptionSet {
     public var rawValue : UInt64
@@ -1083,6 +1095,7 @@ public func NSRectFromString(_ aString: String) -> NSRect {
     return NSRect(x: x, y: y, width: w, height: h)
 }
 
+#if !os(WASI)
 extension NSValue {
     public convenience init(point: NSPoint) {
         self.init()
@@ -1220,3 +1233,4 @@ private extension NSCoder {
         return CGFloat(self.decodeDouble(forKey: key))
     }
 }
+#endif

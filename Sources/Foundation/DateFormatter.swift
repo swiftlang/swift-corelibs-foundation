@@ -9,6 +9,7 @@
 
 @_implementationOnly import CoreFoundation
 
+#if !os(WASI)
 open class DateFormatter : Formatter {
     typealias CFType = CFDateFormatter
     private var __cfObject: CFType?
@@ -517,6 +518,57 @@ open class DateFormatter : Formatter {
 
     open var doesRelativeDateFormatting = false { willSet { _reset() } }
 }
+#else
+import Glibc
+
+extension tm {
+    init(UTCSecondsSince1970: time_t) {
+        var seconds = UTCSecondsSince1970
+
+        // FIXME:
+        // don't free!
+        // The return value points to a statically allocated struct which might be overwritten by
+        // subsequent calls to any of the date and time functions.
+        // http://linux.die.net/man/3/gmtime
+        let timePointer = gmtime(&seconds)!
+
+        self = timePointer.pointee
+    }
+}
+
+open class DateFormatter {
+    /// WARNING: this uses `strftime` date format, not the Foundation date format.
+    let dateFormat: String = "%Y-%m-%d %H:%M:%S"
+
+    public init() {}
+
+    open var dateStyle: Style = .none
+
+    open var timeStyle: Style = .none
+
+    open func string(from date: Date) -> String {
+        let interval = date.timeIntervalSince1970
+
+        // FIXME: not very sensible estimate, but should work short-term
+        let bufferSize = dateFormat.count * 10
+        var buffer = ContiguousArray<Int8>(repeating: 0, count: bufferSize)
+        return buffer.withUnsafeMutableBufferPointer {
+            guard
+                let baseAddress = $0.baseAddress,
+                dateFormat.withCString({ formatCString -> Int in
+                    var tt = tm(UTCSecondsSince1970: time_t(interval))
+                    return strftime(baseAddress, bufferSize, formatCString, &tt)
+                }) > 0
+            else { return "" }
+
+            let milliseconds = Int(date.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) * 1000)
+            return String(cString: baseAddress).appendingFormat(".%03d", milliseconds)
+        }
+    }
+
+    open func date(from string: String) -> Date? { nil }
+}
+#endif
 
 extension DateFormatter {
     public enum Style : UInt {

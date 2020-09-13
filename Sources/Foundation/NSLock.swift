@@ -115,7 +115,11 @@ open class NSLock: NSObject, NSLocking {
         guard var endTime = timeSpecFrom(date: limit) else {
             return false
         }
+#if os(WASI)
+        return true
+#else
         return pthread_mutex_timedlock(mutex, &endTime) == 0
+#endif
 #endif
     }
 
@@ -130,6 +134,7 @@ extension NSLock {
     }
 }
 
+#if !os(WASI)
 open class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
@@ -222,6 +227,7 @@ open class NSConditionLock : NSObject, NSLocking {
     
     open var name: String?
 }
+#endif
 
 open class NSRecursiveLock: NSObject, NSLocking {
     internal var mutex = _RecursiveMutexPointer.allocate(capacity: 1)
@@ -317,7 +323,11 @@ open class NSRecursiveLock: NSObject, NSLocking {
         guard var endTime = timeSpecFrom(date: limit) else {
             return false
         }
+#if os(WASI)
+        return true
+#else
         return pthread_mutex_timedlock(mutex, &endTime) == 0
+#endif
 #endif
     }
 
