@@ -9,7 +9,7 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 public struct _NSRange {
     public var location: Int

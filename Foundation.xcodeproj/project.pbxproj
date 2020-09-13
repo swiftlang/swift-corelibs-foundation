@@ -70,6 +70,8 @@
 		15B8043D228F38A600B30FF6 /* URLCredentialStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B801BD15DFF00C49C64 /* URLCredentialStorage.swift */; };
 		15B8043E228F38C000B30FF6 /* URLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA31CF380E8009DBD6C /* URLRequest.swift */; };
 		15B8043F228F38C700B30FF6 /* URLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B851BD15DFF00C49C64 /* URLResponse.swift */; };
+		15BB952A250988C50071BD20 /* CFAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BB9529250988C50071BD20 /* CFAccess.swift */; };
+		15CA750A24F8336A007DF6C1 /* NSCFTypeShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15CA750924F8336A007DF6C1 /* NSCFTypeShims.swift */; };
 		15F10CDC218909BF00D88114 /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15F10CDB218909BF00D88114 /* TestNSCalendar.swift */; };
 		15FCF4E323021C020095E52E /* TestSocketPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FCF4E223021C020095E52E /* TestSocketPort.swift */; };
 		15FF004B229348F2004AD205 /* CFURLSessionInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */; };
@@ -780,6 +782,8 @@
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
 		15A619DF245A298C003C8C62 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
 		15B8043A228F376000B30FF6 /* SwiftFoundationNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundationNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		15BB9529250988C50071BD20 /* CFAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CFAccess.swift; sourceTree = "<group>"; };
+		15CA750924F8336A007DF6C1 /* NSCFTypeShims.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFTypeShims.swift; sourceTree = "<group>"; };
 		15F10CDB218909BF00D88114 /* TestNSCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		15FCF4E223021C020095E52E /* TestSocketPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSocketPort.swift; sourceTree = "<group>"; };
 		15FF00CA229348F2004AD205 /* libCFURLSessionInterface.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCFURLSessionInterface.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1978,6 +1982,7 @@
 				EADE0B8B1BD15DFF00C49C64 /* XMLDTDNode.swift */,
 				EADE0B8C1BD15DFF00C49C64 /* XMLElement.swift */,
 				EADE0B8D1BD15DFF00C49C64 /* XMLNode.swift */,
+				15BB9529250988C50071BD20 /* CFAccess.swift */,
 				EADE0B8F1BD15DFF00C49C64 /* XMLParser.swift */,
 			);
 			path = FoundationXML;
@@ -2101,6 +2106,7 @@
 				D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */,
 				D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */,
 				5BDC3F3B1BCC5DCB00ED97BB /* NSLocale.swift */,
+				15CA750924F8336A007DF6C1 /* NSCFTypeShims.swift */,
 				5BDC3F3C1BCC5DCB00ED97BB /* NSLock.swift */,
 				D3BCEB9D1C2EDED800295652 /* NSLog.swift */,
 				5BECBA391D1CAE9A00B39B1F /* NSMeasurement.swift */,
@@ -2762,6 +2768,7 @@
 			files = (
 				1550110E22EA26CA0088F082 /* XMLDocument.swift in Sources */,
 				1550110F22EA26CA0088F082 /* XMLDTD.swift in Sources */,
+				15BB952A250988C50071BD20 /* CFAccess.swift in Sources */,
 				1550111022EA26CA0088F082 /* XMLDTDNode.swift in Sources */,
 				1550111122EA26CA0088F082 /* XMLElement.swift in Sources */,
 				1550111222EA26CA0088F082 /* XMLNode.swift in Sources */,
@@ -2928,6 +2935,7 @@
 				EADE0B521BD09F2F00C49C64 /* ByteCountFormatter.swift in Sources */,
 				5BA0106E1DF212B300E56898 /* NSPlatform.swift in Sources */,
 				D3BCEB9E1C2EDED800295652 /* NSLog.swift in Sources */,
+				15CA750A24F8336A007DF6C1 /* NSCFTypeShims.swift in Sources */,
 				61E0117D1C1B5590000037DD /* RunLoop.swift in Sources */,
 				5B23AB8B1CE62F9B000DB898 /* PersonNameComponents.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* MassFormatter.swift in Sources */,

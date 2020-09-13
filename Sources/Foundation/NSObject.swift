@@ -14,7 +14,7 @@
 @_exported import Dispatch
 #endif
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
 ///
@@ -241,7 +241,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return description
     }
     
-    open var _cfTypeID: CFTypeID {
+    internal var _cfTypeID: CFTypeID {
         return 0
     }
     

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal let kCFCalendarUnitEra = CFCalendarUnit.era
 internal let kCFCalendarUnitYear = CFCalendarUnit.year
@@ -119,8 +119,8 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private var _identifier: UnsafeMutableRawPointer? = nil
     private var _locale: UnsafeMutableRawPointer? = nil
     private var _tz: UnsafeMutableRawPointer? = nil
-    private var _firstWeekday: CFIndex = 0
-    private var _minDaysInFirstWeek: CFIndex = 0
+    private var _firstWeekday: Int = 0
+    private var _minDaysInFirstWeek: Int = 0
     private var _gregorianStart: UnsafeMutableRawPointer? = nil
     private var _cal: UnsafeMutableRawPointer? = nil
     private var _userSet_firstWeekday: Bool = false

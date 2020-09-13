@@ -167,7 +167,7 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension URLSession {
     public enum DelayedRequestDisposition {

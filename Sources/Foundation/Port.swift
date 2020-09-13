@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 // MARK: Port and related types
 
@@ -659,7 +659,7 @@ open class SocketPort : Port {
     }
     
     open override func schedule(in runLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        let loop = runLoop.getCFRunLoop()
+        let loop = runLoop.currentCFRunLoop
         let loopKey = ObjectIdentifier(loop)
         
         core.lock.synchronized {
@@ -685,7 +685,7 @@ open class SocketPort : Port {
     }
     
     open override func remove(from runLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        let loop = runLoop.getCFRunLoop()
+        let loop = runLoop.currentCFRunLoop
         let loopKey = ObjectIdentifier(loop)
         
         core.lock.synchronized {

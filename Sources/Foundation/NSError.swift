@@ -18,7 +18,7 @@ import Glibc
 import MSVCRT
 #endif
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 public typealias NSErrorDomain = NSString
 
@@ -221,13 +221,13 @@ extension CFError : _NSBridgeable {
 }
 
 public struct _CFErrorSPIForFoundationXMLUseOnly {
-    let error: CFError
+    let error: AnyObject
     public init(unsafelyAssumingIsCFError error: AnyObject) {
-        self.error = unsafeBitCast(error, to: CFError.self)
+        self.error = error
     }
     
     public var _nsObject: NSError {
-        return error._nsObject
+        return unsafeBitCast(error, to: CFError.self)._nsObject
     }
 }
 
@@ -437,16 +437,16 @@ public func _swift_Foundation_getErrorDefaultUserInfo(_ error: Error) -> Any? {
 // NSError and CFError conform to the standard Error protocol. Compiler
 // magic allows this to be done as a "toll-free" conversion when an NSError
 // or CFError is used as an Error existential.
-extension CFError : Error {
-    public var _domain: String {
+extension CFError {
+    var _domain: String {
         return CFErrorGetDomain(self)._swiftObject
     }
 
-    public var _code: Int {
+    var _code: Int {
         return CFErrorGetCode(self)
     }
 
-    public var _userInfo: AnyObject? {
+    var _userInfo: AnyObject? {
         return CFErrorCopyUserInfo(self) as AnyObject
     }
 }

@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
 let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
@@ -63,9 +63,9 @@ fileprivate extension String {
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
-    private var _hashValue = CFHashCode(0)
+    private var _hashValue = UInt(0) // CFHashCode
     private var _buffer: UnsafeMutableRawPointer? = nil
-    private var _length = CFIndex(0)
+    private var _length = Int(0) // CFIndex
     private var _annex: UnsafeMutableRawPointer? = nil
     
     internal var _cfObject: CFType {

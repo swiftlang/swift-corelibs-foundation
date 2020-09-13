@@ -7,8 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 #if !os(WASI)
 import Dispatch
@@ -588,7 +587,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return matching
     }
     
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFDictionaryGetTypeID()
     }
 }

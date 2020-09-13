@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal extension UInt {
     init(_ status: CFStreamStatus) {
@@ -108,7 +108,8 @@ open class InputStream: Stream {
         case cantSeekInputStream
     }
     
-    internal let _stream: CFReadStream!
+    internal let _streamStorage: AnyObject!
+    internal var _stream: CFReadStream { unsafeBitCast(_streamStorage, to: CFReadStream.self) }
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -131,15 +132,15 @@ open class InputStream: Stream {
     }
     
     fileprivate init(readStream: CFReadStream) {
-        _stream = readStream
+        _streamStorage = readStream
     }
     
     public init(data: Data) {
-        _stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, data._cfObject)
+        _streamStorage = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, data._cfObject)
     }
     
     public init?(url: URL) {
-        _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
+        _streamStorage = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
     }
 
     public convenience init?(fileAtPath path: String) {
@@ -159,7 +160,7 @@ open class InputStream: Stream {
     }
     
     open override var streamError: Error? {
-        return CFReadStreamCopyError(_stream)
+        return CFReadStreamCopyError(_stream)._nsObject
     }
     
     open override func property(forKey key: PropertyKey) -> AnyObject? {
@@ -171,11 +172,11 @@ open class InputStream: Stream {
     }
     
     open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
 }
 
@@ -184,7 +185,8 @@ open class InputStream: Stream {
 // Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class OutputStream : Stream {
     
-    private var _stream: CFWriteStream!
+    internal let _streamStorage: AnyObject!
+    internal var _stream: CFWriteStream { unsafeBitCast(_streamStorage, to: CFWriteStream.self) }
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
@@ -197,21 +199,22 @@ open class OutputStream : Stream {
     }
     
     fileprivate init(writeStream: CFWriteStream) {
-        _stream = writeStream
+        _streamStorage = writeStream
     }
 
     // NOTE: on Darwin this is     'open class func toMemory() -> Self'
     required public init(toMemory: ()) {
-        _stream = CFWriteStreamCreateWithAllocatedBuffers(kCFAllocatorDefault, kCFAllocatorDefault)
+        _streamStorage = CFWriteStreamCreateWithAllocatedBuffers(kCFAllocatorDefault, kCFAllocatorDefault)
     }
 
     // TODO: this should use the real buffer API
     public init(toBuffer buffer: UnsafeMutablePointer<UInt8>, capacity: Int) {
-        _stream = CFWriteStreamCreateWithBuffer(kCFAllocatorSystemDefault, buffer, capacity)
+        _streamStorage = CFWriteStreamCreateWithBuffer(kCFAllocatorSystemDefault, buffer, capacity)
     }
     
     public init?(url: URL, append shouldAppend: Bool) {
-        _stream = CFWriteStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)
+        _streamStorage = CFWriteStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)
+        super.init()
         CFWriteStreamSetProperty(_stream, kCFStreamPropertyAppendToFile, shouldAppend._cfObject)
     }
     
@@ -244,15 +247,15 @@ open class OutputStream : Stream {
     }
     
     open override var streamError: Error? {
-        return CFWriteStreamCopyError(_stream)
+        return CFWriteStreamCopyError(_stream)._nsObject
     }
     
     open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {
-        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
 }
 

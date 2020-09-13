@@ -23,7 +23,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 import Dispatch
 
 internal let enableLibcurlDebugOutput: Bool = {

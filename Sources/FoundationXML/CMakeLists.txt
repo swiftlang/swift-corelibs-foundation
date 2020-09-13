@@ -4,7 +4,8 @@ add_library(FoundationXML
   XMLDTDNode.swift
   XMLElement.swift
   XMLNode.swift
-  XMLParser.swift)
+  XMLParser.swift
+  CFAccess.swift)
 target_compile_definitions(FoundationXML PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(FoundationXML PUBLIC

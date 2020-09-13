@@ -7,7 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension NSAttributedString {
     public struct Key: RawRepresentable, Equatable, Hashable {
@@ -50,7 +50,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     
     private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
     fileprivate var _string: NSString
-    fileprivate var _attributeArray: CFRunArrayRef
+    fileprivate var _attributeArray: OpaquePointer
     
     public required init?(coder aDecoder: NSCoder) {
         let mutableAttributedString = NSMutableAttributedString(string: "")

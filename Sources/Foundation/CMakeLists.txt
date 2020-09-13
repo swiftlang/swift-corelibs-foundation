@@ -74,6 +74,7 @@ add_library(Foundation
   NSCFDictionary.swift
   NSCFSet.swift
   NSCFString.swift
+  NSCFTypeShims.swift
   NSCharacterSet.swift
   NSCoder.swift
   NSComparisonPredicate.swift

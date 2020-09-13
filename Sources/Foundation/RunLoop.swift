@@ -7,7 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import CoreFoundation
+#else
+@_implementationOnly import CoreFoundation
+#endif
 
 internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
 internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
@@ -53,13 +57,18 @@ internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
 }
 
 open class RunLoop: NSObject {
-    internal var _cfRunLoop : CFRunLoop!
+    internal var _cfRunLoopStorage : AnyObject!
+    internal var _cfRunLoop: CFRunLoop! {
+        get { unsafeBitCast(_cfRunLoopStorage, to: CFRunLoop?.self) }
+        set { _cfRunLoopStorage = newValue }
+    }
+    
     internal static var _mainRunLoop : RunLoop = {
         return RunLoop(cfObject: CFRunLoopGetMain())
     }()
 
     internal init(cfObject : CFRunLoop) {
-        _cfRunLoop = cfObject
+        _cfRunLoopStorage = cfObject
     }
 
     open class var current: RunLoop {
@@ -78,10 +87,24 @@ open class RunLoop: NSObject {
         }
     }
     
+    // On platforms where it's available, getCFRunLoop() can be overridden and we use it below.
+    // Make sure we honor the override -- var currentCFRunLoop will do so on platforms where overrides are available.
+
+    #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    internal var currentCFRunLoop: CFRunLoop { getCFRunLoop() }
+
     @available(*, deprecated, message: "Directly accessing the run loop may cause your code to not become portable in the future.")
     open func getCFRunLoop() -> CFRunLoop {
         return _cfRunLoop
     }
+    #else
+    internal var currentCFRunLoop: CFRunLoop { _cfRunLoop }
+
+    @available(*, unavailable, message: "Core Foundation is not available on your platform.")
+    open func getCFRunLoop() -> Never {
+        fatalError()
+    }
+    #endif
 
     open func add(_ timer: Timer, forMode mode: RunLoop.Mode) {
         CFRunLoopAddTimer(_cfRunLoop, timer._cfObject, mode._cfStringUniquingKnown)
@@ -201,7 +224,7 @@ extension RunLoop {
     }
 
     public func perform(inModes modes: [RunLoop.Mode], block: @escaping () -> Void) {
-        CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0._cfStringUniquingKnown })._cfObject, block)
+        CFRunLoopPerformBlock(currentCFRunLoop, (modes.map { $0._cfStringUniquingKnown })._cfObject, block)
     }
     
     public func perform(_ block: @escaping () -> Void) {
@@ -214,13 +237,13 @@ extension RunLoop {
 extension RunLoop {
     @available(*, deprecated, message: "For XCTest use only.")
     public func _stop() {
-        CFRunLoopStop(getCFRunLoop())
+        CFRunLoopStop(currentCFRunLoop)
     }
     
     @available(*, deprecated, message: "For XCTest use only.")
     public func _observe(_ activities: _Activities, in mode: RunLoop.Mode = .default, repeats: Bool = true, order: Int = 0, handler: @escaping (_Activity) -> Void) -> _Observer {
         let observer = _Observer(activities: activities, repeats: repeats, order: order, handler: handler)
-        CFRunLoopAddObserver(self.getCFRunLoop(), observer.cfObserver, mode._cfStringUniquingKnown)
+        CFRunLoopAddObserver(self.currentCFRunLoop, observer.cfObserver, mode._cfStringUniquingKnown)
         return observer
     }
     
@@ -274,10 +297,11 @@ extension RunLoop {
     
     @available(*, deprecated, message: "For XCTest use only.")
     public class _Observer {
-        fileprivate let cfObserver: CFRunLoopObserver
+        fileprivate let _cfObserverStorage: AnyObject
+        fileprivate var cfObserver: CFRunLoopObserver { unsafeBitCast(_cfObserverStorage, to: CFRunLoopObserver.self) }
         
         fileprivate init(activities: _Activities, repeats: Bool, order: Int, handler: @escaping (_Activity) -> Void) {
-            self.cfObserver = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
+            self._cfObserverStorage = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
                 guard let activity = _Activity(rawValue: UInt(cfActivity.rawValue)) else { return }
                 handler(activity)
             })
@@ -302,7 +326,9 @@ extension RunLoop {
     
     @available(*, deprecated, message: "For XCTest use only.")
     open class _Source: NSObject {
-        fileprivate var cfSource: CFRunLoopSource!
+        fileprivate var _cfSourceStorage: AnyObject!
+        fileprivate var cfSource: CFRunLoopSource { unsafeBitCast(_cfSourceStorage, to: CFRunLoopSource.self) }
+        
         
         public init(order: Int = 0) {
             super.init()
@@ -348,7 +374,7 @@ extension RunLoop {
                     me.perform()
                 })
             
-            self.cfSource = CFRunLoopSourceCreate(kCFAllocatorSystemDefault, CFIndex(order), &context)
+            self._cfSourceStorage = CFRunLoopSourceCreate(kCFAllocatorSystemDefault, CFIndex(order), &context)
         }
         
         open func didSchedule(in mode: RunLoop.Mode) {

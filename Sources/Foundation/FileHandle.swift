@@ -7,8 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
-
+@_implementationOnly import CoreFoundation
 #if !os(WASI)
 import Dispatch
 #endif
@@ -25,6 +24,13 @@ import Glibc
 fileprivate let _read = Glibc.read(_:_:_:)
 fileprivate let _write = Glibc.write(_:_:_:)
 fileprivate let _close = Glibc.close(_:)
+#endif
+
+#if canImport(WinSDK)
+// We used to get the copy that was re-exported by CoreFoundation
+// but we want to explicitly depend on its types in this file,
+// so we need to make sure Swift doesn't think it's @_implementationOnly.
+import WinSDK
 #endif
 
 extension NSError {

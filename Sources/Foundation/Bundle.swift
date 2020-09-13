@@ -8,14 +8,17 @@
 //
 
 #if !os(WASI)
-
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 @_silgen_name("swift_getTypeContextDescriptor")
 private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
 
 open class Bundle: NSObject {
-    private var _bundle : CFBundle!
+    private var _bundleStorage: AnyObject!
+    private var _bundle: CFBundle! {
+        get { unsafeBitCast(_bundleStorage, to: CFBundle?.self) }
+        set { _bundleStorage = newValue }
+    }
     
     public static var _supportsFHSBundles: Bool {
         #if DEPLOYMENT_RUNTIME_OBJC
@@ -95,8 +98,8 @@ open class Bundle: NSObject {
         }
         
         let url = URL(fileURLWithPath: resolvedPath)
-        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, url._cfObject)
-        if (_bundle == nil) {
+        _bundleStorage = CFBundleCreate(kCFAllocatorSystemDefault, url._cfObject)
+        if (_bundleStorage == nil) {
             return nil
         }
     }
@@ -114,7 +117,7 @@ open class Bundle: NSObject {
     public init(for aClass: AnyClass) {
         let pointerInImageOfClass = _getTypeContextDescriptor(of: aClass)
         guard let imagePath = _CFBundleCopyLoadedImagePathForAddress(pointerInImageOfClass)?._swiftObject else {
-            _bundle = CFBundleGetMainBundle()
+            _bundleStorage = CFBundleGetMainBundle()
             return
         }
         
@@ -122,19 +125,19 @@ open class Bundle: NSObject {
         
         let url = URL(fileURLWithPath: path)
         if Bundle.main.executableURL == url {
-            _bundle = CFBundleGetMainBundle()
+            _bundleStorage = CFBundleGetMainBundle()
             return
         }
         
         for bundle in Bundle.allBundlesRegardlessOfType {
             if bundle.executableURL == url {
-                _bundle = bundle._bundle
+                _bundleStorage = bundle._bundle
                 return
             }
         }
         
         let bundle = _CFBundleCreateWithExecutableURLIfMightBeBundle(kCFAllocatorSystemDefault, url._cfObject)?.takeRetainedValue()
-        _bundle = bundle ?? CFBundleGetMainBundle()
+        _bundleStorage = bundle ?? CFBundleGetMainBundle()
     }
     #endif
 

@@ -10,7 +10,7 @@
 /* NSRegularExpression is a class used to represent and apply regular expressions.  An instance of this class is an immutable representation of a compiled regular expression pattern and various option flags.
 */
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension NSRegularExpression {
     public struct Options : OptionSet {
@@ -28,7 +28,10 @@ extension NSRegularExpression {
 }
 
 open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
-    internal var _internal: _CFRegularExpression
+    internal var _internalStorage: AnyObject
+    internal var _internal: _CFRegularExpression {
+        unsafeBitCast(_internalStorage, to: _CFRegularExpression.self)
+    }
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -82,9 +85,9 @@ open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
         var error: Unmanaged<CFError>?
         let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
-            _internal = regex
+            _internalStorage = regex
         } else {
-            throw error!.takeRetainedValue()
+            throw error!.takeRetainedValue()._nsObject
         }
     }
     

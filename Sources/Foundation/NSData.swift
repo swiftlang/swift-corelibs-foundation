@@ -7,8 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
-
+@_implementationOnly import CoreFoundation
 #if !os(WASI)
 import Dispatch
 #endif
@@ -72,8 +71,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
 
     private var _base = _CFInfo(typeID: CFDataGetTypeID())
-    private var _length: CFIndex = 0
-    private var _capacity: CFIndex = 0
+    private var _length: Int = 0 // CFIndex
+    private var _capacity: Int = 0 // CFIndex
     private var _deallocator: UnsafeMutableRawPointer? = nil // for CF only
     private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
     private var _bytes: UnsafeMutablePointer<UInt8>? = nil
@@ -91,7 +90,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return type(of: self) === NSData.self || type(of: self) === NSMutableData.self
     }
 
-    override open var _cfTypeID: CFTypeID {
+    internal override var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
 
