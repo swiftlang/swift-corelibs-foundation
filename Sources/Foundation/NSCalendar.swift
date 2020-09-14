@@ -1986,11 +1986,11 @@ extension DateComponents : _NSBridgeable {
     var _nsObject: NSType { return _bridgeToObjectiveC() }
 }
 
-extension NSCalendar: _SwiftBridgeable, _CFBridgeable {
+extension NSCalendar: _SwiftBridgeable {
     typealias SwiftType = Calendar
     var _swiftObject: SwiftType { return Calendar(reference: self) }
 }
-extension Calendar: _NSBridgeable, _CFBridgeable {
+extension Calendar: _NSBridgeable {
     typealias NSType = NSCalendar
     typealias CFType = CFCalendar
     var _nsObject: NSCalendar { return _bridgeToObjectiveC() }

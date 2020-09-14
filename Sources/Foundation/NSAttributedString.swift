@@ -375,7 +375,7 @@ private extension NSAttributedString {
     }
 }
 
-extension NSAttributedString: _CFBridgeable {
+extension NSAttributedString {
     internal var _cfObject: CFAttributedString { return unsafeBitCast(self, to: CFAttributedString.self) }
 }
 

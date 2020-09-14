@@ -557,7 +557,7 @@ extension Bool : _ObjectiveCBridgeable {
     }
 }
 
-extension Bool : _CFBridgeable {
+extension Bool {
     typealias CFType = CFBoolean
     var _cfObject: CFType {
         return self ? kCFBooleanTrue : kCFBooleanFalse

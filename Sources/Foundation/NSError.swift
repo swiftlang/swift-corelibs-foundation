@@ -204,7 +204,6 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSError : Swift.Error { }
 
-extension NSError : _CFBridgeable { }
 extension CFError : _NSBridgeable {
     typealias NSType = NSError
     internal var _nsObject: NSType {

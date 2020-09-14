@@ -51,11 +51,7 @@ extension _StructTypeBridgeable {
     }
 }
 
-// slated for removal, these are the swift-corelibs-only variant of the _ObjectiveCBridgeable
-internal protocol _CFBridgeable {
-    associatedtype CFType
-    var _cfObject: CFType { get }
-}
+// slated for removal, these are the swift-corelibs-only variant of the _ObjectiveCBridgeable\
 
 internal protocol _SwiftBridgeable {
     associatedtype SwiftType

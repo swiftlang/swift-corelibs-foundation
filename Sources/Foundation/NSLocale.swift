@@ -10,7 +10,7 @@
 
 @_implementationOnly import CoreFoundation
 
-open class NSLocale: NSObject, NSCopying, NSSecureCoding, _CFBridgeable {
+open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale
 
     // struct __CFLocale
@@ -222,7 +222,7 @@ extension NSLocale : _SwiftBridgeable {
     }
 }
 
-extension Locale : _CFBridgeable {
+extension Locale {
     typealias CFType = CFLocale
     internal var _cfObject: CFLocale {
         return _bridgeToObjectiveC()._cfObject
