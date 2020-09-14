@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 internal extension UInt {
     init(_ status: CFStreamStatus) {

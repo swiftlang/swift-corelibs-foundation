@@ -7,7 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 extension NumberFormatter {
     public enum Style : UInt {

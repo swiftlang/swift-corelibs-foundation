@@ -59,6 +59,7 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
         return isEqual(to: orderedSet)
     }
     
+#if !os(WASI)
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -72,6 +73,7 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
         // This uses the same storage setup as NSSet, but without allowing the use of the "NS.objects" key:
         self.init(array: NSSet._objects(from: aDecoder, allowDecodingNonindexedArrayKey: false))
     }
+#endif
     
     open var count: Int {
         return _storage.count
@@ -459,10 +461,12 @@ open class NSMutableOrderedSet: NSOrderedSet {
         _orderedStorage = _mutableOrderedStorage
     }
 
+#if !os(WASI)
     public required convenience init?(coder aDecoder: NSCoder) {
         // See NSOrderedSet.init?(coder:)
         self.init(array: NSSet._objects(from: aDecoder, allowDecodingNonindexedArrayKey: false))
     }
+#endif
 
     open override func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSMutableOrderedSet.self {

@@ -283,6 +283,7 @@ extension String {
 
     //===--- Initializers that can fail -------------------------------------===//
 
+#if !os(WASI)
     // - (instancetype)
     //     initWithContentsOfFile:(NSString *)path
     //     encoding:(NSStringEncoding)enc
@@ -364,6 +365,7 @@ extension String {
         let ns = try NSString(contentsOf: url, usedEncoding: nil)
         self = String._unconditionallyBridgeFromObjectiveC(ns)
     }
+#endif
 
     // - (instancetype)
     //     initWithCString:(const char *)nullTerminatedCString
@@ -664,6 +666,7 @@ extension StringProtocol where Index == String.Index {
             : _ns.compare(aString)
     }
 
+#if !os(WASI)
     // - (NSUInteger)
     //     completePathIntoString:(NSString **)outputName
     //     caseSensitive:(BOOL)flag
@@ -732,6 +735,7 @@ extension StringProtocol where Index == String.Index {
         return result
         #endif // DEPLOYMENT_RUNTIME_SWIFT
     }
+#endif
 
     // - (NSArray *)
     //     componentsSeparatedByCharactersInSet:(NSCharacterSet *)separator
@@ -1184,6 +1188,7 @@ extension StringProtocol where Index == String.Index {
     //===--- Omitted due to redundancy with "utf8" property -----------------===//
     // - (const char *)UTF8String
 
+#if !os(WASI)
     // - (BOOL)
     //     writeToFile:(NSString *)path
     //     atomically:(BOOL)useAuxiliaryFile
@@ -1219,6 +1224,7 @@ extension StringProtocol where Index == String.Index {
         try _ns.write(
             to: url, atomically: useAuxiliaryFile, encoding: enc.rawValue)
     }
+#endif
 
     // - (nullable NSString *)stringByApplyingTransform:(NSString *)transform reverse:(BOOL)reverse NS_AVAILABLE(10_11, 9_0);
 

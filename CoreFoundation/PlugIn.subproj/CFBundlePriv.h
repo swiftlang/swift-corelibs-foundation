@@ -7,7 +7,7 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#if !defined(__COREFOUNDATION_CFBUNDLEPRIV__)
+#if !defined(__COREFOUNDATION_CFBUNDLEPRIV__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFBUNDLEPRIV__ 1
 
 #include <CoreFoundation/CFBase.h>

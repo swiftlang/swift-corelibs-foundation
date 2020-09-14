@@ -10,7 +10,7 @@
 #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import CoreFoundation
 #else
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 #endif
 
 internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue

@@ -26,5 +26,13 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
 endif()
 
 
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  target_compile_options(FoundationXML
+  PRIVATE
+    -sdk ${CMAKE_SYSROOT}
+    -target wasm32-unknown-wasi
+  )
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
 _install_target(FoundationXML)
