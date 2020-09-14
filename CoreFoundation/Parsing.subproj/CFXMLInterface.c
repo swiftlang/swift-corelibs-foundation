@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -8,7 +8,7 @@
 //
 
 /*	CFXMLInterface.c
-	Copyright (c) 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2020 Apple Inc. and the Swift project authors
  */
 
 #include <CoreFoundation/CFRuntime.h>
@@ -216,7 +216,8 @@ void _CFXMLInterfaceCtxtUseOptions(_CFXMLInterfaceParserContext ctx, CFIndex opt
 }
 
 int _CFXMLInterfaceParseChunk(_CFXMLInterfaceParserContext ctxt, const char *chunk, int size, int terminate) {
-    return xmlParseChunk(ctxt, chunk, size, terminate);
+    int ret = xmlParseChunk(ctxt, chunk, size, terminate);
+    return ret == XML_ERR_DOCUMENT_END && terminate ? XML_ERR_OK : ret;
 }
 
 void _CFXMLInterfaceStopParser(_CFXMLInterfaceParserContext ctx) {

@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -498,8 +498,9 @@ open class XMLParser : NSObject {
         return false
     }
 
-    internal func parseData(_ data: Data) -> Bool {
+    internal func parseData(_ data: Data, lastChunkOfData: Bool = false) -> Bool {
         _CFXMLInterfaceSetStructuredErrorFunc(interface, _structuredErrorFunc)
+        defer { _CFXMLInterfaceSetStructuredErrorFunc(interface, nil) }
 
         let handler: _CFXMLInterfaceSAXHandler? = (delegate != nil ? _handler : nil)
         let unparsedData: Data
@@ -516,7 +517,7 @@ open class XMLParser : NSObject {
             // If we have not received 4 bytes, save the bomChunk for next pass
             if bomChunk.count < 4 {
                 _bomChunk = bomChunk
-                return false
+                return true
             }
             // Prepare options (substitute entities, recover on errors)
             var options = _kCFXMLInterfaceRecover | _kCFXMLInterfaceNoEnt
@@ -532,6 +533,12 @@ open class XMLParser : NSObject {
                 let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: CChar.self)
                 _parserContext = _CFXMLInterfaceCreatePushParserCtxt(handler, interface, bytes, 4, nil)
             }
+            guard _parserContext != nil else {
+                if _parserError == nil {
+                    _parserError = NSError(domain: XMLParser.errorDomain, code: ErrorCode.outOfMemoryError.rawValue)
+                }
+                return false
+            };
             _CFXMLInterfaceCtxtUseOptions(_parserContext, options)
             // Prepare the remaining data for parsing
             let dataRange = bomChunk.indices
@@ -544,32 +551,40 @@ open class XMLParser : NSObject {
 
         let parseResult = unparsedData.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Int32 in
             let bytes = rawBuffer.baseAddress!.assumingMemoryBound(to: CChar.self)
-            return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(unparsedData.count), 0)
+            return _CFXMLInterfaceParseChunk(_parserContext, bytes, Int32(unparsedData.count), lastChunkOfData ? 1 : 0)
         }
 
         let result = _handleParseResult(parseResult)
-        _CFXMLInterfaceSetStructuredErrorFunc(interface, nil)
         return result
     }
 
 #if !os(WASI)
-    internal func parse(from stream: InputStream) -> Bool {
+    internal func parseFrom(_ stream : InputStream) -> Bool {
         var result = true
-        result = false
+
+        guard let buffer = malloc(_chunkSize)?.bindMemory(to: UInt8.self, capacity: _chunkSize) else { return false }
+        defer { free(buffer) }
+
         stream.open()
         defer { stream.close() }
-        let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
-        defer { free(buffer) }
-        var len = stream.read(buffer, maxLength: _chunkSize)
-        if len != -1 {
-            while len > 0 {
+        parseLoop: while result {
+            switch stream.read(buffer, maxLength: _chunkSize) {
+            case let len where len > 0:
                 let data = Data(bytesNoCopy: buffer, count: len, deallocator: .none)
                 result = parseData(data)
-                len = stream.read(buffer, maxLength: _chunkSize)
+            case 0:
+                result = parseData(Data(), lastChunkOfData: true)
+                break parseLoop
+            default: // See SR-13516, should be `case ..<0:`
+                result = false
+                if _parserError == nil {
+                    _parserError = stream.streamError
+                }
+
+                break parseLoop
             }
-        } else {
-            result = false
         }
+
         return result
     }
 #endif
@@ -601,13 +616,14 @@ open class XMLParser : NSObject {
         #else
         XMLParser.setCurrentParser(self)
         defer { XMLParser.setCurrentParser(nil) }
-        if let stream = _stream {
-            return parse(from: stream)
-        } else if var data = _data {
-            return parse(from: data)
-        } else {
-            return false
+
+        if _stream != nil {
+            return parseFrom(_stream!)
+        } else if _data != nil {
+            return parseData(_data!, lastChunkOfData: true)
         }
+
+        return false
         #endif
     }
     
