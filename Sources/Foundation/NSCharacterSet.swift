@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
 let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace

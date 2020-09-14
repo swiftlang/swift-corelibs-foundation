@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone

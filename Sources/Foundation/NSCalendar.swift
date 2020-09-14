@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 internal let kCFCalendarUnitEra = CFCalendarUnit.era
 internal let kCFCalendarUnitYear = CFCalendarUnit.year

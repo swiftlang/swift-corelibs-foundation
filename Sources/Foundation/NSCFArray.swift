@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 internal final class _NSCFArray : NSMutableArray {
     deinit {

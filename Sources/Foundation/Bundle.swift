@@ -8,7 +8,7 @@
 //
 
 #if !os(WASI)
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 @_silgen_name("swift_getTypeContextDescriptor")
 private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer

@@ -13,7 +13,7 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 import CFXMLInterface
 
 // initWithKind options

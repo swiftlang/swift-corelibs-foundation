@@ -18,7 +18,7 @@ import Glibc
 import MSVCRT
 #endif
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 public typealias NSErrorDomain = NSString
 
