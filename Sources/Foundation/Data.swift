@@ -12,6 +12,15 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
+#if canImport(Glibc)
+@usableFromInline let calloc = Glibc.calloc
+@usableFromInline let malloc = Glibc.malloc
+@usableFromInline let free = Glibc.free
+@usableFromInline let memset = Glibc.memset
+@usableFromInline let memcpy = Glibc.memcpy
+@usableFromInline let memcmp = Glibc.memcmp
+#endif
+
 #if !canImport(Darwin)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {
