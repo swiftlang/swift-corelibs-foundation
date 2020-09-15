@@ -13,7 +13,7 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
 }
 #endif
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension FileManager {
     internal func _mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {

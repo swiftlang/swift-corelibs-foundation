@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal let kCFCompareLessThan = CFComparisonResult.compareLessThan
 internal let kCFCompareEqualTo = CFComparisonResult.compareEqualTo

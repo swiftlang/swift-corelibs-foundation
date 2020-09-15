@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 /// Archives created using the class method `archivedData(withRootObject:)` use this key
 /// for the root object in the hierarchy of encoded objects. The `NSKeyedUnarchiver` class method

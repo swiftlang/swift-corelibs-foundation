@@ -8,7 +8,7 @@
 //
 
 
-import CoreFoundation
+@_implementationOnly import CoreFoundation
 
 @usableFromInline
 internal class _NSCFString : NSMutableString {
