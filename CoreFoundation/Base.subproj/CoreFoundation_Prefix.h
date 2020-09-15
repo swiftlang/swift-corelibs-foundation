@@ -20,7 +20,11 @@
 
 #include <CoreFoundation/CFAvailability.h>
 
+#if TARGET_OS_WASI
+#define __HAS_DISPATCH__ 0
+#else
 #define __HAS_DISPATCH__ 1
+#endif
 
 #include <CoreFoundation/CFBase.h>
 
@@ -193,7 +197,7 @@ typedef int		boolean_t;
 #include <sys/stat.h> // mode_t
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
 // Implemented in CFPlatform.c
 CF_EXPORT bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
 CF_EXPORT bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
@@ -227,9 +231,9 @@ CF_INLINE uint64_t mach_absolute_time() {
 }
 
 #define malloc_default_zone() (void *)0
-#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
 
-#if TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
+#if TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__) || TARGET_OS_WASI
 #define strtod_l(a,b,locale) strtod(a,b)
 #define strtoul_l(a,b,c,locale) strtoul(a,b,c)
 #define strtol_l(a,b,c,locale) strtol(a,b,c)
@@ -244,9 +248,9 @@ CF_INLINE int flsl( long mask ) {
     }
     return idx;
 }
-#endif // TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__)
+#endif // TARGET_OS_LINUX || TARGET_OS_WIN32 || defined(__OpenBSD__) || TARGET_OS_WASI
 
-#if TARGET_OS_LINUX
+#if TARGET_OS_LINUX || TARGET_OS_WASI
     
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __weak
@@ -254,7 +258,9 @@ CF_INLINE int flsl( long mask ) {
 #define strtoll_l(a,b,c,locale) strtoll(a,b,c)
 #define strncasecmp_l(a, b, c, d) strncasecmp(a, b, c)
 
+#if !TARGET_OS_WASI
 #include <pthread.h>
+#endif
 
 #if TARGET_OS_ANDROID
 typedef unsigned long fd_mask;
