@@ -12,10 +12,6 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-#if os(WASI)
-import Glibc
-#endif
-
 #if !canImport(Darwin)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {

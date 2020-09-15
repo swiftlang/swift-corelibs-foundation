@@ -7,10 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(WASI)
-import Glibc
-#endif
-
 #if os(macOS) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)

@@ -9,9 +9,6 @@
 
 private let ε: CGFloat = CGFloat(2.22045e-16)
 
-#if os(WASI)
-import Glibc
-#endif
 
 /**
  AffineTransform represents an affine transformation matrix of the following form:

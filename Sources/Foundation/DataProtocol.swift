@@ -10,10 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if os(WASI)
-import Glibc
-#endif
-
 //===--- DataProtocol -----------------------------------------------------===//
 
 public protocol DataProtocol : RandomAccessCollection where Element == UInt8, SubSequence : DataProtocol {

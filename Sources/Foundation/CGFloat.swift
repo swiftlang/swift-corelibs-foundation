@@ -7,10 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(WASI)
-import Glibc
-#endif
-
 @frozen
 public struct CGFloat {
 #if arch(i386) || arch(arm) || arch(wasm32)
