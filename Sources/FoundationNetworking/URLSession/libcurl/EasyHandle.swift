@@ -23,7 +23,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 import CFURLSessionInterface
 import Dispatch
 

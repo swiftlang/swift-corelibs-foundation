@@ -15,7 +15,7 @@ fileprivate let UF_APPEND: Int32 = 1
 fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 #if os(Windows)
 import MSVCRT
 #endif
@@ -28,6 +28,7 @@ internal typealias NativeFSRCharType = CChar
 internal let NativeFSREncoding = String.Encoding.utf8.rawValue
 #endif
 
+#if !os(WASI)
 open class FileManager : NSObject {
     
     /* Returns the default singleton instance.
@@ -1474,3 +1475,4 @@ extension FileManager {
         }
     }
 }
+#endif

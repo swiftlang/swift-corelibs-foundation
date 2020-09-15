@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !os(WASI)
 import Dispatch
 
 /**
@@ -545,3 +546,4 @@ fileprivate class _ProgressTSD : NSObject {
         childAttached = false
     }
 }
+#endif

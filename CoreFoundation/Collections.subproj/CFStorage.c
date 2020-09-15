@@ -149,8 +149,10 @@ CF_INLINE void __CFStorageAllocLeafNodeMemory(CFAllocatorRef allocator, CFStorag
 #define ASSERT(x) do { if (0 && ! (x)) { } } while(0)
 #endif
 
+#if __BLOCKS__
 static void __CFStorageCheckIntegrity(CFStorageRef storage);
 #define CHECK_INTEGRITY() do { if (0) __CFStorageCheckIntegrity(storage); } while (0)
+#endif
 
 static void __CFStorageCheckNodeIntegrity(ConstCFStorageRef storage, const CFStorageNode *node);
 #define CHECK_NODE_INTEGRITY(X) do { if (0) __CFStorageCheckNodeIntegrity(storage, X); } while (0)
@@ -966,6 +968,7 @@ static CFStringRef __CFStorageCopyDescription(CFTypeRef cf) {
     return result;
 }
 
+#if __BLOCKS__
 /* Returns true if enumeration should stop, false if it should continue. */
 static bool __CFStorageEnumerateNodesInByteRangeWithBlock(CFStorageRef storage, CFStorageNode *node, CFIndex globalOffsetOfNode, CFRange range, CFIndex concurrencyToken, CFStorageApplierBlock applier) {
     bool stop = false;
@@ -1024,6 +1027,7 @@ static bool __CFStorageEnumerateNodesInByteRangeWithBlock(CFStorageRef storage, 
     }
     return stop;
 }
+#endif
 
 static CFStorageNode *_CFStorageFindNodeContainingByteRange(ConstCFStorageRef storage, const CFStorageNode *node, CFRange nodeRange, CFIndex globalOffsetOfNode, CFRange *outGlobalByteRangeOfResult) {
     if (! node->isLeaf) {
@@ -1319,6 +1323,7 @@ unsigned long _CFStorageFastEnumeration(CFStorageRef storage, struct __objcFastE
     return leafRange.length;
 }
 
+#if __BLOCKS__
 void CFStorageApplyFunction(CFStorageRef storage, CFRange range, CFStorageApplierFunction applier, void *context) {
     CHECK_INTEGRITY();
     CFIndex valueSize = storage->valueSize;
@@ -1340,6 +1345,7 @@ void CFStorageApplyBlock(CFStorageRef storage, CFRange range, CFStorageEnumerati
     }
     __CFStorageEnumerateNodesInByteRangeWithBlock(storage, &storage->rootNode, 0/*globalOffsetOfNode*/, byteRange, concurrencyToken, applier);
 }
+#endif
 
 void CFStorageReplaceValues(CFStorageRef storage, CFRange range, const void *values) {
     CHECK_INTEGRITY();
@@ -1357,6 +1363,7 @@ void CFStorageReplaceValues(CFStorageRef storage, CFRange range, const void *val
     }
 }
 
+#if __BLOCKS__
 static void __CFStorageApplyNodeBlockInterior(CFStorageRef storage, CFStorageNode *node, void (^block)(CFStorageRef storage, CFStorageNode *node)) {
     block(storage, node);
     if (! node->isLeaf) {
@@ -1370,6 +1377,7 @@ static void __CFStorageApplyNodeBlockInterior(CFStorageRef storage, CFStorageNod
 static void __CFStorageApplyNodeBlock(CFStorageRef storage, void (^block)(CFStorageRef storage, CFStorageNode *node)) {
     __CFStorageApplyNodeBlockInterior(storage, &storage->rootNode, block);
 }
+#endif
 
 void __CFStorageSetAlwaysFrozen(CFStorageRef storage, bool alwaysFrozen) {
     storage->alwaysFrozen = alwaysFrozen;
@@ -1405,11 +1413,13 @@ static void __CFStorageCheckNodeIntegrity(ConstCFStorageRef storage, const CFSto
     }
 }
 
+#if __BLOCKS__
 static void __CFStorageCheckIntegrity(CFStorageRef storage) {
     __CFStorageApplyNodeBlock(storage, ^(CFStorageRef storage, CFStorageNode *node) {
 	__CFStorageCheckNodeIntegrity(storage, node);
     });
 }
+#endif
 
 #undef COPYMEM
 #undef PAGE_LIMIT

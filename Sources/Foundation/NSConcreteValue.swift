@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 internal class NSConcreteValue : NSValue {
     
@@ -111,6 +111,7 @@ internal class NSConcreteValue : NSValue {
         return Data(bytes: boundBytes, count: self._size).description
     }
     
+#if !os(WASI)
     convenience required init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -133,6 +134,7 @@ internal class NSConcreteValue : NSValue {
         aCoder.encode(String(cString: self.objCType)._bridgeToObjectiveC())
         aCoder.encodeValue(ofObjCType: self.objCType, at: self.value)
     }
+#endif
     
     private var _size : Int {
         return self._typeInfo.size

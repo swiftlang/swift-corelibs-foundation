@@ -6,7 +6,7 @@
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
  */
-#if !defined(__COREFOUNDATION_CFSTREAMINTERNAL__)
+#if !defined(__COREFOUNDATION_CFSTREAMINTERNAL__) && !defined(__wasi__)
 #define __COREFOUNDATION_CFSTREAMINTERNAL__ 1
 
 #include <CoreFoundation/CFStreamAbstract.h>

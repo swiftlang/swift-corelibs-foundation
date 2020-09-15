@@ -7,7 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+#if !os(WASI)
+import CoreFoundation
 
 @_silgen_name("swift_getTypeContextDescriptor")
 private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
@@ -434,3 +435,42 @@ open class Bundle: NSObject {
         return Int(bitPattern: CFHash(_bundle))
     }
 }
+
+#else
+
+open class Bundle {
+    public let bundlePath: String
+
+    public static let main = Bundle(path: "")!
+
+    public init?(path: String) {
+        bundlePath = path
+    }
+
+    // -----------------------------------------------------------------------------------
+
+    // MARK: - Path Resource Lookup - Instance
+
+    open func path(forResource name: String?, ofType ext: String?) -> String? {
+        path(forResource: name, ofType: ext, inDirectory: nil)
+    }
+
+    open func path(forResource name: String?, ofType ext: String?, inDirectory subpath: String?) -> String? {
+        guard let name = name else { return nil }
+
+        let subpathOrEmpty: String
+        if let subpath = subpath {
+            subpathOrEmpty = "\(subpath)/"
+        } else {
+            subpathOrEmpty = ""
+        }
+
+        if let ext = ext {
+            return "\(bundlePath)/\(subpathOrEmpty)\(name).\(ext)"
+        } else {
+            return "\(bundlePath)/\(subpathOrEmpty)\(name)"
+        }
+    }
+}
+
+#endif

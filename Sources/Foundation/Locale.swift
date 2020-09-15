@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 internal func __NSLocaleIsAutoupdating(_ locale: NSLocale) -> Bool {
     return false // Auto-updating is only on Darwin

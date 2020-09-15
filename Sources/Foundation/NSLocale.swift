@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale
@@ -199,9 +199,11 @@ extension NSLocale {
 }
 
 
+#if !os(WASI)
 extension NSLocale {
     public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
 }
+#endif
 
 
 extension CFLocale : _NSBridgeable, _SwiftBridgeable {

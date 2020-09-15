@@ -15,7 +15,7 @@
 #if TARGET_OS_WIN32
 #include <Windows.h>
 #include <Psapi.h>
-#else
+#elif !defined(__wasi__)
 #include <dlfcn.h>
 #endif
 #if __has_include(<os/assumes.h>)
@@ -241,7 +241,7 @@ void _Block_use_GC5( void *(*alloc)(size_t, const bool isOne, const bool isObjec
     _Block_use_GC(alloc, setHasRefcount, gc_assign, gc_assign_weak, _Block_memmove_gc_broken);
 }
 
- 
+#if !defined(__wasi__)
 // Called from objc-auto to alternatively turn on retain/release.
 // Prior to this the only "object" support we can provide is for those
 // super special objects that live in libSystem, namely dispatch queues.
@@ -271,6 +271,7 @@ void _Block_use_RR( void (*retain)(const void *),
     _Block_destructInstance = dlsym(RTLD_DEFAULT, "objc_destructInstance");
 #endif
 }
+#endif
 
 // Called from CF to indicate MRR. Newer version uses a versioned structure, so we can add more functions
 // without defining a new entry point.

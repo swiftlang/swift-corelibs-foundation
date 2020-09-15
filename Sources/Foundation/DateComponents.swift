@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CoreFoundation
+import CoreFoundation
 
 /**
  `DateComponents` encapsulates the components of a date in an extendable, structured manner.
