@@ -104,7 +104,7 @@ CF_EXTERN_C_BEGIN
 #include <stdatomic.h>
 #include <Block.h>
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 #if TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__)) || TARGET_OS_ANDROID
 #include <xlocale.h>
@@ -113,7 +113,7 @@ CF_EXTERN_C_BEGIN
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
-#endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 #if __has_include(<unistd.h>)
 #include <unistd.h>
@@ -317,10 +317,18 @@ static inline void __CFRuntimeSetValue(CFTypeRef cf, uint8_t n1, uint8_t n2, uin
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     __CFInfoType newInfo;
     __CFInfoType mask = __CFInfoMask(n1, n2);
+	
+    #if !TARGET_OS_WASI
     do {
+    #endif
         // maybe don't need to do the negation part because the right side promises that we are not going to touch the rest of the word
         newInfo = (info & ~mask) | ((x << n2) & mask);
+    // Atomics are not supported on WASI, see https://bugs.swift.org/browse/SR-12097 for more details	
+    #if !TARGET_OS_WASI
     } while (!atomic_compare_exchange_weak(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo));
+    #else
+    ((CFRuntimeBase *)cf)->_cfinfoa = newInfo;
+    #endif
 }
 
 /// Set a flag in a CFTypeRef info bitfield.
@@ -1024,7 +1032,7 @@ CF_INLINE const char *CFPathRelativeToAppleFrameworksRoot(const char *path, Bool
 enum {
     DISPATCH_QUEUE_OVERCOMMIT = 0x2ull,
 };
-#endif
+#endif // __has_include(<dispatch/private.h>)
 
 #if TARGET_OS_LINUX || TARGET_OS_WIN32
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
@@ -1040,7 +1048,7 @@ CF_INLINE long qos_class_self() {
     return QOS_CLASS_DEFAULT;
 }
 
-#endif
+#endif // TARGET_OS_LINUX || TARGET_OS_WIN32
 
 // Returns a generic dispatch queue for when you want to just throw some work
 // into the concurrent pile to execute, and don't care about specifics except
@@ -1064,12 +1072,13 @@ CF_INLINE dispatch_queue_t __CFDispatchQueueGetGenericBackground(void) {
     return dispatch_get_global_queue(QOS_CLASS_UTILITY, DISPATCH_QUEUE_OVERCOMMIT);
 }
 
-#endif
+CF_PRIVATE dispatch_data_t _CFDataCreateDispatchData(CFDataRef data); //avoids copying in most cases
+
+#endif // __HAS_DISPATCH__
 
 CF_PRIVATE CFStringRef _CFStringCopyBundleUnloadingProtectedString(CFStringRef str);
 
 CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data);
-CF_PRIVATE dispatch_data_t _CFDataCreateDispatchData(CFDataRef data); //avoids copying in most cases
 
 // Use this for functions that are intended to be breakpoint hooks. If you do not, the compiler may optimize them away.
 // Based on: BREAKPOINT_FUNCTION in objc-os.h
