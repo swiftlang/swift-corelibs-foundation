@@ -278,7 +278,7 @@ open class Bundle: NSObject {
     }
     
     open class func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String?, in bundleURL: NSURL) -> [NSURL]? {
-        return CFBundleCopyResourceURLsOfTypeInDirectory(bundleURL._cfObject, ext?._cfObject, subpath?._cfObject)?._unsafeTypedBridge()
+        return CFBundleCopyResourceURLsOfTypeInDirectory(bundleURL._cfObject, ext?._cfObject, subpath?._cfObject)._nsObject as? [NSURL]
     }
     
     // -----------------------------------------------------------------------------------
@@ -306,11 +306,11 @@ open class Bundle: NSObject {
     }
     
     open func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String?) -> [NSURL]? {
-        return CFBundleCopyResourceURLsOfType(_bundle, ext?._cfObject, subpath?._cfObject)?._unsafeTypedBridge()
+        return CFBundleCopyResourceURLsOfType(_bundle, ext?._cfObject, subpath?._cfObject)?._nsObject as? [NSURL]
     }
     
     open func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String?, localization localizationName: String?) -> [NSURL]? {
-        return CFBundleCopyResourceURLsOfTypeForLocalization(_bundle, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject)?._unsafeTypedBridge()
+        return CFBundleCopyResourceURLsOfTypeForLocalization(_bundle, ext?._cfObject, subpath?._cfObject, localizationName?._cfObject)?._nsObject as? [NSURL]
     }
     
     // -----------------------------------------------------------------------------------

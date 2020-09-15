@@ -482,7 +482,7 @@ open class NSMutableCharacterSet : NSCharacterSet {
     }
 }
 
-extension CharacterSet : _CFBridgeable, _NSBridgeable {
+extension CharacterSet : _NSBridgeable {
     typealias CFType = CFCharacterSet
     typealias NSType = NSCharacterSet
     internal var _cfObject: CFType {
