@@ -1517,7 +1517,7 @@ open class NSURLComponents: NSObject, NSCopying {
     }
 }
 
-extension NSURL: _CFBridgeable, _SwiftBridgeable {
+extension NSURL: _SwiftBridgeable {
     typealias SwiftType = URL
     internal var _swiftObject: SwiftType { return URL(reference: self) }
 }
@@ -1529,7 +1529,7 @@ extension CFURL : _NSBridgeable, _SwiftBridgeable {
     internal var _swiftObject: SwiftType { return _nsObject._swiftObject }
 }
 
-extension URL : _NSBridgeable, _CFBridgeable {
+extension URL : _NSBridgeable {
     typealias NSType = NSURL
     typealias CFType = CFURL
     internal var _nsObject: NSType { return self.reference }

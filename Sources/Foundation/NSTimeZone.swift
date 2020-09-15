@@ -256,7 +256,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 }
 
-extension NSTimeZone: _SwiftBridgeable, _CFBridgeable {
+extension NSTimeZone: _SwiftBridgeable {
     typealias SwiftType = TimeZone
     var _swiftObject: TimeZone { return TimeZone(reference: self) }
 }
@@ -267,7 +267,7 @@ extension CFTimeZone : _SwiftBridgeable, _NSBridgeable {
     var _swiftObject: TimeZone { return _nsObject._swiftObject }
 }
 
-extension TimeZone : _NSBridgeable, _CFBridgeable {
+extension TimeZone : _NSBridgeable {
     typealias NSType = NSTimeZone
     typealias CFType = CFTimeZone
     var _nsObject : NSTimeZone { return _bridgeToObjectiveC() }

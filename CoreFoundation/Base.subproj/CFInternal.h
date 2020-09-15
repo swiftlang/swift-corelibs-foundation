@@ -320,11 +320,13 @@ static inline void __CFRuntimeSetValue(CFTypeRef cf, uint8_t n1, uint8_t n2, uin
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     __CFInfoType newInfo;
     __CFInfoType mask = __CFInfoMask(n1, n2);
+
     #if !TARGET_OS_WASI
     do {
     #endif
         // maybe don't need to do the negation part because the right side promises that we are not going to touch the rest of the word
         newInfo = (info & ~mask) | ((x << n2) & mask);
+    // Atomics are not supported on WASI, see https://bugs.swift.org/browse/SR-12097 for more details	
     #if !TARGET_OS_WASI
     } while (!atomic_compare_exchange_weak(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo));
     #else
@@ -1033,7 +1035,7 @@ CF_INLINE const char *CFPathRelativeToAppleFrameworksRoot(const char *path, Bool
 enum {
     DISPATCH_QUEUE_OVERCOMMIT = 0x2ull,
 };
-#endif
+#endif // __has_include(<dispatch/private.h>)
 
 #if TARGET_OS_LINUX || TARGET_OS_WIN32
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
@@ -1049,7 +1051,7 @@ CF_INLINE long qos_class_self() {
     return QOS_CLASS_DEFAULT;
 }
 
-#endif
+#endif // TARGET_OS_LINUX || TARGET_OS_WIN32
 
 // Returns a generic dispatch queue for when you want to just throw some work
 // into the concurrent pile to execute, and don't care about specifics except
@@ -1075,7 +1077,7 @@ CF_INLINE dispatch_queue_t __CFDispatchQueueGetGenericBackground(void) {
 
 CF_PRIVATE dispatch_data_t _CFDataCreateDispatchData(CFDataRef data); //avoids copying in most cases
 
-#endif
+#endif // __HAS_DISPATCH__
 
 CF_PRIVATE CFStringRef _CFStringCopyBundleUnloadingProtectedString(CFStringRef str);
 

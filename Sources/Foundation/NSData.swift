@@ -921,12 +921,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 }
 
 // MARK: -
-extension NSData : _CFBridgeable, _SwiftBridgeable {
+extension NSData : _SwiftBridgeable {
     typealias SwiftType = Data
     internal var _swiftObject: SwiftType { return Data(referencing: self) }
 }
 
-extension Data : _NSBridgeable, _CFBridgeable {
+extension Data : _NSBridgeable {
     typealias CFType = CFData
     typealias NSType = NSData
     internal var _cfObject: CFType { return _nsObject._cfObject }
