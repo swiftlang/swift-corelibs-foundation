@@ -1240,6 +1240,36 @@ class TestIndexSet : XCTestCase {
         }
     }
     
+    func testHashValue() throws {
+        var sample1 = IndexSet()
+        sample1.insert(integersIn: 1..<2)
+        sample1.insert(integersIn: 100..<200)
+        sample1.insert(integersIn: 1000..<2000)
+
+        var sample2 = IndexSet()
+        sample2.insert(integersIn: 1..<2)
+        sample2.insert(integersIn: 100..<200)
+        sample2.insert(integersIn: 1000..<2000)
+        
+        XCTAssertEqual(sample1.hashValue, sample2.hashValue)
+        
+        let sample3 = IndexSet([3, 5, 6, 7, 9])
+        let sample4 = IndexSet([3, 5, 6, 7, 9])
+        XCTAssertEqual(sample3.hashValue, sample4.hashValue)
+        
+        let sample5 = IndexSet([100, NSNotFound - 1, 200])
+        let sample6 = IndexSet([100, NSNotFound - 1, 200])
+        XCTAssertEqual(sample5.hashValue, sample6.hashValue)
+        
+        let sample7 = IndexSet(integer: NSNotFound - 1)
+        let sample8 = IndexSet(integer: NSNotFound - 1)
+        XCTAssertEqual(sample7.hashValue, sample8.hashValue)
+        
+        let sample9 = IndexSet()
+        let sample10 = IndexSet()
+        XCTAssertEqual(sample9.hashValue, sample10.hashValue)
+    }
+    
     static var allTests: [(String, (TestIndexSet) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
@@ -1288,6 +1318,7 @@ class TestIndexSet : XCTestCase {
             ("testRemoveSplitting", testRemoveSplitting),
             ("testCodingRoundtrip", testCodingRoundtrip),
             ("testLoadedValuesMatch", testLoadedValuesMatch),
+            ("testHashValue", testHashValue),
         ]
     }
     
