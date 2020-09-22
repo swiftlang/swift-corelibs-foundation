@@ -576,6 +576,7 @@ open class XMLParser : NSObject {
     }
     
     // called to start the event-driven parse. Returns YES in the event of a successful parse, and NO in case of error.
+    @discardableResult
     open func parse() -> Bool {
         XMLParser.setCurrentParser(self)
         defer { XMLParser.setCurrentParser(nil) }
