@@ -149,7 +149,10 @@ public struct URLResourceValues {
     
     /// The date the resource was created.
     public var creationDate: Date? {
-        get { return _get(.creationDateKey) }
+        get {
+          guard let timestamp: Int = _get(.creationDateKey) else { return nil }
+          return Date(timeIntervalSince1970: TimeInterval(timestamp))
+        }
         set { _set(.creationDateKey, newValue: newValue) }
     }
     
