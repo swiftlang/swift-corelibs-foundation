@@ -544,6 +544,14 @@ open class FileManager : NSObject {
         result[.creationDate] = creationDate
 #else
         let s = try _lstatFile(atPath: path)
+        // Darwin provides a `st_ctimespec` rather than the traditional Unix
+        // `st_ctime` field.  Since `st_ctime` is more traditional, special case
+        // Darwin platforms and convert the timespec to the absolute time.
+#if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
+        result[.creationDate] = Date(timespec: s.st_ctimespec)
+#else
+        result[.creationDate] = Date(timeIntervalSince1970: TimeInterval(s.st_ctime))
+#endif
 #endif
 
         result[.size] = NSNumber(value: UInt64(s.st_size))
