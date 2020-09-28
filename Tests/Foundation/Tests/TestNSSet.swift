@@ -26,6 +26,10 @@ class TestNSSet : XCTestCase {
         XCTAssertEqual(set5, set3)
         set5.add(2)
         XCTAssertNotEqual(set5, set3)
+
+        let set6 = NSSet(objects: "foo", "bar")
+        XCTAssertEqual(set6.count, 2)
+        XCTAssertEqual(set2, set6)
     }
 
     func testInitWithSet() {
