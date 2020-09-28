@@ -86,6 +86,10 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         self.init(array: [object])
     }
 
+    public convenience init(objects elements: Any...) {
+        self.init(array: elements)
+    }
+
 #if !os(WASI)
     internal class func _objects(from aDecoder: NSCoder, allowDecodingNonindexedArrayKey: Bool = true) -> [NSObject] {
         guard aDecoder.allowsKeyedCoding else {
