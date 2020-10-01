@@ -187,6 +187,15 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return isEqual(to: indexSet._swiftObject)
     }
     
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(_count)
+        hasher.combine(_ranges.count)
+        hasher.combine(firstIndex)
+        hasher.combine(lastIndex)
+        return hasher.finalize()
+    }
+    
     open var count: Int {
         return _count
     }
