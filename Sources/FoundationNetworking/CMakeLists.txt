@@ -45,6 +45,7 @@ add_library(FoundationNetworking
   URLSession/URLSessionConfiguration.swift
   URLSession/URLSessionDelegate.swift
   URLSession/URLSessionTask.swift
+  URLSession/URLSessionTaskMetrics.swift
   URLSession/libcurl/EasyHandle.swift
   URLSession/libcurl/MultiHandle.swift
   URLSession/libcurl/libcurlHelpers.swift)
