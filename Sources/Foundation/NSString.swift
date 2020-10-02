@@ -1648,7 +1648,7 @@ extension NSString : _StructTypeBridgeable {
 extension NSString : CVarArg {
     @inlinable // c-abi
     public var _cVarArgEncoding: [Int] {
-        return _encodeBitsAsWords(unsafeBitCast(self, to: CFString.self))
+        return _encodeBitsAsWords(unsafeBitCast(self, to: AnyObject.self))
     }
 }
 
