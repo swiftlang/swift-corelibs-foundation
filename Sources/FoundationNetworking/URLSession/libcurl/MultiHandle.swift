@@ -23,7 +23,7 @@ import Foundation
 #endif
 
 @_implementationOnly import CoreFoundation
-import CFURLSessionInterface
+@_implementationOnly import CFURLSessionInterface
 import Dispatch
 
 
@@ -148,6 +148,17 @@ fileprivate extension URLSession._MultiHandle {
         case registerReadAndWrite
         case unregister
     }
+}
+
+extension Collection where Element == _EasyHandle {
+  internal func firstIndex(of element: Element) -> Index? {
+    var i = self.startIndex
+    while i != self.endIndex {
+      if self[i] == element { return i }
+      self.formIndex(after: &i)
+    }
+    return nil
+  }
 }
 
 internal extension URLSession._MultiHandle {
@@ -277,6 +288,13 @@ fileprivate extension _EasyHandle {
     }
 }
 
+internal func ==(lhs: CFURLSessionPoll, rhs: CFURLSessionPoll) -> Bool {
+    return lhs.value == rhs.value
+}
+internal func ~=(lhs: CFURLSessionPoll, rhs: CFURLSessionPoll) -> Bool {
+    return lhs == rhs
+}
+
 fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
     init(rawValue: CFURLSessionPoll) {
         switch rawValue {
@@ -295,11 +313,7 @@ fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
         }
     }
 }
-extension CFURLSessionPoll : Equatable {
-    public static func ==(lhs: CFURLSessionPoll, rhs: CFURLSessionPoll) -> Bool {
-        return lhs.value == rhs.value
-    }
-}
+
 fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
     /// Should a libdispatch source be registered for **read** readiness?
     var needsReadSource: Bool {
@@ -470,18 +484,16 @@ extension _SocketSources {
 }
 
 
-extension CFURLSessionMultiCode : Equatable {
-    public static func ==(lhs: CFURLSessionMultiCode, rhs: CFURLSessionMultiCode) -> Bool {
-        return lhs.value == rhs.value
-    }
+internal func ==(lhs: CFURLSessionMultiCode, rhs: CFURLSessionMultiCode) -> Bool {
+    return lhs.value == rhs.value
 }
-extension CFURLSessionMultiCode : Error {
-    public var _domain: String { return "libcurl.Multi" }
-    public var _code: Int { return Int(self.value) }
+internal func ~=(lhs: CFURLSessionMultiCode, rhs: CFURLSessionMultiCode) -> Bool {
+    return lhs == rhs
 }
-internal extension CFURLSessionMultiCode {
-    func asError() throws {
+
+extension CFURLSessionMultiCode {
+    internal func asError() throws {
         if self == CFURLSessionMultiCodeOK { return }
-        throw self
+        throw NSError(domain: "libcurl.multi", code: Int(self.value))
     }
 }

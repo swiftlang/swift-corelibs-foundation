@@ -14,7 +14,7 @@ import Foundation
 #endif
 
 @_implementationOnly import CoreFoundation
-import CFURLSessionInterface
+@_implementationOnly import CFURLSessionInterface
 import Dispatch
 
 internal class _HTTPURLProtocol: _NativeProtocol {

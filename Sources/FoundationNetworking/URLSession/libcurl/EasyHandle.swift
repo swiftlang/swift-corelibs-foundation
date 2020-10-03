@@ -24,7 +24,7 @@ import Foundation
 #endif
 
 @_implementationOnly import CoreFoundation
-import CFURLSessionInterface
+@_implementationOnly import CFURLSessionInterface
 import Dispatch
 
 
@@ -76,9 +76,12 @@ internal final class _EasyHandle {
     }
 }
 
-extension _EasyHandle: Equatable {}
-    internal func ==(lhs: _EasyHandle, rhs: _EasyHandle) -> Bool {
-        return lhs.rawHandle == rhs.rawHandle
+internal func ==(lhs: _EasyHandle, rhs: _EasyHandle) -> Bool {
+    return lhs.rawHandle == rhs.rawHandle
+}
+
+internal func ~=(lhs: _EasyHandle, rhs: _EasyHandle) -> Bool {
+    return lhs == rhs
 }
 
 extension _EasyHandle {
@@ -392,23 +395,24 @@ internal extension _EasyHandle {
 }
 
 
-extension CFURLSessionInfo : Equatable {
-    public static func ==(lhs: CFURLSessionInfo, rhs: CFURLSessionInfo) -> Bool {
-        return lhs.value == rhs.value
-    }
+internal func ==(lhs: CFURLSessionInfo, rhs: CFURLSessionInfo) -> Bool {
+    return lhs.value == rhs.value
+}
+internal func ~=(lhs: CFURLSessionInfo, rhs: CFURLSessionInfo) -> Bool {
+    return lhs == rhs
 }
 
 extension CFURLSessionInfo {
-    public var debugHeader: String {
+    internal var debugHeader: String {
         switch self {
         case CFURLSessionInfoTEXT:         return "                 "
-        case CFURLSessionInfoHEADER_OUT:   return "=> Send header   ";
-        case CFURLSessionInfoDATA_OUT:     return "=> Send data     ";
-        case CFURLSessionInfoSSL_DATA_OUT: return "=> Send SSL data ";
-        case CFURLSessionInfoHEADER_IN:    return "<= Recv header   ";
-        case CFURLSessionInfoDATA_IN:      return "<= Recv data     ";
-        case CFURLSessionInfoSSL_DATA_IN:  return "<= Recv SSL data ";
-        default:                            return "                 "
+        case CFURLSessionInfoHEADER_OUT:   return "=> Send header   "
+        case CFURLSessionInfoDATA_OUT:     return "=> Send data     "
+        case CFURLSessionInfoSSL_DATA_OUT: return "=> Send SSL data "
+        case CFURLSessionInfoHEADER_IN:    return "<= Recv header   "
+        case CFURLSessionInfoDATA_IN:      return "<= Recv data     "
+        case CFURLSessionInfoSSL_DATA_IN:  return "<= Recv SSL data "
+        default:                           return "                 "
         }
     }
 }
@@ -671,18 +675,16 @@ extension _EasyHandle._CurlStringList {
     }
 }
 
-extension CFURLSessionEasyCode : Equatable {
-    public static func ==(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
-        return lhs.value == rhs.value
-    }
+internal func ==(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
+    return lhs.value == rhs.value
 }
-extension CFURLSessionEasyCode : Error {
-    public var _domain: String { return "libcurl.Easy" }
-    public var _code: Int { return Int(self.value) }
+internal func ~=(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
+    return lhs == rhs
 }
-internal extension CFURLSessionEasyCode {
-    func asError() throws {
+
+extension CFURLSessionEasyCode {
+    internal func asError() throws {
         if self == CFURLSessionEasyCodeOK { return }
-        throw self
+        throw NSError(domain: "libcurl.Easy", code: Int(self.value))
     }
 }
