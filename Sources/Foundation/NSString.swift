@@ -1644,3 +1644,24 @@ extension NSString : _StructTypeBridgeable {
         return _StructType._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSString : CVarArg {
+    @inlinable // c-abi
+    public var _cVarArgEncoding: [Int] {
+        return _encodeBitsAsWords(unsafeBitCast(self, to: AnyObject.self))
+    }
+}
+
+#if !_runtime(_ObjC)
+extension String : CVarArg, _CVarArgObject {
+    @inlinable // c-abi
+    public var _cVarArgObject: CVarArg {
+        return NSString(string: self)
+    }
+
+    @inlinable // c-abi
+    public var _cVarArgEncoding: [Int] {
+        fatalError("_cVarArgEncoding must be called on NSString instead")
+    }
+}
+#endif
