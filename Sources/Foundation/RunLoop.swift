@@ -327,8 +327,6 @@ extension RunLoop {
     @available(*, deprecated, message: "For XCTest use only.")
     open class _Source: NSObject {
         fileprivate var _cfSourceStorage: AnyObject!
-        fileprivate var cfSource: CFRunLoopSource { unsafeBitCast(_cfSourceStorage, to: CFRunLoopSource.self) }
-        
         
         public init(order: Int = 0) {
             super.init()
@@ -408,5 +406,11 @@ extension RunLoop {
         deinit {
             invalidate()
         }
+    }
+}
+
+extension RunLoop._Source {
+    fileprivate var cfSource: CFRunLoopSource {
+      unsafeBitCast(_cfSourceStorage, to: CFRunLoopSource.self)
     }
 }
