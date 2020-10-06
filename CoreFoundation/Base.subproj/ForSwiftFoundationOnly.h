@@ -505,7 +505,18 @@ static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuf
     return true;
 }
 
-#if !TARGET_OS_WASI
+#if TARGET_OS_WASI
+static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
+    _ConditionalAllocationBuffer buffer;
+    buffer.capacity = amount;
+    buffer.onStack = false;
+    buffer.memory = malloc(buffer.capacity);
+    if (buffer.memory == NULL) { return false; }
+    applier(&buffer);
+    free(buffer.memory);
+    return true;
+}
+#else
 static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
     _ConditionalAllocationBuffer buffer;
 #if TARGET_OS_MAC
