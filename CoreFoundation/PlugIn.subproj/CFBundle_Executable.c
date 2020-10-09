@@ -83,6 +83,11 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
             CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleFHSSharedLibraryFilenamePrefix, exeName, _CFBundleFHSSharedLibraryFilenameSuffix);
             
             executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, sharedLibraryName, kCFURLPOSIXPathStyle, false, urlPath);
+
+            if (sharedLibraryName) {
+                CFRelease(sharedLibraryName);
+            }
+
             if (!_binaryLoadable(executableURL)) {
                 CFRelease(executableURL);
                 executableURL = NULL;
