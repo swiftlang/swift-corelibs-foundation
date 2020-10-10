@@ -87,6 +87,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
                 CFRelease(executableURL);
                 executableURL = NULL;
             }
+            if (sharedLibraryName) CFRelease(sharedLibraryName);
         }
     }
 #elif TARGET_OS_MAC
