@@ -4815,9 +4815,9 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
                 if (isDirectory) {
                     CFStringInsert(newString, pathRg.location + pathRg.length + CFStringGetLength(newComp), CFSTR("/"));
                 }
-                CFRelease(newComp);
                 result = _CFURLCreateWithArbitraryString(allocator, newString, url->_base);
             }
+            if (newComp) CFRelease(newComp);
             CFRelease(newString);
         }
     }
