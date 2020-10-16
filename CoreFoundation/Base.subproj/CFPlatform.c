@@ -663,16 +663,6 @@ CF_PRIVATE void __CFTSDWindowsCleanup() {
     FlsFree(__CFTSDIndexKey);
 }
 
-// Called for each thread as it exits, on Windows only
-CF_PRIVATE void __CFFinalizeWindowsThreadData() {
-    // Normally, this should call the finalizer several times to emulate the behavior of pthreads on Windows. However, a few bugs keep us from doing this:
-    // <rdar://problem/8989063> REGRESSION(CF-610-CF-611): Crash closing Safari in BonjourDB destructor (Windows)
-    // <rdar://problem/9326814> SyncUIHandler crashes after conflict is resolved and we do SyncNow
-    //  and a bug in dispatch keeps us from using pthreadsWin32 directly, because it does not deal with the case of a dispatch_async happening during process exit (it attempts to create a thread, but that is illegal on Win32 and causes a hang).
-    // So instead we just finalize once, which is the behavior pre-Airwolf anyway
-    __CFTSDFinalize(TlsGetValue(__CFTSDIndexKey));
-}
-
 #else
 
 static _CFThreadSpecificKey __CFTSDIndexKey;
