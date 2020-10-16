@@ -978,7 +978,6 @@ CF_PRIVATE void __CFTSDInitialize(void);
 #if TARGET_OS_WIN32
 // From CFPlatform.c
 CF_PRIVATE void __CFTSDWindowsCleanup(void);
-CF_PRIVATE void __CFFinalizeWindowsThreadData(void);
 #endif
 
 #if TARGET_OS_MAC
@@ -1352,8 +1351,6 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 	// do these last
 	if (cfBundle) CFRelease(cfBundle);
         __CFStringCleanup();
-    } else if (dwReason == DLL_THREAD_DETACH) {
-        __CFFinalizeWindowsThreadData();
     }
     return TRUE;
 }
