@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -1180,10 +1180,10 @@ extension FileManager {
         let modificationDate = modificationTime ?? stat.lastModificationDate
 
         let (accessTimeSince1970Seconds, accessTimeSince1970FractionsOfSecond) = modf(accessDate.timeIntervalSince1970)
-        let accessTimeval = timeval(tv_sec: time_t(accessTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * accessTimeSince1970FractionsOfSecond))
+        let accessTimeval = timeval(tv_sec: time_t(accessTimeSince1970Seconds), tv_usec: suseconds_t(1.0e6 * accessTimeSince1970FractionsOfSecond))
 
         let (modificationTimeSince1970Seconds, modificationTimeSince1970FractionsOfSecond) = modf(modificationDate.timeIntervalSince1970)
-        let modificationTimeval = timeval(tv_sec: time_t(modificationTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * modificationTimeSince1970FractionsOfSecond))
+        let modificationTimeval = timeval(tv_sec: time_t(modificationTimeSince1970Seconds), tv_usec: suseconds_t(1.0e6 * modificationTimeSince1970FractionsOfSecond))
 
         let array = [accessTimeval, modificationTimeval]
         let errnoValue = array.withUnsafeBufferPointer { (bytes) -> Int32? in
