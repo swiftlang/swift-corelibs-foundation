@@ -750,7 +750,6 @@ class TestJSONEncoder : XCTestCase {
         testErrorThrown("Double", "-.1", errorMessage: "The given data was not valid JSON.")
         testErrorThrown("Int32", "+1", errorMessage: "The given data was not valid JSON.")
         testErrorThrown("Int", ".012", errorMessage: "The given data was not valid JSON.")
-        testErrorThrown("Double", "2.7976931348623158e+308", errorMessage: "The given data was not valid JSON.")
     }
 
     func test_snake_case_encoding() throws {
