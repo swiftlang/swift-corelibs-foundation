@@ -12,9 +12,9 @@ import SwiftFoundation
 #elseif canImport(Glibc)
 import Foundation
 import Glibc
-#elseif canImport(MSVCRT)
+#elseif canImport(CRT)
 import Foundation
-import MSVCRT
+import CRT
 #endif
 
 func help() -> Int32 {
