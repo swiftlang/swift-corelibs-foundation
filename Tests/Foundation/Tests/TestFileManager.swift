@@ -408,15 +408,11 @@ class TestFileManager : XCTestCase {
         try? fm.removeItem(atPath: path)
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
 
-#if !os(Windows)
         let modificationDate = NSDate(timeIntervalSince1970: 1234567890.5) // 2009-02-13T23:31:30.500Z
-#endif
-        
+
         do {
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0600))], ofItemAtPath: path)
-#if !os(Windows)
             try fm.setAttributes([.modificationDate: modificationDate], ofItemAtPath: path)
-#endif
         }
         catch { XCTFail("\(error)") }
         
@@ -427,8 +423,8 @@ class TestFileManager : XCTestCase {
             XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0700)
 #else
             XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
-            XCTAssertEqual((attributes[.modificationDate] as? NSDate)?.timeIntervalSince1970 ?? .nan, modificationDate.timeIntervalSince1970, accuracy: 1.0)
 #endif
+            XCTAssertEqual((attributes[.modificationDate] as? NSDate)?.timeIntervalSince1970 ?? .nan, modificationDate.timeIntervalSince1970, accuracy: 1.0)
         }
         catch { XCTFail("\(error)") }
 
