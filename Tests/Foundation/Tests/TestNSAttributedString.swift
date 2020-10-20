@@ -636,6 +636,325 @@ class TestNSMutableAttributedString : XCTestCase {
         }
     }
 
+    let extendReplaceString = "12345"
+    let reductReplaceString = "0"
+    let extendAttributedReplaceString = NSAttributedString(string: "12345", attributes: [.init("Bold"): true])
+    let reductAttributedReplaceString = NSAttributedString(string: "0", attributes: [.init("Bold"): true])
+    
+    func test_direct_attribute_enumeration_with_extend_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                12345{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_reverse_attribute_enumeration_with_extend_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                123455123451234512345{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_direct_attributes_enumeration_with_extend_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendAttributedReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                123451234512345123451234512345{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_reverse_attributes_enumeration_with_extend_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                123451234512345123451234512345{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_direct_attribute_enumeration_with_reduct_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                0{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_reverse_attribute_enumeration_with_reduct_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                0{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_direct_attributes_enumeration_with_reduct_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                000000{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_reverse_attributes_enumeration_with_reduct_attributed_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductAttributedReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                000000{
+                    Bold = true;
+                }
+                """)
+    }
+    
+    func test_direct_attribute_enumeration_with_extend_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendReplaceString)
+        })
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                12345{
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                }
+                """)
+    }
+    
+    func test_reverse_attribute_enumeration_with_extend_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                12345{
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                }
+                """)
+    }
+    
+    func test_direct_attributes_enumeration_with_extend_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                12345{
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                }
+                """)
+    }
+    
+    func test_reverse_attributes_enumeration_with_extend_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: extendReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+                """
+                12345{
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                    Font = Helvetica;
+                    Size = 123;
+                }12345{
+                    Font = Times;
+                    Size = 456;
+                }12345{
+                }
+                """)
+    }
+    
+    func test_direct_attribute_enumeration_with_reduct_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in: NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+        """
+        0{
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+        }
+        """)
+    }
+    
+    func test_reverse_attribute_enumeration_with_reduct_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttribute(.init("Font"), in:  NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+        """
+        0{
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+        }
+        """)
+    }
+    
+    // Direct Attributes Enumeration With Reduction Replace
+    func test_direct_attributes_enumeration_with_reduct_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in:NSRange(location: 0, length: attrString.length), options: [], using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+        """
+        0{
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+        }
+        """)
+    }
+    
+    // Reverse Attributes Enumeration With Reduction Replace
+    func test_reverse_attributes_enumeration_with_reduct_replace() throws {
+        let attrString = try Fixtures.mutableAttributedString.make()
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length), options: .reverse, using: { value, range, stop in
+            attrString.replaceCharacters(in: range, with: reductReplaceString)
+        })
+
+        XCTAssertEqual(attrString.debugDescription,
+        """
+        0{
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+            Font = Helvetica;
+            Size = 123;
+        }0{
+            Font = Times;
+            Size = 456;
+        }0{
+        }
+        """)
+    }
+
     static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
         return [
             ("test_initWithString", test_initWithString),
@@ -652,6 +971,22 @@ class TestNSMutableAttributedString : XCTestCase {
             ("test_setAttributedString", test_setAttributedString),
             ("test_archivingRoundtrip", test_archivingRoundtrip),
             ("test_unarchivingFixtures", test_unarchivingFixtures),
+            ("test_direct_attribute_enumeration_with_extend_attributed_replace", test_direct_attribute_enumeration_with_extend_attributed_replace),
+            ("test_reverse_attribute_enumeration_with_extend_attributed_replace", test_reverse_attribute_enumeration_with_extend_attributed_replace),
+            ("test_direct_attributes_enumeration_with_extend_attributed_replace", test_direct_attributes_enumeration_with_extend_attributed_replace),
+            ("test_reverse_attributes_enumeration_with_extend_attributed_replace", test_reverse_attributes_enumeration_with_extend_attributed_replace),
+            ("test_direct_attribute_enumeration_with_reduct_attributed_replace", test_direct_attribute_enumeration_with_reduct_attributed_replace),
+            ("test_reverse_attribute_enumeration_with_reduct_attributed_replace", test_reverse_attribute_enumeration_with_reduct_attributed_replace),
+            ("test_direct_attributes_enumeration_with_reduct_attributed_replace", test_direct_attributes_enumeration_with_reduct_attributed_replace),
+            ("test_reverse_attributes_enumeration_with_reduct_attributed_replace", test_reverse_attributes_enumeration_with_reduct_attributed_replace),
+            ("test_direct_attribute_enumeration_with_extend_replace", test_direct_attribute_enumeration_with_extend_replace),
+            ("test_reverse_attribute_enumeration_with_extend_replace", test_reverse_attribute_enumeration_with_extend_replace),
+            ("test_direct_attributes_enumeration_with_extend_replace", test_direct_attributes_enumeration_with_extend_replace),
+            ("test_reverse_attributes_enumeration_with_extend_replace", test_reverse_attributes_enumeration_with_extend_replace),
+            ("test_direct_attribute_enumeration_with_reduct_replace", test_direct_attribute_enumeration_with_reduct_replace),
+            ("test_reverse_attribute_enumeration_with_reduct_replace", test_reverse_attribute_enumeration_with_reduct_replace),
+            ("test_direct_attributes_enumeration_with_reduct_replace", test_direct_attributes_enumeration_with_reduct_replace),
+            ("test_reverse_attributes_enumeration_with_reduct_replace", test_reverse_attributes_enumeration_with_reduct_replace)
         ]
     }
 }
