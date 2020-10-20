@@ -171,11 +171,10 @@ CF_PRIVATE void __CFDateInitialize(void) {
     __CFTSRRate = (1.0E9 / (double)info.numer) * (double)info.denom;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
 #elif TARGET_OS_WIN32
-    LARGE_INTEGER freq;
-    if (!QueryPerformanceFrequency(&freq)) {
-        HALT;
-    }
-    __CFTSRRate = (double)freq.QuadPart;
+    // We are using QueryUnbiasedInterruptTimePrecise as time source.
+    // It returns result in system time units of 100 nanoseconds. 
+    // To get seconds we need to divide the value by 1e7 (10000000).
+    __CFTSRRate = 1.0e7;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
 #elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
     struct timespec res;

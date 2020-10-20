@@ -219,10 +219,9 @@ CF_EXPORT void OSMemoryBarrier();
 
 CF_INLINE uint64_t mach_absolute_time() {
 #if TARGET_OS_WIN32
-    LARGE_INTEGER count;
-    QueryPerformanceCounter(&count);
-    // mach_absolute_time is unsigned, but this function returns a signed value.
-    return (uint64_t)count.QuadPart;
+    ULONGLONG ullTime;
+	QueryUnbiasedInterruptTimePrecise(&ullTime);
+    return ullTime;
 #else
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
