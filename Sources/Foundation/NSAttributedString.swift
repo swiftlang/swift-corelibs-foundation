@@ -225,13 +225,13 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Executes the block for each attribute in the range.
     open func enumerateAttributes(in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: ([NSAttributedString.Key: Any], NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, stop in
+        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, rangeLimit, stop in
             var attributesEffectiveRange = NSRange(location: NSNotFound, length: 0)
             let attributesInRange: [NSAttributedString.Key: Any]
             if opts.contains(.longestEffectiveRangeNotRequired) {
                 attributesInRange = attributes(at: currentIndex, effectiveRange: &attributesEffectiveRange)
             } else {
-                attributesInRange = attributes(at: currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
+                attributesInRange = attributes(at: currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: rangeLimit)
             }
             
             var shouldStop: ObjCBool = false
@@ -244,13 +244,13 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Executes the block for the specified attribute run in the specified range.
     open func enumerateAttribute(_ attrName: NSAttributedString.Key, in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [], using block: (Any?, NSRange, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, stop in
+        _enumerate(in: enumerationRange, reversed: opts.contains(.reverse)) { currentIndex, rangeLimit, stop in
             var attributeEffectiveRange = NSRange(location: NSNotFound, length: 0)
             let attributeInRange: Any?
             if opts.contains(.longestEffectiveRangeNotRequired) {
                 attributeInRange = attribute(attrName, at: currentIndex, effectiveRange: &attributeEffectiveRange)
             } else {
-                attributeInRange = attribute(attrName, at: currentIndex, longestEffectiveRange: &attributeEffectiveRange, in: enumerationRange)
+                attributeInRange = attribute(attrName, at: currentIndex, longestEffectiveRange: &attributeEffectiveRange, in: rangeLimit)
             }
             
             var shouldStop: ObjCBool = false
@@ -260,14 +260,42 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             return attributeEffectiveRange
         }
     }
+    
+    public override var description: String {
+        let string = self.string
+        var description = ""
+        var lastUpperBound = string.startIndex
+
+        enumerateAttributes(in: NSRange(location: 0, length: self.length), options: []) { dict, range, stop in
+            var attrs = "{\n"
+            let keys = dict.keys.map({ $0.rawValue }).sorted()
+            for key in keys {
+                attrs += "    \(key) = \(dict[NSAttributedString.Key(rawValue: key)]!);\n"
+            }
+            attrs += "}"
+            
+            guard let stringRange = Range(NSRange(location: range.lowerBound, length: range.upperBound - range.lowerBound), in: string) else {
+                stop.pointee = true
+                return
+            }
+            
+            let upperBound = stringRange.upperBound
+            description += string[lastUpperBound ..< upperBound]
+            
+            lastUpperBound = upperBound
+            description += attrs
+        }
+        
+        return description
+    }
 
 }
 
 private extension NSAttributedString {
     
     struct AttributeEnumerationRange {
-        let startIndex: Int
-        let endIndex: Int
+        var startIndex: Int
+        var endIndex: Int
         let reversed: Bool
         var currentIndex: Int
         
@@ -288,11 +316,22 @@ private extension NSAttributedString {
             currentIndex = startIndex
         }
         
-        mutating func advance(step: Int = 1) {
+        mutating func advance(range: NSRange, oldLength: Int, newLength: Int) {
             if reversed {
-                currentIndex -= step
+                startIndex = min(startIndex, newLength - 1)
+                currentIndex = range.lowerBound - 1
             } else {
-                currentIndex += step
+                endIndex -= oldLength - newLength
+                currentIndex = range.upperBound - oldLength + newLength
+            }
+        }
+        
+        var range: NSRange {
+            if reversed {
+                return NSRange(location: endIndex, length: startIndex - endIndex + 1)
+            }
+            else {
+                return NSRange(location: startIndex, length: endIndex - startIndex + 1)
             }
         }
     }
@@ -349,12 +388,13 @@ private extension NSAttributedString {
         }
     }
     
-    func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
+    func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, NSRange, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
         var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
         while attributeEnumerationRange.hasMore {
             var stop: ObjCBool = false
-            let effectiveRange = block(attributeEnumerationRange.currentIndex, &stop)
-            attributeEnumerationRange.advance(step: effectiveRange.length)
+            let oldLength = self.length
+            let effectiveRange = block(attributeEnumerationRange.currentIndex, attributeEnumerationRange.range, &stop)
+            attributeEnumerationRange.advance(range: effectiveRange, oldLength: oldLength, newLength: self.length)
             if stop.boolValue {
                 break
             }
