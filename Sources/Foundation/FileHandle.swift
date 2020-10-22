@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -55,7 +55,7 @@ open class FileHandle : NSObject {
       return _handle
     }
 
-    @available(Windows, unavailable, message: "Cannot perform non-owning handle to fd conversion")
+    @available(*, unavailable, message: "Cannot perform non-owning handle to fd conversion")
     open var fileDescriptor: Int32 {
         NSUnsupported()
     }
@@ -943,11 +943,13 @@ extension FileHandle {
         acceptConnectionInBackgroundAndNotify(forModes: [.default])
     }
 
-    @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
-    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
 #if os(Windows)
+    @available(*, unavailable, message: "A SOCKET cannot be treated as a fd")
+    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
         NSUnsupported()
+    }
 #else
+    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
             var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])
             let userInfo: [AnyHashable : Any]
@@ -975,8 +977,8 @@ extension FileHandle {
         privateAsyncVariablesLock.unlock()
         
         owner.resume()
-#endif
     }
+#endif
 
     open func waitForDataInBackgroundAndNotify() {
         waitForDataInBackgroundAndNotify(forModes: [.default])

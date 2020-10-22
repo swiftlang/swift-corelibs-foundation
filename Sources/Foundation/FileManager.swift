@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -1102,12 +1102,12 @@ open class FileManager : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     #if os(Windows)
-    @available(Windows, deprecated, message: "Not yet implemented")
+    @available(*, deprecated, message: "Not yet implemented")
     open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
         NSUnimplemented()
     }
 
-    @available(Windows, deprecated, message: "Not yet implemented")
+    @available(*, deprecated, message: "Not yet implemented")
     public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> URL? {
         NSUnimplemented()
     }
