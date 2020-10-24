@@ -110,10 +110,18 @@ install(DIRECTORY
         DESTINATION
           ${swift_lib_dir}/CoreFoundation
         FILES_MATCHING PATTERN "*.h")
-install(FILES
-          CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
-        DESTINATION
-          ${swift_lib_dir}/CoreFoundation)
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  install(FILES
+            CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>wasm32-unknown-wasi.modulemap
+          DESTINATION
+            ${swift_lib_dir}/CoreFoundation
+          RENAME module.map)
+else()
+  install(FILES
+            CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
+          DESTINATION
+            ${swift_lib_dir}/CoreFoundation)
+endif()
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CFURLSessionInterface.framework/Headers/
         DESTINATION
