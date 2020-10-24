@@ -1,0 +1,10 @@
+module CoreFoundation [extern_c] [system] {
+    umbrella header "CoreFoundation.h"
+    explicit module CFPlugInCOM { header "CFPlugInCOM.h" }
+
+    link "CoreFoundation"
+    link "uuid"
+
+    link "BlocksRuntime"
+    link "icui18n"
+}
