@@ -16,13 +16,20 @@ let validPathSeps: [Character] = ["/"]
 #endif
 
 public func NSTemporaryDirectory() -> String {
+    func normalizedPath(with path: String) -> String {
+        if validPathSeps.contains(where: { path.hasSuffix(String($0)) }) {
+            return path
+        } else {
+            return path + String(validPathSeps.last!)
+        }
+    }
 #if os(Windows)
     let cchLength: DWORD = GetTempPathW(0, nil)
     var wszPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(cchLength + 1))
     guard GetTempPathW(DWORD(wszPath.count), &wszPath) <= cchLength else {
       preconditionFailure("GetTempPathW mutation race")
     }
-    return String(decodingCString: wszPath, as: UTF16.self).standardizingPath
+    return normalizedPath(with: String(decodingCString: wszPath, as: UTF16.self).standardizingPath)
 #else
 #if canImport(Darwin)
     let safe_confstr = { (name: Int32, buf: UnsafeMutablePointer<Int8>?, len: Int) -> Int in
@@ -57,11 +64,7 @@ public func NSTemporaryDirectory() -> String {
     }
 #endif
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
-        if !validPathSeps.contains(where: { tmpdir.hasSuffix(String($0)) }) {
-            return tmpdir + "/"
-        } else {
-            return tmpdir
-        }
+        return normalizedPath(with: tmpdir)
     }
 #if os(Android)
     // Bionic uses /data/local/tmp/ as temporary directory. TMPDIR is rarely
