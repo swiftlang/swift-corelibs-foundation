@@ -24,6 +24,11 @@ class TestFileManager : XCTestCase {
     let pathSep = "/"
 #endif
 
+    func test_NSTemporaryDirectory() {
+        let tempDir = NSTemporaryDirectory()
+        XCTAssertTrue(validPathSeps.contains(where: { tempDir.hasSuffix(String($0)) }), "Temporary directory path must end with path separator")
+    }
+
     func test_createDirectory() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
@@ -1974,6 +1979,7 @@ VIDEOS=StopgapVideos
             /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
             /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
             ("test_concurrentGetItemReplacementDirectory", test_concurrentGetItemReplacementDirectory),
+            ("test_NSTemporaryDirectory", test_NSTemporaryDirectory),
         ]
         
         #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)
