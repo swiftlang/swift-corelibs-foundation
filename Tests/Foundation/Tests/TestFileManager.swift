@@ -1837,6 +1837,10 @@ VIDEOS=StopgapVideos
         } catch {
             XCTFail()
         }
+        let originalWorkingDirectory = fm.currentDirectoryPath
+        defer {
+            fm.changeCurrentDirectoryPath(originalWorkingDirectory)
+        }
         fm.changeCurrentDirectoryPath(tmpPath)
         func checkPath(path: String) throws {
             XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
