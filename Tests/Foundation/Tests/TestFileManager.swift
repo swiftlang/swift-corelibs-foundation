@@ -208,6 +208,9 @@ class TestFileManager : XCTestCase {
     func test_isReadableFile() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_isReadableFile\(NSUUID().uuidString)"
+        defer {
+            try? fm.removeItem(atPath: path)
+        }
 
         do {
             // create test file
@@ -233,6 +236,9 @@ class TestFileManager : XCTestCase {
     func test_isWritableFile() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_isWritableFile\(NSUUID().uuidString)"
+        defer {
+            try? fm.removeItem(atPath: path)
+        }
 
         do {
             // create test file
@@ -253,6 +259,9 @@ class TestFileManager : XCTestCase {
     func test_isExecutableFile() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_isExecutableFile\(NSUUID().uuidString)"
+        defer {
+            try? fm.removeItem(atPath: path)
+        }
 
         do {
             // create test file
@@ -280,6 +289,9 @@ class TestFileManager : XCTestCase {
 
         do {
             let dir_path = NSTemporaryDirectory() + "/test_isDeletableFile_dir/"
+            defer {
+                try? fm.removeItem(atPath: dir_path)
+            }
             let file_path = dir_path + "test_isDeletableFile\(NSUUID().uuidString)"
             // create test directory
             try fm.createDirectory(atPath: dir_path, withIntermediateDirectories: true)
@@ -452,8 +464,9 @@ class TestFileManager : XCTestCase {
         let itemPath = NSTemporaryDirectory() + "\(testDirName)/item"
         let basePath2 = NSTemporaryDirectory() + "\(testDirName)/path2"
         let itemPath2 = NSTemporaryDirectory() + "\(testDirName)/path2/item"
-        
-        try? fm.removeItem(atPath: basePath)
+        defer {
+            try? fm.removeItem(atPath: basePath)
+        }
         
         do {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: false, attributes: nil)
@@ -784,6 +797,10 @@ class TestFileManager : XCTestCase {
         func cleanup() {
             try? fm.removeItem(atPath: srcPath)
             try? fm.removeItem(atPath: destPath)
+        }
+
+        defer {
+            cleanup()
         }
 
         func createDirectory(atPath path: String) {
