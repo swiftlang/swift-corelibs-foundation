@@ -504,7 +504,7 @@ open class Process: NSObject {
         var _devNull: FileHandle?
         func devNullFd() throws -> HANDLE {
             _devNull = try _devNull ?? FileHandle(forUpdating: URL(fileURLWithPath: "NUL", isDirectory: false))
-            return _devNull!.handle
+            return _devNull!._handle
         }
 
         var modifiedPipes: [(handle: HANDLE, prevValue: DWORD)] = []
@@ -520,9 +520,9 @@ open class Process: NSObject {
 
         switch standardInput {
         case let pipe as Pipe:
-            siStartupInfo.hStdInput = pipe.fileHandleForReading.handle
-            try deferReset(handle: pipe.fileHandleForWriting.handle)
-            SetHandleInformation(pipe.fileHandleForWriting.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
+            siStartupInfo.hStdInput = pipe.fileHandleForReading._handle
+            try deferReset(handle: pipe.fileHandleForWriting._handle)
+            SetHandleInformation(pipe.fileHandleForWriting._handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -530,17 +530,17 @@ open class Process: NSObject {
             siStartupInfo.hStdInput = try devNullFd()
 
         case let handle as FileHandle:
-            siStartupInfo.hStdInput = handle.handle
-            try deferReset(handle: handle.handle)
-            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
+            siStartupInfo.hStdInput = handle._handle
+            try deferReset(handle: handle._handle)
+            SetHandleInformation(handle._handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
         switch standardOutput {
         case let pipe as Pipe:
-            siStartupInfo.hStdOutput = pipe.fileHandleForWriting.handle
-            try deferReset(handle: pipe.fileHandleForReading.handle)
-            SetHandleInformation(pipe.fileHandleForReading.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
+            siStartupInfo.hStdOutput = pipe.fileHandleForWriting._handle
+            try deferReset(handle: pipe.fileHandleForReading._handle)
+            SetHandleInformation(pipe.fileHandleForReading._handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -548,17 +548,17 @@ open class Process: NSObject {
             siStartupInfo.hStdOutput = try devNullFd()
 
         case let handle as FileHandle:
-            siStartupInfo.hStdOutput = handle.handle
-            try deferReset(handle: handle.handle)
-            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
+            siStartupInfo.hStdOutput = handle._handle
+            try deferReset(handle: handle._handle)
+            SetHandleInformation(handle._handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
         switch standardError {
         case let pipe as Pipe:
-            siStartupInfo.hStdError = pipe.fileHandleForWriting.handle
-            try deferReset(handle: pipe.fileHandleForReading.handle)
-            SetHandleInformation(pipe.fileHandleForReading.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
+            siStartupInfo.hStdError = pipe.fileHandleForWriting._handle
+            try deferReset(handle: pipe.fileHandleForReading._handle)
+            SetHandleInformation(pipe.fileHandleForReading._handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -566,9 +566,9 @@ open class Process: NSObject {
             siStartupInfo.hStdError = try devNullFd()
 
         case let handle as FileHandle:
-            siStartupInfo.hStdError = handle.handle
-            try deferReset(handle: handle.handle)
-            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
+            siStartupInfo.hStdError = handle._handle
+            try deferReset(handle: handle._handle)
+            SetHandleInformation(handle._handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
