@@ -1412,8 +1412,8 @@ func _convertErrorToNSError(_ error: Error) -> NSError {
             code = error.errorCode
             userInfo = error.errorUserInfo
         } else {
-            domain = "SwiftError"
-            code = 0
+            domain = error._domain
+            code = error._code
             userInfo = (_swift_Foundation_getErrorDefaultUserInfo(error) as? [String : Any]) ?? [:]
         }
         

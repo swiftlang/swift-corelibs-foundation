@@ -22,7 +22,12 @@ class TestNSError : XCTestCase {
             ("test_CustomNSError_errorCode", test_CustomNSError_errorCode),
             ("test_CustomNSError_errorCodeRawInt", test_CustomNSError_errorCodeRawInt),
             ("test_CustomNSError_errorCodeRawUInt", test_CustomNSError_errorCodeRawUInt),
-            ("test_errorConvenience", test_errorConvenience)
+            ("test_errorConvenience", test_errorConvenience),
+            ("test_ConvertErrorToNSError_domain", test_ConvertErrorToNSError_domain),
+            ("test_ConvertErrorToNSError_errorCode", test_ConvertErrorToNSError_errorCode),
+            ("test_ConvertErrorToNSError_errorCodeRawInt", test_ConvertErrorToNSError_errorCodeRawInt),
+            ("test_ConvertErrorToNSError_errorCodeRawUInt", test_ConvertErrorToNSError_errorCodeRawUInt),
+            ("test_ConvertErrorToNSError_errorCodeWithAssosiatedValue", test_ConvertErrorToNSError_errorCodeWithAssosiatedValue),
         ]
     }
     
@@ -106,6 +111,60 @@ class TestNSError : XCTestCase {
             XCTFail()
         }
     }
+    
+    func test_ConvertErrorToNSError_domain() {
+        struct CustomSwiftError: Error {
+        }
+        XCTAssertTrue((CustomSwiftError() as NSError).domain.contains("CustomSwiftError"))
+    }
+    
+    func test_ConvertErrorToNSError_errorCode() {
+        enum SwiftError: Error {
+            case zero
+            case one
+            case two
+        }
+        
+        XCTAssertEqual((SwiftError.zero as NSError).code, 0)
+        XCTAssertEqual((SwiftError.one as NSError).code, 1)
+        XCTAssertEqual((SwiftError.two as NSError).code, 2)
+    }
+    
+    func test_ConvertErrorToNSError_errorCodeRawInt() {
+        enum SwiftError: Int, Error {
+            case minusOne = -1
+            case fortyTwo = 42
+        }
+        
+        XCTAssertEqual((SwiftError.minusOne as NSError).code, -1)
+        XCTAssertEqual((SwiftError.fortyTwo as NSError).code, 42)
+    }
+    
+    func test_ConvertErrorToNSError_errorCodeRawUInt() {
+        enum SwiftError: UInt, Error {
+            case fortyTwo = 42
+        }
+        
+        XCTAssertEqual((SwiftError.fortyTwo as NSError).code, 42)
+    }
+    
+    func test_ConvertErrorToNSError_errorCodeWithAssosiatedValue() {
+        // Default error code for enum case is based on EnumImplStrategy::getTagIndex
+        enum SwiftError: Error {
+            case one // 2
+            case two // 3
+            case three(String) // 0
+            case four // 4
+            case five(String) // 1
+        }
+        
+        XCTAssertEqual((SwiftError.one as NSError).code, 2)
+        XCTAssertEqual((SwiftError.two as NSError).code, 3)
+        XCTAssertEqual((SwiftError.three("three") as NSError).code, 0)
+        XCTAssertEqual((SwiftError.four as NSError).code, 4)
+        XCTAssertEqual((SwiftError.five("five") as NSError).code, 1)
+    }
+
 }
 
 class TestURLError: XCTestCase {
