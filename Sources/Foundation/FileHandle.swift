@@ -953,8 +953,13 @@ extension FileHandle {
         }
     }
     
+    @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
     open func acceptConnectionInBackgroundAndNotify() {
+#if os(Windows)
+        NSUnsupported()
+#else
         acceptConnectionInBackgroundAndNotify(forModes: [.default])
+#endif
     }
 
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
