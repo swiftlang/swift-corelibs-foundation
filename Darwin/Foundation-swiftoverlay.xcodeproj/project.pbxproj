@@ -707,7 +707,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "exec \"${SOURCE_ROOT}/Config/install-swiftmodules.sh\"\n";
+			shellScript = "exec \"${PROJECT_DIR}/Config/install-swiftmodules.sh\"\n";
 		};
 		7D20065C22F25325008DF640 /* Install Swift Module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -725,7 +725,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "exec \"${SOURCE_ROOT}/Config/install-swiftmodules.sh\"\n";
+			shellScript = "exec \"${PROJECT_DIR}/Config/install-swiftmodules.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
