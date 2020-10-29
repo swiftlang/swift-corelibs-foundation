@@ -12,7 +12,7 @@
 
 @_exported import Foundation // Clang module
 import ObjectiveC
-@_implementationOnly import _SwiftFoundationOverlayShims
+@_implementationOnly import _FoundationOverlayShims
 
 // This exists to allow for dynamic dispatch on KVO methods added to NSObject.
 // Extending NSObject with these methods would disallow overrides.

@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 @_exported import Foundation // Clang module
-@_implementationOnly import _SwiftFoundationOverlayShims
+@_implementationOnly import _FoundationOverlayShims
 
 extension UndoManager {
   @available(*, unavailable, renamed: "registerUndo(withTarget:handler:)")

@@ -13,7 +13,7 @@
 @_exported import Foundation // Clang module
 import CoreFoundation
 import Darwin
-@_implementationOnly import _SwiftFoundationOverlayShims
+@_implementationOnly import _FoundationOverlayShims
 
 //===----------------------------------------------------------------------===//
 // NSError (as an out parameter).

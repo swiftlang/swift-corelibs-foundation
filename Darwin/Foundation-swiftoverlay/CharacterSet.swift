@@ -12,8 +12,8 @@
 
 @_exported import Foundation // Clang module
 import CoreFoundation
-@_implementationOnly import _SwiftCoreFoundationOverlayShims
-@_implementationOnly import _SwiftFoundationOverlayShims
+@_implementationOnly import _CoreFoundationOverlayShims
+@_implementationOnly import _FoundationOverlayShims
 
 private func _utfRangeToCFRange(_ inRange : Range<Unicode.Scalar>) -> CFRange {
     return CFRange(

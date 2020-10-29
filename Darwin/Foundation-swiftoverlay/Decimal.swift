@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 @_exported import Foundation // Clang module
-@_implementationOnly import _SwiftCoreFoundationOverlayShims
+@_implementationOnly import _CoreFoundationOverlayShims
 
 extension Decimal {
     public typealias RoundingMode = NSDecimalNumber.RoundingMode

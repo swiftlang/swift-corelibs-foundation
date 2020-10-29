@@ -12,7 +12,7 @@
 
 @_exported import Foundation // Clang module
 import CoreFoundation
-@_implementationOnly import _SwiftCoreFoundationOverlayShims
+@_implementationOnly import _CoreFoundationOverlayShims
 
 /**
  `Date` represents a single point in time.
