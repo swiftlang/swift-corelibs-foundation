@@ -13,7 +13,8 @@
 #import <Foundation/Foundation.h>
 #import <sys/fcntl.h>
 
-#include "swift/Runtime/Config.h"
+// Note: This came from SwiftShims/Visibility.h
+#define SWIFT_RUNTIME_STDLIB_INTERNAL __attribute__ ((visibility("hidden")))
 
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR
 static int __NSFileProtectionClassForOptions(NSUInteger options) {
