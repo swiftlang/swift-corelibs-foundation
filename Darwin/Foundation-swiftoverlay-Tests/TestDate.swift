@@ -9,37 +9,26 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
 import CoreFoundation
-
-#if FOUNDATION_XCTEST
 import XCTest
-class TestDateSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestDateSuper { }
-#endif
 
-class TestDate : TestDateSuper {
+class TestDate : XCTestCase {
 
     func testDateComparison() {
         let d1 = Date()
         let d2 = d1 + 1
         
-        expectTrue(d2 > d1)
-        expectTrue(d1 < d2)
+        XCTAssertTrue(d2 > d1)
+        XCTAssertTrue(d1 < d2)
         
         let d3 = Date(timeIntervalSince1970: 12345)
         let d4 = Date(timeIntervalSince1970: 12345)
         
-        expectTrue(d3 == d4)
-        expectTrue(d3 <= d4)
-        expectTrue(d4 >= d3)
+        XCTAssertTrue(d3 == d4)
+        XCTAssertTrue(d3 <= d4)
+        XCTAssertTrue(d4 >= d3)
     }
     
     func testDateMutation() {
@@ -48,34 +37,34 @@ class TestDate : TestDateSuper {
         d1 = d1 + 1
         let d2 = Date(timeIntervalSinceNow: 10)
         
-        expectTrue(d2 > d1)
-        expectTrue(d1 != d0)
+        XCTAssertTrue(d2 > d1)
+        XCTAssertTrue(d1 != d0)
         
         let d3 = d1
         d1 += 10
-        expectTrue(d1 > d3)
+        XCTAssertTrue(d1 > d3)
     }
 
     func testCast() {
         let d0 = NSDate()
         let d1 = d0 as Date
-        expectEqual(d0.timeIntervalSinceReferenceDate, d1.timeIntervalSinceReferenceDate)
+        XCTAssertEqual(d0.timeIntervalSinceReferenceDate, d1.timeIntervalSinceReferenceDate)
     }
 
     func testDistantPast() {
         let distantPast = Date.distantPast
         let currentDate = Date()
-        expectTrue(distantPast < currentDate)
-        expectTrue(currentDate > distantPast)
-        expectTrue(distantPast.timeIntervalSince(currentDate) < 3600.0*24*365*100) /* ~1 century in seconds */
+        XCTAssertTrue(distantPast < currentDate)
+        XCTAssertTrue(currentDate > distantPast)
+        XCTAssertTrue(distantPast.timeIntervalSince(currentDate) < 3600.0*24*365*100) /* ~1 century in seconds */
     }
 
     func testDistantFuture() {
         let distantFuture = Date.distantFuture
         let currentDate = Date()
-        expectTrue(currentDate < distantFuture)
-        expectTrue(distantFuture > currentDate)
-        expectTrue(distantFuture.timeIntervalSince(currentDate) > 3600.0*24*365*100) /* ~1 century in seconds */
+        XCTAssertTrue(currentDate < distantFuture)
+        XCTAssertTrue(distantFuture > currentDate)
+        XCTAssertTrue(distantFuture.timeIntervalSince(currentDate) > 3600.0*24*365*100) /* ~1 century in seconds */
     }
 
     func dateWithString(_ str: String) -> Date {
@@ -90,20 +79,20 @@ class TestDate : TestDateSuper {
     func testEquality() {
         let date = dateWithString("2010-05-17 14:49:47 -0700")
         let sameDate = dateWithString("2010-05-17 14:49:47 -0700")
-        expectEqual(date, sameDate)
-        expectEqual(sameDate, date)
+        XCTAssertEqual(date, sameDate)
+        XCTAssertEqual(sameDate, date)
 
         let differentDate = dateWithString("2010-05-17 14:49:46 -0700")
-        expectNotEqual(date, differentDate)
-        expectNotEqual(differentDate, date)
+        XCTAssertNotEqual(date, differentDate)
+        XCTAssertNotEqual(differentDate, date)
 
         let sameDateByTimeZone = dateWithString("2010-05-17 13:49:47 -0800")
-        expectEqual(date, sameDateByTimeZone)
-        expectEqual(sameDateByTimeZone, date)
+        XCTAssertEqual(date, sameDateByTimeZone)
+        XCTAssertEqual(sameDateByTimeZone, date)
 
         let differentDateByTimeZone = dateWithString("2010-05-17 14:49:47 -0800")
-        expectNotEqual(date, differentDateByTimeZone)
-        expectNotEqual(differentDateByTimeZone, date)
+        XCTAssertNotEqual(date, differentDateByTimeZone)
+        XCTAssertNotEqual(differentDateByTimeZone, date)
     }
 
     func testTimeIntervalSinceDate() {
@@ -113,25 +102,25 @@ class TestDate : TestDateSuper {
         let earlierDate = dateWithString("1810-05-17 14:49:47 -0700")
 
         let laterSeconds = laterDate.timeIntervalSince(referenceDate)
-        expectEqual(laterSeconds, 3483121787.0)
+        XCTAssertEqual(laterSeconds, 3483121787.0)
 
         let earlierSeconds = earlierDate.timeIntervalSince(referenceDate)
-        expectEqual(earlierSeconds, -2828311813.0)
+        XCTAssertEqual(earlierSeconds, -2828311813.0)
 
         let sameSeconds = sameDate.timeIntervalSince(referenceDate)
-        expectEqual(sameSeconds, 0.0)
+        XCTAssertEqual(sameSeconds, 0.0)
     }
     
     func testDateComponents() {
         // Make sure the optional init stuff works
         let dc = DateComponents()
         
-        expectNil(dc.year)
+        XCTAssertNil(dc.year)
         
         let dc2 = DateComponents(year: 1999)
         
-        expectNil(dc2.day)
-        expectEqual(1999, dc2.year)
+        XCTAssertNil(dc2.day)
+        XCTAssertEqual(1999, dc2.year)
     }
 
     func test_DateHashing() {
@@ -157,8 +146,8 @@ class TestDate : TestDateSuper {
         expectEqual(Date.self, type(of: anyHashables[0].base))
         expectEqual(Date.self, type(of: anyHashables[1].base))
         expectEqual(Date.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSDate() {
@@ -171,8 +160,8 @@ class TestDate : TestDateSuper {
         expectEqual(Date.self, type(of: anyHashables[0].base))
         expectEqual(Date.self, type(of: anyHashables[1].base))
         expectEqual(Date.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableContainingDateComponents() {
@@ -185,8 +174,8 @@ class TestDate : TestDateSuper {
         expectEqual(DateComponents.self, type(of: anyHashables[0].base))
         expectEqual(DateComponents.self, type(of: anyHashables[1].base))
         expectEqual(DateComponents.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSDateComponents() {
@@ -204,30 +193,12 @@ class TestDate : TestDateSuper {
         expectEqual(DateComponents.self, type(of: anyHashables[0].base))
         expectEqual(DateComponents.self, type(of: anyHashables[1].base))
         expectEqual(DateComponents.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_dateComponents_unconditionallyBridgeFromObjectiveC() {
-        expectEqual(DateComponents(), DateComponents._unconditionallyBridgeFromObjectiveC(nil))
+        XCTAssertEqual(DateComponents(), DateComponents._unconditionallyBridgeFromObjectiveC(nil))
     }
 }
 
-#if !FOUNDATION_XCTEST
-var DateTests = TestSuite("TestDate")
-DateTests.test("testDateComparison") { TestDate().testDateComparison() }
-DateTests.test("testDateMutation") { TestDate().testDateMutation() }
-DateTests.test("testCast") { TestDate().testCast() }
-DateTests.test("testDistantPast") { TestDate().testDistantPast() }
-DateTests.test("testDistantFuture") { TestDate().testDistantFuture() }
-DateTests.test("testEquality") { TestDate().testEquality() }
-DateTests.test("testTimeIntervalSinceDate") { TestDate().testTimeIntervalSinceDate() }
-DateTests.test("testDateComponents") { TestDate().testDateComponents() }
-DateTests.test("test_DateHashing") { TestDate().test_DateHashing() }
-DateTests.test("test_AnyHashableContainingDate") { TestDate().test_AnyHashableContainingDate() }
-DateTests.test("test_AnyHashableCreatedFromNSDate") { TestDate().test_AnyHashableCreatedFromNSDate() }
-DateTests.test("test_AnyHashableContainingDateComponents") { TestDate().test_AnyHashableContainingDateComponents() }
-DateTests.test("test_AnyHashableCreatedFromNSDateComponents") { TestDate().test_AnyHashableCreatedFromNSDateComponents() }
-DateTests.test("test_dateComponents_unconditionallyBridgeFromObjectiveC") { TestDate().test_dateComponents_unconditionallyBridgeFromObjectiveC() }
-runAllTests()
-#endif

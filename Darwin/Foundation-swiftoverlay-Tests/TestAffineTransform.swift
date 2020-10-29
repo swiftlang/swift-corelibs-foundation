@@ -9,53 +9,37 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
+import XCTest
 
 #if os(macOS)
-
-#if FOUNDATION_XCTEST
-import XCTest
-class TestAffineTransformSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestAffineTransformSuper { }
-#endif
-
-func expectEqualWithAccuracy(_ lhs: Double, _ rhs: Double, accuracy: Double, _ message: String = "", file: String = #file, line: UInt = #line) {
-    expectTrue(fabs(lhs - rhs) < accuracy, message, file: file, line: line)
-}
-
 extension AffineTransform {
     func transform(_ aRect: NSRect) -> NSRect {
         return NSRect(origin: transform(aRect.origin), size: transform(aRect.size))
     }
 }
 
-class TestAffineTransform : TestAffineTransformSuper {
+class TestAffineTransform : XCTestCase {
     private let accuracyThreshold = 0.001
     
-    func checkPointTransformation(_ transform: AffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: String = #file, line: UInt = #line) {
+    func checkPointTransformation(_ transform: AffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newPoint = transform.transform(point)
-        expectEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold,
+        XCTAssertEqual(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold,
                                    "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)", file: file, line: line)
-        expectEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold,
+        XCTAssertEqual(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold,
                                    "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)", file: file, line: line)
     }
     
-    func checkSizeTransformation(_ transform: AffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: String = #file, line: UInt = #line) {
+    func checkSizeTransformation(_ transform: AffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newSize = transform.transform(size)
-        expectEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold,
+        XCTAssertEqual(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold,
                                    "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)", file: file, line: line)
-        expectEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold,
+        XCTAssertEqual(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold,
                                    "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)", file: file, line: line)
     }
     
-    func checkRectTransformation(_ transform: AffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: String = #file, line: UInt = #line) {
+    func checkRectTransformation(_ transform: AffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newRect = transform.transform(rect)
         
         checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin,
@@ -68,17 +52,17 @@ class TestAffineTransform : TestAffineTransformSuper {
         let defaultAffineTransform = AffineTransform()
         let identityTransform = AffineTransform.identity
 
-        expectEqual(defaultAffineTransform, identityTransform)
+        XCTAssertEqual(defaultAffineTransform, identityTransform)
         
         // The diagonal entries (1,1) and (2,2) of the identity matrix are ones. The other entries are zeros.
         // TODO: These should use DBL_MAX but it's not available as part of Glibc on Linux
-        expectEqualWithAccuracy(Double(identityTransform.m11), Double(1), accuracy: accuracyThreshold)
-        expectEqualWithAccuracy(Double(identityTransform.m22), Double(1), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(identityTransform.m11), Double(1), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(identityTransform.m22), Double(1), accuracy: accuracyThreshold)
         
-        expectEqualWithAccuracy(Double(identityTransform.m12), Double(0), accuracy: accuracyThreshold)
-        expectEqualWithAccuracy(Double(identityTransform.m21), Double(0), accuracy: accuracyThreshold)
-        expectEqualWithAccuracy(Double(identityTransform.tX), Double(0), accuracy: accuracyThreshold)
-        expectEqualWithAccuracy(Double(identityTransform.tY), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(identityTransform.m12), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(identityTransform.m21), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(identityTransform.tX), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(identityTransform.tY), Double(0), accuracy: accuracyThreshold)
     }
     
     func test_IdentityTransformation() {
@@ -395,7 +379,7 @@ class TestAffineTransform : TestAffineTransformSuper {
     }
 
     func test_unconditionallyBridgeFromObjectiveC() {
-        expectEqual(AffineTransform(), AffineTransform._unconditionallyBridgeFromObjectiveC(nil))
+        XCTAssertEqual(AffineTransform(), AffineTransform._unconditionallyBridgeFromObjectiveC(nil))
     }
 
     func test_rotation_compose() {
@@ -404,33 +388,9 @@ class TestAffineTransform : TestAffineTransformSuper {
         t.rotate(byDegrees: 90)
         t.translate(x: -1.0, y: -1.0)
         let result = t.transform(NSPoint(x: 1.0, y: 2.0))
-        expectEqualWithAccuracy(0.0, Double(result.x), accuracy: accuracyThreshold)
-        expectEqualWithAccuracy(1.0, Double(result.y), accuracy: accuracyThreshold)
+        XCTAssertEqual(0.0, Double(result.x), accuracy: accuracyThreshold)
+        XCTAssertEqual(1.0, Double(result.y), accuracy: accuracyThreshold)
     }
 }
-
-#if !FOUNDATION_XCTEST
-var AffineTransformTests = TestSuite("TestAffineTransform")
-AffineTransformTests.test("test_BasicConstruction") { TestAffineTransform().test_BasicConstruction() }
-AffineTransformTests.test("test_IdentityTransformation") { TestAffineTransform().test_IdentityTransformation() }
-AffineTransformTests.test("test_Translation") { TestAffineTransform().test_Translation() }
-AffineTransformTests.test("test_Scale") { TestAffineTransform().test_Scale() }
-AffineTransformTests.test("test_Rotation_Degrees") { TestAffineTransform().test_Rotation_Degrees() }
-AffineTransformTests.test("test_Rotation_Radians") { TestAffineTransform().test_Rotation_Radians() }
-AffineTransformTests.test("test_Inversion") { TestAffineTransform().test_Inversion() }
-AffineTransformTests.test("test_TranslationComposed") { TestAffineTransform().test_TranslationComposed() }
-AffineTransformTests.test("test_Scaling") { TestAffineTransform().test_Scaling() }
-AffineTransformTests.test("test_TranslationScaling") { TestAffineTransform().test_TranslationScaling() }
-AffineTransformTests.test("test_ScalingTranslation") { TestAffineTransform().test_ScalingTranslation() }
-AffineTransformTests.test("test_AppendTransform") { TestAffineTransform().test_AppendTransform() }
-AffineTransformTests.test("test_PrependTransform") { TestAffineTransform().test_PrependTransform() }
-AffineTransformTests.test("test_TransformComposition") { TestAffineTransform().test_TransformComposition() }
-AffineTransformTests.test("test_hashing") { TestAffineTransform().test_hashing() }
-AffineTransformTests.test("test_AnyHashable") { TestAffineTransform().test_AnyHashable() }
-AffineTransformTests.test("test_unconditionallyBridgeFromObjectiveC") { TestAffineTransform().test_unconditionallyBridgeFromObjectiveC() }
-AffineTransformTests.test("test_rotation_compose") { TestAffineTransform().test_rotation_compose() }
-runAllTests()
-#endif
-    
 
 #endif

@@ -9,22 +9,11 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
-
-#if FOUNDATION_XCTEST
 import XCTest
-class TestDateIntervalSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestDateIntervalSuper { }
-#endif
 
-class TestDateInterval : TestDateIntervalSuper {
+class TestDateInterval : XCTestCase {
     func dateWithString(_ str: String) -> Date {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
@@ -39,19 +28,19 @@ class TestDateInterval : TestDateIntervalSuper {
             let duration: TimeInterval = 10000000.0
             let testInterval1 = DateInterval(start: start, duration: duration)
             let testInterval2 = DateInterval(start: start, duration: duration)
-            expectEqual(testInterval1, testInterval2)
-            expectEqual(testInterval2, testInterval1)
-            expectEqual(testInterval1.compare(testInterval2), ComparisonResult.orderedSame)
+            XCTAssertEqual(testInterval1, testInterval2)
+            XCTAssertEqual(testInterval2, testInterval1)
+            XCTAssertEqual(testInterval1.compare(testInterval2), ComparisonResult.orderedSame)
             
             let testInterval3 = DateInterval(start: start, duration: 10000000000.0)
-            expectTrue(testInterval1 < testInterval3)
-            expectTrue(testInterval3 > testInterval1)
+            XCTAssertTrue(testInterval1 < testInterval3)
+            XCTAssertTrue(testInterval3 > testInterval1)
             
             let earlierStart = dateWithString("2009-05-17 14:49:47 -0700")
             let testInterval4 = DateInterval(start: earlierStart, duration: duration)
             
-            expectTrue(testInterval4 < testInterval1)
-            expectTrue(testInterval1 > testInterval4)
+            XCTAssertTrue(testInterval4 < testInterval1)
+            XCTAssertTrue(testInterval1 > testInterval4)
         }
     }
 
@@ -62,10 +51,10 @@ class TestDateInterval : TestDateIntervalSuper {
             let testInterval1 = DateInterval(start: start, duration: duration)
             let testInterval2 = DateInterval(start: start, duration: duration)
             
-            expectEqual(testInterval1, testInterval2)
+            XCTAssertEqual(testInterval1, testInterval2)
             
             let testInterval3 = DateInterval(start: start, duration: 100.0)
-            expectNotEqual(testInterval1, testInterval3)
+            XCTAssertNotEqual(testInterval1, testInterval3)
         }
     }
 
@@ -111,14 +100,14 @@ class TestDateInterval : TestDateIntervalSuper {
             
             let testInterval2 = DateInterval(start: start2, end: end2)
             
-            expectTrue(testInterval1.intersects(testInterval2))
+            XCTAssertTrue(testInterval1.intersects(testInterval2))
             
             let start3 = dateWithString("2010-10-17 14:49:47 -0700")
             let end3 = dateWithString("2010-11-17 14:49:47 -0700")
             
             let testInterval3 = DateInterval(start: start3, end: end3)
             
-            expectFalse(testInterval1.intersects(testInterval3))
+            XCTAssertFalse(testInterval1.intersects(testInterval3))
         }
     }
 
@@ -140,12 +129,12 @@ class TestDateInterval : TestDateIntervalSuper {
             let testInterval3 = DateInterval(start: start3, end: end3)
             
             let intersection1 = testInterval2.intersection(with: testInterval1)
-            expectNotNil(intersection1)
-            expectEqual(testInterval3, intersection1)
+            XCTAssertNotNil(intersection1)
+            XCTAssertEqual(testInterval3, intersection1)
             
             let intersection2 = testInterval1.intersection(with: testInterval2)
-            expectNotNil(intersection2)
-            expectEqual(intersection1, intersection2)
+            XCTAssertNotNil(intersection2)
+            XCTAssertEqual(intersection1, intersection2)
         }
     }
 
@@ -157,10 +146,10 @@ class TestDateInterval : TestDateIntervalSuper {
             let testInterval = DateInterval(start: start, duration: duration)
             let containedDate = dateWithString("2010-05-17 20:49:47 -0700")
             
-            expectTrue(testInterval.contains(containedDate))
+            XCTAssertTrue(testInterval.contains(containedDate))
             
             let earlierStart = dateWithString("2009-05-17 14:49:47 -0700")
-            expectFalse(testInterval.contains(earlierStart))
+            XCTAssertFalse(testInterval.contains(earlierStart))
         }
     }
 
@@ -177,8 +166,8 @@ class TestDateInterval : TestDateIntervalSuper {
             expectEqual(DateInterval.self, type(of: anyHashables[0].base))
             expectEqual(DateInterval.self, type(of: anyHashables[1].base))
             expectEqual(DateInterval.self, type(of: anyHashables[2].base))
-            expectNotEqual(anyHashables[0], anyHashables[1])
-            expectEqual(anyHashables[1], anyHashables[2])
+            XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+            XCTAssertEqual(anyHashables[1], anyHashables[2])
         }
     }
 
@@ -195,20 +184,8 @@ class TestDateInterval : TestDateIntervalSuper {
             expectEqual(DateInterval.self, type(of: anyHashables[0].base))
             expectEqual(DateInterval.self, type(of: anyHashables[1].base))
             expectEqual(DateInterval.self, type(of: anyHashables[2].base))
-            expectNotEqual(anyHashables[0], anyHashables[1])
-            expectEqual(anyHashables[1], anyHashables[2])
+            XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+            XCTAssertEqual(anyHashables[1], anyHashables[2])
         }
     }
 }
-
-#if !FOUNDATION_XCTEST
-var DateIntervalTests = TestSuite("TestDateInterval")
-DateIntervalTests.test("test_compareDateIntervals") { TestDateInterval().test_compareDateIntervals() }
-DateIntervalTests.test("test_isEqualToDateInterval") { TestDateInterval().test_isEqualToDateInterval() }
-DateIntervalTests.test("test_hashing") { TestDateInterval().test_hashing() }
-DateIntervalTests.test("test_checkIntersection") { TestDateInterval().test_checkIntersection() }
-DateIntervalTests.test("test_validIntersections") { TestDateInterval().test_validIntersections() }
-DateIntervalTests.test("test_AnyHashableContainingDateInterval") { TestDateInterval().test_AnyHashableContainingDateInterval() }
-DateIntervalTests.test("test_AnyHashableCreatedFromNSDateInterval") { TestDateInterval().test_AnyHashableCreatedFromNSDateInterval() }
-runAllTests()
-#endif

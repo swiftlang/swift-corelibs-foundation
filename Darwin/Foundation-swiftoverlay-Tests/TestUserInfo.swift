@@ -9,20 +9,9 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
-
-#if FOUNDATION_XCTEST
 import XCTest
-class TestUserInfoSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestUserInfoSuper : NSObject { }
-#endif
 
 struct SubStruct: Equatable {
     var i: Int
@@ -68,14 +57,14 @@ struct SomeStructure: Hashable {
  behavior.
 */
 
-class TestUserInfo : TestUserInfoSuper {
+class TestUserInfo : XCTestCase {
     var posted: Notification?
 
     func validate(_ testStructure: SomeStructure, _ value: SomeStructure) {
-        expectEqual(testStructure.i, value.i)
-        expectEqual(testStructure.str, value.str)
-        expectEqual(testStructure.sub.i, value.sub.i)
-        expectEqual(testStructure.sub.str, value.sub.str)
+        XCTAssertEqual(testStructure.i, value.i)
+        XCTAssertEqual(testStructure.str, value.str)
+        XCTAssertEqual(testStructure.sub.i, value.sub.i)
+        XCTAssertEqual(testStructure.sub.str, value.sub.str)
     }
 
     func test_userInfoPost() {
@@ -86,17 +75,17 @@ class TestUserInfo : TestUserInfoSuper {
             AnyHashable(userInfoKey) : testStructure
         ]
         let note = Notification(name: notifName, userInfo: info)
-        expectNotNil(note.userInfo)
+        XCTAssertNotNil(note.userInfo)
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(TestUserInfo.notification(_:)), name: notifName, object: nil)
         nc.post(note)
-        expectNotNil(posted)
+        XCTAssertNotNil(posted)
         if let notification = posted {
             let postedInfo = notification.userInfo
-            expectNotNil(postedInfo)
+            XCTAssertNotNil(postedInfo)
             if let userInfo = postedInfo {
                 let postedValue = userInfo[AnyHashable(userInfoKey)] as? SomeStructure
-                expectNotNil(postedValue)
+                XCTAssertNotNil(postedValue)
                 if let value = postedValue {
                     validate(testStructure, value)
                 }
@@ -121,14 +110,14 @@ class TestUserInfo : TestUserInfoSuper {
 
         let note1 = Notification(name: notifName, userInfo: info1)
         let note2 = Notification(name: notifName, userInfo: info1)
-        expectEqual(note1, note2)
+        XCTAssertEqual(note1, note2)
 
         let note3 = Notification(name: notifName, userInfo: info2)
         let note4 = Notification(name: notifName, userInfo: info2)
-        expectEqual(note3, note4)
+        XCTAssertEqual(note3, note4)
 
         let note5 = Notification(name: notifName, userInfo: info3)
-        expectNotEqual(note1, note5)
+        XCTAssertNotEqual(note1, note5)
     }
 
     @objc func notification(_ notif: Notification) {
@@ -147,7 +136,7 @@ class TestUserInfo : TestUserInfoSuper {
             let noteAsPlist = try! PropertyListSerialization.propertyList(from: archivedNote, options: [], format: nil)
             let plistAsData = try! PropertyListSerialization.data(fromPropertyList: noteAsPlist, format: .xml, options: 0)
             let xml = NSString(data: plistAsData, encoding: String.Encoding.utf8.rawValue)!
-            expectEqual(xml.range(of: "_NSUserInfoDictionary").location, NSNotFound)
+            XCTAssertEqual(xml.range(of: "_NSUserInfoDictionary").location, NSNotFound)
         }
     }
 
@@ -161,8 +150,8 @@ class TestUserInfo : TestUserInfoSuper {
         expectEqual(Notification.self, type(of: anyHashables[0].base))
         expectEqual(Notification.self, type(of: anyHashables[1].base))
         expectEqual(Notification.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSNotification() {
@@ -175,17 +164,7 @@ class TestUserInfo : TestUserInfoSuper {
         expectEqual(Notification.self, type(of: anyHashables[0].base))
         expectEqual(Notification.self, type(of: anyHashables[1].base))
         expectEqual(Notification.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 }
-
-#if !FOUNDATION_XCTEST
-var UserInfoTests = TestSuite("UserInfo")
-UserInfoTests.test("test_userInfoPost") { TestUserInfo().test_userInfoPost() }
-UserInfoTests.test("test_equality") { TestUserInfo().test_equality() }
-UserInfoTests.test("test_classForCoder") { TestUserInfo().test_classForCoder() }
-UserInfoTests.test("test_AnyHashableContainingNotification") { TestUserInfo().test_AnyHashableContainingNotification() }
-UserInfoTests.test("test_AnyHashableCreatedFromNSNotification") { TestUserInfo().test_AnyHashableCreatedFromNSNotification() }
-runAllTests()
-#endif

@@ -9,25 +9,14 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Swift
 import Foundation
+import XCTest
 
 // MARK: - Test Suite
 
-#if FOUNDATION_XCTEST
-import XCTest
-class TestPropertyListEncoderSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestPropertyListEncoderSuper { }
-#endif
-
-class TestPropertyListEncoder : TestPropertyListEncoderSuper {
+class TestPropertyListEncoder : XCTestCase {
   // MARK: - Encoding Top-Level Empty Types
   func testEncodingTopLevelEmptyStruct() {
     let empty = EmptyStruct()
@@ -133,6 +122,8 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
   }
 
   func testEncodingMultipleNestedContainersWithTheSameTopLevelKey() {
+    guard #available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *) else { return }
+
     struct Model : Codable, Equatable {
       let first: String
       let second: String
@@ -182,7 +173,8 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
     let expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>top</key>\n\t<dict>\n\t\t<key>first</key>\n\t\t<string>Johnny Appleseed</string>\n\t\t<key>second</key>\n\t\t<string>appleseed@apple.com</string>\n\t</dict>\n</dict>\n</plist>\n".data(using: .utf8)!
     _testRoundTrip(of: model, in: .xml, expectedPlist: expectedXML)
   }
-  
+
+  #if false // FIXME: XCTest doesn't support crash tests yet rdar://20195010&22387653
   func testEncodingConflictedTypeNestedContainersWithTheSameTopLevelKey() {
     struct Model : Encodable, Equatable {
       let first: String
@@ -216,8 +208,10 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
     
     let model = Model.testValue
     // This following test would fail as it attempts to re-encode into already encoded container is invalid. This will always fail
+    expectCrashLater()
     _testEncodeFailure(of: model, in: .xml)
   }
+  #endif
   
   // MARK: - Encoder Features
   func testNestedContainerCodingPaths() {
@@ -225,7 +219,7 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
     do {
       let _ = try encoder.encode(NestedContainersTestType())
     } catch let error as NSError {
-      expectUnreachable("Caught error during encoding nested container types: \(error)")
+      XCTFail("Caught error during encoding nested container types: \(error)")
     }
   }
 
@@ -234,7 +228,7 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
     do {
       let _ = try encoder.encode(NestedContainersTestType(testSuperEncoder: true))
     } catch let error as NSError {
-      expectUnreachable("Caught error during encoding nested container types: \(error)")
+      XCTFail("Caught error during encoding nested container types: \(error)")
     }
   }
 
@@ -291,13 +285,13 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
   func testDecodingConcreteTypeParameter() {
       let encoder = PropertyListEncoder()
       guard let plist = try? encoder.encode(Employee.testValue) else {
-          expectUnreachable("Unable to encode Employee.")
+          XCTFail("Unable to encode Employee.")
           return
       }
 
       let decoder = PropertyListDecoder()
       guard let decoded = try? decoder.decode(Employee.self as Person.Type, from: plist) else {
-          expectUnreachable("Failed to decode Employee as Person from plist.")
+          XCTFail("Failed to decode Employee as Person from plist.")
           return
       }
 
@@ -369,7 +363,7 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
       let encoder = PropertyListEncoder()
       encoder.outputFormat = format
       let _ = try encoder.encode(value)
-      expectUnreachable("Encode of top-level \(T.self) was expected to fail.")
+      XCTFail("Encode of top-level \(T.self) was expected to fail.")
     } catch {}
   }
 
@@ -380,20 +374,20 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
       encoder.outputFormat = format
       payload = try encoder.encode(value)
     } catch {
-      expectUnreachable("Failed to encode \(T.self) to plist: \(error)")
+      XCTFail("Failed to encode \(T.self) to plist: \(error)")
     }
 
     if let expectedPlist = plist {
-      expectEqual(expectedPlist, payload, "Produced plist not identical to expected plist.")
+      XCTAssertEqual(expectedPlist, payload, "Produced plist not identical to expected plist.")
     }
 
     do {
       var decodedFormat: PropertyListSerialization.PropertyListFormat = .xml
       let decoded = try PropertyListDecoder().decode(T.self, from: payload, format: &decodedFormat)
-      expectEqual(format, decodedFormat, "Encountered plist format differed from requested format.")
-      expectEqual(decoded, value, "\(T.self) did not round-trip to an equal value.")
+      XCTAssertEqual(format, decodedFormat, "Encountered plist format differed from requested format.")
+      XCTAssertEqual(decoded, value, "\(T.self) did not round-trip to an equal value.")
     } catch {
-      expectUnreachable("Failed to decode \(T.self) from plist: \(error)")
+      XCTFail("Failed to decode \(T.self) from plist: \(error)")
     }
   }
 
@@ -401,15 +395,15 @@ class TestPropertyListEncoder : TestPropertyListEncoderSuper {
     do {
       let data = try PropertyListEncoder().encode(value)
       let _ = try PropertyListDecoder().decode(U.self, from: data)
-      expectUnreachable("Coercion from \(T.self) to \(U.self) was expected to fail.")
+      XCTFail("Coercion from \(T.self) to \(U.self) was expected to fail.")
     } catch {}
   }
 }
 
 // MARK: - Helper Global Functions
-func expectEqualPaths(_ lhs: [CodingKey], _ rhs: [CodingKey], _ prefix: String) {
+func XCTAssertEqualPaths(_ lhs: [CodingKey], _ rhs: [CodingKey], _ prefix: String) {
   if lhs.count != rhs.count {
-    expectUnreachable("\(prefix) [CodingKey].count mismatch: \(lhs.count) != \(rhs.count)")
+    XCTFail("\(prefix) [CodingKey].count mismatch: \(lhs.count) != \(rhs.count)")
     return
   }
 
@@ -417,21 +411,21 @@ func expectEqualPaths(_ lhs: [CodingKey], _ rhs: [CodingKey], _ prefix: String) 
     switch (key1.intValue, key2.intValue) {
     case (.none, .none): break
     case (.some(let i1), .none):
-      expectUnreachable("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != nil")
+      XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != nil")
       return
     case (.none, .some(let i2)):
-      expectUnreachable("\(prefix) CodingKey.intValue mismatch: nil != \(type(of: key2))(\(i2))")
+      XCTFail("\(prefix) CodingKey.intValue mismatch: nil != \(type(of: key2))(\(i2))")
       return
     case (.some(let i1), .some(let i2)):
         guard i1 == i2 else {
-            expectUnreachable("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != \(type(of: key2))(\(i2))")
+            XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != \(type(of: key2))(\(i2))")
             return
         }
 
         break
     }
 
-    expectEqual(key1.stringValue, key2.stringValue, "\(prefix) CodingKey.stringValue mismatch: \(type(of: key1))('\(key1.stringValue)') != \(type(of: key2))('\(key2.stringValue)')")
+    XCTAssertEqual(key1.stringValue, key2.stringValue, "\(prefix) CodingKey.stringValue mismatch: \(type(of: key1))('\(key1.stringValue)') != \(type(of: key2))('\(key2.stringValue)')")
   }
 }
 
@@ -663,7 +657,7 @@ fileprivate enum EnhancedBool : Codable {
 }
 
 /// A type which encodes as an array directly through a single value container.
-struct Numbers : Codable, Equatable {
+private struct Numbers : Codable, Equatable {
   let values = [4, 8, 15, 16, 23, 42]
 
   init() {}
@@ -718,7 +712,7 @@ fileprivate final class Mapping : Codable, Equatable {
   }
 }
 
-struct NestedContainersTestType : Encodable {
+private struct NestedContainersTestType : Encodable {
   let testSuperEncoder: Bool
 
   init(testSuperEncoder: Bool = false) {
@@ -739,13 +733,13 @@ struct NestedContainersTestType : Encodable {
   func encode(to encoder: Encoder) throws {
     if self.testSuperEncoder {
       var topLevelContainer = encoder.container(keyedBy: TopLevelCodingKeys.self)
-      expectEqualPaths(encoder.codingPath, [], "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(topLevelContainer.codingPath, [], "New first-level keyed container has non-empty codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, [], "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(topLevelContainer.codingPath, [], "New first-level keyed container has non-empty codingPath.")
 
       let superEncoder = topLevelContainer.superEncoder(forKey: .a)
-      expectEqualPaths(encoder.codingPath, [], "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(topLevelContainer.codingPath, [], "First-level keyed container's codingPath changed.")
-      expectEqualPaths(superEncoder.codingPath, [TopLevelCodingKeys.a], "New superEncoder had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, [], "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(topLevelContainer.codingPath, [], "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(superEncoder.codingPath, [TopLevelCodingKeys.a], "New superEncoder had unexpected codingPath.")
       _testNestedContainers(in: superEncoder, baseCodingPath: [TopLevelCodingKeys.a])
     } else {
       _testNestedContainers(in: encoder, baseCodingPath: [])
@@ -753,57 +747,57 @@ struct NestedContainersTestType : Encodable {
   }
 
   func _testNestedContainers(in encoder: Encoder, baseCodingPath: [CodingKey]) {
-    expectEqualPaths(encoder.codingPath, baseCodingPath, "New encoder has non-empty codingPath.")
+    XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "New encoder has non-empty codingPath.")
 
     // codingPath should not change upon fetching a non-nested container.
     var firstLevelContainer = encoder.container(keyedBy: TopLevelCodingKeys.self)
-    expectEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
-    expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "New first-level keyed container has non-empty codingPath.")
+    XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
+    XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "New first-level keyed container has non-empty codingPath.")
 
     // Nested Keyed Container
     do {
       // Nested container for key should have a new key pushed on.
       var secondLevelContainer = firstLevelContainer.nestedContainer(keyedBy: IntermediateCodingKeys.self, forKey: .a)
-      expectEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
-      expectEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.a], "New second-level keyed container had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.a], "New second-level keyed container had unexpected codingPath.")
 
       // Inserting a keyed container should not change existing coding paths.
       let thirdLevelContainerKeyed = secondLevelContainer.nestedContainer(keyedBy: IntermediateCodingKeys.self, forKey: .one)
-      expectEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
-      expectEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.a], "Second-level keyed container's codingPath changed.")
-      expectEqualPaths(thirdLevelContainerKeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.a, IntermediateCodingKeys.one], "New third-level keyed container had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.a], "Second-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(thirdLevelContainerKeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.a, IntermediateCodingKeys.one], "New third-level keyed container had unexpected codingPath.")
 
       // Inserting an unkeyed container should not change existing coding paths.
       let thirdLevelContainerUnkeyed = secondLevelContainer.nestedUnkeyedContainer(forKey: .two)
-      expectEqualPaths(encoder.codingPath, baseCodingPath + [], "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath + [], "First-level keyed container's codingPath changed.")
-      expectEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.a], "Second-level keyed container's codingPath changed.")
-      expectEqualPaths(thirdLevelContainerUnkeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.a, IntermediateCodingKeys.two], "New third-level unkeyed container had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, baseCodingPath + [], "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath + [], "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.a], "Second-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(thirdLevelContainerUnkeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.a, IntermediateCodingKeys.two], "New third-level unkeyed container had unexpected codingPath.")
     }
 
     // Nested Unkeyed Container
     do {
       // Nested container for key should have a new key pushed on.
       var secondLevelContainer = firstLevelContainer.nestedUnkeyedContainer(forKey: .b)
-      expectEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
-      expectEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.b], "New second-level keyed container had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.b], "New second-level keyed container had unexpected codingPath.")
 
       // Appending a keyed container should not change existing coding paths.
       let thirdLevelContainerKeyed = secondLevelContainer.nestedContainer(keyedBy: IntermediateCodingKeys.self)
-      expectEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
-      expectEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.b], "Second-level unkeyed container's codingPath changed.")
-      expectEqualPaths(thirdLevelContainerKeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.b, _TestKey(index: 0)], "New third-level keyed container had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.b], "Second-level unkeyed container's codingPath changed.")
+      XCTAssertEqualPaths(thirdLevelContainerKeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.b, _TestKey(index: 0)], "New third-level keyed container had unexpected codingPath.")
 
       // Appending an unkeyed container should not change existing coding paths.
       let thirdLevelContainerUnkeyed = secondLevelContainer.nestedUnkeyedContainer()
-      expectEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
-      expectEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
-      expectEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.b], "Second-level unkeyed container's codingPath changed.")
-      expectEqualPaths(thirdLevelContainerUnkeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.b, _TestKey(index: 1)], "New third-level unkeyed container had unexpected codingPath.")
+      XCTAssertEqualPaths(encoder.codingPath, baseCodingPath, "Top-level Encoder's codingPath changed.")
+      XCTAssertEqualPaths(firstLevelContainer.codingPath, baseCodingPath, "First-level keyed container's codingPath changed.")
+      XCTAssertEqualPaths(secondLevelContainer.codingPath, baseCodingPath + [TopLevelCodingKeys.b], "Second-level unkeyed container's codingPath changed.")
+      XCTAssertEqualPaths(thirdLevelContainerUnkeyed.codingPath, baseCodingPath + [TopLevelCodingKeys.b, _TestKey(index: 1)], "New third-level unkeyed container had unexpected codingPath.")
     }
   }
 }
@@ -861,40 +855,3 @@ fileprivate enum EitherDecodable<T : Decodable, U : Decodable> : Decodable {
   }
 }
 
-// MARK: - Run Tests
-
-#if !FOUNDATION_XCTEST
-var PropertyListEncoderTests = TestSuite("TestPropertyListEncoder")
-PropertyListEncoderTests.test("testEncodingTopLevelEmptyStruct") { TestPropertyListEncoder().testEncodingTopLevelEmptyStruct() }
-PropertyListEncoderTests.test("testEncodingTopLevelEmptyClass") { TestPropertyListEncoder().testEncodingTopLevelEmptyClass() }
-PropertyListEncoderTests.test("testEncodingTopLevelSingleValueEnum") { TestPropertyListEncoder().testEncodingTopLevelSingleValueEnum() }
-PropertyListEncoderTests.test("testEncodingTopLevelSingleValueStruct") { TestPropertyListEncoder().testEncodingTopLevelSingleValueStruct() }
-PropertyListEncoderTests.test("testEncodingTopLevelSingleValueClass") { TestPropertyListEncoder().testEncodingTopLevelSingleValueClass() }
-PropertyListEncoderTests.test("testEncodingTopLevelStructuredStruct") { TestPropertyListEncoder().testEncodingTopLevelStructuredStruct() }
-PropertyListEncoderTests.test("testEncodingTopLevelStructuredClass") { TestPropertyListEncoder().testEncodingTopLevelStructuredClass() }
-PropertyListEncoderTests.test("testEncodingTopLevelStructuredSingleStruct") { TestPropertyListEncoder().testEncodingTopLevelStructuredSingleStruct() }
-PropertyListEncoderTests.test("testEncodingTopLevelStructuredSingleClass") { TestPropertyListEncoder().testEncodingTopLevelStructuredSingleClass() }
-PropertyListEncoderTests.test("testEncodingTopLevelDeepStructuredType") { TestPropertyListEncoder().testEncodingTopLevelDeepStructuredType() }
-PropertyListEncoderTests.test("testEncodingClassWhichSharesEncoderWithSuper") { TestPropertyListEncoder().testEncodingClassWhichSharesEncoderWithSuper() }
-PropertyListEncoderTests.test("testEncodingTopLevelNullableType") { TestPropertyListEncoder().testEncodingTopLevelNullableType() }
-PropertyListEncoderTests.test("testEncodingMultipleNestedContainersWithTheSameTopLevelKey") {
-  if #available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *) {
-    TestPropertyListEncoder().testEncodingMultipleNestedContainersWithTheSameTopLevelKey()
-  }
-}
-PropertyListEncoderTests.test("testEncodingConflictedTypeNestedContainersWithTheSameTopLevelKey") {
-  expectCrash() {
-    TestPropertyListEncoder().testEncodingConflictedTypeNestedContainersWithTheSameTopLevelKey()
-  }
-}
-PropertyListEncoderTests.test("testNestedContainerCodingPaths") { TestPropertyListEncoder().testNestedContainerCodingPaths() }
-PropertyListEncoderTests.test("testSuperEncoderCodingPaths") { TestPropertyListEncoder().testSuperEncoderCodingPaths() }
-PropertyListEncoderTests.test("testEncodingTopLevelData") { TestPropertyListEncoder().testEncodingTopLevelData() }
-PropertyListEncoderTests.test("testInterceptData") { TestPropertyListEncoder().testInterceptData() }
-PropertyListEncoderTests.test("testInterceptDate") { TestPropertyListEncoder().testInterceptDate() }
-PropertyListEncoderTests.test("testTypeCoercion") { TestPropertyListEncoder().testTypeCoercion() }
-PropertyListEncoderTests.test("testDecodingConcreteTypeParameter") { TestPropertyListEncoder().testDecodingConcreteTypeParameter() }
-PropertyListEncoderTests.test("testEncoderStateThrowOnEncode") { TestPropertyListEncoder().testEncoderStateThrowOnEncode() }
-PropertyListEncoderTests.test("testDecoderStateThrowOnDecode") { TestPropertyListEncoder().testDecoderStateThrowOnDecode() }
-runAllTests()
-#endif

@@ -9,32 +9,13 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %empty-directory(%t)
-//
-// RUN: %target-clang %S/Inputs/FoundationBridge/FoundationBridge.m -c -o %t/FoundationBridgeObjC.o -g
-// RUN: %target-build-swift %s -I %S/Inputs/FoundationBridge/ -Xlinker %t/FoundationBridgeObjC.o -o %t/TestNotification
-// RUN: %target-codesign %t/TestNotification
-
-// RUN: %target-run %t/TestNotification > %t.txt
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
-
 
 import Foundation
-import FoundationBridgeObjC
+import XCTest
 
-#if FOUNDATION_XCTEST
-    import XCTest
-    class TestNotificationSuper : XCTestCase { }
-#else
-    import StdlibUnittest
-    class TestNotificationSuper { }
-#endif
-
-class TestNotification : TestNotificationSuper {
+class TestNotification : XCTestCase {
     func test_unconditionallyBridgeFromObjectiveC() {
-        expectEqual(Notification(name: Notification.Name("")), Notification._unconditionallyBridgeFromObjectiveC(nil))
+        XCTAssertEqual(Notification(name: Notification.Name("")), Notification._unconditionallyBridgeFromObjectiveC(nil))
     }
 
     func test_hashing() {
@@ -73,39 +54,33 @@ class TestNotification : TestNotificationSuper {
                 hashGroups[$0] == hashGroups[$1]
             })
     }
-}
 
 
-#if !FOUNDATION_XCTEST
-var NotificationTests = TestSuite("TestNotification")
-NotificationTests.test("test_unconditionallyBridgeFromObjectiveC") { TestNotification().test_unconditionallyBridgeFromObjectiveC() }
-NotificationTests.test("test_hashing") { TestNotification().test_hashing() }
+    private struct NonHashableValueType: Equatable {
+        let value: Int
+        init(_ value: Int) {
+            self.value = value
+        }
+    }
 
-private struct NonHashableValueType: Equatable {
-    let value: Int
-    init(_ value: Int) {
-        self.value = value
+    func test_reflexivity_violation() {
+        // <rdar://problem/49797185> Foundation.Notification's equality relation isn't reflexive
+        let name = Notification.Name("name")
+        let a = NonHashableValueType(1)
+        let b = NonHashableValueType(2)
+        // Currently none of these values compare equal to themselves:
+        let values: [Notification] = [
+            Notification(name: name, object: a, userInfo: nil),
+            Notification(name: name, object: b, userInfo: nil),
+            Notification(name: name, object: nil, userInfo: ["foo": a]),
+            Notification(name: name, object: nil, userInfo: ["foo": b]),
+        ]
+        #if true // What we have
+        for value in values {
+            XCTAssertNotEqual(value, value)
+        }
+        #else // What we want
+        checkHashable(values, equalityOracle: { $0 == $1 })
+        #endif
     }
 }
-
-NotificationTests.test("test_reflexivity_violation")
-  .xfail(
-    .custom({ true },
-        reason: "<rdar://problem/49797185> Foundation.Notification's equality relation isn't reflexive"))
-  .code {
-    let name = Notification.Name("name")
-    let a = NonHashableValueType(1)
-    let b = NonHashableValueType(2)
-    // Currently none of these values compare equal to themselves:
-    let values: [Notification] = [
-        Notification(name: name, object: a, userInfo: nil),
-        Notification(name: name, object: b, userInfo: nil),
-        Notification(name: name, object: nil, userInfo: ["foo": a]),
-        Notification(name: name, object: nil, userInfo: ["foo": b]),
-    ]
-    checkHashable(values, equalityOracle: { $0 == $1 })
-}
-
-
-runAllTests()
-#endif

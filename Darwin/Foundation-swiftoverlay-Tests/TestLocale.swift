@@ -9,29 +9,11 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %empty-directory(%t)
-//
-// RUN: %target-clang %S/Inputs/FoundationBridge/FoundationBridge.m -c -o %t/FoundationBridgeObjC.o -g
-// RUN: %target-build-swift %s -I %S/Inputs/FoundationBridge/ -Xlinker %t/FoundationBridgeObjC.o -o %t/TestLocale
-// RUN: %target-codesign %t/TestLocale
-
-// RUN: %target-run %t/TestLocale > %t.txt
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
-import FoundationBridgeObjC
+import XCTest
 
-#if FOUNDATION_XCTEST
-    import XCTest
-    class TestLocaleSuper : XCTestCase { }
-#else
-    import StdlibUnittest
-    class TestLocaleSuper { }
-#endif
-
-class TestLocale : TestLocaleSuper {
+class TestLocale : XCTestCase {
     
     func test_bridgingAutoupdating() {
         let tester = LocaleBridgingTester()
@@ -39,13 +21,13 @@ class TestLocale : TestLocaleSuper {
         do {
             let loc = Locale.autoupdatingCurrent
             let result = tester.verifyAutoupdating(loc)
-            expectTrue(result)
+            XCTAssertTrue(result)
         }
         
         do {
             let loc = tester.autoupdatingCurrentLocale()
             let result = tester.verifyAutoupdating(loc)
-            expectTrue(result)
+            XCTAssertTrue(result)
         }
     }
     
@@ -53,66 +35,66 @@ class TestLocale : TestLocaleSuper {
         let autoupdating = Locale.autoupdatingCurrent
         let autoupdating2 = Locale.autoupdatingCurrent
 
-        expectEqual(autoupdating, autoupdating2)
+        XCTAssertEqual(autoupdating, autoupdating2)
         
         let current = Locale.current
         
-        expectNotEqual(autoupdating, current)
+        XCTAssertNotEqual(autoupdating, current)
     }
     
     func test_localizedStringFunctions() {
         let locale = Locale(identifier: "en")
 
-        expectEqual("English", locale.localizedString(forIdentifier: "en"))
-        expectEqual("France", locale.localizedString(forRegionCode: "fr"))
-        expectEqual("Spanish", locale.localizedString(forLanguageCode: "es"))
-        expectEqual("Simplified Han", locale.localizedString(forScriptCode: "Hans"))
-        expectEqual("Computer", locale.localizedString(forVariantCode: "POSIX"))
-        expectEqual("Buddhist Calendar", locale.localizedString(for: .buddhist))
-        expectEqual("US Dollar", locale.localizedString(forCurrencyCode: "USD"))
-        expectEqual("Phonebook Sort Order", locale.localizedString(forCollationIdentifier: "phonebook"))
+        XCTAssertEqual("English", locale.localizedString(forIdentifier: "en"))
+        XCTAssertEqual("France", locale.localizedString(forRegionCode: "fr"))
+        XCTAssertEqual("Spanish", locale.localizedString(forLanguageCode: "es"))
+        XCTAssertEqual("Simplified Han", locale.localizedString(forScriptCode: "Hans"))
+        XCTAssertEqual("Computer", locale.localizedString(forVariantCode: "POSIX"))
+        XCTAssertEqual("Buddhist Calendar", locale.localizedString(for: .buddhist))
+        XCTAssertEqual("US Dollar", locale.localizedString(forCurrencyCode: "USD"))
+        XCTAssertEqual("Phonebook Sort Order", locale.localizedString(forCollationIdentifier: "phonebook"))
         // Need to find a good test case for collator identifier
-        // expectEqual("something", locale.localizedString(forCollatorIdentifier: "en"))
+        // XCTAssertEqual("something", locale.localizedString(forCollatorIdentifier: "en"))
     }
     
     func test_properties() {
         let locale = Locale(identifier: "zh-Hant-HK")
         
-        expectEqual("zh-Hant-HK", locale.identifier)
-        expectEqual("zh", locale.languageCode)
-        expectEqual("HK", locale.regionCode)
-        expectEqual("Hant", locale.scriptCode)
-        expectEqual("POSIX", Locale(identifier: "en_POSIX").variantCode)
-        expectTrue(locale.exemplarCharacterSet != nil)
+        XCTAssertEqual("zh-Hant-HK", locale.identifier)
+        XCTAssertEqual("zh", locale.languageCode)
+        XCTAssertEqual("HK", locale.regionCode)
+        XCTAssertEqual("Hant", locale.scriptCode)
+        XCTAssertEqual("POSIX", Locale(identifier: "en_POSIX").variantCode)
+        XCTAssertTrue(locale.exemplarCharacterSet != nil)
         // The calendar we get back from Locale has the locale set, but not the one we create with Calendar(identifier:). So we configure our comparison calendar first.
         var c = Calendar(identifier: .gregorian)
         c.locale = Locale(identifier: "en_US")
-        expectEqual(c, Locale(identifier: "en_US").calendar)
-        expectEqual("「", locale.quotationBeginDelimiter)
-        expectEqual("」", locale.quotationEndDelimiter)
-        expectEqual("『", locale.alternateQuotationBeginDelimiter)
-        expectEqual("』", locale.alternateQuotationEndDelimiter)
-        expectEqual("phonebook", Locale(identifier: "en_US@collation=phonebook").collationIdentifier)
-        expectEqual(".", locale.decimalSeparator)
+        XCTAssertEqual(c, Locale(identifier: "en_US").calendar)
+        XCTAssertEqual("「", locale.quotationBeginDelimiter)
+        XCTAssertEqual("」", locale.quotationEndDelimiter)
+        XCTAssertEqual("『", locale.alternateQuotationBeginDelimiter)
+        XCTAssertEqual("』", locale.alternateQuotationEndDelimiter)
+        XCTAssertEqual("phonebook", Locale(identifier: "en_US@collation=phonebook").collationIdentifier)
+        XCTAssertEqual(".", locale.decimalSeparator)
 
         
-        expectEqual(".", locale.decimalSeparator)
-        expectEqual(",", locale.groupingSeparator)
+        XCTAssertEqual(".", locale.decimalSeparator)
+        XCTAssertEqual(",", locale.groupingSeparator)
         if #available(macOS 10.11, *) {
-          expectEqual("HK$", locale.currencySymbol)
+          XCTAssertEqual("HK$", locale.currencySymbol)
         }
-        expectEqual("HKD", locale.currencyCode)
+        XCTAssertEqual("HKD", locale.currencyCode)
         
-        expectTrue(Locale.availableIdentifiers.count > 0)
-        expectTrue(Locale.isoLanguageCodes.count > 0)
-        expectTrue(Locale.isoRegionCodes.count > 0)
-        expectTrue(Locale.isoCurrencyCodes.count > 0)
-        expectTrue(Locale.commonISOCurrencyCodes.count > 0)
+        XCTAssertTrue(Locale.availableIdentifiers.count > 0)
+        XCTAssertTrue(Locale.isoLanguageCodes.count > 0)
+        XCTAssertTrue(Locale.isoRegionCodes.count > 0)
+        XCTAssertTrue(Locale.isoCurrencyCodes.count > 0)
+        XCTAssertTrue(Locale.commonISOCurrencyCodes.count > 0)
         
-        expectTrue(Locale.preferredLanguages.count > 0)
+        XCTAssertTrue(Locale.preferredLanguages.count > 0)
         
         // Need to find a good test case for collator identifier
-        // expectEqual("something", locale.collatorIdentifier)
+        // XCTAssertEqual("something", locale.collatorIdentifier)
     }
 
     func test_AnyHashableContainingLocale() {
@@ -125,8 +107,8 @@ class TestLocale : TestLocaleSuper {
         expectEqual(Locale.self, type(of: anyHashables[0].base))
         expectEqual(Locale.self, type(of: anyHashables[1].base))
         expectEqual(Locale.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSLocale() {
@@ -139,18 +121,7 @@ class TestLocale : TestLocaleSuper {
         expectEqual(Locale.self, type(of: anyHashables[0].base))
         expectEqual(Locale.self, type(of: anyHashables[1].base))
         expectEqual(Locale.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 }
-
-#if !FOUNDATION_XCTEST
-var LocaleTests = TestSuite("TestLocale")
-LocaleTests.test("test_bridgingAutoupdating") { TestLocale().test_bridgingAutoupdating() }
-LocaleTests.test("test_equality") { TestLocale().test_equality() }
-LocaleTests.test("test_localizedStringFunctions") { TestLocale().test_localizedStringFunctions() }
-LocaleTests.test("test_properties") { TestLocale().test_properties() }
-LocaleTests.test("test_AnyHashableContainingLocale") { TestLocale().test_AnyHashableContainingLocale() }
-LocaleTests.test("test_AnyHashableCreatedFromNSLocale") { TestLocale().test_AnyHashableCreatedFromNSLocale() }
-runAllTests()
-#endif

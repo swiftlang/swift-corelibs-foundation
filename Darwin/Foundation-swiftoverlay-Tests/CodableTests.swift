@@ -9,22 +9,10 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
-// REQUIRES: rdar49026133
 
 import Foundation
 import CoreGraphics
-
-#if FOUNDATION_XCTEST
 import XCTest
-class TestCodableSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestCodableSuper { }
-#endif
 
 // MARK: - Helper Functions
 @available(macOS 10.11, iOS 9.0, watchOS 2.0, tvOS 9.0, *)
@@ -44,7 +32,7 @@ func makePersonNameComponents(namePrefix: String? = nil,
     return result
 }
 
-func debugDescription<T>(_ value: T) -> String {
+func _debugDescription<T>(_ value: T) -> String {
     if let debugDescribable = value as? CustomDebugStringConvertible {
         return debugDescribable.debugDescription
     } else if let describable = value as? CustomStringConvertible {
@@ -60,13 +48,13 @@ func performEncodeAndDecode<T : Codable>(of value: T, encode: (T) throws -> Data
     do {
         data = try encode(value)
     } catch {
-        fatalError("\(#file):\(lineNumber): Unable to encode \(T.self) <\(debugDescription(value))>: \(error)")
+        fatalError("\(#file):\(lineNumber): Unable to encode \(T.self) <\(_debugDescription(value))>: \(error)")
     }
 
     do {
         return try decode(T.self, data)
     } catch {
-        fatalError("\(#file):\(lineNumber): Unable to decode \(T.self) <\(debugDescription(value))>: \(error)")
+        fatalError("\(#file):\(lineNumber): Unable to decode \(T.self) <\(_debugDescription(value))>: \(error)")
     }
 }
 
@@ -74,7 +62,7 @@ func expectRoundTripEquality<T : Codable>(of value: T, encode: (T) throws -> Dat
 
     let decoded = performEncodeAndDecode(of: value, encode: encode, decode: decode, lineNumber: lineNumber)
 
-    expectEqual(value, decoded, "\(#file):\(lineNumber): Decoded \(T.self) <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+    XCTAssertEqual(value, decoded, "\(#file):\(lineNumber): Decoded \(T.self) <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
 }
 
 func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T, lineNumber: Int) where T : Equatable {
@@ -125,7 +113,7 @@ struct UUIDCodingWrapper : Codable, Equatable {
 }
 
 // MARK: - Tests
-class TestCodable : TestCodableSuper {
+class TestCodable : XCTestCase {
     // MARK: - AffineTransform
 #if os(macOS)
     lazy var affineTransformValues: [Int : AffineTransform] = [
@@ -363,17 +351,20 @@ class TestCodable : TestCodableSuper {
 
     // MARK: - ClosedRange
     func test_ClosedRange_JSON() {
-        let value = 0...Int.max
-        let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded ClosedRange upperBound <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
-        expectEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded ClosedRange lowerBound <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        // NSJSONSerialization used to produce NSDecimalNumber values with different ranges, making Int.max as a bound lossy.
+        if #available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 2.0, *) {
+            let value = 0...Int.max
+            let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
+            XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded ClosedRange upperBound <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+            XCTAssertEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded ClosedRange lowerBound <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+        }
     }
 
     func test_ClosedRange_Plist() {
         let value = 0...Int.max
         let decoded = performEncodeAndDecode(of: value, encode: { try PropertyListEncoder().encode($0) }, decode: { try PropertyListDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded ClosedRange upperBound <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
-        expectEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded ClosedRange lowerBound <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded ClosedRange upperBound <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+        XCTAssertEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded ClosedRange lowerBound <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
     }
 
     // MARK: - ContiguousArray
@@ -545,6 +536,8 @@ class TestCodable : TestCodableSuper {
         #line : UnitLength.miles
     ]
 
+    #if false // FIXME: This test is broken; it was commented out in the original StdlibUnittest setup.
+    // (The problem is that it uses encodes/decodes through `Measurement<Dimension>` which should not be a thing.)
     @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
     func test_Measurement_JSON() {
         for (testLine, unit) in unitValues {
@@ -558,6 +551,7 @@ class TestCodable : TestCodableSuper {
             expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: unit), lineNumber: testLine)
         }
     }
+    #endif
 
     // MARK: - NSRange
     lazy var nsrangeValues: [Int : NSRange] = [
@@ -594,39 +588,47 @@ class TestCodable : TestCodableSuper {
     func test_PartialRangeFrom_JSON() {
         let value = 0...
         let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded PartialRangeFrom <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        XCTAssertEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded PartialRangeFrom <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
     }
 
     func test_PartialRangeFrom_Plist() {
         let value = 0...
         let decoded = performEncodeAndDecode(of: value, encode: { try PropertyListEncoder().encode($0) }, decode: { try PropertyListDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded PartialRangeFrom <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        XCTAssertEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded PartialRangeFrom <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
     }
 
     // MARK: - PartialRangeThrough
     func test_PartialRangeThrough_JSON() {
-        let value = ...Int.max
-        let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeThrough <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        // NSJSONSerialization used to produce NSDecimalNumber values with different ranges, making Int.max as a bound lossy.
+        if #available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 2.0, *) {
+
+            let value = ...Int.max
+            let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
+            XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeThrough <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+        }
     }
 
     func test_PartialRangeThrough_Plist() {
         let value = ...Int.max
         let decoded = performEncodeAndDecode(of: value, encode: { try PropertyListEncoder().encode($0) }, decode: { try PropertyListDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeThrough <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeThrough <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
     }
 
     // MARK: - PartialRangeUpTo
     func test_PartialRangeUpTo_JSON() {
-        let value = ..<Int.max
-        let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeUpTo <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        // NSJSONSerialization used to produce NSDecimalNumber values with different ranges, making Int.max as a bound lossy.
+        if #available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 2.0, *) {
+
+            let value = ..<Int.max
+            let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
+            XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeUpTo <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+        }
     }
 
     func test_PartialRangeUpTo_Plist() {
         let value = ..<Int.max
         let decoded = performEncodeAndDecode(of: value, encode: { try PropertyListEncoder().encode($0) }, decode: { try PropertyListDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeUpTo <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded PartialRangeUpTo <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
     }
 
     // MARK: - PersonNameComponents
@@ -653,17 +655,20 @@ class TestCodable : TestCodableSuper {
 
     // MARK: - Range
     func test_Range_JSON() {
-        let value = 0..<Int.max
-        let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded Range upperBound <\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
-        expectEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded Range lowerBound<\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        // NSJSONSerialization used to produce NSDecimalNumber values with different ranges, making Int.max as a bound lossy.
+        if #available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 2.0, *) {
+            let value = 0..<Int.max
+            let decoded = performEncodeAndDecode(of: value, encode: { try JSONEncoder().encode($0) }, decode: { try JSONDecoder().decode($0, from: $1)  }, lineNumber: #line)
+            XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded Range upperBound <\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+            XCTAssertEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded Range lowerBound<\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+        }
     }
 
     func test_Range_Plist() {
         let value = 0..<Int.max
         let decoded = performEncodeAndDecode(of: value, encode: { try PropertyListEncoder().encode($0) }, decode: { try PropertyListDecoder().decode($0, from: $1)  }, lineNumber: #line)
-        expectEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded Range upperBound<\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
-        expectEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded Range lowerBound<\(debugDescription(decoded))> not equal to original <\(debugDescription(value))>")
+        XCTAssertEqual(value.upperBound, decoded.upperBound, "\(#file):\(#line): Decoded Range upperBound<\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
+        XCTAssertEqual(value.lowerBound, decoded.lowerBound, "\(#file):\(#line): Decoded Range lowerBound<\(_debugDescription(decoded))> not equal to original <\(_debugDescription(value))>")
     }
 
     // MARK: - TimeZone
@@ -846,7 +851,7 @@ class TestCodable : TestCodableSuper {
 
 // MARK: - Helper Types
 
-struct TopLevelWrapper<T> : Codable, Equatable where T : Codable, T : Equatable {
+private struct TopLevelWrapper<T> : Codable, Equatable where T : Codable, T : Equatable {
     let value: T
 
     init(_ value: T) {
@@ -858,82 +863,3 @@ struct TopLevelWrapper<T> : Codable, Equatable where T : Codable, T : Equatable 
     }
 }
 
-// MARK: - Tests
-
-#if !FOUNDATION_XCTEST
-var tests = [
-    "test_Calendar_JSON" : TestCodable.test_Calendar_JSON,
-    "test_Calendar_Plist" : TestCodable.test_Calendar_Plist,
-    "test_CharacterSet_JSON" : TestCodable.test_CharacterSet_JSON,
-    "test_CharacterSet_Plist" : TestCodable.test_CharacterSet_Plist,
-    "test_CGAffineTransform_JSON" : TestCodable.test_CGAffineTransform_JSON,
-    "test_CGAffineTransform_Plist" : TestCodable.test_CGAffineTransform_Plist,
-    "test_CGPoint_JSON" : TestCodable.test_CGPoint_JSON,
-    "test_CGPoint_Plist" : TestCodable.test_CGPoint_Plist,
-    "test_CGSize_JSON" : TestCodable.test_CGSize_JSON,
-    "test_CGSize_Plist" : TestCodable.test_CGSize_Plist,
-    "test_CGRect_JSON" : TestCodable.test_CGRect_JSON,
-    "test_CGRect_Plist" : TestCodable.test_CGRect_Plist,
-    "test_CGVector_JSON" : TestCodable.test_CGVector_JSON,
-    "test_CGVector_Plist" : TestCodable.test_CGVector_Plist,
-    "test_ClosedRange_JSON" : TestCodable.test_ClosedRange_JSON,
-    "test_ClosedRange_Plist" : TestCodable.test_ClosedRange_Plist,
-    "test_ContiguousArray_JSON" : TestCodable.test_ContiguousArray_JSON,
-    "test_ContiguousArray_Plist" : TestCodable.test_ContiguousArray_Plist,
-    "test_DateComponents_JSON" : TestCodable.test_DateComponents_JSON,
-    "test_DateComponents_Plist" : TestCodable.test_DateComponents_Plist,
-    "test_Decimal_JSON" : TestCodable.test_Decimal_JSON,
-    "test_Decimal_Plist" : TestCodable.test_Decimal_Plist,
-    "test_IndexPath_JSON" : TestCodable.test_IndexPath_JSON,
-    "test_IndexPath_Plist" : TestCodable.test_IndexPath_Plist,
-    "test_IndexSet_JSON" : TestCodable.test_IndexSet_JSON,
-    "test_IndexSet_Plist" : TestCodable.test_IndexSet_Plist,
-    "test_Locale_JSON" : TestCodable.test_Locale_JSON,
-    "test_Locale_Plist" : TestCodable.test_Locale_Plist,
-    "test_NSRange_JSON" : TestCodable.test_NSRange_JSON,
-    "test_NSRange_Plist" : TestCodable.test_NSRange_Plist,
-    "test_PartialRangeFrom_JSON" : TestCodable.test_PartialRangeFrom_JSON,
-    "test_PartialRangeFrom_Plist" : TestCodable.test_PartialRangeFrom_Plist,
-    "test_PartialRangeThrough_JSON" : TestCodable.test_PartialRangeThrough_JSON,
-    "test_PartialRangeThrough_Plist" : TestCodable.test_PartialRangeThrough_Plist,
-    "test_PartialRangeUpTo_JSON" : TestCodable.test_PartialRangeUpTo_JSON,
-    "test_PartialRangeUpTo_Plist" : TestCodable.test_PartialRangeUpTo_Plist,
-    "test_Range_JSON" : TestCodable.test_Range_JSON,
-    "test_Range_Plist" : TestCodable.test_Range_Plist,
-    "test_TimeZone_JSON" : TestCodable.test_TimeZone_JSON,
-    "test_TimeZone_Plist" : TestCodable.test_TimeZone_Plist,
-    "test_URL_JSON" : TestCodable.test_URL_JSON,
-    "test_URL_Plist" : TestCodable.test_URL_Plist,
-    "test_UUID_JSON" : TestCodable.test_UUID_JSON,
-    "test_UUID_Plist" : TestCodable.test_UUID_Plist,
-]
-
-#if os(macOS)
-    tests["test_AffineTransform_JSON"] = TestCodable.test_AffineTransform_JSON
-    tests["test_AffineTransform_Plist"] = TestCodable.test_AffineTransform_Plist
-#endif
-
-if #available(macOS 10.11, iOS 9.0, watchOS 2.0, tvOS 9.0, *) {
-    tests["test_PersonNameComponents_JSON"] = TestCodable.test_PersonNameComponents_JSON
-    tests["test_PersonNameComponents_Plist"] = TestCodable.test_PersonNameComponents_Plist
-}
-
-if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-    // tests["test_DateInterval_JSON"] = TestCodable.test_DateInterval_JSON
-    tests["test_DateInterval_Plist"] = TestCodable.test_DateInterval_Plist
-    // tests["test_Measurement_JSON"] = TestCodable.test_Measurement_JSON
-    // tests["test_Measurement_Plist"] = TestCodable.test_Measurement_Plist
-}
-
-if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-    tests["test_URLComponents_JSON"] = TestCodable.test_URLComponents_JSON
-    tests["test_URLComponents_Plist"] = TestCodable.test_URLComponents_Plist
-}
-
-var CodableTests = TestSuite("TestCodable")
-for (name, test) in tests {
-    CodableTests.test(name) { test(TestCodable())() }
-}
-
-runAllTests()
-#endif

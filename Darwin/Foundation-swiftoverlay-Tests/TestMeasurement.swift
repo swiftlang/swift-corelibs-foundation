@@ -9,20 +9,9 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
-
-#if FOUNDATION_XCTEST
-    import XCTest
-    class TestMeasurementSuper : XCTestCase { }
-#else
-    import StdlibUnittest
-    class TestMeasurementSuper { }
-#endif
+import XCTest
 
 // We define our own units here so that we can have closer control over checking the behavior of just struct Measurement and not the rest of Foundation
 @available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
@@ -36,8 +25,8 @@ class MyDimensionalUnit : Dimension {
     class var unitMegaA : MyDimensionalUnit {
         return MyDimensionalUnit(symbol: "Ma", converter: UnitConverterLinear(coefficient: 1_000_000))
     }
-    override class func baseUnit() -> MyDimensionalUnit {
-        return MyDimensionalUnit.unitA
+    override class func baseUnit() -> Self {
+        return MyDimensionalUnit.unitA as! Self
     }
 }
 
@@ -56,7 +45,7 @@ class CustomUnit : Unit {
 }
 
 @available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
-class TestMeasurement : TestMeasurementSuper {
+class TestMeasurement : XCTestCase {
     
     func testBasicConstruction() {
         let m1 = Measurement(value: 3, unit: MyDimensionalUnit.unitA)
@@ -64,18 +53,18 @@ class TestMeasurement : TestMeasurementSuper {
         
         let m3 = m1 + m2
         
-        expectEqual(6, m3.value)
-        expectEqual(m1, m2)
+        XCTAssertEqual(6, m3.value)
+        XCTAssertEqual(m1, m2)
         
         let m10 = Measurement(value: 2, unit: CustomUnit.bugs)
         let m11 = Measurement(value: 2, unit: CustomUnit.bugs)
         let m12 = Measurement(value: 3, unit: CustomUnit.bugs)
         
-        expectEqual(m10, m11)
-        expectNotEqual(m10, m12)
+        XCTAssertEqual(m10, m11)
+        XCTAssertNotEqual(m10, m12)
         
         // This test has 2 + 2 + 3 bugs
-        expectEqual((m10 + m11 + m12).value, 7)
+        XCTAssertEqual((m10 + m11 + m12).value, 7)
     }
     
     func testConversion() {
@@ -83,10 +72,10 @@ class TestMeasurement : TestMeasurementSuper {
         let kiloM1 = Measurement(value: 1, unit: MyDimensionalUnit.unitKiloA)
 
         let result = m1.converted(to: MyDimensionalUnit.unitKiloA)
-        expectEqual(kiloM1, result)
+        XCTAssertEqual(kiloM1, result)
         
         let sameResult = m1.converted(to: MyDimensionalUnit.unitA)
-        expectEqual(sameResult, m1)
+        XCTAssertEqual(sameResult, m1)
         
         // This correctly fails to build
         
@@ -99,30 +88,30 @@ class TestMeasurement : TestMeasurementSuper {
         let oneKiloA = Measurement(value: 1, unit: MyDimensionalUnit.unitKiloA)
         let oneMegaA = Measurement(value: 1, unit: MyDimensionalUnit.unitMegaA)
         
-        expectTrue(oneKiloA < oneMegaA)
-        expectFalse(oneKiloA > oneMegaA)
-        expectTrue(oneKiloA * 2000 > oneMegaA)
-        expectTrue(oneMegaA / 1_000_000 < oneKiloA)
-        expectTrue(2000 * oneKiloA > oneMegaA)
-        expectTrue(2 / oneMegaA > oneMegaA)
-        expectEqual(2 / (oneMegaA * 2), oneMegaA)
-        expectTrue(oneMegaA <= oneKiloA * 1000)
-        expectTrue(oneMegaA - oneKiloA <= oneKiloA * 1000)
-        expectTrue(oneMegaA >= oneKiloA * 1000)
-        expectTrue(oneMegaA >= ((oneKiloA * 1000) - oneKiloA))
+        XCTAssertTrue(oneKiloA < oneMegaA)
+        XCTAssertFalse(oneKiloA > oneMegaA)
+        XCTAssertTrue(oneKiloA * 2000 > oneMegaA)
+        XCTAssertTrue(oneMegaA / 1_000_000 < oneKiloA)
+        XCTAssertTrue(2000 * oneKiloA > oneMegaA)
+        XCTAssertTrue(2 / oneMegaA > oneMegaA)
+        XCTAssertEqual(2 / (oneMegaA * 2), oneMegaA)
+        XCTAssertTrue(oneMegaA <= oneKiloA * 1000)
+        XCTAssertTrue(oneMegaA - oneKiloA <= oneKiloA * 1000)
+        XCTAssertTrue(oneMegaA >= oneKiloA * 1000)
+        XCTAssertTrue(oneMegaA >= ((oneKiloA * 1000) - oneKiloA))
         
         // Dynamically different dimensions
-        expectEqual(Measurement(value: 1_001_000, unit: MyDimensionalUnit.unitA), oneMegaA + oneKiloA)
+        XCTAssertEqual(Measurement(value: 1_001_000, unit: MyDimensionalUnit.unitA), oneMegaA + oneKiloA)
         
         var bugCount = Measurement(value: 1, unit: CustomUnit.bugs)
-        expectEqual(bugCount.value, 1)
+        XCTAssertEqual(bugCount.value, 1)
         bugCount = bugCount + Measurement(value: 4, unit: CustomUnit.bugs)
-        expectEqual(bugCount.value, 5)
+        XCTAssertEqual(bugCount.value, 5)
     }
     
     func testUnits() {
-        expectEqual(MyDimensionalUnit.unitA, MyDimensionalUnit.unitA)
-        expectTrue(MyDimensionalUnit.unitA == MyDimensionalUnit.unitA)
+        XCTAssertEqual(MyDimensionalUnit.unitA, MyDimensionalUnit.unitA)
+        XCTAssertTrue(MyDimensionalUnit.unitA == MyDimensionalUnit.unitA)
     }
     
     func testMeasurementFormatter() {
@@ -131,7 +120,7 @@ class TestMeasurement : TestMeasurementSuper {
         let result = formatter.string(from: measurement)
         
         // Just make sure we get a result at all here
-        expectFalse(result.isEmpty)
+        XCTAssertFalse(result.isEmpty)
     }
 
     func testEquality() {
@@ -139,9 +128,9 @@ class TestMeasurement : TestMeasurementSuper {
         let fiveSeconds = Measurement(value: 5, unit: UnitDuration.seconds)
         let fiveThousandM = Measurement(value: 5000, unit: UnitLength.meters)
 
-        expectTrue(fiveKM == fiveThousandM)
-        expectEqual(fiveKM, fiveThousandM)
-        expectFalse(fiveKM == fiveSeconds)
+        XCTAssertTrue(fiveKM == fiveThousandM)
+        XCTAssertEqual(fiveKM, fiveThousandM)
+        XCTAssertFalse(fiveKM == fiveSeconds)
     }
 
     func testComparison() {
@@ -150,9 +139,9 @@ class TestMeasurement : TestMeasurementSuper {
         let sixKM = Measurement(value: 6, unit: UnitLength.kilometers)
         let sevenThousandM = Measurement(value: 7000, unit: UnitLength.meters)
 
-        expectTrue(fiveKM < sixKM)
-        expectTrue(fiveKM < sevenThousandM)
-        expectTrue(fiveKM <= fiveThousandM)
+        XCTAssertTrue(fiveKM < sixKM)
+        XCTAssertTrue(fiveKM < sevenThousandM)
+        XCTAssertTrue(fiveKM <= fiveThousandM)
     }
 
     func testHashing() {
@@ -211,8 +200,8 @@ class TestMeasurement : TestMeasurementSuper {
         expectEqual(Measurement<UnitLength>.self, type(of: anyHashables[0].base))
         expectEqual(Measurement<UnitLength>.self, type(of: anyHashables[1].base))
         expectEqual(Measurement<UnitLength>.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSMeasurement() {
@@ -225,24 +214,7 @@ class TestMeasurement : TestMeasurementSuper {
         expectEqual(Measurement<Unit>.self, type(of: anyHashables[0].base))
         expectEqual(Measurement<Unit>.self, type(of: anyHashables[1].base))
         expectEqual(Measurement<Unit>.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 }
-
-#if !FOUNDATION_XCTEST
-if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
-    let MeasurementTests = TestSuite("TestMeasurement")
-    MeasurementTests.test("testBasicConstruction") { TestMeasurement().testBasicConstruction() }
-    MeasurementTests.test("testConversion") { TestMeasurement().testConversion() }
-    MeasurementTests.test("testOperators") { TestMeasurement().testOperators() }
-    MeasurementTests.test("testUnits") { TestMeasurement().testUnits() }
-    MeasurementTests.test("testMeasurementFormatter") { TestMeasurement().testMeasurementFormatter() }
-    MeasurementTests.test("testEquality") { TestMeasurement().testEquality() }
-    MeasurementTests.test("testComparison") { TestMeasurement().testComparison() }
-    MeasurementTests.test("testHashing") { TestMeasurement().testHashing() }
-    MeasurementTests.test("test_AnyHashableContainingMeasurement") { TestMeasurement().test_AnyHashableContainingMeasurement() }
-  MeasurementTests.test("test_AnyHashableCreatedFromNSMeasurement") { TestMeasurement().test_AnyHashableCreatedFromNSMeasurement() }
-    runAllTests()
-}
-#endif

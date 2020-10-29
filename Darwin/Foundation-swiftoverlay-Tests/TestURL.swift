@@ -9,27 +9,16 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
-//
-// RUN: %target-run-simple-swift
-// REQUIRES: executable_test
-// REQUIRES: objc_interop
 
 import Foundation
-
-#if FOUNDATION_XCTEST
 import XCTest
-class TestURLSuper : XCTestCase { }
-#else
-import StdlibUnittest
-class TestURLSuper { }
-#endif
 
-class TestURL : TestURLSuper {
+class TestURL : XCTestCase {
     
     func testBasics() {
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
         
-        expectTrue(url.pathComponents.count > 0)
+        XCTAssertTrue(url.pathComponents.count > 0)
     }
     
     func testProperties() {
@@ -37,11 +26,11 @@ class TestURL : TestURLSuper {
         do {
             let resourceValues = try url.resourceValues(forKeys: [.isVolumeKey, .nameKey])
             if let isVolume = resourceValues.isVolume {
-                expectTrue(isVolume)
+                XCTAssertTrue(isVolume)
             }
-            expectNotNil(resourceValues.name)
+            XCTAssertNotNil(resourceValues.name)
         } catch {
-            expectTrue(false, "Should not have thrown")
+            XCTAssertTrue(false, "Should not have thrown")
         }
     }
     
@@ -54,20 +43,20 @@ class TestURL : TestURLSuper {
         do {
             try data.write(to: file)
         } catch {
-            expectTrue(false, "Unable to write data")
+            XCTAssertTrue(false, "Unable to write data")
         }
         
         // Modify an existing resource value
         do {
             var resourceValues = try file.resourceValues(forKeys: [.nameKey])
-            expectNotNil(resourceValues.name)
-            expectEqual(resourceValues.name!, name)
+            XCTAssertNotNil(resourceValues.name)
+            XCTAssertEqual(resourceValues.name!, name)
             
             let newName = "goodbye cruel " + UUID().uuidString
             resourceValues.name = newName
             try file.setResourceValues(resourceValues)
         } catch {
-            expectTrue(false, "Unable to set resources")
+            XCTAssertTrue(false, "Unable to set resources")
         }
     }
     
@@ -83,7 +72,7 @@ class TestURL : TestURLSuper {
             do {
                 try data.write(to: file)
             } catch {
-                expectTrue(false, "Unable to write data")
+                XCTAssertTrue(false, "Unable to write data")
             }
 
             // Set the quarantine info on a file
@@ -92,15 +81,15 @@ class TestURL : TestURLSuper {
                 resourceValues.quarantineProperties = ["LSQuarantineAgentName" : "TestURL"]
                 try file.setResourceValues(resourceValues)
             } catch {
-                expectTrue(false, "Unable to set quarantine info")
+                XCTAssertTrue(false, "Unable to set quarantine info")
             }
             
             // Get the quarantine info back
             do {
                 var resourceValues = try file.resourceValues(forKeys: [.quarantinePropertiesKey])
-                expectEqual(resourceValues.quarantineProperties?["LSQuarantineAgentName"] as? String, "TestURL")
+                XCTAssertEqual(resourceValues.quarantineProperties?["LSQuarantineAgentName"] as? String, "TestURL")
             } catch {
-                expectTrue(false, "Unable to get quarantine info")
+                XCTAssertTrue(false, "Unable to get quarantine info")
             }
             
             // Clear the quarantine info
@@ -110,17 +99,17 @@ class TestURL : TestURLSuper {
                 try file.setResourceValues(resourceValues)
                 
                 // Make sure that the resourceValues property returns nil
-                expectNil(resourceValues.quarantineProperties)
+                XCTAssertNil(resourceValues.quarantineProperties)
             } catch {
-                expectTrue(false, "Unable to clear quarantine info")
+                XCTAssertTrue(false, "Unable to clear quarantine info")
             }
 
             // Get the quarantine info back again
             do {
                 var resourceValues = try file.resourceValues(forKeys: [.quarantinePropertiesKey])
-                expectNil(resourceValues.quarantineProperties)
+                XCTAssertNil(resourceValues.quarantineProperties)
             } catch {
-                expectTrue(false, "Unable to get quarantine info after clearing")
+                XCTAssertTrue(false, "Unable to get quarantine info after clearing")
             }
 
         }
@@ -136,12 +125,12 @@ class TestURL : TestURLSuper {
         do {
             try data.write(to: file)
         } catch {
-            expectTrue(false, "Unable to write data")
+            XCTAssertTrue(false, "Unable to write data")
         }
 
         do {
             var resourceValues = try file.resourceValues(forKeys: [.labelNumberKey])
-            expectNotNil(resourceValues.labelNumber)
+            XCTAssertNotNil(resourceValues.labelNumber)
             
             // set label number
             resourceValues.labelNumber = 1
@@ -149,12 +138,12 @@ class TestURL : TestURLSuper {
             
             // get label number
             let _ = try file.resourceValues(forKeys: [.labelNumberKey])
-            expectNotNil(resourceValues.labelNumber)
-            expectEqual(resourceValues.labelNumber!, 1)
+            XCTAssertNotNil(resourceValues.labelNumber)
+            XCTAssertEqual(resourceValues.labelNumber!, 1)
         } catch (let e as NSError) {
-            expectTrue(false, "Unable to load or set resources \(e)")
+            XCTAssertTrue(false, "Unable to load or set resources \(e)")
         } catch {
-            expectTrue(false, "Unable to load or set resources (mysterious error)")
+            XCTAssertTrue(false, "Unable to load or set resources (mysterious error)")
         }
         
         // Construct values from scratch
@@ -164,18 +153,18 @@ class TestURL : TestURLSuper {
             
             try file.setResourceValues(resourceValues)
             let resourceValues2 = try file.resourceValues(forKeys: [.labelNumberKey])
-            expectNotNil(resourceValues2.labelNumber)
-            expectEqual(resourceValues2.labelNumber!, 2)
+            XCTAssertNotNil(resourceValues2.labelNumber)
+            XCTAssertEqual(resourceValues2.labelNumber!, 2)
         } catch (let e as NSError) {
-            expectTrue(false, "Unable to load or set resources \(e)")
+            XCTAssertTrue(false, "Unable to load or set resources \(e)")
         } catch {
-            expectTrue(false, "Unable to load or set resources (mysterious error)")
+            XCTAssertTrue(false, "Unable to load or set resources (mysterious error)")
         }
         
         do {
             try FileManager.default.removeItem(at: file)
         } catch {
-            expectTrue(false, "Unable to remove file")
+            XCTAssertTrue(false, "Unable to remove file")
         }
 
     }
@@ -184,57 +173,57 @@ class TestURL : TestURLSuper {
         // Not meant to be a test of all URL components functionality, just some basic bridging stuff
         let s = "http://www.apple.com/us/search/ipad?src=global%7Cnav"
         var components = URLComponents(string: s)!
-        expectNotNil(components)
+        XCTAssertNotNil(components)
         
-        expectNotNil(components.host)
-        expectEqual("www.apple.com", components.host)
+        XCTAssertNotNil(components.host)
+        XCTAssertEqual("www.apple.com", components.host)
         
         
         if #available(OSX 10.11, iOS 9.0, *) {
             let rangeOfHost = components.rangeOfHost!
-            expectNotNil(rangeOfHost)
-            expectEqual(s[rangeOfHost], "www.apple.com")
+            XCTAssertNotNil(rangeOfHost)
+            XCTAssertEqual(s[rangeOfHost], "www.apple.com")
         }
         
         if #available(OSX 10.10, iOS 8.0, *) {
             let qi = components.queryItems!
-            expectNotNil(qi)
+            XCTAssertNotNil(qi)
             
-            expectEqual(1, qi.count)
+            XCTAssertEqual(1, qi.count)
             let first = qi[0]
             
-            expectEqual("src", first.name)
-            expectNotNil(first.value)
-            expectEqual("global|nav", first.value)
+            XCTAssertEqual("src", first.name)
+            XCTAssertNotNil(first.value)
+            XCTAssertEqual("global|nav", first.value)
         }
 
         if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
             components.percentEncodedQuery = "name1%E2%80%A2=value1%E2%80%A2&name2%E2%80%A2=value2%E2%80%A2"
             var qi = components.queryItems!
-            expectNotNil(qi)
+            XCTAssertNotNil(qi)
             
-            expectEqual(2, qi.count)
+            XCTAssertEqual(2, qi.count)
             
-            expectEqual("name1•", qi[0].name)
-            expectNotNil(qi[0].value)
-            expectEqual("value1•", qi[0].value)
+            XCTAssertEqual("name1•", qi[0].name)
+            XCTAssertNotNil(qi[0].value)
+            XCTAssertEqual("value1•", qi[0].value)
             
-            expectEqual("name2•", qi[1].name)
-            expectNotNil(qi[1].value)
-            expectEqual("value2•", qi[1].value)
+            XCTAssertEqual("name2•", qi[1].name)
+            XCTAssertNotNil(qi[1].value)
+            XCTAssertEqual("value2•", qi[1].value)
             
             qi = components.percentEncodedQueryItems!
-            expectNotNil(qi)
+            XCTAssertNotNil(qi)
             
-            expectEqual(2, qi.count)
+            XCTAssertEqual(2, qi.count)
             
-            expectEqual("name1%E2%80%A2", qi[0].name)
-            expectNotNil(qi[0].value)
-            expectEqual("value1%E2%80%A2", qi[0].value)
+            XCTAssertEqual("name1%E2%80%A2", qi[0].name)
+            XCTAssertNotNil(qi[0].value)
+            XCTAssertEqual("value1%E2%80%A2", qi[0].value)
             
-            expectEqual("name2%E2%80%A2", qi[1].name)
-            expectNotNil(qi[0].value)
-            expectEqual("value2%E2%80%A2", qi[1].value)
+            XCTAssertEqual("name2%E2%80%A2", qi[1].name)
+            XCTAssertNotNil(qi[0].value)
+            XCTAssertEqual("value2%E2%80%A2", qi[1].value)
             
             qi[0].name = "%E2%80%A2name1"
             qi[0].value = "%E2%80%A2value1"
@@ -243,7 +232,7 @@ class TestURL : TestURLSuper {
             
             components.percentEncodedQueryItems = qi
             
-            expectEqual("%E2%80%A2name1=%E2%80%A2value1&%E2%80%A2name2=%E2%80%A2value2", components.percentEncodedQuery)
+            XCTAssertEqual("%E2%80%A2name1=%E2%80%A2value1&%E2%80%A2name2=%E2%80%A2value2", components.percentEncodedQuery)
         }
     }
     
@@ -268,21 +257,21 @@ class TestURL : TestURLSuper {
         
         do {
             let values = try dir.resourceValues(forKeys: [.nameKey, .isDirectoryKey])
-            expectEqual(values.name, fileName)
-            expectFalse(values.isDirectory!)
-            expectEqual(nil, values.creationDate) // Didn't ask for this
+            XCTAssertEqual(values.name, fileName)
+            XCTAssertFalse(values.isDirectory!)
+            XCTAssertEqual(nil, values.creationDate) // Didn't ask for this
         } catch {
-            expectTrue(false, "Unable to get resource value")
+            XCTAssertTrue(false, "Unable to get resource value")
         }
         
         let originalDate : Date
         do {
             var values = try dir.resourceValues(forKeys: [.creationDateKey])
-            expectNotEqual(nil, values.creationDate)
+            XCTAssertNotEqual(nil, values.creationDate)
             originalDate = values.creationDate!
         } catch {
             originalDate = Date()
-            expectTrue(false, "Unable to get creation date")
+            XCTAssertTrue(false, "Unable to get creation date")
         }
         
         let newDate = originalDate + 100
@@ -292,14 +281,14 @@ class TestURL : TestURLSuper {
             values.creationDate = newDate
             try dir.setResourceValues(values)
         } catch {
-            expectTrue(false, "Unable to set resource value")
+            XCTAssertTrue(false, "Unable to set resource value")
         }
         
         do {
             let values = try dir.resourceValues(forKeys: [.creationDateKey])
-            expectEqual(newDate, values.creationDate)
+            XCTAssertEqual(newDate, values.creationDate)
         } catch {
-            expectTrue(false, "Unable to get values")
+            XCTAssertTrue(false, "Unable to get values")
         }
     }
 
@@ -313,8 +302,8 @@ class TestURL : TestURLSuper {
         expectEqual(URL.self, type(of: anyHashables[0].base))
         expectEqual(URL.self, type(of: anyHashables[1].base))
         expectEqual(URL.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSURL() {
@@ -327,8 +316,8 @@ class TestURL : TestURLSuper {
         expectEqual(URL.self, type(of: anyHashables[0].base))
         expectEqual(URL.self, type(of: anyHashables[1].base))
         expectEqual(URL.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableContainingURLComponents() {
@@ -341,8 +330,8 @@ class TestURL : TestURLSuper {
         expectEqual(URLComponents.self, type(of: anyHashables[0].base))
         expectEqual(URLComponents.self, type(of: anyHashables[1].base))
         expectEqual(URLComponents.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSURLComponents() {
@@ -355,8 +344,8 @@ class TestURL : TestURLSuper {
         expectEqual(URLComponents.self, type(of: anyHashables[0].base))
         expectEqual(URLComponents.self, type(of: anyHashables[1].base))
         expectEqual(URLComponents.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableContainingURLQueryItem() {
@@ -370,8 +359,8 @@ class TestURL : TestURLSuper {
             expectEqual(URLQueryItem.self, type(of: anyHashables[0].base))
             expectEqual(URLQueryItem.self, type(of: anyHashables[1].base))
             expectEqual(URLQueryItem.self, type(of: anyHashables[2].base))
-            expectNotEqual(anyHashables[0], anyHashables[1])
-            expectEqual(anyHashables[1], anyHashables[2])
+            XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+            XCTAssertEqual(anyHashables[1], anyHashables[2])
         }
     }
 
@@ -386,8 +375,8 @@ class TestURL : TestURLSuper {
             expectEqual(URLQueryItem.self, type(of: anyHashables[0].base))
             expectEqual(URLQueryItem.self, type(of: anyHashables[1].base))
             expectEqual(URLQueryItem.self, type(of: anyHashables[2].base))
-            expectNotEqual(anyHashables[0], anyHashables[1])
-            expectEqual(anyHashables[1], anyHashables[2])
+            XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+            XCTAssertEqual(anyHashables[1], anyHashables[2])
         }
     }
 
@@ -401,8 +390,8 @@ class TestURL : TestURLSuper {
         expectEqual(URLRequest.self, type(of: anyHashables[0].base))
         expectEqual(URLRequest.self, type(of: anyHashables[1].base))
         expectEqual(URLRequest.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 
     func test_AnyHashableCreatedFromNSURLRequest() {
@@ -415,29 +404,7 @@ class TestURL : TestURLSuper {
         expectEqual(URLRequest.self, type(of: anyHashables[0].base))
         expectEqual(URLRequest.self, type(of: anyHashables[1].base))
         expectEqual(URLRequest.self, type(of: anyHashables[2].base))
-        expectNotEqual(anyHashables[0], anyHashables[1])
-        expectEqual(anyHashables[1], anyHashables[2])
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
     }
 }
-
-#if !FOUNDATION_XCTEST
-var URLTests = TestSuite("TestURL")
-URLTests.test("testBasics") { TestURL().testBasics() }
-URLTests.test("testProperties") { TestURL().testProperties() }
-URLTests.test("testSetProperties") { TestURL().testSetProperties() }
-#if os(macOS)
-URLTests.test("testQuarantineProperties") { TestURL().testQuarantineProperties() }
-#endif
-URLTests.test("testMoreSetProperties") { TestURL().testMoreSetProperties() }
-URLTests.test("testURLComponents") { TestURL().testURLComponents() }
-URLTests.test("testURLResourceValues") { TestURL().testURLResourceValues() }
-URLTests.test("test_AnyHashableContainingURL") { TestURL().test_AnyHashableContainingURL() }
-URLTests.test("test_AnyHashableCreatedFromNSURL") { TestURL().test_AnyHashableCreatedFromNSURL() }
-URLTests.test("test_AnyHashableContainingURLComponents") { TestURL().test_AnyHashableContainingURLComponents() }
-URLTests.test("test_AnyHashableCreatedFromNSURLComponents") { TestURL().test_AnyHashableCreatedFromNSURLComponents() }
-URLTests.test("test_AnyHashableContainingURLQueryItem") { TestURL().test_AnyHashableContainingURLQueryItem() }
-URLTests.test("test_AnyHashableCreatedFromNSURLQueryItem") { TestURL().test_AnyHashableCreatedFromNSURLQueryItem() }
-URLTests.test("test_AnyHashableContainingURLRequest") { TestURL().test_AnyHashableContainingURLRequest() }
-URLTests.test("test_AnyHashableCreatedFromNSURLRequest") { TestURL().test_AnyHashableCreatedFromNSURLRequest() }
-runAllTests()
-#endif
