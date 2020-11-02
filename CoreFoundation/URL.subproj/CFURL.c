@@ -4786,7 +4786,7 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
 #endif
 
     CFMutableStringRef newString;
-    CFStringRef newComp;
+    CFStringRef newComp = NULL;
     CFRange pathRg;
     if (!(url->_flags & HAS_PATH)) {
         result = NULL;
