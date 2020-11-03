@@ -187,8 +187,23 @@ internal func _NSXMLParserAttributeDecl(_ ctx: _CFXMLInterface, elem: UnsafePoin
     if let delegate = parser.delegate {
         let elementString = UTF8STRING(elem)!
         let nameString = UTF8STRING(fullname)!
-        let typeString = "" // FIXME!
         let defaultValueString = UTF8STRING(defaultValue)
+
+        let typeString: String
+        switch CFIndex(type) {
+            case _kCFXMLDTDNodeAttributeTypeCData:       typeString = "CDATA"
+            case _kCFXMLDTDNodeAttributeTypeID:          typeString = "ID"
+            case _kCFXMLDTDNodeAttributeTypeIDRef:       typeString = "IDREF"
+            case _kCFXMLDTDNodeAttributeTypeIDRefs:      typeString = "IDREFS"
+            case _kCFXMLDTDNodeAttributeTypeEntity:      typeString = "ENTITY"
+            case _kCFXMLDTDNodeAttributeTypeEntities:    typeString = "ENTITIES"
+            case _kCFXMLDTDNodeAttributeTypeNMToken:     typeString = "NMTOKEN"
+            case _kCFXMLDTDNodeAttributeTypeNMTokens:    typeString = "NMTOKENS"
+            case _kCFXMLDTDNodeAttributeTypeEnumeration: typeString = "ENUMERATION"
+            case _kCFXMLDTDNodeAttributeTypeNotation:    typeString = "NOTATION"
+            default:                                     typeString = "UNKNOWN"
+        }
+
         delegate.parser(parser, foundAttributeDeclarationWithName: nameString, forElement: elementString, type: typeString, defaultValue: defaultValueString)
     }
     // in a regular sax implementation tree is added to an attribute, which takes ownership of it; in our case we need to make sure to release it
@@ -199,7 +214,17 @@ internal func _NSXMLParserElementDecl(_ ctx: _CFXMLInterface, name: UnsafePointe
     let parser = ctx.parser
     if let delegate = parser.delegate {
         let nameString = UTF8STRING(name)!
-        let modelString = "" // FIXME!
+
+        let modelString: String
+        switch CFIndex(type) {
+            case _kCFXMLDTDNodeElementTypeUndefined: modelString = "UNDEFINED"
+            case _kCFXMLDTDNodeElementTypeEmpty:     modelString = "EMPTY"
+            case _kCFXMLDTDNodeElementTypeAny:       modelString = "ANY"
+            case _kCFXMLDTDNodeElementTypeMixed:     modelString = "MIXED"
+            case _kCFXMLDTDNodeElementTypeElement:   modelString = "ELEMENT"
+            default:                                 modelString = "UNKNOWN"
+        }
+
         delegate.parser(parser, foundElementDeclarationWithName: nameString, model: modelString)
     }
 }
