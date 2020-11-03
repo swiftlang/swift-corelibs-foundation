@@ -187,6 +187,7 @@ _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     saxHandler->startElementNs = (startElementNsSAX2Func)__CFSwiftXMLParserBridge.startElementNs;
     saxHandler->endElementNs = (endElementNsSAX2Func)__CFSwiftXMLParserBridge.endElementNs;
     saxHandler->characters = (charactersSAXFunc)__CFSwiftXMLParserBridge.characters;
+    saxHandler->ignorableWhitespace = (ignorableWhitespaceSAXFunc)__CFSwiftXMLParserBridge.ignorableWhitespace;
     saxHandler->processingInstruction = (processingInstructionSAXFunc)__CFSwiftXMLParserBridge.processingInstruction;
     saxHandler->error = _errorCallback;
     saxHandler->cdataBlock = (cdataBlockSAXFunc)__CFSwiftXMLParserBridge.cdataBlock;

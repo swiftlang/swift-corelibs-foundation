@@ -355,6 +355,14 @@ internal func _NSXMLParserCharacters(_ ctx: _CFXMLInterface, ch: UnsafePointer<U
     }
 }
 
+internal func _NSXMLParserIgnorableWhitespace(_ ctx: _CFXMLInterface, ch: UnsafePointer<UInt8>, len: Int32) -> Void {
+    let parser = ctx.parser
+    if let delegate = parser.delegate {
+        let str = String(decoding: UnsafeBufferPointer(start: ch, count: Int(len)), as: UTF8.self)
+        delegate.parser(parser, foundIgnorableWhitespace: str)
+    }
+}
+
 internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: UnsafePointer<UInt8>, data: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
@@ -1010,6 +1018,7 @@ func setupXMLParsing() {
         __CFSwiftXMLParserBridge.startElementNs = _NSXMLParserStartElementNs
         __CFSwiftXMLParserBridge.endElementNs = _NSXMLParserEndElementNs
         __CFSwiftXMLParserBridge.characters = _NSXMLParserCharacters
+        __CFSwiftXMLParserBridge.ignorableWhitespace = _NSXMLParserIgnorableWhitespace
         __CFSwiftXMLParserBridge.processingInstruction = _NSXMLParserProcessingInstruction
         __CFSwiftXMLParserBridge.cdataBlock = _NSXMLParserCdataBlock
         __CFSwiftXMLParserBridge.comment = _NSXMLParserComment

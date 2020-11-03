@@ -312,6 +312,9 @@ struct _NSXMLParserBridge {
     void (*characters)(_CFXMLInterface ctx,
                        const unsigned char *ch,
                        int len);
+    void (*ignorableWhitespace)(_CFXMLInterface ctx,
+                                const unsigned char *ch,
+                                int len);
     void (*processingInstruction)(_CFXMLInterface ctx,
                                   const unsigned char *target,
                                   const unsigned char *data);

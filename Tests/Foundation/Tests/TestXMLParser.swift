@@ -10,27 +10,87 @@
 enum XMLParserDelegateEvent {
     case startDocument
     case endDocument
-    case didStartElement(String, String?, String?, [String: String])
+    case foundNotationDeclaration(String, String?, String?)
+    case foundUnparsedEntityDeclaration(String, String?, String?, String?)
+    case foundAttributeDeclaration(String, String?, String?, String?)
+    case foundElementDeclaration(String, String)
+    case foundInternalEntityDeclaration(String, String?)
+    case foundExternalEntityDeclaration(String, String?, String?)
+    case didStartElement(String, String?, String?, [String : String])
     case didEndElement(String, String?, String?)
+    case didStartMappingPrefix(String, String)
+    case didEndMappingPrefix(String)
     case foundCharacters(String)
+    case foundIgnorableWhitespace(String)
+    case foundProcessingInstruction(String, String?)
+    case foundComment(String)
+    case foundCDATA(Data)
+    case resolveExternalEntity(String, String?)
+    case parseErrorOccurred(Error)
+    case validationErrorOccurred(Error)
 }
 
 extension XMLParserDelegateEvent: Equatable {
 
     public static func ==(lhs: XMLParserDelegateEvent, rhs: XMLParserDelegateEvent) -> Bool {
         switch (lhs, rhs) {
-        case (.startDocument, startDocument):
+        case (.startDocument, .startDocument):
             return true
-        case (.endDocument, endDocument):
+        case (.endDocument, .endDocument):
             return true
+        case let (.foundNotationDeclaration(lhsName, lhsPublicID, lhsSystemID),
+                  .foundNotationDeclaration(rhsName, rhsPublicID, rhsSystemID)):
+            return lhsName == rhsName && lhsPublicID == rhsPublicID && lhsSystemID == rhsSystemID
+        case let (.foundUnparsedEntityDeclaration(lhsName, lhsPublicID, lhsSystemID, lhsNotationName),
+                  .foundUnparsedEntityDeclaration(rhsName, rhsPublicID, rhsSystemID, rhsNotationName)):
+            return lhsName == rhsName && lhsPublicID == rhsPublicID && lhsSystemID == rhsSystemID && lhsNotationName == rhsNotationName
+        case let (.foundAttributeDeclaration(lhsAttributeName, lhsElementName, lhsType, lhsDefaultValue),
+                  .foundAttributeDeclaration(rhsAttributeName, rhsElementName, rhsType, rhsDefaultValue)):
+            return lhsAttributeName == rhsAttributeName && lhsElementName == rhsElementName && lhsType == rhsType && lhsDefaultValue == rhsDefaultValue
+        case let (.foundElementDeclaration(lhsElementName, lhsModel),
+                  .foundElementDeclaration(rhsElementName, rhsModel)):
+            return lhsElementName == rhsElementName && lhsModel == rhsModel
+        case let (.foundInternalEntityDeclaration(lhsName, lhsValue),
+                  .foundInternalEntityDeclaration(rhsName, rhsValue)):
+            return lhsName == rhsName && lhsValue == rhsValue
+        case let (.foundExternalEntityDeclaration(lhsName, lhsPublicID, lhsSystemID),
+                  .foundExternalEntityDeclaration(rhsName, rhsPublicID, rhsSystemID)):
+            return lhsName == rhsName && lhsPublicID == rhsPublicID && lhsSystemID == rhsSystemID
         case let (.didStartElement(lhsElement, lhsNamespace, lhsQname, lhsAttr),
-                  didStartElement(rhsElement, rhsNamespace, rhsQname, rhsAttr)):
+                  .didStartElement(rhsElement, rhsNamespace, rhsQname, rhsAttr)):
             return lhsElement == rhsElement && lhsNamespace == rhsNamespace && lhsQname == rhsQname && lhsAttr == rhsAttr
         case let (.didEndElement(lhsElement, lhsNamespace, lhsQname),
                   .didEndElement(rhsElement, rhsNamespace, rhsQname)):
             return lhsElement == rhsElement && lhsNamespace == rhsNamespace && lhsQname == rhsQname
+        case let (.didStartMappingPrefix(lhsPrefix, lhsNamespaceURI),
+                  .didStartMappingPrefix(rhsPrefix, rhsNamespaceURI)):
+            return lhsPrefix == rhsPrefix && lhsNamespaceURI == rhsNamespaceURI
+        case let (.didEndMappingPrefix(lhsPrefix),
+                  .didEndMappingPrefix(rhsPrefix)):
+            return lhsPrefix == rhsPrefix
         case let (.foundCharacters(lhsChar), .foundCharacters(rhsChar)):
             return lhsChar == rhsChar
+        case let (.foundIgnorableWhitespace(lhsWhitespaceString),
+                  .foundIgnorableWhitespace(rhsWhitespaceString)):
+            return lhsWhitespaceString == rhsWhitespaceString
+        case let (.foundProcessingInstruction(lhsTarget, lhsData),
+                  .foundProcessingInstruction(rhsTarget, rhsData)):
+            return lhsTarget == rhsTarget && lhsData == rhsData
+        case let (.foundComment(lhsComment),
+                  .foundComment(rhsComment)):
+            return lhsComment == rhsComment
+        case let (.foundCDATA(lhsData),
+                  .foundCDATA(rhsData)):
+            return lhsData == rhsData
+        case let (.resolveExternalEntity(lhsName, lhsSystemID),
+                  .resolveExternalEntity(rhsName, rhsSystemID)):
+            return lhsName == rhsName && lhsSystemID == rhsSystemID
+        case let (.parseErrorOccurred(lhsError),
+                  .parseErrorOccurred(rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        case let (.validationErrorOccurred(lhsError),
+                  .validationErrorOccurred(rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
         default:
             return false
         }
@@ -47,14 +107,70 @@ class XMLParserDelegateEventStream: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         events.append(.endDocument)
     }
+    func parser(_ parser: XMLParser, foundNotationDeclarationWithName name: String, publicID: String?, systemID: String?) {
+        events.append(.foundNotationDeclaration(name, publicID, systemID))
+    }
+    func parser(_ parser: XMLParser, foundUnparsedEntityDeclarationWithName name: String, publicID: String?, systemID: String?, notationName: String?) {
+        events.append(.foundUnparsedEntityDeclaration(name, publicID, systemID, notationName))
+    }
+    func parser(_ parser: XMLParser, foundAttributeDeclarationWithName attributeName: String, forElement elementName: String, type: String?, defaultValue: String?) {
+        events.append(.foundAttributeDeclaration(attributeName, elementName, type, defaultValue))
+    }
+    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
+        events.append(.foundElementDeclaration(elementName, model))
+    }
+    func parser(_ parser: XMLParser, foundInternalEntityDeclarationWithName name: String, value: String?) {
+        events.append(.foundInternalEntityDeclaration(name, value))
+    }
+    func parser(_ parser: XMLParser, foundExternalEntityDeclarationWithName name: String, publicID: String?, systemID: String?) {
+        events.append(.foundExternalEntityDeclaration(name, publicID, systemID))
+    }
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) {
         events.append(.didStartElement(elementName, namespaceURI, qName, attributeDict))
     }
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         events.append(.didEndElement(elementName, namespaceURI, qName))
     }
+    func parser(_ parser: XMLParser, didStartMappingPrefix prefix: String, toURI namespaceURI: String) {
+        events.append(.didStartMappingPrefix(prefix, namespaceURI))
+    }
+    func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+        events.append(.didEndMappingPrefix(prefix))
+    }
     func parser(_ parser: XMLParser, foundCharacters string: String) {
-        events.append(.foundCharacters(string))
+        if let previousEvent = events.last, case let .foundCharacters(previousString) = previousEvent {
+            events.removeLast()
+            events.append(.foundCharacters(previousString + string))
+        } else {
+            events.append(.foundCharacters(string))
+        }
+    }
+    func parser(_ parser: XMLParser, foundIgnorableWhitespace whitespaceString: String) {
+        if let previousEvent = events.last, case let .foundIgnorableWhitespace(previousString) = previousEvent {
+            events.removeLast()
+            events.append(.foundIgnorableWhitespace(previousString + whitespaceString))
+        } else {
+            events.append(.foundIgnorableWhitespace(whitespaceString))
+        }
+    }
+    func parser(_ parser: XMLParser, foundProcessingInstructionWithTarget target: String, data: String?) {
+        events.append(.foundProcessingInstruction(target, data))
+    }
+    func parser(_ parser: XMLParser, foundComment comment: String) {
+        events.append(.foundComment(comment))
+    }
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+        events.append(.foundCDATA(CDATABlock))
+    }
+    func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? {
+        events.append(.resolveExternalEntity(name, systemID))
+        return Data("[resolveExternalEntityName \(name)]".utf8)
+    }
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+        events.append(.parseErrorOccurred(parseError))
+    }
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error) {
+        events.append(.validationErrorOccurred(validationError))
     }
 }
 
@@ -72,7 +188,7 @@ class TestXMLParser : XCTestCase {
 
     // Helper method to embed the correct encoding in the XML header
     static func xmlUnderTest(encoding: String.Encoding? = nil) -> String {
-        let xmlUnderTest = "<test attribute='value'><foo>bar</foo></test>"
+        let xmlUnderTest = "<test attribute='value'> <foo>bar</foo></test>"
         guard var encoding = encoding?.description else {
             return xmlUnderTest
         }
@@ -91,6 +207,7 @@ class TestXMLParser : XCTestCase {
         return [
             .startDocument,
             .didStartElement("test", uri, namespaces ? "test" : nil, ["attribute": "value"]),
+            .foundIgnorableWhitespace(" "),
             .didStartElement("foo", uri, namespaces ? "foo" : nil, [:]),
             .foundCharacters("bar"),
             .didEndElement("foo", uri, namespaces ? "foo" : nil),
@@ -104,7 +221,8 @@ class TestXMLParser : XCTestCase {
         let xml = Array(TestXMLParser.xmlUnderTest().utf8CString)
         let data = xml.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) -> Data in
             return buffer.baseAddress!.withMemoryRebound(to: UInt8.self, capacity: buffer.count * MemoryLayout<CChar>.stride) {
-                return Data(bytes: $0, count: buffer.count)
+                // Must not include final \0
+                return Data(bytes: $0, count: buffer.count-1)
             }
         }
         let parser = XMLParser(data: data)
@@ -204,5 +322,5 @@ class TestXMLParser : XCTestCase {
         ElementNameChecker("noPrefix").check()
         ElementNameChecker("myPrefix:myLocalName").check()
     }
-    
+
 }
