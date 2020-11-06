@@ -183,12 +183,14 @@ class TestXMLParser : XCTestCase {
             ("test_withDataOptions", test_withDataOptions),
             ("test_sr9758_abortParsing", test_sr9758_abortParsing),
             ("test_sr10157_swappedElementNames", test_sr10157_swappedElementNames),
+            ("test_sr13546_stackedParsers", test_sr13546_stackedParsers),
+            ("test_entities", test_entities),
         ]
     }
 
     // Helper method to embed the correct encoding in the XML header
     static func xmlUnderTest(encoding: String.Encoding? = nil) -> String {
-        let xmlUnderTest = "<test attribute='value'> <foo>bar</foo></test>"
+        let xmlUnderTest = "<test attribute='value'><foo>bar</foo></test>"
         guard var encoding = encoding?.description else {
             return xmlUnderTest
         }
@@ -207,7 +209,6 @@ class TestXMLParser : XCTestCase {
         return [
             .startDocument,
             .didStartElement("test", uri, namespaces ? "test" : nil, ["attribute": "value"]),
-            .foundIgnorableWhitespace(" "),
             .didStartElement("foo", uri, namespaces ? "foo" : nil, [:]),
             .foundCharacters("bar"),
             .didEndElement("foo", uri, namespaces ? "foo" : nil),
@@ -215,7 +216,6 @@ class TestXMLParser : XCTestCase {
             .endDocument,
         ]
     }
-
 
     func test_withData() {
         let xml = Array(TestXMLParser.xmlUnderTest().utf8CString)
@@ -322,5 +322,162 @@ class TestXMLParser : XCTestCase {
         ElementNameChecker("noPrefix").check()
         ElementNameChecker("myPrefix:myLocalName").check()
     }
+    
+    func test_sr13546_stackedParsers() {
+        let xml = """
+                  <?xml version="1.0" encoding="ISO-8859-1"?>
+                  <!DOCTYPE root [
+                  
+                  <!ELEMENT root (foo*) >
+                  
+                  <!ELEMENT foo ANY >
+                  
+                  ]>
+                  <root xmlns:swift="https://swift.org/ns/test/sr13546">
+                  <foo/>
+                  </root>
+                  """
+        let xmlData = xml.data(using: .utf8)
+        XCTAssertNotNil(xmlData, "Expect XML string to convert to UTF-8")
 
+        let expectedEvents: [XMLParserDelegateEvent] = [
+            .startDocument,
+            .foundElementDeclaration("root", "ELEMENT"),
+            .foundElementDeclaration("foo", "ANY"),
+            .didStartMappingPrefix("swift", "https://swift.org/ns/test/sr13546"),
+            .didStartElement("root", "", "root", [:]),
+            .foundCharacters("\n"),
+            .didStartElement("foo", "", "foo", [:]),
+            .didEndElement("foo", "", "foo"),
+            .foundCharacters("\n"),
+            .didEndElement("root", "", "root"),
+            .didEndMappingPrefix("swift"),
+            .endDocument
+        ]
+
+        let parser = XMLParser(data: xmlData!)
+        parser.shouldProcessNamespaces = true
+        parser.shouldReportNamespacePrefixes = true
+        parser.shouldResolveExternalEntities = true
+        parser.externalEntityResolvingPolicy = .always
+
+        class StackedParserXMLParserDelegateEventStream : XMLParserDelegateEventStream {
+            var xmlData: Data! = nil
+            var innerResult: Bool = false
+            var innerStream: XMLParserDelegateEventStream! = nil
+
+            override func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) {
+
+                let parser = XMLParser(data: self.xmlData)
+                parser.shouldProcessNamespaces = true
+                parser.shouldReportNamespacePrefixes = true
+                parser.shouldResolveExternalEntities = true
+                parser.externalEntityResolvingPolicy = .always
+
+                self.innerStream = XMLParserDelegateEventStream()
+                parser.delegate = self.innerStream
+                self.innerResult = parser.parse()
+
+                super.parser(parser, didStartElement: elementName, namespaceURI: namespaceURI, qualifiedName: qName, attributes: attributeDict)
+
+            }
+        }
+
+        let stream = StackedParserXMLParserDelegateEventStream()
+        stream.xmlData = xmlData
+        parser.delegate = stream
+
+        let res = parser.parse()
+        XCTAssertTrue(res)
+        XCTAssertEqual(stream.events, expectedEvents)
+
+        XCTAssertTrue(stream.innerResult)
+        XCTAssertEqual(stream.innerStream.events, expectedEvents)
+    }
+
+    func test_entities() {
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let externalEntityPath = tempDirectory.appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+        XCTAssertNoThrow(try Data("""
+                                  <?xml version="1.0" encoding="ISO-8859-1"?>
+                                  <tagExt attrExt="attrExtValue">textExt</tagExt>
+                                  """.utf8).write(to: externalEntityPath), "creating temp file failed")
+        defer { XCTAssertNoThrow(try FileManager.default.removeItem(at: externalEntityPath), "Cleanup failed") }
+
+        let unparsedExternalPath = tempDirectory.appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+        XCTAssertNoThrow(try Data("unparsedExternal".utf8).write(to: unparsedExternalPath), "creating temp file failed")
+        defer { XCTAssertNoThrow(try FileManager.default.removeItem(at: unparsedExternalPath), "Cleanup failed") }
+
+
+        let xml = """
+                  <?xml version="1.0" encoding="ISO-8859-1"?>
+                  <!DOCTYPE root [
+                  
+                  <!NOTATION notation PUBLIC "A notation">
+                  
+                  <!ENTITY internalEntity "Internal">
+                  <!ENTITY externalEntity SYSTEM "\(externalEntityPath)">
+                  <!ENTITY unparsedExternal SYSTEM "\(unparsedExternalPath)" NDATA notation>
+                  
+                  <!ELEMENT root (foo*) >
+                  
+                  <!ELEMENT foo ANY >
+                  
+                  <!ATTLIST foo bar ENTITY #REQUIRED>
+                  
+                  ]>
+                  <root>
+                  <foo bar="&internalEntity;">internal entity: &internalEntity;</foo>
+                  <foo bar="externalEntity">external entity: &externalEntity;</foo>
+                  <foo bar="unparsedExternal">unparsed external entity: unparsedExternal</foo>
+                  </root>
+                  """
+        let expectedEvents: [XMLParserDelegateEvent] = [
+            .startDocument,
+            .foundNotationDeclaration("notation", "A notation", nil),
+            .foundInternalEntityDeclaration("internalEntity", "Internal"),
+            .foundExternalEntityDeclaration("externalEntity", nil, externalEntityPath.absoluteString),
+            .foundUnparsedEntityDeclaration("unparsedExternal", nil, unparsedExternalPath.absoluteString, "notation"),
+            .foundElementDeclaration("root", "ELEMENT"),
+            .foundElementDeclaration("foo", "ANY"),
+            .foundAttributeDeclaration("bar", "foo", "ENTITY", nil),
+            .didStartElement("root", "", "root", [:]),
+            .foundCharacters("\n"),
+            .didStartElement("foo", "", "foo", ["bar": "Internal"]),
+            .foundCharacters("internal entity: Internal"),
+            .didEndElement("foo", "", "foo"),
+            .foundCharacters("\n"),
+            .didStartElement("foo", "", "foo", ["bar": "externalEntity"]),
+            .foundCharacters("external entity: "),
+            .foundIgnorableWhitespace("\n"),
+            .didStartElement("tagExt", "", "tagExt", ["attrExt": "attrExtValue"]),
+            .foundCharacters("textExt"),
+            .didEndElement("tagExt", "", "tagExt"),
+            .didEndElement("foo", "", "foo"),
+            .foundCharacters("\n"),
+            .didStartElement("foo", "", "foo", ["bar": "unparsedExternal"]),
+            .foundCharacters("unparsed external entity: unparsedExternal"),
+            .didEndElement("foo", "", "foo"),
+            .foundCharacters("\n"),
+            .didEndElement("root", "", "root"),
+            .endDocument
+        ]
+
+        let xmlData = xml.data(using: .utf8)
+        XCTAssertNotNil(xmlData, "Expect XML string to convert to UTF-8")
+
+        let parser = XMLParser(data: xmlData!)
+        parser.shouldProcessNamespaces = true
+        parser.shouldReportNamespacePrefixes = true
+        parser.shouldResolveExternalEntities = true
+        parser.externalEntityResolvingPolicy = .always
+
+        let stream = XMLParserDelegateEventStream()
+        parser.delegate = stream
+
+        let res = parser.parse()
+        XCTAssertTrue(res)
+
+        XCTAssertEqual(stream.events, expectedEvents)
+    }
 }
