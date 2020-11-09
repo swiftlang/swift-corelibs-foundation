@@ -25,6 +25,12 @@ class TestFileManager : XCTestCase {
 #endif
 
     func test_NSTemporaryDirectory() {
+        #if os(Windows)
+        let validPathSeps: [Character] = ["\\", "/"]
+        #else
+        let validPathSeps: [Character] = ["/"]
+        #endif
+        
         let tempDir = NSTemporaryDirectory()
         XCTAssertTrue(validPathSeps.contains(where: { tempDir.hasSuffix(String($0)) }), "Temporary directory path must end with path separator")
     }
