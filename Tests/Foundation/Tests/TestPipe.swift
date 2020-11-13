@@ -44,7 +44,11 @@ class TestPipe: XCTestCase {
         for _ in 1...maxPipes {
             let pipe = Pipe()
             if !pipe.fileHandleForReading._isPlatformHandleValid {
+#if os(Windows)
+                XCTAssertEqual(pipe.fileHandleForReading._handle, pipe.fileHandleForWriting._handle)
+#else
                 XCTAssertEqual(pipe.fileHandleForReading.fileDescriptor, pipe.fileHandleForWriting.fileDescriptor)
+#endif
                 break
             }
             pipes.append(pipe)
