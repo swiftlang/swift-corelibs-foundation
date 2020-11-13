@@ -77,6 +77,11 @@
 #include <linux/fs.h>
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
 #endif //__GLIBC_PREREQ(2. 28)
+
+#ifndef __NR_statx
+#include <sys/stat.h>
+#endif // not __NR_statx
+
 #endif // TARGET_OS_LINUX
 
 #include <stdlib.h>
