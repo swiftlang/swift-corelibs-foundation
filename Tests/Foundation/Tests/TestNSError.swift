@@ -13,7 +13,7 @@ struct SwiftCustomNSError: Error, CustomNSError {
 class TestNSError : XCTestCase {
     
     static var allTests: [(String, (TestNSError) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestNSError) -> () throws -> Void)] = [
             ("test_LocalizedError_errorDescription", test_LocalizedError_errorDescription),
             ("test_NSErrorAsError_localizedDescription", test_NSErrorAsError_localizedDescription),
             ("test_NSError_inDictionary", test_NSError_inDictionary),
@@ -23,12 +23,19 @@ class TestNSError : XCTestCase {
             ("test_CustomNSError_errorCodeRawInt", test_CustomNSError_errorCodeRawInt),
             ("test_CustomNSError_errorCodeRawUInt", test_CustomNSError_errorCodeRawUInt),
             ("test_errorConvenience", test_errorConvenience),
+        ]
+        
+        #if !canImport(ObjectiveC) || DARWIN_COMPATIBILITY_TESTS
+        tests.append(contentsOf: [
             ("test_ConvertErrorToNSError_domain", test_ConvertErrorToNSError_domain),
             ("test_ConvertErrorToNSError_errorCode", test_ConvertErrorToNSError_errorCode),
             ("test_ConvertErrorToNSError_errorCodeRawInt", test_ConvertErrorToNSError_errorCodeRawInt),
             ("test_ConvertErrorToNSError_errorCodeRawUInt", test_ConvertErrorToNSError_errorCodeRawUInt),
             ("test_ConvertErrorToNSError_errorCodeWithAssosiatedValue", test_ConvertErrorToNSError_errorCodeWithAssosiatedValue),
-        ]
+        ])
+        #endif
+        
+        return tests
     }
     
     func test_LocalizedError_errorDescription() {
@@ -112,6 +119,8 @@ class TestNSError : XCTestCase {
         }
     }
     
+    #if !canImport(ObjectiveC) || DARWIN_COMPATIBILITY_TESTS
+    
     func test_ConvertErrorToNSError_domain() {
         struct CustomSwiftError: Error {
         }
@@ -164,6 +173,8 @@ class TestNSError : XCTestCase {
         XCTAssertEqual((SwiftError.four as NSError).code, 4)
         XCTAssertEqual((SwiftError.five("five") as NSError).code, 1)
     }
+    
+    #endif
 
 }
 
