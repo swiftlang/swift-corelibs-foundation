@@ -9,6 +9,10 @@
 
 @_implementationOnly import CoreFoundation
 
+#if canImport(Glibc)
+import Glibc
+#endif
+
 // WORKAROUND_SR9811
 #if os(Windows)
 internal typealias _swift_CFThreadRef = HANDLE
