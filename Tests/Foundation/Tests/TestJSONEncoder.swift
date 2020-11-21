@@ -49,7 +49,7 @@ class TestJSONEncoder : XCTestCase {
         _testFragment(value: true, fragment: "true")
         _testFragment(value: Float(1), fragment: "1")
         _testFragment(value: Double(2), fragment: "2")
-        _testFragment(value: Decimal(Double.leastNormalMagnitude), fragment: "0.0000000000000000000000000000000000000000000000000002225073858507201792")
+        _testFragment(value: Decimal(Double(Float.leastNormalMagnitude)), fragment: "0.000000000000000000000000000000000000011754943508222875648")
         _testFragment(value: "test", fragment: "\"test\"")
         let v: Int? = nil
         _testFragment(value: v, fragment: "null")
