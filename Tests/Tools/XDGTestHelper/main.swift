@@ -274,6 +274,10 @@ case "--signal-test":
 
 case "--print-open-file-descriptors":
     printOpenFileDescriptors()
+
+case "--pgrp":
+    print("pgrp: \(getpgrp())")
+
 #endif
 
 default:
