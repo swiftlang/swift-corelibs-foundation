@@ -34,6 +34,7 @@ class TestOperationQueue : XCTestCase {
             ("test_CancelWhileSuspended", test_CancelWhileSuspended),
             ("test_OperationOrder", test_OperationOrder),
             ("test_OperationOrder2", test_OperationOrder2),
+            ("test_ExecutionOrder", test_ExecutionOrder),
             ("test_WaitUntilFinished", test_WaitUntilFinished),
             ("test_OperationWaitUntilFinished", test_OperationWaitUntilFinished),
             ("test_CustomOperationReady", test_CustomOperationReady),
@@ -529,6 +530,32 @@ class TestOperationQueue : XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
 
         XCTAssertEqual(array, [5, 4, 3, 2, 1])
+    }
+
+    func test_ExecutionOrder() {
+        let queue = OperationQueue()
+        
+        let didRunOp1 = expectation(description: "Did run first operation")
+        let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
+        let didRunOp2 = expectation(description: "Did run second operation")
+        var didRunOp1DependencyFirst = false
+        
+        let op1 = BlockOperation {
+            didRunOp1.fulfill()
+            XCTAssertTrue(didRunOp1DependencyFirst, "Dependency should be executed first")
+        }
+        let op1Dependency = BlockOperation {
+            didRunOp1Dependency.fulfill()
+            didRunOp1DependencyFirst = true
+        }
+        op1.addDependency(op1Dependency)
+        queue.addOperations([op1, op1Dependency], waitUntilFinished: false)
+        
+        queue.addOperation {
+            didRunOp2.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1.0)
     }
 
     func test_WaitUntilFinished() {
