@@ -667,8 +667,10 @@ public func withTemporaryDirectory<R>(functionName: String = #function, block: (
         throw TestError.unexpectedNil
     }
 
-    let fname = String(functionName[..<idx])
-    let tmpDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent(testBundleName()).appendingPathComponent(fname).appendingPathComponent(NSUUID().uuidString)
+    // Create the temporary directory as one level so that it doesnt leave a directory hierarchy on the filesystem
+    // eg tmp dir will be something like:  /tmp/TestFoundation-test_name-BE16B2FF-37FA-4F70-8A84-923D1CC2A860
+    let fname = testBundleName() + "-" + String(functionName[..<idx]) + "-" + NSUUID().uuidString
+    let tmpDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent(fname)
     let fm = FileManager.default
     try? fm.removeItem(at: tmpDir)
     try fm.createDirectory(at: tmpDir, withIntermediateDirectories: true)
