@@ -77,6 +77,11 @@
 #include <linux/fs.h>
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
 #endif //__GLIBC_PREREQ(2. 28)
+
+#ifndef __NR_statx
+#include <sys/stat.h>
+#endif // not __NR_statx
+
 #endif // TARGET_OS_LINUX
 
 #include <stdlib.h>
@@ -672,8 +677,12 @@ CF_EXPORT int _CFPosixSpawnFileActionsDestroy(_CFPosixSpawnFileActionsRef file_a
 CF_EXPORT void _CFPosixSpawnFileActionsDealloc(_CFPosixSpawnFileActionsRef file_actions);
 CF_EXPORT int _CFPosixSpawnFileActionsAddDup2(_CFPosixSpawnFileActionsRef file_actions, int filedes, int newfiledes);
 CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_actions, int filedes);
+#ifdef __cplusplus
+CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *const argv[], char *const envp[]);
+#else
 CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]);
-#endif
+#endif // __cplusplus
+#endif // !TARGET_OS_WIN32
 
 _CF_EXPORT_SCOPE_END
 

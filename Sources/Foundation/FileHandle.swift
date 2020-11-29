@@ -49,11 +49,7 @@ extension NSError {
  
 open class FileHandle : NSObject {
 #if os(Windows)
-    private var _handle: HANDLE
-
-    internal var handle: HANDLE {
-      return _handle
-    }
+    public private(set) var _handle: HANDLE
 
     @available(Windows, unavailable, message: "Cannot perform non-owning handle to fd conversion")
     open var fileDescriptor: Int32 {
@@ -61,11 +57,11 @@ open class FileHandle : NSObject {
     }
 
     private func _checkFileHandle() {
-        precondition(_handle != INVALID_HANDLE_VALUE, "Invalid file handle")
+        precondition(self._handle != INVALID_HANDLE_VALUE, "Invalid file handle")
     }
 
     internal var _isPlatformHandleValid: Bool {
-        return _handle != INVALID_HANDLE_VALUE
+        return self._handle != INVALID_HANDLE_VALUE
     }
 #else
     private var _fd: Int32
@@ -120,7 +116,7 @@ open class FileHandle : NSObject {
         // Closing the file descriptor while Dispatch is monitoring it leads to undefined behavior; guard against that.
         #if os(Windows)
         var dupHandle: HANDLE?
-        if !DuplicateHandle(GetCurrentProcess(), handle, GetCurrentProcess(), &dupHandle,
+        if !DuplicateHandle(GetCurrentProcess(), self._handle, GetCurrentProcess(), &dupHandle,
                         /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DWORD(DUPLICATE_SAME_ACCESS)) {
             fatalError("DuplicateHandleFailed: \(GetLastError())")
         }
@@ -228,15 +224,15 @@ open class FileHandle : NSObject {
           return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
 
-        if GetFileType(_handle) == FILE_TYPE_DISK {
+        if GetFileType(self._handle) == FILE_TYPE_DISK {
           var fiFileInfo: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
-          if !GetFileInformationByHandle(_handle, &fiFileInfo) {
+          if !GetFileInformationByHandle(self._handle, &fiFileInfo) {
               throw _NSErrorWithWindowsError(GetLastError(), reading: true)
           }
 
           if options.contains(.alwaysMapped) {
             let hMapping: HANDLE =
-                CreateFileMappingA(_handle, nil, DWORD(PAGE_READONLY), 0, 0, nil)
+                CreateFileMappingA(self._handle, nil, DWORD(PAGE_READONLY), 0, 0, nil)
             if hMapping == HANDLE(bitPattern: 0) {
               fatalError("CreateFileMappingA failed")
             }
@@ -272,7 +268,7 @@ open class FileHandle : NSObject {
           }
 
           var BytesRead: DWORD = 0
-          if !ReadFile(_handle, buffer.advanced(by: total), BytesToRead, &BytesRead, nil) {
+          if !ReadFile(self._handle, buffer.advanced(by: total), BytesToRead, &BytesRead, nil) {
             let err = GetLastError()
             if err == ERROR_BROKEN_PIPE {
                 break
@@ -370,7 +366,7 @@ open class FileHandle : NSObject {
 #if os(Windows)
         var BytesRead: DWORD = 0
         let BytesToRead: DWORD = DWORD(length)
-        if !ReadFile(_handle, buffer, BytesToRead, &BytesRead, nil) {
+        if !ReadFile(self._handle, buffer, BytesToRead, &BytesRead, nil) {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         return Int(BytesRead)
@@ -388,7 +384,7 @@ open class FileHandle : NSObject {
         var bytesRemaining = length
         while bytesRemaining > 0 {
             var bytesWritten: DWORD = 0
-            if !WriteFile(handle, buf.advanced(by: length - bytesRemaining), DWORD(bytesRemaining), &bytesWritten, nil) {
+            if !WriteFile(self._handle, buf.advanced(by: length - bytesRemaining), DWORD(bytesRemaining), &bytesWritten, nil) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
             if bytesWritten == 0 {
@@ -413,7 +409,7 @@ open class FileHandle : NSObject {
 
 #if os(Windows)
     internal init(handle: HANDLE, closeOnDealloc closeopt: Bool) {
-      _handle = handle
+      self._handle = handle
       _closeOnDealloc = closeopt
     }
 
@@ -424,10 +420,10 @@ open class FileHandle : NSObject {
           fatalError("DuplicateHandle() failed: \(GetLastError())")
         }
         _close(fd)
-        _handle = handle!
+        self._handle = handle!
         _closeOnDealloc = true
       } else {
-        _handle = HANDLE(bitPattern: _get_osfhandle(fd))!
+        self._handle = HANDLE(bitPattern: _get_osfhandle(fd))!
         _closeOnDealloc = false
       }
     }
@@ -443,7 +439,7 @@ open class FileHandle : NSObject {
       }), fd > 0 else { return nil }
 
       self.init(fileDescriptor: fd, closeOnDealloc: true)
-      if _handle == INVALID_HANDLE_VALUE { return nil }
+      if self._handle == INVALID_HANDLE_VALUE { return nil }
     }
 #else
     public init(fileDescriptor fd: Int32, closeOnDealloc closeopt: Bool) {
@@ -525,7 +521,7 @@ open class FileHandle : NSObject {
 
         #if os(Windows)
         var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
-        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_CURRENT)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_CURRENT)) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         return UInt64(liPointer.QuadPart)
@@ -545,7 +541,7 @@ open class FileHandle : NSObject {
 
         #if os(Windows)
         var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
-        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_END)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_END)) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         return UInt64(liPointer.QuadPart)
@@ -563,7 +559,7 @@ open class FileHandle : NSObject {
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
 
         #if os(Windows)
-        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         #else
@@ -578,10 +574,10 @@ open class FileHandle : NSObject {
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
 
         #if os(Windows)
-        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
-        guard SetEndOfFile(_handle) else {
+        guard SetEndOfFile(self._handle) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
         #else
@@ -595,7 +591,7 @@ open class FileHandle : NSObject {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         #if os(Windows)
-        guard FlushFileBuffers(_handle) else {
+        guard FlushFileBuffers(self._handle) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
         #else
@@ -638,10 +634,10 @@ open class FileHandle : NSObject {
         privateAsyncVariablesLock.unlock()
         
         #if os(Windows)
-        guard CloseHandle(_handle) else {
+        guard CloseHandle(self._handle) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
-        _handle = INVALID_HANDLE_VALUE
+        self._handle = INVALID_HANDLE_VALUE
         #else
         guard _close(_fd) >= 0 else {
             throw _NSErrorWithErrno(errno, reading: true)
@@ -864,7 +860,7 @@ extension FileHandle {
                 var translatedError = error
                 if error == ERROR_ACCESS_DENIED {
                     var fileInfo = BY_HANDLE_FILE_INFORMATION()
-                    GetFileInformationByHandle(self.handle, &fileInfo)
+                    GetFileInformationByHandle(self._handle, &fileInfo)
                     if fileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
                         translatedError = ERROR_DIRECTORY_NOT_SUPPORTED
                     }
@@ -881,7 +877,7 @@ extension FileHandle {
         }
 
 #if os(Windows)
-        DispatchIO.read(fromHandle: handle, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
+        DispatchIO.read(fromHandle: self._handle, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
           operation(data, error)
         }
 #else
@@ -939,8 +935,13 @@ extension FileHandle {
         }
     }
     
+    @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
     open func acceptConnectionInBackgroundAndNotify() {
+#if os(Windows)
+        NSUnsupported()
+#else
         acceptConnectionInBackgroundAndNotify(forModes: [.default])
+#endif
     }
 
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")

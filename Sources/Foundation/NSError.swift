@@ -14,8 +14,8 @@
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
-#elseif canImport(MSVCRT)
-import MSVCRT
+#elseif canImport(CRT)
+import CRT
 #endif
 
 @_implementationOnly import CoreFoundation
@@ -1417,8 +1417,8 @@ func _convertErrorToNSError(_ error: Error) -> NSError {
             code = error.errorCode
             userInfo = error.errorUserInfo
         } else {
-            domain = "SwiftError"
-            code = 0
+            domain = error._domain
+            code = error._code
             userInfo = (_swift_Foundation_getErrorDefaultUserInfo(error) as? [String : Any]) ?? [:]
         }
         
