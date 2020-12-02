@@ -259,6 +259,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     } else {
                         exeDirURL = (CFURLRef)CFRetain(url);
                     }
+                    if (extension) CFRelease(extension);
 #else
                     exeDirURL = (CFURLRef)CFRetain(url);
 #endif
