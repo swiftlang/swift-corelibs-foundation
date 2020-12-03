@@ -773,17 +773,34 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     // Don't close h, fd is transferred ownership
     let fd = _open_osfhandle(intptr_t(bitPattern: h), 0)
 #else
-    let maxLength = Int(PATH_MAX) + 1
-    var buf = [Int8](repeating: 0, count: maxLength)
-    let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
-    guard let name = mktemp(&buf) else {
-        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    var filename = template.utf8CString
+
+    let result = filename.withUnsafeMutableBufferPointer { (ptr: inout UnsafeMutableBufferPointer<CChar>) -> (Int32, String)? in
+        // filename is updated with the temp file name on success.
+        let fd = mkstemp(ptr.baseAddress!)
+        if fd == -1 {
+            return nil
+        } else {
+            guard let fname = String(utf8String: ptr.baseAddress!) else {
+                // Couldnt convert buffer back to filename.
+                close(fd)
+                errno = ENOENT
+                return nil
+            }
+            return (fd, fname)
+        }
     }
-    let fd = open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
-    if fd == -1 {
-        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+
+    guard let (fd, pathResult) = result else {
+        throw _NSErrorWithErrno(errno, reading: false, path: template)
     }
-    let pathResult = FileManager.default.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
+
+    // Set the file mode to match macOS
+    guard fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH) != -1 else {
+        let _errno = errno
+        close(fd)
+        throw _NSErrorWithErrno(_errno, reading: false, path: pathResult)
+    }
 #endif
     return (fd, pathResult)
 }
