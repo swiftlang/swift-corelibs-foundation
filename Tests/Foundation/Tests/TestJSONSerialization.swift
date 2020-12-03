@@ -40,7 +40,8 @@ extension TestJSONSerialization {
             return Data(buffer: $0)
         }
         
-        let object = try! JSONSerialization.jsonObject(with: subject, options: []) as? [String:Any]
+        var object: [String: Any]?
+        XCTAssertNoThrow(object = try JSONSerialization.jsonObject(with: subject, options: []) as? [String:Any])
         XCTAssertEqual(object?.count, 0)
     }
     
@@ -415,37 +416,33 @@ extension TestJSONSerialization {
     func deserialize_multiStringArray(objectType: ObjectType) {
         let subject = "[\"hello\", \"swift⚡️\"]"
 
-        do {
-            for encoding in [String.Encoding.utf8, String.Encoding.utf16BigEndian] {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? String, "hello")
-                XCTAssertEqual(result?[1] as? String, "swift⚡️")
+        for encoding in [String.Encoding.utf8, String.Encoding.utf16BigEndian] {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? String, "hello")
+            XCTAssertEqual(iterator?.next() as? String, "swift⚡️")
         }
     }
 
     func deserialize_unicodeString(objectType: ObjectType) {
         /// Ģ has the same LSB as quotation mark " (U+0022) so test guarding against this case
         let subject = "[\"unicode\", \"Ģ\", \"😢\"]"
-        do {
-            for encoding in [String.Encoding.utf16LittleEndian, String.Encoding.utf16BigEndian, String.Encoding.utf32LittleEndian, String.Encoding.utf32BigEndian] {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? String, "unicode")
-                XCTAssertEqual(result?[1] as? String, "Ģ")
-                XCTAssertEqual(result?[2] as? String, "😢")
+        for encoding in [String.Encoding.utf16LittleEndian, String.Encoding.utf16BigEndian, String.Encoding.utf32LittleEndian, String.Encoding.utf32BigEndian] {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? String, "unicode")
+            XCTAssertEqual(iterator?.next() as? String, "Ģ")
+            XCTAssertEqual(iterator?.next() as? String, "😢")
         }
     }
 
@@ -453,44 +450,41 @@ extension TestJSONSerialization {
     func deserialize_values(objectType: ObjectType) {
         let subject = "[true, false, \"hello\", null, {}, []]"
 
-        do {
-            for encoding in supportedEncodings {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? Bool, true)
-                XCTAssertEqual(result?[1] as? Bool, false)
-                XCTAssertEqual(result?[2] as? String, "hello")
-                XCTAssertNotNil(result?[3] as? NSNull)
-                XCTAssertNotNil(result?[4] as? [String:Any])
-                XCTAssertNotNil(result?[5] as? [Any])
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? Bool, true)
+            XCTAssertEqual(iterator?.next() as? Bool, false)
+            XCTAssertEqual(iterator?.next() as? String, "hello")
+            XCTAssertNotNil(iterator?.next() as? NSNull)
+            XCTAssertNotNil(iterator?.next() as? [String:Any])
+            XCTAssertNotNil(iterator?.next() as? [Any])
         }
+        
     }
 
     func deserialize_values_as_reference_types(objectType: ObjectType) {
         let subject = "[true, false, \"hello\", null, {}, []]"
 
-        do {
-            for encoding in supportedEncodings {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? NSNumber, true)
-                XCTAssertEqual(result?[1] as? NSNumber, false)
-                XCTAssertEqual(result?[2] as? String, "hello")
-                XCTAssertNotNil(result?[3] as? NSNull)
-                XCTAssertNotNil(result?[4] as? [String:Any])
-                XCTAssertNotNil(result?[5] as? [Any])
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? NSNumber, true)
+            XCTAssertEqual(iterator?.next() as? NSNumber, false)
+            XCTAssertEqual(iterator?.next() as? String, "hello")
+            XCTAssertNotNil(iterator?.next() as? NSNull)
+            XCTAssertNotNil(iterator?.next() as? [String:Any])
+            XCTAssertNotNil(iterator?.next() as? [Any])
         }
     }
 
@@ -498,115 +492,105 @@ extension TestJSONSerialization {
     func deserialize_numbers(objectType: ObjectType) {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
-        do {
-            for encoding in supportedEncodings {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? Int,    1)
-                XCTAssertEqual(result?[1] as? Int,    -1)
-                XCTAssertEqual(result?[2] as? Double, 1.3)
-                XCTAssertEqual(result?[3] as? Double, -1.3)
-                XCTAssertEqual(result?[4] as? Int,    1000)
-                XCTAssertEqual(result?[5] as? Double, 0.001)
-                XCTAssertEqual(result?[6] as? Int,    10)
-                XCTAssertEqual(result?[6] as? Double, 10.0)
-                XCTAssertEqual(result?[7] as? Double, -12.34e56)
-                XCTAssertEqual(result?[8] as? Double, 12.34e-56)
-                XCTAssertEqual(result?[9] as? Double, 12.34e6)
-                XCTAssertEqual(result?[10] as? Double, 2e-3)
-                XCTAssertEqual(result?[11] as? Double, 43)
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? Int,    1)
+            XCTAssertEqual(iterator?.next() as? Int,    -1)
+            XCTAssertEqual(iterator?.next() as? Double, 1.3)
+            XCTAssertEqual(iterator?.next() as? Double, -1.3)
+            XCTAssertEqual(iterator?.next() as? Int,    1000)
+            XCTAssertEqual(iterator?.next() as? Double, 0.001)
+            let ten = iterator?.next()
+            XCTAssertEqual(ten as? Int,    10)
+            XCTAssertEqual(ten as? Double, 10.0)
+            XCTAssertEqual(iterator?.next() as? Double, -12.34e56)
+            XCTAssertEqual(iterator?.next() as? Double, 12.34e-56)
+            XCTAssertEqual(iterator?.next() as? Double, 12.34e6)
+            XCTAssertEqual(iterator?.next() as? Double, 2e-3)
+            XCTAssertEqual(iterator?.next() as? Double, 43)
         }
     }
 
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
-        do {
-            for encoding in supportedEncodings {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? NSNumber, 1)
-                XCTAssertEqual(result?[1] as? NSNumber, -1)
-                XCTAssertEqual(result?[2] as? NSNumber, 1.3)
-                XCTAssertEqual(result?[3] as? NSNumber, -1.3)
-                XCTAssertEqual(result?[4] as? NSNumber, 1000)
-                XCTAssertEqual(result?[5] as? NSNumber, 0.001)
-                XCTAssertEqual(result?[6] as? NSNumber, 10)
-                XCTAssertEqual(result?[6] as? NSNumber, 10.0)
-                XCTAssertEqual(result?[7] as? NSNumber, -12.34e56)
-                XCTAssertEqual(result?[8] as? NSNumber, 12.34e-56)
-                XCTAssertEqual(result?[9] as? NSNumber, 12.34e6)
-                XCTAssertEqual(result?[10] as? NSNumber, 2e-3)
-                XCTAssertEqual(result?[11] as? NSNumber, 43)
-
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? NSNumber, 1)
+            XCTAssertEqual(iterator?.next() as? NSNumber, -1)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 1.3)
+            XCTAssertEqual(iterator?.next() as? NSNumber, -1.3)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 1000)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 0.001)
+            let ten = iterator?.next() as? NSNumber
+            XCTAssertEqual(ten, 10)
+            XCTAssertEqual(ten, 10.0)
+            XCTAssertEqual(iterator?.next() as? NSNumber, -12.34e56)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 12.34e-56)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 12.34e6)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 2e-3)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 43)
         }
     }
 
     //MARK: - Escape Sequences
     func deserialize_simpleEscapeSequences(objectType: ObjectType) {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
-            }
-            let res = try getjsonObjectResult(data, objectType) as? [Any]
-            let result = res?.compactMap { $0 as? String }
-            XCTAssertEqual(result?[0], "\"")
-            XCTAssertEqual(result?[1], "\\")
-            XCTAssertEqual(result?[2], "/")
-            XCTAssertEqual(result?[3], "\u{08}")
-            XCTAssertEqual(result?[4], "\u{0C}")
-            XCTAssertEqual(result?[5], "\u{0A}")
-            XCTAssertEqual(result?[6], "\u{0D}")
-            XCTAssertEqual(result?[7], "\u{09}")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
         }
+        var res: [Any]?
+        XCTAssertNoThrow(res = try getjsonObjectResult(data, objectType) as? [Any])
+        let result = res?.compactMap { $0 as? String }
+        var iterator = result?.makeIterator()
+        XCTAssertEqual(iterator?.next(), "\"")
+        XCTAssertEqual(iterator?.next(), "\\")
+        XCTAssertEqual(iterator?.next(), "/")
+        XCTAssertEqual(iterator?.next(), "\u{08}")
+        XCTAssertEqual(iterator?.next(), "\u{0C}")
+        XCTAssertEqual(iterator?.next(), "\u{0A}")
+        XCTAssertEqual(iterator?.next(), "\u{0D}")
+        XCTAssertEqual(iterator?.next(), "\u{09}")
     }
 
     func deserialize_unicodeEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\u2728\"]"
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
-            }
-            let result = try getjsonObjectResult(data, objectType) as? [Any]
-            // result?[0] as? String returns an Optional<String> and RHS is promoted
-            // to Optional<String>
-            XCTAssertEqual(result?[0] as? String, "✨")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
         }
+        var result: [Any]?
+        XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+        // result?[0] as? String returns an Optional<String> and RHS is promoted
+        // to Optional<String>
+        XCTAssertEqual(result?.first as? String, "✨")
     }
 
     func deserialize_unicodeSurrogatePairEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\uD834\\udd1E\"]"
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
-            }
-            let result = try getjsonObjectResult(data, objectType) as? [Any]
-            // result?[0] as? String returns an Optional<String> and RHS is promoted
-            // to Optional<String>
-            XCTAssertEqual(result?[0] as? String, "\u{1D11E}")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
         }
+        var result: [Any]?
+        XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+        // result?[0] as? String returns an Optional<String> and RHS is promoted
+        // to Optional<String>
+        XCTAssertEqual(result?.first as? String, "\u{1D11E}")
     }
 
     func deserialize_allowFragments(objectType: ObjectType) {
@@ -619,19 +603,17 @@ extension TestJSONSerialization {
             }
 
             // Check failure to decode without .allowFragments
-            XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) {
-                let nserror = ($0 as! NSError)
+            XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
+                guard let nserror = (error as? NSError) else {
+                    return XCTFail("Unexpected error type")
+                }
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
-                let code = CocoaError(_nsError: nserror).code
-                XCTAssertEqual(code, .propertyListReadCorrupt)
+                XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             }
 
-            do {
-                let result = try getjsonObjectResult(data, objectType, options: .allowFragments) as? Int
-                XCTAssertEqual(result, 3)
-            } catch {
-                XCTFail("Unexpected error: \(error) using encoding \(encoding)")
-            }
+            var result: Int?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType, options: .allowFragments) as? Int)
+            XCTAssertEqual(result, 3)
         }
     }
 
@@ -807,29 +789,29 @@ extension TestJSONSerialization {
 
     func test_JSONObjectWithStream_withURL() {
         let subject = "[true, false, \"hello\", null, {}, []]"
-        do {
-            for encoding in supportedEncodings {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                if let filePath = createTestFile("TestJSON.txt",_contents: data) {
-                    let url = URL(fileURLWithPath: filePath)
-                    let inputStream: InputStream = InputStream(url: url)!
-                    inputStream.open()
-                    let result = try JSONSerialization.jsonObject(with: inputStream, options: []) as? [Any]
-                    inputStream.close()
-                    removeTestFile(filePath)
-                    XCTAssertEqual(result?[0] as? Bool, true)
-                    XCTAssertEqual(result?[1] as? Bool, false)
-                    XCTAssertEqual(result?[2] as? String, "hello")
-                    XCTAssertNotNil(result?[3] as? NSNull)
-                    XCTAssertNotNil(result?[4] as? [String:Any])
-                    XCTAssertNotNil(result?[5] as? [Any])
-                }
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+            let filePath = createTestFile("TestJSON.txt",_contents: data)
+            var url: URL?
+            XCTAssertNoThrow(url = try URL(fileURLWithPath: XCTUnwrap(filePath)))
+            var inputStream: InputStream?
+            XCTAssertNoThrow(inputStream = try InputStream(url: XCTUnwrap(url)))
+            inputStream?.open()
+            defer { inputStream?.close() }
+            var result: [Any]?
+            XCTAssertNoThrow(result = try JSONSerialization.jsonObject(with: XCTUnwrap(inputStream), options: []) as? [Any])
+            XCTAssertNoThrow(try removeTestFile(XCTUnwrap(filePath)))
+            
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? Bool, true)
+            XCTAssertEqual(iterator?.next() as? Bool, false)
+            XCTAssertEqual(iterator?.next() as? String, "hello")
+            XCTAssertNotNil(iterator?.next() as? NSNull)
+            XCTAssertNotNil(iterator?.next() as? [String:Any])
+            XCTAssertNotNil(iterator?.next() as? [Any])
         }
     }
 
@@ -1296,17 +1278,23 @@ extension TestJSONSerialization {
         let value2 = 7.7087009966200002
         let dict1 = ["value": value1]
         let dict2 = ["value": value2]
-        let jsonData1 = try! JSONSerialization.data(withJSONObject: dict1)
-        let jsonData2 = try! JSONSerialization.data(withJSONObject: dict2)
-        let jsonString1 = String(decoding: jsonData1, as: UTF8.self)
-        let jsonString2 = String(decoding: jsonData2, as: UTF8.self)
+        var jsonData1: Data?
+        var jsonData2: Data?
+        XCTAssertNoThrow(jsonData1 = try JSONSerialization.data(withJSONObject: dict1))
+        XCTAssertNoThrow(jsonData2 = try JSONSerialization.data(withJSONObject: dict2))
+        var jsonString1: String?
+        var jsonString2: String?
+        XCTAssertNoThrow(jsonString1 = try String(decoding: XCTUnwrap(jsonData1), as: UTF8.self))
+        XCTAssertNoThrow(jsonString2 = try String(decoding: XCTUnwrap(jsonData2), as: UTF8.self))
 
         XCTAssertEqual(jsonString1, "{\"value\":7.708700996619999}")
         XCTAssertEqual(jsonString2, "{\"value\":7.70870099662}")
-        let decodedDict1 = try! JSONSerialization.jsonObject(with: jsonData1) as! [String : Double]
-        let decodedDict2 = try! JSONSerialization.jsonObject(with: jsonData2) as! [String : Double]
-        XCTAssertEqual(decodedDict1["value"], value1)
-        XCTAssertEqual(decodedDict2["value"], value2)
+        var decodedDict1: [String : Double]?
+        var decodedDict2: [String : Double]?
+        XCTAssertNoThrow(decodedDict1 = try JSONSerialization.jsonObject(with: XCTUnwrap(jsonData1)) as? [String : Double])
+        XCTAssertNoThrow(decodedDict2 = try JSONSerialization.jsonObject(with: XCTUnwrap(jsonData2)) as? [String : Double])
+        XCTAssertEqual(decodedDict1?["value"], value1)
+        XCTAssertEqual(decodedDict2?["value"], value2)
     }
 
     func test_serialize_Decimal() {
@@ -1520,27 +1508,27 @@ extension TestJSONSerialization {
         let decimalArray = "[12.1,10.0,0.0,0.0001,20,\(Int.max)]"
         do {
             let data = decimalArray.data(using: String.Encoding.utf8)
-            let result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as! Double, 12.1)
-            XCTAssertEqual(result?[1] as! Int, 10)
-            XCTAssertEqual(result?[2] as! Int, 0)
-            XCTAssertEqual(result?[3] as! Double, 0.0001)
-            XCTAssertEqual(result?[4] as! Int, 20)
-            XCTAssertEqual(result?[5] as! Int, Int.max)
-        } catch {
-            XCTFail("Failed during serialization")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? Double, 12.1)
+            XCTAssertEqual(iterator?.next() as? Int, 10)
+            XCTAssertEqual(iterator?.next() as? Int, 0)
+            XCTAssertEqual(iterator?.next() as? Double, 0.0001)
+            XCTAssertEqual(iterator?.next() as? Int, 20)
+            XCTAssertEqual(iterator?.next() as? Int, Int.max)
         }
         do {
             let data = decimalArray.data(using: String.Encoding.utf8)
-            let result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any]
-            XCTAssertEqual(result?[0] as! NSNumber, 12.1)
-            XCTAssertEqual(result?[1] as! NSNumber, 10)
-            XCTAssertEqual(result?[2] as! NSNumber, 0)
-            XCTAssertEqual(result?[3] as! NSNumber, 0.0001)
-            XCTAssertEqual(result?[4] as! NSNumber, 20)
-            XCTAssertEqual(result?[5] as! NSNumber, NSNumber(value: Int.max))
-        } catch {
-            XCTFail("Failed during serialization")
+            var result: [Any]?
+            XCTAssertNoThrow(result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any])
+            var iterator = result?.makeIterator()
+            XCTAssertEqual(iterator?.next() as? NSNumber, 12.1)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 10)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 0)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 0.0001)
+            XCTAssertEqual(iterator?.next() as? NSNumber, 20)
+            XCTAssertEqual(iterator?.next() as? NSNumber, NSNumber(value: Int.max))
         }
     } 
 
