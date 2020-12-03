@@ -161,7 +161,9 @@ extension Decimal : Hashable, Comparable {
 
     // The low 64 bits of the integer part. (Used by uint64Value and int64Value.)
     private var _unsignedInt64Value: UInt64 {
-        if _exponent < -20 || _exponent > 20 {
+        // Quick check if number if has too many zeros before decimal point or too many trailing zeros after decimal point.
+        // Log10 (2^64) ~ 19, log10 (2^128) ~ 38
+        if _exponent < -38 || _exponent > 20 {
             return 0
         }
         if _length == 0 || isZero || magnitude < (0 as Decimal) {
