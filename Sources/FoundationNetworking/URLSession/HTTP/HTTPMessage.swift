@@ -105,13 +105,209 @@ extension _HTTPURLProtocol._HTTPMessage {
     struct _Version: RawRepresentable {
         let rawValue: String
     }
+    /// An authentication challenge parsed from `WWW-Authenticate` header field.
+    ///
+    /// Only parts necessary for Basic auth scheme are implemented at the moment.
+    /// - SeeAlso: https://tools.ietf.org/html/rfc7235#section-4.1
+    struct _Challenge {
+        static let AuthSchemeBasic = "basic"
+        static let AuthSchemeDigest = "digest"
+        /// A single auth challenge parameter
+        struct _AuthParameter {
+            let name: String
+            let value: String
+        }
+        let authScheme: String
+        let authParameters: [_AuthParameter]
+    }
 }
 extension _HTTPURLProtocol._HTTPMessage._Version {
     init?(versionString: String) {
         rawValue = versionString
     }
 }
-
+extension _HTTPURLProtocol._HTTPMessage._Challenge {
+    /// Case-insensitively searches for auth parameter with specified name
+    func parameter(withName name: String) -> _AuthParameter? {
+        return authParameters.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }
+    }
+}
+extension _HTTPURLProtocol._HTTPMessage._Challenge {
+    /// Creates authentication challenges from provided `HTTPURLResponse`.
+    ///
+    /// The value of `WWW-Authenticate` field is used for parsing authentication challenges
+    /// of supported type.
+    ///
+    /// - note: `Basic` is the only supported scheme at the moment.
+    /// - parameter response: A response to get header value from.
+    /// - returns: An array of supported challenges found in response.
+    /// # Reference
+    /// - [RFC 7235 - Hypertext Transfer Protocol (HTTP/1.1): Authentication](https://tools.ietf.org/html/rfc7235)
+    /// - [RFC 7617 - The 'Basic' HTTP Authentication Scheme](https://tools.ietf.org/html/rfc7617)
+    static func challenges(from response: HTTPURLResponse) -> [_HTTPURLProtocol._HTTPMessage._Challenge] {
+        guard let authenticateValue = response.value(forHTTPHeaderField: "WWW-Authenticate") else {
+            return []
+        }
+        return challenges(from: authenticateValue)
+    }
+    /// Creates authentication challenges from provided field value.
+    ///
+    /// Field value is expected to conform [RFC 7235 Section 4.1](https://tools.ietf.org/html/rfc7235#section-4.1)
+    /// as much as needed to define supported authorization schemes.
+    ///
+    /// - note: `Basic` is the only supported scheme at the moment.
+    /// - parameter authenticateFieldValue: A value of `WWW-Authenticate` field
+    /// - returns: array of supported challenges found.
+    /// # Reference
+    /// - [RFC 7235 - Hypertext Transfer Protocol (HTTP/1.1): Authentication](https://tools.ietf.org/html/rfc7235)
+    /// - [RFC 7617 - The 'Basic' HTTP Authentication Scheme](https://tools.ietf.org/html/rfc7617)
+    static func challenges(from authenticateFieldValue: String) -> [_HTTPURLProtocol._HTTPMessage._Challenge] {
+        var challenges = [_HTTPURLProtocol._HTTPMessage._Challenge]()
+        
+        // Typical WWW-Authenticate header is something like
+        //   WWWW-Authenticate: Digest realm="test", domain="/HTTP/Digest", nonce="e3d002b9b2080453fdacea2d89f2d102"
+        //
+        // https://tools.ietf.org/html/rfc7235#section-4.1
+        //   WWW-Authenticate = 1#challenge
+        //
+        // https://tools.ietf.org/html/rfc7235#section-2.1
+        //   challenge      = auth-scheme [ 1*SP ( token68 / #auth-param ) ]
+        //   auth-scheme    = token
+        //   auth-param     = token BWS "=" BWS ( token / quoted-string )
+        //   token68        = 1*( ALPHA / DIGIT /
+        //                        "-" / "." / "_" / "~" / "+" / "/" ) *"="
+        //
+        // https://tools.ietf.org/html/rfc7230#section-3.2.3
+        //   OWS            = *( SP / HTAB ) ; optional whitespace
+        //   BWS            = OWS            ; "bad" whitespace
+        //
+        // https://tools.ietf.org/html/rfc7230#section-3.2.6
+        //   token          = 1*tchar
+        //   tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+        //                    / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+        //                    / DIGIT / ALPHA
+        //                   ; any VCHAR, except delimiters
+        //   quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+        //   qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text
+        //   obs-text       = %x80-FF
+        //   quoted-pair    = "\" ( HTAB / SP / VCHAR / obs-text )
+        //
+        // https://tools.ietf.org/html/rfc5234#appendix-B.1
+        //   ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z
+        //   SP             =  %x20
+        //   HTAB           =  %x09                ; horizontal tab
+        //   VCHAR          =  %x21-7E             ; visible (printing) characters
+        //   DQUOTE         =  %x22
+        //   DIGIT          =  %x30-39             ; 0-9
+        
+        var authenticateView = authenticateFieldValue.unicodeScalars[...]
+        // Do an "eager" search of supported auth schemes. Same as it implemented in CURL.
+        // This means we will look after every comma on every step, no matter what was
+        // (or wasn't) parsed on previous step.
+        //
+        // WWW-Authenticate field could contain some sort of ambiguity, because, in general,
+        // it is a comma-separated list of comma-separated lists. As mentioned
+        // in https://tools.ietf.org/html/rfc7235#section-4.1, user agents are advised to
+        // take special care of parsing all challenges completely.
+        while !authenticateView.isEmpty {
+            guard let authSchemeRange = authenticateView.rangeOfTokenPrefix else {
+                break
+            }
+            let authScheme = String(authenticateView[authSchemeRange])
+            if authScheme.caseInsensitiveCompare(AuthSchemeBasic) == .orderedSame {
+                let authDataView = authenticateView[authSchemeRange.upperBound...]
+                let authParameters = _HTTPURLProtocol._HTTPMessage._Challenge._AuthParameter.parameters(from: authDataView)
+                let challenge = _HTTPURLProtocol._HTTPMessage._Challenge(authScheme: authScheme, authParameters: authParameters)
+                // "realm" is the only mandatory parameter for Basic auth scheme. Otherwise consider parsed data invalid.
+                if challenge.parameter(withName: "realm") != nil {
+                    challenges.append(challenge)
+                }
+            }
+            // read up to the next comma
+            guard let commaIndex = authenticateView.firstIndex(of: _Delimiters.Comma) else {
+                break
+            }
+            // skip comma
+            authenticateView = authenticateView[authenticateView.index(after: commaIndex)...]
+            // consume spaces
+            authenticateView = authenticateView.trimSPPrefix
+        }
+        return challenges
+    }
+}
+private extension _HTTPURLProtocol._HTTPMessage._Challenge._AuthParameter {
+    /// Reads authorization challenge parameters from provided Unicode Scalar view
+    static func parameters(from parametersView: String.UnicodeScalarView.SubSequence) -> [_HTTPURLProtocol._HTTPMessage._Challenge._AuthParameter] {
+        var parametersView = parametersView
+        var parameters = [_HTTPURLProtocol._HTTPMessage._Challenge._AuthParameter]()
+        while true {
+            parametersView = parametersView.trimSPPrefix
+            guard let parameter = parameter(from: &parametersView) else {
+                break
+            }
+            parameters.append(parameter)
+            // trim spaces and expect comma
+            parametersView = parametersView.trimSPPrefix
+            guard parametersView.first == _Delimiters.Comma else {
+                break
+            }
+            // drop comma
+            parametersView = parametersView.dropFirst()
+        }
+        return parameters
+    }
+    /// Reads a single challenge parameter from provided Unicode Scalar view
+    private static func parameter(from parametersView: inout String.UnicodeScalarView.SubSequence) -> _HTTPURLProtocol._HTTPMessage._Challenge._AuthParameter? {
+        // Read parameter name. Return nil if name is not readable.
+        guard let parameterName = parameterName(from: &parametersView) else {
+            return nil
+        }
+        // Trim BWS, expect '='
+        parametersView = parametersView.trimSPHTPrefix ?? parametersView
+        guard parametersView.first == _Delimiters.Equals else {
+            return nil
+        }
+        // Drop '='
+        parametersView = parametersView.dropFirst()
+        // Read parameter value. Return nil if parameter is not readable.
+        guard let parameterValue = parameterValue(from: &parametersView) else {
+            return nil
+        }
+        return _HTTPURLProtocol._HTTPMessage._Challenge._AuthParameter(name: parameterName, value: parameterValue)
+    }
+    /// Reads a challenge parameter name from provided Unicode Scalar view
+    private static func parameterName(from nameView: inout String.UnicodeScalarView.SubSequence) -> String? {
+        guard let nameRange = nameView.rangeOfTokenPrefix else {
+            return nil
+        }
+        
+        let name = String(nameView[nameRange])
+        nameView = nameView[nameRange.upperBound...]
+        return name
+    }
+    /// Reads a challenge parameter value from provided Unicode Scalar view
+    private static func parameterValue(from valueView: inout String.UnicodeScalarView.SubSequence) -> String? {
+        // Trim BWS
+        valueView = valueView.trimSPHTPrefix ?? valueView
+        if valueView.first == _Delimiters.DoubleQuote {
+            // quoted-string
+            if let valueRange = valueView.rangeOfQuotedStringPrefix {
+                let value = valueView[valueRange].dequotedString()
+                valueView = valueView[valueRange.upperBound...]
+                return value
+            }
+        }
+        else {
+            // token
+            if let valueRange = valueView.rangeOfTokenPrefix {
+                let value = String(valueView[valueRange])
+                valueView = valueView[valueRange.upperBound...]
+                return value
+            }
+        }
+        return nil
+    }
+}
 private extension _HTTPURLProtocol._HTTPMessage._StartLine {
     init?(line: String) {
         guard let r = line.splitRequestLine() else { return nil }
@@ -236,6 +432,7 @@ private extension Collection {
 private extension String.UnicodeScalarView.SubSequence {
     /// The range of *Token* characters as specified by RFC 2616.
     var rangeOfTokenPrefix: Range<Index>? {
+        guard !isEmpty else { return nil }
         var end = startIndex
         while self[end].isValidMessageToken {
             end = self.index(after: end)
@@ -269,6 +466,101 @@ private extension String.UnicodeScalarView.SubSequence {
         }
         return nil
     }
+    var trimSPPrefix: SubSequence {
+        var idx = startIndex
+        while idx < endIndex {
+            if self[idx] == _Delimiters.Space {
+                idx = self.index(after: idx)
+            } else {
+                return self[idx..<endIndex]
+            }
+        }
+        return self
+    }
+    /// Returns range of **quoted-string** starting from first index of sequence.
+    ///
+    /// - returns: range of **quoted-string** or `nil` if value can not be parsed.
+    var rangeOfQuotedStringPrefix: Range<Index>? {
+        //   quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+        //   qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text
+        //   obs-text       = %x80-FF
+        //   quoted-pair    = "\" ( HTAB / SP / VCHAR / obs-text )
+        guard !isEmpty else {
+            return nil
+        }
+        var idx = startIndex
+        // Expect and consume dquote
+        guard self[idx] == _Delimiters.DoubleQuote else {
+            return nil
+        }
+        idx = self.index(after: idx)
+        var isQuotedPair = false
+        while idx < endIndex {
+            let currentScalar = self[idx]
+            if currentScalar == _Delimiters.Backslash && !isQuotedPair {
+                isQuotedPair = true
+            } else if isQuotedPair {
+                guard currentScalar.isQuotedPairEscapee else {
+                    return nil
+                }
+                isQuotedPair = false
+            } else if currentScalar == _Delimiters.DoubleQuote {
+                break
+            } else {
+                guard currentScalar.isQdtext else {
+                    return nil
+                }
+            }
+            idx = self.index(after: idx)
+        }
+        // Expect stop on dquote
+        guard idx < endIndex, self[idx] == _Delimiters.DoubleQuote else {
+            return nil
+        }
+        return startIndex..<self.index(after: idx)
+    }
+    /// Returns dequoted string if receiver contains **quoted-string**
+    ///
+    /// - returns: dequoted string or `nil` if receiver does not contain valid quoted string
+    func dequotedString() -> String? {
+        guard !isEmpty else {
+            return nil
+        }
+        var resultView = String.UnicodeScalarView()
+        resultView.reserveCapacity(self.count)
+        var idx = startIndex
+        // Expect and consume dquote
+        guard self[idx] == _Delimiters.DoubleQuote else {
+            return nil
+        }
+        idx = self.index(after: idx)
+        var isQuotedPair = false
+        while idx < endIndex {
+            let currentScalar = self[idx]
+            if currentScalar == _Delimiters.Backslash && !isQuotedPair {
+                isQuotedPair = true
+            } else if isQuotedPair {
+                guard currentScalar.isQuotedPairEscapee else {
+                    return nil
+                }
+                isQuotedPair = false
+                resultView.append(currentScalar)
+            } else if currentScalar == _Delimiters.DoubleQuote {
+                break
+            } else {
+                guard currentScalar.isQdtext else {
+                    return nil
+                }
+                resultView.append(currentScalar)
+            }
+            idx = self.index(after: idx)
+        }
+        // Expect stop on dquote
+        guard idx < endIndex, self[idx] == _Delimiters.DoubleQuote else {
+            return nil
+        }
+        return String(resultView)
+    }
 }
 private extension UnicodeScalar {
     /// Is this a valid **token** as defined by RFC 2616 ?
@@ -277,5 +569,33 @@ private extension UnicodeScalar {
     var isValidMessageToken: Bool {
         guard UnicodeScalar(32) <= self && self <= UnicodeScalar(126) else { return false }
         return !_Delimiters.Separators.characterIsMember(UInt16(self.value))
+    }
+    /// Is this a valid **qdtext** character
+    ///
+    /// - SeeAlso: https://tools.ietf.org/html/rfc7230#section-3.2.6
+    var isQdtext: Bool {
+        //   qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text
+        //   obs-text       = %x80-FF
+        let value = self.value
+        return self == _Delimiters.HorizontalTab
+            || self == _Delimiters.Space
+            || value == 0x21
+            || 0x23 <= value && value <= 0x5B
+            || 0x5D <= value && value <= 0x7E
+            || 0x80 <= value && value <= 0xFF
+            
+    }
+    /// Is this a valid second octet of **quoted-pair**
+    ///
+    /// - SeeAlso: https://tools.ietf.org/html/rfc7230#section-3.2.6
+    /// - SeeAlso: https://tools.ietf.org/html/rfc5234#appendix-B.1
+    var isQuotedPairEscapee: Bool {
+        // quoted-pair    = "\" ( HTAB / SP / VCHAR / obs-text )
+        // obs-text       = %x80-FF
+        let value = self.value
+        return self == _Delimiters.HorizontalTab
+            || self == _Delimiters.Space
+            || 0x21 <= value && value <= 0x7E
+            || 0x80 <= value && value <= 0xFF
     }
 }

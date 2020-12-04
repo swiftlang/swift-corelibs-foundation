@@ -111,6 +111,10 @@ struct _Delimiters {
     static let Space = UnicodeScalar(0x20)
     static let HorizontalTab = UnicodeScalar(0x09)
     static let Colon = UnicodeScalar(0x3a)
+    static let Backslash = UnicodeScalar(0x5c)!
+    static let Comma = UnicodeScalar(0x2c)!
+    static let DoubleQuote = UnicodeScalar(0x22)!
+    static let Equals = UnicodeScalar(0x3d)!
     /// *Separators* according to RFC 2616
     static let Separators = NSCharacterSet(charactersIn: "()<>@,;:\\\"/[]?={} \t")
 }

@@ -944,11 +944,17 @@ open class Process: NSObject {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
-        #if canImport(Darwin)
+#if canImport(Darwin)
         var spawnAttrs: posix_spawnattr_t? = nil
         try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
+        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
         try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
-        #else
+#else
+        var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()
+        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
+        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
+
+        // POSIX_SPAWN_CLOEXEC_DEFAULT is an Apple extension so emulate it.
         for fd in 3 ... findMaximumOpenFD() {
             guard adddup2[fd] == nil &&
                   !addclose.contains(fd) &&
@@ -957,7 +963,7 @@ open class Process: NSObject {
             }
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
-        #endif
+#endif
 
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
@@ -972,16 +978,10 @@ open class Process: NSObject {
 
         // Launch
         var pid = pid_t()
-        #if os(macOS)
         guard _CFPosixSpawn(&pid, launchPath, fileActions, &spawnAttrs, argv, envp) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
         }
-        #else
-        guard _CFPosixSpawn(&pid, launchPath, fileActions, nil, argv, envp) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
-        }
-        #endif
-
+        posix_spawnattr_destroy(&spawnAttrs)
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
