@@ -600,6 +600,7 @@ extension TestJSONSerialization {
                 }
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+                XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "JSON text did not start with array or object and option to allow fragments not set.")
             }
 
             var result: Int?
@@ -671,6 +672,7 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 9.")
         }
     }
 
@@ -703,6 +705,7 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 1.")
         }
     }
 
@@ -735,6 +738,7 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
         }
     }
 
@@ -750,6 +754,7 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unable to convert hex escape sequence (no high character) to UTF8-encoded character.")
         }
     }
 
@@ -765,6 +770,7 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during string parse (expected low-surrogate code point but did not find one).")
         }
     }
 
