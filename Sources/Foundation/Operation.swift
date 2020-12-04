@@ -994,7 +994,7 @@ open class OperationQueue : NSObject, ProgressReporting {
                 // if the cached state is possibly not valid then the isReady value needs to be re-updated
                 if Operation.__NSOperationState.enqueued == operation._state && operation._fetchCachedIsReady(&retest) {
                     if let previous = prev?.takeUnretainedValue() {
-                        previous.__nextOperation = next
+                        previous.__nextPriorityOperation = next
                     } else {
                         _setFirstPriorityOperation(prio, next)
                     }

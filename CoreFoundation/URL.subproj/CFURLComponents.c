@@ -1282,7 +1282,7 @@ static CFArrayRef _CFURLComponentsCopyQueryItemsInternal(CFURLComponentsRef comp
                             }
                         }
                         else {
-                            nameString = CFRetain(CFSTR(""));
+                            nameString =  CFSTR("");
                         }
                         CFTypeRef keys[] = {_kCFURLComponentsNameKey};
                         CFTypeRef values[] = {nameString};
@@ -1343,7 +1343,7 @@ static CFArrayRef _CFURLComponentsCopyQueryItemsInternal(CFURLComponentsRef comp
                     }
                 }
                 else {
-                    nameString = CFRetain(CFSTR(""));
+                    nameString =  CFSTR("");
                 }
                 CFTypeRef keys[] = {_kCFURLComponentsNameKey};
                 CFTypeRef values[] = {nameString};
@@ -1470,8 +1470,6 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
     }
     return ( result );
 }
-
-
 
 CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values ) {
     (void)_CFURLComponentsSetQueryItemsInternal(components, names, values, true); // _CFURLComponentsSetQueryItemsInternal cannot fail if addPercentEncoding is true
