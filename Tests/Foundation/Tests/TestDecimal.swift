@@ -1280,6 +1280,83 @@ class TestDecimal: XCTestCase {
         }
     }
 
+    func test_intValue() {
+        // SR-7236
+        XCTAssertEqual(NSDecimalNumber(value: -1).intValue, -1)
+        XCTAssertEqual(NSDecimalNumber(value: 0).intValue, 0)
+        XCTAssertEqual(NSDecimalNumber(value: 1).intValue, 1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal.nan).intValue, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1e50)).intValue, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1e-50)).intValue, 0)
+
+        XCTAssertEqual(NSDecimalNumber(value: UInt64.max).uint64Value, UInt64.max)
+        XCTAssertEqual(NSDecimalNumber(value: UInt64.max).adding(1).uint64Value, 0)
+        XCTAssertEqual(NSDecimalNumber(value: Int64.max).int64Value, Int64.max)
+        XCTAssertEqual(NSDecimalNumber(value: Int64.max).adding(1).int64Value, Int64.min)
+        XCTAssertEqual(NSDecimalNumber(value: Int64.max).adding(1).uint64Value, UInt64(Int64.max) + 1)
+        XCTAssertEqual(NSDecimalNumber(value: Int64.min).int64Value, Int64.min)
+
+        XCTAssertEqual(NSDecimalNumber(value: 10).dividing(by: 3).intValue, 3)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Double.pi)).intValue, 3)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int.max)).intValue, Int.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).int32Value, Int32.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).int64Value, Int64.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int.min)).intValue, Int.min)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).int32Value, Int32.min)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).int64Value, Int64.min)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt.max)).uintValue, UInt.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).uint32Value, UInt32.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.max)).uint64Value, UInt64.max)
+
+
+        // SR-2980
+        let sr2980Tests = [
+            ("250.229953885078403", 250),
+            ("103.8097165991902834008097165991902834", 103),
+            ("31.541176470588235294", 31),
+            ("12345.12345678901234", 12345),
+            ("12345.123456789012345", 12345),
+        ]
+
+        for (string, value) in sr2980Tests {
+            let decimalValue = NSDecimalNumber(string: string)
+            XCTAssertEqual(decimalValue.intValue, value)
+            XCTAssertEqual(decimalValue.int8Value, Int8(truncatingIfNeeded: value))
+            XCTAssertEqual(decimalValue.int16Value, Int16(value))
+            XCTAssertEqual(decimalValue.int32Value, Int32(value))
+            XCTAssertEqual(decimalValue.int64Value, Int64(value))
+            XCTAssertEqual(decimalValue.uintValue, UInt(value))
+            XCTAssertEqual(decimalValue.uint8Value, UInt8(truncatingIfNeeded: value))
+            XCTAssertEqual(decimalValue.uint16Value, UInt16(value))
+            XCTAssertEqual(decimalValue.uint32Value, UInt32(value))
+            XCTAssertEqual(decimalValue.uint64Value, UInt64(value))
+        }
+
+        // Large mantissas, negative exponent
+        let maxMantissa = (UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max)
+
+        let tests = [
+            (-34, 0, "34028.2366920938463463374607431768211455", 34028),
+            (-35, 0, "3402.82366920938463463374607431768211455", 3402),
+            (-36, 0, "340.282366920938463463374607431768211455", 340),
+            (-37, 0, "34.0282366920938463463374607431768211455", 34),
+            (-38, 0, "3.40282366920938463463374607431768211455", 3),
+            (-39, 0, "0.340282366920938463463374607431768211455", 0),
+            (-34, 1, "-34028.2366920938463463374607431768211455", -34028),
+            (-35, 1, "-3402.82366920938463463374607431768211455", -3402),
+            (-36, 1, "-340.282366920938463463374607431768211455", -340),
+            (-37, 1, "-34.0282366920938463463374607431768211455", -34),
+            (-38, 1, "-3.40282366920938463463374607431768211455", -3),
+            (-39, 1, "-0.340282366920938463463374607431768211455", 0),
+        ]
+
+        for (exponent, isNegative, description, intValue) in tests {
+            let d = Decimal(_exponent: Int32(exponent), _length: 8, _isNegative: UInt32(isNegative), _isCompact: 1, _reserved: 0, _mantissa: maxMantissa)
+            XCTAssertEqual(d.description, description)
+            XCTAssertEqual(NSDecimalNumber(decimal:d).intValue, intValue)
+        }
+    }
+
     static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
         return [
             ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
@@ -1310,6 +1387,7 @@ class TestDecimal: XCTestCase {
             ("test_multiplyingByPowerOf10", test_multiplyingByPowerOf10),
             ("test_initExactly", test_initExactly),
             ("test_NSNumberEquality", test_NSNumberEquality),
+            ("test_intValue", test_intValue),
         ]
     }
 }
