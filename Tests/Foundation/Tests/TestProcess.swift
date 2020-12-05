@@ -806,6 +806,7 @@ class TestProcess : XCTestCase {
         }
     }
 
+#if !os(Windows)
     func test_processGroup() throws {
         // The process group of the child process should be different to the parent's.
         let process = Process()
@@ -834,6 +835,7 @@ class TestProcess : XCTestCase {
         let parentPgrp = Int(getpgrp())
         XCTAssertNotEqual(parentPgrp, childPgrp, "Child process group \(parentPgrp) should not equal parent process group \(childPgrp)")
     }
+#endif
 
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
@@ -864,7 +866,6 @@ class TestProcess : XCTestCase {
             ("test_currentDirectory", test_currentDirectory),
             ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
             ("test_multiProcesses", test_multiProcesses),
-            ("test_processGroup", test_processGroup),
         ]
 
 #if !os(Windows)
@@ -873,6 +874,7 @@ class TestProcess : XCTestCase {
             ("test_interrupt", test_interrupt),
             ("test_suspend_resume", test_suspend_resume),
             ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
+            ("test_processGroup", test_processGroup),
         ]
 #endif
         return tests
