@@ -1425,19 +1425,15 @@ extension TestJSONSerialization {
     
     func test_jsonReadingOffTheEndOfBuffers() {
         var data = "12345679".data(using: .utf8)!
-        do {
-            let res = try data.withUnsafeMutableBytes { (bytes: UnsafeMutableRawBufferPointer) -> Any in
-                let slice = Data(bytesNoCopy: bytes.baseAddress!, count: 1, deallocator: .none)
-                return try JSONSerialization.jsonObject(with: slice, options: .allowFragments)
-            }
-            if let num = res as? Int {
-                XCTAssertEqual(1, num) // the slice truncation should only parse 1 byte!
-            } else {
-                XCTFail("expected an integer but got a \(res)")
-            }
-        } catch {
-            XCTFail("Unknow json decoding failure")
-        }
+        
+        var res: Int?
+        XCTAssertNoThrow(res = try data.withUnsafeMutableBytes { (bytes: UnsafeMutableRawBufferPointer) -> Any in
+            let slice = Data(bytesNoCopy: bytes.baseAddress!, count: 1, deallocator: .none)
+            return try JSONSerialization.jsonObject(with: slice, options: .allowFragments)
+        } as? Int)
+        
+        // the slice truncation should only parse 1 byte!
+        XCTAssertEqual(1, res)
     }
     
     func test_jsonObjectToOutputStreamBuffer() {
