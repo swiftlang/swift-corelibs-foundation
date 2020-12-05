@@ -353,64 +353,55 @@ extension TestJSONSerialization {
     //MARK: - Object Deserialization
     func deserialize_emptyObject(objectType: ObjectType) {
         let subject = "{}"
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
-            }
-            let result = try getjsonObjectResult(data, objectType) as? [String: Any]
-
-            XCTAssertEqual(result?.count, 0)
-        } catch {
-            XCTFail("Error thrown: \(error)")
+        
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
         }
+        var result: [String: Any]?
+        XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [String: Any])
+
+        XCTAssertEqual(result?.count, 0)
     }
 
     func deserialize_multiStringObject(objectType: ObjectType) {
         let subject = "{ \"hello\": \"world\", \"swift\": \"rocks\" }"
-        do {
-            for encoding in [String.Encoding.utf8, String.Encoding.utf16BigEndian] {
-                guard let data = subject.data(using: encoding) else {
-                    XCTFail("Unable to convert string to data")
-                    return
-                }
-                let result = try getjsonObjectResult(data, objectType) as? [String: Any]
-                XCTAssertEqual(result?["hello"] as? String, "world")
-                XCTAssertEqual(result?["swift"] as? String, "rocks")
+        
+        for encoding in [String.Encoding.utf8, String.Encoding.utf16BigEndian] {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
             }
-        } catch {
-            XCTFail("Error thrown: \(error)")
+            var result: [String: Any]?
+            XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [String: Any])
+            XCTAssertEqual(result?["hello"] as? String, "world")
+            XCTAssertEqual(result?["swift"] as? String, "rocks")
         }
     }
 
     func deserialize_stringWithSpacesAtStart(objectType: ObjectType) {
         let subject = "{\"title\" : \" hello world!!\" }"
-        do {
-            guard let data = subject.data(using: .utf8) else  {
-                XCTFail("Unable to convert string to data")
-                return
-            }
-            let result = try getjsonObjectResult(data, objectType) as? [String: Any]
-            XCTAssertEqual(result?["title"] as? String, " hello world!!")
-        } catch{
-            XCTFail("Error thrown: \(error)")
+
+        guard let data = subject.data(using: .utf8) else  {
+            XCTFail("Unable to convert string to data")
+            return
         }
+        var result: [String: Any]?
+        XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [String: Any])
+        XCTAssertEqual(result?["title"] as? String, " hello world!!")
     }
 
     //MARK: - Array Deserialization
     func deserialize_emptyArray(objectType: ObjectType) {
         let subject = "[]"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
-            }
-            let result = try getjsonObjectResult(data, objectType) as? [Any]
-            XCTAssertEqual(result?.count, 0)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
         }
+        var result: [Any]?
+        XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
+        XCTAssertEqual(result?.count, 0)
     }
 
     func deserialize_multiStringArray(objectType: ObjectType) {
@@ -605,7 +596,7 @@ extension TestJSONSerialization {
             // Check failure to decode without .allowFragments
             XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
                 guard let nserror = (error as? NSError) else {
-                    return XCTFail("Unexpected error type")
+                    return XCTFail("Unexpected error: \(error)")
                 }
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
@@ -621,148 +612,168 @@ extension TestJSONSerialization {
     func deserialize_unterminatedObjectString(objectType: ObjectType) {
         let subject = "{\"}"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: UnterminatedString")
-        } catch {
-            // Passing case; the object as unterminated
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unterminated string around character 1.")
         }
     }
 
     func deserialize_missingObjectKey(objectType: ObjectType) {
         let subject = "{3}"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Missing key for value")
-        } catch {
-            // Passing case; the key was missing for a value
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "No string key for value in object around character 1.")
         }
     }
 
     func deserialize_unexpectedEndOfFile(objectType: ObjectType) {
         let subject = "{"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Unexpected end of file")
-        } catch {
-            // Success
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during JSON parse.")
         }
     }
 
     func deserialize_invalidValueInObject(objectType: ObjectType) {
         let subject = "{\"error\":}"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Invalid value")
-        } catch {
-            // Passing case; the value is invalid
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 9.")
         }
     }
 
     func deserialize_invalidValueIncorrectSeparatorInObject(objectType: ObjectType) {
         let subject = "{\"missing\";}"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Invalid value")
-        } catch {
-            // passing case the value is invalid
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "No value for key in object around character 10.")
         }
     }
 
     func deserialize_invalidValueInArray(objectType: ObjectType) {
         let subject = "[,"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Invalid value")
-        } catch {
-            // Passing case; the element in the array is missing
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 1.")
         }
     }
 
     func deserialize_badlyFormedArray(objectType: ObjectType) {
         let subject = "[2b4]"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Badly formed array")
-        } catch {
-            // Passing case; the array is malformed
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Badly formed array around character 2.")
         }
     }
 
     func deserialize_invalidEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\e\"]"
 
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType)
-            XCTFail("Expected error: Invalid escape sequence")
-        } catch {
-            // Passing case; the escape sequence is invalid
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
         }
     }
 
     func deserialize_unicodeMissingLeadingSurrogate(objectType: ObjectType) {
         let subject = "[\"\\uDFF3\"]"
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType) as? [String]
-            XCTFail("Expected error: Missing Leading Surrogate")
-        } catch {
-            // Passing case; the unicode character is malformed
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unable to convert hex escape sequence (no high character) to UTF8-encoded character.")
         }
     }
 
     func deserialize_unicodeMissingTrailingSurrogate(objectType: ObjectType) {
         let subject = "[\"\\uD834\"]"
-        do {
-            guard let data = subject.data(using: .utf8) else {
-                XCTFail("Unable to convert string to data")
-                return
+        guard let data = subject.data(using: .utf8) else {
+            XCTFail("Unable to convert string to data")
+            return
+        }
+        XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
             }
-            let _ = try getjsonObjectResult(data, objectType) as? [String]
-            XCTFail("Expected error: Missing Trailing Surrogate")
-        } catch {
-            // Passing case; the unicode character is malformed
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during string parse (expected low-surrogate code point but did not find one).")
         }
     }
 
