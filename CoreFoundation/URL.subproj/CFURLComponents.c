@@ -1282,7 +1282,7 @@ static CFArrayRef _CFURLComponentsCopyQueryItemsInternal(CFURLComponentsRef comp
                             }
                         }
                         else {
-                            nameString =  CFSTR("");
+                            nameString = CFRetain(CFSTR(""));
                         }
                         CFTypeRef keys[] = {_kCFURLComponentsNameKey};
                         CFTypeRef values[] = {nameString};
@@ -1343,7 +1343,7 @@ static CFArrayRef _CFURLComponentsCopyQueryItemsInternal(CFURLComponentsRef comp
                     }
                 }
                 else {
-                    nameString =  CFSTR("");
+                    nameString = CFRetain(CFSTR(""));
                 }
                 CFTypeRef keys[] = {_kCFURLComponentsNameKey};
                 CFTypeRef values[] = {nameString};
