@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -20,6 +20,13 @@ extension TimeInterval {
   init(_ ftTime: FILETIME) {
     self = Double((ftTime.dwHighDateTime << 32) | ftTime.dwLowDateTime) - NSTimeIntervalSince1970;
   }
+}
+#else
+extension timeval {
+    internal init(_timeIntervalSince1970: TimeInterval) {
+        let (integral, fractional) = modf(_timeIntervalSince1970)
+        self.init(tv_sec: time_t(integral), tv_usec: suseconds_t(1.0e6 * fractional))
+    }
 }
 #endif
 
@@ -60,21 +67,9 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return Date().timeIntervalSinceReferenceDate
     }
 
-#if os(Windows)
     public convenience override init() {
-      self.init(timeIntervalSinceReferenceDate: CFAbsoluteTimeGetCurrent())
+        self.init(timeIntervalSinceReferenceDate: CFAbsoluteTimeGetCurrent())
     }
-#else
-    public convenience override init() {
-        var tv = timeval()
-        let _ = withUnsafeMutablePointer(to: &tv) { t in
-            gettimeofday(t, nil)
-        }
-        var timestamp = TimeInterval(tv.tv_sec) - NSTimeIntervalSince1970
-        timestamp += TimeInterval(tv.tv_usec) / 1000000.0
-        self.init(timeIntervalSinceReferenceDate: timestamp)
-    }
-#endif
 
     public required init(timeIntervalSinceReferenceDate ti: TimeInterval) {
         _timeIntervalSinceReferenceDate = ti
