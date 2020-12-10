@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -1179,23 +1179,14 @@ extension FileManager {
         let accessDate = accessTime ?? stat.lastAccessDate
         let modificationDate = modificationTime ?? stat.lastModificationDate
 
-        let (accessTimeSince1970Seconds, accessTimeSince1970FractionsOfSecond) = modf(accessDate.timeIntervalSince1970)
-        let accessTimeval = timeval(tv_sec: time_t(accessTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * accessTimeSince1970FractionsOfSecond))
-
-        let (modificationTimeSince1970Seconds, modificationTimeSince1970FractionsOfSecond) = modf(modificationDate.timeIntervalSince1970)
-        let modificationTimeval = timeval(tv_sec: time_t(modificationTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * modificationTimeSince1970FractionsOfSecond))
-
-        let array = [accessTimeval, modificationTimeval]
-        let errnoValue = array.withUnsafeBufferPointer { (bytes) -> Int32? in
-            if utimes(fsr, bytes.baseAddress) < 0 {
-                return errno
-            } else {
-                return nil
+        let array = [
+            timeval(_timeIntervalSince1970: accessDate.timeIntervalSince1970), 
+            timeval(_timeIntervalSince1970: modificationDate.timeIntervalSince1970),
+        ]
+        try array.withUnsafeBufferPointer {
+            guard utimes(fsr, $0.baseAddress) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-        }
-
-        if let error = errnoValue {
-            throw _NSErrorWithErrno(error, reading: false, path: path)
         }
     }
 

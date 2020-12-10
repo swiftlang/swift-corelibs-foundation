@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -403,20 +403,16 @@ open class FileManager : NSObject {
                 
                 case .modificationDate: fallthrough
                 case ._accessDate:
-                    #if os(Windows)
-                        // Setting this attribute is unsupported on these platforms.
-                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
-                    #else
-                        guard let providedDate = attributeValues[attribute] as? Date else {
-                            fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                        }
-                    
+                    guard let providedDate = attributeValues[attribute] as? Date else {
+                        fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
+                    }
+
                     if attribute == .modificationDate {
                         newModificationDate = providedDate
                     } else if attribute == ._accessDate {
                         newAccessDate = providedDate
                     }
-                    #endif
+
                 case .immutable: fallthrough
                 case ._userImmutable:
                     prepareToSetOrUnsetFlag(UF_IMMUTABLE)
