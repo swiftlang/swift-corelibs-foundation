@@ -132,6 +132,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(d1._exponent, 0)
         XCTAssertEqual(d1._length, 4)
     }
+
     func test_Constants() {
         XCTAssertEqual(8, NSDecimalMaxSize)
         XCTAssertEqual(32767, NSDecimalNoScale)
@@ -217,8 +218,8 @@ class TestDecimal: XCTestCase {
         let reserved: UInt32 = (1<<18 as UInt32) + (1<<17 as UInt32) + 1
         let mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (6, 7, 8, 9, 10, 11, 12, 13)
         var explicit = Decimal(
-            _exponent: 0x17f,
-            _length: 0xff,
+            _exponent: 0x7f,
+            _length: 0x0f,
             _isNegative: 3,
             _isCompact: 4,
             _reserved: reserved,
@@ -501,6 +502,11 @@ class TestDecimal: XCTestCase {
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e5")
 
         XCTAssertFalse(Double(truncating: NSDecimalNumber(decimal: Decimal(0))).isNaN)
+        XCTAssertTrue(Decimal(Double.leastNonzeroMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double.leastNormalMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double.greatestFiniteMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double("1e-129")!).isNaN)
+        XCTAssertTrue(Decimal(Double("0.1e-128")!).isNaN)
     }
 
     func test_NegativeAndZeroMultiplication() {
@@ -825,6 +831,52 @@ class TestDecimal: XCTestCase {
 
         let negativeSix = NSDecimalNumber(integerLiteral: -6)
         XCTAssertEqual(1, negativeSix.raising(toPower: 0))
+    }
+
+    func test_parseDouble() throws {
+        XCTAssertEqual(Decimal(Double(0.0)), Decimal(Int.zero))
+        XCTAssertEqual(Decimal(Double(-0.0)), Decimal(Int.zero))
+
+        // These values can only be represented as Decimal.nan
+        XCTAssertEqual(Decimal(Double.nan), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.signalingNaN), Decimal.nan)
+
+        // These values are out out range for Decimal
+        XCTAssertEqual(Decimal(-Double.leastNonzeroMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.leastNonzeroMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(-Double.leastNormalMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.leastNormalMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(-Double.greatestFiniteMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.greatestFiniteMagnitude), Decimal.nan)
+
+        // SR-13837
+        let testDoubles: [(Double, String)] = [
+            (1.8446744073709550E18, "1844674407370954752"),
+            (1.8446744073709551E18, "1844674407370954752"),
+            (1.8446744073709552E18, "1844674407370955264"),
+            (1.8446744073709553E18, "1844674407370955264"),
+            (1.8446744073709554E18, "1844674407370955520"),
+            (1.8446744073709555E18, "1844674407370955520"),
+
+            (1.8446744073709550E19, "18446744073709547520"),
+            (1.8446744073709551E19, "18446744073709552640"),
+            (1.8446744073709552E19, "18446744073709552640"),
+            (1.8446744073709553E19, "18446744073709552640"),
+            (1.8446744073709554E19, "18446744073709555200"),
+            (1.8446744073709555E19, "18446744073709555200"),
+
+            (1.8446744073709550E20, "184467440737095526400"),
+            (1.8446744073709551E20, "184467440737095526400"),
+            (1.8446744073709552E20, "184467440737095526400"),
+            (1.8446744073709553E20, "184467440737095526400"),
+            (1.8446744073709554E20, "184467440737095552000"),
+            (1.8446744073709555E20, "184467440737095552000"),
+        ]
+
+        for (d, s) in testDoubles {
+            XCTAssertEqual(Decimal(d), Decimal(string: s))
+            XCTAssertEqual(Decimal(d).description, try XCTUnwrap(Decimal(string: s)).description)
+        }
     }
 
     func test_doubleValue() {
@@ -1379,6 +1431,7 @@ class TestDecimal: XCTestCase {
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
+            ("test_parseDouble", test_parseDouble),
             ("test_doubleValue", test_doubleValue),
             ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
             ("test_bridging", test_bridging),
