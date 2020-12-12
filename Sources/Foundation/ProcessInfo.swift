@@ -250,10 +250,17 @@ open class ProcessInfo: NSObject {
     
     internal let _processorCount: Int = Int(__CFProcessorCount())
     open var processorCount: Int { _processorCount }
-    
+
+#if os(Linux)
+    // coreCount takes into account cgroup information eg if running under Docker
+    // __CFActiveProcessorCount uses sched_getaffinity() and sysconf(_SC_NPROCESSORS_ONLN)
+    internal let _activeProcessorCount: Int = ProcessInfo.coreCount() ?? Int(__CFActiveProcessorCount())
+#else
     internal let _activeProcessorCount: Int = Int(__CFActiveProcessorCount())
+#endif
+
     open var activeProcessorCount: Int { _activeProcessorCount }
-    
+
     internal let _physicalMemory = __CFMemorySize()
     open var physicalMemory: UInt64 {
         return _physicalMemory
@@ -293,6 +300,63 @@ open class ProcessInfo: NSObject {
     open var fullUserName: String {
         return NSFullUserName()
     }
+
+
+#if os(Linux)
+    // Support for CFS quotas for cpu count as used by Docker.
+    // Based on swift-nio code, https://github.com/apple/swift-nio/pull/1518
+    private static let cfsQuotaPath = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+    private static let cfsPeriodPath = "/sys/fs/cgroup/cpu/cpu.cfs_period_us"
+    private static let cpuSetPath = "/sys/fs/cgroup/cpuset/cpuset.cpus"
+
+    private static func firstLineOfFile(path: String) throws -> Substring {
+        let data = try Data(contentsOf: URL(fileURLWithPath: path))
+        if let string = String(data: data, encoding: .utf8), let line = string.split(separator: "\n").first {
+            return line
+        } else {
+            return ""
+        }
+    }
+
+    // These are internal access for testing
+    static func countCoreIds(cores: Substring) -> Int {
+        let ids = cores.split(separator: "-", maxSplits: 1)
+        guard let first = ids.first.flatMap({ Int($0, radix: 10) }),
+              let last = ids.last.flatMap({ Int($0, radix: 10) }),
+              last >= first
+        else { preconditionFailure("cpuset format is incorrect") }
+        return 1 + last - first
+    }
+
+    static func coreCount(cpuset cpusetPath: String) -> Int? {
+        guard let cpuset = try? firstLineOfFile(path: cpusetPath).split(separator: ","),
+              !cpuset.isEmpty
+        else { return nil }
+
+        return cpuset.map(countCoreIds).reduce(0, +)
+    }
+
+    static func coreCount(quota quotaPath: String,  period periodPath: String) -> Int? {
+        guard let quota = try? Int(firstLineOfFile(path: quotaPath)),
+              quota > 0
+        else { return nil }
+        guard let period = try? Int(firstLineOfFile(path: periodPath)),
+              period > 0
+        else { return nil }
+
+        return (quota - 1 + period) / period // always round up if fractional CPU quota requested
+    }
+
+    private static func coreCount() -> Int? {
+        if let quota = coreCount(quota: cfsQuotaPath, period: cfsPeriodPath) {
+            return quota
+        } else if let cpusetCount = coreCount(cpuset: cpuSetPath) {
+            return cpusetCount
+        } else {
+            return nil
+        }
+    }
+#endif
 }
 
 // SPI for TestFoundation
