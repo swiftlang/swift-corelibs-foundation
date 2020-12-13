@@ -579,7 +579,40 @@ class TestFileHandle : XCTestCase {
             XCTAssertTrue(notificationReceived, "Notification should be sent")
         }
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    func test_closeOnDealloc() throws {
+        try withTemporaryDirectory() { (url, path) in
+            let data = try XCTUnwrap("hello".data(using: .utf8))
+
+            // closeOnDealloc: true, 2nd write should throw.
+            do {
+                let fileUrl = url.appendingPathComponent("testfile")
+                let fd = try FileHandle._openFileDescriptorForURL(fileUrl, flags: O_CREAT | O_RDWR, reading: false)
+                do {
+                    let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+                    XCTAssertNoThrow(try fh.write(contentsOf: data))
+                }
+                let fh2 = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+                XCTAssertThrowsError(try fh2.write(contentsOf: data))
+            }
+
+            // closeOnDealloc: false, 2nd write should succeed.
+            do {
+                let fileUrl = url.appendingPathComponent("testfile2")
+                let fd = try FileHandle._openFileDescriptorForURL(fileUrl, flags: O_CREAT | O_RDWR, reading: false)
+                do {
+                    let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: false)
+                    XCTAssertNoThrow(try fh.write(contentsOf: data))
+                }
+                // Close the file handle after this write, dont leave it open after this test.
+                let fh2 = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+                XCTAssertNoThrow(try fh2.write(contentsOf: data))
+            }
+        }
+    }
+#endif
+
     static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
         var tests: [(String, (TestFileHandle) -> () throws -> ())] = [
             ("testReadUpToCount", testReadUpToCount),
@@ -607,6 +640,7 @@ class TestFileHandle : XCTestCase {
             ("test_nullDevice", test_nullDevice),
             ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
             ("testOffset", testOffset),
+            ("test_closeOnDealloc", test_closeOnDealloc),
         ])
 #endif
 

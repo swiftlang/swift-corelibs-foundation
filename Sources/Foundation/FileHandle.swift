@@ -477,7 +477,7 @@ open class FileHandle : NSObject {
         // - deinit tries to .sync { … } to serialize the work on the handle queue, _which we're already on_
         // - deadlock! DispatchQueue's deadlock detection triggers and crashes us.
         // since all operations on the handle queue retain the handle during use, if the handle is being deinited, then there are no more operations on the queue, so this is serial with respect to them anyway. Just close the handle immediately.
-        try? _immediatelyClose()
+        try? _immediatelyClose(closeFd: _closeOnDealloc)
     }
 
     // MARK: -
@@ -619,8 +619,9 @@ open class FileHandle : NSObject {
             try _immediatelyClose()
         }
     }
-    
-    private func _immediatelyClose() throws {
+
+    // Shutdown any read/write sources and handlers, and optionally close the file descriptor.
+    private func _immediatelyClose(closeFd: Bool = true) throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         guard _isPlatformHandleValid else { return }
         
@@ -632,18 +633,20 @@ open class FileHandle : NSObject {
         writabilitySource = nil
         readabilitySource = nil
         privateAsyncVariablesLock.unlock()
-        
-        #if os(Windows)
-        guard CloseHandle(self._handle) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+
+        if closeFd {
+#if os(Windows)
+            guard CloseHandle(self._handle) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+            }
+            self._handle = INVALID_HANDLE_VALUE
+#else
+            guard _close(_fd) >= 0 else {
+                throw _NSErrorWithErrno(errno, reading: true)
+            }
+            _fd = -1
+#endif
         }
-        self._handle = INVALID_HANDLE_VALUE
-        #else
-        guard _close(_fd) >= 0 else {
-            throw _NSErrorWithErrno(errno, reading: true)
-        }
-        _fd = -1
-        #endif
     }
     
     // MARK: -
