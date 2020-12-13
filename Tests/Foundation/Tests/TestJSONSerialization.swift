@@ -968,8 +968,9 @@ extension TestJSONSerialization {
         XCTAssertTrue(JSONSerialization.isValidJSONObject([NSNumber(value: true), NSNumber(value: Float.greatestFiniteMagnitude), NSNumber(value: Double.greatestFiniteMagnitude)]))
         XCTAssertTrue(JSONSerialization.isValidJSONObject([NSNumber(value: Int.max), NSNumber(value: Int8.max), NSNumber(value: Int16.max), NSNumber(value: Int32.max), NSNumber(value: Int64.max)]))
         XCTAssertTrue(JSONSerialization.isValidJSONObject([NSNumber(value: UInt.max), NSNumber(value: UInt8.max), NSNumber(value: UInt16.max), NSNumber(value: UInt32.max), NSNumber(value: UInt64.max)]))
-        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSDecimalNumber(booleanLiteral: true), NSDecimalNumber(decimal: Decimal.greatestFiniteMagnitude), NSDecimalNumber(floatLiteral: Double.greatestFiniteMagnitude), NSDecimalNumber(integerLiteral: Int.min)]))
-        XCTAssertTrue(JSONSerialization.isValidJSONObject([Decimal(123), Decimal(Double.leastNonzeroMagnitude)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSDecimalNumber(booleanLiteral: true), NSDecimalNumber(decimal: Decimal.greatestFiniteMagnitude)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSDecimalNumber(floatLiteral: Double(Float.greatestFiniteMagnitude)), NSDecimalNumber(integerLiteral: Int.min)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([Decimal(123), Decimal(Double(Float.leastNonzeroMagnitude))]))
 
         XCTAssertFalse(JSONSerialization.isValidJSONObject(Float.nan))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(Float.infinity))
@@ -1320,19 +1321,19 @@ extension TestJSONSerialization {
     }
 
     func test_serialize_NSDecimalNumber() {
-        let dn0: [Any] = [NSDecimalNumber(floatLiteral: -Double.leastNonzeroMagnitude)]
-        let dn1: [Any] = [NSDecimalNumber(floatLiteral: Double.leastNonzeroMagnitude)]
-        let dn2: [Any] = [NSDecimalNumber(floatLiteral: -Double.leastNormalMagnitude)]
-        let dn3: [Any] = [NSDecimalNumber(floatLiteral: Double.leastNormalMagnitude)]
-        let dn4: [Any] = [NSDecimalNumber(floatLiteral: -Double.greatestFiniteMagnitude)]
-        let dn5: [Any] = [NSDecimalNumber(floatLiteral: Double.greatestFiniteMagnitude)]
+        let dn0: [Any] = [NSDecimalNumber(floatLiteral: Double(-Float.leastNonzeroMagnitude))]
+        let dn1: [Any] = [NSDecimalNumber(floatLiteral: Double(Float.leastNonzeroMagnitude))]
+        let dn2: [Any] = [NSDecimalNumber(floatLiteral: Double(-Float.leastNormalMagnitude))]
+        let dn3: [Any] = [NSDecimalNumber(floatLiteral: Double(Float.leastNormalMagnitude))]
+        let dn4: [Any] = [NSDecimalNumber(floatLiteral: Double(-Float.greatestFiniteMagnitude))]
+        let dn5: [Any] = [NSDecimalNumber(floatLiteral: Double(Float.greatestFiniteMagnitude))]
 
-        XCTAssertEqual(try trySerialize(dn0), "[-0.00000000000000000000000000000000000000000000000000000000000000000004940656458412464128]")
-        XCTAssertEqual(try trySerialize(dn1), "[0.00000000000000000000000000000000000000000000000000000000000000000004940656458412464128]")
-        XCTAssertEqual(try trySerialize(dn2), "[-0.0000000000000000000000000000000000000000000000000002225073858507201792]")
-        XCTAssertEqual(try trySerialize(dn3), "[0.0000000000000000000000000000000000000000000000000002225073858507201792]")
-        XCTAssertEqual(try trySerialize(dn4), "[-17976931348623167488000000000000000000000000000000000]")
-        XCTAssertEqual(try trySerialize(dn5), "[17976931348623167488000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize(dn0), "[-0.0000000000000000000000000000000000000000000014012984643248173056]")
+        XCTAssertEqual(try trySerialize(dn1), "[0.0000000000000000000000000000000000000000000014012984643248173056]")
+        XCTAssertEqual(try trySerialize(dn2), "[-0.000000000000000000000000000000000000011754943508222875648]")
+        XCTAssertEqual(try trySerialize(dn3), "[0.000000000000000000000000000000000000011754943508222875648]")
+        XCTAssertEqual(try trySerialize(dn4), "[-340282346638528921600000000000000000000]")
+        XCTAssertEqual(try trySerialize(dn5), "[340282346638528921600000000000000000000]")
         XCTAssertEqual(try trySerialize([NSDecimalNumber(string: "0.0001"), NSDecimalNumber(string: "0.00"), NSDecimalNumber(string: "-0.0")]), "[0.0001,0,0]")
         XCTAssertEqual(try trySerialize([NSDecimalNumber(integerLiteral: Int(Int16.min)), NSDecimalNumber(integerLiteral: 0), NSDecimalNumber(integerLiteral: Int(Int16.max))]), "[-32768,0,32767]")
         XCTAssertEqual(try trySerialize([NSDecimalNumber(booleanLiteral: true), NSDecimalNumber(booleanLiteral: false)]), "[1,0]")
@@ -1379,7 +1380,7 @@ extension TestJSONSerialization {
         XCTAssertEqual(try trySerialize(true, options: .fragmentsAllowed), "true")
         XCTAssertEqual(try trySerialize(Float(1), options: .fragmentsAllowed), "1")
         XCTAssertEqual(try trySerialize(Double(2), options: .fragmentsAllowed), "2")
-        XCTAssertEqual(try trySerialize(Decimal(Double.leastNormalMagnitude), options: .fragmentsAllowed), "0.0000000000000000000000000000000000000000000000000002225073858507201792")
+        XCTAssertEqual(try trySerialize(Decimal(Double(Float.leastNormalMagnitude)), options: .fragmentsAllowed), "0.000000000000000000000000000000000000011754943508222875648")
         XCTAssertEqual(try trySerialize("test", options: .fragmentsAllowed), "\"test\"")
     }
 

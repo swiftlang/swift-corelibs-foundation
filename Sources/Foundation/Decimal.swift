@@ -20,7 +20,7 @@ public struct Decimal {
             return Int32(__exponent)
         }
         set {
-            __exponent = Int8(truncatingIfNeeded: newValue)
+            __exponent = Int8(newValue)
         }
     }
 
@@ -83,8 +83,9 @@ public struct Decimal {
     }
 
     public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        precondition(_length <= 15)
         self._mantissa = _mantissa
-        self.__exponent = Int8(truncatingIfNeeded: _exponent)
+        self.__exponent = Int8(_exponent)
         self.__lengthAndFlags = UInt8(_length & 0b1111)
         self.__reserved = 0
         self._isNegative = _isNegative
@@ -627,16 +628,36 @@ extension Decimal {
             self = Decimal()
             let negative = value < 0
             var val = negative ? -1 * value : value
-            var exponent = 0
+            var exponent: Int8 = 0
+
+            // Try to get val as close to UInt64.max whilst adjusting the exponent
+            // to reduce the number of digits after the decimal point.
             while val < Double(UInt64.max - 1) {
+                guard exponent > Int8.min else {
+                    setNaN()
+                    return
+                }
                 val *= 10.0
                 exponent -= 1
             }
-            while Double(UInt64.max - 1) < val {
+            while Double(UInt64.max) <= val {
+                guard exponent < Int8.max else {
+                    setNaN()
+                    return
+                }
                 val /= 10.0
                 exponent += 1
             }
-            var mantissa = UInt64(val)
+
+            var mantissa: UInt64
+            let maxMantissa = Double(UInt64.max).nextDown
+            if val > maxMantissa {
+                // UInt64(Double(UInt64.max)) gives an overflow error, this is the largest
+                // mantissa that can be set.
+                mantissa = UInt64(maxMantissa)
+            } else {
+                 mantissa = UInt64(val)
+            }
 
             var i: Int32 = 0
             // This is a bit ugly but it is the closest approximation of the C
@@ -1924,6 +1945,7 @@ extension Decimal {
     fileprivate static let maxSize: UInt32 = UInt32(NSDecimalMaxSize)
 
     fileprivate init(length: UInt32, mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        precondition(length <= 15)
         self._mantissa = mantissa
         self.__exponent = 0
         self.__lengthAndFlags = 0
