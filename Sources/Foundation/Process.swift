@@ -944,16 +944,16 @@ open class Process: NSObject {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
-#if canImport(Darwin)
+#if canImport(Darwin) || os(Android)
         var spawnAttrs: posix_spawnattr_t? = nil
-        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
-        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
-        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
 #else
         var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()
+#endif
         try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
         try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
-
+#if canImport(Darwin)
+        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
+#else
         // POSIX_SPAWN_CLOEXEC_DEFAULT is an Apple extension so emulate it.
         for fd in 3 ... findMaximumOpenFD() {
             guard adddup2[fd] == nil &&
