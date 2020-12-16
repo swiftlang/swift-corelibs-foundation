@@ -580,7 +580,7 @@ class TestFileHandle : XCTestCase {
         }
     }
 
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows)
     func test_closeOnDealloc() throws {
         try withTemporaryDirectory() { (url, path) in
             let data = try XCTUnwrap("hello".data(using: .utf8))
@@ -640,8 +640,14 @@ class TestFileHandle : XCTestCase {
             ("test_nullDevice", test_nullDevice),
             ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
             ("testOffset", testOffset),
+        ])
+
+    #if !os(Windows)
+        tests.append(contentsOf: [
+            /* ⚠️  SR-13822 - closeOnDealloc doesnt work on Windows and so this test is disabled there. */
             ("test_closeOnDealloc", test_closeOnDealloc),
         ])
+    #endif
 #endif
 
         return tests
