@@ -634,19 +634,20 @@ open class FileHandle : NSObject {
         readabilitySource = nil
         privateAsyncVariablesLock.unlock()
 
-        if closeFd {
 #if os(Windows)
+            // SR-13822 - Not Closing the file descriptor on Windows causes a Stack Overflow
             guard CloseHandle(self._handle) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
             self._handle = INVALID_HANDLE_VALUE
 #else
-            guard _close(_fd) >= 0 else {
-                throw _NSErrorWithErrno(errno, reading: true)
+            if closeFd {
+                guard _close(_fd) >= 0 else {
+                    throw _NSErrorWithErrno(errno, reading: true)
+                }
+                _fd = -1
             }
-            _fd = -1
 #endif
-        }
     }
     
     // MARK: -
