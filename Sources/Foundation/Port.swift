@@ -79,7 +79,7 @@ extension PortDelegate {
     func handle(_ message: PortMessage) { }
 }
 
-public protocol PortDelegate : class {
+public protocol PortDelegate: AnyObject {
     func handle(_ message: PortMessage)
 }
 

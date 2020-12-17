@@ -661,7 +661,7 @@ open class XMLParser : NSObject {
  */
 
 // The parser's delegate is informed of events through the methods in the NSXMLParserDelegateEventAdditions category.
-public protocol XMLParserDelegate: class {
+public protocol XMLParserDelegate: AnyObject {
     
     // Document handling methods
     func parserDidStartDocument(_ parser: XMLParser)

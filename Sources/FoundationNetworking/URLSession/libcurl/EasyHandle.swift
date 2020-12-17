@@ -103,7 +103,7 @@ internal extension _EasyHandle {
         delegate?.transferCompleted(withError: error)
     }
 }
-internal protocol _EasyHandleDelegate: class {
+internal protocol _EasyHandleDelegate: AnyObject {
     /// Handle data read from the network.
     /// - returns: the action to be taken: abort, proceed, or pause.
     func didReceive(data: Data) -> _EasyHandle._Action

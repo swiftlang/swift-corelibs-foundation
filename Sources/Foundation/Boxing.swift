@@ -73,7 +73,7 @@ internal enum _MutableUnmanagedWrapper<ImmutableType : NSObject, MutableType : N
     case Mutable(Unmanaged<MutableType>)
 }
 
-internal protocol _SwiftNativeFoundationType : class {
+internal protocol _SwiftNativeFoundationType: AnyObject {
     associatedtype ImmutableType : NSObject
     associatedtype MutableType : NSObject,  NSMutableCopying
     var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType> { get }

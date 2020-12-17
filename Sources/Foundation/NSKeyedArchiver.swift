@@ -945,7 +945,7 @@ extension NSKeyedArchiverDelegate {
 
 /// The `NSKeyedArchiverDelegate` protocol defines the optional methods implemented
 /// by delegates of `NSKeyedArchiver` objects.
-public protocol NSKeyedArchiverDelegate : class {
+public protocol NSKeyedArchiverDelegate: AnyObject {
     
     /// Informs the delegate that `object` is about to be encoded.
     ///

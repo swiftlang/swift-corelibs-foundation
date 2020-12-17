@@ -20,7 +20,7 @@
 /// 
 /// The Cocoa root class, NSObject, adopts this protocol, so all objects inheriting
 /// from NSObject have the features described by this protocol.
-public protocol NSObjectProtocol : class {
+public protocol NSObjectProtocol: AnyObject {
     
     /// Returns a Boolean value that indicates whether the instance
     /// and a given `object` are equal.
