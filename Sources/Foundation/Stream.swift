@@ -327,7 +327,7 @@ extension StreamDelegate {
     func stream(_ aStream: Stream, handle eventCode: Stream.Event) { }
 }
 
-public protocol StreamDelegate : class {
+public protocol StreamDelegate: AnyObject {
     func stream(_ aStream: Stream, handle eventCode: Stream.Event)
 }
 

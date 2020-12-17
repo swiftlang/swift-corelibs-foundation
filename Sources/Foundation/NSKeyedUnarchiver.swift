@@ -921,7 +921,7 @@ open class NSKeyedUnarchiver : NSCoder {
     }
 }
 
-public protocol NSKeyedUnarchiverDelegate : class {
+public protocol NSKeyedUnarchiverDelegate: AnyObject {
     
     // Informs the delegate that the named class is not available during decoding.
     // The delegate may, for example, load some code to introduce the class to the
