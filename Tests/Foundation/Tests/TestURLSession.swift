@@ -174,6 +174,22 @@ class TestURLSession: LoopbackServerTest {
             }
         }
     }
+    
+    func test_dataTaskWithHTTPBodyRedirect() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=Peru"
+        let url = URL(string: urlString)!
+        let parameters = "foo=bar"
+        var postRequest = URLRequest(url: url)
+        postRequest.httpBody = parameters.data(using: .utf8)
+        postRequest.httpMethod = "POST"
+        
+        let d = HTTPRedirectionDataTask(with: expectation(description: "POST \(urlString): with HTTP redirection"))
+        d.run(with: postRequest)
+
+        waitForExpectations(timeout: 12)
+        
+        XCTAssertEqual("Lima", String(data: d.receivedData, encoding: .utf8), "\(#function) did not redirect properly.")
+    }
 
     func test_gzippedDataTask() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
@@ -1764,6 +1780,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
             // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
+            ("test_dataTaskWithHTTPBodyRedirect", test_dataTaskWithHTTPBodyRedirect),
             ("test_gzippedDataTask", test_gzippedDataTask),
             ("test_downloadTaskWithURL", test_downloadTaskWithURL),
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
