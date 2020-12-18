@@ -190,7 +190,22 @@ public struct Date : ReferenceConvertible, Comparable, Equatable {
     public static func -=(lhs: inout Date, rhs: TimeInterval) {
         lhs = lhs - rhs
     }
-    
+
+    public typealias Stride = TimeInterval
+
+    /// Returns the `TimeInterval` between this `Date` and another given date.
+    ///
+    /// - returns: The interval between the receiver and the another parameter. If the receiver is earlier than `other`, the return value is negative.
+    public func distance(to other: Date) -> TimeInterval {
+        return other.timeIntervalSince(self)
+    }
+
+    /// Creates a new date value by adding a `TimeInterval` to this `Date`.
+    ///
+    /// - warning: This only adjusts an absolute value. If you wish to add calendrical concepts like hours, days, months then you must use a `Calendar`. That will take into account complexities like daylight saving time, months with different numbers of days, and more.
+    public func advanced(by n: TimeInterval) -> Date {
+        return self.addingTimeInterval(n)
+    }
 }
 
 extension Date : CustomDebugStringConvertible, CustomStringConvertible, CustomReflectable {
