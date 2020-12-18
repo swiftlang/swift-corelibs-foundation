@@ -79,6 +79,7 @@
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
 		2EBE67A51C77BF0E006583D5 /* TestDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */; };
+		316577C425214A8400492943 /* URLSessionTaskMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316577C325214A8400492943 /* URLSessionTaskMetrics.swift */; };
 		3E55A2331F52463B00082000 /* TestUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E55A2321F52463B00082000 /* TestUnit.swift */; };
 		3EA9D6701EF0532D00B362D6 /* TestJSONEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */; };
 		3EDCE50C1EF04D8100C2EC04 /* Codable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDCE5051EF04D8100C2EC04 /* Codable.swift */; };
@@ -787,6 +788,7 @@
 		231503DA1D8AEE5D0061694D /* TestDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDecimal.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
 		2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateFormatter.swift; sourceTree = "<group>"; };
+		316577C325214A8400492943 /* URLSessionTaskMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = URLSessionTaskMetrics.swift; path = URLSession/URLSessionTaskMetrics.swift; sourceTree = "<group>"; };
 		3E55A2321F52463B00082000 /* TestUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUnit.swift; sourceTree = "<group>"; };
 		3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestJSONEncoder.swift; sourceTree = "<group>"; };
 		3EDCE5051EF04D8100C2EC04 /* Codable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Codable.swift; sourceTree = "<group>"; };
@@ -2184,6 +2186,7 @@
 				F023075823F0B7AC0023DBEC /* URLSessionConfiguration.swift */,
 				F023075623F0B7AC0023DBEC /* URLSessionDelegate.swift */,
 				F023075B23F0B7AD0023DBEC /* URLSessionTask.swift */,
+				316577C325214A8400492943 /* URLSessionTaskMetrics.swift */,
 			);
 			name = URLSession;
 			sourceTree = "<group>";
@@ -2786,6 +2789,7 @@
 				F023076823F0B8740023DBEC /* Boxing.swift in Sources */,
 				F023073123F0B6E20023DBEC /* BodySource.swift in Sources */,
 				F023075E23F0B7AD0023DBEC /* NetworkingSpecific.swift in Sources */,
+				316577C425214A8400492943 /* URLSessionTaskMetrics.swift in Sources */,
 				F023073423F0B6F10023DBEC /* FTPURLProtocol.swift in Sources */,
 				F023073E23F0B7100023DBEC /* MultiHandle.swift in Sources */,
 				15B803E6228F376000B30FF6 /* NSURLRequest.swift in Sources */,

@@ -71,7 +71,7 @@ public protocol URLSessionDelegate : NSObjectProtocol {
      * behavior will be to use the default handling, which may involve user
      * interaction.
      */
-     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
 }
 
 extension URLSessionDelegate {
@@ -115,19 +115,21 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
      * necessary when authentication has failed for any request that
      * involves a body stream.
      */
-     func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void)
     
     /* Sent periodically to notify the delegate of upload progress.  This
      * information is also available as properties of the task.
      */
-     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64)
+    func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64)
     
     /* Sent as the last message related to a specific task.  Error may be
      * nil, which implies that no error occurred and this task is complete.
      */
-     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     
-     func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
 }
 
 extension URLSessionTaskDelegate {
@@ -148,6 +150,8 @@ extension URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) { }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) { }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) { }
 }
 
 /*
@@ -204,7 +208,7 @@ public protocol URLSessionDataDelegate : URLSessionTaskDelegate {
      * attempted for a given resource, and you should not rely on this
      * message to receive the resource data.
      */
-     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void)
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void)
     
 }
 
@@ -232,17 +236,17 @@ public protocol URLSessionDownloadDelegate : URLSessionTaskDelegate {
      * removed when the delegate message returns. URLSession:task:didCompleteWithError: will
      * still be called.
      */
-     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
     
     /* Sent periodically to notify the delegate of download progress. */
-     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     
     /* Sent when a download has been resumed. If a download failed with an
      * error, the -userInfo dictionary of the error will contain an
      * URLSessionDownloadTaskResumeData key, whose value is the resume
      * data.
      */
-     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64)
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64)
 }
 
 extension URLSessionDownloadDelegate {
@@ -259,13 +263,13 @@ public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
      * this delegate message is received, there may still be bytes
      * available.  You only know that no more bytes are available when you
      * are able to read until EOF. */
-     func urlSession(_ session: URLSession, readClosedFor streamTask: URLSessionStreamTask)
+    func urlSession(_ session: URLSession, readClosedFor streamTask: URLSessionStreamTask)
     
     /* Indicates that the write side of a connection has been closed.
      * Any outstanding writes complete, but future writes will immediately
      * fail.
      */
-     func urlSession(_ session: URLSession, writeClosedFor streamTask: URLSessionStreamTask)
+    func urlSession(_ session: URLSession, writeClosedFor streamTask: URLSessionStreamTask)
     
     /* A notification that the system has determined that a better route
      * to the host has been detected (eg, a wi-fi interface becoming
@@ -274,7 +278,7 @@ public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
      * there is no guarantee that the future task will be able to connect
      * to the host, so callers should should be prepared for failure of
      * reads and writes over any new interface. */
-     func urlSession(_ session: URLSession, betterRouteDiscoveredFor streamTask: URLSessionStreamTask)
+    func urlSession(_ session: URLSession, betterRouteDiscoveredFor streamTask: URLSessionStreamTask)
     
     /* The given task has been completed, and unopened InputStream and
      * OutputStream objects are created from the underlying network
@@ -282,7 +286,7 @@ public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
      * completed (including any necessary handshakes.)  The streamTask
      * will not receive any further delegate messages.
      */
-     func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecome inputStream: InputStream, outputStream: OutputStream)
+    func urlSession(_ session: URLSession, streamTask: URLSessionStreamTask, didBecome inputStream: InputStream, outputStream: OutputStream)
 }
 
 extension URLSessionStreamDelegate {
