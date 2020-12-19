@@ -42,6 +42,7 @@ class TestOperationQueue : XCTestCase {
             ("test_Lifecycle", test_Lifecycle),
             ("test_ConcurrentOperations", test_ConcurrentOperations),
             ("test_ConcurrentOperationsWithDependenciesAndCompletions", test_ConcurrentOperationsWithDependenciesAndCompletions),
+            ("test_BlockOperationAddExecutionBlock", test_BlockOperationAddExecutionBlock),
         ]
     }
     
@@ -753,6 +754,21 @@ class TestOperationQueue : XCTestCase {
         }
     }
 
+    func test_BlockOperationAddExecutionBlock() {
+        let block1Expectation = expectation(description: "Block 1 executed")
+        let block2Expectation = expectation(description: "Block 2 executed")
+        
+        let blockOperation = BlockOperation {
+            block1Expectation.fulfill()
+        }
+        blockOperation.addExecutionBlock {
+            block2Expectation.fulfill()
+        }
+        XCTAssert(blockOperation.executionBlocks.count == 2)
+        let queue = OperationQueue()
+        queue.addOperation(blockOperation)
+        waitForExpectations(timeout: 1.0)
+    }
 }
 
 class AsyncOperation: Operation {
