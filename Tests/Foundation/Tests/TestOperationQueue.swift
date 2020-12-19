@@ -40,6 +40,8 @@ class TestOperationQueue : XCTestCase {
             ("test_CustomOperationReady", test_CustomOperationReady),
             ("test_DependencyCycleBreak", test_DependencyCycleBreak),
             ("test_Lifecycle", test_Lifecycle),
+            ("test_ConcurrentOperations", test_ConcurrentOperations),
+            ("test_ConcurrentOperationsWithDependenciesAndCompletions", test_ConcurrentOperationsWithDependenciesAndCompletions),
         ]
     }
     
@@ -699,6 +701,58 @@ class TestOperationQueue : XCTestCase {
         Thread.sleep(forTimeInterval: 1) // Let queue to be deallocated
         XCTAssertNil(weakQueue, "Queue should be deallocated at this point")
     }
+
+    func test_ConcurrentOperations() {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        
+        // Running several iterations helps to reveal use-after-dealloc crashes
+        for _ in 0..<3 {
+            let didRunOp1 = expectation(description: "Did run first operation")
+            let didRunOp2 = expectation(description: "Did run second operation")
+            
+            queue.addOperation {
+                self.wait(for: [didRunOp2], timeout: 0.2)
+                didRunOp1.fulfill()
+            }
+            queue.addOperation {
+                didRunOp2.fulfill()
+            }
+            
+            self.wait(for: [didRunOp1], timeout: 0.3)
+        }
+    }
+
+    func test_ConcurrentOperationsWithDependenciesAndCompletions() {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        
+        // Running several iterations helps to reveal use-after-dealloc crashes
+        for _ in 0..<3 {
+            let didRunOp1 = expectation(description: "Did run first operation")
+            let didRunOp1Completion = expectation(description: "Did run first operation completion")
+            let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
+            let didRunOp2 = expectation(description: "Did run second operation")
+            
+            let op1 = BlockOperation {
+                self.wait(for: [didRunOp1Dependency, didRunOp2], timeout: 0.2)
+                didRunOp1.fulfill()
+            }
+            op1.completionBlock = {
+                didRunOp1Completion.fulfill()
+            }
+            let op1Dependency = BlockOperation {
+                didRunOp1Dependency.fulfill()
+            }
+            queue.addOperations([op1, op1Dependency], waitUntilFinished: false)
+            queue.addOperation {
+                didRunOp2.fulfill()
+            }
+            
+            self.wait(for: [didRunOp1, didRunOp1Completion], timeout: 0.3)
+        }
+    }
+
 }
 
 class AsyncOperation: Operation {

@@ -640,7 +640,7 @@ internal extension URLSession {
 }
 
 
-internal protocol URLSessionProtocol: class {
+internal protocol URLSessionProtocol: AnyObject {
     func add(handle: _EasyHandle)
     func remove(handle: _EasyHandle)
     func behaviour(for: URLSessionTask) -> URLSession._TaskBehaviour

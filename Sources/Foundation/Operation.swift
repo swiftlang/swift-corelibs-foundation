@@ -939,15 +939,15 @@ open class OperationQueue : NSObject, ProgressReporting {
             let queue: DispatchQueue
             if let qos = _propertyQoS {
                 if let name = __name {
-                    queue = DispatchQueue(label: name, qos: qos.qosClass)
+                    queue = DispatchQueue(label: name, qos: qos.qosClass, attributes: .concurrent)
                 } else {
-                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())", qos: qos.qosClass)
+                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())", qos: qos.qosClass, attributes: .concurrent)
                 }
             } else {
                 if let name = __name {
-                    queue = DispatchQueue(label: name)
+                    queue = DispatchQueue(label: name, attributes: .concurrent)
                 } else {
-                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())")
+                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())", attributes: .concurrent)
                 }
             }
             __backingQueue = queue
