@@ -709,12 +709,9 @@ extension FileManager {
     }
 
     internal func _isExecutableFile(atPath path: String) -> Bool {
-        var isDirectory: ObjCBool = false
-        guard fileExists(atPath: path, isDirectory: &isDirectory) else { return false }
-        guard !isDirectory.boolValue, _isReadableFile(atPath: path) else { return false }
+        var binaryType = DWORD(0)
         return path.withCString(encodedAs: UTF16.self) {
-            var binaryType = DWORD(0)
-            return GetBinaryTypeW($0, &binaryType)
+            GetBinaryTypeW($0, &binaryType)
         }
     }
 
