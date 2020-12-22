@@ -266,6 +266,26 @@ class TestCalendar: XCTestCase {
         XCTAssertGreaterThan(cal.eraSymbols.count, 0)
     }
 
+    func test_nextDate() throws {
+        var calendar = Calendar.current
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "US/Pacific"))
+        let date_20200101 = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 01, day: 1)))
+
+        do {
+            let expected = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 01, day: 2, hour: 0)))
+            let components = DateComponents(year: 2020, month: 1, day: 2, hour: 0, minute: 0, second: 0)
+            let next = calendar.nextDate(after: date_20200101, matching: components, matchingPolicy: .nextTimePreservingSmallerComponents, direction: .forward)
+            XCTAssertEqual(next, expected)
+        }
+
+        do {
+            // SR-13979 - Check nil result when no valid nextDate
+            let components = DateComponents(year: 2019, month: 2, day: 1, hour: 0, minute: 0, second: 0)
+            let next = calendar.nextDate(after: date_20200101, matching: components, matchingPolicy: .nextTimePreservingSmallerComponents, direction: .forward)
+            XCTAssertNil(next)
+        }
+    }
+
     static var allTests: [(String, (TestCalendar) -> () throws -> Void)] {
         return [
             ("test_allCalendars", test_allCalendars),
@@ -285,6 +305,7 @@ class TestCalendar: XCTestCase {
             ("test_hashing", test_hashing),
             ("test_dateFromDoesntMutate", test_dateFromDoesntMutate),
             ("test_sr10638", test_sr10638),
+            ("test_nextDate", test_nextDate),
         ]
     }
 }
