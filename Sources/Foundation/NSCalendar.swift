@@ -1050,6 +1050,10 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         
         withoutActuallyEscaping(block) { (nonescapingBlock) in
             _CFCalendarEnumerateDates(_cfObject, start._cfObject, comps._createCFDateComponents(), CFOptionFlags(opts.rawValue)) { (cfDate, exact, stop) in
+                guard let cfDate = cfDate else {
+                    stop.pointee = true
+                    return
+                }
                 var ourStop: ObjCBool = false
                 nonescapingBlock(cfDate._swiftObject, exact, &ourStop)
                 if ourStop.boolValue {
