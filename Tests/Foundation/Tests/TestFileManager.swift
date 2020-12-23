@@ -275,16 +275,16 @@ class TestFileManager : XCTestCase {
 
             // test unExecutable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
-#if os(Windows)
-            // Files are always executable on Windows
-            XCTAssertTrue(fm.isExecutableFile(atPath: path))
-#else
             XCTAssertFalse(fm.isExecutableFile(atPath: path))
-#endif
 
             // test executable if file has execute permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
+#if os(Windows)
+            // a Windows executable needs to be binary
+            XCTAssertFalse(fm.isExecutableFile(atPath: path))
+#else
             XCTAssertTrue(fm.isExecutableFile(atPath: path))
+#endif
         } catch let e {
             XCTFail("\(e)")
         }
