@@ -277,12 +277,17 @@ class TestFileManager : XCTestCase {
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
             XCTAssertFalse(fm.isExecutableFile(atPath: path))
 
+#if os(Windows)
+            // test against cmd.exe
+            let systemDir: String = {
+                var buffer = Array<WCHAR>(repeating: 0, count: Int(MAX_PATH + 1))
+                GetSystemDirectoryW(&buffer, .init(MAX_PATH + 1))
+                return String(decodingCString: buffer, as: UTF16.self)
+            }()
+            XCTAssertTrue(fm.isExecutableFile(atPath: "\(systemDir)\\cmd.exe"))
+#else
             // test executable if file has execute permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
-#if os(Windows)
-            // a Windows executable needs to be binary
-            XCTAssertFalse(fm.isExecutableFile(atPath: path))
-#else
             XCTAssertTrue(fm.isExecutableFile(atPath: path))
 #endif
         } catch let e {
