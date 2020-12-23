@@ -239,7 +239,7 @@ class _TCPSocket {
         }
     }
 
-    deinit {
+    func closeSocket() throws {
         guard _socket != nil else { return }
 #if os(Windows)
         if listening { shutdown(_socket, SD_BOTH) }
@@ -248,6 +248,11 @@ class _TCPSocket {
         if listening { shutdown(_socket, CInt(SHUT_RDWR)) }
         close(_socket)
 #endif
+        _socket = nil
+    }
+
+    deinit {
+        try? closeSocket()
     }
 }
 
@@ -311,6 +316,10 @@ class _HTTPServer {
         return _HTTPServer(socket: connection)
     }
 
+    public func stop() throws {
+        try tcpSocket.closeSocket()
+    }
+    
     public func request() throws -> _HTTPRequest {
 
         var reader = _SocketDataReader(socket: tcpSocket)
@@ -960,7 +969,9 @@ class LoopbackServerTest : XCTestCase {
                         try? subServer.readAndRespond()
                     }
                 } catch {
-                    NSLog("httpServer: \(error)")
+                    if (serverActive) { // Ignore errors thrown on shutdown
+                        NSLog("httpServer: \(error)")
+                    }
                 }
             }
             serverPort = -2
@@ -984,6 +995,7 @@ class LoopbackServerTest : XCTestCase {
 
     override class func tearDown() {
         serverActive = false
+        try? testServer?.stop()
         super.tearDown()
     }
 }
