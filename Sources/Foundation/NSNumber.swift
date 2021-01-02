@@ -896,10 +896,7 @@ open class NSNumber : NSValue {
     }
     
     open var boolValue: Bool {
-        // Darwin Foundation NSNumber appears to have a bug and return false for NSNumber(value: Int64.min).boolValue,
-        // even though the documentation says:
-        // "A 0 value always means false, and any nonzero value is interpreted as true."
-        return (int64Value != 0) && (int64Value != Int64.min)
+        return int64Value != 0
     }
 
     open var intValue: Int {

@@ -501,10 +501,7 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Int64(0)).floatValue, 0)
         XCTAssertEqual(NSNumber(value: Int64(0)).doubleValue, 0)
 
-        //------
-
-        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, false)
-
+        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int64.min).int8Value, 0)
         XCTAssertEqual(NSNumber(value: Int64.min).int16Value, 0)
         XCTAssertEqual(NSNumber(value: Int64.min).int32Value, 0)
@@ -700,7 +697,7 @@ class TestNSNumber : XCTestCase {
 #if arch(arm)
             break
 #else
-            XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)
+            XCTAssertEqual(NSNumber(value: Int.min).boolValue, true)
 
             XCTAssertEqual(NSNumber(value: Int.min).int8Value, 0)
             XCTAssertEqual(NSNumber(value: Int.min).int16Value, 0)
@@ -1455,13 +1452,13 @@ class TestNSNumber : XCTestCase {
 
         XCTAssertEqual(NSNumber(value: Int64.max).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int64.max - 1).boolValue, true)
-        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, false) // Darwin compatibility
+        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int64.min + 1).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int64(-1)).boolValue, true)
 
         XCTAssertEqual(NSNumber(value: Int.max).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int.max - 1).boolValue, true)
-        XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)   // Darwin compatibility
+        XCTAssertEqual(NSNumber(value: Int.min).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int.min + 1).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int(-1)).boolValue, true)
     }
