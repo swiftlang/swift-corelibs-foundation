@@ -1362,6 +1362,7 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
+CF_CC_swift
 extern void *swift_retain(void *);
 #endif
 

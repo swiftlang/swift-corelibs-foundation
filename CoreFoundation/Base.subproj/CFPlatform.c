@@ -1487,6 +1487,7 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 #include <fcntl.h>
 
+CF_CC_swift
 extern void *swift_retain(void *);
 extern void swift_release(void *);
 
