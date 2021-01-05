@@ -2295,7 +2295,7 @@ extension Scanner {
                     repeat {
                         buf.advance()
                     } while decimalValue(buf.currentCharacter) != nil
-                    return Decimal.nan
+                    return nil
                 }
                 result._exponent += 1
             }
@@ -2315,7 +2315,7 @@ extension Scanner {
                         repeat {
                             buf.advance()
                         } while decimalValue(buf.currentCharacter) != nil
-                        return Decimal.nan
+                        return nil
                     }
                     result._exponent -= 1
                 }
@@ -2339,7 +2339,7 @@ extension Scanner {
             while let numeral = decimalValue(buf.currentCharacter) {
                 exponent = 10 * exponent + Int32(numeral)
                 guard exponent <= 2*Int32(Int8.max) else {
-                    return Decimal.nan
+                    return nil
                 }
 
                 buf.advance()
@@ -2350,7 +2350,7 @@ extension Scanner {
             }
             exponent += result._exponent
             guard exponent >= Int32(Int8.min) && exponent <= Int32(Int8.max) else {
-                return Decimal.nan
+                return nil
             }
             result._exponent = exponent
         }
