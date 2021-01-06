@@ -265,8 +265,10 @@ class TestFileManager : XCTestCase {
     func test_isExecutableFile() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_isExecutableFile\(NSUUID().uuidString)"
+        let exePath = path + ".exe"
         defer {
             try? fm.removeItem(atPath: path)
+            try? fm.removeItem(atPath: exePath)
         }
 
         do {
@@ -275,16 +277,21 @@ class TestFileManager : XCTestCase {
 
             // test unExecutable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
-#if os(Windows)
-            // Files are always executable on Windows
-            XCTAssertTrue(fm.isExecutableFile(atPath: path))
-#else
             XCTAssertFalse(fm.isExecutableFile(atPath: path))
-#endif
 
+#if os(Windows)
+            // test unExecutable even if file has an `exe` extension
+            try fm.copyItem(atPath: path, toPath: exePath)
+            XCTAssertFalse(fm.isExecutableFile(atPath: exePath))
+#else
             // test executable if file has execute permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
             XCTAssertTrue(fm.isExecutableFile(atPath: path))
+#endif
+
+            // test against the test bundle itself
+            let testFoundationBinary = try XCTUnwrap(testBundle().path(forAuxiliaryExecutable: "TestFoundation"))
+            XCTAssertTrue(fm.isExecutableFile(atPath: testFoundationBinary))
         } catch let e {
             XCTFail("\(e)")
         }
