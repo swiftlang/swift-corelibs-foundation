@@ -622,7 +622,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unterminated string around character 1.")
         }
     }
 
@@ -639,7 +638,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "No string key for value in object around character 1.")
         }
     }
 
@@ -673,7 +671,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 9.")
         }
     }
 
@@ -690,7 +687,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "No value for key in object around character 10.")
         }
     }
 
@@ -707,7 +703,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 1.")
         }
     }
 
@@ -724,7 +719,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Badly formed array around character 2.")
         }
     }
 
@@ -741,7 +735,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
         }
     }
 
@@ -757,7 +750,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unable to convert hex escape sequence (no high character) to UTF8-encoded character.")
         }
     }
 
@@ -773,7 +765,6 @@ extension TestJSONSerialization {
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
-//            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during string parse (expected low-surrogate code point but did not find one).")
         }
     }
 
