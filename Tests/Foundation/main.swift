@@ -98,7 +98,6 @@ var allTestCases = [
     testCase(TestURLRequest.allTests),
     testCase(TestURLResponse.allTests),
     testCase(TestHTTPURLResponse.allTests),
-    testCaseExpectedToFail(TestURLSession.allTests, "URLSession test interdependencies are causing intermittent CI issues."),
     testCase(TestNSUUID.allTests),
     testCase(TestUUID.allTests),
     testCase(TestNSValue.allTests),
@@ -127,6 +126,7 @@ var allTestCases = [
 
 #if !os(Windows)
 allTestCases.append(contentsOf: [
+    testCase(TestURLSession.allTests),
     testCase(TestURLSessionFTP.allTests),
 ])
 #endif
