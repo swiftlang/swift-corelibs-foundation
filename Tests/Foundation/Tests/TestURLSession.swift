@@ -2100,8 +2100,10 @@ extension DataTask : URLSessionDataDelegate {
                     dataTask: URLSessionDataTask,
                     didReceive response: URLResponse,
                     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        guard responseReceivedExpectation != nil else { return }
-        responseReceivedExpectation!.fulfill()
+        if let expectation = responseReceivedExpectation {
+            expectation.fulfill()
+        }
+        completionHandler(.allow)
     }
 }
 
