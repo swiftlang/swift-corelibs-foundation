@@ -155,6 +155,10 @@ class TestXMLParser : XCTestCase {
         let xml = TestXMLParser.xmlUnderTest(encoding: .utf8)
         let parser = XMLParser(data: xml.data(using: .utf8)!)
         let delegate = Delegate()
+        defer {
+            // XMLParser holds a weak reference to delegate. Keep it alive.
+            _fixLifetime(delegate)
+        }
         parser.delegate = delegate
         XCTAssertFalse(parser.parse())
         XCTAssertNotNil(parser.parserError)
