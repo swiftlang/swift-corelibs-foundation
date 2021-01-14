@@ -27,6 +27,13 @@ import Dispatch
 typealias SOCKET = Int32
 #endif
 
+private let serverDebug = (ProcessInfo.processInfo.environment["SCLF_HTTP_SERVER_DEBUG"] == "YES")
+
+private func debugLog(_ msg: String) {
+    if serverDebug {
+        NSLog(msg)
+    }
+}
 
 public let globalDispatchQueue = DispatchQueue.global()
 public let dispatchQueueMake: (String) -> DispatchQueue = { DispatchQueue.init(label: $0) }
@@ -47,7 +54,7 @@ extension UInt16 {
 }
 
 // _TCPSocket wraps one socket that is used either to listen()/accept() new connections, or for the client connection itself.
-class _TCPSocket {
+class _TCPSocket: CustomStringConvertible {
 #if !os(Windows)
     #if os(Linux) || os(Android) || os(FreeBSD)
     private let sendFlags = CInt(MSG_NOSIGNAL)
@@ -55,6 +62,10 @@ class _TCPSocket {
     private let sendFlags = CInt(0)
     #endif
 #endif
+
+    var description: String {
+        return "_TCPSocket @ 0x" + String(unsafeBitCast(self, to: UInt.self), radix: 16)
+    }
 
     let listening: Bool
     private var _socket: SOCKET!
@@ -139,7 +150,7 @@ class _TCPSocket {
         #endif
     }
 
-    func acceptConnection(notify: ServerSemaphore) throws -> _TCPSocket {
+    func acceptConnection() throws -> _TCPSocket {
         guard listening else { fatalError("Trying to listen on a client connection socket") }
         let connection: SOCKET = try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
             let addr = UnsafeMutablePointer<sockaddr>($0)
@@ -157,6 +168,7 @@ class _TCPSocket {
                 throw ServerError.init(operation: "setsockopt", errno: errno, file: #file, line: #line)
             }
 #endif
+            debugLog("\(self) acceptConnection: accepted: \(connectionSocket)")
             return connectionSocket
         })
         return _TCPSocket(socket: connection)
@@ -187,7 +199,6 @@ class _TCPSocket {
         guard let connectionSocket = _socket else {
             throw InternalServerError.socketAlreadyClosed
         }
-
 #if os(Windows)
         _ = try data.withUnsafeBytes {
             var dwNumberOfBytesSent: DWORD = 0
@@ -196,47 +207,16 @@ class _TCPSocket {
         }
 #else
         _ = try data.withUnsafeBytes { ptr in
-            try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, ptr.baseAddress!, data.count, sendFlags)))
+            try attempt("send", valid: { $0 == data.count }, CInt(send(connectionSocket, ptr.baseAddress!, data.count, sendFlags)))
         }
 #endif
+        debugLog("wrote \(data.count) bytes")
     }
 
-    private func _send(_ bytes: [UInt8]) throws -> Int {
-        guard let connectionSocket = _socket else {
-            throw InternalServerError.socketAlreadyClosed
-        }
-
-#if os(Windows)
-        return try bytes.withUnsafeBytes {
-            var dwNumberOfBytesSent: DWORD = 0
-            var wsaBuffer: WSABUF = WSABUF(len: ULONG(bytes.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
-            return try Int(attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil)))
-        }
-#else
-        return try bytes.withUnsafeBufferPointer {
-            try attempt("send", valid: { $0 >= 0 }, send(connectionSocket, $0.baseAddress, $0.count, sendFlags))
-        }
-#endif
-    }
-
-    func writeData(header: String, bodyData: Data, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-        _ = try _send(Array(header.utf8))
-
-        if let sendDelay = sendDelay, let bodyChunks = bodyChunks {
-            let count = max(1, Int(Double(bodyData.count) / Double(bodyChunks)))
-            for startIndex in stride(from: 0, to: bodyData.count, by: count) {
-                Thread.sleep(forTimeInterval: sendDelay)
-                let endIndex = min(startIndex + count, bodyData.count)
-                try bodyData.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) -> Void in
-                    let chunk = UnsafeRawBufferPointer(rebasing: ptr[startIndex..<endIndex])
-                    _ = try _send(Array(chunk.bindMemory(to: UInt8.self)))
-                }
-            }
-        } else {
-            try bodyData.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) -> Void in
-                _ = try _send(Array(ptr.bindMemory(to: UInt8.self)))
-            }
-        }
+    func writeData(header: String, bodyData: Data) throws {
+        var totalData = Data(header.utf8)
+        totalData.append(bodyData)
+        try writeRawData(totalData)
     }
 
     func closeSocket() throws {
@@ -252,11 +232,17 @@ class _TCPSocket {
     }
 
     deinit {
+        debugLog("\(self) closing socket")
         try? closeSocket()
     }
 }
 
-class _HTTPServer {
+
+class _HTTPServer: CustomStringConvertible {
+
+    var description: String {
+        return "_HTTPServer @ 0x" + String(unsafeBitCast(self, to: UInt.self), radix: 16)
+    }
 
     // Provide Data() blocks from the socket either separated by a given separator or of a requested block size.
     struct _SocketDataReader {
@@ -271,6 +257,7 @@ class _HTTPServer {
             var range = buffer.range(of: separatorData)
             while range == nil {
                 guard let data = try tcpSocket.readData() else { break }
+                debugLog("read \(data.count) bytes")
                 buffer.append(data)
                 range = buffer.range(of: separatorData)
             }
@@ -284,6 +271,7 @@ class _HTTPServer {
         mutating func readBytes(count: Int) throws -> Data {
             while buffer.count < count {
                 guard let data = try tcpSocket.readData() else { break }
+                debugLog("read \(data.count) bytes")
                 buffer.append(data)
             }
             guard buffer.count >= count else {
@@ -294,6 +282,10 @@ class _HTTPServer {
             buffer = buffer[endIndex...]
             return result
         }
+    }
+
+    deinit {
+        debugLog("_HTTPServer \(self) stopping")
     }
 
     let tcpSocket: _TCPSocket
@@ -311,8 +303,9 @@ class _HTTPServer {
         return try _HTTPServer(port: port)
     }
 
-    public func listen(notify: ServerSemaphore) throws -> _HTTPServer {
-        let connection = try tcpSocket.acceptConnection(notify: notify)
+    public func listen() throws -> _HTTPServer {
+        let connection = try tcpSocket.acceptConnection()
+        debugLog("\(self) accepted: \(connection)")
         return _HTTPServer(socket: connection)
     }
 
@@ -381,14 +374,8 @@ class _HTTPServer {
         return request
     }
 
-    public func respond(with response: _HTTPResponse, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-        if let delay = startDelay {
-            Thread.sleep(forTimeInterval: delay)
-        }
-        do {
-            try tcpSocket.writeData(header: response.header, bodyData: response.bodyData, sendDelay: sendDelay, bodyChunks: bodyChunks)
-        } catch {
-        }
+    public func respond(with response: _HTTPResponse) throws {
+        try tcpSocket.writeData(header: response.header, bodyData: response.bodyData)
     }
 
     func respondWithBrokenResponses(uri: String) throws {
@@ -490,7 +477,7 @@ class _HTTPServer {
     }
 }
 
-struct _HTTPRequest {
+struct _HTTPRequest: CustomStringConvertible {
     enum Method : String {
         case HEAD
         case GET
@@ -511,6 +498,9 @@ struct _HTTPRequest {
     private(set) var parameters: [String: String] = [:]
     var messageBody: String?
     var messageData: Data?
+    var description: String {
+        return "\(method.rawValue) \(uri)"
+    }
 
 
     public init(header: String) throws {
@@ -644,7 +634,12 @@ struct _HTTPResponse {
     }
 }
 
-public class TestURLSessionServer {
+public class TestURLSessionServer: CustomStringConvertible {
+
+    public var description: String {
+        return "TestURLSessionServer @ 0x" + String(unsafeBitCast(self, to: UInt.self), radix: 16)
+    }
+
     let capitals: [String:String] = ["Nepal": "Kathmandu",
                                      "Peru": "Lima",
                                      "Italy": "Rome",
@@ -654,19 +649,15 @@ public class TestURLSessionServer {
                                      "UK": "London",
                                      "country.txt": "A country is a region that is identified as a distinct national entity in political geography"]
     let httpServer: _HTTPServer
-    let startDelay: TimeInterval?
-    let sendDelay: TimeInterval?
-    let bodyChunks: Int?
 
     internal init(httpServer: _HTTPServer) {
         self.httpServer = httpServer
-        self.startDelay = nil
-        self.sendDelay = nil
-        self.bodyChunks = nil
+        debugLog("\(self) - server \(httpServer)")
     }
 
     public func readAndRespond() throws {
         let req = try httpServer.request()
+        debugLog("request: \(req)")
         if let value = req.getHeader(for: "x-pause") {
             if let wait = Double(value), wait > 0 {
                 Thread.sleep(forTimeInterval: wait)
@@ -691,7 +682,9 @@ public class TestURLSessionServer {
         } else if req.uri.hasPrefix("/unauthorized") {
             try httpServer.respondWithUnauthorizedHeader()
         } else {
-            try httpServer.respond(with: getResponse(request: req))
+            let response = try getResponse(request: req)
+            try httpServer.respond(with: response)
+            debugLog("response: \(response)")
         }
     }
 
@@ -918,23 +911,11 @@ enum InternalServerError : Error {
     case badBody
 }
 
-public class ServerSemaphore {
-    let dispatchSemaphore = DispatchSemaphore(value: 0)
-
-    public func wait(timeout: DispatchTime) -> DispatchTimeoutResult {
-        return dispatchSemaphore.wait(timeout: timeout)
-    }
-
-    public func signal() {
-        dispatchSemaphore.signal()
-    }
-}
 
 class LoopbackServerTest : XCTestCase {
     private static let staticSyncQ = DispatchQueue(label: "org.swift.TestFoundation.HTTPServer.StaticSyncQ")
 
     private static var _serverPort: Int = -1
-    private static let serverReady = ServerSemaphore()
     private static var _serverActive = false
     private static var testServer: _HTTPServer? = nil
 
@@ -955,18 +936,26 @@ class LoopbackServerTest : XCTestCase {
 
     override class func setUp() {
         super.setUp()
-        func runServer(with condition: ServerSemaphore) throws {
+
+        var _serverPort = 0
+        let dispatchGroup = DispatchGroup()
+
+        func runServer() throws {
             testServer = try _HTTPServer(port: nil)
-            serverPort = Int(testServer!.port)
-            serverReady.signal()
+            _serverPort = Int(testServer!.port)
             serverActive = true
+            dispatchGroup.leave()
 
             while serverActive {
                 do {
-                    let httpServer = try testServer!.listen(notify: condition)
+                    let httpServer = try testServer!.listen()
                     globalDispatchQueue.async {
                         let subServer = TestURLSessionServer(httpServer: httpServer)
-                        try? subServer.readAndRespond()
+                        do {
+                            try subServer.readAndRespond()
+                        } catch {
+                            NSLog("reandAndRespond: \(error)")
+                        }
                     }
                 } catch {
                     if (serverActive) { // Ignore errors thrown on shutdown
@@ -977,20 +966,22 @@ class LoopbackServerTest : XCTestCase {
             serverPort = -2
         }
 
+        dispatchGroup.enter()
+
         globalDispatchQueue.async {
             do {
-                try runServer(with: serverReady)
+                try runServer()
             } catch {
+                NSLog("runServer: \(error)")
             }
         }
 
         let timeout = DispatchTime(uptimeNanoseconds: DispatchTime.now().uptimeNanoseconds + 2_000_000_000)
 
-        while serverPort == -1 {
-            guard serverReady.wait(timeout: timeout) == .success else {
-                fatalError("Timedout waiting for server to be ready")
-            }
+        guard dispatchGroup.wait(timeout: timeout) == .success, _serverPort > 0 else {
+            fatalError("Timedout waiting for server to be ready")
         }
+        serverPort = _serverPort
     }
 
     override class func tearDown() {
