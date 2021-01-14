@@ -200,7 +200,7 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     
     
-    internal let knownBody: _Body?
+    internal var knownBody: _Body?
     func getBody(completion: @escaping (_Body) -> Void) {
         if let body = knownBody {
             completion(body)
