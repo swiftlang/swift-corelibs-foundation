@@ -829,7 +829,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_httpRedirectionExceededMaxRedirects() throws {
-        let expectedMaxRedirects = 16
+        let expectedMaxRedirects = 20
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/99"
         let url = try XCTUnwrap(URL(string: urlString))
         let exceededCountUrlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/\(99 - expectedMaxRedirects)"

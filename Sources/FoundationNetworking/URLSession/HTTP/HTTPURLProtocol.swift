@@ -448,7 +448,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         // Avoid a never ending redirect chain by having a hard limit on the number of redirects.
         // This value mirrors Darwin.
         redirectCount += 1
-        if redirectCount > 16 {
+        if redirectCount > 20 {
             self.internalState = .transferFailed
             let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorHTTPTooManyRedirects,
                                 userInfo: [NSLocalizedDescriptionKey: "too many HTTP redirects"])
