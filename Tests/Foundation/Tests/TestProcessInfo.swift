@@ -7,16 +7,15 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
+#endif
+
 class TestProcessInfo : XCTestCase {
-    
-    static var allTests: [(String, (TestProcessInfo) -> () throws -> Void)] {
-        return [
-            ("test_operatingSystemVersion", test_operatingSystemVersion ),
-            ("test_processName", test_processName ),
-            ("test_globallyUniqueString", test_globallyUniqueString ),
-            ("test_environment", test_environment),
-        ]
-    }
     
     func test_operatingSystemVersion() {
         let processInfo = ProcessInfo.processInfo
@@ -120,5 +119,52 @@ class TestProcessInfo : XCTestCase {
         XCTAssertEqual(env["var3"], "=x")
         XCTAssertEqual(env["var4"], "x=")
         XCTAssertEqual(env["var5"], "=x=")
+    }
+
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && os(Linux)
+    func test_cfquota_parsing() throws {
+
+        let tests = [
+            ("50000", "100000", 1),
+            ("100000", "100000", 1),
+            ("100000\n", "100000", 1),
+            ("100000", "100000\n", 1),
+            ("150000", "100000", 2),
+            ("200000", "100000", 2),
+            ("-1", "100000", nil),
+            ("100000", "-1", nil),
+            ("", "100000", nil),
+            ("100000", "", nil),
+            ("100000", "0", nil)
+        ]
+
+        try withTemporaryDirectory() { (_, tempDirPath) -> Void in
+            try tests.forEach { quota, period, count in
+                let (fd1, quotaPath) = try _NSCreateTemporaryFile(tempDirPath + "/quota")
+                FileHandle(fileDescriptor: fd1, closeOnDealloc: true).write(quota)
+
+                let (fd2, periodPath) = try _NSCreateTemporaryFile(tempDirPath + "/period")
+                FileHandle(fileDescriptor: fd2, closeOnDealloc: true).write(period)
+                XCTAssertEqual(ProcessInfo.coreCount(quota: quotaPath, period: periodPath), count)
+            }
+        }
+    }
+#endif
+
+
+    static var allTests: [(String, (TestProcessInfo) -> () throws -> Void)] {
+        var tests: [(String, (TestProcessInfo) -> () throws -> ())] = [
+            ("test_operatingSystemVersion", test_operatingSystemVersion ),
+            ("test_processName", test_processName ),
+            ("test_globallyUniqueString", test_globallyUniqueString ),
+            ("test_environment", test_environment),
+        ]
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && os(Linux)
+        tests.append(contentsOf: [ ("test_cfquota_parsing", test_cfquota_parsing) ])
+#endif
+
+        return tests
     }
 }
