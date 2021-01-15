@@ -1165,32 +1165,34 @@ class TestURLSession: LoopbackServerTest {
     }
 
 
-    func test_concurrentRequests() {
-        // "10 tasks ought to be enough for anybody"
+    func test_concurrentRequests() throws {
         let tasks = 10
         let syncQ = dispatchQueueMake("test_dataTaskWithURL.syncQ")
         var dataTasks: [DataTask] = []
+        dataTasks.reserveCapacity(tasks)
+
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+        let url = try XCTUnwrap(URL(string: urlString))
+
         let g = dispatchGroupMake()
         for f in 0..<tasks {
             g.enter()
-            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
             let expectation = self.expectation(description: "GET \(urlString) [\(f)]: with a delegate")
             globalDispatchQueue.async {
-                let url = URL(string: urlString)!
                 let d = DataTask(with: expectation)
                 d.run(with: url)
-                syncQ.async {
+                syncQ.sync {
                     dataTasks.append(d)
-                    g.leave()
                 }
+                g.leave()
             }
         }
         waitForExpectations(timeout: 12)
-        g.wait()
-        for d in syncQ.sync(execute: {dataTasks}) {
-            if !d.error {
-                XCTAssertEqual(d.capital, "Kathmandu", "test_dataTaskWithURLRequest returned an unexpected result")
-            }
+        XCTAssertEqual(g.wait(timeout: .now() + .milliseconds(1)), .success)
+        XCTAssertEqual(dataTasks.count, tasks)
+        for task in dataTasks {
+            XCTAssertFalse(task.error)
+            XCTAssertEqual(task.capital, "Kathmandu", "test_dataTaskWithURLRequest returned an unexpected result")
         }
     }
 
@@ -1819,7 +1821,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
             ("test_requestWithEmptyBody", test_requestWithEmptyBody),
             ("test_requestWithNonEmptyBody", test_requestWithNonEmptyBody),
-            /* ⚠️ */ ("test_concurrentRequests", testExpectedToFail(test_concurrentRequests, "Fails about 4% of the time")),
+            ("test_concurrentRequests", test_concurrentRequests),
             ("test_disableCookiesStorage", test_disableCookiesStorage),
             ("test_cookiesStorage", test_cookiesStorage),
             ("test_cookieStorageForEphemeralConfiguration", test_cookieStorageForEphemeralConfiguration),
