@@ -870,6 +870,32 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
+    func test_willPerformRedirect() throws {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/1"
+        let url = try XCTUnwrap(URL(string: urlString))
+        let redirectURL = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/jsonBody"))
+        let delegate = SessionDelegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let expect = expectation(description: "GET \(urlString)")
+
+        let task = session.dataTask(with: url) { (data, response, error) in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+            XCTAssertNotNil(data)
+            XCTAssertNotNil(response)
+            XCTAssertEqual(delegate.redirectionRequest?.url, redirectURL)
+
+            let callBacks = [
+                "urlSession(_:task:willPerformHTTPRedirection:newRequest:completionHandler:)",
+            ]
+            XCTAssertEqual(delegate.callbacks.count, callBacks.count)
+            XCTAssertEqual(delegate.callbacks, callBacks)
+        }
+
+        task.resume()
+        waitForExpectations(timeout: 5)
+    }
+
     func test_httpNotFound() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/404"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -1812,6 +1838,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
             ("test_httpRedirectionExceededMaxRedirects", test_httpRedirectionExceededMaxRedirects),
+            ("test_willPerformRedirect", test_willPerformRedirect),
             ("test_httpNotFound", test_httpNotFound),
             /* ⚠️ */ ("test_http0_9SimpleResponses", testExpectedToFail(test_http0_9SimpleResponses, "Breaks on Ubunut20.04")),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),

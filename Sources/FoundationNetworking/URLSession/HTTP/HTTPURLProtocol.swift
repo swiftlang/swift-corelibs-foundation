@@ -460,8 +460,8 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
 
         guard let session = task?.session as? URLSession else { fatalError() }
-        switch session.behaviour(for: task!) {
-        case .taskDelegate(let delegate):
+
+        if let delegate = session.delegate as? URLSessionTaskDelegate {
             // At this point we need to change the internal state to note
             // that we're waiting for the delegate to call the completion
             // handler. Then we'll call the delegate callback
@@ -471,7 +471,6 @@ internal class _HTTPURLProtocol: _NativeProtocol {
 
             //TODO: Should the `public response: URLResponse` property be updated
             // before we call delegate API
-
             self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
             session.delegateQueue.addOperation {
@@ -482,7 +481,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                     }
                 }
             }
-        case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
+        } else {
             // Follow the redirect. Need to configure new request with cookies, etc.
             let configuredRequest = session._configuration.configure(request: request)
             task?.knownBody = URLSessionTask._Body.none
