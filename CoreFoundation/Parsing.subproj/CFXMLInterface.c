@@ -184,38 +184,41 @@ static void _errorCallback(void *ctx, const char *msg, ...) {
 _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     _CFXMLInterfaceSAXHandler saxHandler = (_CFXMLInterfaceSAXHandler)calloc(1, sizeof(struct _xmlSAXHandler));
 #if DEPLOYMENT_RUNTIME_SWIFT
+    // To make it easier to spot missing or unused callbacks, the order of setting follows
+    // that of _xmlSAXHandler with unused (or outdated) callbacks being commented out.
+
     saxHandler->internalSubset = (internalSubsetSAXFunc)__CFSwiftXMLParserBridge.internalSubset;
     saxHandler->isStandalone = (isStandaloneSAXFunc)__CFSwiftXMLParserBridge.isStandalone;
     saxHandler->hasInternalSubset = (hasInternalSubsetSAXFunc)__CFSwiftXMLParserBridge.hasInternalSubset;
     saxHandler->hasExternalSubset = (hasExternalSubsetSAXFunc)__CFSwiftXMLParserBridge.hasExternalSubset;
-    // saxHandler->resolveEntity    replaced by xmlSetExternalEntityLoader
+    // saxHandler->resolveEntity          replaced by xmlSetExternalEntityLoader
     saxHandler->getEntity = (getEntitySAXFunc)__CFSwiftXMLParserBridge.getEntity;
     saxHandler->entityDecl = (entityDeclSAXFunc)__CFSwiftXMLParserBridge.entityDecl;
     saxHandler->notationDecl = (notationDeclSAXFunc)__CFSwiftXMLParserBridge.notationDecl;
     saxHandler->attributeDecl = (attributeDeclSAXFunc)__CFSwiftXMLParserBridge.attributeDecl;
     saxHandler->elementDecl = (elementDeclSAXFunc)__CFSwiftXMLParserBridge.elementDecl;
     saxHandler->unparsedEntityDecl = (unparsedEntityDeclSAXFunc)__CFSwiftXMLParserBridge.unparsedEntityDecl;
-    // saxHandler->setDocumentLocator
+    // saxHandler->setDocumentLocator     currently not used by CFXMLInterface
     saxHandler->startDocument = (startDocumentSAXFunc)__CFSwiftXMLParserBridge.startDocument;
     saxHandler->endDocument = (endDocumentSAXFunc)__CFSwiftXMLParserBridge.endDocument;
-    // saxHandler->startElement     replaced by startElementNs
-    // saxHandler->endElement       replaced by endElementNs
-    // saxHandler->reference
+    // saxHandler->startElement           replaced by startElementNs
+    // saxHandler->endElement             replaced by endElementNs
+    // saxHandler->reference              currently not used by CFXMLInterface
     saxHandler->characters = (charactersSAXFunc)__CFSwiftXMLParserBridge.characters;
     saxHandler->ignorableWhitespace = (ignorableWhitespaceSAXFunc)__CFSwiftXMLParserBridge.ignorableWhitespace;
     saxHandler->processingInstruction = (processingInstructionSAXFunc)__CFSwiftXMLParserBridge.processingInstruction;
     saxHandler->comment = (commentSAXFunc)__CFSwiftXMLParserBridge.comment;
-    // saxHandler->warning
+    // saxHandler->warning                currently not used by CFXMLInterface
     saxHandler->error = _errorCallback;
-    // saxHandler->fatalError       unused by libxml
-    // saxHandler->getParameterEntity
+    // saxHandler->fatalError             unused by libxml
+    // saxHandler->getParameterEntity     currently not used by CFXMLInterface
     saxHandler->cdataBlock = (cdataBlockSAXFunc)__CFSwiftXMLParserBridge.cdataBlock;
     saxHandler->externalSubset = (externalSubsetSAXFunc)__CFSwiftXMLParserBridge.externalSubset;
     saxHandler->initialized = XML_SAX2_MAGIC; // make sure start/endElementNS are used
-    // saxHandler->_private         We do not touch private parts.
+    // saxHandler->_private               We do not touch private parts (currently not used by CFXMLInterface).
     saxHandler->startElementNs = (startElementNsSAX2Func)__CFSwiftXMLParserBridge.startElementNs;
     saxHandler->endElementNs = (endElementNsSAX2Func)__CFSwiftXMLParserBridge.endElementNs;
-    // saxHandler->serror
+    // saxHandler->serror                 currently not used by CFXMLInterface
 #endif //if DEPLOYMENT_RUNTIME_SWIFT
     return saxHandler;
 }
