@@ -31,7 +31,7 @@ include (ExternalProject)
 ExternalProject_Add(${LIBXML2_TARGET}
     PREFIX ${LIBXML2_TARGET}
     GIT_REPOSITORY GIT_REPOSITORY https://gitlab.gnome.org/GNOME/libxml2
-    GIT_TAG master
+    GIT_TAG 79301d3d5e553d46fc3201f48dcec3a93068c5a2
     UPDATE_COMMAND ""
     INSTALL_COMMAND ""
     BUILD_BYPRODUCTS ${LIBXML2_BUILD_BYPRODUCTS}
