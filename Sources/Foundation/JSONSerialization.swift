@@ -212,7 +212,7 @@ open class JSONSerialization : NSObject {
                 throw JSONError.singleFragmentFoundButNotAllowed
             }
             
-            return jsonValue.toObjcRepresentation(options: opt)
+            return try jsonValue.toObjcRepresentation(options: opt)
         } catch let error as JSONError {
             switch error {
             case .unexpectedEndOfFile:
@@ -240,8 +240,30 @@ open class JSONSerialization : NSObject {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     NSDebugDescriptionErrorKey : "JSON text did not start with array or object and option to allow fragments not set."
                 ])
-            default:
-                throw error
+            case .tooManyNestedArraysOrDictionaries(characterIndex: let characterIndex):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : "Too many nested arrays or dictionaries around character \(characterIndex + 1)."
+                ])
+            case .invalidHexDigitSequence(let string, index: let index):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : #"Invalid hex encoded sequence in "\#(string)" at \#(index)."#
+                ])
+            case .unescapedControlCharacterInString(ascii: let ascii, in: _, index: let index) where ascii == UInt8(ascii: "\\"):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : #"Invalid escape sequence around character \#(index)."#
+                ])
+            case .unescapedControlCharacterInString(ascii: _, in: _, index: let index):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : #"Unescaped control character around character \#(index)."#
+                ])
+            case .numberWithLeadingZero(index: let index):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : #"Number with leading zero around character \#(index)."#
+                ])
+            case .numberIsNotRepresentableInSwift(parsed: let parsed):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : #"Number \#(parsed) is not representable in Swift."#
+                ])
             }
         } catch {
             preconditionFailure("Only `JSONError` expected")
@@ -1309,6 +1331,7 @@ enum JSONError: Swift.Error, Equatable {
     case expectedLowSurrogateUTF8SequenceAfterHighSurrogate(in: String, index: Int)
     case couldNotCreateUnicodeScalarFromUInt32(in: String, index: Int, unicodeScalarValue: UInt32)
     case numberWithLeadingZero(index: Int)
+    case numberIsNotRepresentableInSwift(parsed: String)
     case singleFragmentFoundButNotAllowed
 }
 
@@ -1420,16 +1443,16 @@ extension JSONValue: Equatable {
 }
 
 extension JSONValue {
-    func toObjcRepresentation(options: JSONSerialization.ReadingOptions) -> Any {
+    func toObjcRepresentation(options: JSONSerialization.ReadingOptions) throws -> Any {
         switch self {
         case .array(let values):
-            let array = values.map { $0.toObjcRepresentation(options: options) }
+            let array = try values.map { try $0.toObjcRepresentation(options: options) }
             if !options.contains(.mutableContainers) {
                 return array
             }
             return NSMutableArray(array: array, copyItems: false)
         case .object(let object):
-            let dictionary = object.mapValues { $0.toObjcRepresentation(options: options) }
+            let dictionary = try object.mapValues { try $0.toObjcRepresentation(options: options) }
             if !options.contains(.mutableContainers) {
                 return dictionary
             }
@@ -1491,8 +1514,7 @@ extension JSONValue {
                 return NSNumber(value: doubleValue)
             }
             
-            #warning("@fabian this must throw an error")
-            preconditionFailure("")
+            throw JSONError.numberIsNotRepresentableInSwift(parsed: string)
         case .null:
             return NSNull()
         case .string(let string):
