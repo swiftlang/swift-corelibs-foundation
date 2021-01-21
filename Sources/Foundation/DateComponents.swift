@@ -463,3 +463,14 @@ extension DateComponents : Codable {
         try container.encodeIfPresent(self.yearForWeekOfYear, forKey: .yearForWeekOfYear)
     }
 }
+
+extension DateComponents : _NSBridgeable {
+    typealias NSType = NSDateComponents
+    var _nsObject: NSType { return _bridgeToObjectiveC() }
+}
+
+extension DateComponents {
+    func _createCFDateComponents() -> CFDateComponents {
+        return _nsObject._createCFDateComponents()
+    }
+}

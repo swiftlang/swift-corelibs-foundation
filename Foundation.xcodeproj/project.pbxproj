@@ -407,6 +407,7 @@
 		B96C110025BA20A600985A32 /* NSURLQueryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */; };
 		B96C110A25BA215800985A32 /* URLResourceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C110925BA215800985A32 /* URLResourceKey.swift */; };
 		B96C112525BA2CE700985A32 /* URLQueryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C112425BA2CE700985A32 /* URLQueryItem.swift */; };
+		B96C113725BA376D00985A32 /* NSDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C113625BA376D00985A32 /* NSDateComponents.swift */; };
 		B983E32C23F0C69600D9C402 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = B983E32B23F0C69600D9C402 /* Docs */; };
 		B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */ = {isa = PBXBuildFile; fileRef = B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */; };
 		B98E33DD2136AA740044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */; };
@@ -1116,6 +1117,7 @@
 		B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSURLQueryItem.swift; sourceTree = "<group>"; };
 		B96C110925BA215800985A32 /* URLResourceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLResourceKey.swift; sourceTree = "<group>"; };
 		B96C112425BA2CE700985A32 /* URLQueryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLQueryItem.swift; sourceTree = "<group>"; };
+		B96C113625BA376D00985A32 /* NSDateComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSDateComponents.swift; sourceTree = "<group>"; };
 		B983E32B23F0C69600D9C402 /* Docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Docs; sourceTree = "<group>"; };
 		B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
@@ -2103,6 +2105,7 @@
 				5BC1B9AB21F275D500524D8C /* NSData+DataProtocol.swift */,
 				5BDC3F331BCC5DCB00ED97BB /* NSData.swift */,
 				5BDC3F341BCC5DCB00ED97BB /* NSDate.swift */,
+				B96C113625BA376D00985A32 /* NSDateComponents.swift */,
 				EADE0B5A1BD15DFF00C49C64 /* NSDecimalNumber.swift */,
 				5BDC3F361BCC5DCB00ED97BB /* NSDictionary.swift */,
 				5BDC3F371BCC5DCB00ED97BB /* NSEnumerator.swift */,
@@ -2913,6 +2916,7 @@
 				EADE0BB51BD15E0000C49C64 /* Scanner.swift in Sources */,
 				EADE0BA01BD15DFF00C49C64 /* NSIndexPath.swift in Sources */,
 				5BF7AEB51BCD51F9008F214A /* NSPathUtilities.swift in Sources */,
+				B96C113725BA376D00985A32 /* NSDateComponents.swift in Sources */,
 				EADE0B9D1BD15DFF00C49C64 /* NSGeometry.swift in Sources */,
 				5BF7AEAA1BCD51F9008F214A /* DateFormatter.swift in Sources */,
 				5BECBA361D1CACC500B39B1F /* MeasurementFormatter.swift in Sources */,

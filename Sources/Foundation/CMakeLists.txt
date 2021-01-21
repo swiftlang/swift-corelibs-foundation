@@ -63,6 +63,7 @@ add_library(Foundation
   NSData+DataProtocol.swift
   NSData.swift
   NSDate.swift
+  NSDateComponents.swift
   NSDecimalNumber.swift
   NSDictionary.swift
   NSEnumerator.swift
