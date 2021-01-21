@@ -406,6 +406,7 @@
 		B96C10F625BA1EFD00985A32 /* NSURLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C10F525BA1EFD00985A32 /* NSURLComponents.swift */; };
 		B96C110025BA20A600985A32 /* NSURLQueryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */; };
 		B96C110A25BA215800985A32 /* URLResourceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C110925BA215800985A32 /* URLResourceKey.swift */; };
+		B96C112525BA2CE700985A32 /* URLQueryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C112425BA2CE700985A32 /* URLQueryItem.swift */; };
 		B983E32C23F0C69600D9C402 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = B983E32B23F0C69600D9C402 /* Docs */; };
 		B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */ = {isa = PBXBuildFile; fileRef = B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */; };
 		B98E33DD2136AA740044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */; };
@@ -1114,6 +1115,7 @@
 		B96C10F525BA1EFD00985A32 /* NSURLComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSURLComponents.swift; sourceTree = "<group>"; };
 		B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSURLQueryItem.swift; sourceTree = "<group>"; };
 		B96C110925BA215800985A32 /* URLResourceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLResourceKey.swift; sourceTree = "<group>"; };
+		B96C112425BA2CE700985A32 /* URLQueryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLQueryItem.swift; sourceTree = "<group>"; };
 		B983E32B23F0C69600D9C402 /* Docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Docs; sourceTree = "<group>"; };
 		B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
@@ -2171,6 +2173,7 @@
 				5BECBA3B1D1CAF8800B39B1F /* Unit.swift */,
 				5B23AB8C1CE63228000DB898 /* URL.swift */,
 				5BCCA8D81CE6697F0059B963 /* URLComponents.swift */,
+				B96C112425BA2CE700985A32 /* URLQueryItem.swift */,
 				B96C110925BA215800985A32 /* URLResourceKey.swift */,
 				EADE0B871BD15DFF00C49C64 /* UserDefaults.swift */,
 				6EB768271D18C12C00D4B719 /* UUID.swift */,
@@ -2960,6 +2963,7 @@
 				1513A8432044893F00539722 /* FileManager+XDG.swift in Sources */,
 				91B668A52252B3E7001487A1 /* FileManager+Win32.swift in Sources */,
 				5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */,
+				B96C112525BA2CE700985A32 /* URLQueryItem.swift in Sources */,
 				5BC1B9AC21F275D500524D8C /* NSData+DataProtocol.swift in Sources */,
 				5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */,
 				5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */,

@@ -132,6 +132,7 @@ add_library(Foundation
   Unit.swift
   URL.swift
   URLComponents.swift
+  URLQueryItem.swift
   URLResourceKey.swift
   UserDefaults.swift
   UUID.swift)
