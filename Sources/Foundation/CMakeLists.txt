@@ -100,6 +100,8 @@ add_library(Foundation
   NSTextCheckingResult.swift
   NSTimeZone.swift
   NSURL.swift
+  NSURLComponents.swift
+  NSURLQueryItem.swift
   NSURLError.swift
   NSUUID.swift
   NSValue.swift
@@ -130,6 +132,7 @@ add_library(Foundation
   Unit.swift
   URL.swift
   URLComponents.swift
+  URLResourceKey.swift
   UserDefaults.swift
   UUID.swift)
 target_compile_definitions(Foundation PRIVATE

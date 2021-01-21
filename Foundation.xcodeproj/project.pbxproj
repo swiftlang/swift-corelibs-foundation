@@ -403,6 +403,9 @@
 		B94B063C23FDE2BD00B244E8 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */; };
 		B95FC97622B84B0A005DEA0A /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
+		B96C10F625BA1EFD00985A32 /* NSURLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C10F525BA1EFD00985A32 /* NSURLComponents.swift */; };
+		B96C110025BA20A600985A32 /* NSURLQueryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */; };
+		B96C110A25BA215800985A32 /* URLResourceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C110925BA215800985A32 /* URLResourceKey.swift */; };
 		B983E32C23F0C69600D9C402 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = B983E32B23F0C69600D9C402 /* Docs */; };
 		B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */ = {isa = PBXBuildFile; fileRef = B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */; };
 		B98E33DD2136AA740044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */; };
@@ -1108,6 +1111,9 @@
 		B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSLock.swift; sourceTree = "<group>"; };
 		B95FC97222AF0050005DEA0A /* SwiftXCTest.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftXCTest.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B95FC97422AF051B005DEA0A /* xcode-build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "xcode-build.sh"; sourceTree = "<group>"; };
+		B96C10F525BA1EFD00985A32 /* NSURLComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSURLComponents.swift; sourceTree = "<group>"; };
+		B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSURLQueryItem.swift; sourceTree = "<group>"; };
+		B96C110925BA215800985A32 /* URLResourceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLResourceKey.swift; sourceTree = "<group>"; };
 		B983E32B23F0C69600D9C402 /* Docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Docs; sourceTree = "<group>"; };
 		B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
@@ -2133,6 +2139,8 @@
 				EADE0B7B1BD15DFF00C49C64 /* NSTextCheckingResult.swift */,
 				5BDC3F491BCC5DCB00ED97BB /* NSTimeZone.swift */,
 				5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */,
+				B96C10F525BA1EFD00985A32 /* NSURLComponents.swift */,
+				B96C10FF25BA20A600985A32 /* NSURLQueryItem.swift */,
 				EADE0B811BD15DFF00C49C64 /* NSURLError.swift */,
 				5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */,
 				5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */,
@@ -2163,6 +2171,7 @@
 				5BECBA3B1D1CAF8800B39B1F /* Unit.swift */,
 				5B23AB8C1CE63228000DB898 /* URL.swift */,
 				5BCCA8D81CE6697F0059B963 /* URLComponents.swift */,
+				B96C110925BA215800985A32 /* URLResourceKey.swift */,
 				EADE0B871BD15DFF00C49C64 /* UserDefaults.swift */,
 				6EB768271D18C12C00D4B719 /* UUID.swift */,
 			);
@@ -2857,6 +2866,7 @@
 				5BF7AEBE1BCD51F9008F214A /* NSTimeZone.swift in Sources */,
 				EADE0B951BD15DFF00C49C64 /* DateComponentsFormatter.swift in Sources */,
 				5BC1B9AE21F275E900524D8C /* Pointers+DataProtocol.swift in Sources */,
+				B96C10F625BA1EFD00985A32 /* NSURLComponents.swift in Sources */,
 				EADE0BA21BD15E0000C49C64 /* JSONSerialization.swift in Sources */,
 				5BF7AEBA1BCD51F9008F214A /* NSString.swift in Sources */,
 				5BF7AEB81BCD51F9008F214A /* NSRange.swift in Sources */,
@@ -2935,12 +2945,14 @@
 				D3BCEBA01C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift in Sources */,
 				5B8BA1621D0B773A00938C27 /* IndexSet.swift in Sources */,
 				EADE0BA71BD15E0000C49C64 /* NSNotification.swift in Sources */,
+				B96C110A25BA215800985A32 /* URLResourceKey.swift in Sources */,
 				5BF7AEB41BCD51F9008F214A /* NSObject.swift in Sources */,
 				EADE0B521BD09F2F00C49C64 /* ByteCountFormatter.swift in Sources */,
 				5BA0106E1DF212B300E56898 /* NSPlatform.swift in Sources */,
 				D3BCEB9E1C2EDED800295652 /* NSLog.swift in Sources */,
 				15CA750A24F8336A007DF6C1 /* NSCFTypeShims.swift in Sources */,
 				61E0117D1C1B5590000037DD /* RunLoop.swift in Sources */,
+				B96C110025BA20A600985A32 /* NSURLQueryItem.swift in Sources */,
 				5B23AB8B1CE62F9B000DB898 /* PersonNameComponents.swift in Sources */,
 				EADE0BA61BD15E0000C49C64 /* MassFormatter.swift in Sources */,
 				5BECBA3A1D1CAE9A00B39B1F /* NSMeasurement.swift in Sources */,
