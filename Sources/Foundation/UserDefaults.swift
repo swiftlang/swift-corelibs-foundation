@@ -22,10 +22,8 @@ open class UserDefaults: NSObject {
         let value = bridgeFromNSCFTypeIfNeeded(nonbridgedValue)
         
         if let value = value as? [Any] {
-            for innerValue in value {
-                if !_isValueAllowed(innerValue) {
-                    return false
-                }
+            for innerValue in value where !_isValueAllowed(innerValue) {
+                return false
             }
             
             return true
@@ -50,7 +48,7 @@ open class UserDefaults: NSObject {
             return true
         }
         
-        let isOfCommonTypes =  value is String || value is Data || value is Date || value is Int || value is Bool || value is CGFloat
+        let isOfCommonTypes = value is String || value is Data || value is Date || value is Int || value is Bool || value is CGFloat
         if isOfCommonTypes {
             return true
         }
@@ -60,19 +58,15 @@ open class UserDefaults: NSObject {
     }
     
     static private func _unboxingNSNumbers(_ value: Any?) -> Any? {
-        if value == nil {
+        guard value != nil else {
             return nil
         }
         
         if let number = value as? NSNumber {
             return number._swiftValueOfOptimalType
-        }
-        
-        if let value = value as? [Any] {
+        } else if let value = value as? [Any] {
             return value.map(_unboxingNSNumbers)
-        }
-        
-        if let value = value as? [AnyHashable: Any] {
+        } else if let value = value as? [AnyHashable: Any] {
             return value.mapValues(_unboxingNSNumbers)
         }
         
@@ -129,9 +123,7 @@ open class UserDefaults: NSObject {
         if let url = value as? URL {
             set(url.absoluteURL.path, forKey: defaultName)
             return
-        }
-        
-        if let url = value as? NSURL, let path = url.absoluteURL?.path {
+        } else if let url = value as? NSURL, let path = url.absoluteURL?.path {
             set(path, forKey: defaultName)
             return
         }
@@ -142,6 +134,7 @@ open class UserDefaults: NSObject {
         
         CFPreferencesSetAppValue(defaultName._cfObject, __SwiftValue.store(value), suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
+    
     open func removeObject(forKey defaultName: String) {
         CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
@@ -170,12 +163,13 @@ open class UserDefaults: NSObject {
         guard let aVal = object(forKey: defaultName) else {
             return 0
         }
+        
         if let bVal = aVal as? Int {
             return bVal
-        }
-        if let bVal = aVal as? String {
+        } else if let bVal = aVal as? String {
             return NSString(string: bVal).integerValue
         }
+        
         return 0
     }
     
@@ -183,12 +177,13 @@ open class UserDefaults: NSObject {
         guard let aVal = object(forKey: defaultName) else {
             return 0
         }
+        
         if let bVal = aVal as? Float {
             return bVal
-        }
-        if let bVal = aVal as? String {
+        } else if let bVal = aVal as? String {
             return NSString(string: bVal).floatValue
         }
+        
         return 0
     }
     
@@ -196,12 +191,13 @@ open class UserDefaults: NSObject {
         guard let aVal = object(forKey: defaultName) else {
             return 0
         }
+        
         if let bVal = aVal as? Double {
             return bVal
-        }
-        if let bVal = aVal as? String {
+        } else if let bVal = aVal as? String {
             return NSString(string: bVal).doubleValue
         }
+        
         return 0
     }
     
@@ -209,23 +205,22 @@ open class UserDefaults: NSObject {
         guard let aVal = object(forKey: defaultName) else {
             return false
         }
+        
         if let bVal = aVal as? Bool {
             return bVal
-        }
-        if let bVal = aVal as? Int {
+        } else if let bVal = aVal as? Int {
             return bVal != 0
-        }
-        if let bVal = aVal as? Float {
+        } else if let bVal = aVal as? Float {
             return bVal != 0
-        }
-        if let bVal = aVal as? Double {
+        } else if let bVal = aVal as? Double {
             return bVal != 0
-        }
-        if let bVal = aVal as? String {
+        } else if let bVal = aVal as? String {
             return NSString(string: bVal).boolValue
         }
+        
         return false
     }
+    
     open func url(forKey defaultName: String) -> URL? {
         guard let aVal = object(forKey: defaultName) else {
             return nil
@@ -239,37 +234,43 @@ open class UserDefaults: NSObject {
         } else if let bVal = aVal as? Data {
             return NSKeyedUnarchiver.unarchiveObject(with: bVal) as? URL
         }
+        
         return nil
     }
     
     open func set(_ value: Int, forKey defaultName: String) {
         set(NSNumber(value: value), forKey: defaultName)
     }
+    
     open func set(_ value: Float, forKey defaultName: String) {
         set(NSNumber(value: value), forKey: defaultName)
     }
+    
     open func set(_ value: Double, forKey defaultName: String) {
         set(NSNumber(value: value), forKey: defaultName)
     }
+    
     open func set(_ value: Bool, forKey defaultName: String) {
         set(NSNumber(value: value), forKey: defaultName)
     }
+    
     open func set(_ url: URL?, forKey defaultName: String) {
-        if let url = url {
-            //FIXME: CFURLIsFileReferenceURL is limited to macOS/iOS
-            #if os(macOS) || os(iOS)
-                //FIXME: no SwiftFoundation version of CFURLIsFileReferenceURL at time of writing!
-                if CFURLIsFileReferenceURL(url._cfObject) {
-                    let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
-                    set(data._nsObject, forKey: defaultName)
-                    return
-                }
-            #endif
-            
-            set(url.path._nsObject, forKey: defaultName)
-        } else {
+        guard let url = url else {
             set(nil, forKey: defaultName)
+            return
         }
+        
+        #warning("FIXME: CFURLIsFileReferenceURL is limited to macOS/iOS")
+        #if os(macOS) || os(iOS)
+            #warning("FIXME: no SwiftFoundation version of CFURLIsFileReferenceURL at time of writing!")
+            if CFURLIsFileReferenceURL(url._cfObject) {
+                let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
+                set(data._nsObject, forKey: defaultName)
+                return
+            }
+        #endif
+        
+        set(url.path._nsObject, forKey: defaultName)
     }
     
     open func register(defaults registrationDictionary: [String : Any]) {
@@ -319,7 +320,7 @@ open class UserDefaults: NSObject {
         return names
     }
     
-    open func volatileDomain(forName domainName: String) -> [String : Any] {
+    open func volatileDomain(forName domainName: String) -> [String: Any] {
         _volatileDomainsLock.lock()
         let domain = _volatileDomains[domainName]
         _volatileDomainsLock.unlock()
@@ -327,8 +328,8 @@ open class UserDefaults: NSObject {
         return domain ?? [:]
     }
     
-    open func setVolatileDomain(_ domain: [String : Any], forName domainName: String) {
-        if !UserDefaults._isValueAllowed(domain) {
+    open func setVolatileDomain(_ domain: [String: Any], forName domainName: String) {
+        guard UserDefaults._isValueAllowed(domain) else {
             fatalError("The content of 'domain' passed to UserDefaults.setVolatileDomain(_:forName:) is not supported.")
         }
         
@@ -345,36 +346,36 @@ open class UserDefaults: NSObject {
         _volatileDomainsLock.unlock()
     }
     
-    open func persistentDomain(forName domainName: String) -> [String : Any]? {
+    open func persistentDomain(forName domainName: String) -> [String: Any]? {
         return UserDefaults(suiteName: domainName)?._dictionaryRepresentation(includingVolatileDomains: false)
     }
     
-    open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) {
-        if let defaults = UserDefaults(suiteName: domainName) {
-            for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
-                defaults.removeObject(forKey: key)
-            }
-            
-            for (key, value) in domain {
-                defaults.set(value, forKey: key)
-            }
-            
-            _ = defaults.synchronize()
-            
-            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+    open func setPersistentDomain(_ domain: [String: Any], forName domainName: String) {
+        guard let defaults = UserDefaults(suiteName: domainName) else { return }
+        
+        for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
+            defaults.removeObject(forKey: key)
         }
+        
+        for (key, value) in domain {
+            defaults.set(value, forKey: key)
+        }
+        
+        _ = defaults.synchronize()
+        
+        NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
     }
     
     open func removePersistentDomain(forName domainName: String) {
-        if let defaults = UserDefaults(suiteName: domainName) {
-            for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
-                defaults.removeObject(forKey: key)
-            }
-            
-            _ = defaults.synchronize()
-            
-            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+        guard let defaults = UserDefaults(suiteName: domainName) else { return }
+        
+        for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
+            defaults.removeObject(forKey: key)
         }
+        
+        _ = defaults.synchronize()
+        
+        NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
     }
     
     @discardableResult
@@ -433,7 +434,6 @@ private extension UserDefaults {
                             // If we can parse that argument as a plist, use the parsed value.
                             parsed = true
                             result[key] = plist
-                            
                         }
                     }
                     
