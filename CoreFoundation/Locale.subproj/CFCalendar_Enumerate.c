@@ -2125,7 +2125,7 @@ static CFDateRef _Nullable _CFCalendarCreateAdjustedDateForMismatches(CFCalendar
 #pragma mark -
 #pragma mark Enumerate Entry Point
 
-CF_CROSS_PLATFORM_EXPORT void _CFCalendarEnumerateDates(CFCalendarRef calendar, CFDateRef start, CFDateComponentsRef matchingComponents, CFOptionFlags opts, void (^block)(CFDateRef, Boolean, Boolean*)) {
+CF_CROSS_PLATFORM_EXPORT void _CFCalendarEnumerateDates(CFCalendarRef calendar, CFDateRef start, CFDateComponentsRef matchingComponents, CFOptionFlags opts, void (^block)(CFDateRef _Nullable, Boolean, Boolean*)) {
     if (!start || !_CFCalendarVerifyCalendarOptions(opts) || !_CFCalendarVerifyCFDateComponentsValues(calendar, matchingComponents)) {
         return;
     }
