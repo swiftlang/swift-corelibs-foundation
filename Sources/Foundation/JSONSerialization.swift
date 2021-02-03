@@ -187,7 +187,8 @@ open class JSONSerialization : NSObject {
                     let newPtr = ptr[advanceBy..<ptr.count]
                     let json = String(bytes: newPtr, encoding: encoding)!
                     return try json.utf8.withContiguousStorageIfAvailable { (utf8) -> JSONValue in
-                        try JSONParser().parse(bytes: utf8)
+                        var parser = JSONParser(bytes: utf8)
+                        return try parser.parse()
                     }!
                 }
                 
@@ -198,13 +199,15 @@ open class JSONSerialization : NSObject {
                 
                 // if utf8 all is good
                 if encoding == .utf8 {
-                    return try JSONParser().parse(bytes: ptr)
+                    var parser = JSONParser(bytes: ptr)
+                    return try parser.parse()
                 }
                 
                 #warning("@Fabian: pretty sure we should throw an error here, if this is invalid data")
                 let json = String(bytes: ptr, encoding: encoding!)!
                 return try json.utf8.withContiguousStorageIfAvailable { (utf8) -> JSONValue in
-                    try JSONParser().parse(bytes: utf8)
+                    var parser = JSONParser(bytes: utf8)
+                    return try parser.parse()
                 }!
             }
             
@@ -306,11 +309,9 @@ open class JSONSerialization : NSObject {
 
 //MARK: - Encoding Detection
 
-internal extension JSONSerialization {
-    
+private extension JSONSerialization {
     /// Detect the encoding format of the NSData contents
     static func detectEncoding(_ bytes: UnsafeRawBufferPointer) -> String.Encoding {
-
         if bytes.count >= 4 {
             switch (bytes[0], bytes[1], bytes[2], bytes[3]) {
             case (0, 0, 0, _):
@@ -615,27 +616,16 @@ private struct JSONWriter {
 }
 
 //MARK: - JSONDeserializer
-struct JSONParser {
-    init() {}
-
-    @inlinable
-    func parse<Bytes: Collection>(bytes: Bytes) throws
-        -> JSONValue where Bytes.Element == UInt8
-    {
-        var impl = JSONParserImpl(bytes: bytes)
-        return try impl.parse()
-    }
-}
-
-@usableFromInline struct JSONParserImpl {
-    @usableFromInline var reader: DocumentReader
-    @usableFromInline var depth: Int = 0
-
-    @inlinable init<Bytes: Collection>(bytes: Bytes) where Bytes.Element == UInt8 {
-        self.reader = DocumentReader(bytes: bytes)
+private struct JSONParser {
+    
+    var reader: DocumentReader
+    var depth: Int = 0
+    
+    init<Bytes: Collection>(bytes: Bytes) where Bytes.Element == UInt8 {
+        self.reader = DocumentReader(bytes: [UInt8](bytes))
     }
 
-    @usableFromInline mutating func parse() throws -> JSONValue {
+    mutating func parse() throws -> JSONValue {
         let value = try parseValue()
         #if DEBUG
         defer {
@@ -1093,30 +1083,25 @@ struct JSONParser {
     }
 }
 
-extension JSONParserImpl {
+private extension JSONParser {
     
-    @usableFromInline struct DocumentReader {
-        @usableFromInline let array: [UInt8]
-        @usableFromInline let count: Int
+    struct DocumentReader {
+        let array: [UInt8]
+        let count: Int
 
-        @usableFromInline /* private(set) */ var index: Int = -1
-        @usableFromInline /* private(set) */ var value: UInt8?
+        private(set) var index: Int = -1
+        private(set) var value: UInt8?
 
-        @inlinable init<Bytes: Collection>(bytes: Bytes) where Bytes.Element == UInt8 {
-            if let array = bytes as? [UInt8] {
-                self.array = array
-            } else {
-                self.array = Array(bytes)
-            }
-
+        init(bytes: [UInt8]) {
+            self.array = bytes
             self.count = self.array.count
         }
 
-        @inlinable subscript(bounds: Range<Int>) -> ArraySlice<UInt8> {
+        subscript(bounds: Range<Int>) -> ArraySlice<UInt8> {
             self.array[bounds]
         }
 
-        @inlinable mutating func read() -> (UInt8, Int)? {
+        mutating func read() -> (UInt8, Int)? {
             guard self.index < self.count - 1 else {
                 self.value = nil
                 self.index = self.array.endIndex
@@ -1129,17 +1114,17 @@ extension JSONParserImpl {
             return (self.value!, self.index)
         }
 
-        @inlinable func remainingBytes(from index: Int) -> ArraySlice<UInt8> {
+        func remainingBytes(from index: Int) -> ArraySlice<UInt8> {
             self.array.suffix(from: index)
         }
 
-        @usableFromInline enum EscapedSequenceError: Swift.Error {
+        enum EscapedSequenceError: Swift.Error {
             case expectedLowSurrogateUTF8SequenceAfterHighSurrogate(index: Int)
             case unexpectedEscapedCharacter(ascii: UInt8, index: Int)
             case couldNotCreateUnicodeScalarFromUInt32(index: Int, unicodeScalarValue: UInt32)
         }
 
-        @inlinable mutating func readUTF8StringTillNextUnescapedQuote() throws -> String {
+        mutating func readUTF8StringTillNextUnescapedQuote() throws -> String {
             precondition(self.value == UInt8(ascii: "\""), "Expected to have read a quote character last")
             var stringStartIndex = self.index + 1
             var output: String?
@@ -1199,7 +1184,7 @@ extension JSONParserImpl {
         // can be removed as soon https://bugs.swift.org/browse/SR-12126 and
         // https://bugs.swift.org/browse/SR-12125 has landed.
         // Thanks @weissi for making my code fast!
-        @inlinable func makeStringFast<Bytes: Collection>(_ bytes: Bytes) -> String where Bytes.Element == UInt8 {
+        func makeStringFast<Bytes: Collection>(_ bytes: Bytes) -> String where Bytes.Element == UInt8 {
             if let string = bytes.withContiguousStorageIfAvailable({ String(decoding: $0, as: Unicode.UTF8.self) }) {
                 return string
             } else {
@@ -1207,7 +1192,7 @@ extension JSONParserImpl {
             }
         }
 
-        @inlinable mutating func parseEscapeSequence() throws -> (String, Int) {
+        mutating func parseEscapeSequence() throws -> (String, Int) {
             guard let (byte, index) = read() else {
                 throw JSONError.unexpectedEndOfFile
             }
@@ -1229,7 +1214,7 @@ extension JSONParserImpl {
             }
         }
 
-        @inlinable mutating func parseUnicodeSequence() throws -> (Unicode.Scalar, Int) {
+        mutating func parseUnicodeSequence() throws -> (Unicode.Scalar, Int) {
             // we build this for utf8 only for now.
             let bitPattern = try parseUnicodeHexSequence()
 
@@ -1275,7 +1260,7 @@ extension JSONParserImpl {
             return (unicode, self.index)
         }
 
-        @inlinable mutating func parseUnicodeHexSequence() throws -> UInt16 {
+        mutating func parseUnicodeHexSequence() throws -> UInt16 {
             // As stated in RFC-8259 an escaped unicode character is 4 HEXDIGITs long
             // https://tools.ietf.org/html/rfc8259#section-7
             guard let (firstHex, startIndex) = read(),
@@ -1302,7 +1287,7 @@ extension JSONParserImpl {
             return bitPattern
         }
 
-        @inlinable static func hexAsciiTo4Bits(_ ascii: UInt8) -> UInt8? {
+        static func hexAsciiTo4Bits(_ ascii: UInt8) -> UInt8? {
             switch ascii {
             case 48 ... 57:
                 return ascii - 48
@@ -1320,8 +1305,7 @@ extension JSONParserImpl {
 }
 
 // MARK:
-@usableFromInline
-enum JSONError: Swift.Error, Equatable {
+private enum JSONError: Swift.Error, Equatable {
     case unexpectedCharacter(ascii: UInt8, characterIndex: Int)
     case unexpectedEndOfFile
     case tooManyNestedArraysOrDictionaries(characterIndex: Int)
@@ -1335,8 +1319,7 @@ enum JSONError: Swift.Error, Equatable {
     case singleFragmentFoundButNotAllowed
 }
 
-@usableFromInline
-enum JSONValue {
+private enum JSONValue {
     case string(String)
     case number(String)
     case bool(Bool)
@@ -1346,7 +1329,7 @@ enum JSONValue {
     case object([String: JSONValue])
 }
 
-extension JSONValue {
+private extension JSONValue {
     var isValue: Bool {
         switch self {
         case .array, .object:
@@ -1385,64 +1368,7 @@ extension JSONValue {
     }
 }
 
-// MARK: - Protocol conformances -
-
-// MARK: Equatable
-
-extension JSONValue: Equatable {
-    @usableFromInline
-    static func == (lhs: JSONValue, rhs: JSONValue) -> Bool {
-        switch (lhs, rhs) {
-        case (.null, .null):
-            return true
-        case (.bool(let lhs), .bool(let rhs)):
-            return lhs == rhs
-        case (.number(let lhs), .number(let rhs)):
-            return lhs == rhs
-        case (.string(let lhs), .string(let rhs)):
-            return lhs == rhs
-        case (.array(let lhs), .array(let rhs)):
-            guard lhs.count == rhs.count else {
-                return false
-            }
-
-            var lhsiterator = lhs.makeIterator()
-            var rhsiterator = rhs.makeIterator()
-
-            while let lhs = lhsiterator.next(), let rhs = rhsiterator.next() {
-                if lhs == rhs {
-                    continue
-                }
-                return false
-            }
-
-            return true
-        case (.object(let lhs), .object(let rhs)):
-            guard lhs.count == rhs.count else {
-                return false
-            }
-
-            var lhsiterator = lhs.makeIterator()
-
-            while let (lhskey, lhsvalue) = lhsiterator.next() {
-                guard let rhsvalue = rhs[lhskey] else {
-                    return false
-                }
-
-                if lhsvalue == rhsvalue {
-                    continue
-                }
-                return false
-            }
-
-            return true
-        default:
-            return false
-        }
-    }
-}
-
-extension JSONValue {
+private extension JSONValue {
     func toObjcRepresentation(options: JSONSerialization.ReadingOptions) throws -> Any {
         switch self {
         case .array(let values):
