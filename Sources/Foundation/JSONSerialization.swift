@@ -344,27 +344,32 @@ private extension JSONSerialization {
             return nil
         }
         
-        switch (bytes[0], bytes[1]) {
-        case (0xEF, 0xBB):
-            if bytes.count >= 3 && bytes[2] == 0xBF {
-                return (.utf8, 3)
-            }
-        case (0x00, 0x00):
-            if bytes.count >= 4 && bytes[2] == 0xFE && bytes[3] == 0xFF {
-                return (.utf32BigEndian, 4)
-            }
-        case (0xFF, 0xFE):
-            if bytes.count >= 4 && bytes[2] == 0 && bytes[3] == 0 {
-                return (.utf32LittleEndian, 4)
-            }
-            return (.utf16LittleEndian, 2)
-        case (0xFE, 0xFF):
-            return (.utf16BigEndian, 2)
-        default:
-            break
+        if bytes.starts(with: Self.utf8BOM) {
+            return (.utf8, 3)
         }
+        if bytes.starts(with: Self.utf32BigEndianBOM) {
+            return (.utf32BigEndian, 4)
+        }
+        if bytes.starts(with: Self.utf32LittleEndianBOM) {
+            return (.utf32LittleEndian, 4)
+        }
+        if bytes.starts(with: [0xFF, 0xFE]) {
+            return (.utf16LittleEndian, 2)
+        }
+        if bytes.starts(with: [0xFE, 0xFF]) {
+            return (.utf16BigEndian, 2)
+        }
+        
         return nil
     }
+    
+    // These static properties don't look very nice, but we need them to
+    // workaround: https://bugs.swift.org/browse/SR-14102
+    private static let utf8BOM: [UInt8] = [0xEF, 0xBB, 0xBF]
+    private static let utf32BigEndianBOM: [UInt8] = [0x00, 0x00, 0xFE, 0xFF]
+    private static let utf32LittleEndianBOM: [UInt8] = [0xFF, 0xFE, 0x00, 0x00]
+    private static let utf16BigEndianBOM: [UInt8] = [0xFF, 0xFE]
+    private static let utf16LittleEndianBOM: [UInt8] = [0xFE, 0xFF]
 }
 
 //MARK: - JSONSerializer
