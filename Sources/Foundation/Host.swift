@@ -118,7 +118,7 @@ open class Host: NSObject {
         return addresses.firstIndex { aHost.addresses.contains($0) } != nil
     }
     
-    internal func _resolveCurrent() {
+    internal func _resolveCurrent(withInfo info: String) {
 #if os(Windows)
         var szAddress: [WCHAR] =
             Array<WCHAR>(repeating: 0, count: Int(NI_MAXHOST))
@@ -165,6 +165,7 @@ open class Host: NSObject {
 
           pAdapter = pAdapter!.pointee.Next
         }
+        _names = [info]
         _resolved = true
 #else
         var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
@@ -189,6 +190,7 @@ open class Host: NSObject {
             }
             ifa = ifaValue.ifa_next
         }
+        _names = [info]
         _resolved = true
 #endif
     }
@@ -197,7 +199,7 @@ open class Host: NSObject {
         guard _resolved == false else { return }
 #if os(Windows)
         if let info = _info {
-          if _type == .current { return _resolveCurrent() }
+          if _type == .current { return _resolveCurrent(withInfo: info) }
 
           var hints: ADDRINFOW = ADDRINFOW()
           memset(&hints, 0, MemoryLayout<ADDRINFOW>.size)
@@ -266,7 +268,7 @@ open class Host: NSObject {
             case .address:
                 flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
             case .current:
-                _resolveCurrent()
+                _resolveCurrent(withInfo: info)
                 return
             }
             var hints = addrinfo()
