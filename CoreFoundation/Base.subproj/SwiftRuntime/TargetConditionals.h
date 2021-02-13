@@ -112,6 +112,7 @@
 #define TARGET_OS_WINDOWS      1
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         0
 #elif __unix__
 #define TARGET_OS_DARWIN       0
@@ -119,6 +120,7 @@
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          1
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         0
 #elif __wasi__
 #define TARGET_OS_DARWIN       0
@@ -126,6 +128,7 @@
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         1
 #else
 #error unknown operating system
