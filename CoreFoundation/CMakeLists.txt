@@ -21,23 +21,22 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(HAS_LIBDISPATCH_API)
   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
   set(THREADS_PREFER_PTHREAD_FLAG OFF)
   find_package(Threads REQUIRED)
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
-    find_package(LibXml2 REQUIRED)
+  find_package(LibXml2 REQUIRED)
+
+  if(BUILD_NETWORKING)
     find_package(CURL CONFIG)
     if(CURL_FOUND)
       set(CURL_VERSION_STRING ${CURL_VERSION})
     else()
       find_package(CURL REQUIRED)
     endif()
-  else()
-    include(libxml2)
   endif()
   find_package(ICU COMPONENTS uc i18n REQUIRED)
 endif()
@@ -393,21 +392,27 @@ target_compile_definitions(CoreFoundation
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR})
-                             
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+
+target_link_libraries(CoreFoundation PRIVATE
+  ${CMAKE_DL_LIBS}
+  BlocksRuntime)
+
+if(HAS_LIBDISPATCH_API)
   target_link_libraries(CoreFoundation PRIVATE
     Threads::Threads
-    ${CMAKE_DL_LIBS}
-    BlocksRuntime
     dispatch)
-else()
-  add_dependencies(CoreFoundation BlocksRuntime)
-  target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN __CONSTANT_CFSTRINGS__)
-  target_include_directories(CoreFoundation PRIVATE
-    "${PROJECT_SOURCE_DIR}/../Sources/BlocksRuntime")
-  target_link_libraries(CoreFoundation PRIVATE
-    BlocksRuntime)
 endif()
+
+if(NOT BUILD_SHARED_LIBS)
+  set_property(TARGET CoreFoundation PROPERTY STATIC_LIBRARY_OPTIONS
+    $<TARGET_OBJECTS:BlocksRuntime>)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  # Enable emulated mman and constant CFSTRINGS
+  target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN __CONSTANT_CFSTRINGS__)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE
     log)
@@ -446,7 +451,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND BUILD_NETWORKING)
   target_link_libraries(CFURLSessionInterface PRIVATE
     CURL::libcurl)
 endif()
@@ -464,17 +469,11 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
+target_link_libraries(CFXMLInterface PRIVATE BlocksRuntime)
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
-  if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    target_link_libraries(CFXMLInterface PRIVATE
-      LibXml2::LibXml2)
-  endif()
-else()
-  target_include_directories(CFXMLInterface PRIVATE
-    "${PROJECT_SOURCE_DIR}/../Sources/BlocksRuntime"
-    "${LIBXML2_INCLUDE_DIRS}")
-  target_link_libraries(CFXMLInterface PRIVATE ${LIBXML2_LIBRARIES})
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  target_link_libraries(CFXMLInterface PRIVATE
+    LibXml2::LibXml2)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
@@ -515,9 +514,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                           User32
                           mincore)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows 
-AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin
-AND NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           m)
@@ -529,7 +526,7 @@ AND NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
                           m)
 endif()
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(HAS_LIBDISPATCH_API)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           dispatch)
@@ -540,6 +537,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
                         PRIVATE
                         dispatch)
 endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
@@ -555,17 +553,18 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
 
-set(WASI_UNAVAILABLE_TARGETS)
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
-  list(APPEND WASI_UNAVAILABLE_TARGETS CFURLSessionInterface)
-endif()
-
 install(TARGETS
-    CoreFoundation
-    CFXMLInterface
-    ${WASI_UNAVAILABLE_TARGETS}
-  DESTINATION
-    "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+          CoreFoundation
+          CFXMLInterface
+        DESTINATION
+          "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+
+if(BUILD_NETWORKING)
+  install(TARGETS
+            CFURLSessionInterface
+          DESTINATION
+            "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+endif()
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
 # Double slash raise CMake error "file called with network path DESTINATION //System/Library/Frameworks".

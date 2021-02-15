@@ -19,6 +19,13 @@
 @usableFromInline let memset = Glibc.memset
 @usableFromInline let memcpy = Glibc.memcpy
 @usableFromInline let memcmp = Glibc.memcmp
+#elseif canImport(WASILibc)
+@usableFromInline let calloc = WASILibc.calloc
+@usableFromInline let malloc = WASILibc.malloc
+@usableFromInline let free = WASILibc.free
+@usableFromInline let memset = WASILibc.memset
+@usableFromInline let memcpy = WASILibc.memcpy
+@usableFromInline let memcmp = WASILibc.memcmp
 #endif
 
 #if !canImport(Darwin)
@@ -32,6 +39,8 @@ internal func malloc_good_size(_ size: Int) -> Int {
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(WASILibc)
+import WASILibc
 #endif
 
 internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutableRawPointer, _ length: Int) {
