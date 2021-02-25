@@ -184,9 +184,8 @@ open class JSONSerialization : NSObject {
     open class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
         do {
             let jsonValue = try data.withUnsafeBytes { (ptr) -> JSONValue in
-                // first parse boom
-                var encoding: String.Encoding? = nil
-                if let (encoding, advanceBy) = parseBOM(ptr) {
+                let (encoding, advanceBy) = JSONSerialization.detectEncoding(ptr)
+                guard encoding == .utf8, advanceBy == 0 else {
                     let newPtr = ptr[advanceBy..<ptr.count]
                     let json = String(bytes: newPtr, encoding: encoding)!
                     return try json.utf8.withContiguousStorageIfAvailable { (utf8) -> JSONValue in
@@ -194,24 +193,9 @@ open class JSONSerialization : NSObject {
                         return try parser.parse()
                     }!
                 }
-                
-                // second try to detect encoding in another way
-                if encoding == nil {
-                    encoding = JSONSerialization.detectEncoding(ptr)
-                }
-                
-                // if utf8 all is good
-                if encoding == .utf8 {
-                    var parser = JSONParser(bytes: ptr)
-                    return try parser.parse()
-                }
-                
-                #warning("@Fabian: pretty sure we should throw an error here, if this is invalid data")
-                let json = String(bytes: ptr, encoding: encoding!)!
-                return try json.utf8.withContiguousStorageIfAvailable { (utf8) -> JSONValue in
-                    var parser = JSONParser(bytes: utf8)
-                    return try parser.parse()
-                }!
+
+                var parser = JSONParser(bytes: ptr)
+                return try parser.parse()
             }
             
             if jsonValue.isValue, !opt.contains(.fragmentsAllowed) {
@@ -314,17 +298,43 @@ open class JSONSerialization : NSObject {
 
 private extension JSONSerialization {
     /// Detect the encoding format of the NSData contents
-    static func detectEncoding(_ bytes: UnsafeRawBufferPointer) -> String.Encoding {
+    static func detectEncoding(_ bytes: UnsafeRawBufferPointer) -> (String.Encoding, Int) {
+        // According to RFC8259, the text encoding in JSON must be UTF8 in nonclosed systems
+        // https://tools.ietf.org/html/rfc8259#section-8.1
+        // However, since Darwin Foundation supports utf16 and utf32, so should Swift Foundation.
+        
+        // First let's check if we can determine the encoding based on a leading Byte Ordering Mark
+        // (BOM).
+        if bytes.count >= 4 {
+            if bytes.starts(with: Self.utf8BOM) {
+                return (.utf8, 3)
+            }
+            if bytes.starts(with: Self.utf32BigEndianBOM) {
+                return (.utf32BigEndian, 4)
+            }
+            if bytes.starts(with: Self.utf32LittleEndianBOM) {
+                return (.utf32LittleEndian, 4)
+            }
+            if bytes.starts(with: [0xFF, 0xFE]) {
+                return (.utf16LittleEndian, 2)
+            }
+            if bytes.starts(with: [0xFE, 0xFF]) {
+                return (.utf16BigEndian, 2)
+            }
+        }
+        
+        // If there is no BOM present, we might be able to determine the encoding based on
+        // occurences of null bytes.
         if bytes.count >= 4 {
             switch (bytes[0], bytes[1], bytes[2], bytes[3]) {
             case (0, 0, 0, _):
-                return .utf32BigEndian
+                return (.utf32BigEndian, 0)
             case (_, 0, 0, 0):
-                return .utf32LittleEndian
+                return (.utf32LittleEndian, 0)
             case (0, _, 0, _):
-                return .utf16BigEndian
+                return (.utf16BigEndian, 0)
             case (_, 0, _, 0):
-                return .utf16LittleEndian
+                return (.utf16LittleEndian, 0)
             default:
                 break
             }
@@ -332,36 +342,17 @@ private extension JSONSerialization {
         else if bytes.count >= 2 {
             switch (bytes[0], bytes[1]) {
             case (0, _):
-                return .utf16BigEndian
+                return (.utf16BigEndian, 0)
             case (_, 0):
-                return .utf16LittleEndian
+                return (.utf16LittleEndian, 0)
             default:
                 break
             }
         }
-        return .utf8
+        return (.utf8, 0)
     }
     
     static func parseBOM(_ bytes: UnsafeRawBufferPointer) -> (encoding: String.Encoding, skipLength: Int)? {
-        guard bytes.count >= 4 else {
-            return nil
-        }
-        
-        if bytes.starts(with: Self.utf8BOM) {
-            return (.utf8, 3)
-        }
-        if bytes.starts(with: Self.utf32BigEndianBOM) {
-            return (.utf32BigEndian, 4)
-        }
-        if bytes.starts(with: Self.utf32LittleEndianBOM) {
-            return (.utf32LittleEndian, 4)
-        }
-        if bytes.starts(with: [0xFF, 0xFE]) {
-            return (.utf16LittleEndian, 2)
-        }
-        if bytes.starts(with: [0xFE, 0xFF]) {
-            return (.utf16BigEndian, 2)
-        }
         
         return nil
     }
