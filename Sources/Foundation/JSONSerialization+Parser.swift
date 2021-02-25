@@ -37,7 +37,7 @@ internal struct JSONParser {
             }
 
             switch extraCharacter {
-            case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+            case ._space, ._return, ._newline, ._tab:
                 break
             default:
                 throw JSONError.unexpectedCharacter(ascii: extraCharacter, characterIndex: reader.index)
@@ -46,7 +46,7 @@ internal struct JSONParser {
 
         while let (byte, index) = reader.read() {
             switch byte {
-            case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+            case ._space, ._return, ._newline, ._tab:
                 continue
             default:
                 throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: index)
@@ -63,10 +63,10 @@ internal struct JSONParser {
             switch byte {
             case UInt8(ascii: "\""):
                 return .string(try self.parseString())
-            case UInt8(ascii: "{"):
+            case ._openbrace:
                 let object = try parseObject()
                 return .object(object)
-            case UInt8(ascii: "["):
+            case ._openbracket:
                 let array = try parseArray()
                 return .array(array)
             case UInt8(ascii: "f"), UInt8(ascii: "t"):
@@ -79,7 +79,7 @@ internal struct JSONParser {
             case UInt8(ascii: "-"), UInt8(ascii: "0") ... UInt8(ascii: "9"):
                 let number = try parseNumber()
                 return .number(number)
-            case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+            case ._space, ._return, ._newline, ._tab:
                 continue
             default:
                 throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: index)
@@ -224,13 +224,13 @@ internal struct JSONParser {
 
                 pastControlChar = .expOperator
                 numbersSinceControlChar = 0
-            case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+            case ._space, ._return, ._newline, ._tab:
                 guard numbersSinceControlChar > 0 else {
                     throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: index)
                 }
 
                 return self.reader.makeStringFast(self.reader[stringStartIndex ..< index])
-            case UInt8(ascii: ","), UInt8(ascii: "]"), UInt8(ascii: "}"):
+            case ._comma, ._closebracket, ._closebrace:
                 guard numbersSinceControlChar > 0 else {
                     throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: index)
                 }
@@ -257,7 +257,7 @@ internal struct JSONParser {
     }
 
     mutating func parseArray() throws -> [JSONValue] {
-        assert(self.reader.value == UInt8(ascii: "["))
+        assert(self.reader.value == ._openbracket)
         guard self.depth < 512 else {
             throw JSONError.tooManyNestedArraysOrDictionaries(characterIndex: self.reader.index)
         }
@@ -280,11 +280,11 @@ internal struct JSONParser {
                 }
 
                 switch extraByte {
-                case UInt8(ascii: ","):
+                case ._comma:
                     state = .expectValue
-                case UInt8(ascii: "]"):
+                case ._closebracket:
                     return array
-                case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                case ._space, ._return, ._newline, ._tab:
                     state = .expectSeperatorOrEnd
                 default:
                     throw JSONError.unexpectedCharacter(ascii: extraByte, characterIndex: reader.index)
@@ -292,7 +292,7 @@ internal struct JSONParser {
             } else {
                 state = .expectSeperatorOrEnd
             }
-        } catch JSONError.unexpectedCharacter(ascii: UInt8(ascii: "]"), _) {
+        } catch JSONError.unexpectedCharacter(ascii: ._closebracket, _) {
             return []
         }
 
@@ -305,11 +305,11 @@ internal struct JSONParser {
 
                 seperatorloop: while let (byte, index) = reader.read() {
                     switch byte {
-                    case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                    case ._space, ._return, ._newline, ._tab:
                         continue
-                    case UInt8(ascii: "]"):
+                    case ._closebracket:
                         return array
-                    case UInt8(ascii: ","):
+                    case ._comma:
                         state = .expectValue
                         break seperatorloop
                     default:
@@ -334,11 +334,11 @@ internal struct JSONParser {
                 }
 
                 switch extraByte {
-                case UInt8(ascii: ","):
+                case ._comma:
                     state = .expectValue
-                case UInt8(ascii: "]"):
+                case ._closebracket:
                     return array
-                case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                case ._space, ._return, ._newline, ._tab:
                     state = .expectSeperatorOrEnd
                 default:
                     throw JSONError.unexpectedCharacter(ascii: extraByte, characterIndex: self.reader.index)
@@ -360,7 +360,7 @@ internal struct JSONParser {
     }
 
     mutating func parseObject() throws -> [String: JSONValue] {
-        assert(self.reader.value == UInt8(ascii: "{"))
+        assert(self.reader.value == ._openbrace)
         guard self.depth < 512 else {
             throw JSONError.tooManyNestedArraysOrDictionaries(characterIndex: self.reader.index)
         }
@@ -372,12 +372,12 @@ internal struct JSONParser {
         // parse first key or end immidiatly
         loop: while let (byte, index) = reader.read() {
             switch byte {
-            case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+            case ._space, ._return, ._newline, ._tab:
                 continue
             case UInt8(ascii: "\""):
                 state = .expectColon(key: try self.parseString())
                 break loop
-            case UInt8(ascii: "}"):
+            case ._closebrace:
                 return [:]
             default:
                 throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: index)
@@ -400,7 +400,7 @@ internal struct JSONParser {
                         let key = try parseString()
                         state = .expectColon(key: key)
                         break keyloop
-                    case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                    case ._space, ._return, ._newline, ._tab:
                         continue
                     default:
                         throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: index)
@@ -414,9 +414,9 @@ internal struct JSONParser {
             case .expectColon(let key):
                 colonloop: while let (byte, index) = reader.read() {
                     switch byte {
-                    case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                    case ._space, ._return, ._newline, ._tab:
                         continue
-                    case UInt8(ascii: ":"):
+                    case ._colon:
                         state = .expectValue(key: key)
                         break colonloop
                     default:
@@ -443,11 +443,11 @@ internal struct JSONParser {
                 }
 
                 switch extraByte {
-                case UInt8(ascii: ","):
+                case ._comma:
                     state = .expectKey
-                case UInt8(ascii: "}"):
+                case ._closebrace:
                     return object
-                case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                case ._space, ._return, ._newline, ._tab:
                     state = .expectSeperatorOrEnd
                 default:
                     throw JSONError.unexpectedCharacter(ascii: extraByte, characterIndex: self.reader.index)
@@ -456,11 +456,11 @@ internal struct JSONParser {
             case .expectSeperatorOrEnd:
                 seperatorloop: while let (byte, index) = reader.read() {
                     switch byte {
-                    case UInt8(ascii: " "), UInt8(ascii: "\r"), UInt8(ascii: "\n"), UInt8(ascii: "\t"):
+                    case ._space, ._return, ._newline, ._tab:
                         continue
-                    case UInt8(ascii: "}"):
+                    case ._closebrace:
                         return object
-                    case UInt8(ascii: ","):
+                    case ._comma:
                         state = .expectKey
                         break seperatorloop
                     default:
@@ -713,4 +713,20 @@ enum JSONError: Swift.Error, Equatable {
     case singleFragmentFoundButNotAllowed
 }
 
-
+extension UInt8 {
+    
+    internal static let _space = UInt8(ascii: " ")
+    internal static let _return = UInt8(ascii: "\r")
+    internal static let _newline = UInt8(ascii: "\n")
+    internal static let _tab = UInt8(ascii: "\t")
+    
+    internal static let _colon = UInt8(ascii: ":")
+    internal static let _comma = UInt8(ascii: ",")
+    
+    internal static let _openbrace = UInt8(ascii: "{")
+    internal static let _closebrace = UInt8(ascii: "}")
+    
+    internal static let _openbracket = UInt8(ascii: "[")
+    internal static let _closebracket = UInt8(ascii: "]")
+    
+}
