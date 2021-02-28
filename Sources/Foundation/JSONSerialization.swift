@@ -704,23 +704,8 @@ private extension JSONValue {
             
             if let expIndex = expIndex {
                 let expStartIndex = string.index(after: expIndex)
-                let slice = string[expStartIndex...]
-                var iterator = slice.utf8.makeIterator()
-                var isNegative = false
-                if slice.utf8.first == UInt8(ascii: "-") {
-                    isNegative = true
-                    _ = iterator.next()
-                }
-                else if slice.utf8.first == UInt8(ascii: "+") {
-                    _ = iterator.next()
-                }
-                while let next = iterator.next() {
-                    exp += exp * 10
-                    exp += Int(next - UInt8(ascii: "0"))
-                }
-                
-                if isNegative {
-                    exp = exp * -1
+                if let parsed = Int(string[expStartIndex...]) {
+                    exp = parsed
                 }
             }
             
@@ -731,7 +716,7 @@ private extension JSONValue {
             }
             
             // Fall back to Double() for everything else
-            if let doubleValue = Double(string) {
+            if let doubleValue = Double(string), doubleValue.isFinite {
                 return NSNumber(value: doubleValue)
             }
             
