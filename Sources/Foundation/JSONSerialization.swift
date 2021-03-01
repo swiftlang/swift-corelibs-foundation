@@ -189,12 +189,12 @@ open class JSONSerialization : NSObject {
                     let newPtr = ptr[advanceBy..<ptr.count]
                     let json = String(bytes: newPtr, encoding: encoding)!
                     return try json.utf8.withContiguousStorageIfAvailable { (utf8) -> JSONValue in
-                        var parser = JSONParser(bytes: utf8)
+                        var parser = JSONParser(bytes: Array(utf8))
                         return try parser.parse()
                     }!
                 }
 
-                var parser = JSONParser(bytes: ptr)
+                var parser = JSONParser(bytes: Array(ptr))
                 return try parser.parse()
             }
             
