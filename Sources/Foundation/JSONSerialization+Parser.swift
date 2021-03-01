@@ -128,7 +128,11 @@ internal struct JSONParser {
                 // consume the comma
                 reader.moveReaderIndex(forwardBy: 1)
                 // consume the whitespace before the next value
-                try reader.consumeWhitespace()
+                if try reader.consumeWhitespace() == ._closebracket {
+                    // the foundation json implementation does support trailing commas
+                    reader.moveReaderIndex(forwardBy: 1)
+                    return array
+                }
                 continue
             default:
                 throw JSONError.unexpectedCharacter(ascii: ascii, characterIndex: reader.readerIndex)
@@ -178,7 +182,11 @@ internal struct JSONParser {
                 return object
             case ._comma:
                 reader.moveReaderIndex(forwardBy: 1)
-                try reader.consumeWhitespace()
+                if try reader.consumeWhitespace() == ._closebrace {
+                    // the foundation json implementation does support trailing commas
+                    reader.moveReaderIndex(forwardBy: 1)
+                    return object
+                }
                 continue
             default:
                 throw JSONError.unexpectedCharacter(ascii: commaOrBrace, characterIndex: reader.readerIndex)
@@ -637,6 +645,7 @@ extension UInt8 {
 
 
 enum JSONError: Swift.Error, Equatable {
+    case cannotConvertInputDataToUTF8
     case unexpectedCharacter(ascii: UInt8, characterIndex: Int)
     case unexpectedEndOfFile
     case tooManyNestedArraysOrDictionaries(characterIndex: Int)

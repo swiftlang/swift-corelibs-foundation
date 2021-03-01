@@ -185,16 +185,18 @@ open class JSONSerialization : NSObject {
         do {
             let jsonValue = try data.withUnsafeBytes { (ptr) -> JSONValue in
                 let (encoding, advanceBy) = JSONSerialization.detectEncoding(ptr)
-                guard encoding == .utf8, advanceBy == 0 else {
-                    let newPtr = ptr[advanceBy..<ptr.count]
-                    let json = String(bytes: newPtr, encoding: encoding)!
-                    return try json.utf8.withContiguousStorageIfAvailable { (utf8) -> JSONValue in
-                        var parser = JSONParser(bytes: Array(utf8))
-                        return try parser.parse()
-                    }!
+                
+                if encoding == .utf8 {
+                    // we got utf8... happy path
+                    var parser = JSONParser(bytes: Array(ptr[advanceBy..<ptr.count]))
+                    return try parser.parse()
                 }
-
-                var parser = JSONParser(bytes: Array(ptr))
+                
+                guard let utf8String = String(bytes: ptr[advanceBy..<ptr.count], encoding: encoding) else {
+                    throw JSONError.cannotConvertInputDataToUTF8
+                }
+                
+                var parser = JSONParser(bytes: Array(utf8String.utf8))
                 return try parser.parse()
             }
             
@@ -205,6 +207,10 @@ open class JSONSerialization : NSObject {
             return try jsonValue.toObjcRepresentation(options: opt)
         } catch let error as JSONError {
             switch error {
+            case .cannotConvertInputDataToUTF8:
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : "Cannot convert input string to valid utf8 input."
+                ])
             case .unexpectedEndOfFile:
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     NSDebugDescriptionErrorKey : "Unexpected end of file during JSON parse."

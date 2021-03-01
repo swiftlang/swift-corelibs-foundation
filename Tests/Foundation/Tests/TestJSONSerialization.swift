@@ -623,9 +623,13 @@ extension TestJSONSerialization {
         let subject = "[1.1e547]"
         let data = Data(subject.utf8)
 
-        var numbers: [NSNumber]?
-        XCTAssertNoThrow(numbers = try getjsonObjectResult(data, objectType) as? [NSNumber])
-        XCTAssertEqual(numbers?.first?.doubleValue.isInfinite, true)
+        XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+        }
     }
 
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
