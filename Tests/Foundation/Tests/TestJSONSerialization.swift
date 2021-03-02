@@ -90,22 +90,27 @@ extension TestJSONSerialization {
             //Deserialization with Data
             ("test_deserialize_emptyObject_withData", test_deserialize_emptyObject_withData),
             ("test_deserialize_multiStringObject_withData", test_deserialize_multiStringObject_withData),
+            ("test_deserialize_stringWithSpacesAtStart_withData", test_deserialize_stringWithSpacesAtStart_withData),
+            ("test_deserialize_highlyNestedArray_withData", test_deserialize_highlyNestedObject_withData),
 
             ("test_deserialize_emptyArray_withData", test_deserialize_emptyArray_withData),
             ("test_deserialize_multiStringArray_withData", test_deserialize_multiStringArray_withData),
             ("test_deserialize_unicodeString_withData", test_deserialize_unicodeString_withData),
-            ("test_deserialize_stringWithSpacesAtStart_withData", test_deserialize_stringWithSpacesAtStart_withData),
-
-
+            ("test_deserialize_highlyNestedArray_withData", test_deserialize_highlyNestedArray_withData),
+            
             ("test_deserialize_values_withData", test_deserialize_values_withData),
             ("test_deserialize_values_as_reference_types_withData", test_deserialize_values_as_reference_types_withData),
             ("test_deserialize_numbers_withData", test_deserialize_numbers_withData),
+            ("test_deserialize_numberWithLeadingZero_withData", test_deserialize_numberWithLeadingZero_withData),
+            ("test_deserialize_numberThatIsntRepresentableInSwift_withData", test_deserialize_numberThatIsntRepresentableInSwift_withData),
             ("test_deserialize_numbers_as_reference_types_withData", test_deserialize_numbers_as_reference_types_withData),
 
             ("test_deserialize_simpleEscapeSequences_withData", test_deserialize_simpleEscapeSequences_withData),
             ("test_deserialize_unicodeEscapeSequence_withData", test_deserialize_unicodeEscapeSequence_withData),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence_withData", test_deserialize_unicodeSurrogatePairEscapeSequence_withData),
             ("test_deserialize_allowFragments_withData", test_deserialize_allowFragments_withData),
+            ("test_deserialize_unescapedControlCharactersWithData", test_deserialize_unescapedControlCharactersWithData),
+            ("test_deserialize_unescapedReversedSolidusWithData", test_deserialize_unescapedReversedSolidusWithData),
 
             ("test_deserialize_unterminatedObjectString_withData", test_deserialize_unterminatedObjectString_withData),
             ("test_deserialize_missingObjectKey_withData", test_deserialize_missingObjectKey_withData),
@@ -121,22 +126,27 @@ extension TestJSONSerialization {
             //Deserialization with Stream
             ("test_deserialize_emptyObject_withStream", test_deserialize_emptyObject_withStream),
             ("test_deserialize_multiStringObject_withStream", test_deserialize_multiStringObject_withStream),
+            ("test_deserialize_stringWithSpacesAtStart_withStream", test_deserialize_stringWithSpacesAtStart_withStream),
+            ("test_deserialize_highlyNestedObject_withStream", test_deserialize_highlyNestedObject_withStream),
 
             ("test_deserialize_emptyArray_withStream", test_deserialize_emptyArray_withStream),
             ("test_deserialize_multiStringArray_withStream", test_deserialize_multiStringArray_withStream),
             ("test_deserialize_unicodeString_withStream", test_deserialize_unicodeString_withStream),
-            ("test_deserialize_stringWithSpacesAtStart_withStream", test_deserialize_stringWithSpacesAtStart_withStream),
-
-
+            ("test_deserialize_highlyNestedArray_withStream", test_deserialize_highlyNestedArray_withStream),
+            
             ("test_deserialize_values_withStream", test_deserialize_values_withStream),
             ("test_deserialize_values_as_reference_types_withStream", test_deserialize_values_as_reference_types_withStream),
             ("test_deserialize_numbers_withStream", test_deserialize_numbers_withStream),
+            ("test_deserialize_numberWithLeadingZero_withStream", test_deserialize_numberWithLeadingZero_withStream),
+            ("test_deserialize_numberThatIsntRepresentableInSwift_withStream", test_deserialize_numberThatIsntRepresentableInSwift_withStream),
             ("test_deserialize_numbers_as_reference_types_withStream", test_deserialize_numbers_as_reference_types_withStream),
 
             ("test_deserialize_simpleEscapeSequences_withStream", test_deserialize_simpleEscapeSequences_withStream),
             ("test_deserialize_unicodeEscapeSequence_withStream", test_deserialize_unicodeEscapeSequence_withStream),
             ("test_deserialize_unicodeSurrogatePairEscapeSequence_withStream", test_deserialize_unicodeSurrogatePairEscapeSequence_withStream),
             ("test_deserialize_allowFragments_withStream", test_deserialize_allowFragments_withStream),
+            ("test_deserialize_unescapedControlCharactersWithStream", test_deserialize_unescapedControlCharactersWithStream),
+            ("test_deserialize_unescapedReversedSolidusWithStream", test_deserialize_unescapedReversedSolidusWithStream),
 
             ("test_deserialize_unterminatedObjectString_withStream", test_deserialize_unterminatedObjectString_withStream),
             ("test_deserialize_missingObjectKey_withStream", test_deserialize_missingObjectKey_withStream),
@@ -163,6 +173,10 @@ extension TestJSONSerialization {
     func test_deserialize_multiStringObject_withData() {
         deserialize_multiStringObject(objectType: .data)
     }
+    
+    func test_deserialize_highlyNestedObject_withData() {
+        deserialize_highlyNestedObject(objectType: .data)
+    }
 
     func test_deserialize_emptyArray_withData() {
         deserialize_emptyArray(objectType: .data)
@@ -175,6 +189,10 @@ extension TestJSONSerialization {
 
     func test_deserialize_unicodeString_withData() {
         deserialize_unicodeString(objectType: .data)
+    }
+    
+    func test_deserialize_highlyNestedArray_withData() {
+        deserialize_highlyNestedArray(objectType: .data)
     }
 
     func test_deserialize_stringWithSpacesAtStart_withData() {
@@ -191,6 +209,14 @@ extension TestJSONSerialization {
 
     func test_deserialize_numbers_withData() {
         deserialize_numbers(objectType: .data)
+    }
+    
+    func test_deserialize_numberWithLeadingZero_withData() {
+        deserialize_numberWithLeadingZero(objectType: .data)
+    }
+    
+    func test_deserialize_numberThatIsntRepresentableInSwift_withData() {
+        deserialize_numberThatIsntRepresentableInSwift(objectType: .data)
     }
 
     func test_deserialize_numbers_as_reference_types_withData() {
@@ -211,6 +237,14 @@ extension TestJSONSerialization {
 
     func test_deserialize_allowFragments_withData() {
         deserialize_allowFragments(objectType: .data)
+    }
+    
+    func test_deserialize_unescapedControlCharactersWithData() {
+        deserialize_unescapedControlCharacters(objectType: .data)
+    }
+    
+    func test_deserialize_unescapedReversedSolidusWithData() {
+        deserialize_unescapedReversedSolidus(objectType: .data)
     }
 
     func test_deserialize_unterminatedObjectString_withData() {
@@ -260,6 +294,10 @@ extension TestJSONSerialization {
     func test_deserialize_multiStringObject_withStream() {
         deserialize_multiStringObject(objectType: .stream)
     }
+    
+    func test_deserialize_highlyNestedObject_withStream() {
+        deserialize_highlyNestedObject(objectType: .stream)
+    }
 
     func test_deserialize_emptyArray_withStream() {
         deserialize_emptyArray(objectType: .stream)
@@ -272,6 +310,10 @@ extension TestJSONSerialization {
 
     func test_deserialize_unicodeString_withStream() {
         deserialize_unicodeString(objectType: .stream)
+    }
+    
+    func test_deserialize_highlyNestedArray_withStream() {
+        deserialize_highlyNestedArray(objectType: .stream)
     }
 
     func test_deserialize_stringWithSpacesAtStart_withStream() {
@@ -288,6 +330,14 @@ extension TestJSONSerialization {
 
     func test_deserialize_numbers_withStream() {
         deserialize_numbers(objectType: .stream)
+    }
+    
+    func test_deserialize_numberWithLeadingZero_withStream() {
+        deserialize_numberWithLeadingZero(objectType: .stream)
+    }
+    
+    func test_deserialize_numberThatIsntRepresentableInSwift_withStream() {
+        deserialize_numberThatIsntRepresentableInSwift(objectType: .stream)
     }
 
     func test_deserialize_numbers_as_reference_types_withStream() {
@@ -308,6 +358,14 @@ extension TestJSONSerialization {
 
     func test_deserialize_allowFragments_withStream() {
         deserialize_allowFragments(objectType: .stream)
+    }
+    
+    func test_deserialize_unescapedControlCharactersWithStream() {
+        deserialize_unescapedControlCharacters(objectType: .stream)
+    }
+    
+    func test_deserialize_unescapedReversedSolidusWithStream() {
+        deserialize_unescapedReversedSolidus(objectType: .stream)
     }
 
     func test_deserialize_unterminatedObjectString_withStream() {
@@ -354,10 +412,7 @@ extension TestJSONSerialization {
     func deserialize_emptyObject(objectType: ObjectType) {
         let subject = "{}"
         
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         var result: [String: Any]?
         XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [String: Any])
 
@@ -390,15 +445,32 @@ extension TestJSONSerialization {
         XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [String: Any])
         XCTAssertEqual(result?["title"] as? String, " hello world!!")
     }
+    
+    func deserialize_highlyNestedObject(objectType: ObjectType) {
+        // test 512 should succeed
+        let passingString = String(repeating: #"{"a":"#, count: 512) + "null" + String(repeating: "}", count: 512)
+        let passingData = Data(passingString.utf8)
+        XCTAssertNoThrow(_ = try getjsonObjectResult(passingData, objectType) as? [Any])
+        
+        // test 513 should succeed
+        let failingString = String(repeating: #"{"a":"#, count: 513)
+        let failingData = Data(failingString.utf8)
+
+        XCTAssertThrowsError(try getjsonObjectResult(failingData, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Too many nested arrays or dictionaries around character 2561.")
+        }
+    }
 
     //MARK: - Array Deserialization
     func deserialize_emptyArray(objectType: ObjectType) {
         let subject = "[]"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         var result: [Any]?
         XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
         XCTAssertEqual(result?.count, 0)
@@ -434,6 +506,26 @@ extension TestJSONSerialization {
             XCTAssertEqual(iterator?.next() as? String, "unicode")
             XCTAssertEqual(iterator?.next() as? String, "Ģ")
             XCTAssertEqual(iterator?.next() as? String, "😢")
+        }
+    }
+    
+    func deserialize_highlyNestedArray(objectType: ObjectType) {
+        // test 512 should succeed
+        let passingString = String(repeating: "[", count: 512) + String(repeating: "]", count: 512)
+        let passingData = Data(passingString.utf8)
+        XCTAssertNoThrow(_ = try getjsonObjectResult(passingData, objectType) as? [Any])
+        
+        // test 513 should succeed
+        let failingString = String(repeating: "[", count: 513)
+        let failingData = Data(failingString.utf8)
+
+        XCTAssertThrowsError(try getjsonObjectResult(failingData, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Too many nested arrays or dictionaries around character 513.")
         }
     }
 
@@ -507,6 +599,38 @@ extension TestJSONSerialization {
             XCTAssertEqual(iterator?.next() as? Double, 43)
         }
     }
+    
+    func deserialize_numberWithLeadingZero(objectType: ObjectType) {
+        let subject = "[01]"
+
+        for encoding in supportedEncodings {
+            guard let data = subject.data(using: encoding) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
+                guard let nserror = (error as? NSError) else {
+                    return XCTFail("Unexpected error: \(error)")
+                }
+                XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+                XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+                XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Number with leading zero around character 2.")
+            }
+        }
+    }
+    
+    func deserialize_numberThatIsntRepresentableInSwift(objectType: ObjectType) {
+        let subject = "[1.1e547]"
+        let data = Data(subject.utf8)
+
+        XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+        }
+    }
 
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
@@ -540,10 +664,7 @@ extension TestJSONSerialization {
     func deserialize_simpleEscapeSequences(objectType: ObjectType) {
         let subject = "[\"\\\"\", \"\\\\\", \"\\/\", \"\\b\", \"\\f\", \"\\n\", \"\\r\", \"\\t\"]"
         
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         var res: [Any]?
         XCTAssertNoThrow(res = try getjsonObjectResult(data, objectType) as? [Any])
         let result = res?.compactMap { $0 as? String }
@@ -560,10 +681,7 @@ extension TestJSONSerialization {
 
     func deserialize_unicodeEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\u2728\"]"
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         var result: [Any]?
         XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
         // result?[0] as? String returns an Optional<String> and RHS is promoted
@@ -573,10 +691,7 @@ extension TestJSONSerialization {
 
     func deserialize_unicodeSurrogatePairEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\uD834\\udd1E\"]"
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         var result: [Any]?
         XCTAssertNoThrow(result = try getjsonObjectResult(data, objectType) as? [Any])
         // result?[0] as? String returns an Optional<String> and RHS is promoted
@@ -600,6 +715,7 @@ extension TestJSONSerialization {
                 }
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+                XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "JSON text did not start with array or object and option to allow fragments not set.")
             }
 
             var result: Int?
@@ -607,15 +723,49 @@ extension TestJSONSerialization {
             XCTAssertEqual(result, 3)
         }
     }
+    
+    func deserialize_unescapedControlCharacters(objectType: ObjectType) {
+        // All Unicode characters may be placed within the
+        // quotation marks, except for the characters that MUST be escaped:
+        // quotation mark, reverse solidus, and the control characters (U+0000
+        // through U+001F).
+        // https://tools.ietf.org/html/rfc7159#section-7
+        
+        for index in 0 ... 31 {
+            var scalars = "[\"".unicodeScalars
+            let invalidScalar = Unicode.Scalar(index)!
+            scalars.append(invalidScalar)
+            scalars.append(contentsOf: "\"]".unicodeScalars)
+            let json = String(scalars)
+            let data = Data(json.utf8)
+            
+            XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
+                guard let nserror = (error as? NSError) else {
+                    return XCTFail("Unexpected error: \(error)")
+                }
+                XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+                XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+                XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unescaped control character around character 2.")
+            }
+        }
+    }
+    
+    func deserialize_unescapedReversedSolidus(objectType: ObjectType) {
+        XCTAssertThrowsError(try getjsonObjectResult(Data(#"" \ ""#.utf8), objectType, options: .allowFragments)) { error in
+            guard let nserror = (error as? NSError) else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
+            XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
+        }
+    }
 
     //MARK: - Parsing Errors
     func deserialize_unterminatedObjectString(objectType: ObjectType) {
         let subject = "{\"}"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
@@ -628,10 +778,7 @@ extension TestJSONSerialization {
     func deserialize_missingObjectKey(objectType: ObjectType) {
         let subject = "{3}"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
@@ -644,10 +791,7 @@ extension TestJSONSerialization {
     func deserialize_unexpectedEndOfFile(objectType: ObjectType) {
         let subject = "{"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
@@ -661,26 +805,21 @@ extension TestJSONSerialization {
     func deserialize_invalidValueInObject(objectType: ObjectType) {
         let subject = "{\"error\":}"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 9.")
         }
     }
 
     func deserialize_invalidValueIncorrectSeparatorInObject(objectType: ObjectType) {
         let subject = "{\"missing\";}"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
@@ -693,26 +832,21 @@ extension TestJSONSerialization {
     func deserialize_invalidValueInArray(objectType: ObjectType) {
         let subject = "[,"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 1.")
         }
     }
 
     func deserialize_badlyFormedArray(objectType: ObjectType) {
         let subject = "[2b4]"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
@@ -725,46 +859,40 @@ extension TestJSONSerialization {
     func deserialize_invalidEscapeSequence(objectType: ObjectType) {
         let subject = "[\"\\e\"]"
 
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
         }
     }
 
     func deserialize_unicodeMissingLeadingSurrogate(objectType: ObjectType) {
         let subject = "[\"\\uDFF3\"]"
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unable to convert hex escape sequence (no high character) to UTF8-encoded character.")
         }
     }
 
     func deserialize_unicodeMissingTrailingSurrogate(objectType: ObjectType) {
         let subject = "[\"\\uD834\"]"
-        guard let data = subject.data(using: .utf8) else {
-            XCTFail("Unable to convert string to data")
-            return
-        }
+        let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
             guard let nserror = (error as? NSError) else {
                 return XCTFail("Unexpected error: \(error)")
             }
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
+            XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during string parse (expected low-surrogate code point but did not find one).")
         }
     }
 
