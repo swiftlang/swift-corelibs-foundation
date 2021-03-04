@@ -9,11 +9,12 @@
 
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 import SwiftFoundation
+import CFXMLInterface
 #else
 import Foundation
+@_implementationOnly import CFXMLInterface
 #endif
 @_implementationOnly import CoreFoundation
-@_implementationOnly import CFXMLInterface
 
 extension XMLParser {
     public enum ExternalEntityResolvingPolicy : UInt {
