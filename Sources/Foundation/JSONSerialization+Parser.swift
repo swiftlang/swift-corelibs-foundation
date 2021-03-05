@@ -643,6 +643,13 @@ extension UInt8 {
     
 }
 
+extension Array where Element == UInt8 {
+    
+    internal static let _true = [UInt8(ascii: "t"), UInt8(ascii: "r"), UInt8(ascii: "u"), UInt8(ascii: "e")]
+    internal static let _false = [UInt8(ascii: "f"), UInt8(ascii: "a"), UInt8(ascii: "l"), UInt8(ascii: "s"), UInt8(ascii: "e")]
+    internal static let _null = [UInt8(ascii: "n"), UInt8(ascii: "u"), UInt8(ascii: "l"), UInt8(ascii: "l")]
+    
+}
 
 enum JSONError: Swift.Error, Equatable {
     case cannotConvertInputDataToUTF8
