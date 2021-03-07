@@ -409,6 +409,8 @@
 		B96C110A25BA215800985A32 /* URLResourceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C110925BA215800985A32 /* URLResourceKey.swift */; };
 		B96C112525BA2CE700985A32 /* URLQueryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C112425BA2CE700985A32 /* URLQueryItem.swift */; };
 		B96C113725BA376D00985A32 /* NSDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96C113625BA376D00985A32 /* NSDateComponents.swift */; };
+		B98303EA25F2131D001F959E /* JSONDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98303E925F2131D001F959E /* JSONDecoder.swift */; };
+		B98303F425F21389001F959E /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98303F325F21389001F959E /* CMakeLists.txt */; };
 		B983E32C23F0C69600D9C402 /* Docs in Resources */ = {isa = PBXBuildFile; fileRef = B983E32B23F0C69600D9C402 /* Docs */; };
 		B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */ = {isa = PBXBuildFile; fileRef = B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */; };
 		B98E33DD2136AA740044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */; };
@@ -1120,6 +1122,8 @@
 		B96C110925BA215800985A32 /* URLResourceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLResourceKey.swift; sourceTree = "<group>"; };
 		B96C112425BA2CE700985A32 /* URLQueryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLQueryItem.swift; sourceTree = "<group>"; };
 		B96C113625BA376D00985A32 /* NSDateComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSDateComponents.swift; sourceTree = "<group>"; };
+		B98303E925F2131D001F959E /* JSONDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONDecoder.swift; sourceTree = "<group>"; };
+		B98303F325F21389001F959E /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		B983E32B23F0C69600D9C402 /* Docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Docs; sourceTree = "<group>"; };
 		B983E32D23F0C6E200D9C402 /* CONTRIBUTING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
@@ -2042,6 +2046,7 @@
 		F023072323F0A6E50023DBEC /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
+				B98303F325F21389001F959E /* CMakeLists.txt */,
 				F023072523F0B4890023DBEC /* Headers */,
 				F023072423F0B4140023DBEC /* Resources */,
 				EADE0B4D1BD09E0800C49C64 /* AffineTransform.swift */,
@@ -2080,6 +2085,7 @@
 				5B424C751D0B6E5B007B39C8 /* IndexPath.swift */,
 				5B8BA1611D0B773A00938C27 /* IndexSet.swift */,
 				63DCE9D11EAA430100E9CB02 /* ISO8601DateFormatter.swift */,
+				B98303E925F2131D001F959E /* JSONDecoder.swift */,
 				3EDCE5091EF04D8100C2EC04 /* JSONEncoder.swift */,
 				EADE0B641BD15DFF00C49C64 /* JSONSerialization.swift */,
 				49D55FA025E84FE5007BD3B3 /* JSONSerialization+Parser.swift */,
@@ -2713,6 +2719,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B98303F425F21389001F959E /* CMakeLists.txt in Resources */,
 				F023072623F0B4890023DBEC /* Headers in Resources */,
 				B983E32C23F0C69600D9C402 /* Docs in Resources */,
 				B983E32E23F0C6E200D9C402 /* CONTRIBUTING.md in Resources */,
@@ -2979,6 +2986,7 @@
 				5BF7AEB11BCD51F9008F214A /* NSLock.swift in Sources */,
 				5BF7AEB91BCD51F9008F214A /* NSSet.swift in Sources */,
 				5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */,
+				B98303EA25F2131D001F959E /* JSONDecoder.swift in Sources */,
 				5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */,
 				EADE0BAC1BD15E0000C49C64 /* NSOrderedSet.swift in Sources */,
 				5BC1B9A421F2757F00524D8C /* ContiguousBytes.swift in Sources */,

@@ -57,6 +57,7 @@ add_library(Foundation
   IndexPath.swift
   IndexSet.swift
   ISO8601DateFormatter.swift
+  JSONDecoder.swift
   JSONEncoder.swift
   JSONSerialization.swift
   JSONSerialization+Parser.swift
