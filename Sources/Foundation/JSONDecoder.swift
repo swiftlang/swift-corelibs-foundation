@@ -404,7 +404,7 @@ extension JSONDecoderImpl: Decoder {
         as type: T.Type) throws -> T
     {
         if case .number(let number) = value {
-            guard let floatingPoint = T(number) else {
+            guard let floatingPoint = T(number), floatingPoint.isFinite else {
                 var path = self.codingPath
                 if let additionalKey = additionalKey {
                     path.append(additionalKey)
