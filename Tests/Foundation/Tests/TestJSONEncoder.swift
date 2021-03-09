@@ -601,14 +601,23 @@ class TestJSONEncoder : XCTestCase {
 
     func test_codingOfFloat() {
         test_codingOf(value: Float(1.5), toAndFrom: "1.5")
+
+        // Check value too large fails to decode.
+        XCTAssertThrowsError(try JSONDecoder().decode(Float.self, from: "1e100".data(using: .utf8)!))
     }
 
     func test_codingOfDouble() {
         test_codingOf(value: Double(1.5), toAndFrom: "1.5")
+
+        // Check value too large fails to decode.
+        XCTAssertThrowsError(try JSONDecoder().decode(Double.self, from: "100e323".data(using: .utf8)!))
     }
 
     func test_codingOfDecimal() {
         test_codingOf(value: Decimal.pi, toAndFrom: "3.14159265358979323846264338327950288419")
+
+        // Check value too large fails to decode.
+        XCTAssertThrowsError(try JSONDecoder().decode(Decimal.self, from: "100e200".data(using: .utf8)!))
     }
 
     func test_codingOfString() {
