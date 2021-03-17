@@ -972,7 +972,7 @@ extern CFTypeID CFTreeGetTypeID(void);
 extern CFTypeID CFPlugInInstanceGetTypeID(void);
 extern CFTypeID CFStringTokenizerGetTypeID(void);
 extern CFTypeID CFStorageGetTypeID(void);
-#if TARGET_OS_LINUX || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC)
+#if TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC)
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
 #if TARGET_OS_WIN32
@@ -1105,7 +1105,7 @@ Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms. 
 CF_EXPORT _CFThreadRef _CFMainPThread;
 _CFThreadRef _CFMainPThread = kNilPthreadT;
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 _CFThreadRef _CF_pthread_main_thread_np(void) {
@@ -1144,7 +1144,7 @@ void __CFInitialize(void) {
 #if TARGET_OS_WIN32
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
-#elif TARGET_OS_LINUX || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
         __CFTSDInitialize();
 #endif
         __CFProphylacticAutofsAccess = true;

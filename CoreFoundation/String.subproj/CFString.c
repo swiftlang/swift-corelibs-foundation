@@ -28,7 +28,7 @@
 #include "CFRuntime_Internal.h"
 #include <assert.h>
 #include <unicode/uchar.h>
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 #include "CFLocaleInternal.h"
 #include "CFStringLocalizedFormattingInternal.h"
 #endif
@@ -453,7 +453,7 @@ CF_INLINE CFStringEncoding __CFStringGetSystemEncoding(void) {
 
 CFStringEncoding CFStringFileSystemEncoding(void) {
     if (__CFDefaultFileSystemEncoding == kCFStringEncodingInvalidId) {
-#if TARGET_OS_MAC || TARGET_OS_WIN32
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
         __CFDefaultFileSystemEncoding = kCFStringEncodingUTF8;
 #else
         __CFDefaultFileSystemEncoding = CFStringGetSystemEncoding();
@@ -6102,7 +6102,7 @@ enum {
     CFFormatDummyPointerType = 42	/* special case for %n */
 };
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 /* Only come in here if spec->type is CFFormatLongType or CFFormatDoubleType. Pass in 0 for width or precision if not specified. Returns false if couldn't do the format (with the assumption the caller falls back to unlocalized).
 */
 static Boolean __CFStringFormatLocalizedNumber(CFMutableStringRef output, CFLocaleRef locale, const CFPrintValue *values, const CFFormatSpec *spec, SInt32 width, SInt32 precision, Boolean hasPrecision) {
@@ -7198,7 +7198,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 	switch (specs[curSpec].type) {
 	case CFFormatLongType:
 	case CFFormatDoubleType:
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
             if (localizedFormatting && (specs[curSpec].flags & kCFStringFormatLocalizable)) {    // We have a locale, so we do localized formatting
                 if (__CFStringFormatLocalizedNumber(outputString, (CFLocaleRef)formatOptions, values, &specs[curSpec], width, precision, hasPrecision)) break;
             }
@@ -7276,7 +7276,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 			}
 			// See if we need to localize the decimal point
                         if (formatOptions) {	// We have localization info
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 			    CFStringRef decimalSeparator = (CFGetTypeID(formatOptions) == CFLocaleGetTypeID()) ? (CFStringRef)CFLocaleGetValue((CFLocaleRef)formatOptions, kCFLocaleDecimalSeparatorKey) : (CFStringRef)CFDictionaryGetValue(formatOptions, CFSTR("NSDecimalSeparator"));
 #else
                             CFStringRef decimalSeparator = CFSTR(".");

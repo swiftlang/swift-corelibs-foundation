@@ -27,7 +27,7 @@ class TestSocketPort : XCTestCase {
     func tcpOrUdpPort(of socketPort: SocketPort) -> Int? {
         let data = socketPort.address
         
-        #if canImport(Darwin) || os(FreeBSD)
+        #if canImport(Darwin) || os(FreeBSD) || os(OpenBSD)
         let familyOffset = 1
         #else
         let familyOffset = 0

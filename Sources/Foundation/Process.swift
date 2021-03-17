@@ -781,7 +781,7 @@ open class Process: NSObject {
         }
 
         var taskSocketPair : [Int32] = [0, 0]
-#if os(macOS) || os(iOS) || os(Android)
+#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD)
         socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
 #else
         socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)
@@ -944,7 +944,7 @@ open class Process: NSObject {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
-#if canImport(Darwin) || os(Android)
+#if canImport(Darwin) || os(Android) || os(OpenBSD)
         var spawnAttrs: posix_spawnattr_t? = nil
 #else
         var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()

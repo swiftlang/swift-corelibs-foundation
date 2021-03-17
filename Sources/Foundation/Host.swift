@@ -273,7 +273,7 @@ open class Host: NSObject {
             }
             var hints = addrinfo()
             hints.ai_family = PF_UNSPEC
-#if os(macOS) || os(iOS) || os(Android)
+#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD)
             hints.ai_socktype = SOCK_STREAM
 #else
             hints.ai_socktype = Int32(SOCK_STREAM.rawValue)

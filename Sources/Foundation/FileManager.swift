@@ -388,7 +388,7 @@ open class FileManager : NSObject {
                     }
                     #if os(macOS) || os(iOS)
                         let modeT = number.uint16Value
-                    #elseif os(Linux) || os(Android) || os(Windows)
+                    #elseif os(Linux) || os(Android) || os(Windows) || os(OpenBSD)
                         let modeT = number.uint32Value
                     #endif
 #if os(Windows)
