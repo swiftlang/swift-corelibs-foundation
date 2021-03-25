@@ -135,13 +135,13 @@ open class Thread : NSObject {
         var ti = end_at - start_at
         let end_ut = start_ut + ti
         while (0.0 < ti) {
-            var __ts__ = timespec(tv_sec: Int.max, tv_nsec: 0)
+            var __ts__ = timespec(tv_sec: time_t.max, tv_nsec: 0)
             if ti < Double(Int.max) {
                 var integ = 0.0
                 let frac: Double = withUnsafeMutablePointer(to: &integ) { integp in
                     return modf(ti, integp)
                 }
-                __ts__.tv_sec = Int(integ)
+                __ts__.tv_sec = time_t(integ)
                 __ts__.tv_nsec = Int(frac * 1000000000.0)
             }
             let _ = withUnsafePointer(to: &__ts__) { ts in
@@ -170,13 +170,13 @@ open class Thread : NSObject {
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti
         while 0.0 < ti {
-            var __ts__ = timespec(tv_sec: Int.max, tv_nsec: 0)
+            var __ts__ = timespec(tv_sec: time_t.max, tv_nsec: 0)
             if ti < Double(Int.max) {
                 var integ = 0.0
                 let frac: Double = withUnsafeMutablePointer(to: &integ) { integp in
                     return modf(ti, integp)
                 }
-                __ts__.tv_sec = Int(integ)
+                __ts__.tv_sec = time_t(integ)
                 __ts__.tv_nsec = Int(frac * 1000000000.0)
             }
             let _ = withUnsafePointer(to: &__ts__) { ts in
