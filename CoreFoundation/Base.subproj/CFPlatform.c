@@ -1630,6 +1630,9 @@ CF_EXPORT char **_CFEnviron(void) {
 #elif TARGET_OS_WIN32
     return _environ;
 #else
+#if TARGET_OS_BSD
+    extern char **environ;
+#endif
     return environ;
 #endif
 }
