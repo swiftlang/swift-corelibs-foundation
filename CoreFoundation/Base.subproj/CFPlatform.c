@@ -119,6 +119,12 @@ static inline void _CFSetProgramNameFromPath(const char *path) {
     __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
 }
 
+#if TARGET_OS_BSD && defined(__OpenBSD__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <sys/exec.h>
+#endif
+
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 
@@ -175,6 +181,53 @@ const char *_CFProcessPath(void) {
     }
     return __CFProcessPath;
 #else // TARGET_OS_BSD
+    char *argv0 = NULL;
+
+    // Get argv[0].
+#if defined(__OpenBSD__)
+    int mib[2] = {CTL_VM, VM_PSSTRINGS};
+    struct _ps_strings _ps;
+    size_t len = sizeof(_ps);
+
+    if (sysctl(mib, 2, &_ps, &len, NULL, 0) != -1) {
+        struct ps_strings *ps = _ps.val;
+        char *res = realpath(ps->ps_argvstr[0], NULL);
+        argv0 = res? res: strdup(ps->ps_argvstr[0]);
+    }
+#endif
+
+    if (!__CFProcessIsRestricted() && argv0 && argv0[0] == '/') {
+        _CFSetProgramNameFromPath(argv0);
+        free(argv0);
+        return __CFProcessPath;
+    }
+
+    // Search PATH.
+    if (argv0) {
+        char *paths = getenv("PATH");
+        char *p = NULL;
+        while ((p = strsep(&paths, ":")) != NULL) {
+            char pp[PATH_MAX];
+            int l = snprintf(pp, PATH_MAX, "%s/%s", p, argv0);
+            if (l >= PATH_MAX) {
+                continue;
+            }
+            char *res = realpath(pp, NULL);
+            if (!res) {
+                continue;
+            }
+            if (!__CFProcessIsRestricted() && access(res, X_OK) == 0) {
+                _CFSetProgramNameFromPath(res);
+                free(argv0);
+                free(res);
+                return __CFProcessPath;
+            }
+            free(res);
+        }
+        free(argv0);
+    }
+
+    // See if the shell will help.
     if (!__CFProcessIsRestricted()) {
         char *path = getenv("_");
         if (path != NULL) {
