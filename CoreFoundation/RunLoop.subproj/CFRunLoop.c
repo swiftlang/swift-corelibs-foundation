@@ -48,6 +48,15 @@ extern void objc_terminate(void);
 #define USE_DISPATCH_SOURCE_FOR_TIMERS 0
 #endif
 
+static inline uint64_t __CFNanosecondsToTSR(uint64_t ns) {
+#if TARGET_OS_MAC || TARGET_OS_LINUX
+    return ns;
+#else
+    CFTimeInterval ti = ns / 1.0E9;
+    return __CFTimeIntervalToTSR(ti);
+#endif
+}
+
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
 #if !TARGET_OS_MAC
 typedef uint32_t mach_port_t;
@@ -2399,10 +2408,10 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
         
         if (nextSoftDeadline < UINT64_MAX && (nextHardDeadline != rlm->_timerHardDeadline || nextSoftDeadline != rlm->_timerSoftDeadline)) {
             if (CFRUNLOOP_NEXT_TIMER_ARMED_ENABLED()) {
-                CFRUNLOOP_NEXT_TIMER_ARMED((unsigned long)(nextSoftDeadline - mach_absolute_time()));
+                CFRUNLOOP_NEXT_TIMER_ARMED((unsigned long)(nextSoftDeadline - __CFNanosecondsToTSR(mach_absolute_time())));
             }
             
-            cf_trace(KDEBUG_EVENT_CFRL_NEXT_TIMER_ARMED, rl, rlm, (nextSoftDeadline - mach_absolute_time()), 0);
+            cf_trace(KDEBUG_EVENT_CFRL_NEXT_TIMER_ARMED, rl, rlm, (nextSoftDeadline - __CFNanosecondsToTSR(mach_absolute_time())), 0);
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
             // We're going to hand off the range of allowable timer fire date to dispatch and let it fire when appropriate for the system.
             uint64_t leeway = __CFTSRToNanoseconds(nextHardDeadline - nextSoftDeadline);
@@ -2499,7 +2508,7 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
     CFRetain(rlt);
     __CFRunLoopTimerLock(rlt);
 
-    if (__CFIsValid(rlt) && rlt->_fireTSR <= mach_absolute_time() && !__CFRunLoopTimerIsFiring(rlt) && rlt->_runLoop == rl) {
+    if (__CFIsValid(rlt) && rlt->_fireTSR <= __CFNanosecondsToTSR(mach_absolute_time()) && !__CFRunLoopTimerIsFiring(rlt) && rlt->_runLoop == rl) {
         void *context_info = NULL;
         void (*context_release)(const void *) = NULL;
         if (rlt->_context.retain) {
@@ -2576,7 +2585,7 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
                     CRSetCrashLogMessage("A CFRunLoopTimer with an interval of 0 is set to repeat");
                     HALT;
                 }
-                uint64_t currentTSR = mach_absolute_time();
+                uint64_t currentTSR = __CFNanosecondsToTSR(mach_absolute_time());
                 nextFireTSR = oldFireTSR;
                 while (nextFireTSR <= currentTSR) {
                     nextFireTSR += intervalTSR;
@@ -2920,7 +2929,7 @@ static Boolean __CFRunLoopWaitForMultipleObjects(__CFPortSet portSet, HANDLE *on
 
 /* rl, rlm are locked on entrance and exit */
 static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInterval seconds, Boolean stopAfterHandle, CFRunLoopModeRef previousMode) {
-    uint64_t startTSR = mach_absolute_time();
+    uint64_t startTSR = __CFNanosecondsToTSR(mach_absolute_time());
 
     if (__CFRunLoopIsStopped(rl)) {
         __CFRunLoopUnsetStopped(rl);
@@ -3177,7 +3186,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         else if (modeQueuePort != MACH_PORT_NULL && livePort == modeQueuePort) {
             CFRUNLOOP_WAKEUP_FOR_TIMER();
             cf_trace(KDEBUG_EVENT_CFRL_DID_WAKEUP_FOR_TIMER, rl, rlm, livePort, 0);
-            if (!__CFRunLoopDoTimers(rl, rlm, mach_absolute_time())) {
+            if (!__CFRunLoopDoTimers(rl, rlm, __CFNanosecondsToTSR(mach_absolute_time()))) {
                 // Re-arm the next timer, because we apparently fired early
                 __CFArmNextTimerInMode(rlm, rl);
             }
@@ -3187,7 +3196,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             CFRUNLOOP_WAKEUP_FOR_TIMER();
             // On Windows, we have observed an issue where the timer port is set before the time which we requested it to be set. For example, we set the fire time to be TSR 167646765860, but it is actually observed firing at TSR 167646764145, which is 1715 ticks early. The result is that, when __CFRunLoopDoTimers checks to see if any of the run loop timers should be firing, it appears to be 'too early' for the next timer, and no timers are handled.
             // In this case, the timer port has been automatically reset (since it was returned from MsgWaitForMultipleObjectsEx), and if we do not re-arm it, then no timers will ever be serviced again unless something adjusts the timer list (e.g. adding or removing timers). The fix for the issue is to reset the timer here if CFRunLoopDoTimers did not handle a timer itself. 9308754
-            if (!__CFRunLoopDoTimers(rl, rlm, mach_absolute_time())) {
+            if (!__CFRunLoopDoTimers(rl, rlm, __CFNanosecondsToTSR(mach_absolute_time()))) {
                 // Re-arm the next timer
                 // Since we'll be resetting the same timer as before
                 // with the same deadlines, we need to reset these
@@ -3261,7 +3270,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         
 	if (sourceHandledThisLoop && stopAfterHandle) {
 	    retVal = kCFRunLoopRunHandledSource;
-        } else if (termTSR < mach_absolute_time()) {
+        } else if (termTSR < __CFNanosecondsToTSR(mach_absolute_time())) {
             retVal = kCFRunLoopRunTimedOut;
 	} else if (__CFRunLoopIsStopped(rl)) {
             __CFRunLoopUnsetStopped(rl);
@@ -4518,7 +4527,7 @@ CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime 
     memory->_tolerance = 0.0;
     if (TIMER_DATE_LIMIT < fireDate) fireDate = TIMER_DATE_LIMIT;
     memory->_nextFireDate = fireDate;
-    uint64_t now2 = mach_absolute_time();
+    uint64_t now2 = __CFNanosecondsToTSR(mach_absolute_time());
     CFAbsoluteTime now1 = CFAbsoluteTimeGetCurrent();
     if (fireDate < now1) {
 	memory->_fireTSR = now2;
@@ -4578,7 +4587,7 @@ void CFRunLoopTimerSetNextFireDate(CFRunLoopTimerRef rlt, CFAbsoluteTime fireDat
     if (!__CFIsValid(rlt)) return;
     if (TIMER_DATE_LIMIT < fireDate) fireDate = TIMER_DATE_LIMIT;
     uint64_t nextFireTSR = 0ULL;
-    uint64_t now2 = mach_absolute_time();
+    uint64_t now2 = __CFNanosecondsToTSR(mach_absolute_time());
     CFAbsoluteTime now1 = CFAbsoluteTimeGetCurrent();
     if (fireDate < now1) {
 	nextFireTSR = now2;
