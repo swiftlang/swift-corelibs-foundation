@@ -161,6 +161,8 @@ typedef int kern_return_t;
 #else
 
 static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
+typedef int kern_return_t;
+#define KERN_SUCCESS 0
 #define pthreadPointer(a) a
 #define lockCount(a) a
 #endif
@@ -654,7 +656,7 @@ static void __CFRunLoopModeDeallocate(CFTypeRef cf) {
         dispatch_release(rlm->_queue);
     }
 #endif
-    if (MACH_PORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
+    if (CFPORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
     _CFRecursiveMutexDestroy(&rlm->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x7C, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase));
 }
@@ -842,8 +844,8 @@ static CFRunLoopModeRef __CFRunLoopCopyMode(CFRunLoopRef rl, CFStringRef modeNam
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
     rlm->_timerFired = false;
     rlm->_queue = _dispatch_runloop_root_queue_create_4CF("Run Loop Mode Queue", 0);
-    mach_port_t queuePort = _dispatch_runloop_root_queue_get_port_4CF(rlm->_queue);
-    if (queuePort == MACH_PORT_NULL) CRASH("*** Unable to create run loop mode queue port. (%d) ***", -1);
+    __CFPort queuePort = _dispatch_runloop_root_queue_get_port_4CF(rlm->_queue);
+    if (queuePort == CFPORT_NULL) CRASH("*** Unable to create run loop mode queue port. (%d) ***", -1);
     rlm->_timerSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, rlm->_queue);
     
     __block Boolean *timerFiredPointer = &(rlm->_timerFired);
@@ -860,7 +862,7 @@ static CFRunLoopModeRef __CFRunLoopCopyMode(CFRunLoopRef rl, CFStringRef modeNam
     
 #endif
     rlm->_timerPort = mk_timer_create();
-    if (rlm->_timerPort == MACH_PORT_NULL) {
+    if (rlm->_timerPort == CFPORT_NULL) {
         CRASH("*** Unable to create timer Port (%d) ***", rlm->_timerPort);
     }
     ret = __CFPortSetInsert(rlm->_timerPort, rlm->_portSet);
@@ -2737,7 +2739,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         Boolean poll = sourceHandledThisLoop || (0ULL == termTSR);
 
 #if __HAS_DISPATCH__
-        if (MACH_PORT_NULL != dispatchPort && !didDispatchPortLastTime) {
+        if (CFPORT_NULL != dispatchPort && !didDispatchPortLastTime) {
 #if TARGET_OS_MAC
             msg = (mach_msg_header_t *)msg_buffer;
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL, rl, rlm)) {
@@ -2867,7 +2869,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         
         
 #endif
-        if (MACH_PORT_NULL == livePort) {
+        if (CFPORT_NULL == livePort) {
             CFRUNLOOP_WAKEUP_FOR_NOTHING();
             cf_trace(KDEBUG_EVENT_CFRL_DID_WAKEUP_FOR_NOTHING, rl, rlm, livePort, 0);
             // handle nothing
@@ -2890,7 +2892,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             }
         }
 #endif
-        else if (rlm->_timerPort != MACH_PORT_NULL && livePort == rlm->_timerPort) {
+        else if (rlm->_timerPort != CFPORT_NULL && livePort == rlm->_timerPort) {
             CFRUNLOOP_WAKEUP_FOR_TIMER();
             // On Windows, we have observed an issue where the timer port is set before the time which we requested it to be set. For example, we set the fire time to be TSR 167646765860, but it is actually observed firing at TSR 167646764145, which is 1715 ticks early. The result is that, when __CFRunLoopDoTimers checks to see if any of the run loop timers should be firing, it appears to be 'too early' for the next timer, and no timers are handled.
             // In this case, the timer port has been automatically reset (since it was returned from MsgWaitForMultipleObjectsEx), and if we do not re-arm it, then no timers will ever be serviced again unless something adjusts the timer list (e.g. adding or removing timers). The fix for the issue is to reset the timer here if CFRunLoopDoTimers did not handle a timer itself. 9308754
