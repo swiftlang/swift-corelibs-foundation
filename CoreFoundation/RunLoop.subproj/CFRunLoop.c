@@ -446,6 +446,8 @@ CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
 CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
     close(portSet);
 }
+#else
+#error "CFPort* stubs for this platform must be implemented
 #endif
 
 #if !defined(__MACTYPES__) && !defined(_OS_OSTYPES_H)
@@ -555,6 +557,8 @@ static kern_return_t mk_timer_cancel(HANDLE name, AbsoluteTime *result_time) {
     }
     return (int)res;
 }
+#else
+#error "mk_timer_* stubs for this platform must be implemented"
 #endif
 
 
