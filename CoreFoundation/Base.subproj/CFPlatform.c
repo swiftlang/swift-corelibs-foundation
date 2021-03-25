@@ -1627,6 +1627,9 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
     return 0;
 #elif TARGET_OS_LINUX
     return pthread_setname_np(thread, name);
+#elif TARGET_OS_BSD
+    pthread_set_name_np(thread, name);
+    return 0;
 #endif
 }
 
@@ -1646,6 +1649,9 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
     return 0;
 #elif TARGET_OS_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
+#elif TARGET_OS_BSD
+    pthread_get_name_np(pthread_self(), buf, length);
+    return 0;
 #elif TARGET_OS_WIN32
     *buf = '\0';
 

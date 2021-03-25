@@ -56,6 +56,9 @@ class TestThread : XCTestCase {
 #if os(Linux) || os(Android) // Linux sets the initial thread name to the process name.
         XCTAssertEqual(Thread.current.name, "TestFoundation")
         testInternalThreadName("TestFoundation")
+#elseif os(OpenBSD) // OpenBSD sets the initial thread name to this.
+        XCTAssertEqual(Thread.current.name, "Original thread")
+        testInternalThreadName("Original thread")
 #else
         // No name is set initially
         XCTAssertEqual(Thread.current.name, "")
