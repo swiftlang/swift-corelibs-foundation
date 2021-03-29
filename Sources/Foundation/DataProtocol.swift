@@ -143,7 +143,7 @@ extension DataProtocol {
             return nil
         }
         var haystackIndex = r.lowerBound
-        let haystackEnd = index(r.upperBound, offsetBy: -data.count)
+        let haystackEnd = index(r.upperBound, offsetBy: -data.count + 1)
         while haystackIndex < haystackEnd {
             var compareIndex = haystackIndex
             var needleIndex = data.startIndex
@@ -172,19 +172,19 @@ extension DataProtocol {
             return nil
         }
         var haystackIndex = r.upperBound
-        let haystackStart = index(r.lowerBound, offsetBy: data.count)
+        let haystackStart = index(r.lowerBound, offsetBy: data.count - 1)
         while haystackIndex > haystackStart {
             var compareIndex = haystackIndex
             var needleIndex = data.endIndex
             let needleStart = data.startIndex
             var matched = true
             while compareIndex > haystackStart && needleIndex > needleStart {
+                needleIndex = data.index(before: needleIndex)
+                compareIndex = index(before: compareIndex)
                 if self[compareIndex] != data[needleIndex] {
                     matched = false
                     break
                 }
-                needleIndex = data.index(before: needleIndex)
-                compareIndex = index(before: compareIndex)
             }
             if matched {
                 return compareIndex..<haystackIndex
