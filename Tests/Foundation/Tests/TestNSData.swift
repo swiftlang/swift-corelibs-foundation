@@ -213,6 +213,8 @@ class TestNSData: LoopbackServerTest {
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
             ("testEquality", testEquality),
+            ("testFirstRange", testFirstRange),
+            ("testLastRange", testLastRange),
             ("testGenericAlgorithms", testGenericAlgorithms),
             ("testInitializationWithArray", testInitializationWithArray),
             ("testInsertData", testInsertData),
@@ -1179,6 +1181,22 @@ extension TestNSData {
         
         // Use == explicitly here to make sure we're calling the right methods
         XCTAssertTrue(d1 == d2, "Data should be equal")
+    }
+    
+    func testFirstRange() {
+        let d = Data([1, 2, 3, 1, 2, 3, 0])
+        XCTAssertEqual(d.firstRange(of: Data([1])), 0..<1)
+        XCTAssertEqual(d.firstRange(of: Data([2])), 1..<2)
+        XCTAssertEqual(d.firstRange(of: Data([3])), 2..<3)
+        XCTAssertEqual(d.firstRange(of: Data([0])), 6..<7)
+    }
+    
+    func testLastRange() {
+        let d = Data([0, 1, 2, 3, 1, 2, 3])
+        XCTAssertEqual(d.lastRange(of: Data([1])), 4..<5)
+        XCTAssertEqual(d.lastRange(of: Data([2])), 5..<6)
+        XCTAssertEqual(d.lastRange(of: Data([3])), 6..<7)
+        XCTAssertEqual(d.lastRange(of: Data([0])), 0..<1)
     }
     
     func testDataInSet() {
