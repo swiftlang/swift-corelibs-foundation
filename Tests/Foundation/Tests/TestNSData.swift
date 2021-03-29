@@ -1190,6 +1190,7 @@ extension TestNSData {
         XCTAssertEqual(d.firstRange(of: Data([3])), 2..<3)
         XCTAssertEqual(d.firstRange(of: Data([0])), 6..<7)
         XCTAssertEqual(d.firstRange(of: Data([2, 3, 0])), 4..<7)
+        XCTAssertEqual(d.firstRange(of: Data([3, 1, 2])), 2..<5)
         XCTAssertEqual(d.firstRange(of: Data([1, 2, 3, 1, 2, 3, 0])), 0..<7)
     }
     
