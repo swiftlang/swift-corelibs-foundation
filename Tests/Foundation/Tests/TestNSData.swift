@@ -1189,6 +1189,8 @@ extension TestNSData {
         XCTAssertEqual(d.firstRange(of: Data([2])), 1..<2)
         XCTAssertEqual(d.firstRange(of: Data([3])), 2..<3)
         XCTAssertEqual(d.firstRange(of: Data([0])), 6..<7)
+        XCTAssertEqual(d.firstRange(of: Data([2, 3, 0])), 4..<7)
+        XCTAssertEqual(d.firstRange(of: Data([1, 2, 3, 1, 2, 3, 0])), 0..<7)
     }
     
     func testLastRange() {
@@ -1197,6 +1199,9 @@ extension TestNSData {
         XCTAssertEqual(d.lastRange(of: Data([2])), 5..<6)
         XCTAssertEqual(d.lastRange(of: Data([3])), 6..<7)
         XCTAssertEqual(d.lastRange(of: Data([0])), 0..<1)
+        XCTAssertEqual(d.lastRange(of: Data([0, 1, 2])), 0..<3)
+        XCTAssertEqual(d.lastRange(of: Data([1, 2, 3])), 4..<7)
+        XCTAssertEqual(d.lastRange(of: Data([0, 1, 2, 3, 1, 2, 3])), 0..<7)
     }
     
     func testDataInSet() {
