@@ -95,7 +95,10 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience init?(abbreviation: String) {
         let abbr = abbreviation._cfObject
-        guard let name = unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafeRawPointer.self)), to: NSString?.self) else {
+        let possibleName: NSString? = withExtendedLifetime(abbr) {
+            return unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafeRawPointer.self)), to: NSString?.self)
+        }
+        guard let name = possibleName else {
             return nil
         }
         self.init(name: name._swiftObject , data: nil)

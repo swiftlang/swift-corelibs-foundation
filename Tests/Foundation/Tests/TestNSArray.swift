@@ -833,7 +833,9 @@ class TestNSArray : XCTestCase {
     func test_arrayUsedAsCFArrayInvokesArrayMethods() {
         let number = 789 as NSNumber
         let array = NSMutableArray(array: [123, 456])
-        CFArraySetValueAtIndex(unsafeBitCast(array, to: CFMutableArray.self), 1, UnsafeRawPointer(Unmanaged.passUnretained(number).toOpaque()))
+        withExtendedLifetime(number) {
+            CFArraySetValueAtIndex(unsafeBitCast(array, to: CFMutableArray.self), 1, UnsafeRawPointer(Unmanaged.passUnretained(number).toOpaque()))
+        }
         XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
         XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
     }
