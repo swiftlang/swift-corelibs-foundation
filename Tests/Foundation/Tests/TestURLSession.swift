@@ -1836,8 +1836,8 @@ class TestURLSession: LoopbackServerTest {
             ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
             ("test_httpRedirectionWithEncodedQuery", test_httpRedirectionWithEncodedQuery),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
-            ("test_httpRedirectionChainInheritsTimeoutInterval", test_httpRedirectionChainInheritsTimeoutInterval),
-            ("test_httpRedirectionExceededMaxRedirects", test_httpRedirectionExceededMaxRedirects),
+            /* ⚠️ */ ("test_httpRedirectionChainInheritsTimeoutInterval", testExpectedToFail(test_httpRedirectionChainInheritsTimeoutInterval, "Flaky on Linux CI: https://bugs.swift.org/browse/SR-14433")),
+            /* ⚠️ */ ("test_httpRedirectionExceededMaxRedirects", testExpectedToFail(test_httpRedirectionExceededMaxRedirects, "Flaky on Linux CI: https://bugs.swift.org/browse/SR-14433")),
             ("test_willPerformRedirect", test_willPerformRedirect),
             ("test_httpNotFound", test_httpNotFound),
             /* ⚠️ */ ("test_http0_9SimpleResponses", testExpectedToFail(test_http0_9SimpleResponses, "Breaks on Ubunut20.04")),
@@ -2409,4 +2409,3 @@ extension HTTPUploadDelegate: URLSessionDataDelegate {
         callbacks.append(#function)
     }
 }
-
