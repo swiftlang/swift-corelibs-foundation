@@ -153,7 +153,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: readOptionsMask)
-        _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+
+        withExtendedLifetime(readResult) {
+            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+        }
     }
 
     /// Initializes a data object with the contents of the file at a given path.
@@ -161,7 +164,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         do {
             super.init()
             let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: [])
-            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            withExtendedLifetime(readResult) {
+                _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            }
         } catch {
             return nil
         }
@@ -179,7 +184,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
         let (data, _) = try NSData.contentsOf(url: url, options: readOptionsMask)
-        _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+        withExtendedLifetime(data) {
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+        }
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
@@ -187,7 +194,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         super.init()
         do {
             let (data, _) = try NSData.contentsOf(url: url)
-            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            withExtendedLifetime(data) {
+                _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            }
         } catch {
             return nil
         }
@@ -375,15 +384,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            withExtendedLifetime(data) {
+                _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            }
         } else {
             let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
                 guard let buffer = $0 else { return nil }
                 return Data(buffer: buffer)
             }
             
-            guard let r = result else { return nil }
-            _init(bytes: UnsafeMutableRawPointer(mutating: r._nsObject.bytes), length: r.count, copy: true)
+            guard var r = result else { return nil }
+            r.withUnsafeMutableBytes {
+                _init(bytes: $0.baseAddress, length: $0.count, copy: true)
+            }
         }
     }
     
@@ -559,24 +572,27 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Finds and returns the range of the first occurrence of the given data, within the given range, subject to given options.
     open func range(of dataToFind: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
         let dataToFind = dataToFind._nsObject
-        guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
-        guard let searchRange = Range(searchRange) else {fatalError("invalid range")}
-        
-        precondition(searchRange.upperBound <= self.length, "range outside the bounds of data")
 
-        let basePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
-        let baseData = UnsafeBufferPointer<UInt8>(start: basePtr, count: self.length)[searchRange]
-        let searchPtr = dataToFind.bytes.bindMemory(to: UInt8.self, capacity: dataToFind.length)
-        let search = UnsafeBufferPointer<UInt8>(start: searchPtr, count: dataToFind.length)
-        
-        let location : Int?
-        let anchored = mask.contains(.anchored)
-        if mask.contains(.backwards) {
-            location = NSData.searchSubSequence(search.reversed(), inSequence: baseData.reversed(),anchored : anchored).map {$0.base-search.count}
-        } else {
-            location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
+        return withExtendedLifetime(dataToFind) {
+            guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
+            guard let searchRange = Range(searchRange) else {fatalError("invalid range")}
+
+            precondition(searchRange.upperBound <= self.length, "range outside the bounds of data")
+
+            let basePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
+            let baseData = UnsafeBufferPointer<UInt8>(start: basePtr, count: self.length)[searchRange]
+            let searchPtr = dataToFind.bytes.bindMemory(to: UInt8.self, capacity: dataToFind.length)
+            let search = UnsafeBufferPointer<UInt8>(start: searchPtr, count: dataToFind.length)
+
+            let location : Int?
+            let anchored = mask.contains(.anchored)
+            if mask.contains(.backwards) {
+                location = NSData.searchSubSequence(search.reversed(), inSequence: baseData.reversed(),anchored : anchored).map {$0.base-search.count}
+            } else {
+                location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
+            }
+            return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
         }
-        return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
 
     private static func searchSubSequence<T : Collection, T2 : Sequence>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element {

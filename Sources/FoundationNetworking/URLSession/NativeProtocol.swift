@@ -256,7 +256,9 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         if case .inMemory(let bodyData) = bodyDataDrain {
             var data = Data()
             if let body = bodyData {
-                data = Data(bytes: body.bytes, count: body.length)
+                withExtendedLifetime(body) {
+                    data = Data(bytes: body.bytes, count: body.length)
+                }
             }
             self.client?.urlProtocol(self, didLoad: data)
             self.internalState = .taskCompleted

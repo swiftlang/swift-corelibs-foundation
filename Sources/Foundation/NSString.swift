@@ -1368,12 +1368,16 @@ extension NSString {
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
 
-        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(numericCast(enc)), true) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
-                ])
+        let cf = try withExtendedLifetime(readResult) { _ -> CFString in
+            let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
+            guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(numericCast(enc)), true) else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
+                    ])
+            }
+            return cf
         }
+
         var str: String?
         if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
             self.init(str!)
@@ -1391,44 +1395,49 @@ extension NSString {
     public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         let (readResult, textEncodingNameMaybe) = try NSData.contentsOf(url: url)
 
-        let encoding: UInt
-        let offset: Int
-        // Look for a BOM (Byte Order Marker) to try and determine the text Encoding, this also skips
-        // over the bytes. This takes precedence over the textEncoding in the http header
-        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
-        if readResult.length >= 4 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE && bytePtr[2] == 0x00 && bytePtr[3] == 0x00 {
-            encoding = String.Encoding.utf32LittleEndian.rawValue
-            offset = 4
-        }
-        else if readResult.length >= 2 && bytePtr[0] == 0xFE && bytePtr[1] == 0xFF {
-            encoding = String.Encoding.utf16BigEndian.rawValue
-            offset = 2
-        }
-        else if readResult.length >= 2 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE {
-            encoding = String.Encoding.utf16LittleEndian.rawValue
-            offset = 2
-        }
-        else if readResult.length >= 4 && bytePtr[0] == 0x00 && bytePtr[1] == 0x00 && bytePtr[2] == 0xFE && bytePtr[3] == 0xFF {
-            encoding = String.Encoding.utf32BigEndian.rawValue
-            offset = 4
-        }
-        else if let charSet = textEncodingNameMaybe, let textEncoding = String.Encoding(charSet: charSet) {
-            encoding = textEncoding.rawValue
-            offset = 0
-        } else {
-            //Need to work on more conditions. This should be the default
-            encoding = String.Encoding.utf8.rawValue
-            offset = 0
+
+        let (cf, encoding) = try withExtendedLifetime(readResult) { _ -> (CFString, UInt) in
+            let encoding: UInt
+            let offset: Int
+            // Look for a BOM (Byte Order Marker) to try and determine the text Encoding, this also skips
+            // over the bytes. This takes precedence over the textEncoding in the http header
+            let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
+            if readResult.length >= 4 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE && bytePtr[2] == 0x00 && bytePtr[3] == 0x00 {
+                encoding = String.Encoding.utf32LittleEndian.rawValue
+                offset = 4
+            }
+            else if readResult.length >= 2 && bytePtr[0] == 0xFE && bytePtr[1] == 0xFF {
+                encoding = String.Encoding.utf16BigEndian.rawValue
+                offset = 2
+            }
+            else if readResult.length >= 2 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE {
+                encoding = String.Encoding.utf16LittleEndian.rawValue
+                offset = 2
+            }
+            else if readResult.length >= 4 && bytePtr[0] == 0x00 && bytePtr[1] == 0x00 && bytePtr[2] == 0xFE && bytePtr[3] == 0xFF {
+                encoding = String.Encoding.utf32BigEndian.rawValue
+                offset = 4
+            }
+            else if let charSet = textEncodingNameMaybe, let textEncoding = String.Encoding(charSet: charSet) {
+                encoding = textEncoding.rawValue
+                offset = 0
+            } else {
+                //Need to work on more conditions. This should be the default
+                encoding = String.Encoding.utf8.rawValue
+                offset = 0
+            }
+
+            // Since the encoding being passed includes the byte order the BOM wont be checked or skipped, so pass offset to
+            // manually skip the BOM header.
+            guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr + offset, readResult.length - offset,
+                                                   CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true) else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
+                    ])
+            }
+            return (cf, encoding)
         }
 
-        // Since the encoding being passed includes the byte order the BOM wont be checked or skipped, so pass offset to
-        // manually skip the BOM header.
-        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr + offset, readResult.length - offset,
-                                               CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
-                ])
-        }
         var str: String?
         if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
             self.init(str!)

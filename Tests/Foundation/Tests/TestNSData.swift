@@ -1049,8 +1049,10 @@ class TestNSData: LoopbackServerTest {
         }
 
         let replacement = makeData([8, 9, 10])
-        mData.replaceBytes(in: NSRange(location: 1, length: 3), withBytes: replacement.bytes,
+        withExtendedLifetime(replacement) {
+            mData.replaceBytes(in: NSRange(location: 1, length: 3), withBytes: replacement.bytes,
             length: 3)
+        }
         let expected = makeData([0, 8, 9, 10, 0])
         XCTAssertEqual(mData, expected)
     }
@@ -1560,10 +1562,12 @@ extension TestNSData {
         let contents = NSData(contentsOfFile: filename)
         XCTAssertNotNil(contents)
         if let contents = contents {
-            let ptr =  UnsafeMutableRawPointer(mutating: contents.bytes)
-            let str = String(bytesNoCopy: ptr, length: contents.length,
-                         encoding: .ascii, freeWhenDone: false)
-            XCTAssertEqual(str, "swift-corelibs-foundation")
+            withExtendedLifetime(contents) {
+                let ptr =  UnsafeMutableRawPointer(mutating: contents.bytes)
+                let str = String(bytesNoCopy: ptr, length: contents.length,
+                             encoding: .ascii, freeWhenDone: false)
+                XCTAssertEqual(str, "swift-corelibs-foundation")
+            }
         }
     }
 
@@ -1575,14 +1579,16 @@ extension TestNSData {
         let contents = NSData(contentsOfFile: "/proc/self/cmdline")
         XCTAssertNotNil(contents)
         if let contents = contents {
-            XCTAssertTrue(contents.length > 0)
-            let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
-            var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
-            if zeroIdx == NSNotFound { zeroIdx = contents.length }
-            if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
-                XCTAssertTrue(str.hasSuffix("TestFoundation"))
-            } else {
-                XCTFail("Cant create String")
+            withExtendedLifetime(contents) {
+                XCTAssertTrue(contents.length > 0)
+                let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
+                var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
+                if zeroIdx == NSNotFound { zeroIdx = contents.length }
+                if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
+                    XCTAssertTrue(str.hasSuffix("TestFoundation"))
+                } else {
+                    XCTFail("Cant create String")
+                }
             }
         }
 
