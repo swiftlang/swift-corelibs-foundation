@@ -558,30 +558,31 @@ internal func _NSReadIntFromMutableAttributedStringCoding(_ data: NSData, _ star
     let length = data.length
     
     var value = 0
-    
-    while offset < length {
-        let i = Int(data.bytes.load(fromByteOffset: offset, as: UInt8.self))
-        
-        offset += 1
-        
-        let isLast = i < 128
-        
-        let intermediateValue = multiplier.multipliedReportingOverflow(by: isLast ? i : (i - 128))
-        guard !intermediateValue.overflow else { return nil }
-        
-        let newValue = value.addingReportingOverflow(intermediateValue.partialValue)
-        guard !newValue.overflow else { return nil }
-        
-        value = newValue.partialValue
 
-        if isLast {
-            return (value: value, newOffset: offset)
+    return withExtendedLifetime(data) { _ -> (Int, Int)? in
+        while offset < length {
+            let i = Int(data.bytes.load(fromByteOffset: offset, as: UInt8.self))
+
+            offset += 1
+
+            let isLast = i < 128
+
+            let intermediateValue = multiplier.multipliedReportingOverflow(by: isLast ? i : (i - 128))
+            guard !intermediateValue.overflow else { return nil }
+
+            let newValue = value.addingReportingOverflow(intermediateValue.partialValue)
+            guard !newValue.overflow else { return nil }
+
+            value = newValue.partialValue
+
+            if isLast {
+                return (value: value, newOffset: offset)
+            }
+
+            multiplier *= 128
         }
-        
-        multiplier *= 128
+        return nil // Getting to the end of the stream indicates error, since we were still expecting more bytes
     }
-    
-    return nil // Getting to the end of the stream indicates error, since we were still expecting more bytes
 }
 
 internal func _NSWriteIntToMutableAttributedStringCoding(_ i: Int, _ data: NSMutableData) {

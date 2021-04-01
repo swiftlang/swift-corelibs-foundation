@@ -257,45 +257,48 @@ class TestXMLDocument : LoopbackServerTest {
         let uriNs2 = "http://example.com/ns2"
         
         let root = XMLNode.element(withName: "root") as! XMLElement
-        root.addNamespace(XMLNode.namespace(withName: "ns1", stringValue: uriNs1) as! XMLNode)
-        
-        let element = XMLNode.element(withName: "element") as! XMLElement
-        element.addNamespace(XMLNode.namespace(withName: "ns2", stringValue: uriNs2) as! XMLNode)
-        root.addChild(element)
-        
-        // Add attributes without URI
-        element.addAttribute(XMLNode.attribute(withName: "name", stringValue: "John") as! XMLNode)
-        element.addAttribute(XMLNode.attribute(withName: "ns1:name", stringValue: "Tom") as! XMLNode)
-        
-        // Add attributes with URI
-        element.addAttribute(XMLNode.attribute(withName: "ns1:age", uri: uriNs1, stringValue: "44") as! XMLNode)
-        element.addAttribute(XMLNode.attribute(withName: "ns2:address", uri: uriNs2, stringValue: "Foobar City") as! XMLNode)
-        
-        // Retrieve attributes without URI
-        XCTAssertEqual(element.attribute(forName: "name")?.stringValue, "John", "name==John")
-        XCTAssertEqual(element.attribute(forName: "ns1:name")?.stringValue, "Tom", "ns1:name==Tom")
-        XCTAssertEqual(element.attribute(forName: "ns1:age")?.stringValue, "44", "ns1:age==44")
-        XCTAssertEqual(element.attribute(forName: "ns2:address")?.stringValue, "Foobar City", "ns2:addresss==Foobar City")
-        
-        // Retrieve attributes with URI
-        XCTAssertEqual(element.attribute(forLocalName: "name", uri: nil)?.stringValue, "John", "name==John")
-        XCTAssertEqual(element.attribute(forLocalName: "name", uri: uriNs1)?.stringValue, "Tom", "name==Tom")
-        XCTAssertEqual(element.attribute(forLocalName: "age", uri: uriNs1)?.stringValue, "44", "age==44")
-        XCTAssertNil(element.attribute(forLocalName: "address", uri: uriNs1), "address==nil")
-        XCTAssertEqual(element.attribute(forLocalName: "address", uri: uriNs2)?.stringValue, "Foobar City", "addresss==Foobar City")
-        
-        // Overwrite attributes
-        element.addAttribute(XMLNode.attribute(withName: "ns1:age", stringValue: "33") as! XMLNode)
-        XCTAssertEqual(element.attribute(forName: "ns1:age")?.stringValue, "33", "ns1:age==33")
-        element.addAttribute(XMLNode.attribute(withName: "ns1:name", uri: uriNs1, stringValue: "Tommy") as! XMLNode)
-        XCTAssertEqual(element.attribute(forLocalName: "name", uri: uriNs1)?.stringValue, "Tommy", "ns1:name==Tommy")
-        
-        // Remove attributes
-        element.removeAttribute(forName: "name")
-        XCTAssertNil(element.attribute(forLocalName: "name", uri: nil), "name removed")
-        XCTAssertNotNil(element.attribute(forLocalName: "name", uri: uriNs1), "ns1:name not removed")
-        element.removeAttribute(forName: "ns1:name")
-        XCTAssertNil(element.attribute(forLocalName: "name", uri: uriNs1), "ns1:name removed")
+
+        withExtendedLifetime(root) {
+            root.addNamespace(XMLNode.namespace(withName: "ns1", stringValue: uriNs1) as! XMLNode)
+
+            let element = XMLNode.element(withName: "element") as! XMLElement
+            element.addNamespace(XMLNode.namespace(withName: "ns2", stringValue: uriNs2) as! XMLNode)
+            root.addChild(element)
+
+            // Add attributes without URI
+            element.addAttribute(XMLNode.attribute(withName: "name", stringValue: "John") as! XMLNode)
+            element.addAttribute(XMLNode.attribute(withName: "ns1:name", stringValue: "Tom") as! XMLNode)
+
+            // Add attributes with URI
+            element.addAttribute(XMLNode.attribute(withName: "ns1:age", uri: uriNs1, stringValue: "44") as! XMLNode)
+            element.addAttribute(XMLNode.attribute(withName: "ns2:address", uri: uriNs2, stringValue: "Foobar City") as! XMLNode)
+
+            // Retrieve attributes without URI
+            XCTAssertEqual(element.attribute(forName: "name")?.stringValue, "John", "name==John")
+            XCTAssertEqual(element.attribute(forName: "ns1:name")?.stringValue, "Tom", "ns1:name==Tom")
+            XCTAssertEqual(element.attribute(forName: "ns1:age")?.stringValue, "44", "ns1:age==44")
+            XCTAssertEqual(element.attribute(forName: "ns2:address")?.stringValue, "Foobar City", "ns2:addresss==Foobar City")
+
+            // Retrieve attributes with URI
+            XCTAssertEqual(element.attribute(forLocalName: "name", uri: nil)?.stringValue, "John", "name==John")
+            XCTAssertEqual(element.attribute(forLocalName: "name", uri: uriNs1)?.stringValue, "Tom", "name==Tom")
+            XCTAssertEqual(element.attribute(forLocalName: "age", uri: uriNs1)?.stringValue, "44", "age==44")
+            XCTAssertNil(element.attribute(forLocalName: "address", uri: uriNs1), "address==nil")
+            XCTAssertEqual(element.attribute(forLocalName: "address", uri: uriNs2)?.stringValue, "Foobar City", "addresss==Foobar City")
+
+            // Overwrite attributes
+            element.addAttribute(XMLNode.attribute(withName: "ns1:age", stringValue: "33") as! XMLNode)
+            XCTAssertEqual(element.attribute(forName: "ns1:age")?.stringValue, "33", "ns1:age==33")
+            element.addAttribute(XMLNode.attribute(withName: "ns1:name", uri: uriNs1, stringValue: "Tommy") as! XMLNode)
+            XCTAssertEqual(element.attribute(forLocalName: "name", uri: uriNs1)?.stringValue, "Tommy", "ns1:name==Tommy")
+
+            // Remove attributes
+            element.removeAttribute(forName: "name")
+            XCTAssertNil(element.attribute(forLocalName: "name", uri: nil), "name removed")
+            XCTAssertNotNil(element.attribute(forLocalName: "name", uri: uriNs1), "ns1:name not removed")
+            element.removeAttribute(forName: "ns1:name")
+            XCTAssertNil(element.attribute(forLocalName: "name", uri: uriNs1), "ns1:name removed")
+        }
     }
 
     func test_comments() {
