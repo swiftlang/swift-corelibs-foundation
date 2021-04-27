@@ -161,11 +161,10 @@ set_target_properties(Foundation PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
 if(NOT BUILD_SHARED_LIBS)
-  # TODO(katei): Comment out after swift-frontend implementation
-  # https://github.com/apple/swift/pull/35936
-  # target_compile_options(Foundation
-  #   PRIVATE
-  #     "SHELL:-public-autolink-library icui18n")
+  target_compile_options(Foundation
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend icui18n
+             -Xfrontend -public-autolink-library -Xfrontend BlocksRuntime")
 
   # Merge private dependencies into single static objects archive
   set_property(TARGET Foundation PROPERTY STATIC_LIBRARY_OPTIONS

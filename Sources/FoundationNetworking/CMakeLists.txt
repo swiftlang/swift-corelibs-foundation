@@ -66,11 +66,9 @@ target_link_libraries(FoundationNetworking
     Foundation)
 
 if(NOT BUILD_SHARED_LIBS)
-  # TODO(katei): Comment out after swift-frontend implementation
-  # https://github.com/apple/swift/pull/35936
-  # target_compile_options(FoundationNetworking
-  #   PRIVATE
-  #     "SHELL:-public-autolink-library curl")
+  target_compile_options(FoundationNetworking
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend curl")
 
   # Merge private dependencies into single static objects archive
   set_property(TARGET FoundationNetworking PROPERTY STATIC_LIBRARY_OPTIONS

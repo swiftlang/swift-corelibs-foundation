@@ -18,11 +18,9 @@ target_link_libraries(FoundationXML
     Foundation)
 
 if(NOT BUILD_SHARED_LIBS)
-  # TODO(katei): Comment out after swift-frontend implementation
-  # https://github.com/apple/swift/pull/35936
-  # target_compile_options(FoundationXML
-  #   PRIVATE
-  #     "SHELL:-public-autolink-library xml2")
+  target_compile_options(FoundationXML
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend xml2")
 
   # Merge private dependencies into single static objects archive
   set_property(TARGET FoundationXML PROPERTY STATIC_LIBRARY_OPTIONS
