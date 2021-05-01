@@ -900,12 +900,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             // anyway.
             buffer.baseAddress!.advanced(by: outputIndex).copyMemory(from: &outputBytes, byteCount: 4)
             outputIndex += 4
+            bytesLeft = dataBuffer.count - inputIndex
+            
             if lineLength != 0 {
                 // Add required EOL markers.
                 currentLineCount += 4
                 assert(currentLineCount <= lineLength)
 
-                if currentLineCount == lineLength {
+                if currentLineCount == lineLength && bytesLeft > 0 {
                     buffer[outputIndex] = separatorByte1
                     outputIndex += 1
 
@@ -916,7 +918,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                     currentLineCount = 0
                 }
             }
-            bytesLeft = dataBuffer.count - inputIndex
         }
 
         // Return the number of ASCII bytes written to the buffer
