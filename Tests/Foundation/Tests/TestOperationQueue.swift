@@ -37,7 +37,7 @@ class TestOperationQueue : XCTestCase {
             ("test_ExecutionOrder", test_ExecutionOrder),
             ("test_WaitUntilFinished", test_WaitUntilFinished),
             ("test_OperationWaitUntilFinished", test_OperationWaitUntilFinished),
-            ("test_CustomOperationReady", test_CustomOperationReady),
+            /* ⚠️ */ ("test_CustomOperationReady", testExpectedToFail(test_CustomOperationReady, "Flaky test: https://bugs.swift.org/browse/SR-14657")),
             ("test_DependencyCycleBreak", test_DependencyCycleBreak),
             ("test_Lifecycle", test_Lifecycle),
             ("test_ConcurrentOperations", test_ConcurrentOperations),
