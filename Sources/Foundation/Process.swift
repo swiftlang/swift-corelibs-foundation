@@ -830,6 +830,9 @@ open class Process: NSObject {
                 process._terminationReason = .exit
             }
             
+            // Set the running flag to false
+            process.isRunning = false
+
             // If a termination handler has been set, invoke it on a background thread
             
             if let terminationHandler = process.terminationHandler {
@@ -839,9 +842,6 @@ open class Process: NSObject {
                 thread.start()
             }
             
-            // Set the running flag to false
-            process.isRunning = false
-
             // Invalidate the source and wake up the run loop, if it's available
             
             CFRunLoopSourceInvalidate(process.runLoopSource)

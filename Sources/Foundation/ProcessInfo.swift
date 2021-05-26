@@ -319,12 +319,14 @@ open class ProcessInfo: NSObject {
     }
 
     // These are internal access for testing
-    static func countCoreIds(cores: Substring) -> Int {
+    static func countCoreIds(cores: Substring) -> Int? {
         let ids = cores.split(separator: "-", maxSplits: 1)
         guard let first = ids.first.flatMap({ Int($0, radix: 10) }),
               let last = ids.last.flatMap({ Int($0, radix: 10) }),
               last >= first
-        else { preconditionFailure("cpuset format is incorrect") }
+        else {
+            return nil
+        }
         return 1 + last - first
     }
 
@@ -332,8 +334,11 @@ open class ProcessInfo: NSObject {
         guard let cpuset = try? firstLineOfFile(path: cpusetPath).split(separator: ","),
               !cpuset.isEmpty
         else { return nil }
-
-        return cpuset.map(countCoreIds).reduce(0, +)
+        if let first = cpuset.first, let count = countCoreIds(cores: first) {
+            return count
+        } else {
+            return nil
+        }
     }
 
     static func coreCount(quota quotaPath: String,  period periodPath: String) -> Int? {
