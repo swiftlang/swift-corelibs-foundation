@@ -307,7 +307,6 @@ void CFTreePrependChild(CFTreeRef tree, CFTreeRef newChild) {
 }
 
 void CFTreeAppendChild(CFTreeRef tree, CFTreeRef newChild) {
-    CFAllocatorRef allocator;
     __CFGenericValidateType(tree, CFTreeGetTypeID());
     __CFGenericValidateType(newChild, CFTreeGetTypeID());
     CFAssert1(NULL == newChild->_parent, __kCFLogAssertion, "%s(): must remove newChild from previous parent first", __PRETTY_FUNCTION__);
@@ -316,7 +315,6 @@ void CFTreeAppendChild(CFTreeRef tree, CFTreeRef newChild) {
         HALT;
     }
     CFRetain(newChild);
-    allocator = CFGetAllocator(tree);
     *((void **)&newChild->_parent) = tree;
     newChild->_sibling = NULL;
     if (!tree->_child) {
@@ -328,14 +326,12 @@ void CFTreeAppendChild(CFTreeRef tree, CFTreeRef newChild) {
 }
 
 void CFTreeInsertSibling(CFTreeRef tree, CFTreeRef newSibling) {
-    CFAllocatorRef allocator;
     __CFGenericValidateType(tree, CFTreeGetTypeID());
     __CFGenericValidateType(newSibling, CFTreeGetTypeID());
     CFAssert1(NULL != tree->_parent, __kCFLogAssertion, "%s(): tree must have a parent", __PRETTY_FUNCTION__);
     CFAssert1(NULL == newSibling->_parent, __kCFLogAssertion, "%s(): must remove newSibling from previous parent first", __PRETTY_FUNCTION__);
     CFAssert1(NULL == newSibling->_sibling, __kCFLogAssertion, "%s(): must remove newSibling from previous parent first", __PRETTY_FUNCTION__);
     CFRetain(newSibling);
-    allocator = CFGetAllocator(tree);
     *((void **)&newSibling->_parent) = tree->_parent;
     *((void **)&newSibling->_sibling) = tree->_sibling;
     *((void **)&tree->_sibling) = newSibling;
