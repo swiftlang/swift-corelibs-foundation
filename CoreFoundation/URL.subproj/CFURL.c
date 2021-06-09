@@ -4794,7 +4794,7 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
 #endif
 
     CFMutableStringRef newString;
-    CFStringRef newComp;
+    CFStringRef newComp = NULL;
     CFRange pathRg;
     if (!(url->_flags & HAS_PATH)) {
         result = NULL;
@@ -4823,9 +4823,9 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
                 if (isDirectory) {
                     CFStringInsert(newString, pathRg.location + pathRg.length + CFStringGetLength(newComp), CFSTR("/"));
                 }
-                CFRelease(newComp);
                 result = _CFURLCreateWithArbitraryString(allocator, newString, url->_base);
             }
+            if (newComp) CFRelease(newComp);
             CFRelease(newString);
         }
     }
