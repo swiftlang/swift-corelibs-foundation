@@ -137,6 +137,9 @@ extension DataProtocol {
     }
     
     public func firstRange<D: DataProtocol, R: RangeExpression>(of data: D, in range: R) -> Range<Index>? where R.Bound == Index {
+        guard !data.isEmpty else {
+            return nil
+        }
         let r = range.relative(to: self)
         let rangeCount = distance(from: r.lowerBound, to: r.upperBound)
         if rangeCount < data.count {
@@ -166,6 +169,9 @@ extension DataProtocol {
     }
     
     public func lastRange<D: DataProtocol, R: RangeExpression>(of data: D, in range: R) -> Range<Index>? where R.Bound == Index {
+        guard !data.isEmpty else {
+            return nil
+        }
         let r = range.relative(to: self)
         let rangeCount = distance(from: r.lowerBound, to: r.upperBound)
         if rangeCount < data.count {
