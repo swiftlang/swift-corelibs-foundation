@@ -212,6 +212,8 @@ class TestNSData: LoopbackServerTest {
             ("testCopyBytes", testCopyBytes),
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
+            ("testFirstRangeEmptyData", testFirstRangeEmptyData),
+            ("testLastRangeEmptyData", testLastRangeEmptyData),
             ("testEquality", testEquality),
             ("testGenericAlgorithms", testGenericAlgorithms),
             ("testInitializationWithArray", testInitializationWithArray),
@@ -1226,6 +1228,16 @@ extension TestNSData {
         s.insert(d3)
         
         XCTAssertEqual(s.count, 2, "Expected only two entries in the Set")
+    }
+    
+    func testFirstRangeEmptyData() {
+        let d = Data([1, 2, 3])
+        XCTAssertNil(d.firstRange(of: Data()))
+    }
+    
+    func testLastRangeEmptyData() {
+        let d = Data([1, 2, 3])
+        XCTAssertNil(d.lastRange(of: Data()))
     }
     
     func testReplaceSubrange() {
