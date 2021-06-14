@@ -253,6 +253,7 @@ class TestNSData: LoopbackServerTest {
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
             ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
             ("test_rangeOfData", test_rangeOfData),
+            ("test_sr10689_rangeOfDataProtocol", test_sr10689_rangeOfDataProtocol),
             ("test_initNSMutableData()", test_initNSMutableData),
             ("test_initNSMutableDataWithLength", test_initNSMutableDataWithLength),
             ("test_initNSMutableDataWithCapacity", test_initNSMutableDataWithCapacity),
@@ -947,6 +948,97 @@ class TestNSData: LoopbackServerTest {
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards], in: baseFullRange),notFoundRange))
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
+    }
+
+    func test_sr10689_rangeOfDataProtocol() {
+        // https://bugs.swift.org/browse/SR-10689
+        
+        let base = Data([0x00, 0x01, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03,
+                         0x00, 0x01, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03])
+        let subdata = base[10..<13] // [0x02, 0x03, 0x00]
+        let oneByte = base[14..<15] // [0x02]
+        
+        do { // firstRange(of:in:)
+            func assertFirstRange(_ data: Data, _ fragment: Data, range: ClosedRange<Int>? = nil, expectedStartIndex: Int?,
+                                  message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line)
+            {
+                if let index = expectedStartIndex {
+                    let expectedRange: Range<Int> = index..<(index + fragment.count)
+                    if let someRange = range {
+                        XCTAssertEqual(data.firstRange(of: fragment, in: someRange), expectedRange, message(), file: file, line: line)
+                    } else {
+                        XCTAssertEqual(data.firstRange(of: fragment), expectedRange, message(), file: file, line: line)
+                    }
+                } else {
+                    if let someRange = range {
+                        XCTAssertNil(data.firstRange(of: fragment, in: someRange), message(), file: file, line: line)
+                    } else {
+                        XCTAssertNil(data.firstRange(of: fragment), message(), file: file, line: line)
+                    }
+                }
+            }
+            
+            assertFirstRange(base, base, expectedStartIndex: base.startIndex)
+            assertFirstRange(base, subdata, expectedStartIndex: 2)
+            assertFirstRange(base, oneByte, expectedStartIndex: 2)
+            
+            assertFirstRange(subdata, base, expectedStartIndex: nil)
+            assertFirstRange(subdata, subdata, expectedStartIndex: subdata.startIndex)
+            assertFirstRange(subdata, oneByte, expectedStartIndex: subdata.startIndex)
+            
+            assertFirstRange(oneByte, base, expectedStartIndex: nil)
+            assertFirstRange(oneByte, subdata, expectedStartIndex: nil)
+            assertFirstRange(oneByte, oneByte, expectedStartIndex: oneByte.startIndex)
+            
+            assertFirstRange(base, subdata, range: 1...14, expectedStartIndex: 2)
+            assertFirstRange(base, subdata, range: 6...8, expectedStartIndex: 6)
+            assertFirstRange(base, subdata, range: 8...10, expectedStartIndex: nil)
+            
+            assertFirstRange(base, oneByte, range: 1...14, expectedStartIndex: 2)
+            assertFirstRange(base, oneByte, range: 6...6, expectedStartIndex: 6)
+            assertFirstRange(base, oneByte, range: 8...9, expectedStartIndex: nil)
+        }
+        
+        do { // lastRange(of:in:)
+            func assertLastRange(_ data: Data, _ fragment: Data, range: ClosedRange<Int>? = nil, expectedStartIndex: Int?,
+                                 message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line)
+            {
+                if let index = expectedStartIndex {
+                    let expectedRange: Range<Int> = index..<(index + fragment.count)
+                    if let someRange = range {
+                        XCTAssertEqual(data.lastRange(of: fragment, in: someRange), expectedRange, message(), file: file, line: line)
+                    } else {
+                        XCTAssertEqual(data.lastRange(of: fragment), expectedRange, message(), file: file, line: line)
+                    }
+                } else {
+                    if let someRange = range {
+                        XCTAssertNil(data.lastRange(of: fragment, in: someRange), message(), file: file, line: line)
+                    } else {
+                        XCTAssertNil(data.lastRange(of: fragment), message(), file: file, line: line)
+                    }
+                }
+            }
+            
+            assertLastRange(base, base, expectedStartIndex: base.startIndex)
+            assertLastRange(base, subdata, expectedStartIndex: 10)
+            assertLastRange(base, oneByte, expectedStartIndex: 14)
+            
+            assertLastRange(subdata, base, expectedStartIndex: nil)
+            assertLastRange(subdata, subdata, expectedStartIndex: subdata.startIndex)
+            assertLastRange(subdata, oneByte, expectedStartIndex: subdata.startIndex)
+            
+            assertLastRange(oneByte, base, expectedStartIndex: nil)
+            assertLastRange(oneByte, subdata, expectedStartIndex: nil)
+            assertLastRange(oneByte, oneByte, expectedStartIndex: oneByte.startIndex)
+            
+            assertLastRange(base, subdata, range: 1...14, expectedStartIndex: 10)
+            assertLastRange(base, subdata, range: 6...8, expectedStartIndex: 6)
+            assertLastRange(base, subdata, range: 8...10, expectedStartIndex: nil)
+            
+            assertLastRange(base, oneByte, range: 1...14, expectedStartIndex: 14)
+            assertLastRange(base, oneByte, range: 6...6, expectedStartIndex: 6)
+            assertLastRange(base, oneByte, range: 8...9, expectedStartIndex: nil)
+        }
     }
 
     // Check all of the NSMutableData constructors are available.
