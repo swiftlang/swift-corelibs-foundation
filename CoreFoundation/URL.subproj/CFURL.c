@@ -2278,7 +2278,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
 #endif
     struct __CFURL *result = NULL;
     if (bufLen > 0) {
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
         Boolean isAbsolute = bufLen && (*buffer == '/');
         Boolean addedPercentEncoding;
         Boolean releaseBaseURL = false;

@@ -544,7 +544,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void) {
     if (result != 0) {
         pcnt = 0;
     }
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 
 #ifdef HAVE_SCHED_GETAFFINITY
     cpu_set_t set;
@@ -571,7 +571,7 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
     if (result != 0) {
         pcnt = 0;
     }
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     pcnt = sysconf(_SC_NPROCESSORS_CONF);
 #else
     // Assume the worst
@@ -589,7 +589,7 @@ CF_PRIVATE uint64_t __CFMemorySize() {
     if (result != 0) {
         memsize = 0;
     }
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     memsize = sysconf(_SC_PHYS_PAGES);
     memsize *= sysconf(_SC_PAGESIZE);
 #endif

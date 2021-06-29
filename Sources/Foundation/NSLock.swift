@@ -26,7 +26,7 @@ public protocol NSLocking {
 private typealias _MutexPointer = UnsafeMutablePointer<SRWLOCK>
 private typealias _RecursiveMutexPointer = UnsafeMutablePointer<CRITICAL_SECTION>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<CONDITION_VARIABLE>
-#elseif CYGWIN
+#elseif CYGWIN || os(OpenBSD)
 private typealias _MutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
 private typealias _RecursiveMutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t?>
@@ -242,7 +242,7 @@ open class NSRecursiveLock: NSObject, NSLocking {
         InitializeConditionVariable(timeoutCond)
         InitializeSRWLock(timeoutMutex)
 #else
-#if CYGWIN
+#if CYGWIN || os(OpenBSD)
         var attrib : pthread_mutexattr_t? = nil
 #else
         var attrib = pthread_mutexattr_t()

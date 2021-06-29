@@ -222,7 +222,7 @@ CF_INLINE uint64_t mach_absolute_time() {
     ULONGLONG ullTime;
 	QueryUnbiasedInterruptTimePrecise(&ullTime);
     return ullTime;
-#else
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_MAC
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
