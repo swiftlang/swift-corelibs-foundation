@@ -489,11 +489,15 @@ class TestFileManager : XCTestCase {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: false, attributes: nil)
             try fm.createDirectory(atPath: basePath2, withIntermediateDirectories: false, attributes: nil)
 
-            let _ = fm.createFile(atPath: itemPath, contents: Data(count: 123), attributes: nil)
-            let _ = fm.createFile(atPath: itemPath2, contents: Data(count: 456), attributes: nil)
-
+            if !fm.createFile(atPath: itemPath, contents: Data(count: 123), attributes: nil) {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            if !fm.createFile(atPath: itemPath2, contents: Data(count: 456), attributes: nil) {
+                throw CocoaError(.fileWriteUnknown)
+            }
         } catch {
-            XCTFail()
+            XCTFail("Failed with error while creating temporary files: \(error)")
+            return
         }
 
         var item1FileAttributes: [FileAttributeKey: Any]!
