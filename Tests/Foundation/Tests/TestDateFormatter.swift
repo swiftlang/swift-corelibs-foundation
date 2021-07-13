@@ -29,6 +29,7 @@ class TestDateFormatter: XCTestCase {
             ("test_dateFrom", test_dateFrom),
             ("test_dateParseAndFormatWithJapaneseCalendar", test_dateParseAndFormatWithJapaneseCalendar),
             ("test_orderOfPropertySetters", test_orderOfPropertySetters),
+            ("test_copy_sr14108", test_copy_sr14108),
         ]
     }
     
@@ -526,5 +527,30 @@ class TestDateFormatter: XCTestCase {
                 XCTFail("\(formattedString) != \(expected) using settings applied in order \(applied)")
             }
         }
+    }
+
+    // Confirm that https://bugs.swift.org/browse/SR-14108 is fixed.
+    func test_copy_sr14108() throws {
+        let date = Date(timeIntervalSinceReferenceDate: 0)
+
+        let original = DateFormatter()
+        original.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
+        original.locale = Locale(identifier: DEFAULT_LOCALE)
+        original.dateFormat = "yyyy-MM-dd HH:mm:ss z"
+        XCTAssertEqual(original.string(from: date), "2001-01-01 00:00:00 GMT")
+
+        let copied = try XCTUnwrap(original.copy() as? DateFormatter)
+        XCTAssertEqual(original.timeZone, copied.timeZone)
+        XCTAssertEqual(original.locale, copied.locale)
+        XCTAssertEqual(copied.string(from: date), "2001-01-01 00:00:00 GMT")
+
+        copied.timeZone = TimeZone(abbreviation: "JST")
+        copied.locale = Locale(identifier: "ja_JP")
+        copied.dateFormat = "yyyy/MM/dd hh:mm:ssxxxxx"
+
+        XCTAssertNotEqual(original.timeZone, copied.timeZone)
+        XCTAssertNotEqual(original.locale, copied.locale)
+        XCTAssertEqual(original.string(from: date), "2001-01-01 00:00:00 GMT")
+        XCTAssertEqual(copied.string(from: date), "2001/01/01 09:00:00+09:00")
     }
 }
