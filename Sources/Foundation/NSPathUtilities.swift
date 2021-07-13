@@ -735,7 +735,6 @@ public func NSFullUserName() -> String {
 }
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
-    let template = filePath + ".tmp.XXXXXX"
 #if os(Windows)
     let maxLength: Int = Int(MAX_PATH + 1)
     var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
@@ -760,26 +759,32 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     // Don't close h, fd is transferred ownership
     let fd = _open_osfhandle(intptr_t(bitPattern: h), 0)
 #else
-    var filename = template.utf8CString
+    var template = URL(fileURLWithPath: filePath)
+    
+    let filename = template.lastPathComponent
+    let hashed = String(format: "%llx", Int64(filename.hashValue))
+    template.deleteLastPathComponent()
+    template.appendPathComponent("SCF.\(hashed).tmp.XXXXXX")
 
-    let result = filename.withUnsafeMutableBufferPointer { (ptr: inout UnsafeMutableBufferPointer<CChar>) -> (Int32, String)? in
-        // filename is updated with the temp file name on success.
-        let fd = mkstemp(ptr.baseAddress!)
-        if fd == -1 {
-            return nil
-        } else {
-            guard let fname = String(utf8String: ptr.baseAddress!) else {
-                // Couldnt convert buffer back to filename.
-                close(fd)
-                errno = ENOENT
-                return nil
-            }
-            return (fd, fname)
-        }
+
+    let (fd, errorCode, pathResult) = template.withUnsafeFileSystemRepresentation { ptr -> (Int32, Int32, String) in
+        let length = strlen(ptr!)
+        
+        // buffer is updated with the temp file name on success.
+        let buffer = UnsafeMutableBufferPointer<CChar>.allocate(capacity: length + 1 /* the null character */)
+        UnsafeRawBufferPointer(start: ptr!, count: length + 1 /* the null character */)
+            .copyBytes(to: UnsafeMutableRawBufferPointer(buffer))
+        defer { buffer.deallocate() }
+        
+        let fd = mkstemp(buffer.baseAddress!)
+        let errorCode = errno
+        return (fd,
+         errorCode,
+         FileManager.default.string(withFileSystemRepresentation: buffer.baseAddress!, length: strlen(buffer.baseAddress!)))
     }
 
-    guard let (fd, pathResult) = result else {
-        throw _NSErrorWithErrno(errno, reading: false, path: template)
+    if fd == -1 {
+        throw _NSErrorWithErrno(errorCode, reading: false, path: pathResult)
     }
 
     // Set the file mode to match macOS
@@ -802,8 +807,9 @@ internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String)
         }
 #else
         if rename($0, $1) != 0 {
+            let errorCode = errno
             try? FileManager.default.removeItem(atPath: auxFilePath)
-            throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+            throw _NSErrorWithErrno(errorCode, reading: false, path: filePath)
         }
 #endif
     })
