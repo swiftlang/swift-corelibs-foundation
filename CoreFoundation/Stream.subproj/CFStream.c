@@ -1675,11 +1675,7 @@ static void _perform(void* info)
 
 static void* _legacyStreamRunLoop_workThread(void* arg)
 {
-#if TARGET_OS_LINUX
-    pthread_setname_np(pthread_self(), "com.apple.CFStream.LegacyThread");
-#else
-    pthread_setname_np("com.apple.CFStream.LegacyThread");
-#endif
+    _CFThreadSetName(pthread_self(), "com.apple.CFStream.LegacyThread");
     sLegacyRL = CFRunLoopGetCurrent();
 
 #if defined(LOG_STREAM)

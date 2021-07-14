@@ -470,7 +470,11 @@ CF_PRIVATE Boolean _CFBundleDlfcnCheckLoaded(CFBundleRef bundle) {
         char buff[CFMaxPathSize];
 
         if (executableURL && CFURLGetFileSystemRepresentation(executableURL, true, (uint8_t *)buff, CFMaxPathSize)) {
+#if !defined(__OpenBSD__)
             int mode = RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD | RTLD_FIRST;
+#else
+            int mode = RTLD_LAZY | RTLD_LOCAL | RTLD_FIRST;
+#endif
             void *handle = dlopen(buff, mode);
             if (handle) {
                 if (!bundle->_handleCookie) {

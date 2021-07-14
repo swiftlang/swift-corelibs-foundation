@@ -56,6 +56,9 @@ class TestThread : XCTestCase {
 #if os(Linux) || os(Android) // Linux sets the initial thread name to the process name.
         XCTAssertEqual(Thread.current.name, "TestFoundation")
         testInternalThreadName("TestFoundation")
+#elseif os(OpenBSD) // OpenBSD sets the initial thread name to this.
+        XCTAssertEqual(Thread.current.name, "Original thread")
+        testInternalThreadName("Original thread")
 #else
         // No name is set initially
         XCTAssertEqual(Thread.current.name, "")
@@ -160,8 +163,16 @@ class TestThread : XCTestCase {
             ("test_currentThread", test_currentThread),
             ("test_threadStart", test_threadStart),
             ("test_mainThread", test_mainThread),
-            ("test_callStackSymbols", testExpectedToFailOnAndroid(test_callStackSymbols, "Android doesn't support backtraces at the moment.")),
-            ("test_callStackReturnAddresses", testExpectedToFailOnAndroid(test_callStackReturnAddresses, "Android doesn't support backtraces at the moment.")),
+            ("test_callStackSymbols", testExpectedToFailOnOpenBSD(
+		    testExpectedToFailOnAndroid(
+		        test_callStackSymbols,
+		    "Android doesn't support backtraces at the moment."),
+		"And not currently on OpenBSD.")),
+            ("test_callStackReturnAddresses", testExpectedToFailOnOpenBSD(
+                    testExpectedToFailOnAndroid(
+			test_callStackReturnAddresses,
+                    "Android doesn't support backtraces at the moment."),
+		"And not currently on OpenBSD.")),
             ("test_sleepForTimeInterval", test_sleepForTimeInterval),
             ("test_sleepUntilDate", test_sleepUntilDate),
             ("test_threadName", test_threadName),

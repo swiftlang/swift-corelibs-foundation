@@ -557,6 +557,14 @@ func shouldAttemptAndroidXFailTests(_ reason: String) -> Bool {
     #endif
 }
 
+func shouldAttemptOpenBSDXFailTests(_ reason: String) -> Bool {
+    #if os(OpenBSD)
+    return shouldAttemptXFailTests(reason)
+    #else
+    return true
+    #endif
+}
+
 #if !DARWIN_COMPATIBILITY_TESTS
 func testCaseExpectedToFail<T: XCTestCase>(_ allTests: [(String, (T) -> () throws -> Void)], _ reason: String) -> XCTestCaseEntry {
     return testCase(allTests.map { ($0.0, testExpectedToFail($0.1, "This test suite is disabled: \(reason)")) })
@@ -579,6 +587,10 @@ func testExpectedToFailOnWindows<T>(_ test:  @escaping (T) -> () throws -> Void,
 
 func testExpectedToFailOnAndroid<T>(_ test: @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
     testExpectedToFailWithCheck(check: shouldAttemptAndroidXFailTests(_:), test, reason)
+}
+
+func testExpectedToFailOnOpenBSD<T>(_ test: @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    testExpectedToFailWithCheck(check: shouldAttemptOpenBSDXFailTests(_:), test, reason)
 }
 
 func testExpectedToFailWithCheck<T>(check: (String) -> Bool, _ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {

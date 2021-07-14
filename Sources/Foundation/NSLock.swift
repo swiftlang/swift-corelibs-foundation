@@ -249,7 +249,12 @@ open class NSRecursiveLock: NSObject, NSLocking {
 #endif
         withUnsafeMutablePointer(to: &attrib) { attrs in
             pthread_mutexattr_init(attrs)
-            pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE))
+#if os(OpenBSD)
+            let type = Int32(PTHREAD_MUTEX_RECURSIVE.rawValue)
+#else
+            let type = Int32(PTHREAD_MUTEX_RECURSIVE)
+#endif
+            pthread_mutexattr_settype(attrs, type)
             pthread_mutex_init(mutex, attrs)
         }
 #if os(macOS) || os(iOS)
