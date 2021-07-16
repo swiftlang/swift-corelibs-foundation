@@ -326,6 +326,28 @@ class TestISO8601DateFormatter: XCTestCase {
             try fixture.assertLoadedValuesMatch(areEqual(_:_:))
         }
     }
+
+    func test_copy() throws {
+        let original = ISO8601DateFormatter()
+        original.timeZone = try XCTUnwrap(TimeZone(identifier: "GMT"))
+        original.formatOptions = [
+            .withInternetDateTime,
+            .withDashSeparatorInDate,
+            .withColonSeparatorInTime,
+            .withColonSeparatorInTimeZone,
+        ]
+
+        let copied = try XCTUnwrap(original.copy() as? ISO8601DateFormatter)
+        XCTAssertEqual(copied.timeZone, original.timeZone)
+        XCTAssertEqual(copied.formatOptions, original.formatOptions)
+
+        copied.timeZone = try XCTUnwrap(TimeZone(identifier: "JST"))
+        copied.formatOptions.insert(.withFractionalSeconds)
+        XCTAssertNotEqual(copied.timeZone, original.timeZone)
+        XCTAssertNotEqual(copied.formatOptions, original.formatOptions)
+        XCTAssertFalse(original.formatOptions.contains(.withFractionalSeconds))
+        XCTAssertTrue(copied.formatOptions.contains(.withFractionalSeconds))
+    }
     
     static var allTests : [(String, (TestISO8601DateFormatter) -> () throws -> Void)] {
         
@@ -335,6 +357,7 @@ class TestISO8601DateFormatter: XCTestCase {
             ("test_stringFromDateClass", test_stringFromDateClass),
             ("test_codingRoundtrip", test_codingRoundtrip),
             ("test_loadingFixtures", test_loadingFixtures),
+            ("test_copy", test_copy),
         ]
     }
 }
