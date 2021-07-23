@@ -148,10 +148,10 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
         let sine = sin(angle)
         let cosine = cos(angle)
 
-        m11 = cosine
-        m12 = sine
-        m21 = -sine
-        m22 = cosine
+        m11 = cosine*m11 + sine*m21
+        m12 = cosine*m12 + sine * m22
+        m21 = -sine*m11 + cosine*m21
+        m22 = -sine*m12 + cosine*m22
     }
 
     /**
