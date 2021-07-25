@@ -271,7 +271,7 @@ class TestDecimal: XCTestCase {
 
         let ulp = explicit.ulp
         XCTAssertEqual(0x7f, ulp.exponent)
-        XCTAssertEqual(8, ulp._length)
+        XCTAssertEqual(1, ulp._length)
         XCTAssertEqual(0, ulp._isNegative)
         XCTAssertEqual(1, ulp._isCompact)
         XCTAssertEqual(0, ulp._reserved)
@@ -850,6 +850,11 @@ class TestDecimal: XCTestCase {
         XCTAssertTrue(number.boolValue, "Should have received true")
 
         XCTAssertEqual(100,number.objCType.pointee, "ObjC type for NSDecimalNumber is 'd'")
+    }
+    
+    func test_ULP() {
+        let x = 0.1 as Decimal
+        XCTAssertFalse(x.ulp > x)
     }
 
     func test_ZeroPower() {
@@ -1457,6 +1462,7 @@ class TestDecimal: XCTestCase {
             ("test_ScanDecimal", test_ScanDecimal),
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
+            ("test_ULP", test_ULP),
             ("test_ZeroPower", test_ZeroPower),
             ("test_parseDouble", test_parseDouble),
             ("test_doubleValue", test_doubleValue),
