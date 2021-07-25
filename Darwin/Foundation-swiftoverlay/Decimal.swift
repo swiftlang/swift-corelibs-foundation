@@ -503,7 +503,7 @@ extension Decimal {
     public var ulp: Decimal {
         if !self.isFinite { return Decimal.nan }
         return Decimal(
-            _exponent: _exponent, _length: 8, _isNegative: 0, _isCompact: 1,
+            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
             _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
     }
 
