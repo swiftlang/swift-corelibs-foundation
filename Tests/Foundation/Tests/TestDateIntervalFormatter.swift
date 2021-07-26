@@ -258,6 +258,7 @@ class TestDateIntervalFormatter: XCTestCase {
     }
     
     func testCodingRoundtrip() throws {
+        throw XCTSkip("rdar://81133759")
         for fixture in fixtures {
             let original = try fixture.make()
             
@@ -276,6 +277,7 @@ class TestDateIntervalFormatter: XCTestCase {
     }
     
     func testDecodingFixtures() throws {
+        throw XCTSkip("rdar://81133759")
         for fixture in fixtures {
             try fixture.loadEach { (fixtureValue, variant) in
                 let original = try fixture.make()
