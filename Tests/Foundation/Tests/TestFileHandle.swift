@@ -613,6 +613,12 @@ class TestFileHandle : XCTestCase {
     }
 #endif
 
+    func testSynchronizeOnSpecialFile() throws {
+        // .synchronize() on a special file shouldnt fail
+        let fh = try XCTUnwrap(FileHandle(forWritingAtPath: "/dev/stdout"))
+        XCTAssertNoThrow(try fh.synchronize())
+    }
+
     static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
         var tests: [(String, (TestFileHandle) -> () throws -> ())] = [
             ("testReadUpToCount", testReadUpToCount),
@@ -632,6 +638,7 @@ class TestFileHandle : XCTestCase {
             ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
             /* ⚠️ */ ("test_readWriteHandlers", testExpectedToFail(test_readWriteHandlers,
             /* ⚠️ */     "<rdar://problem/50860781> sporadically times out")),
+            ("testSynchronizeOnSpecialFile", testSynchronizeOnSpecialFile),
         ]
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
