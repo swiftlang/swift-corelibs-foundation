@@ -172,6 +172,8 @@ static CFDictionaryRef _CFErrorCreateEmptyDictionary(CFAllocatorRef allocator) {
 #if DEPLOYMENT_TARGET_OBJC
     if (_CFAllocatorIsSystemDefault(allocator)) {
         return (CFDictionaryRef)CFRetain(__NSDictionary0__);
+    } else {
+        return CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     }
 #endif
     

@@ -27,9 +27,6 @@
 #include <stdlib.h>
 #include <pwd.h>
 #include <sysdir.h>
-#if __has_include(<sys/persona.h>)
-#include <sys/persona.h>
-#endif
 
 // For now, CFSystemDirectories SPIs are exactly equivalent to (or at least a subset of) sysdir's. NSSearchPath* APIs in Foundation are not a subset of sysdir, so don't attempt to push that functionality down here without accommodating the differences.
 #define CFSearchPathToSysdir(dir) ((sysdir_search_path_directory_t)dir)

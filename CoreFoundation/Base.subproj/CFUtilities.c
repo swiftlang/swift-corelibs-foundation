@@ -392,6 +392,26 @@ CFDictionaryRef _CFCopySystemVersionDictionary(void) {
     }
 }
 
+CFDictionaryRef _CFCopySystemVersionPlatformDictionary(void) {
+    static dispatch_once_t onceToken;
+    static CFDictionaryRef result = NULL;
+    dispatch_once(&onceToken, ^{
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/.SystemVersionPlatform.plist"));
+        CFPropertyListRef plist = _CFCopyVersionDictionary(path);
+        CFRelease(path);
+        if (!plist) {
+            // Fall back to the normal one in case the .SystemVersionPlatform.plist symlink is missing
+            plist = _CFCopySystemVersionDictionary();
+        }
+        result = (CFDictionaryRef)plist;
+    });
+    if (result) {
+        return CFRetain(result);
+    } else {
+        return NULL;
+    }
+}
+
 CFDictionaryRef _CFCopyServerVersionDictionary(void) {
     static dispatch_once_t onceToken;
     static CFDictionaryRef result = NULL;
@@ -418,7 +438,8 @@ static CFOperatingSystemVersion _CFCalculateOSVersion(void) {
         versionStruct.patchVersion = windowsVersion.dwBuildNumber;
     }
 #else
-    CFStringRef productVersion = _CFCopySystemVersionDictionaryValue(_kCFSystemVersionProductVersionKey);
+    CFStringRef resolvedProductVersionKey = _kCFSystemVersionProductVersionKey;
+    CFStringRef productVersion = _CFCopySystemVersionDictionaryValue(resolvedProductVersionKey);
     if (productVersion) {
         CFArrayRef components = CFStringCreateArrayBySeparatingStrings(kCFAllocatorDefault, productVersion, CFSTR("."));
         if (components) {
@@ -586,7 +607,7 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
 CF_PRIVATE uint64_t __CFMemorySize() {
     uint64_t memsize = 0;
 #if TARGET_OS_MAC
-    int32_t mib[] = {CTL_HW, HW_NCPU};
+    int32_t mib[] = {CTL_HW, HW_MEMSIZE};
     size_t len = sizeof(memsize);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &memsize, &len, NULL, 0);
     if (result != 0) {

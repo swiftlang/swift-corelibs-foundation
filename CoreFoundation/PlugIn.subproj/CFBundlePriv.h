@@ -230,6 +230,9 @@ void _CFBundleFlushCachesForURL(CFURLRef url) API_DEPRECATED("Function no longer
 CF_EXPORT
 void _CFBundleFlushBundleCaches(CFBundleRef bundle);    // The previous two functions flush cached resource paths; this one also flushes bundle-specific caches such as the info dictionary and strings files
 
+CF_EXPORT
+void _CFBundleFlushLanguageCachesAfterEUIDChange(void); // When a process changes its EDIU during lifetime, language-related caches may be outdated. Call this function to flush those caches. The only known client is loginwindow. Email i18n-help@apple.com before using this.
+
 CF_EXPORT 
 CFArrayRef _CFBundleCopyAllBundles(void); // Pending publication, the only known client of this is PowerBox. Email david_smith@apple.com before using this.
 
@@ -246,12 +249,34 @@ CFURLRef _CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executablePath);
 CF_EXPORT
 CFBundleRef _CFBundleGetBundleWithIdentifierAndLibraryName(CFStringRef bundleID, CFStringRef libraryName) API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
 
+/* Provide a hint to CFBundleGetBundleWithIdentifier about which library might be the one with the specified bundle identifier. Looks up the library that contains the specified pointer. If it doesn't work out, still performs the regular search. */
+CF_EXPORT
+CFBundleRef _CFBundleGetBundleWithIdentifierWithHint(CFStringRef bundleID, void *pointer) API_AVAILABLE(macos(12.0), ios(15.0), watchos(8.0), tvos(15.0));
+
+/* Return the URL of the wrapped bundle (via the symlink at the root of the wrapper bundle). */
+CF_EXPORT
+CFURLRef /* Nullable */ _CFBundleCopyWrappedBundleURL(CFBundleRef bundle) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
+
+/* Return the URL of the wrapper container inside the bundle. */
+CF_EXPORT
+CFURLRef /* Nullable */ _CFBundleCopyWrapperContainerURL(CFBundleRef bundle) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
+
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <xpc/xpc.h>
 CF_EXPORT
 void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+
+CF_EXPORT
+void _CFBundleSetupXPCBootstrapWithLanguages(xpc_object_t bootstrap, CFArrayRef appleLanguages) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
 #endif
 
+#if TARGET_OS_MAC
+CF_EXPORT
+cpu_type_t _CFBundleGetPreferredExecutableArchitecture(CFBundleRef bundle) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
+
+CF_EXPORT
+cpu_type_t _CFBundleGetPreferredExecutableArchitectureForURL(CFURLRef url) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
+#endif
 
 /* SPI for AppKit usage only, they should be only used in limited secnarios of the application load lifecycle */
 

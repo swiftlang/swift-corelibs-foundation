@@ -91,6 +91,8 @@ CF_ENUM(CFOptionFlags) {
 CF_PRIVATE void __CFCalendarSetupCal(CFCalendarRef calendar);
 CF_PRIVATE void __CFCalendarZapCal(CFCalendarRef calendar);
 
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
+
 CF_PRIVATE CFCalendarRef _CFCalendarCreateCopy(CFAllocatorRef allocator, CFCalendarRef calendar);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);

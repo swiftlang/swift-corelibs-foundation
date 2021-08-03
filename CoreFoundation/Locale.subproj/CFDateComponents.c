@@ -1,7 +1,7 @@
 /*    CFDateComponents.c
-      Copyright (c) 2004-2017, Apple Inc. and the Swift project authors
+      Copyright (c) 2004-2019, Apple Inc. and the Swift project authors
 
-      Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+      Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
       Licensed under Apache License v2.0 with Runtime Library Exception
       See http://swift.org/LICENSE.txt for license information
       See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -14,9 +14,7 @@
 #include "CFDateComponents.h"
 #include "CFInternal.h"
 #include "CFCalendar_Internal.h"
-
-/* Runtime setup */
-static CFTypeID __kCFDateComponentsTypeID = _kCFRuntimeNotATypeID;
+#include "CFRuntime_Internal.h"
 
 static Boolean __CFDateComponentsEqual(CFTypeRef cf1, CFTypeRef cf2) {
     assert(NULL != cf1);
@@ -153,11 +151,7 @@ const CFRuntimeClass __CFDateComponentsClass = {
 };
 
 CFTypeID CFDateComponentsGetTypeID(void) {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        __kCFDateComponentsTypeID = _CFRuntimeRegisterClass(&__CFDateComponentsClass);
-    });
-    return __kCFDateComponentsTypeID;
+    return _kCFRuntimeIDCFDateComponents;
 }
 /* End Runtime setup */
 

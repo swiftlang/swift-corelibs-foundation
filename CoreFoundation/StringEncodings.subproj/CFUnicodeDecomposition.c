@@ -24,24 +24,20 @@ static UTF32Char *__CFUniCharMultipleDecompositionTable = NULL;
 static const uint8_t *__CFUniCharDecomposableBitmapForBMP = NULL;
 static const uint8_t *__CFUniCharHFSPlusDecomposableBitmapForBMP = NULL;
 
-static os_unfair_lock __CFUniCharDecompositionTableLock = OS_UNFAIR_LOCK_INIT;
+static dispatch_once_t once;
 
 static const uint8_t **__CFUniCharCombiningPriorityTable = NULL;
 static uint8_t __CFUniCharCombiningPriorityTableNumPlane = 0;
 
 static void __CFUniCharLoadDecompositionTable(void) {
-
-    os_unfair_lock_lock(&__CFUniCharDecompositionTableLock);
-
-    if (NULL == __CFUniCharDecompositionTable) {
+    dispatch_once(&once, ^{
         const uint32_t *bytes = (uint32_t *)CFUniCharGetMappingData(kCFUniCharCanonicalDecompMapping);
 
         if (NULL == bytes) {
-            os_unfair_lock_unlock(&__CFUniCharDecompositionTableLock);
             return;
         }
 
-        __CFUniCharDecompositionTableLength = unaligned_load32(bytes++);
+        __CFUniCharDecompositionTableLength = _CFUnalignedLoad32(bytes++);
         __CFUniCharDecompositionTable = (UTF32Char *)bytes;
         __CFUniCharMultipleDecompositionTable = (UTF32Char *)((intptr_t)bytes + __CFUniCharDecompositionTableLength);
 
@@ -54,9 +50,7 @@ static void __CFUniCharLoadDecompositionTable(void) {
         __CFUniCharCombiningPriorityTableNumPlane = CFUniCharGetNumberOfPlanesForUnicodePropertyData(kCFUniCharCombiningProperty);
         __CFUniCharCombiningPriorityTable = (const uint8_t **)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(uint8_t *) * __CFUniCharCombiningPriorityTableNumPlane, 0);
         for (idx = 0;idx < __CFUniCharCombiningPriorityTableNumPlane;idx++) __CFUniCharCombiningPriorityTable[idx] = (const uint8_t *)CFUniCharGetUnicodePropertyDataForPlane(kCFUniCharCombiningProperty, idx);
-    }
-
-    os_unfair_lock_unlock(&__CFUniCharDecompositionTableLock);
+    });
 }
 
 static CFLock_t __CFUniCharCompatibilityDecompositionTableLock = CFLockInit;
@@ -102,8 +96,8 @@ typedef struct {
 static uint32_t __CFUniCharGetMappedValue(const __CFUniCharDecomposeMappings *theTable, uint32_t numElem, UTF32Char character) {
     const __CFUniCharDecomposeMappings *p, *q, *divider;
 
-#define READ_KEY(x)     unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharDecomposeMappings, _key))
-#define READ_VALUE(x)   unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharDecomposeMappings, _value))
+#define READ_KEY(x)     _CFUnalignedLoad32(((uint8_t *)x) + offsetof(__CFUniCharDecomposeMappings, _key))
+#define READ_VALUE(x)   _CFUnalignedLoad32(((uint8_t *)x) + offsetof(__CFUniCharDecomposeMappings, _value))
 
     if ((character < READ_KEY(&theTable[0])) || (character > READ_KEY(&theTable[numElem-1]))) {
         return 0;
@@ -168,7 +162,7 @@ static CFIndex __CFUniCharRecursivelyDecomposeCharacter(UTF32Char character, UTF
 
     usedLength += length;
 
-    while (length--) *(convertedChars++) = unaligned_load32(mappings++);
+    while (length--) *(convertedChars++) = _CFUnalignedLoad32(mappings++);
 
     return usedLength;
 }
@@ -184,7 +178,7 @@ static CFIndex __CFUniCharRecursivelyDecomposeCharacter(UTF32Char character, UTF
 #define HANGUL_NCOUNT (HANGUL_VCOUNT * HANGUL_TCOUNT)
 
 CFIndex CFUniCharDecomposeCharacter(UTF32Char character, UTF32Char *convertedChars, CFIndex maxBufferLength) {
-    if (NULL == __CFUniCharDecompositionTable) __CFUniCharLoadDecompositionTable();
+    __CFUniCharLoadDecompositionTable();
     if (character >= HANGUL_SBASE && character <= (HANGUL_SBASE + HANGUL_SCOUNT)) {
         CFIndex length;
 
@@ -223,7 +217,7 @@ bool CFUniCharDecomposeWithErrorLocation(const UTF16Char *src, CFIndex length, C
     // kCFNotFound indicates an insufficiently sized buffer, which is the default failure case.
     if (charIndex) *charIndex = kCFNotFound;
 
-    if (NULL == __CFUniCharDecompositionTable) __CFUniCharLoadDecompositionTable();
+    __CFUniCharLoadDecompositionTable();
 
     while ((length - segmentLength) > 0) {
         currentChar = *(src++);

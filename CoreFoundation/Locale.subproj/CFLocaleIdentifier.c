@@ -1980,6 +1980,7 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 				languagelength = strlen(searchString);	// in case it got truncated
 				icuStatus = U_ZERO_ERROR;
 				componentLength = uloc_getScript( localeCString, componentString, sizeof(componentString), &icuStatus );
+                                Boolean foundScript = false;
 				if ( U_FAILURE(icuStatus) || componentLength == 0 ) {
 					icuStatus = U_ZERO_ERROR;
 					componentLength = uloc_getCountry( localeCString, componentString, sizeof(componentString), &icuStatus );
@@ -1990,7 +1991,9 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 							componentLength = 0;
 						}
 					}
-				}
+                                } else {
+                                    foundScript = true;
+                                }
 				
 				// Append whichever other component we first found
 				if (componentLength > 0) {
@@ -2000,8 +2003,11 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 				
 				// Search
 				foundEntryPtr = (const LocaleToLegacyCodes *)bsearch( &searchEntry, localeToLegacyCodes, kNumLocaleToLegacyCodes, sizeof(LocaleToLegacyCodes), CompareLocaleToLegacyCodesEntries );
-				if (foundEntryPtr == NULL && (int32_t) strlen(searchString) > languagelength) {
-					// truncate to language al;one and try again
+
+                                // Do not try fallback if string encoding is requested AND a script is present in the passed-in locale since the script might affect the string encoding: <rdar://problem/54531339>
+                                BOOL lookingForScript = foundScript && stringEncoding != NULL;
+                                if (foundEntryPtr == NULL && (int32_t) strlen(searchString) > languagelength && !lookingForScript) {
+                                        // Otherwise truncate to language alone and try again
 					searchString[languagelength] = 0;
 					foundEntryPtr = (const LocaleToLegacyCodes *)bsearch( &searchEntry, localeToLegacyCodes, kNumLocaleToLegacyCodes, sizeof(LocaleToLegacyCodes), CompareLocaleToLegacyCodesEntries );
 				}

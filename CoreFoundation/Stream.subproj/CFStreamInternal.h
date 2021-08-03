@@ -12,7 +12,7 @@
 #include <CoreFoundation/CFStreamAbstract.h>
 #include <CoreFoundation/CFStreamPriv.h>
 #include <CoreFoundation/CFBase.h>
-#include <CoreFoundation/CFInternal.h>
+#include "CFInternal.h"
 #include <CoreFoundation/CFRuntime.h>
 
 CF_EXTERN_C_BEGIN

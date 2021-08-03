@@ -20,14 +20,14 @@ enum {
     _kCFRuntimeIDCFAllocator = 2,
     _kCFRuntimeIDCFBasicHash = 3,
     _kCFRuntimeIDCFBag = 4,
-    _kCFRuntimeIDCFString = 7,
+    _kCFRuntimeIDCFString = 7, // Note: value copied into NSKeyedArchiver
     _kCFRuntimeIDCFNull = 16,
     _kCFRuntimeIDCFSet = 17,
-    _kCFRuntimeIDCFDictionary = 18,
-    _kCFRuntimeIDCFArray = 19,
-    _kCFRuntimeIDCFData = 20,
-    _kCFRuntimeIDCFBoolean = 21,
-    _kCFRuntimeIDCFNumber = 22,
+    _kCFRuntimeIDCFDictionary = 18, // Note: value copied into NSKeyedArchiver
+    _kCFRuntimeIDCFArray = 19, // Note: value copied into NSKeyedArchiver
+    _kCFRuntimeIDCFData = 20, // Note: value copied into NSKeyedArchiver
+    _kCFRuntimeIDCFBoolean = 21, // Note: value copied into NSKeyedArchiver
+    _kCFRuntimeIDCFNumber = 22, // Note: value copied into NSKeyedArchiver
     _kCFRuntimeIDCFBinaryHeap = 23,
     _kCFRuntimeIDCFBitVector = 24,
     _kCFRuntimeIDCFCharacterSet = 25,
@@ -47,7 +47,7 @@ enum {
     _kCFRuntimeIDCFReadStream = 38,
     _kCFRuntimeIDCFWriteStream = 39,
     _kCFRuntimeIDCFKeyedArchiverUID = 41,
-    _kCFRuntimeIDCFDate = 42,
+    _kCFRuntimeIDCFDate = 42, // Note: value copied into NSKeyedArchiver
     _kCFRuntimeIDCFRunLoop = 43,
     _kCFRuntimeIDCFRunLoopMode = 44,
     _kCFRuntimeIDCFRunLoopObserver = 45,
@@ -77,6 +77,8 @@ enum {
     _kCFRuntimeIDCFAttributedString = 62,
     _kCFRuntimeIDCFRunArray = 63,
     _kCFRuntimeIDCFDateComponents = 66,
+    _kCFRuntimeIDCFRelativeDateTimeFormatter = 67,
+    _kCFRuntimeIDCFListFormatter = 68,
     _kCFRuntimeIDCFDateIntervalFormatter = 69,
 
     // If you are adding a new value, it goes below this line.:
@@ -84,6 +86,36 @@ enum {
     // Stuff not in CF goes here. This value should be one more than the last one above.
     _kCFRuntimeStartingClassID
 };
+
+CF_PRIVATE CFTypeID _CFGetNonObjCTypeID(CFTypeRef cf);
+
+__attribute__((cold, noinline, noreturn, not_tail_called))
+CF_PRIVATE void _CFAssertMismatchedTypeID(CFTypeID expected, CFTypeID actual);
+
+/// CF Maintainers:
+/// Use this assert in CoreFoundation functions that directly dereference `cf` to get at its ivars.
+/// Do not use this assert before calling a CF API on that type if you do not own it.
+/// It is only for use in CF types that are not bridged and may never be nil.
+CF_INLINE void CF_ASSERT_TYPE(CFTypeID expected, CFTypeRef cf) {
+    CFTypeID actual = _CFGetNonObjCTypeID(cf);
+    if (__builtin_expect(expected != actual, false)) {
+        _CFAssertMismatchedTypeID(expected, actual);
+    }
+}
+
+/// CF Maintainers:
+/// Use this assert in CoreFoundation functions that directly dereference `cf` to get at its ivars.
+/// Do not use this assert before calling a CF API on that type if you do not own it.
+/// It is only for use in CF types that are not bridged and may be nil.
+CF_INLINE void CF_ASSERT_TYPE_OR_NULL(CFTypeID expected, CFTypeRef /*_Nullable*/ cf) {
+    if (cf == ((void*)0)) {
+        return;
+    }
+    CFTypeID actual = _CFGetNonObjCTypeID(cf);
+    if (__builtin_expect(expected != actual, false)) {
+        _CFAssertMismatchedTypeID(expected, actual);
+    }
+}
 
 CF_PRIVATE const CFRuntimeClass __CFAllocatorClass;
 CF_PRIVATE const CFRuntimeClass __CFBasicHashClass;
@@ -144,6 +176,8 @@ CF_PRIVATE const CFRuntimeClass __CFWindowsNamedPipeClass;
 CF_PRIVATE const CFRuntimeClass __CFTimeZoneClass;
 CF_PRIVATE const CFRuntimeClass __CFCalendarClass;
 CF_PRIVATE const CFRuntimeClass __CFDateComponentsClass;
+CF_PRIVATE const CFRuntimeClass __CFRelativeDateTimeFormatterClass;
+CF_PRIVATE const CFRuntimeClass __CFListFormatterClass;
 CF_PRIVATE const CFRuntimeClass __CFDateIntervalFormatterClass;
 
 #pragma mark - Private initialiers to run at process start time
@@ -158,6 +192,5 @@ CF_PRIVATE void __CFTSDWindowsInitialize(void);
 #if TARGET_OS_MAC || TARGET_OS_IPHONE || TARGET_OS_WIN32
 CF_PRIVATE void __CFXPreferencesInitialize(void);
 #endif
-
 
 #endif /* CFRuntime_Internal_h */

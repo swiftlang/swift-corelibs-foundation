@@ -136,7 +136,10 @@ CF_INLINE void __CFMachPortInvalidateLocked(CFRunLoopSourceRef source, CFMachPor
         __CFLock(&mp->_lock);
     }
     mp->_state = kCFMachPortStateInvalid;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
     OSMemoryBarrier();
+#pragma GCC diagnostic pop
 }
 
 static void __CFMachPortDeallocate(CFTypeRef cf) {
@@ -149,7 +152,10 @@ static void __CFMachPortDeallocate(CFTypeRef cf) {
     Boolean wasReady = (mp->_state == kCFMachPortStateReady);
     if (wasReady) {
         mp->_state = kCFMachPortStateInvalidating;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
         OSMemoryBarrier();
+#pragma GCC diagnostic pop
         if (mp->_dsrc) {
             dispatch_source_cancel(mp->_dsrc);
             mp->_dsrc = NULL;
@@ -203,7 +209,10 @@ static void __CFMachPortChecker(void) {
                 }
                 else {
                     mp->_state = kCFMachPortStateInvalidating;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
                     OSMemoryBarrier();
+#pragma GCC diagnostic pop
                     if (mp->_dsrc) {
                         dispatch_source_cancel(mp->_dsrc);
                         mp->_dsrc = NULL;
@@ -320,7 +329,10 @@ CFMachPortRef _CFMachPortCreateWithPort2(CFAllocatorRef allocator, mach_port_t p
                     _cfmp_source_invalidated(_CFMPLifetimeClientCFMachPort, port);
                     dispatch_release(theSource);
                 });
-                dispatch_source_set_event_handler(theSource, ^{ __CFMachPortChecker(); });
+                dispatch_source_set_event_handler(theSource, ^{
+                    _cfmp_source_record_deadness(_CFMPLifetimeClientCFMachPort, port);
+                    __CFMachPortChecker();
+                });
                 memory->_dsrc = theSource;
                 dispatch_resume(theSource);
 	    }
@@ -379,7 +391,10 @@ void CFMachPortInvalidate(CFMachPortRef mp) {
     wasReady = (mp->_state == kCFMachPortStateReady);
     if (wasReady) {
         mp->_state = kCFMachPortStateInvalidating;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
         OSMemoryBarrier();
+#pragma GCC diagnostic pop
         for (CFIndex idx = 0, cnt = __CFAllMachPorts ? CFArrayGetCount(__CFAllMachPorts) : 0; idx < cnt; idx++) {
             CFMachPortRef p = (CFMachPortRef)CFArrayGetValueAtIndex(__CFAllMachPorts, idx);
             if (p == mp) {
@@ -412,6 +427,7 @@ mach_port_t CFMachPortGetPort(CFMachPortRef mp) {
 }
 
 void CFMachPortGetContext(CFMachPortRef mp, CFMachPortContext *context) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMachPort, mp);
     __CFGenericValidateType(mp, CFMachPortGetTypeID());
     CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     memmove(context, &mp->_context, sizeof(CFMachPortContext));
@@ -431,7 +447,7 @@ Boolean CFMachPortIsValid(CFMachPortRef mp) {
 }
 
 CFMachPortInvalidationCallBack CFMachPortGetInvalidationCallBack(CFMachPortRef mp) {
-    __CFGenericValidateType(mp, CFMachPortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMachPort, mp);
     __CFLock(&mp->_lock);
     CFMachPortInvalidationCallBack cb = mp->_icallout;
     __CFUnlock(&mp->_lock);
@@ -441,8 +457,8 @@ CFMachPortInvalidationCallBack CFMachPortGetInvalidationCallBack(CFMachPortRef m
 /* After the CFMachPort has started going invalid, or done invalid, you can't change this, and
    we'll only do the callout directly on a transition from NULL to non-NULL. */
 void CFMachPortSetInvalidationCallBack(CFMachPortRef mp, CFMachPortInvalidationCallBack callout) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMachPort, mp);
     CHECK_FOR_FORK_RET();
-    __CFGenericValidateType(mp, CFMachPortGetTypeID());
     if (callout) {
 	mach_port_type_t type = 0;
 	kern_return_t ret = mach_port_type(mach_task_self(), mp->_port, &type);
@@ -466,8 +482,8 @@ void CFMachPortSetInvalidationCallBack(CFMachPortRef mp, CFMachPortInvalidationC
 
 /* Returns the number of messages queued for a receive port. */
 CFIndex CFMachPortGetQueuedMessageCount(CFMachPortRef mp) {  
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMachPort, mp);
     CHECK_FOR_FORK_RET(0);
-    __CFGenericValidateType(mp, CFMachPortGetTypeID());
     mach_port_status_t status;
     mach_msg_type_number_t num = MACH_PORT_RECEIVE_STATUS_COUNT;
     kern_return_t ret = mach_port_get_attributes(mach_task_self(), mp->_port, MACH_PORT_RECEIVE_STATUS, (mach_port_info_t)&status, &num);
@@ -512,8 +528,8 @@ CF_PRIVATE void *__CFMachPortPerform(void *msg, CFIndex size, CFAllocatorRef all
     
     
 CFRunLoopSourceRef CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMachPortRef mp, CFIndex order) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMachPort, mp);
     CHECK_FOR_FORK_RET(NULL);
-    __CFGenericValidateType(mp, CFMachPortGetTypeID());
     if (!CFMachPortIsValid(mp)) return NULL;
     CFRunLoopSourceRef result = NULL;
     __CFLock(&mp->_lock);

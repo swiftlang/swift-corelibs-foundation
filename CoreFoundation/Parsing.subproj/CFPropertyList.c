@@ -10,6 +10,7 @@
 
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFPropertyList_Private.h>
+#include "CFPropertyList_Internal.h"
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFNumber.h>
@@ -141,26 +142,29 @@ static CFStringRef __copyErrorDebugDescription(CFErrorRef error) {
 // don't allow _CFKeyedArchiverUID here
 #define __CFAssertIsPList(cf) CFAssert2(CFGetTypeID(cf) == CFStringGetTypeID() || CFGetTypeID(cf) == CFArrayGetTypeID() || CFGetTypeID(cf) == CFBooleanGetTypeID() || CFGetTypeID(cf) == CFNumberGetTypeID() || CFGetTypeID(cf) == CFDictionaryGetTypeID() || CFGetTypeID(cf) == CFDateGetTypeID() || CFGetTypeID(cf) == CFDataGetTypeID(), __kCFLogAssertion, "%s(): %p not of a property list type", __PRETTY_FUNCTION__, cf);
 
-struct context {
+typedef struct context {
     bool answer;
-    CFMutableSetRef set;
     CFPropertyListFormat format;
-    CFStringRef *error;
-};
+    CFMutableSetRef _Nullable set;
+    CFStringRef * _Nullable error;
+    CFMutableBagRef _Nullable referenceBag; /* Only used for non-bplists */
+} ___CFPropertyListIsValidContext;
 
-static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, CFMutableSetRef set, CFPropertyListFormat format, CFStringRef *error);
+typedef ___CFPropertyListIsValidContext * __CFPropertyListIsValidContext;
+
+static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, __CFPropertyListIsValidContext _Nonnull context);
 
 static void __CFPropertyListIsArrayPlistAux(const void *value, void *context) {
-    struct context *ctx = (struct context *)context;
+    __CFPropertyListIsValidContext ctx = context;
     if (!ctx->answer) return;
     if (!value && ctx->error && !*(ctx->error)) {
 	*(ctx->error) = (CFStringRef)CFRetain(CFSTR("property list arrays cannot contain NULL"));
     }
-    ctx->answer = value && __CFPropertyListIsValidAux(value, true, ctx->set, ctx->format, ctx->error);
+    ctx->answer = value && __CFPropertyListIsValidAux(value, true, ctx);
 }
 
 static void __CFPropertyListIsDictPlistAux(const void *key, const void *value, void *context) {
-    struct context *ctx = (struct context *)context;
+    __CFPropertyListIsValidContext ctx = context;
     if (!ctx->answer) return;
     if (!key && ctx->error && !*(ctx->error)) *(ctx->error) = (CFStringRef)CFRetain(CFSTR("property list dictionaries cannot contain NULL keys"));
     if (!value && ctx->error && !*(ctx->error)) *(ctx->error) = (CFStringRef)CFRetain(CFSTR("property list dictionaries cannot contain NULL values"));
@@ -169,56 +173,110 @@ static void __CFPropertyListIsDictPlistAux(const void *key, const void *value, v
 	*(ctx->error) = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("property list dictionaries may only have keys which are CFStrings, not '%@'"), desc);
 	CFRelease(desc);
     }
-    ctx->answer = key && value && (_kCFRuntimeIDCFString == CFGetTypeID(key)) && __CFPropertyListIsValidAux(value, true, ctx->set, ctx->format, ctx->error);
+    ctx->answer = key && value && (_kCFRuntimeIDCFString == CFGetTypeID(key)) && __CFPropertyListIsValidAux(value, true, ctx);
 }
 
-static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, CFMutableSetRef set, CFPropertyListFormat format, CFStringRef *error) {
+static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, __CFPropertyListIsValidContext _Nonnull context) {
+    CFAssert1(context != NULL, __kCFLogAssertion, "%s(): context cannot be null", __PRETTY_FUNCTION__);
+    
     if (!plist) {
-	if (error) *error = (CFStringRef)CFRetain(CFSTR("property lists cannot contain NULL"));
-    	return false;
+        if (context->error) *context->error = (CFStringRef)CFRetain(CFSTR("property lists cannot contain NULL"));
+        return false;
     }
+    
     CFTypeID type = CFGetTypeID(plist);
     if (_kCFRuntimeIDCFString == type) return true;
     if (_kCFRuntimeIDCFData == type) return true;
-    if (kCFPropertyListOpenStepFormat != format) {
-	if (_kCFRuntimeIDCFBoolean == type) return true;
-	if (_kCFRuntimeIDCFNumber == type) return true;
-	if (_kCFRuntimeIDCFDate == type) return true;
-	if (_CFKeyedArchiverUIDGetTypeID() == type) return true;
+    if (kCFPropertyListOpenStepFormat != context->format) {
+        if (_kCFRuntimeIDCFBoolean == type) return true;
+        if (_kCFRuntimeIDCFNumber == type) return true;
+        if (_kCFRuntimeIDCFDate == type) return true;
+        if (_CFKeyedArchiverUIDGetTypeID() == type) return true;
     }
-    if (!recursive && _kCFRuntimeIDCFArray == type) return true;
-    if (!recursive && _kCFRuntimeIDCFDictionary == type) return true;
     
-    // at any one invocation of this function, set should contain the objects in the "path" down to this object. For the outermost invocation it can be NULL.
-    Boolean createdSet = false;
-    if (!set) {
-        set = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
-        createdSet = true;
-    } else if (CFSetContainsValue(set, plist)) {
-	if (error) *error = (CFStringRef)CFRetain(CFSTR("property lists cannot contain recursive container references"));
-	return false;
+    if (!recursive && _kCFRuntimeIDCFArray == type) {
+        return true;
     }
-    Boolean result = false;
+    if (!recursive && _kCFRuntimeIDCFDictionary == type) {
+        return true;
+    }
+    
+    // At any one invocation of this function, referenceBag should contain the objects in the "path" down to this object.
+    // For the outermost invocation it can be NULL.
+    bool createdSet = false;
+    if (!context->set) {
+        context->set = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
+        createdSet = true;
+    } else if (CFSetContainsValue(context->set, plist)) {
+        if (context->error) *context->error = (CFStringRef)CFRetain(CFSTR("property lists cannot contain recursive container references"));
+        return false;
+    }
+    
+    // It's valid for bplists to contain references to other collections
+    // consider this:
+    //
+    // C = @[ @"a", @"a", @"a" ];
+    // B = @[ c, c, c ];
+    // A = @[ b, b, b ];
+    //
+    // But this can cause an explosion when converting those endlessly
+    // recursive collections to XML or OpenSTEP plists. We already have
+    // a max recursion depth limit, if we exceed it consider the plist invalid.
+    bool createdRefBag = false;
+    bool const limitCollectionDepth = context->format != kCFPropertyListBinaryFormat_v1_0;
+    
+    if (limitCollectionDepth) {
+        if (!context->referenceBag) {
+            CFBagCallBacks callbacks = kCFTypeBagCallBacks;
+            callbacks.equal = NULL;
+            callbacks.hash = NULL;
+            context->referenceBag = CFBagCreateMutable(kCFAllocatorDefault, 0, &callbacks);
+            createdRefBag = true;
+        } else if (CFBagGetCountOfValue(context->referenceBag, plist) > _CFPropertyListMaxRecursionWidth()) {
+            if (context->error) *context->error = (CFStringRef)CFRetain(CFSTR("Too many nested arrays or dictionaries please use kCFPropertyListBinaryFormat_v1_0 instead which supports references"));
+            return false;
+        }
+    }
+    
+    bool result = false;
     if (_kCFRuntimeIDCFArray == type) {
-	struct context ctx = {true, set, format, error}; 
-	CFSetAddValue(set, plist);
-	CFArrayApplyFunction((CFArrayRef)plist, CFRangeMake(0, CFArrayGetCount((CFArrayRef)plist)), __CFPropertyListIsArrayPlistAux, &ctx);
-	CFSetRemoveValue(set, plist);
-	result = ctx.answer;
+        CFIndex const arrayCount = CFArrayGetCount((CFArrayRef)plist);
+        // only arrays larger than zero could have cyclic references
+        if (arrayCount > 0 && limitCollectionDepth) {
+            CFBagAddValue(context->referenceBag, plist);
+        }
+        
+        CFSetAddValue(context->set, plist);
+        CFArrayApplyFunction((CFArrayRef)plist, CFRangeMake(0, arrayCount), __CFPropertyListIsArrayPlistAux, context);
+        CFSetRemoveValue(context->set, plist);
+        result = context->answer;
     } else if (_kCFRuntimeIDCFDictionary == type) {
-	struct context ctx = {true, set, format, error}; 
-	CFSetAddValue(set, plist);
-	CFDictionaryApplyFunction((CFDictionaryRef)plist, __CFPropertyListIsDictPlistAux, &ctx);
-	CFSetRemoveValue(set, plist);
-        result = ctx.answer;
-    } else if (error) {
+        CFIndex const dictCount = CFDictionaryGetCount((CFDictionaryRef)plist);
+        // only dictionaries larger than zero could have cyclic references
+        if (dictCount > 0 && limitCollectionDepth) {
+            CFBagAddValue(context->referenceBag, plist);
+        }
+        
+        CFSetAddValue(context->set, plist);
+        CFDictionaryApplyFunction((CFDictionaryRef)plist, __CFPropertyListIsDictPlistAux, context);
+        CFSetRemoveValue(context->set, plist);
+        result = context->answer;
+    } else if (context->error) {
         CFStringRef desc = CFCopyTypeIDDescription(type);
-        *error = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("property lists cannot contain objects of type '%@'"), desc);
+        *context->error = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("property lists cannot contain objects of type '%@'"), desc);
         CFRelease(desc);
     }
-
+    
     if (createdSet) {
-        CFRelease(set);
+        CFAssert1(context->set != NULL, __kCFLogAssertion, "%s(): context->set cannot be null", __PRETTY_FUNCTION__);
+        CFRelease(context->set);
+        context->set = NULL;
+    }
+    
+    if (createdRefBag) {
+        CFAssert1(context->referenceBag != NULL, __kCFLogAssertion, "%s(): context->referenceBag cannot be null", __PRETTY_FUNCTION__);
+        CFRelease(context->referenceBag);
+        context->referenceBag = NULL;
     }
 
     return result;
@@ -226,7 +284,15 @@ static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, 
 
 static Boolean _CFPropertyListIsValidWithErrorString(CFPropertyListRef plist, CFPropertyListFormat format, CFStringRef *error) {
     CFAssert1(plist != NULL, __kCFLogAssertion, "%s(): NULL is not a property list", __PRETTY_FUNCTION__);
-    return __CFPropertyListIsValidAux(plist, true, NULL, format, error);
+    
+    ___CFPropertyListIsValidContext context = {
+        .answer = true,
+        .format = format,
+        .error = error,
+        .referenceBag = NULL
+    };
+    
+    return (Boolean)__CFPropertyListIsValidAux(plist, true, &context);
 }
 
 #pragma mark -
@@ -708,22 +774,21 @@ CFDataRef CFPropertyListCreateXMLData(CFAllocatorRef allocator, CFPropertyListRe
     return _CFPropertyListCreateXMLData(allocator, propertyList, true);
 }
 
-CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList) {
+CF_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList) {
     return _CFPropertyListCreateXMLData(allocator, propertyList, false);
 }
 
 Boolean CFPropertyListIsValid(CFPropertyListRef plist, CFPropertyListFormat format) {
+    // The first is only there for testing when building with `-DDEBUG`
+    // See the actual implementation in the `else` below
     CFAssert1(plist != NULL, __kCFLogAssertion, "%s(): NULL is not a property list", __PRETTY_FUNCTION__);
-    return __CFPropertyListIsValidAux(plist, true, NULL, format, NULL);
-#if defined(DEBUG)
-    CFStringRef error = NULL;
-    bool result = __CFPropertyListIsValidAux(plist, true, NULL, format, &error);
-    if (error) {
-	CFLog(kCFLogLevelWarning, CFSTR("CFPropertyListIsValid(): %@"), error);
-	CFRelease(error);
-    }
-    return result;
-#endif
+    ___CFPropertyListIsValidContext context = {
+        .answer = true,
+        .format = format,
+        .error = NULL,
+        .referenceBag = NULL
+    };
+    return __CFPropertyListIsValidAux(plist, true, &context);
 }
 
 // ========================================================================
@@ -734,8 +799,7 @@ Boolean CFPropertyListIsValid(CFPropertyListRef plist, CFPropertyListFormat form
 // ------------------------- Reading plists ------------------
 // 
 
-static void skipInlineDTD(_CFXMLPlistParseInfo *pInfo);
-static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTypeRef *out);
+static Boolean parseXMLElement(_CFXMLPlistParseInfo * _Nonnull pInfo, Boolean * _Nullable isKey, CFTypeRef * _Nullable out, size_t curDepth);
 
 // warning: doesn't have a good idea of Unicode line separators
 static UInt32 lineNumber(_CFXMLPlistParseInfo *pInfo) {
@@ -826,8 +890,6 @@ static void skipDTD(_CFXMLPlistParseInfo *pInfo) {
         return;
     }
 
-    // *Sigh* Must parse in-line DTD
-    skipInlineDTD(pInfo);
     if (pInfo->error)  return;
     skipWhitespace(pInfo);
     if (pInfo->error) return;
@@ -842,74 +904,19 @@ static void skipDTD(_CFXMLPlistParseInfo *pInfo) {
     }
 }
 
-static void skipPERef(_CFXMLPlistParseInfo *pInfo) {
-    const char *p = pInfo->curr;
-    while (p < pInfo->end) {
-        if (*p == ';') {
-            pInfo->curr = p+1;
-            return;
-        }
-        p ++;
-    }
-    pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected EOF while parsing percent-escape sequence begun on line %d"), lineNumber(pInfo));
-}
-
-// First character should be just past '['
-static void skipInlineDTD(_CFXMLPlistParseInfo *pInfo) {
-    while (!pInfo->error && pInfo->curr < pInfo->end) {
-        UniChar ch;
-        skipWhitespace(pInfo);
-        ch = *pInfo->curr;
-        if (ch == '%') {
-            pInfo->curr ++;
-            skipPERef(pInfo);
-        } else if (ch == '<') {
-            pInfo->curr ++;
-            if (pInfo->curr >= pInfo->end) {
-                pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected EOF while parsing inline DTD"));
-                return;
-            }
-            ch = *(pInfo->curr);
-            if (ch == '?') {
-                pInfo->curr ++;
-                skipXMLProcessingInstruction(pInfo);
-            } else if (ch == '!') {
-                if (pInfo->curr + 2 < pInfo->end && (*(pInfo->curr+1) == '-' && *(pInfo->curr+2) == '-')) {
-                    pInfo->curr += 3;
-                    skipXMLComment(pInfo);
-                } else {
-                    // Skip the myriad of DTD declarations of the form "<!string" ... ">"
-                    pInfo->curr ++; // Past both '<' and '!'
-                    while (pInfo->curr < pInfo->end) {
-                        if (*(pInfo->curr) == '>') break;
-                        pInfo->curr ++;
-                    }
-                    if (*(pInfo->curr) != '>') {
-                        pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected EOF while parsing inline DTD"));
-                        return;
-                    }
-                    pInfo->curr ++;
-                }
-            } else {
-                pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected character %c on line %d while parsing inline DTD"), ch, lineNumber(pInfo));
-                return;
-            }
-        } else if (ch == ']') {
-            pInfo->curr ++;
-            return;
-        } else {
-            pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected character %c on line %d while parsing inline DTD"), ch, lineNumber(pInfo));
-            return;
-        }
-    }
-    if (!pInfo->error) {
-        pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected EOF while parsing inline DTD"));
-    }
-}
-
 // content ::== (element | CharData | Reference | CDSect | PI | Comment)*
 // In the context of a plist, CharData, Reference and CDSect are not legal (they all resolve to strings).  Skipping whitespace, then, the next character should be '<'.  From there, we figure out which of the three remaining cases we have (element, PI, or Comment).
-static Boolean getContentObject(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTypeRef *out) {
+static Boolean getContentObject(_CFXMLPlistParseInfo * _Nonnull pInfo, Boolean * _Nullable isKey, CFTypeRef * _Nullable out, size_t curDepth) {
+    if (curDepth > _CFPropertyListMaxRecursionDepth()) {
+        // Bail before we get so far into the stack that we run out of space.
+        //
+        // In bplist parsing we don't have the ability to set the error message
+        // descriptively like we do here, so in bplists we use an `os_log_fault`
+        // here we can just set `pInfo->error` see rdar://65835843
+        pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Too many nested arrays or dictionaries, failing on line %d"), lineNumber(pInfo));
+        return false;
+    }
+    
     if (isKey) *isKey = false;
     while (!pInfo->error && pInfo->curr < pInfo->end) {
         skipWhitespace(pInfo);
@@ -938,7 +945,8 @@ static Boolean getContentObject(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFT
                     return false;
                 }
                 if (*(pInfo->curr+1) == '-' && *(pInfo->curr+2) == '-') {
-                    pInfo->curr += 2;
+                    // skip `--` and set the cursor 1 past the two dashes
+                    pInfo->curr += 3;
                     skipXMLComment(pInfo);
                 } else {
                     pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered unexpected EOF"));
@@ -951,7 +959,7 @@ static Boolean getContentObject(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFT
                 return false;
             default:
                 // Should be an element
-                return parseXMLElement(pInfo, isKey, out);
+                return parseXMLElement(pInfo, isKey, out, curDepth);
         }
     }
     // Do not set the error string here; if it wasn't already set by one of the recursive parsing calls, the caller will quickly detect the failure (b/c pInfo->curr >= pInfo->end) and provide a more useful one of the form "end tag for <blah> not found"
@@ -1262,15 +1270,15 @@ static Boolean checkForCloseTag(_CFXMLPlistParseInfo *pInfo, const char *tag, CF
 }
 
 // pInfo should be set to the first content character of the <plist>
-static Boolean parsePListTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
+static Boolean parsePListTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out, size_t curDepth) {
     CFTypeRef result = NULL;
-    if (!getContentObject(pInfo, NULL, &result)) {
+    if (!getContentObject(pInfo, NULL, &result, curDepth)) {
         if (!pInfo->error) pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered empty plist tag"));
         return false;
     }
     const char *save = pInfo->curr; // Save this in case the next step fails
     CFTypeRef tmp = NULL;
-    if (getContentObject(pInfo, NULL, &tmp)) {
+    if (getContentObject(pInfo, NULL, &tmp, curDepth)) {
         // Got an extra object
         __CFPListRelease(tmp, pInfo->allocator);
         __CFPListRelease(result, pInfo->allocator);
@@ -1356,17 +1364,16 @@ CF_PRIVATE void __CFPropertyListCreateSplitKeypaths(CFAllocatorRef allocator, CF
     *nextKeys = outNextKeys;
 }
 
-static Boolean parseArrayTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
+static Boolean parseArrayTag(_CFXMLPlistParseInfo * _Nonnull pInfo, CFTypeRef * _Nullable out, size_t curDepth) {
     CFTypeRef tmp = NULL;
-
     if (pInfo->skip) {
-        Boolean result = getContentObject(pInfo, NULL, &tmp);
+        Boolean result = getContentObject(pInfo, NULL, &tmp, curDepth);
         while (result) {
             if (tmp) {
                 // Shouldn't happen (if skipping, all content values should be null), but just in case
                 __CFPListRelease(tmp, pInfo->allocator);
             }
-            result = getContentObject(pInfo, NULL, &tmp);
+            result = getContentObject(pInfo, NULL, &tmp, curDepth);
         }
         
         if (pInfo->error) {
@@ -1396,7 +1403,7 @@ static Boolean parseArrayTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
         count++;
         pInfo->keyPaths = newKeyPaths;
     }
-    result = getContentObject(pInfo, NULL, &tmp);
+    result = getContentObject(pInfo, NULL, &tmp, curDepth);
     if (keys) {
         pInfo->keyPaths = oldKeyPaths;
         pInfo->skip = false;
@@ -1416,7 +1423,7 @@ static Boolean parseArrayTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
             count++;
             pInfo->keyPaths = newKeyPaths;
         }
-        result = getContentObject(pInfo, NULL, &tmp);
+        result = getContentObject(pInfo, NULL, &tmp, curDepth);
         if (keys) {
             // reset after getting object
             pInfo->keyPaths = oldKeyPaths;
@@ -1436,6 +1443,7 @@ static Boolean parseArrayTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
         __CFPListRelease(array, pInfo->allocator);
         return false;
     }
+    
     if (-1 == allowImmutableCollections) {
         checkImmutableCollections();
     }
@@ -1450,19 +1458,19 @@ static Boolean parseArrayTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
     return true;
 }
 
-static Boolean parseDictTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
+static Boolean parseDictTag(_CFXMLPlistParseInfo * _Nonnull pInfo, CFTypeRef * _Nullable out, size_t curDepth) {
     Boolean gotKey;
     Boolean result;
     CFTypeRef key = NULL, value = NULL;
     
     if (pInfo->skip) {
-        result = getContentObject(pInfo, &gotKey, &key);
+        result = getContentObject(pInfo, &gotKey, &key, curDepth);
         while (result) {
             if (!gotKey) { 
                 if (!pInfo->error) pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Found non-key inside <dict> at line %d"), lineNumber(pInfo));
                 return false;
             }
-            result = getContentObject(pInfo, NULL, &value);
+            result = getContentObject(pInfo, NULL, &value, curDepth);
             if (!result) { 
                 if (!pInfo->error) pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Value missing for key inside <dict> at line %d"), lineNumber(pInfo)); 
                 return false; 
@@ -1472,7 +1480,7 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
             key = NULL;
             __CFPListRelease(value, pInfo->allocator);
             value = NULL;            
-            result = getContentObject(pInfo, &gotKey, &key);
+            result = getContentObject(pInfo, &gotKey, &key, curDepth);
         }
         if (checkForCloseTag(pInfo, CFXMLPlistTags[DICT_IX], DICT_TAG_LENGTH)) {
             *out = NULL;
@@ -1488,7 +1496,7 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
     
     CFMutableDictionaryRef dict = NULL;
     
-    result = getContentObject(pInfo, &gotKey, &key);
+    result = getContentObject(pInfo, &gotKey, &key, curDepth);
     while (result && key) {
         if (!gotKey) { 
             if (!pInfo->error) pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Found non-key inside <dict> at line %d"), lineNumber(pInfo)); 
@@ -1503,7 +1511,7 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
             if (!CFSetContainsValue(theseKeyPaths, key)) pInfo->skip = true;
             pInfo->keyPaths = nextKeyPaths;
         }
-        result = getContentObject(pInfo, NULL, &value);
+        result = getContentObject(pInfo, NULL, &value, curDepth);
         if (theseKeyPaths) {
             pInfo->keyPaths = oldKeyPaths;
             pInfo->skip = false;
@@ -1530,12 +1538,16 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
         key = NULL;
         __CFPListRelease(value, pInfo->allocator);
         value = NULL;
-        
-        result = getContentObject(pInfo, &gotKey, &key);
+        result = getContentObject(pInfo, &gotKey, &key, curDepth);
     }
     
     __CFPListRelease(nextKeyPaths, pInfo->allocator);
     __CFPListRelease(theseKeyPaths, pInfo->allocator);
+    
+    if (pInfo->error) { // getContentObject encountered a parse error
+        __CFPListRelease(dict, pInfo->allocator);
+        return false;
+    }
 
     if (checkForCloseTag(pInfo, CFXMLPlistTags[DICT_IX], DICT_TAG_LENGTH)) {
 	if (NULL == dict) {
@@ -1992,7 +2004,7 @@ static Boolean parseIntegerTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
 #undef GET_CH
 
 // Returned object is retained; caller must free.  pInfo->curr expected to point to the first character after the '<'
-static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTypeRef *out) {
+static Boolean parseXMLElement(_CFXMLPlistParseInfo * _Nonnull pInfo, Boolean * _Nullable isKey, CFTypeRef * _Nullable out, size_t curDepth) {
     const char *marker = pInfo->curr;
     int markerLength = -1;
     Boolean isEmpty;
@@ -2080,7 +2092,7 @@ static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTy
                 pInfo->error = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Encountered empty plist tag"));
                 return false;
             }
-            return parsePListTag(pInfo, out);
+            return parsePListTag(pInfo, out, curDepth);
         case ARRAY_IX: 
             if (isEmpty) {
                 if (pInfo->skip) {
@@ -2094,7 +2106,7 @@ static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTy
                 }
                 return true;
             } else {
-                return parseArrayTag(pInfo, out);
+                return parseArrayTag(pInfo, out, curDepth + 1);
             }
         case DICT_IX:
             if (isEmpty) {
@@ -2109,7 +2121,7 @@ static Boolean parseXMLElement(_CFXMLPlistParseInfo *pInfo, Boolean *isKey, CFTy
                 }
                 return true;
             } else {
-                return parseDictTag(pInfo, out);
+                return parseDictTag(pInfo, out, curDepth + 1);
             }
         case KEY_IX:
         case STRING_IX:
@@ -2218,8 +2230,8 @@ static Boolean parseXMLPropertyList(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out)
             // Comment or DTD
             ++ pInfo->curr;
             if (pInfo->curr+1 < pInfo->end && *pInfo->curr == '-' && *(pInfo->curr+1) == '-') {
-                // Comment
-                pInfo->curr += 2;
+                // skip `--` and set the cursor 1 past the two dashes
+                pInfo->curr += 3;
                 skipXMLComment(pInfo);
             } else {
                 skipDTD(pInfo);
@@ -2230,7 +2242,7 @@ static Boolean parseXMLPropertyList(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out)
             skipXMLProcessingInstruction(pInfo);
         } else {
             // Tag or malformed
-            return parseXMLElement(pInfo, NULL, out);
+            return parseXMLElement(pInfo, NULL, out, 0);
             // Note we do not verify that there was only one element, so a file that has garbage after the first element will nonetheless successfully parse
         }
     }
@@ -2516,7 +2528,9 @@ static Boolean _CFPropertyListCreateWithData(CFAllocatorRef allocator, CFDataRef
     __savePlistData(data, option);
 #endif
     
-    // Ignore the error from CFTryParseBinaryPlist -- if it doesn't work, we're going to try again anyway using the XML parser
+    // Ignore the error from CFTryParseBinaryPlist -- if it doesn't work, we're going to try again anyway using the XML parser.
+    // It would be lovely to be able to not just ignore the error and
+    // have the error message actually relay issues with bplists.
     if (doBinary && __CFTryParseBinaryPlist(allocator, data, (option&kCFPropertyListMutabilityMask), out, NULL)) {
 	if (format) *format = kCFPropertyListBinaryFormat_v1_0;
         return true;
@@ -2635,7 +2649,7 @@ CFTypeRef _CFPropertyListCreateFromXMLString(CFAllocatorRef allocator, CFStringR
 CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist, CFTypeID *outPlistTypeID);
 
 // Returns a subset of the property list, only including the key paths in the CFSet.
-Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) {
+bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) {
     
     if (!keyPaths || !data) {
         return false;
@@ -2646,7 +2660,7 @@ Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, 
     uint64_t offset;
     const uint8_t *databytes = CFDataGetBytePtr(data);
     uint64_t datalen = CFDataGetLength(data);
-    Boolean success = false;
+    bool success = false;
     CFTypeRef out = NULL;
 
     // First check to see if it is a binary property list
@@ -2684,7 +2698,7 @@ Boolean _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, 
  @param error If an error occurs, will be set to a valid CFErrorRef. It is the caller's responsibility to release this value.
  @return True if the key is found, false otherwise.
  */
-Boolean _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error) {
+bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error) {
     
     if (!keyPath || CFStringGetLength(keyPath) == 0) {
         return false;
@@ -2695,7 +2709,7 @@ Boolean _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef dat
     uint64_t offset;
     const uint8_t *databytes = CFDataGetBytePtr(data);
     uint64_t datalen = CFDataGetLength(data);
-    Boolean success = false;
+    bool success = false;
     
     // First check to see if it is a binary property list
     if (8 <= datalen && __CFBinaryPlistGetTopLevelInfo(databytes, datalen, &marker, &offset, &trailer)) {
