@@ -136,6 +136,10 @@ func _checkHashing<Source: Hashable, Target: Hashable, S: Sequence>(
 enum TestError: Error {
     case unexpectedNil
     case fileCreationFailed
+    case encodingError
+    case decodingError
+    case conversionError
+    case markdownError
 }
 
 extension Optional {

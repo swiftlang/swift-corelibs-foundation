@@ -138,6 +138,12 @@
 #define TARGET_OS_MAC          TARGET_OS_DARWIN
 #define TARGET_OS_OSX          TARGET_OS_DARWIN
 
+// iOS, watchOS, and tvOS are not supported
+#define TARGET_OS_IPHONE        0
+#define TARGET_OS_IOS           0
+#define TARGET_OS_WATCH         0
+#define TARGET_OS_TV            0
+
 #if __x86_64__
 #define TARGET_CPU_PPC          0
 #define TARGET_CPU_PPC64        0
