@@ -600,7 +600,14 @@ open class FileHandle : NSObject {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
         #else
-        guard fsync(_fd) >= 0 else { throw _NSErrorWithErrno(errno, reading: false) }
+        // Linux, macOS, OpenBSD return -1 and errno == EINVAL if trying to sync a special file,
+        // eg a fifo, character device etc which can be ignored.
+        // Additionally, Linux may return EROFS if tying to sync on a readonly filesystem, which also can be ignored.
+        // macOS can also return ENOTSUP for pipes but dont ignore it, so that the behaviour matches Darwin's Foundation.
+        if fsync(_fd) < 0 {
+            if errno == EINVAL || errno == EROFS { return }
+            throw _NSErrorWithErrno(errno, reading: false)
+        }
         #endif
     }
     

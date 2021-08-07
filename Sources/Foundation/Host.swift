@@ -183,7 +183,12 @@ open class Host: NSObject {
                 let family = ifa_addr.pointee.sa_family
                 if family == sa_family_t(AF_INET) || family == sa_family_t(AF_INET6) {
                     let sa_len: socklen_t = socklen_t((family == sa_family_t(AF_INET6)) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
-                    if getnameinfo(ifa_addr, sa_len, address, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
+#if os(OpenBSD)
+                    let hostlen = size_t(NI_MAXHOST)
+#else
+                    let hostlen = socklen_t(NI_MAXHOST)
+#endif
+                    if getnameinfo(ifa_addr, sa_len, address, hostlen, nil, 0, NI_NUMERICHOST) == 0 {
                         _addresses.append(String(cString: address))
                     }
                 }
@@ -273,7 +278,7 @@ open class Host: NSObject {
             }
             var hints = addrinfo()
             hints.ai_family = PF_UNSPEC
-#if os(macOS) || os(iOS) || os(Android)
+#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD)
             hints.ai_socktype = SOCK_STREAM
 #else
             hints.ai_socktype = Int32(SOCK_STREAM.rawValue)
@@ -303,7 +308,12 @@ open class Host: NSObject {
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                 let lookupInfo = { (content: inout [String], flags: Int32) in
-                    if getnameinfo(info.ai_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, flags) == 0 {
+#if os(OpenBSD)
+                    let hostlen = size_t(NI_MAXHOST)
+#else
+                    let hostlen = socklen_t(NI_MAXHOST)
+#endif
+                    if getnameinfo(info.ai_addr, sa_len, host, hostlen, nil, 0, flags) == 0 {
                         content.append(String(cString: host))
                     }
                 }

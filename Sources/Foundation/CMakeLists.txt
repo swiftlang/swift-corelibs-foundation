@@ -167,11 +167,12 @@ set_target_properties(Foundation PROPERTIES
 
 if(NOT BUILD_SHARED_LIBS)
   add_dependencies(Foundation CoreFoundation uuid)
-# TODO(katei): Comment out after swift-frontend implementation
-# https://github.com/apple/swift/pull/35936
-#  target_compile_options(Foundation
-#    PRIVATE
-#      "SHELL:-public-autolink-library icui18n")
+  target_compile_options(Foundation
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend icui18n
+             -Xfrontend -public-autolink-library -Xfrontend BlocksRuntime")
+
+  # Merge private dependencies into single static objects archive
   set_property(TARGET Foundation PROPERTY STATIC_LIBRARY_OPTIONS
     $<TARGET_OBJECTS:CoreFoundation>
     $<TARGET_OBJECTS:uuid>

@@ -209,7 +209,7 @@ class TestDecimal : XCTestCase {
         
         let ulp = explicit.ulp
         XCTAssertEqual(0x7f, ulp.exponent)
-        XCTAssertEqual(8, ulp._length)
+        XCTAssertEqual(1, ulp._length)
         XCTAssertEqual(0, ulp._isNegative)
         XCTAssertEqual(1, ulp._isCompact)
         XCTAssertEqual(0, ulp._reserved)
@@ -587,6 +587,11 @@ class TestDecimal : XCTestCase {
                 XCTAssertEqual(.orderedSame, NSDecimalCompare(&expected, &result), "\(expected._mantissa.0) == \(i) * \(j)");
             }
         }
+    }
+    
+    func test_ULP() {
+        let x = 0.1 as Decimal
+        XCTAssertFalse(x.ulp > x)
     }
 
     func test_unconditionallyBridgeFromObjectiveC() {
