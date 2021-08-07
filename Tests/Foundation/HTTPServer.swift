@@ -27,6 +27,10 @@ import Dispatch
 typealias SOCKET = Int32
 #endif
 
+#if os(OpenBSD)
+let INADDR_LOOPBACK = 0x7f000001
+#endif
+
 private let serverDebug = (ProcessInfo.processInfo.environment["SCLF_HTTP_SERVER_DEBUG"] == "YES")
 
 private func debugLog(_ msg: String) {

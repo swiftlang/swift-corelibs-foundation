@@ -107,7 +107,11 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
                 // get cookie for already-loaded main bundle
 #if defined(BINARY_SUPPORT_DLFCN)
                 if (!_mainBundle->_handleCookie) {
+#if !defined(__OpenBSD__)
                     _mainBundle->_handleCookie = dlopen(NULL, RTLD_NOLOAD | RTLD_FIRST);
+#else
+                    _mainBundle->_handleCookie = dlopen(NULL, RTLD_FIRST);
+#endif
 #if LOG_BUNDLE_LOAD
                     printf("main bundle %p getting handle %p\n", _mainBundle, _mainBundle->_handleCookie);
 #endif /* LOG_BUNDLE_LOAD */

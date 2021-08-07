@@ -70,6 +70,32 @@ extension FileManager {
             }
             urls = mountPoints(statBuf, Int(fsCount))
         }
+#elseif os(OpenBSD)
+        func mountPoints(_ statBufs: UnsafePointer<statfs>, _ fsCount: Int) -> [URL] {
+            var urls: [URL] = []
+
+            for fsIndex in 0..<fsCount {
+                var fs = statBufs.advanced(by: fsIndex).pointee
+
+                let mountPoint = withUnsafePointer(to: &fs.f_mntonname.0) { (ptr: UnsafePointer<Int8>) -> String in
+                    return string(withFileSystemRepresentation: ptr, length: strlen(ptr))
+                }
+                urls.append(URL(fileURLWithPath: mountPoint, isDirectory: true))
+            }
+            return urls
+        }
+
+            var fsCount = getfsstat(nil, 0, MNT_WAIT)
+            guard fsCount > 0 else {
+                return nil
+            }
+            let statBuf = UnsafeMutablePointer<statfs>.allocate(capacity: Int(fsCount))
+            defer { statBuf.deallocate() }
+            fsCount = getfsstat(statBuf, Int(fsCount) * MemoryLayout<statfs>.stride, MNT_WAIT)
+            guard fsCount > 0 else {
+                return nil
+            }
+            urls = mountPoints(statBuf, Int(fsCount))
 #else
 #error("Requires a platform-specific implementation")
 #endif

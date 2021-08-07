@@ -122,6 +122,12 @@ static inline void _CFSetProgramNameFromPath(const char *path) {
     __CFprogname = (__CFprogname ? __CFprogname + 1 : __CFProcessPath);
 }
 
+#if TARGET_OS_BSD && defined(__OpenBSD__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <sys/exec.h>
+#endif
+
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 
@@ -178,6 +184,53 @@ const char *_CFProcessPath(void) {
     }
     return __CFProcessPath;
 #else // TARGET_OS_BSD
+    char *argv0 = NULL;
+
+    // Get argv[0].
+#if defined(__OpenBSD__)
+    int mib[2] = {CTL_VM, VM_PSSTRINGS};
+    struct _ps_strings _ps;
+    size_t len = sizeof(_ps);
+
+    if (sysctl(mib, 2, &_ps, &len, NULL, 0) != -1) {
+        struct ps_strings *ps = _ps.val;
+        char *res = realpath(ps->ps_argvstr[0], NULL);
+        argv0 = res? res: strdup(ps->ps_argvstr[0]);
+    }
+#endif
+
+    if (!__CFProcessIsRestricted() && argv0 && argv0[0] == '/') {
+        _CFSetProgramNameFromPath(argv0);
+        free(argv0);
+        return __CFProcessPath;
+    }
+
+    // Search PATH.
+    if (argv0) {
+        char *paths = getenv("PATH");
+        char *p = NULL;
+        while ((p = strsep(&paths, ":")) != NULL) {
+            char pp[PATH_MAX];
+            int l = snprintf(pp, PATH_MAX, "%s/%s", p, argv0);
+            if (l >= PATH_MAX) {
+                continue;
+            }
+            char *res = realpath(pp, NULL);
+            if (!res) {
+                continue;
+            }
+            if (!__CFProcessIsRestricted() && access(res, X_OK) == 0) {
+                _CFSetProgramNameFromPath(res);
+                free(argv0);
+                free(res);
+                return __CFProcessPath;
+            }
+            free(res);
+        }
+        free(argv0);
+    }
+
+    // See if the shell will help.
     if (!__CFProcessIsRestricted()) {
         char *path = getenv("_");
         if (path != NULL) {
@@ -1611,6 +1664,9 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
     return 0;
 #elif TARGET_OS_LINUX
     return pthread_setname_np(thread, name);
+#elif TARGET_OS_BSD
+    pthread_set_name_np(thread, name);
+    return 0;
 #endif
 }
 
@@ -1630,6 +1686,9 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
     return 0;
 #elif TARGET_OS_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
+#elif TARGET_OS_BSD
+    pthread_get_name_np(pthread_self(), buf, length);
+    return 0;
 #elif TARGET_OS_WIN32
     *buf = '\0';
 
@@ -1670,6 +1729,9 @@ CF_EXPORT char **_CFEnviron(void) {
     extern char **environ;
     return environ;
 #else
+#if TARGET_OS_BSD
+    extern char **environ;
+#endif
     return environ;
 #endif
 }
@@ -1689,7 +1751,7 @@ int _CFOpenFile(const char *path, int opts) {
 }
 
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || defined(__OpenBSD__)
     void *mem = realloc(ptr, size);
     if (mem == NULL && ptr != NULL && size != 0) {
         free(ptr);
