@@ -88,6 +88,12 @@ static inline void read_random(void *buffer, unsigned numBytes) {
     BCryptGenRandom(NULL, buffer, numBytes,
                     BCRYPT_RNG_USE_ENTROPY_IN_BUFFER | BCRYPT_USE_SYSTEM_PREFERRED_RNG);
 }
+#elif TARGET_OS_WASI
+#include <sys/random.h>
+
+static inline void read_random(void *buffer, unsigned numBytes) {
+  getentropy(buffer, numBytes);
+}
 #else
 static inline void read_random(void *buffer, unsigned numBytes) {
     int fd = open("/dev/urandom", O_RDONLY);
