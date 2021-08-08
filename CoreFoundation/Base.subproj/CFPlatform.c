@@ -59,9 +59,11 @@ int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
 
 
+#if !TARGET_OS_WASI
 CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
+#endif
 
 #if TARGET_OS_WIN32
 // Returns the path to the CF DLL, which we can then use to find resources like char sets
@@ -96,8 +98,9 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
     }
     return cachedPath;
 }
-#endif
+#endif // TARGET_OS_WIN32
 
+#if !TARGET_OS_WASI
 static const char *__CFProcessPath = NULL;
 static const char *__CFprogname = NULL;
 
@@ -242,6 +245,7 @@ const char *_CFProcessPath(void) {
     return __CFProcessPath;
 #endif
 }
+#endif // TARGET_OS_WASI
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
@@ -255,13 +259,14 @@ CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
 #include <syscall.h>
 #else
 #include <sys/syscall.h>
-#endif
+#endif // __has_include(<syscall.h>)
 
 Boolean _CFIsMainThread(void) {
     return syscall(SYS_gettid) == getpid();
 }
-#endif
+#endif // TARGET_OS_LINUX
 
+#if !TARGET_OS_WASI
 CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
@@ -274,7 +279,7 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     }
     return __CFProcessNameString;
 }
-
+#endif // !TARGET_OS_WASI
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
@@ -369,7 +374,7 @@ static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHo
 
 #endif
 
-
+#if !TARGET_OS_WASI
 #define CFMaxHostNameLength	256
 #define CFMaxHostNameSize	(CFMaxHostNameLength+1)
 
@@ -582,6 +587,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 
 #undef CFMaxHostNameLength
 #undef CFMaxHostNameSize
+#endif // !TARGET_OS_WASI
 
 #if TARGET_OS_WIN32
 CF_INLINE CFIndex strlen_UniChar(const UniChar* p) {
@@ -720,11 +726,17 @@ CF_PRIVATE void __CFTSDWindowsCleanup() {
 
 static _CFThreadSpecificKey __CFTSDIndexKey;
 
+#if TARGET_OS_WASI
+static void *__CFThreadSpecificData;
+#endif
+
 CF_PRIVATE void __CFTSDInitialize() {
+#if !TARGET_OS_WASI
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
     });
+#endif
 }
 
 #endif
@@ -736,6 +748,8 @@ static void __CFTSDSetSpecific(void *arg) {
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif TARGET_OS_WIN32
     FlsSetValue(__CFTSDIndexKey, arg);
+#elif TARGET_OS_WASI
+    __CFThreadSpecificData = arg;
 #endif
 }
 
@@ -746,16 +760,22 @@ static void *__CFTSDGetSpecific() {
     return pthread_getspecific(__CFTSDIndexKey);
 #elif TARGET_OS_WIN32
     return FlsGetValue(__CFTSDIndexKey);
+#elif TARGET_OS_WASI
+    return __CFThreadSpecificData;
 #endif
 }
 
 _Atomic(bool) __CFMainThreadHasExited = false;
 
 static void __CFTSDFinalize(void *arg) {
+#if TARGET_OS_WASI
+    __CFMainThreadHasExited = true;
+#else
     if (pthread_main_np() == 1) {
         // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
         __CFMainThreadHasExited = true;
     }
+#endif
     
     // Set our TSD so we're called again by pthreads. It will call the destructor PTHREAD_DESTRUCTOR_ITERATIONS times as long as a value is set in the thread specific data. We handle each case below.
     __CFTSDSetSpecific(arg);
@@ -779,7 +799,7 @@ static void __CFTSDFinalize(void *arg) {
         }
     }
 
-#if _POSIX_THREADS
+#if _POSIX_THREADS && !TARGET_OS_WASI
     if (table->destructorCount == PTHREAD_DESTRUCTOR_ITERATIONS - 1) {    // On PTHREAD_DESTRUCTOR_ITERATIONS-1 call, destroy our data
         free(table);
         
@@ -1303,9 +1323,9 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #endif // TARGET_OS_WIN32
 
 #pragma mark -
-#pragma mark Linux OSAtomic
+#pragma mark Linux, BSD, and WASI OSAtomic
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
 { 
@@ -1364,7 +1384,7 @@ void OSMemoryBarrier() {
     __sync_synchronize();
 }
 
-#endif // TARGET_OS_LINUX
+#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
 #pragma mark -
 #pragma mark Dispatch Replacements
@@ -1378,11 +1398,15 @@ typedef struct _CF_sema_s {
 } * _CF_sema_t;
 
 CF_INLINE void _CF_sem_signal(_CF_sema_t s) {
+#if !TARGET_OS_WASI
     sem_post(&s->sema);
+#endif
 }
 
 CF_INLINE void _CF_sem_wait(_CF_sema_t s) {
+#if !TARGET_OS_WASI
     sem_wait(&s->sema);
+#endif
 }
 
 static void _CF_sem_destroy(_CF_sema_t s) {
@@ -1391,6 +1415,7 @@ static void _CF_sem_destroy(_CF_sema_t s) {
 
 CF_INLINE _CFThreadSpecificKey _CF_thread_sem_key() {
     static _CFThreadSpecificKey key = 0;
+#if !TARGET_OS_WASI
     static OSSpinLock lock = OS_SPINLOCK_INIT;
     if (key == 0) {
         OSSpinLockLock(&lock);
@@ -1399,9 +1424,11 @@ CF_INLINE _CFThreadSpecificKey _CF_thread_sem_key() {
         }
         OSSpinLockUnlock(&lock);
     }
+#endif
     return key;
 }
 
+#if !TARGET_OS_WASI
 CF_INLINE _CF_sema_t _CF_get_thread_semaphore() {
     _CFThreadSpecificKey key = _CF_thread_sem_key();
     _CF_sema_t s = (_CF_sema_t)pthread_getspecific(key);
@@ -1416,6 +1443,7 @@ CF_INLINE _CF_sema_t _CF_get_thread_semaphore() {
 CF_INLINE void _CF_put_thread_semaphore(_CF_sema_t s) {
     pthread_setspecific(_CF_thread_sem_key(), s);
 }
+#endif
 
 #define CF_DISPATCH_ONCE_DONE ((_CF_dispatch_once_waiter_t)~0l)
 
@@ -1435,6 +1463,12 @@ defined(__arm64__)
 #endif
 
 void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
+#if TARGET_OS_WASI
+    if (!*predicate) {
+        block();
+        *predicate = 1;
+    }
+#else
     _CF_dispatch_once_waiter_t volatile *vval = (_CF_dispatch_once_waiter_t*)predicate;
     struct _CF_dispatch_once_waiter_s dow = { NULL };
     _CF_dispatch_once_waiter_t tail = &dow, next, tmp;
@@ -1465,6 +1499,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
         }
         _CF_put_thread_semaphore(dow.dow_sema);
     }
+#endif // TARGET_OS_WASI
 }
 
 #endif
@@ -1689,7 +1724,7 @@ CF_EXPORT char **_CFEnviron(void) {
 #elif TARGET_OS_WIN32
     return _environ;
 #else
-#if TARGET_OS_BSD
+#if TARGET_OS_BSD || TARGET_OS_WASI
     extern char **environ;
 #endif
     return environ;
@@ -2056,7 +2091,7 @@ CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT pa
     return _CFPosixSpawnImpl(pid, path, file_actions, attrp, argv, envp);
 }
 
-#elif !TARGET_OS_WIN32
+#elif !TARGET_OS_WIN32 && !TARGET_OS_WASI
 
 #include <spawn.h>
 
