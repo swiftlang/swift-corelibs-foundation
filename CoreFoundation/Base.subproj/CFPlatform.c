@@ -98,7 +98,7 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
     }
     return cachedPath;
 }
-#endif
+#endif // TARGET_OS_WIN32
 
 #if !TARGET_OS_WASI
 static const char *__CFProcessPath = NULL;
@@ -245,6 +245,7 @@ const char *_CFProcessPath(void) {
     return __CFProcessPath;
 #endif
 }
+#endif // TARGET_OS_WASI
 
 #endif // TARGET_OS_WASI
 
@@ -260,12 +261,12 @@ CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
 #include <syscall.h>
 #else
 #include <sys/syscall.h>
-#endif
+#endif // __has_include(<syscall.h>)
 
 Boolean _CFIsMainThread(void) {
     return syscall(SYS_gettid) == getpid();
 }
-#endif
+#endif // TARGET_OS_LINUX
 
 #if !TARGET_OS_WASI
 CF_PRIVATE CFStringRef _CFProcessNameString(void) {
@@ -280,7 +281,7 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     }
     return __CFProcessNameString;
 }
-#endif
+#endif // !TARGET_OS_WASI
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
@@ -589,6 +590,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 
 #undef CFMaxHostNameLength
 #undef CFMaxHostNameSize
+#endif // !TARGET_OS_WASI
 
 #if TARGET_OS_WIN32
 CF_INLINE CFIndex strlen_UniChar(const UniChar* p) {
@@ -769,12 +771,12 @@ static void *__CFTSDGetSpecific() {
 _Atomic(bool) __CFMainThreadHasExited = false;
 
 static void __CFTSDFinalize(void *arg) {
-#if !TARGET_OS_WASI
+#if TARGET_OS_WASI
+    __CFMainThreadHasExited = true;
+#else
     if (pthread_main_np() == 1) {
-#endif
         // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
         __CFMainThreadHasExited = true;
-#if !TARGET_OS_WASI
     }
 #endif
     
@@ -1324,7 +1326,7 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #endif // TARGET_OS_WIN32
 
 #pragma mark -
-#pragma mark Linux OSAtomic
+#pragma mark Linux, BSD, and WASI OSAtomic
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 
@@ -1500,7 +1502,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
         }
         _CF_put_thread_semaphore(dow.dow_sema);
     }
-#endif
+#endif // TARGET_OS_WASI
 }
 
 #endif
@@ -1729,7 +1731,7 @@ CF_EXPORT char **_CFEnviron(void) {
     extern char **environ;
     return environ;
 #else
-#if TARGET_OS_BSD
+#if TARGET_OS_BSD || TARGET_OS_WASI
     extern char **environ;
 #endif
     return environ;
