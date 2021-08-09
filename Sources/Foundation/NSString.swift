@@ -18,6 +18,7 @@ extension unichar {
     }
 }
 
+#if !os(WASI)
 /// Returns a localized string, using the main bundle if one is not specified.
 public
 func NSLocalizedString(_ key: String,
@@ -27,6 +28,7 @@ func NSLocalizedString(_ key: String,
                        comment: String) -> String {
     return bundle.localizedString(forKey: key, value: value, table: tableName)
 }
+#endif
 
 internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
 internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
@@ -238,6 +240,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         _storage = string
     }
     
+#if !os(WASI)
     public convenience required init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -254,6 +257,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
             self.init(data: data, encoding: String.Encoding.utf8.rawValue)
         }
     }
+#endif
     
     public required convenience init(string aString: String) {
         self.init(aString)
@@ -293,6 +297,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         return result
     }
     
+#if !os(WASI)
     public static var supportsSecureCoding: Bool {
         return true
     }
@@ -304,6 +309,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
             aCoder.encode(self)
         }
     }
+#endif
     
     public init(characters: UnsafePointer<unichar>, length: Int) {
         _storage = String(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
@@ -1268,6 +1274,7 @@ extension NSString {
         data = mData
     }
     
+#if !os(WASI)
     internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = Data()
         try _getExternalRepresentation(&data, url, enc)
@@ -1281,6 +1288,7 @@ extension NSString {
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(URL(fileURLWithPath: path), useAuxiliaryFile, enc)
     }
+#endif
     
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
         // ignore the no-copy-ness
@@ -1365,6 +1373,7 @@ extension NSString {
         }
     }
 
+#if !os(WASI)
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
 
@@ -1452,6 +1461,7 @@ extension NSString {
     public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path), usedEncoding: enc)
     }
+#endif
 }
 
 extension NSString : ExpressibleByStringLiteral { }
@@ -1483,6 +1493,7 @@ open class NSMutableString : NSString {
         super.init(characters: [], length: 0)
     }
 
+#if !os(WASI)
     public convenience required init?(coder aDecoder: NSCoder) {
         guard let str = NSString(coder: aDecoder) else {
             return nil
@@ -1490,6 +1501,7 @@ open class NSMutableString : NSString {
         
         self.init(string: String._unconditionallyBridgeFromObjectiveC(str))
     }
+#endif
 
     public required convenience init(unicodeScalarLiteral value: StaticString) {
         self.init(stringLiteral: value)

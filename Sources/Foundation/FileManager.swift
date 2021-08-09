@@ -28,6 +28,7 @@ internal typealias NativeFSRCharType = CChar
 internal let NativeFSREncoding = String.Encoding.utf8.rawValue
 #endif
 
+#if !os(WASI)
 open class FileManager : NSObject {
     
     /* Returns the default singleton instance.
@@ -1471,3 +1472,4 @@ extension FileManager {
         }
     }
 }
+#endif

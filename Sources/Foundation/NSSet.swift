@@ -90,6 +90,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         self.init(array: elements)
     }
 
+#if !os(WASI)
     internal class func _objects(from aDecoder: NSCoder, allowDecodingNonindexedArrayKey: Bool = true) -> [NSObject] {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -118,6 +119,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         // The encoding of a NSSet is identical to the encoding of an NSArray of its contents
         self.allObjects._nsObject.encode(with: aCoder)
     }
+#endif
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -399,9 +401,11 @@ open class NSMutableSet : NSSet {
         super.init(objects: [], count: 0)
     }
     
+#if !os(WASI)
     public required convenience init?(coder aDecoder: NSCoder) {
         self.init(array: NSSet._objects(from: aDecoder))
     }
+#endif
     
     open func addObjects(from array: [Any]) {
         if type(of: self) === NSMutableSet.self {
@@ -547,6 +551,7 @@ open class NSCountedSet : NSMutableSet {
         }
     }
     
+#if !os(WASI)
     open override func encode(with coder: NSCoder) {
         func fail(_ message: String) {
             coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: message]))
@@ -565,6 +570,7 @@ open class NSCountedSet : NSMutableSet {
             index += 1
         }
     }
+#endif
 
     open override func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSCountedSet.self {

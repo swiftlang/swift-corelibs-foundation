@@ -1,0 +1,8 @@
+// workaround: wasm32-unknown-wasi needs to link icui18n because it's not linked by default
+// on the platform.
+module CoreFoundation [extern_c] [system] {
+    umbrella header "CoreFoundation.h"
+    explicit module CFPlugInCOM { header "CFPlugInCOM.h" }
+
+    link "icui18n"
+}

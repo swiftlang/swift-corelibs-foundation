@@ -38,9 +38,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
+option(HAS_LIBDISPATCH_API "has libdispatch API" ON)
+option(BUILD_NETWORKING "build FoundationNetworking module" ON)
+option(BUILD_TOOLS "build tools" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
-find_package(dispatch CONFIG REQUIRED)
+
+if(HAS_LIBDISPATCH_API)
+  find_package(dispatch CONFIG REQUIRED)
+endif()
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -50,6 +56,13 @@ set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
+
+# BlocksRuntime is already in libdispatch so is only needed if libdispatch is
+# NOT being used
+if(NOT HAS_LIBDISPATCH_API)
+  add_subdirectory(Sources/BlocksRuntime)
+endif()
+
 add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
 
@@ -62,6 +75,7 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h
 add_custom_target(uuid-headers
   DEPENDS ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h)
 add_dependencies(CoreFoundation uuid-headers)
+
 target_include_directories(CoreFoundation PRIVATE
   ${CMAKE_BINARY_DIR}/uuid-headers
   ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
@@ -74,9 +88,22 @@ endif()
 
 if(NOT BUILD_SHARED_LIBS)
   set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
-    CoreFoundation CFXMLInterface CFURLSessionInterface)
-  install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
+    CoreFoundation CFXMLInterface)
+
+  if(NOT HAS_LIBDISPATCH_API)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+      BlocksRuntime)
+  endif()
+
+  install(TARGETS CoreFoundation CFXMLInterface
     DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+
+  if(BUILD_NETWORKING)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+      CFURLSessionInterface)
+    install(TARGETS CFURLSessionInterface
+      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  endif()
 endif()
 
 set(swift_lib_dir "lib/swift")
@@ -90,10 +117,21 @@ install(DIRECTORY
         DESTINATION
           ${swift_lib_dir}/CoreFoundation
         FILES_MATCHING PATTERN "*.h")
-install(FILES
-          CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
-        DESTINATION
-          ${swift_lib_dir}/CoreFoundation)
+
+# TODO(katei): Remove wasm32-unknown-wasi specific modulemap which is required to link icui18n
+# This workaround can be removed after https://github.com/apple/swift/pull/35936
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  install(FILES
+            CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>wasm32-unknown-wasi.modulemap
+          DESTINATION
+            ${swift_lib_dir}/CoreFoundation
+          RENAME module.map)
+else()
+  install(FILES
+            CoreFoundation/Base.subproj/$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:static/>module.map
+          DESTINATION
+            ${swift_lib_dir}/CoreFoundation)
+endif()
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CFURLSessionInterface.framework/Headers/
         DESTINATION

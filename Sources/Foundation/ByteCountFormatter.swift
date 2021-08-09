@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 extension ByteCountFormatter {
     public struct Units : OptionSet {
         public let rawValue : UInt

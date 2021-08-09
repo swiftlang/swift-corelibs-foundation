@@ -247,6 +247,8 @@ const char *_CFProcessPath(void) {
 }
 #endif // TARGET_OS_WASI
 
+#endif // TARGET_OS_WASI
+
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
@@ -583,6 +585,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 #error Dont know how to compute users home directories on this platform
 #endif
 }
+#endif
 
 
 #undef CFMaxHostNameLength
@@ -1389,7 +1392,7 @@ void OSMemoryBarrier() {
 #pragma mark -
 #pragma mark Dispatch Replacements
 
-#if !__HAS_DISPATCH__
+#if !__HAS_DISPATCH__ && __BLOCKS__
 
 #include <semaphore.h>
 
@@ -1539,7 +1542,8 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 #include <fcntl.h>
 
-extern void swift_retain(void *);
+CF_CC_swift
+extern void *swift_retain(void *);
 extern void swift_release(void *);
 
 #if TARGET_OS_WIN32
@@ -1723,6 +1727,9 @@ CF_EXPORT char **_CFEnviron(void) {
     return *_NSGetEnviron();
 #elif TARGET_OS_WIN32
     return _environ;
+#elif TARGET_OS_WASI
+    extern char **environ;
+    return environ;
 #else
 #if TARGET_OS_BSD || TARGET_OS_WASI
     extern char **environ;

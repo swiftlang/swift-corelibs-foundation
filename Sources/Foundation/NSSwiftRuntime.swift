@@ -16,11 +16,15 @@
 @_exported import Darwin
 #elseif os(Linux) || os(Android) || CYGWIN || os(OpenBSD)
 @_exported import Glibc
+#elseif os(WASI)
+@_exported import WASILibc
 #elseif os(Windows)
 @_exported import CRT
 #endif
 
+#if !os(WASI)
 @_exported import Dispatch
+#endif
 
 #if os(Windows)
 import WinSDK
@@ -178,7 +182,10 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafeRawPointer.self))
+
+#if !os(WASI)
     _CFRuntimeBridgeTypeToClass(_CFKeyedArchiverUIDGetTypeID(), unsafeBitCast(_NSKeyedArchiverUID.self, to: UnsafeRawPointer.self))
+#endif
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, to: UnsafeRawPointer.self))
@@ -257,8 +264,10 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSMutableString.appendString = _CFSwiftStringAppend
     __CFSwiftBridge.NSMutableString.appendCharacters = _CFSwiftStringAppendCharacters
     __CFSwiftBridge.NSMutableString._cfAppendCString = _CFSwiftStringAppendCString
-    
+
+#if !os(WASI)    
     __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
+#endif
     
     __CFSwiftBridge.NSCharacterSet._expandedCFCharacterSet = _CFSwiftCharacterSetExpandedCFCharacterSet
     __CFSwiftBridge.NSCharacterSet._retainedBitmapRepresentation = _CFSwiftCharacterSetRetainedBitmapRepresentation
@@ -304,6 +313,7 @@ internal func __CFInitializeSwift() {
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
     
+#if !os(WASI)
     __CFSwiftBridge.NSURL.copyResourcePropertyForKey = _CFSwiftURLCopyResourcePropertyForKey
     __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys = _CFSwiftURLCopyResourcePropertiesForKeys
     __CFSwiftBridge.NSURL.setResourcePropertyForKey = _CFSwiftURLSetResourcePropertyForKey
@@ -312,6 +322,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSURL.clearResourcePropertyCache = _CFSwiftURLClearResourcePropertyCache
     __CFSwiftBridge.NSURL.setTemporaryResourceValueForKey = _CFSwiftSetTemporaryResourceValueForKey
     __CFSwiftBridge.NSURL.resourceIsReachable = _CFSwiftURLResourceIsReachable
+#endif
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {

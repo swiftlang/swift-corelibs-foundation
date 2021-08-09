@@ -59,6 +59,12 @@
 #define __has_extension(x) 0
 #endif
 
+#if __has_attribute(swiftcall)
+#define CF_CC_swift __attribute__((swiftcall))
+#else
+#define CF_CC_swift
+#endif
+
 #if defined(__GNUC__) || TARGET_OS_WIN32
 #include <stdint.h>
 #include <stdbool.h>
