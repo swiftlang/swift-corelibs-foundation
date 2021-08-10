@@ -1253,7 +1253,7 @@ public final class UnitLength : Dimension {
         static let inches               = 0.0254
         static let feet                 = 0.3048
         static let yards                = 0.9144
-        static let miles                = 1609.34
+        static let miles                = 1609.344
         static let scandinavianMiles    = 10000.0
         static let lightyears           = 9.461e+15
         static let nauticalMiles        = 1852.0
