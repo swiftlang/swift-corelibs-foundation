@@ -470,6 +470,7 @@ CONST_STRING_DECL(_kCFSystemVersionProductVersionStringKey, "Version")
 CONST_STRING_DECL(_kCFSystemVersionBuildStringKey, "Build")
 #endif
 
+
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
     return true;
 }
@@ -694,7 +695,7 @@ CF_EXPORT uid_t _CFGetEGID(void) {
     __CFGetUGIDs(NULL, &egid);
     return egid;
 }
-#endif
+#endif // !TARGET_OS_WASI
 
 const char *_CFPrintForDebugger(const void *obj) {
 	static char *result = NULL;
@@ -1088,13 +1089,12 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
 
 void CFLog(int32_t lev, CFStringRef format, ...) {
     va_list args;
-    va_start(args, format); 
-    
-    #if !TARGET_OS_WASI
-    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
-    #else
+    va_start(args, format);
+#if TARGET_OS_WASI
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
-    #endif
+#else
+    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
+#endif
     va_end(args);
 }
     
@@ -1702,4 +1702,4 @@ int32_t __CFGetPid() {
     return getpid();
 }
 
-#endif
+#endif // DEPLOYMENT_RUNTIME_SWIFT && !TARGET_OS_WASI

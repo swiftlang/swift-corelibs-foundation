@@ -43,7 +43,6 @@ option(BUILD_NETWORKING "build FoundationNetworking module" ON)
 option(BUILD_TOOLS "build tools" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
-
 if(HAS_LIBDISPATCH_API)
   find_package(dispatch CONFIG REQUIRED)
 endif()
@@ -65,6 +64,12 @@ endif()
 
 add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
+
+# BlocksRuntime is already in libdispatch so it is only needed if libdispatch is
+# NOT being used
+if(NOT HAS_LIBDISPATCH_API)
+  add_subdirectory(Sources/BlocksRuntime)
+endif()
 
 # Setup include paths for uuid/uuid.h
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h
