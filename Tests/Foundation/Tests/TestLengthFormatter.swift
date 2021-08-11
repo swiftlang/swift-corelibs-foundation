@@ -39,9 +39,9 @@ class TestLengthFormatter: XCTestCase {
         XCTAssertEqual(formatter.string(fromMeters: 1), "1.094 yd")
         XCTAssertEqual(formatter.string(fromMeters: 10), "10.936 yd")
         XCTAssertEqual(formatter.string(fromMeters: 10000), "6.214 mi")
-        XCTAssertEqual(formatter.string(fromMeters: 1000000), "621.373 mi")
-        XCTAssertEqual(formatter.string(fromMeters: 10000000), "6,213.727 mi")
-        XCTAssertEqual(formatter.string(fromMeters: 100000000), "62,137.274 mi")
+        XCTAssertEqual(formatter.string(fromMeters: 1000000), "621.371 mi")
+        XCTAssertEqual(formatter.string(fromMeters: 10000000), "6,213.712 mi")
+        XCTAssertEqual(formatter.string(fromMeters: 100000000), "62,137.119 mi")
     }
     
     func test_stringFromMetersUSPersonHeight() {
