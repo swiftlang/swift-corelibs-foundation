@@ -95,7 +95,8 @@
 #endif
 
 CF_PRIVATE os_log_t _CFOSLog(void) {
-    static os_log_t logger;
+    static os_log_t logger = NULL;
+
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         logger = os_log_create("com.apple.foundation", "general");
@@ -469,7 +470,6 @@ CONST_STRING_DECL(_kCFSystemVersionProductVersionStringKey, "Version")
 CONST_STRING_DECL(_kCFSystemVersionBuildStringKey, "Build")
 #endif
 
-
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
     return true;
 }
@@ -694,7 +694,7 @@ CF_EXPORT uid_t _CFGetEGID(void) {
     __CFGetUGIDs(NULL, &egid);
     return egid;
 }
-#endif // !TARGET_OS_WASI
+#endif
 
 const char *_CFPrintForDebugger(const void *obj) {
 	static char *result = NULL;
@@ -1088,12 +1088,13 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
 
 void CFLog(int32_t lev, CFStringRef format, ...) {
     va_list args;
-    va_start(args, format);
-#if TARGET_OS_WASI
-    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
-#else
+    va_start(args, format); 
+    
+    #if !TARGET_OS_WASI
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
-#endif
+    #else
+    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
+    #endif
     va_end(args);
 }
     
@@ -1649,7 +1650,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN || TARGET_OS_WASI
         extern char **environ;
         char **envp = environ;
 #elif TARGET_OS_LINUX
@@ -1701,4 +1702,4 @@ int32_t __CFGetPid() {
     return getpid();
 }
 
-#endif // DEPLOYMENT_RUNTIME_SWIFT && !TARGET_OS_WASI
+#endif
