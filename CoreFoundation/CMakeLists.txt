@@ -20,17 +20,23 @@ endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG OFF)
-find_package(Threads REQUIRED)
+
+if(HAS_LIBDISPATCH_API)
+  set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+  set(THREADS_PREFER_PTHREAD_FLAG OFF)
+  find_package(Threads REQUIRED)
+endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
-  find_package(CURL CONFIG)
-  if(CURL_FOUND)
-    set(CURL_VERSION_STRING ${CURL_VERSION})
-  else()
-    find_package(CURL REQUIRED)
+
+  if(BUILD_NETWORKING)
+    find_package(CURL CONFIG)
+    if(CURL_FOUND)
+      set(CURL_VERSION_STRING ${CURL_VERSION})
+    else()
+      find_package(CURL REQUIRED)
+    endif()
   endif()
   find_package(ICU COMPONENTS uc i18n REQUIRED)
 endif()
@@ -113,6 +119,38 @@ if(BUILD_SHARED_LIBS)
   set(FRAMEWORK_LIBRARY_TYPE SHARED)
 else()
   set(FRAMEWORK_LIBRARY_TYPE STATIC)
+endif()
+
+set(CF_WASI_UNAVAILABLE_SOURCES)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+  list(APPEND CF_WASI_UNAVAILABLE_SOURCES 
+    # PlugIn
+    PlugIn.subproj/CFBundle_Binary.c
+    PlugIn.subproj/CFBundle.c
+    PlugIn.subproj/CFBundle_DebugStrings.c
+    PlugIn.subproj/CFBundle_Executable.c
+    PlugIn.subproj/CFBundle_Grok.c
+    PlugIn.subproj/CFBundle_InfoPlist.c
+    PlugIn.subproj/CFBundle_Locale.c
+    PlugIn.subproj/CFBundle_Main.c
+    PlugIn.subproj/CFBundle_ResourceFork.c
+    PlugIn.subproj/CFBundle_Resources.c
+    PlugIn.subproj/CFBundle_SplitFileName.c
+    PlugIn.subproj/CFBundle_Strings.c
+    PlugIn.subproj/CFBundle_Tables.c
+    PlugIn.subproj/CFPlugIn.c
+    # Preferences
+    Preferences.subproj/CFApplicationPreferences.c
+    Preferences.subproj/CFPreferences.c
+    Preferences.subproj/CFXMLPreferencesDomain.c
+    # RunLoop
+    RunLoop.subproj/CFRunLoop.c
+    RunLoop.subproj/CFSocket.c
+    # Stream
+    Stream.subproj/CFConcreteStreams.c
+    Stream.subproj/CFSocketStream.c
+    Stream.subproj/CFStream.c)
 endif()
 
 add_framework(CoreFoundation
@@ -202,7 +240,6 @@ add_framework(CoreFoundation
                 Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFLocaleInternal.h
                 PlugIn.subproj/CFBundlePriv.h
-                Stream.subproj/CFStreamPriv.h
                 String.subproj/CFCharacterSetPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
@@ -257,6 +294,7 @@ add_framework(CoreFoundation
                 RunLoop.subproj/CFRunLoop.h
                 RunLoop.subproj/CFSocket.h
                 # Stream
+                Stream.subproj/CFStreamPriv.h
                 Stream.subproj/CFStream.h
                 # String
                 String.subproj/CFAttributedString.h
@@ -312,36 +350,11 @@ add_framework(CoreFoundation
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
-                # PlugIn
-                PlugIn.subproj/CFBundle_Binary.c
-                PlugIn.subproj/CFBundle.c
-                PlugIn.subproj/CFBundle_DebugStrings.c
-                PlugIn.subproj/CFBundle_Executable.c
-                PlugIn.subproj/CFBundle_Grok.c
-                PlugIn.subproj/CFBundle_InfoPlist.c
-                PlugIn.subproj/CFBundle_Locale.c
-                PlugIn.subproj/CFBundle_Main.c
-                PlugIn.subproj/CFBundle_ResourceFork.c
-                PlugIn.subproj/CFBundle_Resources.c
-                PlugIn.subproj/CFBundle_SplitFileName.c
-                PlugIn.subproj/CFBundle_Strings.c
-                PlugIn.subproj/CFBundle_Tables.c
-                PlugIn.subproj/CFPlugIn.c
-                # Preferences
-                Preferences.subproj/CFApplicationPreferences.c
-                Preferences.subproj/CFPreferences.c
-                Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
                 # TODO(compnerd) make this empty on non-Mach targets
                 # RunLoop.subproj/CFMachPort.c
                 # RunLoop.subproj/CFMachPort_Lifetime.c
                 # RunLoop.subproj/CFMessagePort.c
-                RunLoop.subproj/CFRunLoop.c
-                RunLoop.subproj/CFSocket.c
-                # Stream
-                Stream.subproj/CFConcreteStreams.c
-                Stream.subproj/CFSocketStream.c
-                Stream.subproj/CFStream.c
                 # String
                 String.subproj/CFAttributedString.c
                 String.subproj/CFBurstTrie.c
@@ -369,7 +382,9 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLAccess.c
                 URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
-                URL.subproj/CFURLComponents_URIParser.c)
+                URL.subproj/CFURLComponents_URIParser.c
+                
+                ${CF_WASI_UNAVAILABLE_SOURCES})
 target_compile_definitions(CoreFoundation
                            PRIVATE
                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_BITMAP="CharacterSets/CFCharacterSetBitmaps.bitmap">
@@ -379,11 +394,27 @@ target_compile_definitions(CoreFoundation
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR})
+
 target_link_libraries(CoreFoundation PRIVATE
-  Threads::Threads
   ${CMAKE_DL_LIBS}
-  BlocksRuntime
-  dispatch)
+  BlocksRuntime)
+
+if(HAS_LIBDISPATCH_API)
+  target_link_libraries(CoreFoundation PRIVATE
+    Threads::Threads
+    dispatch)
+endif()
+
+if(NOT BUILD_SHARED_LIBS)
+  set_property(TARGET CoreFoundation PROPERTY STATIC_LIBRARY_OPTIONS
+    $<TARGET_OBJECTS:BlocksRuntime>)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  # Enable emulated mman and constant CFSTRINGS
+  target_compile_definitions(CoreFoundation PRIVATE _WASI_EMULATED_MMAN __CONSTANT_CFSTRINGS__)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE
     log)
@@ -422,7 +453,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND BUILD_NETWORKING)
   target_link_libraries(CFURLSessionInterface PRIVATE
     CURL::libcurl)
 endif()
@@ -440,6 +471,8 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
+target_link_libraries(CFXMLInterface PRIVATE BlocksRuntime)
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CFXMLInterface PRIVATE
     LibXml2::LibXml2)
@@ -494,15 +527,19 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Dar
                         PRIVATE
                           m)
 endif()
-target_link_libraries(CoreFoundation
-                      PRIVATE
+
+if(HAS_LIBDISPATCH_API)
+  target_link_libraries(CoreFoundation
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFXMLInterface
+                        PRIVATE
                         dispatch)
-target_link_libraries(CFURLSessionInterface
-                      PRIVATE
-                        dispatch)
-target_link_libraries(CFXMLInterface
-                      PRIVATE
-                        dispatch)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
