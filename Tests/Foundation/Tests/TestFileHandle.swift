@@ -615,7 +615,11 @@ class TestFileHandle : XCTestCase {
 
     func testSynchronizeOnSpecialFile() throws {
         // .synchronize() on a special file shouldnt fail
+#if os(Windows)
+        let fh = try XCTUnwrap(FileHandle(forWritingAtPath: "CON"))
+#else
         let fh = try XCTUnwrap(FileHandle(forWritingAtPath: "/dev/stdout"))
+#endif
         XCTAssertNoThrow(try fh.synchronize())
     }
 
