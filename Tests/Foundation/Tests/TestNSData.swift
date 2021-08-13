@@ -625,7 +625,11 @@ class TestNSData: LoopbackServerTest {
     }
 
     func test_writeToURLSpecialFile() {
+#if os(Windows)
+        let url = URL(fileURLWithPath: "CON")
+#else
         let url = URL(fileURLWithPath: "/dev/stdout")
+#endif
         XCTAssertNoThrow(try Data("Output to STDOUT\n".utf8).write(to: url))
     }
 
