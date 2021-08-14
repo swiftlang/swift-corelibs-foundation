@@ -13,6 +13,8 @@
     import Darwin
 #elseif canImport(Glibc)
     import Glibc
+#elseif canImport(CRT)
+    import CRT
 #endif
 
 #if !os(Windows)
@@ -131,4 +133,8 @@ allTestCases.append(contentsOf: [
 ])
 #endif
 
+atexit({
+    fflush(stdout)
+    fflush(stderr)
+})
 XCTMain(allTestCases)
