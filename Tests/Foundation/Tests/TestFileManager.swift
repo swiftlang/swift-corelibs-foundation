@@ -402,6 +402,7 @@ class TestFileManager : XCTestCase {
         let path = NSTemporaryDirectory()
         
         do {
+print("\(#file):\(#line) temporary path: \(path)")
             let attrs = try fm.attributesOfFileSystem(forPath: path)
             
             XCTAssertTrue(attrs.count > 0)
@@ -427,6 +428,7 @@ class TestFileManager : XCTestCase {
               XCTAssertGreaterThan(systemNodes!.uint64Value, systemFreeNodes!.uint64Value)
             }
         } catch {
+print((error as NSError).userInfo)
             XCTFail("\(error)")
         }
     }

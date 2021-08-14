@@ -252,26 +252,36 @@ extension FileManager {
     internal func _attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
         var result: [FileAttributeKey:Any] = [:]
 
+print("\(#file):\(#line) path: \(path)")
         try FileManager.default._fileSystemRepresentation(withPath: path) {
+print("\(#file):\(#line) $0: \(String(decodingCString: $0, as: UTF16.self))")
             let dwLength: DWORD = GetFullPathNameW($0, 0, nil, nil)
             guard dwLength > 0 else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+                let dwError: DWORD = GetLastError()
+print("dwLength: \(dwLength), error: \(dwError)")
+                throw _NSErrorWithWindowsError(dwError, reading: true, paths: [path])
             }
 
             var szVolumePath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
             guard GetVolumePathNameW($0, &szVolumePath, dwLength) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+                let dwError: DWORD = GetLastError()
+print("\(#file):\(#line) GetVolumePathNameW failure: \(dwError)")
+                throw _NSErrorWithWindowsError(dwError, reading: true, paths: [path])
             }
 
             var liTotal: ULARGE_INTEGER = ULARGE_INTEGER()
             var liFree: ULARGE_INTEGER = ULARGE_INTEGER()
             guard GetDiskFreeSpaceExW(&szVolumePath, nil, &liTotal, &liFree) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+                let dwError: DWORD = GetLastError()
+print("\(#file):\(#line) GetDiskFreeSpaceExW: \(dwError)")
+                throw _NSErrorWithWindowsError(dwError, reading: true, paths: [path])
             }
 
             var volumeSerialNumber: DWORD = 0
             guard GetVolumeInformationW(&szVolumePath, nil, 0, &volumeSerialNumber, nil, nil, nil, 0) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+                let dwError: DWORD = GetLastError()
+print("\(#file):\(#line) GetVolumeInformationW: \(String(decodingCString: szVolumePath, as: UTF16.self)), \(dwError)")
+                throw _NSErrorWithWindowsError(dwError, reading: true, paths: [path])
             }
 
             result[.systemSize] = NSNumber(value: liTotal.QuadPart)
