@@ -592,7 +592,17 @@ open class FileHandle : NSObject {
         
         #if os(Windows)
         guard FlushFileBuffers(self._handle) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            let dwError: DWORD = GetLastError()
+            // If the handle is a handle to the console output,
+            // `FlushFileBuffers` will fail and return `ERROR_INVALID_HANDLE` as
+            // console output is not buffered.
+            if dwError == ERROR_INVALID_HANDLE &&
+                    GetFileType(self._handle) == FILE_TYPE_CHAR {
+                // Simlar to the Linux, macOS, BSD cases below, ignore the error
+                // on the special file type.
+                return
+            }
+            throw _NSErrorWithWindowsError(dwError, reading: false)
         }
         #else
         // Linux, macOS, OpenBSD return -1 and errno == EINVAL if trying to sync a special file,
