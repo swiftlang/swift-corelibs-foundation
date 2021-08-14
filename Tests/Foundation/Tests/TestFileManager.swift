@@ -1080,8 +1080,14 @@ class TestFileManager : XCTestCase {
         }
         XCTAssertNotEqual(0, volumes.count)
 #if os(Windows)
-        let url = URL(fileURLWithPath: String(NSTemporaryDirectory().prefix(3)))
-        XCTAssertTrue(volumes.contains(url))
+        guard let url: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .localDomainMask).first else {
+            XCTFail("unable to query a system directory")
+            return
+        }
+        let root: String = url.withUnsafeFileSystemRepresentation {
+            String(String(cString: $0!).prefix(3))
+        }
+        XCTAssertTrue(volumes.contains(URL(fileURLWithPath: root)))
 #else
         XCTAssertTrue(volumes.contains(URL(fileURLWithPath: "/")))
 #endif
