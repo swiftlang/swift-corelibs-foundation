@@ -269,6 +269,11 @@ extension FileManager {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
             }
 
+            let hr: HRESULT = PathCchStripToRoot(&szVolumePath, szVolumePath.count)
+            guard hr == S_OK || hr == S_FALSE else {
+                throw _NSErrorWithWindowsError(DWORD(hr & 0xffff), reading: true, paths: [path])
+            }
+
             var volumeSerialNumber: DWORD = 0
             guard GetVolumeInformationW(&szVolumePath, nil, 0, &volumeSerialNumber, nil, nil, nil, 0) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
