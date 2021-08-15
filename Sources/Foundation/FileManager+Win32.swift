@@ -115,51 +115,51 @@ extension FileManager {
                 return []
             }
 
-            case .downloadsDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Downloads)]
+        case .downloadsDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Downloads)]
 
-            case .userDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_UserProfiles)]
+        case .userDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_UserProfiles)]
 
-            case .moviesDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Videos)]
+        case .moviesDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Videos)]
 
-            case .musicDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Music)]
+        case .musicDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Music)]
 
-            case .picturesDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_PicturesLibrary)]
+        case .picturesDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_PicturesLibrary)]
 
-            case .sharedPublicDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Public)]
+        case .sharedPublicDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Public)]
 
-            case .trashDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_RecycleBinFolder)]
+        case .trashDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_RecycleBinFolder)]
 
-                // None of these are supported outside of Darwin:
-            case .applicationDirectory,
-                 .demoApplicationDirectory,
-                 .developerApplicationDirectory,
-                 .adminApplicationDirectory,
-                 .libraryDirectory,
-                 .developerDirectory,
-                 .documentationDirectory,
-                 .coreServiceDirectory,
-                 .inputMethodsDirectory,
-                 .preferencePanesDirectory,
-                 .applicationScriptsDirectory,
-                 .allApplicationsDirectory,
-                 .allLibrariesDirectory,
-                 .printerDescriptionDirectory,
-                 .itemReplacementDirectory:
-                return []
+            // None of these are supported outside of Darwin:
+        case .applicationDirectory,
+                .demoApplicationDirectory,
+                .developerApplicationDirectory,
+                .adminApplicationDirectory,
+                .libraryDirectory,
+                .developerDirectory,
+                .documentationDirectory,
+                .coreServiceDirectory,
+                .inputMethodsDirectory,
+                .preferencePanesDirectory,
+                .applicationScriptsDirectory,
+                .allApplicationsDirectory,
+                .allLibrariesDirectory,
+                .printerDescriptionDirectory,
+                .itemReplacementDirectory:
+            return []
         }
     }
 
