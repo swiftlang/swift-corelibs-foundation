@@ -9,7 +9,7 @@
 
 @frozen
 public struct CGFloat {
-#if arch(i386) || arch(arm)
+#if arch(i386) || arch(arm) || arch(wasm32)
     /// The native type used to store the CGFloat, which is Float on
     /// 32-bit architectures and Double on 64-bit architectures.
     public typealias NativeType = Float
@@ -185,7 +185,7 @@ extension CGFloat : BinaryFloatingPoint {
 
     @_transparent
     public init(bitPattern: UInt) {
-#if arch(i386) || arch(arm)
+#if arch(i386) || arch(arm) || arch(wasm32)
         native = NativeType(bitPattern: UInt32(bitPattern))
 #elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
         native = NativeType(bitPattern: UInt64(bitPattern))

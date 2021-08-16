@@ -18,6 +18,9 @@ fileprivate var _NSPageSize: Int {
   GetSystemInfo(&siInfo)
   return Int(siInfo.dwPageSize)
 }
+#elseif os(WASI)
+// WebAssembly defines a fixed page size
+fileprivate let _NSPageSize: Int = 65_536
 #endif
 
 public func NSPageSize() -> Int {
