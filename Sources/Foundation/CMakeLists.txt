@@ -161,10 +161,22 @@ set_target_properties(Foundation PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
 if(NOT BUILD_SHARED_LIBS)
+  # ICU_I18N_LIBRARY is set by find_package(ICU) in the top level CMakeLists.txt
+  # It's an absolute path to the found library file
+  get_target_property(icui18n_path ICU::i18n IMPORTED_LOCATION)
+  get_filename_component(icu_i18n_basename "${icui18n_path}" NAME_WE)
+  get_filename_component(icu_i18n_dir "${icui18n_path}" DIRECTORY)
+  string(REPLACE "lib" "" icu_i18n_basename "${icu_i18n_basename}")
+
   target_compile_options(Foundation
     PRIVATE
-      "SHELL:-Xfrontend -public-autolink-library -Xfrontend icui18n
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend ${icu_i18n_basename}
              -Xfrontend -public-autolink-library -Xfrontend BlocksRuntime")
+  # ICU libraries are linked by absolute library path in this project,
+  # but -public-autolink-library forces to resolve library path by
+  # library search path given by -L, so add a directory of icui18n
+  # in the search path
+  target_link_directories(Foundation PUBLIC "${icu_i18n_dir}")
 
   # Merge private dependencies into single static objects archive
   set_property(TARGET Foundation PROPERTY STATIC_LIBRARY_OPTIONS

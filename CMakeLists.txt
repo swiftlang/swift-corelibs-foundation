@@ -47,6 +47,8 @@ if(HAS_LIBDISPATCH_API)
   find_package(dispatch CONFIG REQUIRED)
 endif()
 
+find_package(ICU COMPONENTS uc i18n REQUIRED)
+
 include(SwiftSupport)
 include(GNUInstallDirs)
 include(XCTest)
