@@ -160,6 +160,18 @@ set_target_properties(Foundation PROPERTIES
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
 
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_options(Foundation
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend icui18n
+             -Xfrontend -public-autolink-library -Xfrontend BlocksRuntime")
+
+  # Merge private dependencies into single static objects archive
+  set_property(TARGET Foundation PROPERTY STATIC_LIBRARY_OPTIONS
+    $<TARGET_OBJECTS:CoreFoundation>
+    $<TARGET_OBJECTS:uuid>)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # NOTE: workaround for CMake which doesn't link in OBJECT libraries properly
   add_dependencies(Foundation CoreFoundationResources)
