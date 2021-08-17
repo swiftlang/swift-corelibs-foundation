@@ -10,12 +10,25 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(Darwin)
 import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(CRT)
+import CRT
+#endif
 
 final actor IOActor {
     func read(from fd: Int32, into buffer: UnsafeMutableRawBufferPointer) async throws -> Int {
         while true {
-            let amount = Darwin.read(fd, buffer.baseAddress, buffer.count)
+#if canImport(Darwin)
+            let read = Darwin.read
+#elseif canImport(Glibc)
+            let read = Glibc.read
+#elseif canImport(CRT)
+            let read = CRT._read
+#endif
+            let amount = read(fd, buffer.baseAddress, buffer.count)
             if amount >= 0 {
                 return amount
             }
