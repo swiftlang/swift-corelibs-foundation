@@ -342,8 +342,8 @@ extension Morphology {
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 extension NSAttributedString.Key {
-    internal static var morphology = NSAttributedString.Key(rawValue: "NSMorphology")
-    internal static var inflectionRule = NSAttributedString.Key(rawValue: "NSInflect")
-    internal static var inflectionAlternative = NSAttributedString.Key(rawValue: "NSInflectionAlternative")
-    internal static var language = NSAttributedString.Key(rawValue: "NSLanguage")
+    public static let morphology = NSAttributedString.Key(rawValue: "NSMorphology")
+    public static let inflectionRule = NSAttributedString.Key(rawValue: "NSInflect")
+    public static let inflectionAlternative = NSAttributedString.Key(rawValue: "NSInflectionAlternative")
+    public static let language = NSAttributedString.Key(rawValue: "NSLanguage")
 }

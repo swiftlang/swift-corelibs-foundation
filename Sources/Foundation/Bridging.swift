@@ -230,25 +230,23 @@ internal final class __SwiftValue : NSObject, NSCopying {
 // MARK: AnyHashable Bridging
 extension AnyHashable : _ObjectiveCBridgeable {
     public func _bridgeToObjectiveC() -> NSObject {
-        // This is unprincipled, but pretty much any object we'll encounter in
-        // Swift is NSObject-conforming enough to have -hash and -isEqual:.
-        return unsafeBitCast(base as AnyObject, to: NSObject.self)
+        return __SwiftValue.store(base)
     }
-    
+
     public static func _forceBridgeFromObjectiveC(_ x: NSObject, result: inout AnyHashable?) {
-        result = AnyHashable(x)
+        result = (__SwiftValue.fetch(x) as? AnyHashable) ?? AnyHashable(x)
     }
-    
+
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSObject, result: inout AnyHashable?) -> Bool {
         self._forceBridgeFromObjectiveC(x, result: &result)
         return result != nil
     }
-    
+
     @_effects(readonly)
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSObject?) -> AnyHashable {
         // `nil` has historically been used as a stand-in for an empty
         // string; map it to an empty string.
         if _slowPath(source == nil) { return AnyHashable(String()) }
-        return AnyHashable(source!)
+        return (__SwiftValue.fetch(source) as? AnyHashable) ?? AnyHashable(source!)
     }
 }
