@@ -32,7 +32,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   else()
     find_package(CURL REQUIRED)
   endif()
-  find_package(ICU COMPONENTS uc i18n REQUIRED)
 endif()
 
 include(GNUInstallDirs)

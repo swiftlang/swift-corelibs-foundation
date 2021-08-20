@@ -42,6 +42,8 @@ option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features ar
 
 find_package(dispatch CONFIG REQUIRED)
 
+find_package(ICU COMPONENTS uc i18n REQUIRED)
+
 include(SwiftSupport)
 include(GNUInstallDirs)
 include(XCTest)
