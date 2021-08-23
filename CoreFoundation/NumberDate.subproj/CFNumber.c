@@ -178,7 +178,7 @@ static const Float64Bits doubleOneBits = {.floatValue = 1.0f};
 #define BITSFORDOUBLEZERO doubleZeroBits.bits
 #define BITSFORDOUBLEONE  doubleOneBits.bits
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #define FLOAT_POSITIVE_2_TO_THE_64	0x1.0p+64L
 #define FLOAT_NEGATIVE_2_TO_THE_127	-0x1.0p+127L
 #define FLOAT_POSITIVE_2_TO_THE_127	0x1.0p+127L

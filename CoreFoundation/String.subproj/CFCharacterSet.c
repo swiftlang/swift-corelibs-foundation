@@ -731,7 +731,7 @@ static void __CFCSetAddNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFRang
     int firstChar = (range.location & 0xFFFF);
     int maxChar = range.location + range.length;
     int idx = range.location >> 16; // first plane
-    int maxPlane = MIN((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
+    int maxPlane = __CFMin((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
     CFRange planeRange;
     CFMutableCharacterSetRef annexPlane;
 
@@ -775,7 +775,7 @@ static void __CFCSetRemoveNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFR
     int firstChar = (range.location & 0xFFFF);
     int maxChar = range.location + range.length;
     int idx = range.location >> 16; // first plane
-    int maxPlane = MIN((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
+    int maxPlane = __CFMin((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
     CFRange planeRange;
     CFMutableCharacterSetRef annexPlane;
 

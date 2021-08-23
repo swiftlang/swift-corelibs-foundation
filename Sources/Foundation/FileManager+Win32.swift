@@ -115,51 +115,51 @@ extension FileManager {
                 return []
             }
 
-            case .downloadsDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Downloads)]
+        case .downloadsDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Downloads)]
 
-            case .userDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_UserProfiles)]
+        case .userDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_UserProfiles)]
 
-            case .moviesDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Videos)]
+        case .moviesDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Videos)]
 
-            case .musicDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Music)]
+        case .musicDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Music)]
 
-            case .picturesDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_PicturesLibrary)]
+        case .picturesDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_PicturesLibrary)]
 
-            case .sharedPublicDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Public)]
+        case .sharedPublicDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Public)]
 
-            case .trashDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_RecycleBinFolder)]
+        case .trashDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_RecycleBinFolder)]
 
-                // None of these are supported outside of Darwin:
-            case .applicationDirectory,
-                 .demoApplicationDirectory,
-                 .developerApplicationDirectory,
-                 .adminApplicationDirectory,
-                 .libraryDirectory,
-                 .developerDirectory,
-                 .documentationDirectory,
-                 .coreServiceDirectory,
-                 .inputMethodsDirectory,
-                 .preferencePanesDirectory,
-                 .applicationScriptsDirectory,
-                 .allApplicationsDirectory,
-                 .allLibrariesDirectory,
-                 .printerDescriptionDirectory,
-                 .itemReplacementDirectory:
-                return []
+            // None of these are supported outside of Darwin:
+        case .applicationDirectory,
+                .demoApplicationDirectory,
+                .developerApplicationDirectory,
+                .adminApplicationDirectory,
+                .libraryDirectory,
+                .developerDirectory,
+                .documentationDirectory,
+                .coreServiceDirectory,
+                .inputMethodsDirectory,
+                .preferencePanesDirectory,
+                .applicationScriptsDirectory,
+                .allApplicationsDirectory,
+                .allLibrariesDirectory,
+                .printerDescriptionDirectory,
+                .itemReplacementDirectory:
+            return []
         }
     }
 
@@ -267,6 +267,11 @@ extension FileManager {
             var liFree: ULARGE_INTEGER = ULARGE_INTEGER()
             guard GetDiskFreeSpaceExW(&szVolumePath, nil, &liTotal, &liFree) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+            }
+
+            let hr: HRESULT = PathCchStripToRoot(&szVolumePath, szVolumePath.count)
+            guard hr == S_OK || hr == S_FALSE else {
+                throw _NSErrorWithWindowsError(DWORD(hr & 0xffff), reading: true, paths: [path])
             }
 
             var volumeSerialNumber: DWORD = 0

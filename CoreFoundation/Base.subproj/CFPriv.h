@@ -46,14 +46,17 @@
 #include <CoreFoundation/CFMessagePort.h>
 #endif
 
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSocket.h>
+#endif
 #include <CoreFoundation/CFBundlePriv.h>
 
 CF_EXTERN_C_BEGIN
 
 CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 
+#if !TARGET_OS_WASI
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
@@ -64,6 +67,7 @@ CF_EXPORT const char **_CFGetProgname(void);
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
+#endif
 #endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX))
@@ -161,6 +165,7 @@ CF_EXPORT Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, UInt8
 /* If this is publicized, we might need to create a GetBytesPtr type function as well. */
 CF_EXPORT CFStringRef _CFStringCreateWithBytesNoCopy(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean externalFormat, CFAllocatorRef contentsDeallocator);
 
+#if !TARGET_OS_WASI
 /* These return NULL on MacOS 8 */
 // This one leaks the returned string in order to be thread-safe.
 // CF cannot help you in this matter if you continue to use this SPI.
@@ -172,6 +177,7 @@ CFStringRef CFCopyUserName(void);
 
 CF_EXPORT
 CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName);	/* Pass NULL for the current user's home directory */
+#endif
 
 
 /*
@@ -630,8 +636,10 @@ typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
     _CFBundleFilteredPlistMemoryMapped = 1
 } API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
+#if !TARGET_OS_WASI
 CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+#endif
 
 #if TARGET_OS_WIN32
 #include <CoreFoundation/CFNotificationCenter.h>
