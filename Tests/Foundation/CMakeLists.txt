@@ -95,6 +95,7 @@ target_sources(TestFoundation PRIVATE
   Tests/TestTimer.swift
   Tests/TestTimeZone.swift
   Tests/TestUnitConverter.swift
+  Tests/TestUnitInformationStorage.swift
   Tests/TestUnitVolume.swift
   Tests/TestUnit.swift
   Tests/TestURLCache.swift
