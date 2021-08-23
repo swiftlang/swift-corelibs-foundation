@@ -1,6 +1,11 @@
 add_library(Foundation
   AffineTransform.swift
   Array.swift
+  AttributedString/AttributedString.swift
+  AttributedString/AttributedStringAttribute.swift
+  AttributedString/AttributedStringCodable.swift
+  AttributedString/AttributedStringRunCoalescing.swift
+  AttributedString/AttributedString+Locking.swift
   Boxing.swift
   Bridging.swift
   Bundle.swift
@@ -11,6 +16,7 @@ add_library(Foundation
   Codable.swift
   Collections+DataProtocol.swift
   ContiguousBytes.swift
+  AttributedString/Conversion.swift
   Data.swift
   DataProtocol.swift
   Date.swift
@@ -30,6 +36,7 @@ add_library(Foundation
   FileManager+Win32.swift
   FileManager+XDG.swift
   Formatter.swift
+  AttributedString/FoundationAttributes.swift
   FoundationErrors.swift
   Host.swift
   IndexPath.swift
@@ -44,6 +51,7 @@ add_library(Foundation
   MassFormatter.swift
   Measurement.swift
   MeasurementFormatter.swift
+  Morphology.swift
   Notification.swift
   NotificationQueue.swift
   NSArray.swift

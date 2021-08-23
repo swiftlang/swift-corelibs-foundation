@@ -126,6 +126,14 @@ var allTestCases = [
     testCase(TestNSSortDescriptor.allTests),
 ]
 
+if #available(macOS 12, *) {
+    allTestCases.append(contentsOf: [
+        testCase(TestAttributedString.allTests),
+        testCase(TestAttributedStringCOW.allTests),
+        testCase(TestAttributedStringPerformance.allTests)
+    ])
+}
+
 #if !os(Windows)
 allTestCases.append(contentsOf: [
     testCase(TestURLSession.allTests),

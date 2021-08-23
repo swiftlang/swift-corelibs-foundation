@@ -226,3 +226,27 @@ internal final class __SwiftValue : NSObject, NSCopying {
 
     override var description: String { String(describing: value) }
 }
+
+// MARK: AnyHashable Bridging
+extension AnyHashable : _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSObject {
+        return __SwiftValue.store(base)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ x: NSObject, result: inout AnyHashable?) {
+        result = (__SwiftValue.fetch(x) as? AnyHashable) ?? AnyHashable(x)
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSObject, result: inout AnyHashable?) -> Bool {
+        self._forceBridgeFromObjectiveC(x, result: &result)
+        return result != nil
+    }
+
+    @_effects(readonly)
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSObject?) -> AnyHashable {
+        // `nil` has historically been used as a stand-in for an empty
+        // string; map it to an empty string.
+        if _slowPath(source == nil) { return AnyHashable(String()) }
+        return (__SwiftValue.fetch(source) as? AnyHashable) ?? AnyHashable(source!)
+    }
+}
