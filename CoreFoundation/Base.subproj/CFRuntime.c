@@ -1240,9 +1240,6 @@ void __CFInitialize(void) {
         CFNumberGetTypeID();		// NB: This does other work
 
         __CFCharacterSetInitialize();
-#if (TARGET_OS_WIN32 && !defined(CF_OPEN_SOURCE))
-        __CFWindowsNamedPipeInitialize();
-#endif
         __CFDateInitialize();
         
 #if DEPLOYMENT_RUNTIME_SWIFT
@@ -1387,8 +1384,6 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 	// do these last
 	if (cfBundle) CFRelease(cfBundle);
         __CFStringCleanup();
-    } else if (dwReason == DLL_THREAD_DETACH) {
-        __CFFinalizeWindowsThreadData();
     }
     return TRUE;
 }
