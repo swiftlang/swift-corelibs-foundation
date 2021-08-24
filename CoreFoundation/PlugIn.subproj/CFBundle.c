@@ -1112,6 +1112,10 @@ CF_EXPORT CFURLRef _CFBundleCopyWrapperContainerURL(CFBundleRef bundle) {
     }
 }
 
+CF_CROSS_PLATFORM_EXPORT CFStringRef _CFBundleCopyExecutablePath(CFBundleRef bundle) {
+    return _CFBundleCopyExecutableName(bundle, NULL, NULL);
+}
+
 CF_PRIVATE CFStringRef _CFBundleCopyExecutableName(CFBundleRef bundle, CFURLRef url, CFDictionaryRef infoDict) {
     CFStringRef executableName = NULL;
     
