@@ -620,7 +620,6 @@ CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages() {
 
 CF_EXPORT void _CFBundleFlushLanguageCachesAfterEUIDChange() {
     _CFBundleFlushBundleCaches(CFBundleGetMainBundle());
-    _CFLocaleResetCurrent();
     _CFBundleFlushUserLanguagesCache();
 }
 

@@ -575,7 +575,6 @@ CF_EXPORT CFHashCode _CFNonObjCHash(CFTypeRef cf);
 CF_EXPORT
 Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeIdentifier, LangCode *langCode, RegionCode *regCode, ScriptCode *scriptCode, CFStringEncoding *stringEncoding);
 
-CF_EXPORT void _CFLocaleResetCurrent(void);
 CF_EXPORT void _CFCalendarResetCurrent(void);
 
 #if TARGET_OS_WIN32
