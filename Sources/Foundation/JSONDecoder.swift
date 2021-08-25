@@ -258,7 +258,7 @@ extension JSONDecoderImpl: Decoder {
     }
 
     @usableFromInline func singleValueContainer() throws -> SingleValueDecodingContainer {
-        SingleValueContainter(
+        SingleValueContainer(
             impl: self,
             codingPath: self.codingPath,
             json: self.json
@@ -293,18 +293,18 @@ extension JSONDecoderImpl: Decoder {
             return try Date(from: self)
 
         case .secondsSince1970:
-            let container = SingleValueContainter(impl: self, codingPath: self.codingPath, json: self.json)
+            let container = SingleValueContainer(impl: self, codingPath: self.codingPath, json: self.json)
             let double = try container.decode(Double.self)
             return Date(timeIntervalSince1970: double)
 
         case .millisecondsSince1970:
-            let container = SingleValueContainter(impl: self, codingPath: self.codingPath, json: self.json)
+            let container = SingleValueContainer(impl: self, codingPath: self.codingPath, json: self.json)
             let double = try container.decode(Double.self)
             return Date(timeIntervalSince1970: double / 1000.0)
 
         case .iso8601:
             if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-                let container = SingleValueContainter(impl: self, codingPath: self.codingPath, json: self.json)
+                let container = SingleValueContainer(impl: self, codingPath: self.codingPath, json: self.json)
                 let string = try container.decode(String.self)
                 guard let date = _iso8601Formatter.date(from: string) else {
                     throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Expected date string to be ISO8601-formatted."))
@@ -316,7 +316,7 @@ extension JSONDecoderImpl: Decoder {
             }
 
         case .formatted(let formatter):
-            let container = SingleValueContainter(impl: self, codingPath: self.codingPath, json: self.json)
+            let container = SingleValueContainer(impl: self, codingPath: self.codingPath, json: self.json)
             let string = try container.decode(String.self)
             guard let date = formatter.date(from: string) else {
                 throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Date string does not match format expected by formatter."))
@@ -334,7 +334,7 @@ extension JSONDecoderImpl: Decoder {
             return try Data(from: self)
 
         case .base64:
-            let container = SingleValueContainter(impl: self, codingPath: self.codingPath, json: self.json)
+            let container = SingleValueContainer(impl: self, codingPath: self.codingPath, json: self.json)
             let string = try container.decode(String.self)
 
             guard let data = Data(base64Encoded: string) else {
@@ -349,7 +349,7 @@ extension JSONDecoderImpl: Decoder {
     }
 
     private func unwrapURL() throws -> URL {
-        let container = SingleValueContainter(impl: self, codingPath: self.codingPath, json: self.json)
+        let container = SingleValueContainer(impl: self, codingPath: self.codingPath, json: self.json)
         let string = try container.decode(String.self)
 
         guard let url = URL(string: string) else {
@@ -520,7 +520,7 @@ extension Decodable {
 }
 
 extension JSONDecoderImpl {
-    struct SingleValueContainter: SingleValueDecodingContainer {
+    struct SingleValueContainer: SingleValueDecodingContainer {
         let impl: JSONDecoderImpl
         let value: JSONValue
         let codingPath: [CodingKey]
