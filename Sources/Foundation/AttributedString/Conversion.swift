@@ -287,6 +287,7 @@ internal func _loadDefaultAttributes() -> [String : Any.Type] {
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 fileprivate func _loadScopeAttributes(forSymbol symbol: String, from path: String) -> [String : Any.Type]? {
+#if os(macOS)
     _loadedScopeCacheLock.lock()
     defer { _loadedScopeCacheLock.unlock() }
     if let cachedResult = _loadedScopeCache[symbol] {
@@ -302,6 +303,9 @@ fileprivate func _loadScopeAttributes(forSymbol symbol: String, from path: Strin
     let attributeTypes =  _loadAttributeTypes(from: scopeType)
     _loadedScopeCache[symbol] = attributeTypes
     return attributeTypes
+#else
+    return nil
+#endif // os(macOS)
 }
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
