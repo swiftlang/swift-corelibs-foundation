@@ -27,6 +27,7 @@ class TestBridging : XCTestCase {
         return [
             ("testBridgedDescription", testBridgedDescription),
             ("testDynamicCast", testDynamicCast),
+            ("testConstantsImmortal", testConstantsImmortal),
         ]
     }
 
@@ -69,5 +70,33 @@ class TestBridging : XCTestCase {
         class TestClass {}
         let anyArray: Any = [TestClass()]
         XCTAssertNotNil(anyArray as? NSObject)
+    }
+
+    func testConstantsImmortal() throws {
+        func release(_ ptr: UnsafeRawPointer, count: Int) {
+            let object: Unmanaged<NSNumber> = Unmanaged.fromOpaque(ptr)
+            for _ in 0..<count {
+                object.release()
+            }
+        } 
+
+        let trueConstant = NSNumber(value: true)
+        let falseConstant = NSNumber(value: false)
+
+        // To accurately read the whole refcount, we need to read the second
+        // word of the pointer.
+        let truePtr = unsafeBitCast(trueConstant, to: UnsafePointer<Int>.self)
+        let falsePtr = unsafeBitCast(falseConstant, to: UnsafePointer<Int>.self)
+
+        let trueRefCount = truePtr.advanced(by: 1).pointee
+        let falseRefCount = falsePtr.advanced(by: 1).pointee
+
+        XCTAssertEqual(trueRefCount, falseRefCount)
+
+        release(truePtr, count: 5)
+        release(falsePtr, count: 5)
+
+        XCTAssertEqual(trueRefCount, truePtr.advanced(by: 1).pointee)
+        XCTAssertEqual(falseRefCount, falsePtr.advanced(by: 1).pointee)
     }
 }
