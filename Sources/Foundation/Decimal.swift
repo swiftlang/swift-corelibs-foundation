@@ -482,7 +482,7 @@ extension Decimal {
 
 extension Decimal : Strideable {
     public func distance(to other: Decimal) -> Decimal {
-        return self - other
+        return other - self
     }
     public func advanced(by n: Decimal) -> Decimal {
         return self + n

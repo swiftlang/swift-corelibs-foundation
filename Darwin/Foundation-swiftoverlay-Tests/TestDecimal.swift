@@ -588,6 +588,14 @@ class TestDecimal : XCTestCase {
             }
         }
     }
+
+    func test_Strideable() {
+        let x = 42 as Decimal
+        XCTAssertEqual(x.distance(to: 43), 1)
+        XCTAssertEqual(x.advanced(by: 1), 43)
+        XCTAssertEqual(x.distance(to: 41), -1)
+        XCTAssertEqual(x.advanced(by: -1), 41)
+    }
     
     func test_ULP() {
         let x = 0.1 as Decimal
