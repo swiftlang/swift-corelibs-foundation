@@ -495,15 +495,6 @@ extension Decimal : Strideable {
 // If it becomes clear that conformance is truly impossible, we can deprecate
 // some of the methods (e.g. `isEqual(to:)` in favor of operators).
 extension Decimal {
-    public static let leastFiniteMagnitude = Decimal(
-        _exponent: 127,
-        _length: 8,
-        _isNegative: 1,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
-    )
-
     public static let greatestFiniteMagnitude = Decimal(
         _exponent: 127,
         _length: 8,
@@ -514,7 +505,7 @@ extension Decimal {
     )
 
     public static let leastNormalMagnitude = Decimal(
-        _exponent: -127,
+        _exponent: -128,
         _length: 1,
         _isNegative: 0,
         _isCompact: 1,
@@ -522,14 +513,9 @@ extension Decimal {
         _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
     )
 
-    public static let leastNonzeroMagnitude = Decimal(
-        _exponent: -127,
-        _length: 1,
-        _isNegative: 0,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
-    )
+    public static let leastNonzeroMagnitude = leastNormalMagnitude
+
+    public static let leastFiniteMagnitude = zero
 
     public static let pi = Decimal(
         _exponent: -38,

@@ -137,13 +137,15 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(8, NSDecimalMaxSize)
         XCTAssertEqual(32767, NSDecimalNoScale)
         let smallest = Decimal(_exponent: 127, _length: 8, _isNegative: 1, _isCompact: 1, _reserved: 0, _mantissa: (UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max))
-        XCTAssertEqual(smallest, Decimal.leastFiniteMagnitude)
+        XCTAssertEqual(smallest, -Decimal.greatestFiniteMagnitude)
         let biggest = Decimal(_exponent: 127, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max))
         XCTAssertEqual(biggest, Decimal.greatestFiniteMagnitude)
-        let leastNormal = Decimal(_exponent: -127, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
+        let leastNormal = Decimal(_exponent: -128, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
         XCTAssertEqual(leastNormal, Decimal.leastNormalMagnitude)
-        let leastNonzero = Decimal(_exponent: -127, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
+        let leastNonzero = Decimal(_exponent: -128, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
         XCTAssertEqual(leastNonzero, Decimal.leastNonzeroMagnitude)
+        let leastFinite = 0 as Decimal
+        XCTAssertEqual(leastFinite, Decimal.leastFiniteMagnitude)
         let pi = Decimal(_exponent: -38, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58))
         XCTAssertEqual(pi, Decimal.pi)
         XCTAssertEqual(10, Decimal.radix)
@@ -177,13 +179,12 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(-5)).description)
         XCTAssertEqual("5", NSDecimalNumber(decimal: Decimal(5)).description)
         XCTAssertEqual("-5", NSDecimalNumber(decimal: Decimal(-5)).description)
-        XCTAssertEqual("-3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", Decimal.leastFiniteMagnitude.description)
         XCTAssertEqual("3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", Decimal.greatestFiniteMagnitude.description)
-        XCTAssertEqual("0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", Decimal.leastNormalMagnitude.description)
-        XCTAssertEqual("0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", Decimal.leastNonzeroMagnitude.description)
+        XCTAssertEqual("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", Decimal.leastNormalMagnitude.description)
+        XCTAssertEqual("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", Decimal.leastNonzeroMagnitude.description)
+        XCTAssertEqual("0", Decimal.leastFiniteMagnitude.description)
 
         let fr = Locale(identifier: "fr_FR")
-        let leastFiniteMagnitude = "-3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
         let greatestFiniteMagnitude = "3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
         XCTAssertEqual("0", NSDecimalNumber(decimal: Decimal()).description(withLocale: fr))
@@ -194,10 +195,9 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual("3,14159265358979323846264338327950288419", NSDecimalNumber(decimal: Decimal.pi).description(withLocale: fr))
         XCTAssertEqual("-30000000000", NSDecimalNumber(decimal: Decimal(sign: .minus, exponent: 10, significand: Decimal(3))).description(withLocale: fr))
         XCTAssertEqual("123456,789", NSDecimalNumber(decimal: Decimal(string: "123456.789")!).description(withLocale: fr))
-        XCTAssertEqual(leastFiniteMagnitude, NSDecimalNumber(decimal: Decimal.leastFiniteMagnitude).description(withLocale: fr))
         XCTAssertEqual(greatestFiniteMagnitude, NSDecimalNumber(decimal: Decimal.greatestFiniteMagnitude).description(withLocale: fr))
-        XCTAssertEqual("0,0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNormalMagnitude).description(withLocale: fr))
-        XCTAssertEqual("0,0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNonzeroMagnitude).description(withLocale: fr))
+        XCTAssertEqual("0,00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNormalMagnitude).description(withLocale: fr))
+        XCTAssertEqual("0,00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNonzeroMagnitude).description(withLocale: fr))
 
         let en = Locale(identifier: "en_GB")
         XCTAssertEqual("0", NSDecimalNumber(decimal: Decimal()).description(withLocale: en))
@@ -208,10 +208,9 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual("3.14159265358979323846264338327950288419", NSDecimalNumber(decimal: Decimal.pi).description(withLocale: en))
         XCTAssertEqual("-30000000000", NSDecimalNumber(decimal: Decimal(sign: .minus, exponent: 10, significand: Decimal(3))).description(withLocale: en))
         XCTAssertEqual("123456.789", NSDecimalNumber(decimal: Decimal(string: "123456.789")!).description(withLocale: en))
-        XCTAssertEqual(leastFiniteMagnitude, NSDecimalNumber(decimal: Decimal.leastFiniteMagnitude).description(withLocale: en))
         XCTAssertEqual(greatestFiniteMagnitude, NSDecimalNumber(decimal: Decimal.greatestFiniteMagnitude).description(withLocale: en))
-        XCTAssertEqual("0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNormalMagnitude).description(withLocale: en))
-        XCTAssertEqual("0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNonzeroMagnitude).description(withLocale: en))
+        XCTAssertEqual("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNormalMagnitude).description(withLocale: en))
+        XCTAssertEqual("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNonzeroMagnitude).description(withLocale: en))
     }
 
     func test_ExplicitConstruction() {
@@ -333,7 +332,6 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(NSDecimalNumber(floatLiteral: 2880.4).subtracting(NSDecimalNumber(floatLiteral: 5538)), NSDecimalNumber(floatLiteral: 2880.4 - 5538))
 
         XCTAssertEqual(Decimal.greatestFiniteMagnitude - Decimal.greatestFiniteMagnitude, Decimal(0))
-        XCTAssertEqual(Decimal.leastFiniteMagnitude - Decimal(1), Decimal.leastFiniteMagnitude)
         let overflowed = Decimal.greatestFiniteMagnitude + Decimal.greatestFiniteMagnitude
         XCTAssertTrue(overflowed.isNaN)
 
@@ -388,7 +386,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual((1 as Decimal).magnitude, abs(-1 as Decimal))
         XCTAssertEqual((-1 as Decimal).magnitude, abs(-1 as Decimal))
         XCTAssertEqual((-1 as Decimal).magnitude, abs(1 as Decimal))
-        XCTAssertEqual(Decimal.leastFiniteMagnitude.magnitude, -Decimal.leastFiniteMagnitude) // A bit of a misnomer.
+        XCTAssertEqual(Decimal.leastFiniteMagnitude.magnitude, -Decimal.leastFiniteMagnitude)
         XCTAssertEqual(Decimal.greatestFiniteMagnitude.magnitude, Decimal.greatestFiniteMagnitude)
         XCTAssertTrue(Decimal.nan.magnitude.isNaN)
 
@@ -568,7 +566,7 @@ class TestDecimal: XCTestCase {
         XCTAssertTrue(Int(small.exponent) - Int(large.exponent) < Int(Int8.min))
         XCTAssertNotEqual(small, large)
 
-        XCTAssertEqual(small.exponent, -127)
+        XCTAssertEqual(small.exponent, -128)
         XCTAssertEqual(large.exponent, 127)
         XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&small, &large, .plain))
         XCTAssertEqual(small.exponent, 127)
@@ -576,7 +574,7 @@ class TestDecimal: XCTestCase {
 
         small = Decimal.leastNonzeroMagnitude
         large = Decimal.greatestFiniteMagnitude
-        XCTAssertEqual(small.exponent, -127)
+        XCTAssertEqual(small.exponent, -128)
         XCTAssertEqual(large.exponent, 127)
         XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&large, &small, .plain))
         XCTAssertEqual(small.exponent, 127)
