@@ -808,6 +808,13 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(zero3.description, "0")
     }
 
+    func test_Significand() {
+        let x = -42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        let y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y.sign, .minus)
+    }
+
     func test_SimpleMultiplication() {
         var multiplicand = Decimal()
         multiplicand._isNegative = 0
@@ -1460,6 +1467,7 @@ class TestDecimal: XCTestCase {
             ("test_RepeatingDivision", test_RepeatingDivision),
             ("test_Round", test_Round),
             ("test_ScanDecimal", test_ScanDecimal),
+            ("test_Significand", test_Significand),
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ULP", test_ULP),

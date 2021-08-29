@@ -698,7 +698,7 @@ extension Decimal {
         self.init(
             _exponent: Int32(exponent) + significand._exponent,
             _length: significand._length,
-            _isNegative: sign == .plus ? 0 : 1,
+            _isNegative: sign == significand.sign ? 0 : 1,
             _isCompact: significand._isCompact,
             _reserved: 0,
             _mantissa: significand._mantissa)
@@ -720,7 +720,7 @@ extension Decimal {
 
     public var significand: Decimal {
         return Decimal(
-            _exponent: 0, _length: _length, _isNegative: _isNegative, _isCompact: _isCompact,
+            _exponent: 0, _length: _length, _isNegative: 0, _isCompact: _isCompact,
             _reserved: 0, _mantissa: _mantissa)
     }
 
