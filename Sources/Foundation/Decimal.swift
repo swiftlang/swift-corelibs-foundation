@@ -695,13 +695,13 @@ extension Decimal {
     }
 
     public init(sign: FloatingPointSign, exponent: Int, significand: Decimal) {
-        self.init(
-            _exponent: Int32(exponent) + significand._exponent,
-            _length: significand._length,
-            _isNegative: sign == significand.sign ? 0 : 1,
-            _isCompact: significand._isCompact,
-            _reserved: 0,
-            _mantissa: significand._mantissa)
+        self = significand
+        let error = withUnsafeMutablePointer(to: &self) {
+            NSDecimalMultiplyByPowerOf10($0, $0, Int16(exponent), .plain)
+        }
+        if error == .underflow { self = 0 }
+        // We don't need to check for overflow because `Decimal` cannot represent infinity.
+        if sign == .minus { negate() }
     }
 
     public init(signOf: Decimal, magnitudeOf magnitude: Decimal) {
