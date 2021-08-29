@@ -287,14 +287,14 @@ extension NSTextCheckingResult {
     }
 }
 
-@available(*, deprecated, message: "NSOrtography is not available in swift-corelibs-foundation")
+@available(*, deprecated, message: "NSOrthography is not available in swift-corelibs-foundation")
 open class NSOrthography: NSObject, NSCopying, NSSecureCoding {
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
-    open class func defaultOrtography(forLanguage: String) -> Self {
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
+    open class func defaultOrthography(forLanguage: String) -> Self {
         NSUnsupported()
     }
     
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     public init(dominantScript: String, languageMap: [String: [String]]) {
         NSUnsupported()
     }
@@ -313,18 +313,18 @@ open class NSOrthography: NSObject, NSCopying, NSSecureCoding {
         NSUnsupported()
     }
     
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open var languageMap: [String: [String]] { NSUnsupported() }
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open var dominantLanguage: String { NSUnsupported() }
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open var dominantScript: String { NSUnsupported() }
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open func dominantLanguage(forScript: String) -> String? { NSUnsupported() }
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open func language(forScript: String) -> [String]? { NSUnsupported() }
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open var alLScripts: [String] { NSUnsupported() }
-    @available(*, unavailable, message: "NSOrtography is not available in swift-corelibs-foundation")
+    @available(*, unavailable, message: "NSOrthography is not available in swift-corelibs-foundation")
     open var allLanguages: [String] { NSUnsupported() }
 }
