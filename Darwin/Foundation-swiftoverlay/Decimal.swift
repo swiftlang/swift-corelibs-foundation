@@ -324,6 +324,57 @@ extension Decimal : Strideable {
     }
 }
 
+extension Decimal {
+    // (Used by `_powersOfTen` and `ulp`; note that the representation isn't compact.)
+    fileprivate init(_length: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        self.init(_exponent: 0, _length: _length, _isNegative: 0, _isCompact: 0,
+                  _reserved: 0, _mantissa: _mantissa)
+    }
+}
+
+private let _powersOfTen = [
+/*^00*/ 1 as Decimal,
+/*^01*/ Decimal(_length: 1, _mantissa: (0x000a,0,0,0,0,0,0,0)),
+/*^02*/ Decimal(_length: 1, _mantissa: (0x0064,0,0,0,0,0,0,0)),
+/*^03*/ Decimal(_length: 1, _mantissa: (0x03e8,0,0,0,0,0,0,0)),
+/*^04*/ Decimal(_length: 1, _mantissa: (0x2710,0,0,0,0,0,0,0)),
+/*^05*/ Decimal(_length: 2, _mantissa: (0x86a0, 0x0001,0,0,0,0,0,0)),
+/*^06*/ Decimal(_length: 2, _mantissa: (0x4240, 0x000f,0,0,0,0,0,0)),
+/*^07*/ Decimal(_length: 2, _mantissa: (0x9680, 0x0098,0,0,0,0,0,0)),
+/*^08*/ Decimal(_length: 2, _mantissa: (0xe100, 0x05f5,0,0,0,0,0,0)),
+/*^09*/ Decimal(_length: 2, _mantissa: (0xca00, 0x3b9a,0,0,0,0,0,0)),
+/*^10*/ Decimal(_length: 3, _mantissa: (0xe400, 0x540b, 0x0002,0,0,0,0,0)),
+/*^11*/ Decimal(_length: 3, _mantissa: (0xe800, 0x4876, 0x0017,0,0,0,0,0)),
+/*^12*/ Decimal(_length: 3, _mantissa: (0x1000, 0xd4a5, 0x00e8,0,0,0,0,0)),
+/*^13*/ Decimal(_length: 3, _mantissa: (0xa000, 0x4e72, 0x0918,0,0,0,0,0)),
+/*^14*/ Decimal(_length: 3, _mantissa: (0x4000, 0x107a, 0x5af3,0,0,0,0,0)),
+/*^15*/ Decimal(_length: 4, _mantissa: (0x8000, 0xa4c6, 0x8d7e, 0x0003,0,0,0,0)),
+/*^16*/ Decimal(_length: 4, _mantissa: (0x0000, 0x6fc1, 0x86f2, 0x0023,0,0,0,0)),
+/*^17*/ Decimal(_length: 4, _mantissa: (0x0000, 0x5d8a, 0x4578, 0x0163,0,0,0,0)),
+/*^18*/ Decimal(_length: 4, _mantissa: (0x0000, 0xa764, 0xb6b3, 0x0de0,0,0,0,0)),
+/*^19*/ Decimal(_length: 4, _mantissa: (0x0000, 0x89e8, 0x2304, 0x8ac7,0,0,0,0)),
+/*^20*/ Decimal(_length: 5, _mantissa: (0x0000, 0x6310, 0x5e2d, 0x6bc7, 0x0005,0,0,0)),
+/*^21*/ Decimal(_length: 5, _mantissa: (0x0000, 0xdea0, 0xadc5, 0x35c9, 0x0036,0,0,0)),
+/*^22*/ Decimal(_length: 5, _mantissa: (0x0000, 0xb240, 0xc9ba, 0x19e0, 0x021e,0,0,0)),
+/*^23*/ Decimal(_length: 5, _mantissa: (0x0000, 0xf680, 0xe14a, 0x02c7, 0x152d,0,0,0)),
+/*^24*/ Decimal(_length: 5, _mantissa: (0x0000, 0xa100, 0xcced, 0x1bce, 0xd3c2,0,0,0)),
+/*^25*/ Decimal(_length: 6, _mantissa: (0x0000, 0x4a00, 0x0148, 0x1614, 0x4595, 0x0008,0,0)),
+/*^26*/ Decimal(_length: 6, _mantissa: (0x0000, 0xe400, 0x0cd2, 0xdcc8, 0xb7d2, 0x0052,0,0)),
+/*^27*/ Decimal(_length: 6, _mantissa: (0x0000, 0xe800, 0x803c, 0x9fd0, 0x2e3c, 0x033b,0,0)),
+/*^28*/ Decimal(_length: 6, _mantissa: (0x0000, 0x1000, 0x0261, 0x3e25, 0xce5e, 0x204f,0,0)),
+/*^29*/ Decimal(_length: 7, _mantissa: (0x0000, 0xa000, 0x17ca, 0x6d72, 0x0fae, 0x431e, 0x0001,0)),
+/*^30*/ Decimal(_length: 7, _mantissa: (0x0000, 0x4000, 0xedea, 0x4674, 0x9cd0, 0x9f2c, 0x000c,0)),
+/*^31*/ Decimal(_length: 7, _mantissa: (0x0000, 0x8000, 0x4b26, 0xc091, 0x2022, 0x37be, 0x007e,0)),
+/*^32*/ Decimal(_length: 7, _mantissa: (0x0000, 0x0000, 0xef81, 0x85ac, 0x415b, 0x2d6d, 0x04ee,0)),
+/*^33*/ Decimal(_length: 7, _mantissa: (0x0000, 0x0000, 0x5b0a, 0x38c1, 0x8d93, 0xc644, 0x314d,0)),
+/*^34*/ Decimal(_length: 8, _mantissa: (0x0000, 0x0000, 0x8e64, 0x378d, 0x87c0, 0xbead, 0xed09, 0x0001)),
+/*^35*/ Decimal(_length: 8, _mantissa: (0x0000, 0x0000, 0x8fe8, 0x2b87, 0x4d82, 0x72c7, 0x4261, 0x0013)),
+/*^36*/ Decimal(_length: 8, _mantissa: (0x0000, 0x0000, 0x9f10, 0xb34b, 0x0715, 0x7bc9, 0x97ce, 0x00c0)),
+/*^37*/ Decimal(_length: 8, _mantissa: (0x0000, 0x0000, 0x36a0, 0x00f4, 0x46d9, 0xd5da, 0xee10, 0x0785)),
+/*^38*/ Decimal(_length: 8, _mantissa: (0x0000, 0x0000, 0x2240, 0x098a, 0xc47a, 0x5a86, 0x4ca8, 0x4b3b))
+/*^39 is on 9 shorts.*/
+]
+
 // The methods in this extension exist to match the protocol requirements of
 // FloatingPoint, even if we can't conform directly.
 //
@@ -550,9 +601,20 @@ extension Decimal {
     }
 
     public var ulp: Decimal {
-        if !self.isFinite { return Decimal.nan }
+        guard isFinite else { return .nan }
+
+        let exponent: Int32
+        if isZero {
+            exponent = .min
+        } else {
+            let significand = Decimal(_length: _length, _mantissa: _mantissa)
+            let maxPowerOfTen = _powersOfTen.count
+            let powerOfTen = _powersOfTen.firstIndex { $0 > significand } ?? maxPowerOfTen
+            exponent = _exponent &- Int32(maxPowerOfTen &- powerOfTen)
+        }
+
         return Decimal(
-            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
+            _exponent: max(exponent, -128), _length: 1, _isNegative: 0, _isCompact: 1,
             _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
     }
 
