@@ -515,10 +515,6 @@ extension TestAffineTransform {
             transformedBy: {
                 var transform = AffineTransform.identity
                 
-                transform.append(.init(translationByX: 2, byY: 0))
-                transform.append(.init(scaleByX: 5, byY: -5))
-                
-                transform = .identity
                 transform.translate(x: 2, y: 0)
                 transform.scale(x: 5, y: -5)
                 
