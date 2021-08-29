@@ -7,6 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Foundation
+import XCTest
+
 class TestDecimal: XCTestCase {
 
     func test_NSDecimalNumberInit() {
@@ -809,10 +812,19 @@ class TestDecimal: XCTestCase {
     }
 
     func test_Significand() {
-        let x = -42 as Decimal
+        var x = -42 as Decimal
         XCTAssertEqual(x.significand.sign, .plus)
-        let y = Decimal(sign: .plus, exponent: 0, significand: x)
-        XCTAssertEqual(y.sign, .minus)
+        var y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+
+        x = 42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
     }
 
     func test_SimpleMultiplication() {
