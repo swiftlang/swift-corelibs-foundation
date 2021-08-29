@@ -287,8 +287,6 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(Decimal(-9), Decimal(1) - Decimal(10))
         XCTAssertEqual(Decimal(3), Decimal(2).nextUp)
         XCTAssertEqual(Decimal(2), Decimal(3).nextDown)
-        XCTAssertEqual(Decimal(-476), Decimal(1024).distance(to: Decimal(1500)))
-        XCTAssertEqual(Decimal(68040), Decimal(386).advanced(by: Decimal(67654)))
         XCTAssertEqual(Decimal(1.234), abs(Decimal(1.234)))
         XCTAssertEqual(Decimal(1.234), abs(Decimal(-1.234)))
         if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
@@ -590,6 +588,9 @@ class TestDecimal : XCTestCase {
     }
 
     func test_Strideable() {
+        XCTAssertEqual(Decimal(476), Decimal(1024).distance(to: Decimal(1500)))
+        XCTAssertEqual(Decimal(68040), Decimal(386).advanced(by: Decimal(67654)))
+
         let x = 42 as Decimal
         XCTAssertEqual(x.distance(to: 43), 1)
         XCTAssertEqual(x.advanced(by: 1), 43)
