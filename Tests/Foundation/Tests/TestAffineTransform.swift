@@ -49,27 +49,18 @@ class TestAffineTransform: XCTestCase {
 
 extension TestAffineTransform {
     func check(
-        point: CGPoint,
-        transformedBy transform: AffineTransform,
-        equals expectedPoint: CGPoint,
+        vector: CGVector,
+        withTransform transform: AffineTransform,
+        mapsToPoint expectedPoint: CGPoint,
+        mapsToSize expectedSize: CGSize,
         _ message: String = "",
         file: StaticString = #file, line: UInt = #line
     ) {
-        let size = CGSize(width: point.x, height: point.y)
+        let point = CGPoint(x: vector.dx, y: vector.dy)
+        let size = CGSize(width: vector.dx, height: vector.dy)
         
         let newPoint = transform.transform(point)
         let newSize = transform.transform(size)
-        
-        XCTAssertEqual(
-            newPoint.x, newSize.width,
-            "Expected point x and size width to match",
-            file: file, line: line
-        )
-        XCTAssertEqual(
-            newPoint.y, newSize.height,
-            "Expected point y and size height to match",
-            file: file, line: line
-        )
         
         let nsTransform = transform as NSAffineTransform
         XCTAssertEqual(
@@ -94,6 +85,19 @@ extension TestAffineTransform {
             newPoint.y, expectedPoint.y,
             accuracy: accuracyThreshold,
             "Invalid y: \(message)",
+            file: file, line: line
+        )
+        
+        XCTAssertEqual(
+            newSize.width, expectedSize.width,
+            accuracy: accuracyThreshold,
+            "Invalid width: \(message)",
+            file: file, line: line
+        )
+        XCTAssertEqual(
+            newSize.height, expectedSize.height,
+            accuracy: accuracyThreshold,
+            "Invalid height: \(message)",
             file: file, line: line
         )
     }
@@ -174,40 +178,57 @@ extension TestAffineTransform {
 extension TestAffineTransform {
     func testVectorTransformations() {
         
-        // To transform a given point with coordinated px and py,
+        // To transform a given size with coordinates w and h,
         // we do:
         //
-        //   [ x' y' ]
+        //   [ w' h' ] = [ w   h ]  *  [ m11  m12 ]
+        //                             [ m21  m22 ]
         //
-        // = [ px  py ]  *  [ m11  m12 ] + [ tX  tY ]
-        //                  [ m21  m22 ]
+        //             = [ w*m11+h*m21  w*m12+h*m22 ]
         //
-        // = [ px*m11+py*m21+tX  px*m12+py*m22+tY ]
+        // To find the transformed point with coordinates x, y
+        // where x=w and y=h, we simply add the translation vector
+        // [tX, tX] to our previous result:
+        //
+        // [ p' y' ] = [ w' h' ] + [ tX  tY ]
+        //           = [ x*m11+y*m21+tX  x*m12+y*m22+tY ]
         
         check(
-            point: CGPoint(x: 10, y: 20),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 20),
+            withTransform: AffineTransform(
                 m11: 1, m12: 2,
                 m21: 3, m22: 4,
                  tX: 5,  tY: 6
             ),
+        
             // [ px*m11+py*m21+tX  px*m12+py*m22+tY ]
             // [   10*1+20*3+5       10*2+20*4+6    ]
             // [       75                106        ]
-            equals: CGPoint(x: 75, y: 106)
+            mapsToPoint: CGPoint(x: 75, y: 106),
+            
+            // [ px*m11+py*m21  px*m12+py*m22 ]
+            // [   10*1+20*3       10*2+20*4  ]
+            // [      70              100     ]
+            mapsToSize: CGSize(width: 70, height: 100)
         )
         
         check(
-            point: CGPoint(x: 5, y: 25),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 5, dy: 25),
+            withTransform: AffineTransform(
                 m11: 5, m12: 4,
                 m21: 3, m22: 2,
                  tX: 1,  tY: 0
             ),
+            
             // [ px*m11+py*m21+tX  px*m12+py*m22+tY ]
-            // [    5*5+25*3+1        5*4+25*2+0    ]
-            // [       101                70        ]
-            equals: CGPoint(x: 101, y: 70)
+            // [   5*5+25*3+1         5*4+25*2+0    ]
+            // [      101                 70        ]
+            mapsToPoint: CGPoint(x: 101, y: 70),
+            
+            // [ px*m11+py*m21  px*m12+py*m22 ]
+            // [   5*5+25*3       5*4+25*2    ]
+            // [     100             70       ]
+            mapsToSize: CGSize(width: 100, height: 70)
         )
     }
 }
@@ -233,9 +254,10 @@ extension TestAffineTransform {
     
     func testIdentity() {
         check(
-            point: CGPoint(x: 25, y: 10),
-            transformedBy: .identity,
-            equals: CGPoint(x: 25, y: 10)
+            vector: CGVector(dx: 25, dy: 10),
+            withTransform: .identity,
+            mapsToPoint: CGPoint(x: 25, y: 10),
+            mapsToSize: CGSize(width: 25, height: 10)
         )
     }
 }
@@ -266,33 +288,36 @@ extension TestAffineTransform {
     
     func testTranslation() {
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
                 translationByX: 0, byY: 0
             ),
-            equals: CGPoint(x: 10, y: 10)
+            mapsToPoint: CGPoint(x: 10, y: 10),
+            mapsToSize: CGSize(width: 10, height: 10)
         )
         
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
                 translationByX: 0, byY: 5
             ),
-            equals: CGPoint(x: 10, y: 15)
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 10)
         )
         
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
                 translationByX: 5, byY: 5
             ),
-            equals: CGPoint(x: 15, y: 15)
+            mapsToPoint: CGPoint(x: 15, y: 15),
+            mapsToSize: CGSize(width: 10, height: 10)
         )
         
         check(
-            point: CGPoint(x: -2, y: -3),
+            vector: CGVector(dx: -2, dy: -3),
             // Translate by 5
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.translate(x: 2, y: 3)
@@ -300,7 +325,8 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 3, y: 2)
+            mapsToPoint: CGPoint(x: 3, y: 2),
+            mapsToSize: CGSize(width: -2, height: -3)
         )
     }
 }
@@ -360,33 +386,36 @@ extension TestAffineTransform {
 
     func testScaling() {
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
                 scaleByX: 1, byY: 0
             ),
-            equals: CGPoint(x: 10, y: 0)
+            mapsToPoint: CGPoint(x: 10, y: 0),
+            mapsToSize: CGSize(width: 10, height: 0)
         )
         
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
                 scaleByX: 0.5, byY: 1
             ),
-            equals: CGPoint(x: 5, y: 10)
+            mapsToPoint: CGPoint(x: 5, y: 10),
+            mapsToSize: CGSize(width: 5, height: 10)
         )
         
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: AffineTransform(
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
                 scaleByX: 0, byY: 2
             ),
-            equals: CGPoint(x: 0, y: 20)
+            mapsToPoint: CGPoint(x: 0, y: 20),
+            mapsToSize: CGSize(width: 0, height: 20)
         )
         
         check(
-            point: CGPoint(x: 10, y: 10),
+            vector: CGVector(dx: 10, dy: 10),
             // Scale by (2, 0)
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.scale(x: 4, y: 0)
@@ -394,7 +423,8 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 20, y: 0)
+            mapsToPoint: CGPoint(x: 20, y: 0),
+            mapsToSize: CGSize(width: 20, height: 0)
         )
     }
 }
@@ -412,12 +442,16 @@ extension TestAffineTransform {
             file: StaticString = #file,
             line: UInt = #line
         ) {
-            let point = CGPoint(x: 10, y: 15)
-            let newPoint = baseRotation.transform(point)
+            let vector = CGVector(dx: 10, dy: 15)
             
             self.check(
-                point: point, transformedBy: rotation,
-                equals: newPoint,
+                vector: vector, withTransform: rotation,
+                mapsToPoint: baseRotation.transform(
+                    CGPoint(x: vector.dx, y: vector.dy)
+                ),
+                mapsToSize: baseRotation.transform(
+                    CGSize(width: vector.dx, height: vector.dy)
+                ),
                 file: file, line: line
             )
         }
@@ -457,43 +491,48 @@ extension TestAffineTransform {
     
     func testRotation() {
         check(
-            point: CGPoint(x: 10, y: 15),
-            transformedBy: AffineTransform(rotationByDegrees: 0),
-            equals: CGPoint(x: 10, y: 15)
+            vector: CGVector(dx: 10, dy: 15),
+            withTransform: AffineTransform(rotationByDegrees: 0),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
         )
         
         check(
-            point: CGPoint(x: 10, y: 15),
-            transformedBy: AffineTransform(rotationByDegrees: 1080),
-            equals: CGPoint(x: 10, y: 15)
+            vector: CGVector(dx: 10, dy: 15),
+            withTransform: AffineTransform(rotationByDegrees: 1080),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
         )
         
         // Counter-clockwise rotation
         check(
-            point: CGPoint(x: 15, y: 10),
-            transformedBy: AffineTransform(rotationByRadians: .pi / 2),
-            equals: CGPoint(x: -10, y: 15)
+            vector: CGVector(dx: 15, dy: 10),
+            withTransform: AffineTransform(rotationByRadians: .pi / 2),
+            mapsToPoint: CGPoint(x: -10, y: 15),
+            mapsToSize: CGSize(width: -10, height: 15)
         )
         
         // Clockwise rotation
         check(
-            point: CGPoint(x: 15, y: 10),
-            transformedBy: AffineTransform(rotationByDegrees: -90),
-            equals: CGPoint(x: 10, y: -15)
+            vector: CGVector(dx: 15, dy: 10),
+            withTransform: AffineTransform(rotationByDegrees: -90),
+            mapsToPoint: CGPoint(x: 10, y: -15),
+            mapsToSize: CGSize(width: 10, height: -15)
         )
         
         // Reflect about origin
         check(
-            point: CGPoint(x: 10, y: 15),
-            transformedBy: AffineTransform(rotationByRadians: .pi),
-            equals: CGPoint(x: -10, y: -15)
+            vector: CGVector(dx: 10, dy: 15),
+            withTransform: AffineTransform(rotationByRadians: .pi),
+            mapsToPoint: CGPoint(x: -10, y: -15),
+            mapsToSize: CGSize(width: -10, height: -15)
         )
         
         // Composed reflection about origin
         check(
-            point: CGPoint(x: 10, y: 15),
+            vector: CGVector(dx: 10, dy: 15),
             // Rotate by 180º
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.rotate(byDegrees: 90)
@@ -501,7 +540,8 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: -10, y: -15)
+            mapsToPoint: CGPoint(x: -10, y: -15),
+            mapsToSize: CGSize(width: -10, height: -15)
         )
     }
 }
@@ -511,9 +551,9 @@ extension TestAffineTransform {
 extension TestAffineTransform {
     func testTranslationScaling() {
         check(
-            point: CGPoint(x: 1, y: 3),
+            vector: CGVector(dx: 1, dy: 3),
             // Translate by (2, 0) then scale by (5, -5)
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.translate(x: 2, y: 0)
@@ -521,13 +561,17 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 15, y: -15)
+            mapsToPoint: CGPoint(x: 15, y: -15),
+            // [  5   0 ]
+            // [  0  -5 ]
+            // [ 10   0 ]
+            mapsToSize: CGSize(width: 5, height: -15)
         )
         
         check(
-            point: CGPoint(x: 3, y: 1),
+            vector: CGVector(dx: 3, dy: 1),
             // Scale by (-5, 5) then scale by (0, 10)
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.scale(x: -5, y: 5)
@@ -535,15 +579,16 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: -15, y: 15)
+            mapsToPoint: CGPoint(x: -15, y: 15),
+            mapsToSize: CGSize(width: -15, height: 5)
         )
     }
     
     func testTranslationRotation() {
         check(
-            point: CGPoint(x: 10, y: 10),
+            vector: CGVector(dx: 10, dy: 10),
             // Translate by (20, -5) then rotate by 90º
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.translate(x: 20, y: -5)
@@ -551,13 +596,14 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: -5, y: 30)
+            mapsToPoint: CGPoint(x: -5, y: 30),
+            mapsToSize: CGSize(width: -10, height: 10)
         )
         
         check(
-            point: CGPoint(x: 10, y: 10),
+            vector: CGVector(dx: 10, dy: 10),
             // Rotate by 180º and then translate by (20, 15)
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.rotate(byDegrees: 180)
@@ -565,15 +611,16 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 10, y: 5)
+            mapsToPoint: CGPoint(x: 10, y: 5),
+            mapsToSize: CGSize(width: -10, height: -10)
         )
     }
     
     func testScalingRotation() {
         check(
-            point: CGPoint(x: 20, y: 5),
+            vector: CGVector(dx: 20, dy: 5),
             // Scale by (0.5, 3) then rotate by -90º
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.scale(x: 0.5, y: 3)
@@ -581,13 +628,14 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 15, y: -10)
+            mapsToPoint: CGPoint(x: 15, y: -10),
+            mapsToSize: CGSize(width: 15, height: -10)
         )
         
         check(
-            point: CGPoint(x: 20, y: 5),
+            vector: CGVector(dx: 20, dy: 5),
             // Rotate by -90º the scale by (0.5, 3)
-            transformedBy: {
+            withTransform: {
                 var transform = AffineTransform.identity
                 
                 transform.rotate(byDegrees: -90)
@@ -595,7 +643,8 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 15, y: 10)
+            mapsToPoint: CGPoint(x: 15, y: 10),
+            mapsToSize: CGSize(width: 15, height: 10)
         )
     }
 }
@@ -632,9 +681,10 @@ extension TestAffineTransform {
         }()
         
         check(
-            point: CGPoint(x: 10, y: 10),
-            transformedBy: recoveredIdentity,
-            equals: CGPoint(x: 10, y: 10)
+            vector: CGVector(dx: 10, dy: 10),
+            withTransform: recoveredIdentity,
+            mapsToPoint: CGPoint(x: 10, y: 10),
+            mapsToSize: CGSize(width: 10, height: 10)
         )
     }
 }
@@ -644,19 +694,20 @@ extension TestAffineTransform {
 extension TestAffineTransform {
     func testPrependTransform() {
         check(
-            point: CGPoint(x: 10, y: 15),
-            transformedBy: {
+            vector: CGVector(dx: 10, dy: 15),
+            withTransform: {
                 var transform = AffineTransform.identity
                 transform.prepend(.identity)
                 return transform
             }(),
-            equals: CGPoint(x: 10, y: 15)
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
         )
         
         check(
-            point: CGPoint(x: 10, y: 15),
+            vector: CGVector(dx: 10, dy: 15),
             // Scale by 2 then translate by (10, 0)
-            transformedBy: {
+            withTransform: {
                 let scale = AffineTransform(scale: 2)
                 
                 var transform = AffineTransform(
@@ -666,25 +717,27 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 30, y: 30)
+            mapsToPoint: CGPoint(x: 30, y: 30),
+            mapsToSize: CGSize(width: 20, height: 30)
         )
     }
     
     func testAppendTransform() {
         check(
-            point: CGPoint(x: 10, y: 15),
-            transformedBy: {
+            vector: CGVector(dx: 10, dy: 15),
+            withTransform: {
                 var transform = AffineTransform.identity
                 transform.append(.identity)
                 return transform
             }(),
-            equals: CGPoint(x: 10, y: 15)
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
         )
         
         check(
-            point: CGPoint(x: 10, y: 15),
+            vector: CGVector(dx: 10, dy: 15),
             // Translate by (10, 0) then scale by 2
-            transformedBy: {
+            withTransform: {
                 let scale = AffineTransform(scale: 2)
                 
                 var transform = AffineTransform(
@@ -694,7 +747,8 @@ extension TestAffineTransform {
                 
                 return transform
             }(),
-            equals: CGPoint(x: 40, y: 30)
+            mapsToPoint: CGPoint(x: 40, y: 30),
+            mapsToSize: CGSize(width: 20, height: 30)
         )
     }
 }

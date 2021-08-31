@@ -268,9 +268,10 @@ extension AffineTransform {
 
     /// Applies the transform to the specified size and returns the result.
     public func transform(_ size: CGSize) -> CGSize {
-        let newVector = transform(CGPoint(x: size.width, y: size.height))
-        
-        return CGSize(width: newVector.x, height: newVector.y)
+        CGSize(
+            width : (m11 * size.width) + (m21 * size.height),
+            height: (m12 * size.width) + (m22 * size.height)
+        )
     }
 }
 
