@@ -7,6 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Foundation
+import XCTest
+
 class TestDecimal: XCTestCase {
 
     func test_NSDecimalNumberInit() {
@@ -804,6 +807,27 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(zero3.description, "0")
     }
 
+    func test_Significand() {
+        var x = -42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        var y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+
+        x = 42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+
+        let a = Decimal.leastNonzeroMagnitude
+        XCTAssertEqual(Decimal(sign: .plus, exponent: -10, significand: a), 0)
+        let b = Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(Decimal(sign: .plus, exponent: 10, significand: b).isNaN)
+    }
+
     func test_SimpleMultiplication() {
         var multiplicand = Decimal()
         multiplicand._isNegative = 0
@@ -1467,6 +1491,7 @@ class TestDecimal: XCTestCase {
             ("test_RepeatingDivision", test_RepeatingDivision),
             ("test_Round", test_Round),
             ("test_ScanDecimal", test_ScanDecimal),
+            ("test_Significand", test_Significand),
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_Strideable", test_Strideable),

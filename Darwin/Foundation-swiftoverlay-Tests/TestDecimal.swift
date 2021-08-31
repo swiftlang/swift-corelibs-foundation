@@ -565,6 +565,27 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(answer,num,"\(ones) / 9 = \(answer) \(num)")
     }
 
+    func test_Significand() {
+        var x = -42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        var y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+
+        x = 42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+
+        let a = Decimal.leastNonzeroMagnitude
+        XCTAssertEqual(Decimal(sign: .plus, exponent: -10, significand: a), 0)
+        let b = Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(Decimal(sign: .plus, exponent: 10, significand: b).isNaN)
+    }
+
     func test_SimpleMultiplication() {
         var multiplicand = Decimal()
         multiplicand._isNegative = 0
