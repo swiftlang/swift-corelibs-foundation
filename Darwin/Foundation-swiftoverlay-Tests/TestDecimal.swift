@@ -123,8 +123,6 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(leastNormal, Decimal.leastNormalMagnitude)
         let leastNonzero = Decimal(_exponent: -128, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
         XCTAssertEqual(leastNonzero, Decimal.leastNonzeroMagnitude)
-        let leastFinite = 0 as Decimal
-        XCTAssertEqual(leastFinite, Decimal.leastFiniteMagnitude)
         let pi = Decimal(_exponent: -38, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58))
         XCTAssertEqual(pi, Decimal.pi)
         XCTAssertEqual(10, Decimal.radix)

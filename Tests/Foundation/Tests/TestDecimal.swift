@@ -147,8 +147,6 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(leastNormal, Decimal.leastNormalMagnitude)
         let leastNonzero = Decimal(_exponent: -128, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
         XCTAssertEqual(leastNonzero, Decimal.leastNonzeroMagnitude)
-        let leastFinite = 0 as Decimal
-        XCTAssertEqual(leastFinite, Decimal.leastFiniteMagnitude)
         let pi = Decimal(_exponent: -38, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58))
         XCTAssertEqual(pi, Decimal.pi)
         XCTAssertEqual(10, Decimal.radix)
@@ -185,7 +183,6 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual("3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", Decimal.greatestFiniteMagnitude.description)
         XCTAssertEqual("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", Decimal.leastNormalMagnitude.description)
         XCTAssertEqual("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", Decimal.leastNonzeroMagnitude.description)
-        XCTAssertEqual("0", Decimal.leastFiniteMagnitude.description)
 
         let fr = Locale(identifier: "fr_FR")
         let greatestFiniteMagnitude = "3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -387,7 +384,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual((1 as Decimal).magnitude, abs(-1 as Decimal))
         XCTAssertEqual((-1 as Decimal).magnitude, abs(-1 as Decimal))
         XCTAssertEqual((-1 as Decimal).magnitude, abs(1 as Decimal))
-        XCTAssertEqual(Decimal.leastFiniteMagnitude.magnitude, -Decimal.leastFiniteMagnitude)
+        XCTAssertEqual(Decimal.leastFiniteMagnitude.magnitude, -Decimal.leastFiniteMagnitude) // A bit of a misnomer.
         XCTAssertEqual(Decimal.greatestFiniteMagnitude.magnitude, Decimal.greatestFiniteMagnitude)
         XCTAssertTrue(Decimal.nan.magnitude.isNaN)
 

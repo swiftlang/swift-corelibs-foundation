@@ -350,7 +350,8 @@ extension Decimal {
 
     public static let leastNonzeroMagnitude = leastNormalMagnitude
 
-    public static let leastFiniteMagnitude = zero
+    @available(*, deprecated, message: "Use '-Decimal.greatestFiniteMagnitude' for least finite value or '0' for least finite magnitude")
+    public static let leastFiniteMagnitude = -greatestFiniteMagnitude
 
     public static let pi = Decimal(
         _exponent: -38,
