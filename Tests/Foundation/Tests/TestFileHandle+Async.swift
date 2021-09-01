@@ -420,5 +420,5 @@ class TestFileHandle : XCTestCase {
             ("testSeparatorPrefixAndContinuationEnd", test_seperator_prefix_and_continuation_end),
             ("testSeparatorPrefixAndContinuationWithoutFin", test_seperator_prefix_and_continuation_without_fin)
         ]
-
+    }
 }
