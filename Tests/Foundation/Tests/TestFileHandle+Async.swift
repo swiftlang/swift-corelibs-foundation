@@ -388,8 +388,8 @@ class TestFileHandle : XCTestCase {
         XCTAssertEqual(lines, ["H\u{FFFD}H"])
     }
     
-    static var allTests : [(String, (TestFileHandle) -> () throws async -> ())] {
-        var tests: [(String, (TestFileHandle) -> () throws async -> ())] = [
+    static var allTests : [(String, (TestFileHandle) -> () async throws -> ())] {
+        var tests: [(String, (TestFileHandle) -> () async throws -> ())] = [
             ("testLines", test_lines),
             ("testLargeFileLines", test_large_file_lines),
             ("testEmptyFileLines", test_empty_file_lines),
