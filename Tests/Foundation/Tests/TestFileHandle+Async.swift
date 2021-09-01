@@ -81,7 +81,7 @@ extension AsyncSequence {
 
 // Tests for AsyncSequence bytestream adaptors are here until that can move to the stdlib
 
-class TestFileHandle : XCTestCase {
+class TestFileHandleAsync : XCTestCase {
 
     func _create_test_file_and_run(with data: String, work: (URL) async throws -> Void) async rethrows {
         let fm = FileManager.default
@@ -388,8 +388,8 @@ class TestFileHandle : XCTestCase {
         XCTAssertEqual(lines, ["H\u{FFFD}H"])
     }
     
-    static var allTests : [(String, (TestFileHandle) -> () async throws -> ())] {
-        var tests: [(String, (TestFileHandle) -> () async throws -> ())] = [
+    static var allTests : [(String, (TestFileHandleAsync) -> () async throws -> ())] {
+        var tests: [(String, (TestFileHandleAsync) -> () async throws -> ())] = [
             ("testLines", test_lines),
             ("testLargeFileLines", test_large_file_lines),
             ("testEmptyFileLines", test_empty_file_lines),
@@ -420,5 +420,7 @@ class TestFileHandle : XCTestCase {
             ("testSeparatorPrefixAndContinuationEnd", test_seperator_prefix_and_continuation_end),
             ("testSeparatorPrefixAndContinuationWithoutFin", test_seperator_prefix_and_continuation_without_fin)
         ]
+        
+        return tests
     }
 }
