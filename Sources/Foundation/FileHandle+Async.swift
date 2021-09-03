@@ -20,6 +20,7 @@ import CRT
 
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 final actor IOActor {
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     func read(from fd: Int32, into buffer: UnsafeMutableRawBufferPointer) async throws -> Int {
         while true {
 #if canImport(Darwin)
@@ -41,6 +42,7 @@ final actor IOActor {
         }
     }
     
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     func read(from handle: FileHandle, into buffer: UnsafeMutableRawBufferPointer) async throws -> Int {
         // this is not incredibly effecient but it is the best we have
         guard let data = try handle.read(upToCount: buffer.count) else {
@@ -50,10 +52,12 @@ final actor IOActor {
         return data.count
     }
     
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     func createFileHandle(reading url: URL) async throws -> FileHandle {
         return try FileHandle(forReadingFrom: url)
     }
     
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     static let `default` = IOActor()
 }
 
