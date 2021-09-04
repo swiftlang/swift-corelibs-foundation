@@ -519,7 +519,7 @@ extension Decimal {
     public init(sign: FloatingPointSign, exponent: Int, significand: Decimal) {
         self = significand
         let error = withUnsafeMutablePointer(to: &self) {
-            NSDecimalMultiplyByPowerOf10($0, $0, Int16(exponent), .plain)
+            NSDecimalMultiplyByPowerOf10($0, $0, Int16(clamping: exponent), .plain)
         }
         if error == .underflow { self = 0 }
         // We don't need to check for overflow because `Decimal` cannot represent infinity.
