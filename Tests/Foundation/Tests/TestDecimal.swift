@@ -821,8 +821,10 @@ class TestDecimal: XCTestCase {
 
         let a = Decimal.leastNonzeroMagnitude
         XCTAssertEqual(Decimal(sign: .plus, exponent: -10, significand: a), 0)
+        XCTAssertEqual(Decimal(sign: .plus, exponent: .min, significand: a), 0)
         let b = Decimal.greatestFiniteMagnitude
         XCTAssertTrue(Decimal(sign: .plus, exponent: 10, significand: b).isNaN)
+        XCTAssertTrue(Decimal(sign: .plus, exponent: .max, significand: b).isNaN)
     }
 
     func test_SimpleMultiplication() {
