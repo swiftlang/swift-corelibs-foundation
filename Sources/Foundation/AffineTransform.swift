@@ -132,27 +132,28 @@ extension AffineTransform {
 }
 
 extension AffineTransform {
-    /// Creates an affine transformation matrix by combining the receiver with `transformStruct`.
-    /// That is, it computes `T * M` and returns the result, where `T` is the receiver's and `M` is
-    /// the `transformStruct`'s affine transformation matrix.
-    /// The resulting matrix takes the following form:
+    /// Creates an affine transformation matrix by combining the two matrices `A×B` and returns the result.
+    ///
+    /// The resulting matrix takes the following form
     ///
     /// ```swift
-    ///         [ m11_T  m12_T  0 ] [ m11_M  m12_M  0 ]
-    /// T * M = [ m21_T  m22_T  0 ] [ m21_M  m22_M  0 ]
-    ///         [  tX_T   tY_T  1 ] [  tX_M   tY_M  1 ]
-    /// ```
     ///
-    /// ```swift
-    ///   [    (m11_T*m11_M + m12_T*m21_M)       (m11_T*m12_M + m12_T*m22_M)    0 ]
-    /// = [    (m21_T*m11_M + m22_T*m21_M)       (m21_T*m12_M + m22_T*m22_M)    0 ]
-    ///   [ (tX_T*m11_M + tY_T*m21_M + tX_M)  (tX_T*m12_M + tY_T*m22_M + tY_M)  1 ]
+    ///       [ a1, b1, 0 ]   [ a2, b2, 0 ]
+    /// A×B = [ c1, d1, 0 ] × [ c2, d2, 0 ]
+    ///       [ x1, y1, 1 ]   [ x2, y2, 1 ]
+    ///
+    ///       [ a1*a2+b1*c2+0*x2 a1*b2+b1*d2+0*y2 a1*0+b1*0+0*1 ]
+    /// A×B = [ c1*a2+d1*c2+0*x2 c1*b2+d1*d2+0*y2 c1*0+d1*0+0*1 ]
+    ///       [ x1*a2+y1*c2+1*x2 x1*b2+y1*d2+1*y2 x1*0+y1*0+1*1 ]
+    ///
+    ///       [   a1*a2+b1*c2    a1*b2+b1*d2        0 ]
+    /// A×B = [   c1*a2+d1*c2    c1*b2+d1*d2        0 ]
+    ///       [ x1*a2+y1*c2+x2  x1*b2+y1*d2+y2      1 ]
     /// ```
     @inline(__always)
     internal func concatenated(_ other: AffineTransform) -> AffineTransform {
         let (t, m) = (self, other)
         
-        // this could be optimized with a vector version
         return AffineTransform(
             m11: (t.m11 * m.m11) + (t.m12 * m.m21), m12: (t.m11 * m.m12) + (t.m12 * m.m22),
             m21: (t.m21 * m.m11) + (t.m22 * m.m21), m22: (t.m21 * m.m12) + (t.m22 * m.m22),
@@ -224,8 +225,59 @@ extension AffineTransform {
 extension AffineTransform {
     /// Returns an inverted version of the matrix if possible, or nil if not.
     public func inverted() -> AffineTransform? {
+        // We need the matrix of cofactors to calculate the inverse, but first we
+        // need to calculate the minors of each element — where the minor of an
+        // element Ai,j is the determinant of the matrix derived from deleting
+        // the ith row and jth column:
+        //
+        //     [ |d y|  |c x|  |c x| ]
+        //     [ |0 1|  |0 1|  |d y| ]
+        //     [                     ]
+        //     [ |b y|  |a x|  |a x| ]
+        // M = [ |0 1|  |0 1|  |b y| ]
+        //     [                     ]
+        //     [ |b d|  |a c|  |a c| ]
+        //     [ |0 0|  |0 0|  |b d| ]
+        //
+        //     [ d*1-y*0  c*1-x*0  c*y-x*d ]
+        // M = [ b*1-y*0  a*1-x*0  a*y-x*b ]
+        //     [ b*0-d*0  a*0-c*0  a*d-c*b ]
+        //
+        //     [ d    c    c*y-x*d ]
+        // M = [ b    a    a*y-x*b ]
+        //     [ 0    0      |A|   ]
+        //
+        // Now we can calculate the matrix of cofactors by negating each element Ai,j
+        // where i+j is odd:
+        //
+        //     [  d    -c     c*y-x*d   ]
+        // C = [ -b     a   -(a*y-x*b)  ]
+        //     [  0    -0       |A|     ]
+        //
+        // Next, we can find the adjugate matrix, which is the transposed matrix of
+        // cofactors — a matrix whose ith column is the ith row of the matrix of C:
+        //
+        //          [    d         -b          0  ]
+        // adj(A) = [   -c          a         -0  ]
+        //          [ c*y-x*d  -(a*y-x*b)     |A| ]
+        //
+        // Finally, the inverse matrix is the product of the reciprocal of the determinant
+        // of A times adj(A), assuming that |A|≠0:
+        //
+        // A^-1 = (1 / |A|) × adj(A)
+        //
+        //        [     d/|A|          -b/|A|         0/|A|  ]
+        // A^-1 = [    -c/|A|           a/|A|        -0/|A|  ]
+        //        [ (c*y-x*d)/|A|  -(a*y-x*b)/|A|    |A|/|A| ]
+        //
+        //        [     d/|A|          -b/|A|          0 ]
+        // A^-1 = [    -c/|A|           a/|A|          0 ]
+        //        [ (c*y-x*d)/|A|   (x*b-a*y)/|A|      1 ]
+        
         let determinant = (m11 * m22) - (m12 * m21)
         
+        // We compare to ulp of 0 instead of doing determinant != 0,
+        // to catch floating-point rounding errors.
         if abs(determinant) <= CGFloat.zero.ulp {
             return nil
         }
@@ -260,6 +312,15 @@ extension AffineTransform {
 extension AffineTransform {
     /// Applies the transform to the specified point and returns the result.
     public func transform(_ point: CGPoint) -> CGPoint {
+        // Multiply the given point matrix with the matrix:
+        //
+        //                           [ m11  m12  0 ]
+        // [ x' y' 1 ] = [ x y 1 ] × [ m21  m22  0 ]
+        //                           [  tX   tY  1 ]
+        //
+        // [ x' y' 1 ] = [ x*m11+y*m21+1*tX  x*m12+y*m22+1*tY  x*0+y*0+1*1 ]
+        //
+        // [ x' y' 1 ] = [ x*m11+y*m21+tX  x*m12+y*m22+tY  1 ]
         CGPoint(
             x: (m11 * point.x) + (m21 * point.y) + tX,
             y: (m12 * point.x) + (m22 * point.y) + tY
@@ -268,6 +329,12 @@ extension AffineTransform {
 
     /// Applies the transform to the specified size and returns the result.
     public func transform(_ size: CGSize) -> CGSize {
+        // Multiply the given size matrix with the scale & rotation matrix:
+        //
+        // [ w' h' ] = [ w  h ]  *  [ m11  m12 ]
+        //                          [ m21  m22 ]
+        //
+        // [ w' h' ] = [ w*m11+h*m21  w*m12+h*m22 ]
         CGSize(
             width : (m11 * size.width) + (m21 * size.height),
             height: (m12 * size.width) + (m22 * size.height)
