@@ -604,16 +604,34 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(x.nextDown, x - Decimal(string: "1e127")!)
         XCTAssertTrue(x.nextUp.isNaN)
 
+        // '4' is an important value to test because the max supported
+        // significand of this type is not 10 ** 38 - 1 but rather 2 ** 128 - 1,
+        // for which reason '4.ulp' is not equal to '1.ulp' despite having the
+        // same decimal exponent.
+        x = 4
+        XCTAssertEqual(x.ulp, Decimal(string: "1e-37")!)
+        XCTAssertEqual(x.nextDown, x - Decimal(string: "1e-37")!)
+        XCTAssertEqual(x.nextUp, x + Decimal(string: "1e-37")!)
+        XCTAssertEqual(x.nextDown.nextUp, x)
+        XCTAssertEqual(x.nextUp.nextDown, x)
+        XCTAssertNotEqual(x.nextDown, x)
+        XCTAssertNotEqual(x.nextUp, x)
+
         x = 1
         XCTAssertEqual(x.ulp, Decimal(string: "1e-38")!)
         XCTAssertEqual(x.nextDown, x - Decimal(string: "1e-38")!)
         XCTAssertEqual(x.nextUp, x + Decimal(string: "1e-38")!)
+        XCTAssertEqual(x.nextDown.nextUp, x)
+        XCTAssertEqual(x.nextUp.nextDown, x)
+        XCTAssertNotEqual(x.nextDown, x)
+        XCTAssertNotEqual(x.nextUp, x)
 
         x = .leastNonzeroMagnitude
-        // XCTAssertEqual(x.ulp, x)        // SR-6671
-        // XCTAssertEqual(x.nextDown, 0)   // SR-6671
-        // XCTAssertEqual(x.nextUp, x + x) // SR-6671
-        XCTAssertNotEqual(x.ulp, 0)
+        XCTAssertEqual(x.ulp, x)
+        XCTAssertEqual(x.nextDown, 0)
+        XCTAssertEqual(x.nextUp, x + x)
+        XCTAssertEqual(x.nextDown.nextUp, x)
+        XCTAssertEqual(x.nextUp.nextDown, x)
         XCTAssertNotEqual(x.nextDown, x)
         XCTAssertNotEqual(x.nextUp, x)
 
@@ -621,11 +639,19 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(x.ulp, Decimal(string: "1e-128")!)
         XCTAssertEqual(x.nextDown, -Decimal(string: "1e-128")!)
         XCTAssertEqual(x.nextUp, Decimal(string: "1e-128")!)
+        XCTAssertEqual(x.nextDown.nextUp, x)
+        XCTAssertEqual(x.nextUp.nextDown, x)
+        XCTAssertNotEqual(x.nextDown, x)
+        XCTAssertNotEqual(x.nextUp, x)
 
         x = -1
-        XCTAssertEqual(x.ulp, (1 as Decimal).ulp)
-        XCTAssertEqual(x.nextDown, -((1 as Decimal).nextUp))
-        XCTAssertEqual(x.nextUp, -((1 as Decimal).nextDown))
+        XCTAssertEqual(x.ulp, Decimal(string: "1e-38")!)
+        XCTAssertEqual(x.nextDown, x - Decimal(string: "1e-38")!)
+        XCTAssertEqual(x.nextUp, x + Decimal(string: "1e-38")!)
+        XCTAssertEqual(x.nextDown.nextUp, x)
+        XCTAssertEqual(x.nextUp.nextDown, x)
+        XCTAssertNotEqual(x.nextDown, x)
+        XCTAssertNotEqual(x.nextUp, x)
     }
 
     func test_unconditionallyBridgeFromObjectiveC() {
