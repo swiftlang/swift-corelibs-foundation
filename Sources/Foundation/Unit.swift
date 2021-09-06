@@ -1457,6 +1457,325 @@ public final class UnitIlluminance : Dimension {
     }
 }
 
+public final class UnitInformationStorage : Dimension {
+    
+    /*
+     Base unit - bit
+     */
+    
+    private struct Symbol {
+        static let bytes        = "B"
+        static let bits         = "bit"
+        static let nibbles      = "nibble"
+        static let yottabytes   = "YB"
+        static let zettabytes   = "ZB"
+        static let exabytes     = "EB"
+        static let petabytes    = "PB"
+        static let terabytes    = "TB"
+        static let gigabytes    = "GB"
+        static let megabytes    = "MB"
+        static let kilobytes    = "kB"
+
+        static let yottabits    = "Yb"
+        static let zettabits    = "Zb"
+        static let exabits      = "Eb"
+        static let petabits     = "Pb"
+        static let terabits     = "Tb"
+        static let gigabits     = "Gb"
+        static let megabits     = "Mb"
+        static let kilobits     = "kb"
+        
+        static let yobibytes    = "YiB"
+        static let zebibytes    = "ZiB"
+        static let exbibytes    = "EiB"
+        static let pebibytes    = "PiB"
+        static let tebibytes    = "TiB"
+        static let gibibytes    = "GiB"
+        static let mebibytes    = "MiB"
+        static let kibibytes    = "KiB"
+        
+        static let yobibits     = "Yib"
+        static let zebibits     = "Zib"
+        static let exbibits     = "Eib"
+        static let pebibits     = "Pib"
+        static let tebibits     = "Tib"
+        static let gibibits     = "Gib"
+        static let mebibits     = "Mib"
+        static let kibibits     = "Kib"
+    }
+    
+    private struct Coefficient {
+        static let bytes        = 8.0
+        static let bits         = 1.0
+        static let nibbles      = 4.0
+        static let yottabytes   = 8.0*pow(1000.0, 8.0)
+        static let zettabytes   = 8.0*pow(1000.0, 7.0)
+        static let exabytes     = 8.0*pow(1000.0, 6.0)
+        static let petabytes    = 8.0*pow(1000.0, 5.0)
+        static let terabytes    = 8.0*pow(1000.0, 4.0)
+        static let gigabytes    = 8.0*pow(1000.0, 3.0)
+        static let megabytes    = 8.0*pow(1000.0, 2.0)
+        static let kilobytes    = 8.0*1000
+
+        static let yottabits    = pow(1000.0, 8.0)
+        static let zettabits    = pow(1000.0, 7.0)
+        static let exabits      = pow(1000.0, 6.0)
+        static let petabits     = pow(1000.0, 5.0)
+        static let terabits     = pow(1000.0, 4.0)
+        static let gigabits     = pow(1000.0, 3.0)
+        static let megabits     = pow(1000.0, 2.0)
+        static let kilobits     = 1000.0
+        
+        static let yobibytes    = 8*pow(1024.0, 8.0)
+        static let zebibytes    = 8*pow(1024.0, 7.0)
+        static let exbibytes    = 8*pow(1024.0, 6.0)
+        static let pebibytes    = 8*pow(1024.0, 5.0)
+        static let tebibytes    = 8*pow(1024.0, 4.0)
+        static let gibibytes    = 8*pow(1024.0, 3.0)
+        static let mebibytes    = 8*pow(1024.0, 2.0)
+        static let kibibytes    = 8*1024.0
+        
+        static let yobibits     = pow(1024.0, 8.0)
+        static let zebibits     = pow(1024.0, 7.0)
+        static let exbibits     = pow(1024.0, 6.0)
+        static let pebibits     = pow(1024.0, 5.0)
+        static let tebibits     = pow(1024.0, 4.0)
+        static let gibibits     = pow(1024.0, 3.0)
+        static let mebibits     = pow(1024.0, 2.0)
+        static let kibibits     = 1024.0
+    }
+    
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    }
+    
+    public class var bytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.bytes, coefficient: Coefficient.bytes)
+        }
+    }
+    
+    public class var bits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.bits, coefficient: Coefficient.bits)
+        }
+    }
+    
+    public class var nibbles: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.nibbles, coefficient: Coefficient.nibbles)
+        }
+    }
+    
+    public class var yottabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.yottabytes, coefficient: Coefficient.yottabytes)
+        }
+    }
+    
+    public class var zettabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.zettabytes, coefficient: Coefficient.zettabytes)
+        }
+    }
+    
+    public class var exabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.exabytes, coefficient: Coefficient.exabytes)
+        }
+    }
+    
+    public class var petabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.petabytes, coefficient: Coefficient.petabytes)
+        }
+    }
+    
+    public class var terabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.terabytes, coefficient: Coefficient.terabytes)
+        }
+    }
+    
+    public class var gigabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.gigabytes, coefficient: Coefficient.gigabytes)
+        }
+    }
+    
+    public class var megabytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.megabytes, coefficient: Coefficient.megabytes)
+        }
+    }
+    
+    public class var kilobytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.kilobytes, coefficient: Coefficient.kilobytes)
+        }
+    }
+    
+    public class var yottabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.yottabits, coefficient: Coefficient.yottabits)
+        }
+    }
+    
+    public class var zettabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.zettabits, coefficient: Coefficient.zettabits)
+        }
+    }
+    
+    public class var exabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.exabits, coefficient: Coefficient.exabits)
+        }
+    }
+    
+    public class var petabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.petabits, coefficient: Coefficient.petabits)
+        }
+    }
+    
+    public class var terabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.terabits, coefficient: Coefficient.terabits)
+        }
+    }
+    
+    public class var gigabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.gigabits, coefficient: Coefficient.gigabits)
+        }
+    }
+    
+    public class var megabits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.megabits, coefficient: Coefficient.megabits)
+        }
+    }
+    
+    public class var kilobits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.kilobits, coefficient: Coefficient.kilobits)
+        }
+    }
+    
+    public class var yobibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.yobibytes, coefficient: Coefficient.yobibytes)
+        }
+    }
+    
+    public class var zebibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.zebibytes, coefficient: Coefficient.zebibytes)
+        }
+    }
+    
+    public class var exbibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.exbibytes, coefficient: Coefficient.exbibytes)
+        }
+    }
+    
+    public class var pebibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.pebibytes, coefficient: Coefficient.pebibytes)
+        }
+    }
+    
+    public class var tebibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.tebibytes, coefficient: Coefficient.tebibytes)
+        }
+    }
+    
+    public class var gibibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.gibibytes, coefficient: Coefficient.gibibytes)
+        }
+    }
+    
+    public class var mebibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.mebibytes, coefficient: Coefficient.mebibytes)
+        }
+    }
+    
+    public class var kibibytes: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.kibibytes, coefficient: Coefficient.kibibytes)
+        }
+    }
+    
+    public class var yobibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.yobibits, coefficient: Coefficient.yobibits)
+        }
+    }
+    
+    public class var zebibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.zebibits, coefficient: Coefficient.zebibits)
+        }
+    }
+    
+    public class var exbibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.exbibits, coefficient: Coefficient.exbibits)
+        }
+    }
+    
+    public class var pebibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.pebibits, coefficient: Coefficient.pebibits)
+        }
+    }
+    
+    public class var tebibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.tebibits, coefficient: Coefficient.tebibits)
+        }
+    }
+    
+    public class var gibibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.gibibits, coefficient: Coefficient.gibibits)
+        }
+    }
+    
+    public class var mebibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.mebibits, coefficient: Coefficient.mebibits)
+        }
+    }
+    
+    public class var kibibits: UnitInformationStorage {
+        get {
+            return UnitInformationStorage(symbol: Symbol.kibibits, coefficient: Coefficient.kibibits)
+        }
+    }
+    
+    public override class func baseUnit() -> UnitInformationStorage {
+        return .bits
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitInformationStorage else {
+            return false
+        }
+        
+        if self === other {
+            return true
+        }
+        
+        return super.isEqual(object)
+    }
+}
+
 public final class UnitMass : Dimension {
     
     /*

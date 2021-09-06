@@ -148,7 +148,7 @@ Unlike XFAIL tests in `lit.py`, tests that are expected to fail will _not_ execu
 
 ### Why and How
 
-In general, we want to ensure that tests are written to check the _contract_ of the API, [as documented for each class](https://developer.apple.com/). It is of course acceptable to have the test implementation be informed by the implementation, but we want to make sure that tests still make sense if we replace an implementation entirely, [as we sometimes do](https://github.com/apple/swift-corelibs-foundation/pull/2331).
+In general, we want to ensure that tests are written to check the _contract_ of the API, [as documented for each class](https://developer.apple.com/). It is of course acceptable to have the test implementation be informed by the implementation, but we want to make sure that tests still make sense if we replace an implementation entirely, [as we sometimes do](https://github.com/apple/swift-corelibs-foundation/pull/2331).
 
 This doesn't always work. Sometimes the contract specifies that a certain _result_ will occur, and that result may be platform-specific or trigger in multiple ways, all of which we'd like to test (for example, different file operation paths for volumes with different capabilities). In this case, we can reach into Foundation's `internal` methods by using `@testable import` and test the component parts or invoke private API ("SPI") to alter the behavior so that all paths are taken.
 

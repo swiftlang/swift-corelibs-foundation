@@ -112,6 +112,13 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
             aCoder.encode(timeZone._nsObject, forKey: "NS.timeZone")
         }
     }
+
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        let copied = ISO8601DateFormatter()
+        copied.timeZone = timeZone
+        copied.formatOptions = formatOptions
+        return copied
+    }
     
     public static var supportsSecureCoding: Bool { return true }
     

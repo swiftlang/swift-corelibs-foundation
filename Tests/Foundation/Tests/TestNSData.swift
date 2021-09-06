@@ -237,6 +237,7 @@ class TestNSData: LoopbackServerTest {
             ("test_writeToURLOptions", test_writeToURLOptions),
             ("test_writeToURLPermissions", test_writeToURLPermissions),
             ("test_writeToURLPermissionsWithAtomic", test_writeToURLPermissionsWithAtomic),
+            ("test_writeToURLSpecialFile", test_writeToURLSpecialFile),
             ("test_edgeNoCopyDescription", test_edgeNoCopyDescription),
             ("test_initializeWithBase64EncodedDataGetsDecodedData", test_initializeWithBase64EncodedDataGetsDecodedData),
             ("test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil", test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil),
@@ -621,6 +622,15 @@ class TestNSData: LoopbackServerTest {
             }
         }
 #endif
+    }
+
+    func test_writeToURLSpecialFile() {
+#if os(Windows)
+        let url = URL(fileURLWithPath: "CON")
+#else
+        let url = URL(fileURLWithPath: "/dev/stdout")
+#endif
+        XCTAssertNoThrow(try Data("Output to STDOUT\n".utf8).write(to: url))
     }
 
     func test_emptyDescription() {

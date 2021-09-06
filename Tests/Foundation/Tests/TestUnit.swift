@@ -77,6 +77,7 @@ class TestUnit: XCTestCase {
         testEquality(ofDimensionSubclass: UnitFrequency.self)
         testEquality(ofDimensionSubclass: UnitFuelEfficiency.self)
         testEquality(ofDimensionSubclass: UnitIlluminance.self)
+        testEquality(ofDimensionSubclass: UnitInformationStorage.self)
         testEquality(ofDimensionSubclass: UnitLength.self)
         testEquality(ofDimensionSubclass: UnitMass.self)
         testEquality(ofDimensionSubclass: UnitPower.self)

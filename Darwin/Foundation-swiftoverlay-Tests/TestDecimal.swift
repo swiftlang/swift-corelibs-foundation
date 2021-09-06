@@ -116,12 +116,12 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(8, NSDecimalMaxSize)
         XCTAssertEqual(32767, NSDecimalNoScale)
         let smallest = Decimal(_exponent: 127, _length: 8, _isNegative: 1, _isCompact: 1, _reserved: 0, _mantissa: (UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max))
-        XCTAssertEqual(smallest, Decimal.leastFiniteMagnitude)
+        XCTAssertEqual(smallest, -Decimal.greatestFiniteMagnitude)
         let biggest = Decimal(_exponent: 127, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max, UInt16.max))
         XCTAssertEqual(biggest, Decimal.greatestFiniteMagnitude)
-        let leastNormal = Decimal(_exponent: -127, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
+        let leastNormal = Decimal(_exponent: -128, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
         XCTAssertEqual(leastNormal, Decimal.leastNormalMagnitude)
-        let leastNonzero = Decimal(_exponent: -127, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
+        let leastNonzero = Decimal(_exponent: -128, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0))
         XCTAssertEqual(leastNonzero, Decimal.leastNonzeroMagnitude)
         let pi = Decimal(_exponent: -38, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58))
         XCTAssertEqual(pi, Decimal.pi)
@@ -209,7 +209,7 @@ class TestDecimal : XCTestCase {
         
         let ulp = explicit.ulp
         XCTAssertEqual(0x7f, ulp.exponent)
-        XCTAssertEqual(8, ulp._length)
+        XCTAssertEqual(1, ulp._length)
         XCTAssertEqual(0, ulp._isNegative)
         XCTAssertEqual(1, ulp._isCompact)
         XCTAssertEqual(0, ulp._reserved)
@@ -287,8 +287,6 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(Decimal(-9), Decimal(1) - Decimal(10))
         XCTAssertEqual(Decimal(3), Decimal(2).nextUp)
         XCTAssertEqual(Decimal(2), Decimal(3).nextDown)
-        XCTAssertEqual(Decimal(-476), Decimal(1024).distance(to: Decimal(1500)))
-        XCTAssertEqual(Decimal(68040), Decimal(386).advanced(by: Decimal(67654)))
         XCTAssertEqual(Decimal(1.234), abs(Decimal(1.234)))
         XCTAssertEqual(Decimal(1.234), abs(Decimal(-1.234)))
         if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
@@ -386,6 +384,13 @@ class TestDecimal : XCTestCase {
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e4")
         XCTAssertNotEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &NaN, 5, .plain))
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e5")
+
+        XCTAssertFalse(Double(truncating: NSDecimalNumber(decimal: Decimal(0))).isNaN)
+        XCTAssertTrue(Decimal(Double.leastNonzeroMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double.leastNormalMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double.greatestFiniteMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double("1e-129")!).isNaN)
+        XCTAssertTrue(Decimal(Double("0.1e-128")!).isNaN)
     }
 
     func test_NegativeAndZeroMultiplication() {
@@ -558,6 +563,29 @@ class TestDecimal : XCTestCase {
         XCTAssertEqual(answer,num,"\(ones) / 9 = \(answer) \(num)")
     }
 
+    func test_Significand() {
+        var x = -42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        var y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+
+        x = 42 as Decimal
+        XCTAssertEqual(x.significand.sign, .plus)
+        y = Decimal(sign: .plus, exponent: 0, significand: x)
+        XCTAssertEqual(y, 42)
+        y = Decimal(sign: .minus, exponent: 0, significand: x)
+        XCTAssertEqual(y, -42)
+
+        let a = Decimal.leastNonzeroMagnitude
+        XCTAssertEqual(Decimal(sign: .plus, exponent: -10, significand: a), 0)
+        XCTAssertEqual(Decimal(sign: .plus, exponent: .min, significand: a), 0)
+        let b = Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(Decimal(sign: .plus, exponent: 10, significand: b).isNaN)
+        XCTAssertTrue(Decimal(sign: .plus, exponent: .max, significand: b).isNaN)
+    }
+
     func test_SimpleMultiplication() {
         var multiplicand = Decimal()
         multiplicand._isNegative = 0
@@ -589,7 +617,114 @@ class TestDecimal : XCTestCase {
         }
     }
 
+    func test_Strideable() {
+        XCTAssertEqual(Decimal(476), Decimal(1024).distance(to: Decimal(1500)))
+        XCTAssertEqual(Decimal(68040), Decimal(386).advanced(by: Decimal(67654)))
+
+        let x = 42 as Decimal
+        XCTAssertEqual(x.distance(to: 43), 1)
+        XCTAssertEqual(x.advanced(by: 1), 43)
+        XCTAssertEqual(x.distance(to: 41), -1)
+        XCTAssertEqual(x.advanced(by: -1), 41)
+    }
+    
+    func test_ULP() {
+        let x = 0.1 as Decimal
+        XCTAssertFalse(x.ulp > x)
+    }
+
     func test_unconditionallyBridgeFromObjectiveC() {
         XCTAssertEqual(Decimal(), Decimal._unconditionallyBridgeFromObjectiveC(nil))
     }
+
+    func test_parseDouble() throws {
+        XCTAssertEqual(Decimal(Double(0.0)), Decimal(Int.zero))
+        XCTAssertEqual(Decimal(Double(-0.0)), Decimal(Int.zero))
+
+        // These values can only be represented as Decimal.nan
+        XCTAssertEqual(Decimal(Double.nan), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.signalingNaN), Decimal.nan)
+
+        // These values are out out range for Decimal
+        XCTAssertEqual(Decimal(-Double.leastNonzeroMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.leastNonzeroMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(-Double.leastNormalMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.leastNormalMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(-Double.greatestFiniteMagnitude), Decimal.nan)
+        XCTAssertEqual(Decimal(Double.greatestFiniteMagnitude), Decimal.nan)
+
+        // SR-13837
+        let testDoubles: [(Double, String)] = [
+            (1.8446744073709550E18, "1844674407370954752"),
+            (1.8446744073709551E18, "1844674407370954752"),
+            (1.8446744073709552E18, "1844674407370955264"),
+            (1.8446744073709553E18, "1844674407370955264"),
+            (1.8446744073709554E18, "1844674407370955520"),
+            (1.8446744073709555E18, "1844674407370955520"),
+
+            (1.8446744073709550E19, "18446744073709547520"),
+            (1.8446744073709551E19, "18446744073709552640"),
+            (1.8446744073709552E19, "18446744073709552640"),
+            (1.8446744073709553E19, "18446744073709552640"),
+            (1.8446744073709554E19, "18446744073709555200"),
+            (1.8446744073709555E19, "18446744073709555200"),
+
+            (1.8446744073709550E20, "184467440737095526400"),
+            (1.8446744073709551E20, "184467440737095526400"),
+            (1.8446744073709552E20, "184467440737095526400"),
+            (1.8446744073709553E20, "184467440737095526400"),
+            (1.8446744073709554E20, "184467440737095552000"),
+            (1.8446744073709555E20, "184467440737095552000"),
+        ]
+
+        for (d, s) in testDoubles {
+            XCTAssertEqual(Decimal(d), Decimal(string: s))
+            XCTAssertEqual(Decimal(d).description, try XCTUnwrap(Decimal(string: s)).description)
+        }
+    }
+
+    func test_initExactly() {
+        // This really requires some tests using a BinaryInteger of bitwidth > 128 to test failures.
+        let d1 = Decimal(exactly: UInt64.max)
+        XCTAssertNotNil(d1)
+        XCTAssertEqual(d1?.description, UInt64.max.description)
+        XCTAssertEqual(d1?._length, 4)
+
+        let d2 = Decimal(exactly: Int64.min)
+        XCTAssertNotNil(d2)
+        XCTAssertEqual(d2?.description, Int64.min.description)
+        XCTAssertEqual(d2?._length, 4)
+
+        let d3 = Decimal(exactly: Int64.max)
+        XCTAssertNotNil(d3)
+        XCTAssertEqual(d3?.description, Int64.max.description)
+        XCTAssertEqual(d3?._length, 4)
+
+        let d4 = Decimal(exactly: Int32.min)
+        XCTAssertNotNil(d4)
+        XCTAssertEqual(d4?.description, Int32.min.description)
+        XCTAssertEqual(d4?._length, 2)
+
+        let d5 = Decimal(exactly: Int32.max)
+        XCTAssertNotNil(d5)
+        XCTAssertEqual(d5?.description, Int32.max.description)
+        XCTAssertEqual(d5?._length, 2)
+
+        let d6 = Decimal(exactly: 0)
+        XCTAssertNotNil(d6)
+        XCTAssertEqual(d6, Decimal.zero)
+        XCTAssertEqual(d6?.description, "0")
+        XCTAssertEqual(d6?._length, 0)
+
+        let d7 = Decimal(exactly: 1)
+        XCTAssertNotNil(d7)
+        XCTAssertEqual(d7?.description, "1")
+        XCTAssertEqual(d7?._length, 1)
+
+        let d8 = Decimal(exactly: -1)
+        XCTAssertNotNil(d8)
+        XCTAssertEqual(d8?.description, "-1")
+        XCTAssertEqual(d8?._length, 1)
+    }
+
 }
