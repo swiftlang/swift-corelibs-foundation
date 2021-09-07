@@ -15,6 +15,14 @@
     #endif
 #endif
 
+// MARK: - Vector
+
+// CGVector is only available on Darwin.
+public struct Vector {
+    let dx: CGFloat
+    let dy: CGFloat
+}
+
 // MARK: - Tests
 
 class TestAffineTransform: XCTestCase {
@@ -49,7 +57,7 @@ class TestAffineTransform: XCTestCase {
 
 extension TestAffineTransform {
     func check(
-        vector: CGVector,
+        vector: Vector,
         withTransform transform: AffineTransform,
         mapsToPoint expectedPoint: CGPoint,
         mapsToSize expectedSize: CGSize,
@@ -194,7 +202,7 @@ extension TestAffineTransform {
         //           = [ x*m11+y*m21+tX  x*m12+y*m22+tY ]
         
         check(
-            vector: CGVector(dx: 10, dy: 20),
+            vector: Vector(dx: 10, dy: 20),
             withTransform: AffineTransform(
                 m11: 1, m12: 2,
                 m21: 3, m22: 4,
@@ -213,7 +221,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 5, dy: 25),
+            vector: Vector(dx: 5, dy: 25),
             withTransform: AffineTransform(
                 m11: 5, m12: 4,
                 m21: 3, m22: 2,
@@ -254,7 +262,7 @@ extension TestAffineTransform {
     
     func testIdentity() {
         check(
-            vector: CGVector(dx: 25, dy: 10),
+            vector: Vector(dx: 25, dy: 10),
             withTransform: .identity,
             mapsToPoint: CGPoint(x: 25, y: 10),
             mapsToSize: CGSize(width: 25, height: 10)
@@ -288,7 +296,7 @@ extension TestAffineTransform {
     
     func testTranslation() {
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: AffineTransform(
                 translationByX: 0, byY: 0
             ),
@@ -297,7 +305,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: AffineTransform(
                 translationByX: 0, byY: 5
             ),
@@ -306,7 +314,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: AffineTransform(
                 translationByX: 5, byY: 5
             ),
@@ -315,7 +323,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: -2, dy: -3),
+            vector: Vector(dx: -2, dy: -3),
             // Translate by 5
             withTransform: {
                 var transform = AffineTransform.identity
@@ -386,7 +394,7 @@ extension TestAffineTransform {
 
     func testScaling() {
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: AffineTransform(
                 scaleByX: 1, byY: 0
             ),
@@ -395,7 +403,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: AffineTransform(
                 scaleByX: 0.5, byY: 1
             ),
@@ -404,7 +412,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: AffineTransform(
                 scaleByX: 0, byY: 2
             ),
@@ -413,7 +421,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             // Scale by (2, 0)
             withTransform: {
                 var transform = AffineTransform.identity
@@ -442,7 +450,7 @@ extension TestAffineTransform {
             file: StaticString = #file,
             line: UInt = #line
         ) {
-            let vector = CGVector(dx: 10, dy: 15)
+            let vector = Vector(dx: 10, dy: 15)
             
             self.check(
                 vector: vector, withTransform: rotation,
@@ -491,14 +499,14 @@ extension TestAffineTransform {
     
     func testRotation() {
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             withTransform: AffineTransform(rotationByDegrees: 0),
             mapsToPoint: CGPoint(x: 10, y: 15),
             mapsToSize: CGSize(width: 10, height: 15)
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             withTransform: AffineTransform(rotationByDegrees: 1080),
             mapsToPoint: CGPoint(x: 10, y: 15),
             mapsToSize: CGSize(width: 10, height: 15)
@@ -506,7 +514,7 @@ extension TestAffineTransform {
         
         // Counter-clockwise rotation
         check(
-            vector: CGVector(dx: 15, dy: 10),
+            vector: Vector(dx: 15, dy: 10),
             withTransform: AffineTransform(rotationByRadians: .pi / 2),
             mapsToPoint: CGPoint(x: -10, y: 15),
             mapsToSize: CGSize(width: -10, height: 15)
@@ -514,7 +522,7 @@ extension TestAffineTransform {
         
         // Clockwise rotation
         check(
-            vector: CGVector(dx: 15, dy: 10),
+            vector: Vector(dx: 15, dy: 10),
             withTransform: AffineTransform(rotationByDegrees: -90),
             mapsToPoint: CGPoint(x: 10, y: -15),
             mapsToSize: CGSize(width: 10, height: -15)
@@ -522,7 +530,7 @@ extension TestAffineTransform {
         
         // Reflect about origin
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             withTransform: AffineTransform(rotationByRadians: .pi),
             mapsToPoint: CGPoint(x: -10, y: -15),
             mapsToSize: CGSize(width: -10, height: -15)
@@ -530,7 +538,7 @@ extension TestAffineTransform {
         
         // Composed reflection about origin
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             // Rotate by 180º
             withTransform: {
                 var transform = AffineTransform.identity
@@ -551,7 +559,7 @@ extension TestAffineTransform {
 extension TestAffineTransform {
     func testTranslationScaling() {
         check(
-            vector: CGVector(dx: 1, dy: 3),
+            vector: Vector(dx: 1, dy: 3),
             // Translate by (2, 0) then scale by (5, -5)
             withTransform: {
                 var transform = AffineTransform.identity
@@ -569,7 +577,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 3, dy: 1),
+            vector: Vector(dx: 3, dy: 1),
             // Scale by (-5, 5) then scale by (0, 10)
             withTransform: {
                 var transform = AffineTransform.identity
@@ -586,7 +594,7 @@ extension TestAffineTransform {
     
     func testTranslationRotation() {
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             // Translate by (20, -5) then rotate by 90º
             withTransform: {
                 var transform = AffineTransform.identity
@@ -601,7 +609,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             // Rotate by 180º and then translate by (20, 15)
             withTransform: {
                 var transform = AffineTransform.identity
@@ -618,7 +626,7 @@ extension TestAffineTransform {
     
     func testScalingRotation() {
         check(
-            vector: CGVector(dx: 20, dy: 5),
+            vector: Vector(dx: 20, dy: 5),
             // Scale by (0.5, 3) then rotate by -90º
             withTransform: {
                 var transform = AffineTransform.identity
@@ -633,7 +641,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 20, dy: 5),
+            vector: Vector(dx: 20, dy: 5),
             // Rotate by -90º the scale by (0.5, 3)
             withTransform: {
                 var transform = AffineTransform.identity
@@ -681,7 +689,7 @@ extension TestAffineTransform {
         }()
         
         check(
-            vector: CGVector(dx: 10, dy: 10),
+            vector: Vector(dx: 10, dy: 10),
             withTransform: recoveredIdentity,
             mapsToPoint: CGPoint(x: 10, y: 10),
             mapsToSize: CGSize(width: 10, height: 10)
@@ -694,7 +702,7 @@ extension TestAffineTransform {
 extension TestAffineTransform {
     func testPrependTransform() {
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             withTransform: {
                 var transform = AffineTransform.identity
                 transform.prepend(.identity)
@@ -705,7 +713,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             // Scale by 2 then translate by (10, 0)
             withTransform: {
                 let scale = AffineTransform(scale: 2)
@@ -724,7 +732,7 @@ extension TestAffineTransform {
     
     func testAppendTransform() {
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             withTransform: {
                 var transform = AffineTransform.identity
                 transform.append(.identity)
@@ -735,7 +743,7 @@ extension TestAffineTransform {
         )
         
         check(
-            vector: CGVector(dx: 10, dy: 15),
+            vector: Vector(dx: 10, dy: 15),
             // Translate by (10, 0) then scale by 2
             withTransform: {
                 let scale = AffineTransform(scale: 2)
