@@ -617,6 +617,18 @@ class TestDecimal : XCTestCase {
         XCTAssertNotEqual(x.nextDown, x)
         XCTAssertNotEqual(x.nextUp, x)
 
+        // For similar reasons, '3.40282366920938463463374607431768211455',
+        // which has the same significand as 'Decimal.greatestFiniteMagnitude',
+        // is an important value to test because the distance to the next
+        // representable value is more than 'ulp' and instead requires
+        // incrementing '_exponent'.
+        x = Decimal(string: "3.40282366920938463463374607431768211455")!
+        XCTAssertEqual(x.ulp, Decimal(string: "0.00000000000000000000000000000000000001")!)
+        XCTAssertEqual(x.nextUp, Decimal(string: "3.4028236692093846346337460743176821146")!)
+        x = Decimal(string: "3.4028236692093846346337460743176821146")!
+        XCTAssertEqual(x.ulp, Decimal(string: "0.0000000000000000000000000000000000001")!)
+        XCTAssertEqual(x.nextDown, Decimal(string: "3.40282366920938463463374607431768211455")!)
+
         x = 1
         XCTAssertEqual(x.ulp, Decimal(string: "1e-38")!)
         XCTAssertEqual(x.nextDown, x - Decimal(string: "1e-38")!)

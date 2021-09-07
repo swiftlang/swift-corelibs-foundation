@@ -620,6 +620,23 @@ extension Decimal {
     }
 
     public var nextUp: Decimal {
+        if _isNegative == 1 {
+            if _exponent > -128
+                && (_mantissa.0, _mantissa.1, _mantissa.2, _mantissa.3) == (0x999a, 0x9999, 0x9999, 0x9999)
+                && (_mantissa.4, _mantissa.5, _mantissa.6, _mantissa.7) == (0x9999, 0x9999, 0x9999, 0x1999) {
+                return Decimal(
+                    _exponent: _exponent &- 1, _length: 8, _isNegative: 1, _isCompact: 1,
+                    _reserved: 0, _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff))
+            }
+        } else {
+            if _exponent < 127
+            && (_mantissa.0, _mantissa.1, _mantissa.2, _mantissa.3) == (0xffff, 0xffff, 0xffff, 0xffff)
+            && (_mantissa.4, _mantissa.5, _mantissa.6, _mantissa.7) == (0xffff, 0xffff, 0xffff, 0xffff) {
+                return Decimal(
+                    _exponent: _exponent &+ 1, _length: 8, _isNegative: 0, _isCompact: 1,
+                    _reserved: 0, _mantissa: (0x999a, 0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x1999))
+            }
+        }
         return self + ulp
     }
 
