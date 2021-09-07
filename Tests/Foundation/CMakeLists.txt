@@ -10,6 +10,10 @@ add_executable(TestFoundation
 # Test Cases
 target_sources(TestFoundation PRIVATE
   Tests/TestAffineTransform.swift
+  Tests/TestAttributedString.swift
+  Tests/TestAttributedStringCOW.swift
+  Tests/TestAttributedStringPerformance.swift
+  Tests/TestAttributedStringSupport.swift
   Tests/TestBridging.swift
   Tests/TestBundle.swift
   Tests/TestByteCountFormatter.swift
@@ -91,6 +95,7 @@ target_sources(TestFoundation PRIVATE
   Tests/TestTimer.swift
   Tests/TestTimeZone.swift
   Tests/TestUnitConverter.swift
+  Tests/TestUnitInformationStorage.swift
   Tests/TestUnitVolume.swift
   Tests/TestUnit.swift
   Tests/TestURLCache.swift

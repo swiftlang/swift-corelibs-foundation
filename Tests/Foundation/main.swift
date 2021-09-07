@@ -13,6 +13,8 @@
     import Darwin
 #elseif canImport(Glibc)
     import Glibc
+#elseif canImport(CRT)
+    import CRT
 #endif
 
 #if !os(Windows)
@@ -120,9 +122,18 @@ var allTestCases = [
     testCase(TestDimension.allTests),
     testCase(TestMeasurement.allTests),
     testCase(TestUnitVolume.allTests),
+    testCase(TestUnitInformationStorage.allTests),
     testCase(TestNSLock.allTests),
     testCase(TestNSSortDescriptor.allTests),
 ]
+
+if #available(macOS 12, *) {
+    allTestCases.append(contentsOf: [
+        testCase(TestAttributedString.allTests),
+        testCase(TestAttributedStringCOW.allTests),
+        testCase(TestAttributedStringPerformance.allTests)
+    ])
+}
 
 #if !os(Windows)
 allTestCases.append(contentsOf: [
@@ -131,4 +142,8 @@ allTestCases.append(contentsOf: [
 ])
 #endif
 
+atexit({
+    fflush(stdout)
+    fflush(stderr)
+})
 XCTMain(allTestCases)

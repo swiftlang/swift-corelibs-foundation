@@ -734,5 +734,7 @@
     <string>Line Islands Standard Time</string>
     <key>Etc/GMT-14</key>
     <string>Line Islands Standard Time</string>
+    <key>US/Pacific</key>
+    <string>Pacific Standard Time</string>
   </dict>
 </plist>

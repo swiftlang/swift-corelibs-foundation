@@ -1,6 +1,11 @@
 add_library(Foundation
   AffineTransform.swift
   Array.swift
+  AttributedString/AttributedString.swift
+  AttributedString/AttributedStringAttribute.swift
+  AttributedString/AttributedStringCodable.swift
+  AttributedString/AttributedStringRunCoalescing.swift
+  AttributedString/AttributedString+Locking.swift
   Boxing.swift
   Bridging.swift
   Bundle.swift
@@ -11,6 +16,7 @@ add_library(Foundation
   Codable.swift
   Collections+DataProtocol.swift
   ContiguousBytes.swift
+  AttributedString/Conversion.swift
   Data.swift
   DataProtocol.swift
   Date.swift
@@ -30,6 +36,7 @@ add_library(Foundation
   FileManager+Win32.swift
   FileManager+XDG.swift
   Formatter.swift
+  AttributedString/FoundationAttributes.swift
   FoundationErrors.swift
   Host.swift
   IndexPath.swift
@@ -44,6 +51,7 @@ add_library(Foundation
   MassFormatter.swift
   Measurement.swift
   MeasurementFormatter.swift
+  Morphology.swift
   Notification.swift
   NotificationQueue.swift
   NSArray.swift
@@ -159,6 +167,30 @@ set_target_properties(Foundation PROPERTIES
   BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
+
+if(NOT BUILD_SHARED_LIBS)
+  # ICU_I18N_LIBRARY is set by find_package(ICU) in the top level CMakeLists.txt
+  # It's an absolute path to the found library file
+  get_target_property(icui18n_path ICU::i18n IMPORTED_LOCATION)
+  get_filename_component(icu_i18n_basename "${icui18n_path}" NAME_WE)
+  get_filename_component(icu_i18n_dir "${icui18n_path}" DIRECTORY)
+  string(REPLACE "lib" "" icu_i18n_basename "${icu_i18n_basename}")
+
+  target_compile_options(Foundation
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend ${icu_i18n_basename}
+             -Xfrontend -public-autolink-library -Xfrontend BlocksRuntime")
+  # ICU libraries are linked by absolute library path in this project,
+  # but -public-autolink-library forces to resolve library path by
+  # library search path given by -L, so add a directory of icui18n
+  # in the search path
+  target_link_directories(Foundation PUBLIC "${icu_i18n_dir}")
+
+  # Merge private dependencies into single static objects archive
+  set_property(TARGET Foundation PROPERTY STATIC_LIBRARY_OPTIONS
+    $<TARGET_OBJECTS:CoreFoundation>
+    $<TARGET_OBJECTS:uuid>)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # NOTE: workaround for CMake which doesn't link in OBJECT libraries properly

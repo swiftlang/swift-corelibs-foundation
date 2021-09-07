@@ -592,10 +592,27 @@ open class FileHandle : NSObject {
         
         #if os(Windows)
         guard FlushFileBuffers(self._handle) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            let dwError: DWORD = GetLastError()
+            // If the handle is a handle to the console output,
+            // `FlushFileBuffers` will fail and return `ERROR_INVALID_HANDLE` as
+            // console output is not buffered.
+            if dwError == ERROR_INVALID_HANDLE &&
+                    GetFileType(self._handle) == FILE_TYPE_CHAR {
+                // Simlar to the Linux, macOS, BSD cases below, ignore the error
+                // on the special file type.
+                return
+            }
+            throw _NSErrorWithWindowsError(dwError, reading: false)
         }
         #else
-        guard fsync(_fd) >= 0 else { throw _NSErrorWithErrno(errno, reading: false) }
+        // Linux, macOS, OpenBSD return -1 and errno == EINVAL if trying to sync a special file,
+        // eg a fifo, character device etc which can be ignored.
+        // Additionally, Linux may return EROFS if tying to sync on a readonly filesystem, which also can be ignored.
+        // macOS can also return ENOTSUP for pipes but dont ignore it, so that the behaviour matches Darwin's Foundation.
+        if fsync(_fd) < 0 {
+            if errno == EINVAL || errno == EROFS { return }
+            throw _NSErrorWithErrno(errno, reading: false)
+        }
         #endif
     }
     

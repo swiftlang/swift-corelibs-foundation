@@ -23,7 +23,9 @@
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFBurstTrie.h>
 #include <CoreFoundation/CFString.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStream.h>
+#endif
 #include <CoreFoundation/CFCalendar.h>
 #include "CFLocaleInternal.h"
 #include <limits.h>
@@ -2850,7 +2852,6 @@ CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef dat
 }
 
 
-
 // Legacy
 CFTypeRef _CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDataRef xmlData, CFOptionFlags option, CFStringRef *errorString, Boolean allowNewTypes, CFPropertyListFormat *format) {
     CFTypeRef out = NULL;
@@ -2883,6 +2884,7 @@ CFPropertyListRef CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDa
     return result;
 }
 
+#if !TARGET_OS_WASI
 CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) {
     CFAssert1(format != kCFPropertyListOpenStepFormat, __kCFLogAssertion, "%s(): kCFPropertyListOpenStepFormat not supported for writing", __PRETTY_FUNCTION__);
     CFAssert2(format == kCFPropertyListXMLFormat_v1_0 || format == kCFPropertyListBinaryFormat_v1_0, __kCFLogAssertion, "%s(): Unrecognized option %ld", __PRETTY_FUNCTION__, format);
@@ -3136,6 +3138,7 @@ bool _CFPropertyListValidateData(CFDataRef data, CFTypeID *outTopLevelTypeID) {
     return result;
 }
 
+#endif
 
 #pragma mark -
 #pragma mark Property List Copies

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		659FB6E02405E65D00F5F63F /* TestBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659FB6DF2405E65D00F5F63F /* TestBridging.swift */; };
+		ABB1293726D47D9E00401E6C /* TestUnitInformationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB1293626D47D9E00401E6C /* TestUnitInformationStorage.swift */; };
 		B91161AF242A385A00BD2907 /* TestDataURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */; };
 		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
 		B94B07402401847C00B244E8 /* FTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B073C2401847C00B244E8 /* FTPServer.swift */; };
@@ -175,6 +176,7 @@
 
 /* Begin PBXFileReference section */
 		659FB6DF2405E65D00F5F63F /* TestBridging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestBridging.swift; path = Tests/Foundation/Tests/TestBridging.swift; sourceTree = "<group>"; };
+		ABB1293626D47D9E00401E6C /* TestUnitInformationStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestUnitInformationStorage.swift; path = Tests/Foundation/Tests/TestUnitInformationStorage.swift; sourceTree = "<group>"; };
 		B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDataURLProtocol.swift; path = Tests/Foundation/Tests/TestDataURLProtocol.swift; sourceTree = "<group>"; };
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -343,6 +345,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				ABB1293626D47D9E00401E6C /* TestUnitInformationStorage.swift */,
 				B9F449292483FA1E00B30F02 /* TestNSURL.swift */,
 				B91161AE242A385A00BD2907 /* TestDataURLProtocol.swift */,
 				B94B08342401854E00B244E8 /* main.swift */,
@@ -710,6 +713,7 @@
 				B94B07EF2401849B00B244E8 /* TestByteCountFormatter.swift in Sources */,
 				B94B07F02401849B00B244E8 /* TestURL.swift in Sources */,
 				B94B07F12401849B00B244E8 /* TestCachedURLResponse.swift in Sources */,
+				ABB1293726D47D9E00401E6C /* TestUnitInformationStorage.swift in Sources */,
 				B94B07F22401849B00B244E8 /* TestDecimal.swift in Sources */,
 				B94B07F32401849B00B244E8 /* TestStream.swift in Sources */,
 				B94B07F42401849B00B244E8 /* TestNSData.swift in Sources */,
