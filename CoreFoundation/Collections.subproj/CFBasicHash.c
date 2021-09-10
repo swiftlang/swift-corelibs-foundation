@@ -1474,6 +1474,7 @@ CF_PRIVATE size_t CFBasicHashGetSize(CFConstBasicHashRef ht, Boolean total) {
     if (ht->bits.counts_offset) size += sizeof(void *);
     if (__CFBasicHashHasHashCache(ht)) size += sizeof(uintptr_t *);
     if (total) {
+#if ENABLE_MEMORY_COUNTERS || ENABLE_DTRACE_PROBES
         CFIndex num_buckets = __CFBasicHashTableSizes[ht->bits.num_buckets_idx];
         if (0 < num_buckets) {
             size += malloc_size(__CFBasicHashGetValues(ht));
@@ -1481,6 +1482,9 @@ CF_PRIVATE size_t CFBasicHashGetSize(CFConstBasicHashRef ht, Boolean total) {
             if (ht->bits.counts_offset) size += malloc_size(__CFBasicHashGetCounts(ht));
             if (__CFBasicHashHasHashCache(ht)) size += malloc_size(__CFBasicHashGetHashes(ht));
         }
+#else
+        (void)total;
+#endif
     }
     return size;
 }
