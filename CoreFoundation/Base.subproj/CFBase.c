@@ -59,7 +59,7 @@ struct __CFAllocator {
 };
 
 CF_INLINE uintptr_t __CFISAForCFAllocator(void) {
-    return __CFRuntimeObjCClassTable[_kCFRuntimeIDCFAllocator];
+    return _GetCFRuntimeObjcClassAtIndex(_kCFRuntimeIDCFAllocator);
 }
 
 CF_INLINE CFAllocatorRetainCallBack __CFAllocatorGetRetainFunction(const CFAllocatorContext *context) {
@@ -478,7 +478,7 @@ void CFAllocatorSetDefault(CFAllocatorRef allocator) {
     }
 #endif
 #if TARGET_OS_MAC
-    if (allocator && allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (allocator && _CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return;		// require allocator to this function to be an allocator
     }
 #endif
@@ -505,7 +505,7 @@ static CFAllocatorRef __CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorC
     CFAllocatorAllocateCallBack allocateFunc;
     void *retainedInfo;
 #if TARGET_OS_MAC
-    if (allocator && kCFAllocatorUseContext != allocator && allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (allocator && kCFAllocatorUseContext != allocator && _CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return NULL;	// require allocator to this function to be an allocator
     }
 #endif
@@ -588,7 +588,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
     }
 
 #if defined(DEBUG) && TARGET_OS_MAC
-    if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
+    if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
@@ -596,7 +596,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
 #endif
     if (0 == size) return NULL;
 #if TARGET_OS_MAC
-    if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_malloc((malloc_zone_t *)allocator, size);
     }
 #endif
@@ -619,7 +619,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
     }
 
 #if defined(DEBUG) && TARGET_OS_MAC
-    if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
+    if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
@@ -627,7 +627,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 #endif
     if (NULL == ptr && 0 < newsize) {
 #if TARGET_OS_MAC
-	if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+	if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	    return malloc_zone_malloc((malloc_zone_t *)allocator, newsize);
 	}
 #endif
@@ -640,7 +640,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
     }
     if (NULL != ptr && 0 == newsize) {
 #if TARGET_OS_MAC
-	if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+	if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
 	    size_t size = malloc_size(ptr);
 	    if (size) memset(ptr, 0xCC, size);
@@ -657,7 +657,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
     }
     if (NULL == ptr && 0 == newsize) return NULL;
 #if TARGET_OS_MAC
-    if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_realloc((malloc_zone_t *)allocator, ptr, newsize);
     }
 #endif
@@ -675,14 +675,14 @@ void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr) {
     }
 
 #if defined(DEBUG) && TARGET_OS_MAC
-    if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
+    if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
 #if TARGET_OS_MAC
-    if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
 	size_t size = malloc_size(ptr);
 	if (size) memset(ptr, 0xCC, size);
@@ -704,15 +704,15 @@ CFIndex CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex siz
         allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && TARGET_OS_MAC
-    if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
+#if TARGET_OS_MAC
+    if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
 #if TARGET_OS_MAC
-    if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_good_size(size);
     }
 #endif
@@ -729,8 +729,8 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
         allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && TARGET_OS_MAC
-    if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
+#if TARGET_OS_MAC
+    if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
@@ -738,7 +738,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
 #endif
     CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
 #if TARGET_OS_MAC
-    if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
+    if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return;
     }
 #endif
@@ -808,7 +808,7 @@ struct __CFNull {
 
 DECLARE_STATIC_CLASS_REF(NSNull);
 
-static struct __CFNull _CF_CONSTANT_OBJECT_BACKING __kCFNull = {
+struct __CFNull _CF_CONSTANT_OBJECT_BACKING __kCFNull = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(NSNull, _kCFRuntimeIDCFNull)
 };
 const CFNullRef kCFNull = &__kCFNull;
@@ -853,7 +853,8 @@ void _CFRuntimeSetCFMPresent(void *addr) {
 /* Keep this assembly at the bottom of the source file! */
 
 
-extern void __HALT() {
+extern void __HALT(void);
+void __HALT() {
     __builtin_trap();
 }
 

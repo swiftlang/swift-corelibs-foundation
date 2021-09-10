@@ -12,11 +12,10 @@
 
 #if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
+#define __TARGETCONDITIONALS__ // Prevent loading the macOS TargetConditionals.h at all.
 #else
 #include <TargetConditionals.h>
 #endif
-
-#define _DARWIN_UNLIMITED_SELECT 1
 
 #include <CoreFoundation/CFAvailability.h>
 
@@ -24,6 +23,41 @@
 #define __HAS_DISPATCH__ 0
 #else
 #define __HAS_DISPATCH__ 1
+#endif
+
+// Darwin may or may not define these macros, but we rely on them for building in Swift; define them privately.
+#ifndef TARGET_OS_LINUX
+#define TARGET_OS_LINUX 0
+#endif
+#ifndef TARGET_OS_BSD
+#define TARGET_OS_BSD 0
+#endif
+#ifndef TARGET_OS_ANDROID
+#define TARGET_OS_ANDROID 0
+#endif
+#ifndef TARGET_OS_CYGWIN
+#define TARGET_OS_CYGWIN 0
+#endif
+#ifndef TARGET_OS_WASI
+#define TARGET_OS_WASI 0
+#endif
+#ifndef TARGET_OS_MAC
+#define TARGET_OS_MAC 0
+#endif
+#ifndef TARGET_OS_IPHONE
+#define TARGET_OS_IPHONE 0
+#endif
+#ifndef TARGET_OS_OSX
+#define TARGET_OS_OSX 0
+#endif
+#ifndef TARGET_OS_IOS
+#define TARGET_OS_IOS 0
+#endif
+#ifndef TARGET_OS_TV
+#define TARGET_OS_TV 0
+#endif
+#ifndef TARGET_OS_WATCH
+#define TARGET_OS_WATCH 0
 #endif
 
 #include <CoreFoundation/CFBase.h>
@@ -406,7 +440,7 @@ CF_INLINE int popcountll(long long x) {
 #endif
 
 #if !defined(CF_PRIVATE)
-#define CF_PRIVATE extern __attribute__((__visibility__("hidden")))
+#define CF_PRIVATE __attribute__((__visibility__("hidden"))) extern
 #endif
     
     // [FIXED_35517899] We can't currently support this, but would like to leave things annotated

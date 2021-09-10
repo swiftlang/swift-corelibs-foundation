@@ -125,11 +125,9 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
 	return NULL;
     }
     if (kCFNumberFormatterNoStyle == style) {
-        UChar ubuff[1];
         status = U_ZERO_ERROR;
-        ubuff[0] = '#';
-
-        __cficu_unum_applyPattern(memory->_nf, false, ubuff, 1, NULL, &status);
+        UChar pound = '#';
+        __cficu_unum_applyPattern(memory->_nf, false, &pound, 1, NULL, &status);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_INTEGER_DIGITS, 42);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_FRACTION_DIGITS, 0);
     }
@@ -303,9 +301,8 @@ static void __CFNumberFormatterApplySymbolPrefs(const void *key, const void *val
 	    
 	    __cficu_unum_setSymbol(formatter->_nf, sym, item_ustr, item_cnt, &status);
 	} else {
-        UChar ubuff[1];
-        ubuff[0] = '#';
-	    __cficu_unum_setSymbol(formatter->_nf, sym, ubuff, 1, &status);
+        UChar empty = 0;
+	    __cficu_unum_setSymbol(formatter->_nf, sym, &empty, 0, &status);
 	}
     }
 }

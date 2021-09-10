@@ -31,6 +31,9 @@ CF_PRIVATE void _cfmp_record_intent_to_invalidate(_CFMPLifetimeClient const clie
 /// Records when the cancel-handler for a given dispatch_port is called.
 CF_PRIVATE void _cfmp_source_invalidated(_CFMPLifetimeClient const client, mach_port_t const port);
 
+/// Records that we have received a deadname notification for the specified port.
+CF_PRIVATE void _cfmp_source_record_deadness(_CFMPLifetimeClient const client, mach_port_t const port);
+
 /// For Foundation Only
 /// Records when an nsmach port is going to be interested in a bridges CFMachPort
 CF_EXPORT void _cfmp_record_nsmachport_is_interested(_CFMPLifetimeClient const client, mach_port_t const port);

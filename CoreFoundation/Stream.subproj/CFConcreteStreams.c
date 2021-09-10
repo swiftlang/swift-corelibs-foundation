@@ -23,6 +23,9 @@
 #include <unistd.h>
 #endif
 
+// cb version must be > 0
+CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info, const struct _CFStreamCallBacks *cb, Boolean isReading);
+
 
 #define SCHEDULE_AFTER_WRITE  (0)
 #define SCHEDULE_AFTER_READ   (1)
@@ -75,9 +78,16 @@ static void _fs_release(void *info)
     }
 }
 
-static void constructCFFD(_CFFileStreamContext *fileStream, Boolean forRead, struct _CFStream *stream) {
+static Boolean constructCFFD(_CFFileStreamContext *fileStream, Boolean forRead, struct _CFStream *stream) {
     CFFileDescriptorContext context = {0, stream, _fs_retain, _fs_release, (void *)CFCopyDescription};
     CFFileDescriptorRef cffd = CFFileDescriptorCreate(CFGetAllocator(stream), fileStream->fd, false, fileCallBack, &context);
+    if (cffd == NULL) {
+        if (fileStream->rlInfo.rlArray) {
+            CFRelease(fileStream->rlInfo.rlArray);
+            fileStream->rlInfo.rlArray = NULL;
+        }
+        return FALSE;
+    }
     CFFileDescriptorEnableCallBacks(cffd, forRead ? kCFFileDescriptorReadCallBack : kCFFileDescriptorWriteCallBack);
     if (fileStream->rlInfo.rlArray) {
         CFIndex i, c = CFArrayGetCount(fileStream->rlInfo.rlArray);
@@ -91,6 +101,7 @@ static void constructCFFD(_CFFileStreamContext *fileStream, Boolean forRead, str
         CFRelease(src);
     }    
     fileStream->rlInfo.cffd = cffd;
+    return TRUE;
 }
 #endif
 
@@ -101,7 +112,7 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     flags |= (_O_BINARY|_O_NOINHERIT);
     if (_CFURLGetWideFileSystemRepresentation(fileStream->url, TRUE, path, CFMaxPathSize) == FALSE)
 #else
-        char path[CFMaxPathSize];
+    char path[CFMaxPathSize];
     if (CFURLGetFileSystemRepresentation(fileStream->url, TRUE, (UInt8 *)path, CFMaxPathSize) == FALSE)
 #endif
     {
@@ -128,7 +139,9 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
         
 #ifdef REAL_FILE_SCHEDULING
         if (fileStream->rlInfo.rlArray != NULL) {
-            constructCFFD(fileStream, forRead, stream);
+            if (constructCFFD(fileStream, forRead, stream) == FALSE) {
+                break;
+            }
         }
 #endif
         
@@ -727,11 +740,16 @@ static CFPropertyListRef dataCopyProperty(struct _CFStream *stream, CFStringRef 
     for (buf = dataStream->firstBuf; buf != NULL; buf = buf->next) {
         size += buf->length;
     }
-    bytes = (UInt8 *)CFAllocatorAllocate(alloc, size, 0);
-    currByte = bytes;
-    for (buf = dataStream->firstBuf; buf != NULL; buf = buf->next) {
-        memmove(currByte, buf->bytes, buf->length);
-        currByte += buf->length;
+    if (size > 0) {
+        bytes = (UInt8 *)CFAllocatorAllocate(alloc, size, 0);
+        if (bytes == NULL) return NULL;
+        currByte = bytes;
+        for (buf = dataStream->firstBuf; buf != NULL; buf = buf->next) {
+            memmove(currByte, buf->bytes, buf->length);
+            currByte += buf->length;
+        }
+    } else {
+        bytes = NULL;
     }
     return CFDataCreateWithBytesNoCopy(alloc, bytes, size, alloc);
 }

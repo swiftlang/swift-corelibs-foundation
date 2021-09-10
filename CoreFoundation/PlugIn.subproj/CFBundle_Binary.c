@@ -776,6 +776,7 @@ CF_PRIVATE CFStringRef _CFBundleCopyLoadedImagePathForPointer(void *p) {
 }
 
 void *CFBundleGetFunctionPointerForName(CFBundleRef bundle, CFStringRef funcName) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFBundle, bundle);
     void *tvp = NULL;
     // Load if necessary
     if (!bundle->_isLoaded) {
@@ -856,6 +857,7 @@ void _CFBundleGetCFMFunctionPointersForNames(CFBundleRef bundle, CFArrayRef func
 }
 
 void *CFBundleGetDataPointerForName(CFBundleRef bundle, CFStringRef symbolName) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFBundle, bundle);
     void *dp = NULL;
     // Load if necessary
     if (!bundle->_isLoaded && !CFBundleLoadExecutable(bundle)) return NULL;

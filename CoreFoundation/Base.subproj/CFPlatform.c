@@ -273,7 +273,10 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
         const char *processName = *_CFGetProgname();
         if (!processName) processName = "";
         CFStringRef newStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, processName, kCFPlatformInterfaceStringEncoding);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
         if (!OSAtomicCompareAndSwapPtrBarrier(NULL, (void *) newStr, (void * volatile *)& __CFProcessNameString)) {
+#pragma GCC diagnostic pop
             CFRelease(newStr);    // someone else made the assignment, so just release the extra string.
         }
     }

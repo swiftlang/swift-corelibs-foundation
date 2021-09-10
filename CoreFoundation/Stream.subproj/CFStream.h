@@ -327,11 +327,11 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertyShouldCloseNativeSocket CF
 CF_IMPLICIT_BRIDGING_DISABLED
 /* Socket streams; the returned streams are paired such that they use the same socket; pass NULL if you want only the read stream or the write stream */
 CF_EXPORT
-void CFStreamCreatePairWithSocket(CFAllocatorRef _Null_unspecified alloc, CFSocketNativeHandle sock, CFReadStreamRef _Null_unspecified *   _Null_unspecified readStream, CFWriteStreamRef _Null_unspecified * _Null_unspecified writeStream);
+void CFStreamCreatePairWithSocket(CFAllocatorRef _Null_unspecified alloc, CFSocketNativeHandle sock, CFReadStreamRef _Null_unspecified *   _Null_unspecified readStream, CFWriteStreamRef _Null_unspecified * _Null_unspecified writeStream) API_DEPRECATED("Use nw_connection_t in Network framework instead", macos(10.1, API_TO_BE_DEPRECATED), ios(2.0, API_TO_BE_DEPRECATED), watchos(2.0, API_TO_BE_DEPRECATED), tvos(9.0, API_TO_BE_DEPRECATED));
 CF_EXPORT
-void CFStreamCreatePairWithSocketToHost(CFAllocatorRef _Null_unspecified alloc, CFStringRef _Null_unspecified host, UInt32 port, CFReadStreamRef _Null_unspecified * _Null_unspecified readStream, CFWriteStreamRef _Null_unspecified * _Null_unspecified writeStream);
+void CFStreamCreatePairWithSocketToHost(CFAllocatorRef _Null_unspecified alloc, CFStringRef _Null_unspecified host, UInt32 port, CFReadStreamRef _Null_unspecified * _Null_unspecified readStream, CFWriteStreamRef _Null_unspecified * _Null_unspecified writeStream) API_DEPRECATED("Use nw_connection_t in Network framework instead", macos(10.1, API_TO_BE_DEPRECATED), ios(2.0, API_TO_BE_DEPRECATED), watchos(2.0, API_TO_BE_DEPRECATED), tvos(9.0, API_TO_BE_DEPRECATED));
 CF_EXPORT
-void CFStreamCreatePairWithPeerSocketSignature(CFAllocatorRef _Null_unspecified alloc, const CFSocketSignature * _Null_unspecified signature, CFReadStreamRef _Null_unspecified * _Null_unspecified readStream, CFWriteStreamRef _Null_unspecified * _Null_unspecified writeStream);
+void CFStreamCreatePairWithPeerSocketSignature(CFAllocatorRef _Null_unspecified alloc, const CFSocketSignature * _Null_unspecified signature, CFReadStreamRef _Null_unspecified * _Null_unspecified readStream, CFWriteStreamRef _Null_unspecified * _Null_unspecified writeStream) API_DEPRECATED("Use nw_connection_t in Network framework instead", macos(10.1, API_TO_BE_DEPRECATED), ios(2.0, API_TO_BE_DEPRECATED), watchos(2.0, API_TO_BE_DEPRECATED), tvos(9.0, API_TO_BE_DEPRECATED));
 CF_IMPLICIT_BRIDGING_ENABLED
 
 

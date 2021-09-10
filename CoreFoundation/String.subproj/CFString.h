@@ -162,7 +162,7 @@ CF_EXPORT void *_CF_CONSTANT_STRING_SWIFT_CLASS[];
 
 struct __CFConstStr {
     struct {
-        uintptr_t _cfisa;
+        __ptrauth_cf_objc_isa_pointer uintptr_t _cfisa;
         uintptr_t _swift_rc;
         uint64_t _cfinfoa;
     } _base;

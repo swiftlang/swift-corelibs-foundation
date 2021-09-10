@@ -18,6 +18,19 @@
 const CFSetCallBacks kCFTypeSetCallBacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, CFCopyDescription, CFEqual, CFHash};
 const CFSetCallBacks kCFCopyStringSetCallBacks = {0, __CFStringCollectionCopy, __CFTypeCollectionRelease, CFCopyDescription, CFEqual, CFHash};
 
+CF_PRIVATE CFSetCallBacks __CFSetGetCallbacks(CFSetRef hc) {
+    CFBasicHashCallbacks hashCallbacks = __CFBasicHashGetCallbacks(hc);
+    CFSetCallBacks setCallbacks = {
+        .version = 0,
+        .retain = (CFSetRetainCallBack)hashCallbacks.retainKey,
+        .release = (CFSetReleaseCallBack)hashCallbacks.releaseKey,
+        .equal = (CFSetEqualCallBack)hashCallbacks.equateKeys,
+        .hash = (CFSetHashCallBack)hashCallbacks.hashKey,
+        .copyDescription = (CFSetCopyDescriptionCallBack)hashCallbacks.copyKeyDescription
+    };
+    return setCallbacks;
+}
+
 static Boolean __CFSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
     return __CFBasicHashEqual((CFBasicHashRef)cf1, (CFBasicHashRef)cf2);
 }

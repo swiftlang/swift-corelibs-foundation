@@ -633,7 +633,7 @@ CF_PRIVATE uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, 
             numBytes /= 4; // for 32bit
 
             while (numBytes-- > 0) {
-                unaligned_store32(bitmap, value);
+                _CFUnalignedStore32(bitmap, value);
 #if defined (__cplusplus)
 				bitmap = (uint8_t *)bitmap + sizeof(uint32_t);				
 #else
@@ -745,7 +745,7 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
         headerSize = *((uint8_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
 		bytes += 4; // Skip Unicode version
-        headerSize = unaligned_load32(bytes);
+        headerSize = _CFUnalignedLoad32(bytes);
         bytes += sizeof(uint32_t);
 #endif    
         headerSize -= (sizeof(uint32_t) * 2);
@@ -759,7 +759,7 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 #if defined (__cplusplus)            
             __CFUniCharMappingTables[idx] = (char *)bodyBase + *((uint32_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
-			__CFUniCharMappingTables[idx] = (char *)bodyBase + unaligned_load32(bytes);
+			__CFUniCharMappingTables[idx] = (char *)bodyBase + _CFUnalignedLoad32(bytes);
             bytes += sizeof(uint32_t);
 #endif
         }
@@ -786,8 +786,8 @@ typedef struct {
 static uint32_t __CFUniCharGetMappedCase(const __CFUniCharCaseMappings *theTable, uint32_t numElem, UTF32Char character) {
     const __CFUniCharCaseMappings *p, *q, *divider;
 
-#define READ_KEY(x)     unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _key))
-#define READ_VALUE(x)   unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _value))
+#define READ_KEY(x)     _CFUnalignedLoad32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _key))
+#define READ_VALUE(x)   _CFUnalignedLoad32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _value))
 
     if ((character < READ_KEY(&theTable[0])) || (character > READ_KEY(&theTable[numElem-1]))) {
         return 0;
@@ -827,9 +827,9 @@ static bool __CFUniCharLoadCaseMappingTable(void) {
     __CFUniCharCaseMappingExtraTable = (const uint32_t **)__CFUniCharCaseMappingTable + NUM_CASE_MAP_DATA;
 
     for (idx = 0;idx < NUM_CASE_MAP_DATA;idx++) {
-        countArray[idx] = unaligned_load32(__CFUniCharMappingTables[idx]) / (sizeof(uint32_t) * 2);
+        countArray[idx] = _CFUnalignedLoad32(__CFUniCharMappingTables[idx]) / (sizeof(uint32_t) * 2);
         __CFUniCharCaseMappingTable[idx] = ((uint32_t *)__CFUniCharMappingTables[idx]) + 1;
-        __CFUniCharCaseMappingExtraTable[idx] = (const uint32_t *)((char *)__CFUniCharCaseMappingTable[idx] + unaligned_load32(__CFUniCharMappingTables[idx]));
+        __CFUniCharCaseMappingExtraTable[idx] = (const uint32_t *)((char *)__CFUniCharCaseMappingTable[idx] + _CFUnalignedLoad32(__CFUniCharMappingTables[idx]));
     }
 
     __CFUniCharCaseMappingTableCounts = countArray;
@@ -1043,7 +1043,7 @@ caseFoldRetry:
                 } else {
                     CFIndex idx;
 
-                    for (idx = 0;idx < count;idx++) *(convertedChar++) = (UTF16Char)unaligned_load32(extraMapping++);
+                    for (idx = 0;idx < count;idx++) *(convertedChar++) = (UTF16Char)_CFUnalignedLoad32(extraMapping++);
                     return count;
                 }
             }
@@ -1250,7 +1250,7 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
         headerSize = CFSwapInt32BigToHost(*((uint32_t *)bytes)); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
         bytes += 4; // Skip Unicode version
-        headerSize = unaligned_load32be(bytes);
+        headerSize = _CFUnalignedLoad32BE(bytes);
         bytes += sizeof(uint32_t);
 #endif
         
@@ -1285,7 +1285,7 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
             bodyBase = (const uint8_t *)bodyBase + (CFSwapInt32BigToHost(*(uint32_t *)bytes));
             ((uint32_t *&)bytes) ++;
 #else
-            bodyBase += unaligned_load32be(bytes++);
+            bodyBase += _CFUnalignedLoad32BE(bytes++);
 #endif
         }
 

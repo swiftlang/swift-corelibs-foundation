@@ -243,7 +243,13 @@ static CFDictionaryRef _CFBundleCreateInfoDictFromFile(int fd, const void *bytes
     unsigned i, j;
     CFDictionaryRef result = NULL;
     Boolean foundIt = false;
-    if (fd >= 0 && fstat(fd, &statBuf) == 0 && (maploc = mmap(0, statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) != (void *)-1) {
+
+    int mmapFlags = MAP_PRIVATE;
+#if TARGET_OS_MAC
+    mmapFlags |= MAP_RESILIENT_CODESIGN;
+#endif
+
+    if (fd >= 0 && fstat(fd, &statBuf) == 0 && (maploc = mmap(0, statBuf.st_size, PROT_READ,  mmapFlags, fd, 0)) != (void *)-1) {
         loc = maploc;
         fileLength = statBuf.st_size;
     } else {

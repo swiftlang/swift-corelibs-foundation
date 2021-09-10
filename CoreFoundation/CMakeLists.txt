@@ -59,6 +59,7 @@ if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-fconstant-cfstrings>)
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-fdollars-in-identifiers>)
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-fno-common>)
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-Werror=implicit-function-declaration>)
 endif()
 
 if(CF_DEPLOYMENT_SWIFT)
@@ -145,8 +146,10 @@ add_framework(CoreFoundation
                 Locale.subproj/CFDateIntervalFormatter.h
                 Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFICULogging.h
+                Locale.subproj/CFListFormatter.h
                 Locale.subproj/CFLocaleInternal.h
                 Locale.subproj/CFLocale_Private.h
+                Locale.subproj/CFRelativeDateTimeFormatter.h
                 # NumberDate
                 NumberDate.subproj/CFBigNumber.h
                 NumberDate.subproj/CFNumber_Private.h
@@ -171,6 +174,7 @@ add_framework(CoreFoundation
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
                 String.subproj/CFString_Internal.h
+                String.subproj/CFString_Private.h
                 String.subproj/CFStringDefaultEncoding.h
                 String.subproj/CFStringLocalizedFormattingInternal.h
                 # StringEncodings
@@ -298,10 +302,12 @@ add_framework(CoreFoundation
                 Locale.subproj/CFDateFormatter.c
                 Locale.subproj/CFDateIntervalFormatter.c
                 Locale.subproj/CFDateInterval.c
+                Locale.subproj/CFListFormatter.c
                 Locale.subproj/CFLocale.c
                 Locale.subproj/CFLocaleIdentifier.c
                 Locale.subproj/CFLocaleKeys.c
                 Locale.subproj/CFNumberFormatter.c
+                Locale.subproj/CFRelativeDateTimeFormatter.c
                 # NumberData
                 NumberDate.subproj/CFBigNumber.c
                 NumberDate.subproj/CFDate.c

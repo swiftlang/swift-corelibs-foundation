@@ -536,20 +536,20 @@ CFMessagePortRef CFMessagePortCreatePerProcessRemote(CFAllocatorRef allocator, C
 }
 
 Boolean CFMessagePortIsRemote(CFMessagePortRef ms) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     return __CFMessagePortIsRemote(ms);
 }
 
 CFStringRef CFMessagePortGetName(CFMessagePortRef ms) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     return ms->_name;
 }
 
 Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef inName) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     CFAllocatorRef allocator = CFGetAllocator(ms);
     uint8_t *utfname = NULL;
 
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
     if (ms->_perPID || __CFMessagePortIsRemote(ms)) return false;
     CFStringRef const name = __CFMessagePortCreateSanitizedStringName(inName, &utfname, NULL);
     if (NULL == name) {
@@ -664,14 +664,14 @@ Boolean CFMessagePortSetName(CFMessagePortRef ms, CFStringRef inName) {
 }
 
 void CFMessagePortGetContext(CFMessagePortRef ms, CFMessagePortContext *context) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
 //#warning CF: assert that this is a local port
     CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     memmove(context, &ms->_context, sizeof(CFMessagePortContext));
 }
 
 void CFMessagePortInvalidate(CFMessagePortRef ms) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFMessagePort, ms);
     if (ms == NULL) {
         return;
     }
@@ -749,7 +749,7 @@ void CFMessagePortInvalidate(CFMessagePortRef ms) {
 }
 
 Boolean CFMessagePortIsValid(CFMessagePortRef ms) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     if (!__CFMessagePortIsValid(ms)) return false;
     CFRetain(ms);
     if (NULL != ms->_port && !CFMachPortIsValid(ms->_port)) {
@@ -767,12 +767,12 @@ Boolean CFMessagePortIsValid(CFMessagePortRef ms) {
 }
 
 CFMessagePortInvalidationCallBack CFMessagePortGetInvalidationCallBack(CFMessagePortRef ms) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     return ms->_icallout;
 }
 
 void CFMessagePortSetInvalidationCallBack(CFMessagePortRef ms, CFMessagePortInvalidationCallBack callout) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     if (!__CFMessagePortIsValid(ms) && NULL != callout) {
 	callout(ms, ms->_context.info);
     } else {
@@ -848,6 +848,7 @@ static void __CFMessagePortReplyCallBack(CFMachPortRef port, void *msg, CFIndex 
 }
 
 SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef data, CFTimeInterval sendTimeout, CFTimeInterval rcvTimeout, CFStringRef replyMode, CFDataRef *returnDatap) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, remote);
     mach_msg_base_t *sendmsg;
     CFRunLoopRef currentRL = CFRunLoopGetCurrent();
     CFRunLoopSourceRef source = NULL;
@@ -908,9 +909,16 @@ SInt32 CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef
     if (KERN_SUCCESS != ret) {
 	// need to deallocate the send-once right that might have been created
         if (replyMode != NULL &&
-            (ret == MACH_SEND_INVALID_DEST || ret == MACH_SEND_TIMED_OUT) // [55207069] it is only valid to clean cleaup the local port for these two return values; to do otherwise is unsafe/undefined-behavior
+            (ret == MACH_SEND_INVALID_DEST || ret == MACH_SEND_INTERRUPTED || ret == MACH_SEND_TIMED_OUT) // [55207069, 39359253] it is only valid to clean cleaup the local port for these two return values; to do otherwise is unsafe/undefined-behavior
         ) {
-            mach_port_deallocate(mach_task_self(), ((mach_msg_header_t *)sendmsg)->msgh_local_port);
+            mach_port_t port = ((mach_msg_header_t *)sendmsg)->msgh_local_port;
+            if (MACH_PORT_VALID(port)) {
+                if (MACH_MSGH_BITS_LOCAL(((mach_msg_header_t *)sendmsg)->msgh_bits) == MACH_MSG_TYPE_MOVE_SEND_ONCE) {
+                    /* destroy the send-once right */
+                    (void) mach_port_deallocate(mach_task_self(), port);
+                    ((mach_msg_header_t *)sendmsg)->msgh_local_port = MACH_PORT_NULL;
+                }
+            }
         }
 	if (didRegister) {
 	    CFRunLoopRemoveSource(currentRL, source, replyMode);
@@ -971,7 +979,7 @@ static mach_port_t __CFMessagePortGetPort(void *info) {
 static void *__CFMessagePortPerform(void *msg, CFIndex size, CFAllocatorRef allocator, void *info) {
     CFMessagePortRef ms = info;
     mach_msg_base_t *msgp = msg;
-    mach_msg_base_t *replymsg;
+    mach_msg_base_t *replymsg = NULL;
     void *context_info;
     void (*context_release)(const void *);
     CFDataRef returnData, data = NULL;
@@ -1064,17 +1072,21 @@ static void *__CFMessagePortPerform(void *msg, CFIndex size, CFAllocatorRef allo
 	    return_bytes = (void *)CFDataGetBytePtr(returnData);
 	} else if (returnData) {
 	    return_bytes = NULL;
-	    vm_allocate(mach_task_self(), (vm_address_t *)&return_bytes, return_len, VM_FLAGS_ANYWHERE | VM_MAKE_TAG(VM_MEMORY_MACH_MSG));
-	    /* vm_copy would only be a win here if the source address
-		is page aligned; it is a lose in all other cases, since
-		the kernel will just do the memmove for us (but not in
-		as simple a way). */
-	    memmove(return_bytes, CFDataGetBytePtr(returnData), return_len);
+	    kern_return_t ret = vm_allocate(mach_task_self(), (vm_address_t *)&return_bytes, return_len, VM_FLAGS_ANYWHERE | VM_MAKE_TAG(VM_MEMORY_MACH_MSG));
+            if (ret == KERN_SUCCESS) {
+                /* vm_copy would only be a win here if the source address
+                is page aligned; it is a lose in all other cases, since
+                the kernel will just do the memmove for us (but not in
+                as simple a way). */
+                memmove(return_bytes, CFDataGetBytePtr(returnData), return_len);
+            } else {
+                return_len = 0;
+            }
 	}
     }
     replymsg = __CFMessagePortCreateMessage(true, msgp->header.msgh_remote_port, MACH_PORT_NULL, -1 * (int32_t)MSGP_INFO(msgp, convid), msgid, return_bytes, return_len);
     if (replymsg->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) {
-	MSGP_GET(replymsg, ool).deallocate = true;
+        MSGP_GET(replymsg, ool).deallocate = true;
     }
     if (data) CFRelease(data);
     if (msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) {
@@ -1088,8 +1100,8 @@ static void *__CFMessagePortPerform(void *msg, CFIndex size, CFAllocatorRef allo
 }
 
 CFRunLoopSourceRef CFMessagePortCreateRunLoopSource(CFAllocatorRef allocator, CFMessagePortRef ms, CFIndex order) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFMessagePort, ms);
     CFRunLoopSourceRef result = NULL;
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
     if (!CFMessagePortIsValid(ms)) return NULL;
     if (__CFMessagePortIsRemote(ms)) return NULL;
     __CFMessagePortLock(ms);
@@ -1118,7 +1130,7 @@ CFRunLoopSourceRef CFMessagePortCreateRunLoopSource(CFAllocatorRef allocator, CF
 }
 
 void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) {
-    __CFGenericValidateType(ms, CFMessagePortGetTypeID());
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFMessagePort, ms);
     __CFMessagePortLock(ms);
     if (!__CFMessagePortIsValid(ms)) {
 	__CFMessagePortUnlock(ms);
@@ -1184,7 +1196,7 @@ void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) 
                     if (NULL != reply) {
                         kern_return_t const ret = mach_msg(reply, MACH_SEND_MSG, reply->msgh_size, 0, MACH_PORT_NULL, 0, MACH_PORT_NULL);
                         
-                        __CFMachMessageCheckForAndDestroyUnsentMessage(ret, msg);
+                        __CFMachMessageCheckForAndDestroyUnsentMessage(ret, reply);
                         
                         CFAllocatorDeallocate(kCFAllocatorSystemDefault, reply);
                     }

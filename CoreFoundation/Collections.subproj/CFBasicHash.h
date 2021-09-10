@@ -96,6 +96,7 @@ CFIndex CFBasicHashGetCapacity(CFConstBasicHashRef ht);
 void CFBasicHashSetCapacity(CFBasicHashRef ht, CFIndex capacity);
 
 CFIndex CFBasicHashGetCount(CFConstBasicHashRef ht);
+CFIndex CFBasicHashGetUsedBucketCount(CFConstBasicHashRef ht);
 CFBasicHashBucket CFBasicHashGetBucket(CFConstBasicHashRef ht, CFIndex idx);
 CFBasicHashBucket CFBasicHashFindBucket(CFConstBasicHashRef ht, uintptr_t stack_key);
 CFIndex CFBasicHashGetCountOfKey(CFConstBasicHashRef ht, uintptr_t stack_key);
@@ -123,6 +124,7 @@ CFStringRef CFBasicHashCopyDescription(CFConstBasicHashRef ht, Boolean detailed,
 
 CFTypeID CFBasicHashGetTypeID(void);
 
+extern CFBasicHashCallbacks __CFBasicHashGetCallbacks(CFTypeRef cf);
 extern Boolean __CFBasicHashEqual(CFTypeRef cf1, CFTypeRef cf2);
 extern CFHashCode __CFBasicHashHash(CFTypeRef cf);
 extern CFStringRef __CFBasicHashCopyDescription(CFTypeRef cf);

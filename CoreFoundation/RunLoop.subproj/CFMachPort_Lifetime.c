@@ -242,6 +242,19 @@ void _cfmp_source_invalidated(_CFMPLifetimeClient const client, mach_port_t port
     }
 }
 
+// records that we have received a deadname notification for the specified port
+void _cfmp_source_record_deadness(_CFMPLifetimeClient const client, mach_port_t const port) {
+    CFMutableSetRef const records = _cfmp_records();
+    os_unfair_lock_lock(&_cfmp_records_lock);
+    _cfmp_deallocation_record *const pr = _cfmp_find_record_for_port(records, client, port);
+    if (pr == NULL) {
+        _cfmp_log_failure("received deadname notification for untracked port", pr, client, port);
+    } else {
+        pr->doReceive = 0;
+    }
+    os_unfair_lock_unlock(&_cfmp_records_lock);
+}
+
 void _cfmp_record_nsmachport_is_interested(_CFMPLifetimeClient const client, mach_port_t const port) {
     if (port == MACH_PORT_NULL) { return; }
     

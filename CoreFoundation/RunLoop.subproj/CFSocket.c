@@ -1716,6 +1716,7 @@ CFSocketRef CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketNativeHan
 }
 
 void CFSocketInvalidate(CFSocketRef s) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     UInt32 previousSocketManagerIteration;
     __CFGenericValidateType(s, CFSocketGetTypeID());
@@ -1799,21 +1800,21 @@ void CFSocketInvalidate(CFSocketRef s) {
 }
 
 Boolean CFSocketIsValid(CFSocketRef s) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     return __CFSocketIsValid(s);
 }
 
 CFSocketNativeHandle CFSocketGetNative(CFSocketRef s) {
+    CF_ASSERT_TYPE_OR_NULL(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     return s == NULL? -1 : s->_socket;
 }
 
 CFDataRef CFSocketCopyAddress(CFSocketRef s) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     CFDataRef result = NULL;
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     __CFSocketLock(s);
     __CFSocketEstablishAddress(s);
     if (NULL != s->_address) {
@@ -1833,9 +1834,9 @@ CFDataRef CFSocketCopyAddress(CFSocketRef s) {
 }
 
 CFDataRef CFSocketCopyPeerAddress(CFSocketRef s) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     CFDataRef result = NULL;
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     __CFSocketLock(s);
     __CFSocketEstablishPeerAddress(s);
     if (NULL != s->_peerAddress) {
@@ -1855,21 +1856,21 @@ CFDataRef CFSocketCopyPeerAddress(CFSocketRef s) {
 }
 
 void CFSocketGetContext(CFSocketRef s, CFSocketContext *context) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
     *context = s->_context;
 }
 
 CFOptionFlags CFSocketGetSocketFlags(CFSocketRef s) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     return s->_f.client;
 }
 
 void CFSocketSetSocketFlags(CFSocketRef s, CFOptionFlags flags) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     __CFSocketLock(s);
 #if LOG_CFSOCKET
     CFOptionFlags oldFlags = s->_f.client;
@@ -1880,10 +1881,10 @@ void CFSocketSetSocketFlags(CFSocketRef s, CFOptionFlags flags) {
 }
 
 void CFSocketDisableCallBacks(CFSocketRef s, CFOptionFlags callBackTypes) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     Boolean wakeup = false;
     uint8_t readCallBackType;
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     __CFSocketLock(s);
     if (__CFSocketIsValid(s) && __CFSocketIsScheduled(s)) {
         callBackTypes &= __CFSocketCallBackTypes(s);
@@ -1971,8 +1972,8 @@ void __CFSocketEnableCallBacks(CFSocketRef s, CFOptionFlags callBackTypes, Boole
 }
 
 void CFSocketEnableCallBacks(CFSocketRef s, CFOptionFlags callBackTypes) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     __CFSocketLock(s);
     __CFSocketEnableCallBacks(s, callBackTypes, TRUE, 'r');
     __CFSOCKETLOG_WS(s, "done for callbackTypes %x", callBackTypes);
@@ -2192,9 +2193,9 @@ static void __CFSocketPerformV0(void *info) {
 }
 
 CFRunLoopSourceRef CFSocketCreateRunLoopSource(CFAllocatorRef allocator, CFSocketRef s, CFIndex order) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     CFRunLoopSourceRef result = NULL;
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     __CFSocketLock(s);
     if (__CFSocketIsValid(s)) {
         if (NULL != s->_source0 && !CFRunLoopSourceIsValid(s->_source0)) {
@@ -2248,12 +2249,12 @@ CF_INLINE void __CFSocketWriteUnlock(CFSocketRef s) {
 
 //??? need timeout, error handling, retries
 CFSocketError CFSocketSendData(CFSocketRef s, CFDataRef address, CFDataRef data, CFTimeInterval timeout) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     const uint8_t *dataptr, *addrptr = NULL;
     SInt32 datalen, addrlen = 0, size = 0;
     CFSocketNativeHandle sock = INVALID_SOCKET;
     struct timeval tv;
-    __CFGenericValidateType(s, CFSocketGetTypeID());
     if (address) {
         addrptr = CFDataGetBytePtr(address);
         addrlen = CFDataGetLength(address);
@@ -2280,6 +2281,7 @@ CFSocketError CFSocketSendData(CFSocketRef s, CFDataRef address, CFDataRef data,
 }
 
 CFSocketError CFSocketSetAddress(CFSocketRef s, CFDataRef address) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     struct sockaddr *name;
     socklen_t namelen;
@@ -2330,6 +2332,7 @@ CFSocketError CFSocketSetAddress(CFSocketRef s, CFDataRef address) {
 }
 
 CFSocketError CFSocketConnectToAddress(CFSocketRef s, CFDataRef address, CFTimeInterval timeout) {
+    CF_ASSERT_TYPE(CFSocketGetTypeID(), s);
     CHECK_FOR_FORK();
     //??? need error handling, retries
     const uint8_t *name;

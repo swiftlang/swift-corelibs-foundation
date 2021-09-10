@@ -1,7 +1,7 @@
 /*	CFCalendar_Enumerate.c
-	Copyright (c) 2004-2018, Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2019, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -1455,7 +1455,7 @@ static CFDateRef _Nullable _CFCalendarCreateBumpedDateUpToNextHigherUnitInCompon
     //  W5   28 29 30 31             25 26 27 28
     //
     // Consider searching for `WoM == 1` when searchingDate is *in* W1 of January. Because we're looking to advance to next month, we could simply add a month, right?
-    // Adding a month from Monday, January 1st lands us on Thursday, February 1st; from Thursday, January 2nd we get Friday, February 2nd, etc. Note though that for January 4th, 5th, and 6th, adding a month lands us in **W2** of February!
+    // Adding a month from Monday, January 1st lands us on Thursday, February 1st; from Tuesday, January 2nd we get Friday, February 2nd, etc. Note though that for January 4th, 5th, and 6th, adding a month lands us in **W2** of February!
     // This means that if we continue searching forward from there, we'll have completely skipped W1 of February as a candidate week, and search forward until we hit W1 of March. This is incorrect.
     //
     // What we really want is to skip to the _start_ of February and search from there -- if we undershoot, we can always keep looking.

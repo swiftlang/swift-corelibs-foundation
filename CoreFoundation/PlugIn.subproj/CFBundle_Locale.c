@@ -45,6 +45,13 @@ static Boolean _CFBundleGetInfoDictionaryBoolean(CFStringRef key) {
     return result;
 }
 
+static Boolean _CFBundleIsExtension(void) {
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    CFDictionaryRef infoDict = mainBundle ? CFBundleGetInfoDictionary(mainBundle) : NULL;
+    CFTypeRef infoDictValue = infoDict ? CFDictionaryGetValue(infoDict, CFSTR("NSExtension")) : NULL;
+    return infoDictValue != NULL;
+}
+
 CF_PRIVATE Boolean CFBundleAllowMixedLocalizations(void) {
     static Boolean allowMixed = false;
     static dispatch_once_t once = 0;
@@ -58,7 +65,8 @@ static Boolean CFBundleFollowParentLocalization(void) {
     static Boolean followParent = false;
     static dispatch_once_t once = 0;
     dispatch_once(&once, ^{
-        followParent = _CFBundleGetInfoDictionaryBoolean(CFSTR("CFBundleFollowParentLocalization"));
+        // Info.plists with the CFBundleFollowParentLocalization key or any extension are allowed to use this
+        followParent = _CFBundleGetInfoDictionaryBoolean(CFSTR("CFBundleFollowParentLocalization")) || _CFBundleIsExtension();
     });
     return followParent;
 
@@ -366,6 +374,24 @@ CFStringRef CFBundleCopyLocalizationForLocalizationInfo(SInt32 languageCode, SIn
 
 #pragma mark -
 
+static CFArrayRef _copyBundleLocalizationsFromResources(CFBundleRef bundle);
+
+static CFArrayRef _copyAppleLocalizations(CFDictionaryRef infoDict) {
+    CFArrayRef result = NULL;
+    // Only on Darwin
+#if TARGET_OS_MAC
+    CFBooleanRef useAppleLocalizations = (CFBooleanRef)CFDictionaryGetValue(infoDict, _kCFBundleUseAppleLocalizationsKey);
+    if (useAppleLocalizations == kCFBooleanTrue) {
+        CFURLRef cfURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/System/Library/Frameworks/CoreFoundation.framework"), kCFURLPOSIXPathStyle, true);
+        CFBundleRef cf = CFBundleCreate(kCFAllocatorSystemDefault, cfURL);
+        result = _copyBundleLocalizationsFromResources(cf);
+        CFRelease(cfURL);
+        CFRelease(cf);
+    }
+#endif
+    return result;
+}
+
 // Get a list of lproj directories for a particular resource directory URL. Uncached. Does not include any predefined localizations from an Info.plist. This function does make any attempt to localize or canonicalize the results.
 static CFArrayRef _CFBundleCopyLProjDirectoriesForURL(CFAllocatorRef allocator, CFURLRef url) {
     __block CFMutableArrayRef result = NULL;
@@ -411,6 +437,8 @@ static CFArrayRef _copyBundleLocalizationsFromResources(CFBundleRef bundle) {
             }
             result = CFArrayCreateCopy(CFGetAllocator(bundle), realPredefinedLocalizations);
             CFRelease(realPredefinedLocalizations);
+        } else {
+            result = _copyAppleLocalizations(infoDict);
         }
     }
     
@@ -472,6 +500,7 @@ static CFArrayRef _copyBundleLocalizationsFromResources(CFBundleRef bundle) {
  Since the result of this is "typically passed as a parameter to either the CFBundleCopyPreferredLocalizationsFromArray or CFBundleCopyLocalizationsForPreferences function", those other functions will take into account the user prefs and pick the right lproj.
 */
 CF_EXPORT CFArrayRef CFBundleCopyBundleLocalizations(CFBundleRef bundle) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFBundle, bundle);
     CFArrayRef result = NULL;
     
     __CFLock(&bundle->_lock);
@@ -516,6 +545,12 @@ CF_EXPORT CFArrayRef CFBundleCopyLocalizationsForURL(CFURLRef url) {
             if (predefinedLocalizations && CFGetTypeID(predefinedLocalizations) == CFArrayGetTypeID()) {
                 result = (CFArrayRef)CFRetain(predefinedLocalizations);
             }
+
+            if (!result) {
+                // Check for using Apple localizations
+                result = _copyAppleLocalizations(infoDict);
+            }
+
             if (!result) {
                 devLang = (CFStringRef)CFDictionaryGetValue(infoDict, kCFBundleDevelopmentRegionKey);
                 if (devLang && (CFGetTypeID(devLang) == CFStringGetTypeID() && CFStringGetLength(devLang) > 0)) {
@@ -534,7 +569,7 @@ CF_EXPORT CFArrayRef CFBundleCopyLocalizationsForURL(CFURLRef url) {
 static CFArrayRef _CFBundleUserLanguages = NULL;
 static os_unfair_lock _CFBundleUserLanguagesLock = OS_UNFAIR_LOCK_INIT;
 
-CF_PRIVATE void _CFBundleFlushUserLanguagesCache() {
+static void _CFBundleFlushUserLanguagesCache(void) {
     os_unfair_lock_lock(&_CFBundleUserLanguagesLock);
     if (_CFBundleUserLanguages) {
         CFRelease(_CFBundleUserLanguages);
@@ -583,6 +618,10 @@ CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages() {
     return result;
 }
 
+CF_EXPORT void _CFBundleFlushLanguageCachesAfterEUIDChange() {
+    _CFBundleFlushBundleCaches(CFBundleGetMainBundle());
+    _CFBundleFlushUserLanguagesCache();
+}
 
 CF_EXPORT void _CFBundleGetLanguageAndRegionCodes(SInt32 *languageCode, SInt32 *regionCode) {
     // an attempt to answer the question, "what language are we running in?"
@@ -905,7 +944,9 @@ CF_EXPORT void _CFBundleSetDefaultLocalization(CFStringRef localizationName) {
 
 // This is the funnel point for looking up languages for a particular bundle. The returned order reflects the user preferences.
 CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInBundle(CFBundleRef bundle) {
+    __CFLock(&bundle->_lock);
     if (!bundle->_searchLanguages) {
+        __CFUnlock(&bundle->_lock);
         // includes predefined localizations
         CFArrayRef localizationsForBundle = CFBundleCopyBundleLocalizations(bundle);
         CFArrayRef userLanguages = _CFBundleCopyUserLanguages();
@@ -956,16 +997,22 @@ CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInBundle(CFBundleRef bundle
             }
         }
         
-        if (!OSAtomicCompareAndSwapPtrBarrier(NULL, (void *)result, (void * volatile *)&(bundle->_searchLanguages))) {
+        __CFLock(&bundle->_lock);
+        if (bundle->_searchLanguages) {
+            // Lost the race
             CFRelease(result);
+        } else {
+            bundle->_searchLanguages = result;
         }
     }
-    return (CFArrayRef)CFRetain(bundle->_searchLanguages);
+    CFArrayRef result = (CFArrayRef)CFRetain(bundle->_searchLanguages);
+    __CFUnlock(&bundle->_lock);
+    return result;
 }
 
 // This is the funnel point for looking up languages for a particular directory.
-CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInDirectory(CFURLRef url, uint8_t *version) {
-    uint8_t localVersion = 0;
+CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInDirectory(CFURLRef url, _CFBundleVersion *version) {
+    _CFBundleVersion localVersion = _CFBundleVersionOldStyleResources;
     CFDictionaryRef infoDict = _CFBundleCopyInfoDictionaryInDirectory(kCFAllocatorSystemDefault, url, &localVersion);
     
     CFArrayRef predefinedLocalizations = NULL;
@@ -975,8 +1022,14 @@ CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInDirectory(CFURLRef url, u
         if (devLang && (CFGetTypeID(devLang) != CFStringGetTypeID() || CFStringGetLength(devLang) == 0)) devLang = NULL;
         
         predefinedLocalizations = (CFArrayRef)CFDictionaryGetValue(infoDict, kCFBundleLocalizationsKey);
+        if (predefinedLocalizations) CFRetain(predefinedLocalizations);
         if (predefinedLocalizations && CFGetTypeID(predefinedLocalizations) != CFArrayGetTypeID()) {
+            CFRelease(predefinedLocalizations);
             predefinedLocalizations = NULL;
+        }
+
+        if (!predefinedLocalizations) {
+            predefinedLocalizations = _copyAppleLocalizations(infoDict);
         }
     }
     
@@ -994,6 +1047,8 @@ CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInDirectory(CFURLRef url, u
     } else if (!localizationsInDirectory) {
         localizationsInDirectory = CFArrayCreate(kCFAllocatorSystemDefault, NULL, 0, &kCFTypeArrayCallBacks);
     }
+
+    if (predefinedLocalizations) CFRelease(predefinedLocalizations);
     
     CFArrayRef userLanguages = _CFBundleCopyUserLanguages();
     CFMutableArrayRef result = _CFBundleCopyPreferredLanguagesInList(localizationsInDirectory, devLang, userLanguages, true, url, NULL);

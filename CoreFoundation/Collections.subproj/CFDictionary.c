@@ -20,6 +20,31 @@ const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks = {0, __CFTypeColle
 const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks = {0, __CFStringCollectionCopy, __CFTypeCollectionRelease, CFCopyDescription, CFEqual, CFHash};
 const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, CFCopyDescription, CFEqual};
 
+CF_PRIVATE CFDictionaryKeyCallBacks __CFDictionaryGetKeyCallbacks(CFSetRef hc) {
+    CFBasicHashCallbacks hashCallbacks = __CFBasicHashGetCallbacks(hc);
+    CFDictionaryKeyCallBacks keyCallbacks = {
+        .version = 0,
+        .retain = (CFSetRetainCallBack)hashCallbacks.retainKey,
+        .release = (CFSetReleaseCallBack)hashCallbacks.releaseKey,
+        .equal = (CFSetEqualCallBack)hashCallbacks.equateKeys,
+        .hash = (CFSetHashCallBack)hashCallbacks.hashKey,
+        .copyDescription = (CFSetCopyDescriptionCallBack)hashCallbacks.copyKeyDescription
+    };
+    return keyCallbacks;
+}
+
+CF_PRIVATE CFDictionaryValueCallBacks __CFDictionaryGetValueCallbacks(CFSetRef hc) {
+    CFBasicHashCallbacks hashCallbacks = __CFBasicHashGetCallbacks(hc);
+    CFDictionaryValueCallBacks valueCallbacks = {
+        .version = 0,
+        .retain = (CFSetRetainCallBack)hashCallbacks.retainValue,
+        .release = (CFSetReleaseCallBack)hashCallbacks.releaseValue,
+        .equal = (CFSetEqualCallBack)hashCallbacks.equateValues,
+        .copyDescription = (CFSetCopyDescriptionCallBack)hashCallbacks.copyValueDescription
+    };
+    return valueCallbacks;
+}
+
 static Boolean __CFDictionaryEqual(CFTypeRef cf1, CFTypeRef cf2) {
     return __CFBasicHashEqual((CFBasicHashRef)cf1, (CFBasicHashRef)cf2);
 }
@@ -72,13 +97,6 @@ static CFBasicHashRef __CFDictionaryCreateGeneric(CFAllocatorRef allocator, cons
 }
 
 CF_PRIVATE CFDictionaryRef __CFDictionaryCreateTransfer(CFAllocatorRef allocator, void const **klist, void const **vlist, CFIndex numValues) {
-#if !DEPLOYMENT_RUNTIME_SWIFT
-    CF_PRIVATE CFDictionaryRef __NSCFDictionaryCreateTransfer(CFAllocatorRef allocator, const id *klist, const id *vlist, CFIndex numValues);
-    CFDictionaryRef nsResult = __NSCFDictionaryCreateTransfer(allocator, (const id *)klist, (const id *)vlist, numValues);
-    if (nsResult) {
-        return nsResult;
-    }
-#endif
     CFTypeID typeID = _kCFRuntimeIDCFDictionary;
     CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     CFOptionFlags flags = kCFBasicHashLinearHashing | kCFBasicHashHasKeys; // kCFBasicHashExponentialHashing
@@ -109,13 +127,6 @@ CF_PRIVATE CFDictionaryRef __CFDictionaryCreateTransfer(CFAllocatorRef allocator
 }
 
 CFDictionaryRef CFDictionaryCreate(CFAllocatorRef allocator, void const **klist, void const **vlist, CFIndex numValues, const CFDictionaryKeyCallBacks *keyCallBacks, const CFDictionaryValueCallBacks *valueCallBacks) {
-#if !DEPLOYMENT_RUNTIME_SWIFT
-    CF_PRIVATE CFDictionaryRef __NSCFDictionaryCreate(CFAllocatorRef allocator, void const **klist, void const **vlist, CFIndex numValues, const CFDictionaryKeyCallBacks *keyCallBacks, const CFDictionaryValueCallBacks *valueCallBacks);
-    CFDictionaryRef nsResult = __NSCFDictionaryCreate(allocator, klist, vlist, numValues, keyCallBacks, valueCallBacks);
-    if (nsResult) {
-        return nsResult;
-    }
-#endif
     CFTypeID typeID = _kCFRuntimeIDCFDictionary;
     CFAssert2(0 <= numValues, __kCFLogAssertion, "%s(): numValues (%ld) cannot be less than zero", __PRETTY_FUNCTION__, numValues);
     CFBasicHashRef ht = __CFDictionaryCreateGeneric(allocator, keyCallBacks, valueCallBacks, true);
@@ -131,13 +142,6 @@ CFDictionaryRef CFDictionaryCreate(CFAllocatorRef allocator, void const **klist,
 }
 
 CFMutableDictionaryRef CFDictionaryCreateMutable(CFAllocatorRef allocator, CFIndex capacity, const CFDictionaryKeyCallBacks *keyCallBacks, const CFDictionaryValueCallBacks *valueCallBacks) {
-#if !DEPLOYMENT_RUNTIME_SWIFT
-    CF_PRIVATE CFMutableDictionaryRef __NSCFDictionaryCreateMutable(CFAllocatorRef allocator, CFIndex capacity, const CFDictionaryKeyCallBacks *keyCallBacks, const CFDictionaryValueCallBacks *valueCallBacks);
-    CFMutableDictionaryRef nsResult = __NSCFDictionaryCreateMutable(allocator, capacity, keyCallBacks, valueCallBacks);
-    if (nsResult) {
-        return nsResult;
-    }
-#endif
     CFTypeID typeID = _kCFRuntimeIDCFDictionary;
     CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFBasicHashRef ht = __CFDictionaryCreateGeneric(allocator, keyCallBacks, valueCallBacks, true);
@@ -297,7 +301,7 @@ void CFDictionaryApplyFunction(CFDictionaryRef hc, CFDictionaryApplierFunction a
 }
 
 CF_PRIVATE void CFDictionaryApply(CFDictionaryRef hc, void (^block)(const void *key, const void *value, Boolean *stop)) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFDictionary, void, (CFSwiftRef)hc, NSDictionary.enumerateKeysAndObjectsWithOptions, 0, block);
+    CF_SWIFT_FUNCDISPATCHV(CFDictionaryGetTypeID(), void, (CFSwiftRef)hc, NSDictionary.enumerateKeysAndObjectsWithOptions, 0, block);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFDictionary, void, (NSDictionary *)hc, enumerateKeysAndObjectsWithOptions:0 usingBlock:(void (^ _Nonnull)(id _Nonnull, id _Nonnull, BOOL * _Nonnull))block);
     __CFGenericValidateType(hc, CFDictionaryGetTypeID());
     CFBasicHashApply((CFBasicHashRef)hc, ^(CFBasicHashBucket bkt) {

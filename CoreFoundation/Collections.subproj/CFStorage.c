@@ -189,7 +189,10 @@ CF_INLINE CFRange __CFStorageConvertValuesToByteRange(ConstCFStorageRef storage,
 #pragma mark Node reference counting and freezing
 
 CF_INLINE CFStorageNode *__CFStorageRetainNode(CFStorageNode *node) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
     if (node->refCount > 0) OSAtomicIncrement32((int32_t *)&node->refCount);
+#pragma GCC diagnostic pop
     return node;
 }
 
@@ -203,7 +206,10 @@ static void __CFStorageDeallocateNode(CFStorageRef storage, CFStorageNode *node)
 
 CF_INLINE void __CFStorageReleaseNode(CFStorageRef storage, CFStorageNode * _Nonnull node) {
     if (node->refCount > 0) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
 	uint32_t newRefCount = OSAtomicDecrement32((int32_t *)&node->refCount);
+#pragma GCC diagnostic pop
 	if (newRefCount == 0) {
 	    __CFStorageDeallocateNode(storage, node);
 	}
@@ -1011,15 +1017,19 @@ static bool __CFStorageEnumerateNodesInByteRangeWithBlock(CFStorageRef storage, 
 	    }
 #endif
 	} else {
-	    if (overlaps[0].length > 0) {
-		stop = stop || __CFStorageEnumerateNodesInByteRangeWithBlock(storage, children[0], globalOffsetOfNode + offsets[0], CFRangeMake(overlaps[0].location - offsets[0], overlaps[0].length), concurrencyToken, applier);
-	    }
-	    if (overlaps[1].length > 0) {
-		stop = stop || __CFStorageEnumerateNodesInByteRangeWithBlock(storage, children[1], globalOffsetOfNode + offsets[1], CFRangeMake(overlaps[1].location - offsets[1], overlaps[1].length), concurrencyToken, applier);
-	    }
-	    if (overlaps[2].length > 0) {
-		stop = stop || __CFStorageEnumerateNodesInByteRangeWithBlock(storage, children[2], globalOffsetOfNode + offsets[2], CFRangeMake(overlaps[2].location - offsets[2], overlaps[2].length), concurrencyToken, applier);
-	    }
+            // The analyzer can't reason that children[x] == NULL => lengths[x] == 0 => overlaps[x].length == 0
+            if (overlaps[0].length > 0) {
+                _CLANG_ANALYZER_ASSERT(children[0]);
+                stop = stop || __CFStorageEnumerateNodesInByteRangeWithBlock(storage, children[0], globalOffsetOfNode + offsets[0], CFRangeMake(overlaps[0].location - offsets[0], overlaps[0].length), concurrencyToken, applier);
+            }
+            if (overlaps[1].length > 0) {
+                _CLANG_ANALYZER_ASSERT(children[1]);
+                stop = stop || __CFStorageEnumerateNodesInByteRangeWithBlock(storage, children[1], globalOffsetOfNode + offsets[1], CFRangeMake(overlaps[1].location - offsets[1], overlaps[1].length), concurrencyToken, applier);
+            }
+            if (overlaps[2].length > 0) {
+                _CLANG_ANALYZER_ASSERT(children[2]);
+                stop = stop || __CFStorageEnumerateNodesInByteRangeWithBlock(storage, children[2], globalOffsetOfNode + offsets[2], CFRangeMake(overlaps[2].location - offsets[2], overlaps[2].length), concurrencyToken, applier);
+            }
 	}
     }
     return stop;

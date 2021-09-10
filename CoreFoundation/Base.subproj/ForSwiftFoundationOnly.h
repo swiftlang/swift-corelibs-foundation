@@ -29,6 +29,7 @@
 #include <CoreFoundation/CFURLPriv.h>
 #include <CoreFoundation/CFURLComponents.h>
 #include <CoreFoundation/CFRunArray.h>
+#include <CoreFoundation/CFDateComponents.h>
 
 #if TARGET_OS_WIN32
 #define NOMINMAX
@@ -90,7 +91,6 @@
 _CF_EXPORT_SCOPE_BEGIN
 
 CF_PRIVATE Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef _Nullable allocator);
-static CFOptionFlags _CFAllocatorHintZeroWhenAllocating = 1;
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
 CF_CROSS_PLATFORM_EXPORT void _CFCalendarEnumerateDates(CFCalendarRef calendar, CFDateRef start, CFDateComponentsRef matchingComponents, CFOptionFlags opts, void (^block)(CFDateRef _Nullable, Boolean, Boolean*));

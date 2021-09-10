@@ -967,7 +967,7 @@ void CFArraySortValues(CFMutableArrayRef array, CFRange range, CFComparatorFunct
         BOOL result;
         result = CF_OBJC_CALLV((NSMutableArray *)array, isKindOfClass:[NSMutableArray class]);
         immutable = !result;
-    } else if (CF_IS_SWIFT(CFArrayGetTypeID(), array)) {
+    } else if (CF_IS_SWIFT(_kCFRuntimeIDCFArray, array)) {
 #if DEPLOYMENT_RUNTIME_SWIFT
         Boolean result = __CFSwiftBridge.NSArray.isSubclassOfNSMutableArray(array);
         immutable = !result;

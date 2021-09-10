@@ -14,6 +14,18 @@
 #include <CoreFoundation/CFDictionary.h>
 #include <stddef.h>
 
+#if __has_include(<ptrauth.h>)
+#include <ptrauth.h>
+#endif
+
+#ifndef __ptrauth_cf_objc_isa_pointer
+#define __ptrauth_cf_objc_isa_pointer
+#endif
+
+#ifndef __ptrauth_objc_isa_pointer
+#define __ptrauth_objc_isa_pointer
+#endif
+
 CF_EXTERN_C_BEGIN
 
 #if (TARGET_OS_MAC && !TARGET_OS_IPHONE && !__x86_64h__)
@@ -192,7 +204,7 @@ CF_EXPORT void _CFRuntimeUnregisterClassWithTypeID(CFTypeID typeID);
 
 typedef struct __attribute__((__aligned__(8))) __CFRuntimeBase {
     // This matches the isa and retain count storage in Swift
-    uintptr_t _cfisa;
+    __ptrauth_cf_objc_isa_pointer uintptr_t _cfisa;
     uintptr_t _swift_rc;
     // This is for CF's use, and must match __NSCFType/_CFInfo layout
     _Atomic(uint64_t) _cfinfoa;
@@ -201,10 +213,9 @@ typedef struct __attribute__((__aligned__(8))) __CFRuntimeBase {
 #define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x0000000000000080ULL}
 
 #else
-
 typedef struct __CFRuntimeBase {
-    uintptr_t _cfisa;
-#if TARGET_RT_64_BIT
+    __ptrauth_cf_objc_isa_pointer uintptr_t _cfisa;
+#if defined(__LP64__) || defined(__LLP64__)
     _Atomic(uint64_t) _cfinfoa;
 #else
     _Atomic(uint32_t) _cfinfoa;

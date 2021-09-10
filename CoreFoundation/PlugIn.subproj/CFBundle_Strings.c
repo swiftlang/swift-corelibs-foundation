@@ -31,7 +31,8 @@ CF_EXPORT CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRe
 }
 
 
-static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableName, CFStringRef key, CFStringRef localizationName) {
+/* outActualTableFile is the URL to a localization table file we're getting strings from. It may be set to NULL on return to mean that we have pulled this from the cache of the preferred language, which is fine since we want this URL to determine which localization was picked. */
+static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableName, CFStringRef key, CFStringRef localizationName, Boolean preventMarkdownParsing, CFURLRef *outActualLocalizationFile) {
     // Check the cache first. If it's not there, populate the cache and check again.
     
     __CFLock(&bundle->_lock);
@@ -44,6 +45,10 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
                 CFRetain(result);
             }
             __CFUnlock(&bundle->_lock);
+            
+            if (outActualLocalizationFile) {
+                *outActualLocalizationFile = NULL; // Preferred localization.
+            }
             return result;
         }
     }
@@ -63,10 +68,9 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
         stringsTableURL = CFBundleCopyResourceURL(bundle, tableName, _CFBundleStringTableType, NULL);
         stringsDictTableURL = CFBundleCopyResourceURL(bundle, tableName, _CFBundleStringDictTableType, NULL);
     }
-    
-    
+
     // Next, look on disk for the regular strings file.
-    if (!stringsTable && stringsTableURL) {
+    if (stringsTableURL) {
         CFDataRef tableData = _CFDataCreateFromURL(stringsTableURL, NULL);
         if (tableData) {
             CFErrorRef error = NULL;
@@ -82,8 +86,7 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
                 CFRelease(error);
                 error = NULL;
             }
-        }
-        
+        }        
     }
     
     // Check for a .stringsdict file.
@@ -124,8 +127,16 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
                 if (stringsTable) CFRelease(stringsTable);
                 // The new strings table is the result of all the transforms above.
                 stringsTable = mutableStringsDictTable;
+                
+                if (outActualLocalizationFile) {
+                    *outActualLocalizationFile = CFRetain(stringsDictTableURL);
+                }
             }
         }
+    }
+    
+    if (outActualLocalizationFile && !*outActualLocalizationFile && stringsTableURL) {
+        *outActualLocalizationFile = CFRetain(stringsTableURL);
     }
     
     if (stringsTableURL) CFRelease(stringsTableURL);
@@ -162,7 +173,9 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
     return result;
 }
 
-CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName) {
+CF_EXPORT CFStringRef _CFBundleCopyLocalizedStringForLocalizationTableURLAndMarkdownOption(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName, Boolean preventMarkdownParsing, CFURLRef *outActualTableURL) {
+
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFBundle, bundle);
     if (!key) { return (value ? (CFStringRef)CFRetain(value) : (CFStringRef)CFRetain(CFSTR(""))); }
     
     // Make sure to check the mixed localizations key early -- if the main bundle has not yet been cached, then we need to create the cache of the Info.plist before we start asking for resources (11172381)
@@ -170,7 +183,8 @@ CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bun
     
     if (!tableName || CFEqual(tableName, CFSTR(""))) tableName = _CFBundleDefaultStringTableName;
     
-    CFStringRef result = _copyStringFromTable(bundle, tableName, key, localizationName);
+    CFURLRef actualTableURL = NULL;
+    CFStringRef result = _copyStringFromTable(bundle, tableName, key, localizationName, preventMarkdownParsing, &actualTableURL);
     
     if (!result) {
         if (!value) {
@@ -189,7 +203,20 @@ CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bun
             result = capitalizedResult;
         }
     }
+    if (outActualTableURL) {
+        *outActualTableURL = actualTableURL;
+    } else if (actualTableURL) {
+        CFRelease(actualTableURL);
+    }
+    
     os_log_debug(_CFBundleLocalizedStringLogger(), "Bundle: %{private}@, key: %{public}@, value: %{public}@, table: %{public}@, localizationName: %{public}@, result: %{public}@", bundle, key, value, tableName, localizationName, result);
     return result;
 }
 
+CF_EXPORT CFStringRef _CFBundleCopyLocalizedStringForLocalizationAndTableURL(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName, CFURLRef *outActualTableURL) {
+    return _CFBundleCopyLocalizedStringForLocalizationTableURLAndMarkdownOption(bundle, key, value, tableName, localizationName, false, outActualTableURL);
+}
+
+CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName) {
+    return _CFBundleCopyLocalizedStringForLocalizationTableURLAndMarkdownOption(bundle, key, value, tableName, localizationName, false, NULL);
+}

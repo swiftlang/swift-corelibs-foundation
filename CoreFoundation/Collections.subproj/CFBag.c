@@ -193,6 +193,12 @@ CFIndex CFBagGetCount(CFBagRef hc) {
     return CFBasicHashGetCount((CFBasicHashRef)hc);
 }
 
+// This function is for Foundation's benefit; no one else should use it.
+CF_EXPORT CFIndex _CFBagGetUniqueCount(CFBagRef hc) {
+    __CFGenericValidateType(hc, CFBagGetTypeID());
+    return CFBasicHashGetUsedBucketCount((CFBasicHashRef)hc);
+}
+
 CFIndex CFBagGetCountOfValue(CFBagRef hc, const void *key) {
     __CFGenericValidateType(hc, CFBagGetTypeID());
     return CFBasicHashGetCountOfKey((CFBasicHashRef)hc, (uintptr_t)key);

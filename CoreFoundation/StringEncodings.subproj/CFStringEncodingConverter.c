@@ -557,9 +557,11 @@ CF_INLINE const CFStringEncodingConverter *__CFStringEncodingConverterGetDefinit
         case kCFStringEncodingUTF8:
             return &__CFConverterUTF8;
 
+#if TARGET_OS_MAC
         case kCFStringEncodingMacRoman:
             return &__CFConverterMacRoman;
-            
+#endif
+
         case kCFStringEncodingWindowsLatin1:
             return &__CFConverterWinLatin1;
 
@@ -712,7 +714,19 @@ uint32_t CFStringEncodingUnicodeToBytes(uint32_t encoding, uint32_t flags, const
                     if (toBytesPrecompose) {
                         CFIndex localUsedLen = usedLen;
 
-                        while (isValidCombiningChar(characters[--usedLen]));
+                        while (usedLen > 0) {
+                            usedLen -= 1;
+                            if (usedLen < 0) {
+                                theResult = kCFStringEncodingInvalidInputStream;
+                                break;
+                            }
+                            if (!isValidCombiningChar(characters[usedLen])) {
+                                break;
+                            }
+                        }
+                        if (theResult == kCFStringEncodingInvalidInputStream) {
+                            break;
+                        }
                         theUsedByteLen += localUsedByteLen;
                         if (converter->definition->maxBytesPerChar > 1) {
                             TO_BYTE(converter, flags, characters + usedLen, localUsedLen - usedLen, NULL, 0, &localUsedByteLen);
@@ -731,7 +745,11 @@ uint32_t CFStringEncodingUnicodeToBytes(uint32_t encoding, uint32_t flags, const
                             uint8_t lossyByte = CFStringEncodingMaskToLossyByte(flags);
 
                             if (lossyByte) {
-                                while (isValidCombiningChar(characters[++usedLen]));
+                                while (++usedLen < numChars) {
+                                    if (!isValidCombiningChar(characters[usedLen])) {
+                                        break;
+                                    }
+                                }
                                 localUsedByteLen = 1;
                                 if (maxByteLen) *(bytes + theUsedByteLen) = lossyByte;
                             } else {
@@ -1026,7 +1044,10 @@ CF_PRIVATE const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void
             CFQSortArray(list, numSlots, sizeof(CFStringEncoding), (CFComparatorFunction)__CFStringEncodingComparator, NULL);
             __CFStringEncodingFliterDupes(list, numSlots);
         }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
         if (!OSAtomicCompareAndSwapPtrBarrier(NULL, list, (void * volatile *)&encodings) && (list != __CFBuiltinEncodings)) CFAllocatorDeallocate(NULL, list);
+#pragma GCC diagnostic pop
     }
 
     return encodings;
