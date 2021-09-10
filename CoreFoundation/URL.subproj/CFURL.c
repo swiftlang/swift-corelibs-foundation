@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #if TARGET_OS_OSX
 #include <CoreFoundation/CFNumberFormatter.h>
 #endif

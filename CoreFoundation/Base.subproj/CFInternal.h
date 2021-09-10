@@ -122,6 +122,9 @@ CF_EXTERN_C_BEGIN
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
+#if __has_include(<pthread_np.h>)
+#include <pthread_np.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #include <os/log.h>

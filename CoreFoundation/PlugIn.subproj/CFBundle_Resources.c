@@ -26,7 +26,7 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if !TARGET_OS_MAC && !TARGET_OS_BSD
+#if (!TARGET_OS_MAC && !TARGET_OS_BSD) || defined(__OpenBSD__)
 #define strnstr(haystack, needle, size) strstr(haystack, needle)
 #endif
 
