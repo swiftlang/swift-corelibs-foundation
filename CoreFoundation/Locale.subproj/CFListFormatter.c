@@ -7,12 +7,12 @@
     See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
  */
 
-#import "CFListFormatter.h"
+#include "CFListFormatter.h"
 
-#import "CFICULogging.h"
-#import "CFInternal.h"
-#import "CFRuntime_Internal.h"
-#import <assert.h>
+#include "CFICULogging.h"
+#include "CFInternal.h"
+#include "CFRuntime_Internal.h"
+#include <assert.h>
 
 #define BUFFER_SIZE 256
 #define RESULT_BUFFER_SIZE 768
