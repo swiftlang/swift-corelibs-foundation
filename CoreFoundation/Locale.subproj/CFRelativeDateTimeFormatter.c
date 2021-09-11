@@ -8,12 +8,12 @@
     Responsibility: I-Ting Liu
  */
 
-#import "CFRelativeDateTimeFormatter.h"
+#include "CFRelativeDateTimeFormatter.h"
 
-#import <assert.h>
-#import "CFICULogging.h"
-#import "CFInternal.h"
-#import "CFRuntime_Internal.h"
+#include <assert.h>
+#include "CFICULogging.h"
+#include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
 struct __CFRelativeDateTimeFormatter {
     CFRuntimeBase _base;
