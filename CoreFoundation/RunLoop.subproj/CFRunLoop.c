@@ -35,7 +35,10 @@ extern void objc_terminate(void);
 
 
 #if TARGET_OS_WIN32
+// typeinfo.h has been removed in VS2019 16.3
+#if __has_include(<typeinfo.h>)
 #include <typeinfo.h>
+#endif
 #endif
 #include "CFOverflow.h"
 
