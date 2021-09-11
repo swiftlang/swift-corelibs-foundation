@@ -44,6 +44,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <winioctl.h>
 
 #define close _close
 #define write _write
@@ -190,6 +191,57 @@ CF_INLINE Boolean _CFBundleURLHasSubDir(CFURLRef url, CFStringRef subDirName) {
     }
     return result;
 }
+
+#if TARGET_OS_WIN32
+typedef signed long long ssize_t;
+static ssize_t readlink(const char * restrict pathname,
+                        char * restrict buffer, size_t bufsiz) {
+  ssize_t result = -1;
+
+  WIN32_FILE_ATTRIBUTE_DATA fsa;
+  HANDLE hFile = INVALID_HANDLE_VALUE;
+  REPARSE_DATA_BUFFER *pBuffer;
+  CHAR bBuffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+  DWORD dwCount;
+  size_t length;
+
+  if (!GetFileAttributesExA(pathname, GetFileExInfoStandard, &fsa))
+    goto out;
+
+  if (~fsa.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+    result = strncpy(buffer, pathname, bufsiz);
+    goto out;
+  }
+
+  hFile = CreateFileA(pathname, GENERIC_READ,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      NULL, OPEN_EXISTING,
+                      FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                      NULL);
+  if (hFile == INVALID_HANDLE_VALUE)
+    goto out;
+
+  if (!DeviceIoControl(hFile, FSCTL_GET_REPARSE_POINT, NULL, 0, bBuffer,
+                       sizeof(bBuffer), &dwCount, NULL))
+    goto out;
+
+  if (dwCount >= sizeof(bBuffer))
+    goto out;
+
+  pBuffer = (REPARSE_DATA_BUFFER *)bBuffer;
+  switch (pBuffer->ReparseTag) {
+  case IO_REPARSE_TAG_SYMLINK:
+    result = strncpy(buffer, pBuffer->GenericReparseBuffer.DataBuffer, bufsiz);
+    buffer[min(pBuffer->ReparseDataLength, result)] = '\0';
+  default:
+    break;
+  }
+
+out:
+  CloseHandle(hFile);
+  return result;
+}
+#endif
 
 CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
     // check for existence of "Resources" or "Contents" or "Support Files"
@@ -345,8 +397,13 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
                 
                 // 2. pointed-to must not traverse outside bundle
                 // We check this by making sure that the path of the wrapper bundle is found at the start of the resolved symlink of the wrapped bundle. Also check for links to the same directory.
+#if TARGET_OS_WIN32
+                int resolvedWrappedBundleFd = _open(linkPathCString, O_RDONLY);
+                int resolvedBundlePathFd = _open(bundlePathCString, O_RDONLY);
+#else
                 int resolvedWrappedBundleFd = open(linkPathCString, O_RDONLY);
                 int resolvedBundlePathFd = open(bundlePathCString, O_RDONLY);
+#endif
                 
                 if (resolvedWrappedBundleFd > 0 && resolvedBundlePathFd > 0) {
                     char resolvedWrappedBundlePath[PATH_MAX];
