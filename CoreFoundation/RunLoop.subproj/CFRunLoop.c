@@ -913,7 +913,7 @@ uint32_t _CFRunLoopGetWindowsMessageQueueMask(CFRunLoopRef rl, CFStringRef modeN
     }
     DWORD result = 0;
     __CFRunLoopLock(rl);
-    CFRunLoopModeRef rlm = __CFRunLoopFindMode(rl, modeName, false);
+    CFRunLoopModeRef rlm = __CFRunLoopCopyMode(rl, modeName, false);
     if (rlm) {
         __CFRunLoopModeLock(rlm);
 	result = rlm->_msgQMask;
@@ -930,7 +930,7 @@ void _CFRunLoopSetWindowsMessageQueueMask(CFRunLoopRef rl, uint32_t mask, CFStri
 	HALT;
     }
     __CFRunLoopLock(rl);
-    CFRunLoopModeRef rlm = __CFRunLoopFindMode(rl, modeName, true);
+    CFRunLoopModeRef rlm = __CFRunLoopCopyMode(rl, modeName, true);
     __CFRunLoopModeLock(rlm);
     rlm->_msgQMask = (DWORD)mask;
     __CFRunLoopModeUnlock(rlm);
@@ -953,7 +953,7 @@ CFWindowsMessageQueueHandler _CFRunLoopGetWindowsMessageQueueHandler(CFRunLoopRe
     }
     void (*result)(void) = NULL;
     __CFRunLoopLock(rl);
-    CFRunLoopModeRef rlm = __CFRunLoopFindMode(rl, modeName, false);
+    CFRunLoopModeRef rlm = __CFRunLoopCopyMode(rl, modeName, false);
     if (rlm) {
         __CFRunLoopModeLock(rlm);
         result = rlm->_msgPump;
@@ -974,7 +974,7 @@ void _CFRunLoopSetWindowsMessageQueueHandler(CFRunLoopRef rl, CFStringRef modeNa
 	HALT;
     }
     __CFRunLoopLock(rl);
-    CFRunLoopModeRef rlm = __CFRunLoopFindMode(rl, modeName, true);
+    CFRunLoopModeRef rlm = __CFRunLoopCopyMode(rl, modeName, true);
     __CFRunLoopModeLock(rlm);
     rlm->_msgPump = func;
     __CFRunLoopModeUnlock(rlm);
