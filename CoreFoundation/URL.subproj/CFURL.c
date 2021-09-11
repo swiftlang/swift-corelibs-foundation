@@ -17,6 +17,7 @@
 #include <stdatomic.h>
 #include <CoreFoundation/CFStringEncodingConverter.h>
 #include <stdatomic.h>
+#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,7 +26,6 @@
 #if TARGET_OS_OSX
 #include <CoreFoundation/CFNumberFormatter.h>
 #endif
-#include <assert.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
