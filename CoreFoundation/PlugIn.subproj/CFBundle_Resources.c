@@ -277,6 +277,7 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
         // Default answer is flat until proven otherwise
         localVersion = _CFBundleVersionFlat;
 
+#if !TARGET_OS_WIN32
         // Descend into the wrapper to find out what version it is
         CFURLRef linkURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, bundleAbsoluteURL, _CFBundleWrapperLinkName, true);
         CFStringRef linkPath = CFURLCopyFileSystemPath(linkURL, PLATFORM_PATH_STYLE);
@@ -381,7 +382,7 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
                 localVersion = _CFBundleVersionWrappedFlat;
             }
         }
-        
+#endif
     } else if (hasFrameworkSuffix) {
         // The order of these if statements is important - the Resources directory presence takes precedence over Contents, and so forth. The order for frameworks is different than other bundles for compatibility reasons.
         if (foundResources) {
