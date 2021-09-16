@@ -359,7 +359,7 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
         if (CFStringGetFileSystemRepresentation(linkPath, linkPathCString, PATH_MAX) &&
             CFStringGetFileSystemRepresentation(bundlePath, bundlePathCString, PATH_MAX)) {
             // Leave room for a null terminator
-            ssize_t len = readlink(linkPathCString, linkContentsCString, PATH_MAX - 1);
+            ssize_t len = readlink(linkPathCString, linkContentsCString, CFMaxPathLength);
             // Make sure this is not an absolute link but a relative one
             if (len < 2 || (len > 1 && linkContentsCString[0] == '/')) {
                 os_log_error(_CFBundleResourceLogger(), "`WrappedBundle` link too short or pointed outside bundle at %{public}@", url);
