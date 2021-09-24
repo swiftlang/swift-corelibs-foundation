@@ -150,6 +150,10 @@ open class NSKeyedArchiver : NSCoder {
     /// - Returns:      `true` if the operation was successful, otherwise `false`.
     @available(swift, deprecated: 9999, renamed: "archivedData(withRootObject:requiringSecureCoding:)")
     open class func archiveRootObject(_ rootObject: Any, toFile path: String) -> Bool {
+#if os(WASI)
+        assertionFailure("\(#function) does not support file access on WASI")
+        return false
+#else
         var fd : Int32 = -1
         var auxFilePath : String
         var finishedEncoding : Bool = false
@@ -183,6 +187,7 @@ open class NSKeyedArchiver : NSCoder {
         finishedEncoding = keyedArchiver._flags.contains(.finishedEncoding)
         
         return finishedEncoding
+#endif
     }
     
     public convenience init(requiringSecureCoding: Bool) {
@@ -223,8 +228,13 @@ open class NSKeyedArchiver : NSCoder {
                 success = true
             }
         } else {
+#if !os(WASI)
             let stream = unsafeBitCast(self._stream, to: CFWriteStream.self)
             success = CFPropertyListWrite(plist, stream, kCFPropertyListXMLFormat_v1_0, 0, nil) > 0
+#else
+            assertionFailure("\(#function) only supports data streams on WASI")
+            return false
+#endif
         }
         
         return success

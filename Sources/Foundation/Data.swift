@@ -12,6 +12,22 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
+#if canImport(Glibc)
+@usableFromInline let calloc = Glibc.calloc
+@usableFromInline let malloc = Glibc.malloc
+@usableFromInline let free = Glibc.free
+@usableFromInline let memset = Glibc.memset
+@usableFromInline let memcpy = Glibc.memcpy
+@usableFromInline let memcmp = Glibc.memcmp
+#elseif canImport(WASILibc)
+@usableFromInline let calloc = WASILibc.calloc
+@usableFromInline let malloc = WASILibc.malloc
+@usableFromInline let free = WASILibc.free
+@usableFromInline let memset = WASILibc.memset
+@usableFromInline let memcpy = WASILibc.memcpy
+@usableFromInline let memcmp = WASILibc.memcmp
+#endif
+
 #if !canImport(Darwin)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {
@@ -23,6 +39,8 @@ internal func malloc_good_size(_ size: Int) -> Int {
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(WASILibc)
+import WASILibc
 #endif
 
 internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutableRawPointer, _ length: Int) {
@@ -654,7 +672,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         @usableFromInline typealias Buffer = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
                                               UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) //len  //enum
         @usableFromInline var bytes: Buffer
-#elseif arch(i386) || arch(arm)
+#elseif arch(i386) || arch(arm) || arch(wasm32)
         @usableFromInline typealias Buffer = (UInt8, UInt8, UInt8, UInt8,
                                               UInt8, UInt8) //len  //enum
         @usableFromInline var bytes: Buffer
@@ -683,7 +701,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             assert(count <= MemoryLayout<Buffer>.size)
 #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
             bytes = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0))
-#elseif arch(i386) || arch(arm)
+#elseif arch(i386) || arch(arm) || arch(wasm32)
             bytes = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0))
 #else
     #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
@@ -866,7 +884,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 
 #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
     @usableFromInline internal typealias HalfInt = Int32
-#elseif arch(i386) || arch(arm)
+#elseif arch(i386) || arch(arm) || arch(wasm32)
     @usableFromInline internal typealias HalfInt = Int16
 #else
     #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
@@ -2012,6 +2030,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
     
+#if !os(WASI)
     /// Initialize a `Data` with the contents of a `URL`.
     ///
     /// - parameter url: The `URL` to read.
@@ -2024,6 +2043,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             return Data(bytes: d.bytes, count: d.length)
         }
     }
+#endif
     
     /// Initialize a `Data` from a Base-64 encoded String using the given options.
     ///
@@ -2287,6 +2307,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     }
 #endif
     
+#if !os(WASI)
     /// Write the contents of the `Data` to a location.
     ///
     /// - parameter url: The location to write the data into.
@@ -2307,6 +2328,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 #endif
         }
     }
+#endif
     
     // MARK: -
     
