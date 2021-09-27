@@ -135,13 +135,13 @@
 #define __CF_ENUM_FIXED_IS_AVAILABLE (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && (__has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum)))
 
 #if __CF_ENUM_FIXED_IS_AVAILABLE
-#define __CF_NAMED_ENUM(_type, _name)     enum __CF_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
+#define __CF_NAMED_ENUM(_type, _name)     int __CF_ENUM_ ## _name; enum __CF_ENUM_ATTRIBUTES _name : _type; typedef enum _name _name; enum _name : _type
 #define __CF_ANON_ENUM(_type)             enum __CF_ENUM_ATTRIBUTES : _type
-#define CF_CLOSED_ENUM(_type, _name)      enum __CF_CLOSED_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
+#define CF_CLOSED_ENUM(_type, _name)      int __CF_ENUM_ ## _name; enum __CF_CLOSED_ENUM_ATTRIBUTES _name : _type; typedef enum _name _name; enum _name : _type
 #if (__cplusplus)
 #define CF_OPTIONS(_type, _name) _type _name; enum __CF_OPTIONS_ATTRIBUTES : _type
 #else
-#define CF_OPTIONS(_type, _name) enum __CF_OPTIONS_ATTRIBUTES _name : _type _name; enum _name : _type
+#define CF_OPTIONS(_type, _name) int __CF_OPTIONS_ ## _name; enum __CF_OPTIONS_ATTRIBUTES _name : _type; typedef enum _name _name; enum _name : _type
 #endif
 #else
 #define __CF_NAMED_ENUM(_type, _name) _type _name; enum
