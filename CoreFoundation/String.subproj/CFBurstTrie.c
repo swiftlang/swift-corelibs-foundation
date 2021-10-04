@@ -33,7 +33,6 @@
 #define stat(x,y) _NS_stat(x,y)
 #define __builtin_memcmp(x, y, z) memcmp(x, y, z)
 #define __builtin_popcountll(x) popcountll(x)
-#define bzero(dst, size)    ZeroMemory(dst, size)
 #define S_IWUSR 0
 #define S_IRUSR 0
 
@@ -1800,7 +1799,7 @@ static bool serializeCFBurstTrieLevels(CFBurstTrieRef trie, TrieLevelRef root, u
         int offsetSlot = 0;
         
         CompactMapTrieLevel *maptrie = (CompactMapTrieLevel *)alloca(size);
-        bzero(maptrie, size);
+        memset(maptrie, 0, size);
         *offset += size;
         
         for (int i=0; i < CHARACTER_SET_SIZE; i++) {

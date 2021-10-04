@@ -166,8 +166,8 @@ CFUUIDRef CFUUIDCreate(CFAllocatorRef alloc) {
         if (useV1UUIDs == 1) uuid_generate_time(uuid); else uuid_generate_random(uuid);
         memcpy((void *)&bytes, uuid, sizeof(uuid));
 #else
-        //This bzero works around <rdar://problem/23381916>. It isn't actually needed, since the function will simply return NULL on this deployment target, anyway.
-        bzero(&bytes, sizeof(bytes));
+        //This memset works around <rdar://problem/23381916>. It isn't actually needed, since the function will simply return NULL on this deployment target, anyway.
+        memset(&bytes, 0, sizeof(bytes));
         retval = 1;
 #endif
     });
