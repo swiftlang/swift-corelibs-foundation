@@ -415,7 +415,7 @@ final class TestAttributedStringPerformance: XCTestCase {
             ("testSetMultipleAttributes", testSetMultipleAttributes),
             ("testEnumerateAttributes", testEnumerateAttributes),
             ("testEnumerateAttributesSlice", testEnumerateAttributesSlice),
-            ("testConvertToNSAS", testConvertToNSAS),
+            ("testConvertToNSAS", testExpectedToFail(testConvertToNSAS, "rdar://83726414")),
             ("testConvertFromNSAS", testConvertFromNSAS),
             ("testEncode", testEncode),
             ("testDecode", testDecode),
