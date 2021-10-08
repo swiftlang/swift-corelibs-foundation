@@ -66,6 +66,87 @@ open class NumberFormatter : Formatter {
         }
     }
 
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        let copied = NumberFormatter()
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<NumberFormatter, T>) {
+            copied[keyPath: keyPath] = self[keyPath: keyPath]
+        }
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<NumberFormatter, T>) where T: NSCopying {
+            copied[keyPath: keyPath] = self[keyPath: keyPath].copy(with: zone) as! T
+        }
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<NumberFormatter, T?>) where T: NSCopying {
+            copied[keyPath: keyPath] = self[keyPath: keyPath]?.copy(with: zone) as! T?
+        }
+
+        __copy(\.formattingContext)
+        __copy(\._numberStyle)
+        __copy(\._locale)
+        __copy(\._generatesDecimalNumbers)
+        __copy(\._textAttributesForNegativeValues)
+        __copy(\._textAttributesForPositiveValues)
+        __copy(\._allowsFloats)
+        __copy(\._decimalSeparator)
+        __copy(\._alwaysShowsDecimalSeparator)
+        __copy(\._currencyDecimalSeparator)
+        __copy(\._usesGroupingSeparator)
+        __copy(\._groupingSeparator)
+        __copy(\._zeroSymbol)
+        __copy(\._textAttributesForZero)
+        __copy(\._nilSymbol)
+        __copy(\._textAttributesForNil)
+        __copy(\._notANumberSymbol)
+        __copy(\._textAttributesForNotANumber)
+        __copy(\._positiveInfinitySymbol)
+        __copy(\._textAttributesForPositiveInfinity)
+        __copy(\._negativeInfinitySymbol)
+        __copy(\._textAttributesForNegativeInfinity)
+        __copy(\._positivePrefix)
+        __copy(\._positiveSuffix)
+        __copy(\._negativePrefix)
+        __copy(\._negativeSuffix)
+        __copy(\._currencyCode)
+        __copy(\._currencySymbol)
+        __copy(\._internationalCurrencySymbol)
+        __copy(\._percentSymbol)
+        __copy(\._perMillSymbol)
+        __copy(\._minusSign)
+        __copy(\._plusSign)
+        __copy(\._exponentSymbol)
+        __copy(\._groupingSize)
+        __copy(\._secondaryGroupingSize)
+        __copy(\._multiplier)
+        __copy(\._formatWidth)
+        __copy(\._paddingCharacter)
+        __copy(\._paddingPosition)
+        __copy(\._roundingMode)
+        __copy(\._roundingIncrement)
+        __copy(\._minimumIntegerDigits)
+        __copy(\._maximumIntegerDigits)
+        __copy(\._minimumFractionDigits)
+        __copy(\._maximumFractionDigits)
+        __copy(\._minimum)
+        __copy(\._maximum)
+        __copy(\._currencyGroupingSeparator)
+        __copy(\._lenient)
+        __copy(\._usesSignificantDigits)
+        __copy(\._minimumSignificantDigits)
+        __copy(\._maximumSignificantDigits)
+        __copy(\._partialStringValidationEnabled)
+        __copy(\._hasThousandSeparators)
+        __copy(\._thousandSeparator)
+        __copy(\._localizesFormat)
+        __copy(\._positiveFormat)
+        __copy(\._negativeFormat)
+        __copy(\._attributedStringForZero)
+        __copy(\._attributedStringForNotANumber)
+        __copy(\._roundingBehavior)
+
+        return copied
+    }
+
     // this is for NSUnitFormatter
 
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
