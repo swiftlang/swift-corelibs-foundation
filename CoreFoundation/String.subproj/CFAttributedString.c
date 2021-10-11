@@ -24,6 +24,7 @@
 #endif
 
 #if defined(__linux__)
+// SR-15302: clang mis-optimizes `CFAttributedStringGetAttributesAndLongestEffectiveRange`
 #pragma clang optimize off
 #endif
 
