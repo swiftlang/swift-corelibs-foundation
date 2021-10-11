@@ -23,6 +23,10 @@
 @end
 #endif
 
+#if defined(__linux__)
+#pragma clang optimize off
+#endif
+
 struct __CFAttributedString {
     CFRuntimeBase base;
     CFStringRef string;
