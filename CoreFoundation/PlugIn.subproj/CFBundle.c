@@ -784,7 +784,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
         Boolean exists = false;
         SInt32 mode = 0;
         SInt32 res = _CFGetPathProperties(allocator, (char *)buff, &exists, &mode, NULL, NULL, NULL, NULL);
-#if TARGET_OS_WIN32
+#if DEPLOYMENT_RUNTIME_OBJC && TARGET_OS_WIN32
         if (!(res == 0 && exists && ((mode & S_IFMT) == S_IFDIR))) {
             // 2nd chance at finding a bundle path - remove the last path component (e.g., mybundle.resources) and try again
             CFURLRef shorterPath = CFURLCreateCopyDeletingLastPathComponent(allocator, newURL);
