@@ -583,7 +583,6 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
     bool forcedOrdering = ((options & kCFCompareForcedOrdering) ? true : false);
 
     UCollator *collator = NULL;
-    bool defaultCollator = true;
 #endif
     static const uint8_t *alnumBMP = NULL;
     static const uint8_t *nonBaseBMP = NULL;
@@ -621,10 +620,8 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	collator = threadCollator;
     } else {
 	collator = __CFStringCopyDefaultCollator((CFLocaleRef)compareLocale);
-	defaultCollator = true;
 	if (NULL == collator) {
 	    collator = __CFStringCreateCollator((CFLocaleRef)compareLocale);
-	    defaultCollator = false;
 	}
     }
 #endif
