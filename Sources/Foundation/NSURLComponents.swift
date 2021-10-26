@@ -298,6 +298,32 @@ open class NSURLComponents: NSObject, NSCopying {
         return NSRange(_CFURLComponentsGetRangeOfFragment(_components))
     }
 
+    private func mapQueryItemsFromArray(array: CFArray) -> [URLQueryItem] {
+        let count = CFArrayGetCount(array)
+        return (0..<count).map { idx in
+            let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(array, idx), to: NSDictionary.self)
+            let swiftEntry = oneEntry._swiftObject
+            let entryName = swiftEntry["name"] as! String
+            let entryValue = swiftEntry["value"] as? String
+            return URLQueryItem(name: entryName, value: entryValue)
+        }
+    }
+
+    private func mapURLQueryItemArrayToCFArrays(array: [URLQueryItem]) -> (names: [CFTypeRef], values: [CFTypeRef]) {
+        // The CFURL implementation requires two CFArrays, one for names and one for values
+        var names = [CFTypeRef]()
+        var values = [CFTypeRef]()
+        for entry in array {
+            names.append(entry.name._cfObject)
+            if let v = entry.value {
+                values.append(v._cfObject)
+            } else {
+                values.append(kCFNull)
+            }
+        }
+        return (names, values)
+    }
+
     // The getter method that underlies the queryItems property parses the query string based on these delimiters and returns an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, in the order in which they appear in the original query string.  Note that a name may appear more than once in a single query string, so the name values are not guaranteed to be unique. If the NSURLComponents object has an empty query component, queryItems returns an empty NSArray. If the NSURLComponents object has no query component, queryItems returns nil.
     // The setter method that underlies the queryItems property combines an NSArray containing any number of NSURLQueryItem objects, each of which represents a single key-value pair, into a query string and sets the NSURLComponents' query property. Passing an empty NSArray to setQueryItems sets the query component of the NSURLComponents object to an empty string. Passing nil to setQueryItems removes the query component of the NSURLComponents object.
     // Note: If a name-value pair in a query is empty (i.e. the query string starts with '&', ends with '&', or has "&&" within it), you get a NSURLQueryItem with a zero-length name and and a nil value. If a query's name-value pair has nothing before the equals sign, you get a zero-length name. If a query's name-value pair has nothing after the equals sign, you get a zero-length value. If a query's name-value pair has no equals sign, the query name-value pair string is the name and you get a nil value.
@@ -308,14 +334,7 @@ open class NSURLComponents: NSObject, NSCopying {
                 return nil
             }
 
-            let count = CFArrayGetCount(queryArray)
-            return (0..<count).map { idx in
-                let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
-                let swiftEntry = oneEntry._swiftObject
-                let entryName = swiftEntry["name"] as! String
-                let entryValue = swiftEntry["value"] as? String
-                return URLQueryItem(name: entryName, value: entryValue)
-            }
+            return mapQueryItemsFromArray(array: queryArray)
         }
         set(new) {
             guard let new = new else {
@@ -323,20 +342,30 @@ open class NSURLComponents: NSObject, NSCopying {
                 return
             }
 
-            // The CFURL implementation requires two CFArrays, one for names and one for values
-            var names = [CFTypeRef]()
-            var values = [CFTypeRef]()
-            for entry in new {
-                names.append(entry.name._cfObject)
-                if let v = entry.value {
-                    values.append(v._cfObject)
-                } else {
-                    values.append(kCFNull)
-                }
-            }
-            _CFURLComponentsSetQueryItems(_components, names._cfObject, values._cfObject)
+            let items = mapURLQueryItemArrayToCFArrays(array: new)
+            _CFURLComponentsSetQueryItems(_components, items.names._cfObject, items.values._cfObject)
         }
     }
+
+    open var percentEncodedQueryItems: [URLQueryItem]? {
+        get {
+            guard let queryArray = _CFURLComponentsCopyPercentEncodedQueryItems(_components) else {
+                return nil
+            }
+
+            return mapQueryItemsFromArray(array: queryArray)
+        }
+        set(new) {
+            guard let new = new else {
+                self.percentEncodedQuery = nil
+                return
+            }
+
+            let items = mapURLQueryItemArrayToCFArrays(array: new)
+            _CFURLComponentsSetPercentEncodedQueryItems(_components, items.names._cfObject, items.values._cfObject)
+        }
+    }
+
 }
 
 extension NSURLComponents: _StructTypeBridgeable {

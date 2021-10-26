@@ -268,7 +268,15 @@ public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _Mutabl
         set { _applyMutation { $0.queryItems = newValue } }
     }
     
-    public func hash(into hasher: inout Hasher) {
+    /// Returns an array of query items for this `URLComponents`, in the order in which they appear in the original query string. Any percent-encoding in a query item name or value is retained
+    ///
+    /// The setter combines an array containing any number of `URLQueryItem`s, each of which represents a single key-value pair, into a query string and sets the `URLComponents` query property. This property assumes the query item names and values are already correctly percent-encoded, and that the query item names do not contain the query item delimiter characters '&' and '='. Attempting to set an incorrectly percent-encoded query item or a query item name with the query item delimiter characters '&' and '=' will cause a `fatalError`.
+    public var percentEncodedQueryItems: [URLQueryItem]? {
+        get { return _handle.map { $0.percentEncodedQueryItems } }
+        set { _applyMutation { $0.percentEncodedQueryItems = newValue } }
+    }
+
+public func hash(into hasher: inout Hasher) {
         hasher.combine(_handle.map { $0 })
     }
 
