@@ -1848,7 +1848,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
             ("test_requestWithEmptyBody", test_requestWithEmptyBody),
             /* ⚠️ */ ("test_requestWithNonEmptyBody", testExpectedToFail(test_requestWithNonEmptyBody, "Started failing for no readily available reason.")),
-            ("test_concurrentRequests", test_concurrentRequests),
+            /* ⚠️ */ ("test_concurrentRequests", testExpectedToFail(test_concurrentRequests, "Intermittent SEGFAULT: rdar://84519512")),
             ("test_disableCookiesStorage", test_disableCookiesStorage),
             ("test_cookiesStorage", test_cookiesStorage),
             ("test_cookieStorageForEphemeralConfiguration", test_cookieStorageForEphemeralConfiguration),
