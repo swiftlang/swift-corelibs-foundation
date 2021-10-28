@@ -733,7 +733,7 @@ static _CFThreadSpecificKey __CFTSDIndexKey;
 static void *__CFThreadSpecificData;
 #endif
 
-CF_PRIVATE void __CFTSDInitialize() {
+CF_PRIVATE void __CFTSDInitialize(void) {
 #if !TARGET_OS_WASI
     static dispatch_once_t once;
     dispatch_once(&once, ^{

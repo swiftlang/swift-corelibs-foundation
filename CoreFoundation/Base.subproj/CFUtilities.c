@@ -1663,8 +1663,7 @@ CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) {
 
 
 #if DEPLOYMENT_RUNTIME_SWIFT && !TARGET_OS_WASI
-
-CFDictionaryRef __CFGetEnvironment() {
+CFDictionaryRef __CFGetEnvironment(void) {
     static dispatch_once_t once = 0L;
     static CFMutableDictionaryRef envDict = NULL;
     dispatch_once(&once, ^{
@@ -1719,7 +1718,7 @@ CFDictionaryRef __CFGetEnvironment() {
     return envDict;
 }
 
-int32_t __CFGetPid() {
+int32_t __CFGetPid(void) {
     return getpid();
 }
 

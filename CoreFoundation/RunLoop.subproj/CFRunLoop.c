@@ -806,7 +806,7 @@ static CFStringRef __CFRunLoopCopyDescription(CFTypeRef cf) {
     return result;
 }
 
-CF_PRIVATE void __CFRunLoopDump() { // __private_extern__ to keep the compiler from discarding it
+CF_PRIVATE void __CFRunLoopDump(void) { // __private_extern__ to keep the compiler from discarding it
     CFStringRef desc = CFCopyDescription(CFRunLoopGetCurrent());
     CFShow(desc);
     CFRelease(desc);
