@@ -190,10 +190,10 @@ static SInt32 _CFUserNotificationSendRequest(CFAllocatorRef allocator, CFStringR
     
 #if TARGET_OS_OSX
     const char *namebuffer = NOTIFICATION_PORT_NAME_MAC;
-    const nameLen = sizeof(NOTIFICATION_PORT_NAME_MAC);
+    const CFIndex nameLen = sizeof(NOTIFICATION_PORT_NAME_MAC);
 #else
     const char *namebuffer = NOTIFICATION_PORT_NAME_IOS;
-    const nameLen = sizeof(NOTIFICATION_PORT_NAME_IOS);
+    const CFIndex nameLen = sizeof(NOTIFICATION_PORT_NAME_IOS);
 #endif
     
     if (sessionID) {
