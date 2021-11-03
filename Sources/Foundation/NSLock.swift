@@ -22,11 +22,6 @@ public protocol NSLocking {
     func unlock()
 }
 
-#if canImport(Glibc)
-typealias pthread_mutex_t = Glibc.pthread_mutex_t
-typealias pthread_cond_t = Glibc.pthread_cond_t
-#endif
-
 #if os(Windows)
 private typealias _MutexPointer = UnsafeMutablePointer<SRWLOCK>
 private typealias _RecursiveMutexPointer = UnsafeMutablePointer<CRITICAL_SECTION>
