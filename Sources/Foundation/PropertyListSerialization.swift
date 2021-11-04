@@ -63,7 +63,8 @@ open class PropertyListSerialization : NSObject {
         var error: Unmanaged<CFError>? = nil
         let decoded = withUnsafeMutablePointer(to: &fmt) { (outFmt: UnsafeMutablePointer<CFPropertyListFormat>) -> AnyObject? in
             withUnsafeMutablePointer(to: &error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> AnyObject? in
-                return CFPropertyListCreateWithData(kCFAllocatorSystemDefault, data._cfObject, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr).takeRetainedValue()
+                let d = CFPropertyListCreateWithData(kCFAllocatorSystemDefault, data._cfObject, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr)
+		return d?.takeRetainedValue()
             }
         }
         format?.pointee = PropertyListFormat(rawValue: UInt(fmt.rawValue))!
