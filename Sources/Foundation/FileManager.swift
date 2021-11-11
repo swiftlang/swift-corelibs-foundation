@@ -450,7 +450,7 @@ open class FileManager : NSObject {
                     throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
                     
                 default:
-                    fatalError("This attribute is unknown or cannot be set: \(attribute)")
+                    break
                 }
             }
 
