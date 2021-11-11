@@ -1260,7 +1260,7 @@ class TestFileManager : XCTestCase {
     }
 
     func test_setInvalidFileAttributes() throws {
-        let path = "\(NSTemporaryDirectory())test_setInvalidFileAttributes\(NSUUID().uuidSTring)"
+        let path = "\(NSTemporaryDirectory())test_setInvalidFileAttributes\(NSUUID().uuidString)"
         let FM = FileManager.default
 
         try? FM.removeItem(atPath: path)
