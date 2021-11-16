@@ -1708,7 +1708,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
         char *buffer = calloc(szLength + 1, sizeof(char));
         WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, pszThreadDescription,
                             -1, buffer, szLength, NULL, NULL);
-        memcpy(buf, buffer, length - 1);
+        memcpy(buf, buffer, MIN(szLength, length - 1));
         buf[MIN(szLength, length - 1)] = '\0';
         free(buffer);
     }
