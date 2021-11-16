@@ -1153,10 +1153,13 @@ open class Process: NSObject {
 
     // poll the runLoop in defaultMode until process completes
     open func waitUntilExit() {
-        
-        repeat {
-            
-        } while( self.isRunning == true && RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05)) )
+        //
+        let currentRunLoop = RunLoop.current
+        let checkRunLoop : () -> Bool = (currentRunLoop == self.runLoop)
+                ? { currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05)) }
+                : { currentRunLoop.run(until: Date(timeIntervalSinceNow: 0.05)); return true }
+
+        while self.isRunning && checkRunLoop() {}
         
         self.runLoop = nil
         self.runLoopSource = nil
