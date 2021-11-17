@@ -576,7 +576,7 @@ open class Process: NSObject {
 
         var environment: [String:String] = [:]
         if let env = self.environment {
-          environment = env
+            environment = env
         } else {
             environment = ProcessInfo.processInfo.environment
         }
@@ -600,67 +600,65 @@ open class Process: NSObject {
         context.release = runLoopSourceRelease
         context.info = Unmanaged.passUnretained(self).toOpaque()
 
-        let socket: CFSocket =
-            CFSocketCreateWithNative(nil, CFSocketNativeHandle(sockets.first), CFOptionFlags(kCFSocketDataCallBack), { (socket, type, address, data, info) in
-          let process: Process = NSObject.unretainedReference(info!)
-          process.processLaunchedCondition.lock()
-          while process.isRunning == false {
-            process.processLaunchedCondition.wait()
-          }
-          process.processLaunchedCondition.unlock()
+        let socket: CFSocket = CFSocketCreateWithNative(nil, CFSocketNativeHandle(sockets.first), CFOptionFlags(kCFSocketDataCallBack), { (socket, type, address, data, info) in
+            let process: Process = NSObject.unretainedReference(info!)
+            process.processLaunchedCondition.lock()
+            while process.isRunning == false {
+                process.processLaunchedCondition.wait()
+            }
+            process.processLaunchedCondition.unlock()
 
-          WaitForSingleObject(process.processHandle, WinSDK.INFINITE)
+            WaitForSingleObject(process.processHandle, WinSDK.INFINITE)
 
-          // On Windows, the top nibble of an NTSTATUS indicates severity, with
-          // the top two bits both being set (0b11) indicating an error. In
-          // addition, in a well formed NTSTATUS, the 4th bit must be 0.
-          // The third bit indicates if the error is a Microsoft defined error
-          // and may or may not be set.
-          //
-          // If we receive such an error, we'll indicate that the process
-          // exited abnormally (confusingly indicating "signalled" so we match
-          // POSIX behaviour for abnormal exits).
-          //
-          // However, we don't want user programs which normally exit -1, -2,
-          // etc to count as exited abnormally, so we specifically check for a
-          // top nibble of 0b11_0 so that e.g. 0xFFFFFFFF, won't trigger an
-          // abnormal exit.
-          //
-          // Additionally, on Windows, an uncaught signal terminates the
-          // program with the magic exit code 3, regardless of the signal (I'd
-          // personally love to know the reason for this). So we also consider
-          // 3 to be an abnormal exit.
-          var dwExitCode: DWORD = 0
-          GetExitCodeProcess(process.processHandle, &dwExitCode)
-          if (dwExitCode & 0xF0000000) == 0xC0000000
+            // On Windows, the top nibble of an NTSTATUS indicates severity, with
+            // the top two bits both being set (0b11) indicating an error. In
+            // addition, in a well formed NTSTATUS, the 4th bit must be 0.
+            // The third bit indicates if the error is a Microsoft defined error
+            // and may or may not be set.
+            //
+            // If we receive such an error, we'll indicate that the process
+            // exited abnormally (confusingly indicating "signalled" so we match
+            // POSIX behaviour for abnormal exits).
+            //
+            // However, we don't want user programs which normally exit -1, -2,
+            // etc to count as exited abnormally, so we specifically check for a
+            // top nibble of 0b11_0 so that e.g. 0xFFFFFFFF, won't trigger an
+            // abnormal exit.
+            //
+            // Additionally, on Windows, an uncaught signal terminates the
+            // program with the magic exit code 3, regardless of the signal (I'd
+            // personally love to know the reason for this). So we also consider
+            // 3 to be an abnormal exit.
+            var dwExitCode: DWORD = 0
+            GetExitCodeProcess(process.processHandle, &dwExitCode)
+            if (dwExitCode & 0xF0000000) == 0xC0000000
             || (dwExitCode & 0xF0000000) == 0xE0000000
             || dwExitCode == 3 {
-              process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
-              process._terminationReason = .uncaughtSignal
-          } else {
-              process._terminationStatus = Int32(bitPattern: dwExitCode)
-              process._terminationReason = .exit
-          }
+                process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
+                process._terminationReason = .uncaughtSignal
+            } else {
+                process._terminationStatus = Int32(bitPattern: dwExitCode)
+                process._terminationReason = .exit
+            }
 
-          if let handler = process.terminationHandler {
-            let thread: Thread = Thread { handler(process) }
-            thread.start()
-          }
+            if let handler = process.terminationHandler {
+                let thread: Thread = Thread { handler(process) }
+                thread.start()
+            }
 
-          process.isRunning = false
+            process.isRunning = false
 
-          // Invalidate the source and wake up the run loop, if it is available
-          CFRunLoopSourceInvalidate(process.runLoopSource)
-          if let runloop = process.runLoop {
-            CFRunLoopWakeUp(runloop._cfRunLoop)
-          }
+            // Invalidate the source and wake up the run loop, if it is available
+            CFRunLoopSourceInvalidate(process.runLoopSource)
+            if let runloop = process.runLoop {
+                CFRunLoopWakeUp(runloop._cfRunLoop)
+            }
 
-          CFSocketInvalidate(socket)
+            CFSocketInvalidate(socket)
         }, &context)
         CFSocketSetSocketFlags(socket, CFOptionFlags(kCFSocketCloseOnInvalidate))
 
-        let source: CFRunLoopSource =
-            CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
+        let source: CFRunLoopSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
         let workingDirectory = currentDirectoryURL?.path ?? FileManager.default.currentDirectoryPath
@@ -1153,10 +1151,15 @@ open class Process: NSObject {
 
     // poll the runLoop in defaultMode until process completes
     open func waitUntilExit() {
-        
-        repeat {
-            
-        } while( self.isRunning == true && RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05)) )
+        let runInterval = 0.05
+        let currentRunLoop = RunLoop.current
+        let checkRunLoop : () -> Bool = (currentRunLoop == self.runLoop)
+                ? { currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
+                : { currentRunLoop.run(until: Date(timeIntervalSinceNow: runInterval)); return true }
+
+        // update .runLoop to allow early wakeup.
+        self.runLoop = currentRunLoop
+        while self.isRunning && checkRunLoop() {}
         
         self.runLoop = nil
         self.runLoopSource = nil
