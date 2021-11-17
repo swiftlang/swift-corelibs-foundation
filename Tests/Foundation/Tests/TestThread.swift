@@ -174,7 +174,8 @@ class TestThread : XCTestCase {
                     "Android doesn't support backtraces at the moment."),
 		"And not currently on OpenBSD.")),
             ("test_sleepForTimeInterval", test_sleepForTimeInterval),
-            ("test_sleepUntilDate", test_sleepUntilDate),
+            ("test_sleepUntilDate",
+                testExpectedToFail(test_sleepUntilDate, "https://bugs.swift.org/browse/SR-15489")),
             ("test_threadName", test_threadName),
         ]
 
