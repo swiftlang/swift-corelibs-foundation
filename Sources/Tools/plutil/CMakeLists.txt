@@ -8,7 +8,7 @@ target_link_libraries(plutil PRIVATE
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
   target_link_options(plutil PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
 
-  string(REPLACE " " ";" ARGS_LIST ${CMAKE_Swift_FLAGS})
+  string(REPLACE " " ";" ARGS_LIST "${CMAKE_Swift_FLAGS}")
   execute_process(
     COMMAND ${CMAKE_Swift_COMPILER} ${ARGS_LIST} -print-target-info
     OUTPUT_VARIABLE output
