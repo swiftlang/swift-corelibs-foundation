@@ -396,7 +396,8 @@ endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation PRIVATE
     ICU::uc
-    ICU::i18n)
+    ICU::i18n
+    ICU::data)
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
