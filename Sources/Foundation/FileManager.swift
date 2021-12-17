@@ -538,6 +538,9 @@ open class FileManager : NSObject {
 #if os(Linux)
         let (s, creationDate) = try _statxFile(atPath: path)
         result[.creationDate] = creationDate
+#elseif os(Windows)
+        let (s, ino) = try _statxFile(atPath: path)
+        result[.creationDate] = s.creationDate
 #else
         let s = try _lstatFile(atPath: path)
         result[.creationDate] = s.creationDate
@@ -553,7 +556,11 @@ open class FileManager : NSObject {
         result[.posixPermissions] = NSNumber(value: _filePermissionsMask(mode: UInt32(s.st_mode)))
         result[.referenceCount] = NSNumber(value: UInt64(s.st_nlink))
         result[.systemNumber] = NSNumber(value: UInt64(s.st_dev))
+#if os(Windows)
+        result[.systemFileNumber] = NSNumber(value: UInt64(ino))
+#else
         result[.systemFileNumber] = NSNumber(value: UInt64(s.st_ino))
+#endif
 
 #if os(Windows)
         result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
