@@ -740,6 +740,12 @@ extension FileManager {
     }
 
     internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> stat {
+        let (stbuf, _) = try _statxFile(atPath: path, withFileSystemRepresentation: fsRep)
+        return stbuf
+    }
+
+    // FIXME(compnerd) the UInt64 should be UInt128 to uniquely identify the file across volumes
+    internal func _statxFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> (stat, UInt64) {
         let _fsRep: UnsafePointer<NativeFSRCharType>
         if fsRep == nil {
             _fsRep = try __fileSystemRepresentation(withPath: path)
@@ -771,7 +777,8 @@ extension FileManager {
         statInfo.st_atime = info.ftLastAccessTime.time_t
         statInfo.st_ctime = info.ftCreationTime.time_t
         statInfo.st_dev = info.dwVolumeSerialNumber
-        // inodes have meaning on FAT/HPFS/NTFS
+        // The inode, and therefore st_ino, has no meaning in the FAT, HPFS, or
+        // NTFS file systems. -- docs.microsoft.com
         statInfo.st_ino = 0
         statInfo.st_rdev = info.dwVolumeSerialNumber
 
@@ -795,7 +802,8 @@ extension FileManager {
         statInfo.st_size = Int32(info.nFileSizeLow)
         // Uid is always 0 on Windows systems
         statInfo.st_uid = 0
-        return statInfo
+
+        return (statInfo, UInt64(info.nFileIndexHigh << 32) | UInt64(info.nFileIndexLow))
     }
 
     internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
