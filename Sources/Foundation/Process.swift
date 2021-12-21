@@ -631,8 +631,9 @@ open class Process: NSObject {
             // 3 to be an abnormal exit.
             var dwExitCode: DWORD = 0
             GetExitCodeProcess(process.processHandle, &dwExitCode)
-            if (dwExitCode & 0xF0000000) == 0xC0000000
-            || (dwExitCode & 0xF0000000) == 0xE0000000
+            if (dwExitCode & 0xF0000000) == 0x80000000      // HRESULT
+            || (dwExitCode & 0xF0000000) == 0xC0000000      // NTSTATUS
+            || (dwExitCode & 0xF0000000) == 0xE0000000      // NTSTATUS (Customer)
             || dwExitCode == 3 {
                 process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
                 process._terminationReason = .uncaughtSignal
