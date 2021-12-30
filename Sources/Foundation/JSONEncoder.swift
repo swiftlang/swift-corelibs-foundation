@@ -448,8 +448,6 @@ extension JSONEncoderImpl: _SpecialTreatmentEncoder {
             return .number(decimal.description)
         case let object as [String: Encodable]: // this emits a warning, but it works perfectly
             return try self.wrapObject(object, for: nil)
-        case let date as Date:
-            return try self.wrapDate(date, for: nil)
         default:
             try encodable.encode(to: self)
             return self.value ?? .object([:])
