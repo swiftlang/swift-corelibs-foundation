@@ -25,7 +25,7 @@ swift-corelibs-foundation swift-corelibs-xctest
 
 Build and test steps:
 
-0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#apple-platforms) to start Xcode with the correct toolchain.
+0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#installation) to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
 0. Build the _SwiftFoundation_ target. This builds CoreFoundation and Foundation.
 0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation, then runs the tests.
@@ -47,7 +47,7 @@ You will need:
 
 * A supported distribution of Linux. At this time, we support [Ubuntu 16.04 and Ubuntu 18.04](http://www.ubuntu.com).
 
-To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
+To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift/blob/main/docs/HowToGuides/GettingStarted.md#building-the-project-for-the-first-time). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
 The default build script does not include Foundation. To configure and build Foundation and TestFoundation including lldb for debugging and the correct ICU library, the following command can be used. All other tests are disabled to reduce build and test time. `--release` is used to avoid building LLVM and the compiler with debugging.
 ```
