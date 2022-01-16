@@ -642,17 +642,21 @@ open class Process: NSObject {
                 process._terminationReason = .exit
             }
 
-            if let handler = process.terminationHandler {
-                let thread: Thread = Thread { handler(process) }
-                thread.start()
-            }
-
-            process.isRunning = false
-
-            // Invalidate the source and wake up the run loop, if it is available
+            // Invalidate the source and wake up the run loop, if it is available.
             CFRunLoopSourceInvalidate(process.runLoopSource)
             if let runloop = process.runLoop {
                 CFRunLoopWakeUp(runloop._cfRunLoop)
+            }
+
+            // Ensure that the runLoop is invalidated before we mark the process
+            // as no longer running.  This serves as a semaphore to
+            // `waitUntilExit` to decrement the `runLoopSource` retain count,
+            // potentially releasing it.
+            process.isRunning = false
+
+            if let handler = process.terminationHandler {
+                let thread: Thread = Thread { handler(process) }
+                thread.start()
             }
 
             CFSocketInvalidate(socket)
