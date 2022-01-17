@@ -642,18 +642,7 @@ open class Process: NSObject {
                 process._terminationReason = .exit
             }
 
-            if let handler = process.terminationHandler {
-                let thread: Thread = Thread { handler(process) }
-                thread.start()
-            }
-
-            process.isRunning = false
-
-            // Invalidate the source and wake up the run loop, if it is available
-            CFRunLoopSourceInvalidate(process.runLoopSource)
-            if let runloop = process.runLoop {
-                CFRunLoopWakeUp(runloop._cfRunLoop)
-            }
+            process.terminateRunLoop()
 
             CFSocketInvalidate(socket)
         }, &context)
@@ -828,25 +817,8 @@ open class Process: NSObject {
                 process._terminationStatus = WEXITSTATUS(exitCode)
                 process._terminationReason = .exit
             }
-            
-            // Set the running flag to false
-            process.isRunning = false
 
-            // If a termination handler has been set, invoke it on a background thread
-            
-            if let terminationHandler = process.terminationHandler {
-                let thread = Thread {
-                    terminationHandler(process)
-                }
-                thread.start()
-            }
-            
-            // Invalidate the source and wake up the run loop, if it's available
-            
-            CFRunLoopSourceInvalidate(process.runLoopSource)
-            if let runLoop = process.runLoop {
-                CFRunLoopWakeUp(runLoop._cfRunLoop)
-            }
+            process.terminateRunLoop()
             
             CFSocketInvalidate( socket )
             
@@ -1164,6 +1136,27 @@ open class Process: NSObject {
         
         self.runLoop = nil
         self.runLoopSource = nil
+    }
+
+    private func terminateRunLoop() {
+        let runLoopSourceToInvalidate = self.runLoopSource
+        let runLoopToWakeup = self.runLoop
+        
+        // Set the running flag to false. This breaks out of the loop in waitUntilExit()
+        self.isRunning = false
+
+        // If a termination handler has been set, invoke it on a background thread
+        
+        if let terminationHandler = self.terminationHandler {
+            let thread = Thread {
+                terminationHandler(self)
+            }
+            thread.start()
+        }
+        
+        // Invalidate the source and wake up the run loop, if available
+        runLoopSourceToInvalidate.flatMap(CFRunLoopSourceInvalidate)
+        runLoopToWakeup.flatMap { CFRunLoopWakeUp($0._cfRunLoop) }
     }
 }
 
