@@ -350,13 +350,13 @@ open class Process: NSObject {
     }
 
     private var _runLoopSourceContextStorage = NonexportedCFRunLoopSourceContextStorage()
-    private var runLoopSourceContext: CFRunLoopSourceContext? {
+    private final var runLoopSourceContext: CFRunLoopSourceContext? {
         get { _runLoopSourceContextStorage.value }
         set { _runLoopSourceContextStorage.value = newValue }
     }
     
     private var _runLoopSourceStorage = NonexportedCFRunLoopSourceStorage()
-    private var runLoopSource: CFRunLoopSource? {
+    private final var runLoopSource: CFRunLoopSource? {
         get { _runLoopSourceStorage.value }
         set { _runLoopSourceStorage.value = newValue }
     }

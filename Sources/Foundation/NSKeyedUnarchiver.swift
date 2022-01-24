@@ -56,7 +56,7 @@ open class NSKeyedUnarchiver : NSCoder {
 #endif
     }
     
-    private var _stream : Stream
+    private final var _stream : Stream
     private var _flags = UnarchiverFlags(rawValue: 0)
     private var _containers : Array<DecodingContext>? = nil
     private var _objects : Array<Any> = []

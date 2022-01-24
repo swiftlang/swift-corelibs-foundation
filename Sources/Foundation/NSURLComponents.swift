@@ -12,7 +12,7 @@
 
 open class NSURLComponents: NSObject, NSCopying {
     private let _componentsStorage: AnyObject!
-    private var _components: CFURLComponents! { unsafeBitCast(_componentsStorage, to: CFURLComponents?.self) }
+    private final var _components: CFURLComponents! { unsafeBitCast(_componentsStorage, to: CFURLComponents?.self) }
 
     open override func copy() -> Any {
         return copy(with: nil)
@@ -298,7 +298,7 @@ open class NSURLComponents: NSObject, NSCopying {
         return NSRange(_CFURLComponentsGetRangeOfFragment(_components))
     }
 
-    private func mapQueryItemsFromArray(array: CFArray) -> [URLQueryItem] {
+    private final func mapQueryItemsFromArray(array: CFArray) -> [URLQueryItem] {
         let count = CFArrayGetCount(array)
         return (0..<count).map { idx in
             let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(array, idx), to: NSDictionary.self)

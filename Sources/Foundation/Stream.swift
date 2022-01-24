@@ -109,7 +109,7 @@ open class InputStream: Stream {
     }
     
     internal let _streamStorage: AnyObject!
-    internal var _stream: CFReadStream { unsafeBitCast(_streamStorage, to: CFReadStream.self) }
+    internal final var _stream: CFReadStream { unsafeBitCast(_streamStorage, to: CFReadStream.self) }
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -129,10 +129,6 @@ open class InputStream: Stream {
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
     open var hasBytesAvailable: Bool {
         return CFReadStreamHasBytesAvailable(_stream)
-    }
-    
-    fileprivate init(readStream: CFReadStream) {
-        _streamStorage = readStream
     }
     
     public init(data: Data) {
@@ -186,7 +182,7 @@ open class InputStream: Stream {
 open class OutputStream : Stream {
     
     internal let _streamStorage: AnyObject!
-    internal var _stream: CFWriteStream { unsafeBitCast(_streamStorage, to: CFWriteStream.self) }
+    internal final var _stream: CFWriteStream { unsafeBitCast(_streamStorage, to: CFWriteStream.self) }
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
@@ -196,10 +192,6 @@ open class OutputStream : Stream {
     // returns YES if the stream can be written to or if it is impossible to tell without actually doing the write.
     open var hasSpaceAvailable: Bool {
         return CFWriteStreamCanAcceptBytes(_stream)
-    }
-    
-    fileprivate init(writeStream: CFWriteStream) {
-        _streamStorage = writeStream
     }
 
     // NOTE: on Darwin this is     'open class func toMemory() -> Self'

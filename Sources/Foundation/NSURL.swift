@@ -93,7 +93,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     internal var _range8 = NSRange(location: 0, length: 0)
     internal var _range9 = NSRange(location: 0, length: 0)
     
-    internal var _cfObject : CFType {
+    internal final var _cfObject : CFType {
         if type(of: self) === NSURL.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {

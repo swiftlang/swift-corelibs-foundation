@@ -21,7 +21,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     private var _lock: _NSCFLock = _NSCFLockInit()
     private var _nullLocale: Bool = false
 
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     

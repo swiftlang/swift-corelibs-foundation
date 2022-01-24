@@ -18,7 +18,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     private var _periods: UnsafeMutableRawPointer? = nil
     private var _periodCnt = Int32(0)
     
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
