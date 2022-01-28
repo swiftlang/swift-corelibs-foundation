@@ -23,7 +23,13 @@ import Foundation
 #endif
 
 @_implementationOnly import CoreFoundation
+
+#if os(Linux)
+import CFURLSessionInterface
+#else
 @_implementationOnly import CFURLSessionInterface
+#endif
+
 import Dispatch
 
 

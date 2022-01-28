@@ -10,6 +10,9 @@
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 import SwiftFoundation
 import CFXMLInterface
+#elseif os(Linux)
+import Foundation
+import CFXMLInterface
 #else
 import Foundation
 @_implementationOnly import CFXMLInterface
