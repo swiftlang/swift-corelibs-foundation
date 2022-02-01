@@ -52,7 +52,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         _CFDeinit(self)
     }
     
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     

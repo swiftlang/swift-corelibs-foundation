@@ -77,7 +77,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
     private var _bytes: UnsafeMutablePointer<UInt8>? = nil
 
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
@@ -957,7 +957,7 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
 
 // MARK: -
 open class NSMutableData : NSData {
-    internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
+    internal final var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
 
     public override init() {
         super.init(bytes: nil, length: 0)

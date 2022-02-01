@@ -207,7 +207,7 @@ open class Thread : NSObject {
 
     private let _attrStorage = NonexportedAttrStorage()
 
-    internal var _attr: _CFThreadAttributes {
+    internal final var _attr: _CFThreadAttributes {
         get { _attrStorage.value }
         set { _attrStorage.value = newValue }
     }

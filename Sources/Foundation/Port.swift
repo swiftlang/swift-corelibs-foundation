@@ -476,7 +476,7 @@ open class SocketPort : Port {
         self.init(protocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
     }
     
-    private func createNonuniquedCore(from socket: CFSocket, protocolFamily family: Int32, socketType type: Int32, protocol: Int32) {
+    private final func createNonuniquedCore(from socket: CFSocket, protocolFamily family: Int32, socketType type: Int32, protocol: Int32) {
         self.core = Core(isUniqued: false)
         let address = CFSocketCopyAddress(socket)._swiftObject
         core.signature = Signature(address: LocalAddress(address), protocolFamily: family, socketType: type, protocol: `protocol`)
@@ -732,7 +732,7 @@ open class SocketPort : Port {
     
     // Sending and receiving:
     
-    fileprivate func socketDidAccept(_ socket: CFSocket?, _ type: CFSocketCallBackType, _ address: CFData?, _ data: UnsafeRawPointer?) {
+    fileprivate final func socketDidAccept(_ socket: CFSocket?, _ type: CFSocketCallBackType, _ address: CFData?, _ data: UnsafeRawPointer?) {
         guard let handle = data?.assumingMemoryBound(to: SocketNativeHandle.self),
             let address = address else {
                 return
@@ -753,7 +753,7 @@ open class SocketPort : Port {
         }
     }
     
-    private func addToLoopsAssumingLockHeld(_ socket: CFSocket) {
+    private final func addToLoopsAssumingLockHeld(_ socket: CFSocket) {
         guard let source = CFSocketCreateRunLoopSource(nil, socket, 600) else {
             return
         }
@@ -772,7 +772,7 @@ open class SocketPort : Port {
         case port = 2
     }
     
-    fileprivate func socketDidReceiveData(_ socket: CFSocket?, _ type: CFSocketCallBackType, _ address: CFData?, _ dataPointer: UnsafeRawPointer?) {
+    fileprivate final func socketDidReceiveData(_ socket: CFSocket?, _ type: CFSocketCallBackType, _ address: CFData?, _ dataPointer: UnsafeRawPointer?) {
         guard let socket = socket,
               let dataPointer = dataPointer else { return }
         let socketKey = ObjectIdentifier(socket)
@@ -839,7 +839,7 @@ open class SocketPort : Port {
         lock.unlock() // Release lock from above ⬆
     }
     
-    fileprivate func socketDidReceiveDatagram(_ socket: CFSocket?, _ type: CFSocketCallBackType, _ address: CFData?, _ data: UnsafeRawPointer?) {
+    fileprivate final func socketDidReceiveDatagram(_ socket: CFSocket?, _ type: CFSocketCallBackType, _ address: CFData?, _ data: UnsafeRawPointer?) {
         guard let address = address?._swiftObject,
               let data = data else {
             return
@@ -859,7 +859,7 @@ open class SocketPort : Port {
         static let offsetOfSignatureAddressLength = 15
     }
     
-    private func handleMessage(_ message: Data, from address: Data, socket: CFSocket?) {
+    private final func handleMessage(_ message: Data, from address: Data, socket: CFSocket?) {
         guard message.count > 24, let delegate = delegate() else { return }
         let portMessage = message.withUnsafeBytes { (messageBuffer) -> PortMessage? in
             guard SocketPort.magicNumber == messageBuffer.load(fromByteOffset: Structure.offsetOfMagicNumber, as: UInt32.self).bigEndian,
@@ -1027,7 +1027,7 @@ open class SocketPort : Port {
     private static let sendingSocketsLock = NSLock()
     private static var sendingSockets: [SocketKind: CFSocket] = [:]
     
-    private func sendingSocket(for port: SocketPort, before time: TimeInterval) -> CFSocket? {
+    private final func sendingSocket(for port: SocketPort, before time: TimeInterval) -> CFSocket? {
         let signature = port.core.signature!
         let socketKind = signature.socketKind
 

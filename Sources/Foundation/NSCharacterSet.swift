@@ -72,7 +72,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    internal var _cfMutableObject: CFMutableCharacterSet {
+    internal final var _cfMutableObject: CFMutableCharacterSet {
         return unsafeBitCast(self, to: CFMutableCharacterSet.self)
     }
     

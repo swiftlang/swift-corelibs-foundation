@@ -58,7 +58,7 @@ internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
 
 open class RunLoop: NSObject {
     internal var _cfRunLoopStorage : AnyObject!
-    internal var _cfRunLoop: CFRunLoop! {
+    internal final var _cfRunLoop: CFRunLoop! {
         get { unsafeBitCast(_cfRunLoopStorage, to: CFRunLoop?.self) }
         set { _cfRunLoopStorage = newValue }
     }
@@ -98,7 +98,7 @@ open class RunLoop: NSObject {
         return _cfRunLoop
     }
     #else
-    internal var currentCFRunLoop: CFRunLoop { _cfRunLoop }
+    internal final var currentCFRunLoop: CFRunLoop { _cfRunLoop }
 
     @available(*, unavailable, message: "Core Foundation is not available on your platform.")
     open func getCFRunLoop() -> Never {

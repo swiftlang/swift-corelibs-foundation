@@ -83,8 +83,8 @@ internal extension _CFDateIntervalFormatterBoundaryStyle {
 // DateIntervalFormatter returns nil and NO for all methods in Formatter.
 
 open class DateIntervalFormatter: Formatter {
-    var _core: AnyObject
-    var core: CFDateIntervalFormatter {
+    private var _core: AnyObject
+    private final var core: CFDateIntervalFormatter {
         get { unsafeBitCast(_core, to: CFDateIntervalFormatter.self) }
         set { _core = newValue }
     }

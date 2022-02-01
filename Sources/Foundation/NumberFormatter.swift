@@ -44,8 +44,8 @@ extension NumberFormatter {
 open class NumberFormatter : Formatter {
 
     typealias CFType = CFNumberFormatter
-    private var _currentCfFormatter: CFType?
-    private var _cfFormatter: CFType {
+    private final var _currentCfFormatter: CFType?
+    private final var _cfFormatter: CFType {
         if let obj = _currentCfFormatter {
             return obj
         } else {
@@ -192,7 +192,7 @@ open class NumberFormatter : Formatter {
         _currentCfFormatter = nil
     }
 
-    private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
+    private final func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         if numberStyle == .currency {
             // Prefer currencySymbol, then currencyCode then locale.currencySymbol
             if let symbol = _currencySymbol {
@@ -253,13 +253,13 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
+    private final func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFNumberFormatterSetProperty(formatter, attributeName, value)
         }
     }
 
-    private func _getFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString) -> String? {
+    private final func _getFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString) -> String? {
         return CFNumberFormatterCopyProperty(formatter, attributeName) as? String
     }
 

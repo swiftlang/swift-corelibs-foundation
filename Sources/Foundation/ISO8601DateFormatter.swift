@@ -51,8 +51,8 @@ extension ISO8601DateFormatter {
 open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     
     typealias CFType = CFDateFormatter
-    private var __cfObject: CFType?
-    private var _cfObject: CFType {
+    private final var __cfObject: CFType?
+    private final var _cfObject: CFType {
         guard let obj = __cfObject else {
             let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
             let obj = CFDateFormatterCreateISO8601Formatter(kCFAllocatorSystemDefault, format)!

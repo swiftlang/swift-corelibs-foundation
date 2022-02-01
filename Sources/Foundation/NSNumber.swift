@@ -609,7 +609,7 @@ open class NSNumber : NSValue {
     private var _base = _CFInfo(typeID: CFNumberGetTypeID())
     private var _pad: UInt64 = 0
 
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
@@ -1088,7 +1088,7 @@ open class NSNumber : NSValue {
         }
     }
     
-    internal func _getValue(_ valuePtr: UnsafeMutableRawPointer, forType type: CFNumberType) -> Bool {
+    internal final func _getValue(_ valuePtr: UnsafeMutableRawPointer, forType type: CFNumberType) -> Bool {
         switch type {
         case kCFNumberSInt8Type:
             valuePtr.assumingMemoryBound(to: Int8.self).pointee = int8Value

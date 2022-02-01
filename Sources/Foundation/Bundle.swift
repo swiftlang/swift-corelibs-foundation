@@ -14,7 +14,7 @@ private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
 
 open class Bundle: NSObject {
     private var _bundleStorage: AnyObject!
-    private var _bundle: CFBundle! {
+    private final var _bundle: CFBundle! {
         get { unsafeBitCast(_bundleStorage, to: CFBundle?.self) }
         set { _bundleStorage = newValue }
     }
