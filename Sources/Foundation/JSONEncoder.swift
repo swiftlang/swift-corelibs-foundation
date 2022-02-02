@@ -504,8 +504,8 @@ extension _SpecialTreatmentEncoder {
             return .string(url.absoluteString)
         case let decimal as Decimal:
             return .number(decimal.description)
-        case let object as [String: Encodable]:
-            return try self.wrapObject(object, for: additionalKey)
+        case let object as _JSONStringDictionaryEncodableMarker:
+            return try self.wrapObject(object as! [String: Encodable], for: additionalKey)
         default:
             let encoder = self.getEncoder(for: additionalKey)
             try encodable.encode(to: encoder)
