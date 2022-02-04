@@ -2144,7 +2144,7 @@ E {
         
         let expected =
             AttributedString("This is a ") +
-            AttributedString("mispelled", attributes: AttributeContainer().misspelled(true)) +
+            AttributedString("misspelled", attributes: AttributeContainer().misspelled(true)) +
             AttributedString(" word")
         XCTAssertEqual(str, expected)
     }
