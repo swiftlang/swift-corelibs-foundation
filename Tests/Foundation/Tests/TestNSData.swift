@@ -570,7 +570,7 @@ class TestNSData: LoopbackServerTest {
     }
 
 #if !os(Windows)
-    // NOTE: `umask(3)` is process global. Therefore, the behavior is unknown if `withUmask(_:_:)` is used simultaniously.
+    // NOTE: `umask(3)` is process global. Therefore, the behavior is unknown if `withUmask(_:_:)` is used simultaneously.
     private func withUmask(_ mode: mode_t, _ block: () -> Void) {
         let original = umask(mode)
         block()

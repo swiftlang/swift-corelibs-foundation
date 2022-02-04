@@ -655,7 +655,7 @@ class TestOperationQueue : XCTestCase {
             op3DidRun.fulfill()
         }
 
-        // Create debendency cycle
+        // Create dependency cycle
         op1.addDependency(op2)
         op2.addDependency(op3)
         op3.addDependency(op1)
