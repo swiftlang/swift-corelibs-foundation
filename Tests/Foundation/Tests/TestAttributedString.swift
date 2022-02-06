@@ -2136,7 +2136,7 @@ E {
 #if false
     func testAttributeFixing() {
         var str =
-            AttributedString("This is a mis") +
+            AttributedString("This is a miss") +
             AttributedString("pel", attributes: AttributeContainer().misspelled(true)) +
             AttributedString("led word")
         
