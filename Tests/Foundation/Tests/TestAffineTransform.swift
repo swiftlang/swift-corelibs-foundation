@@ -7,383 +7,800 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-class TestAffineTransform : XCTestCase {
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
+#endif
+
+// MARK: - Vector
+
+// CGVector is only available on Darwin.
+public struct Vector {
+    let dx: CGFloat
+    let dy: CGFloat
+}
+
+// MARK: - Tests
+
+class TestAffineTransform: XCTestCase {
     private let accuracyThreshold = 0.001
 
     static var allTests: [(String, (TestAffineTransform) -> () throws -> Void)] {
         return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_IdentityTransformation", test_IdentityTransformation),
-            ("test_Scale", test_Scale),
-            ("test_Scaling", test_Scaling),
-            ("test_TranslationScaling", test_TranslationScaling),
-            ("test_ScalingTranslation", test_ScalingTranslation),
-            ("test_Rotation_Degrees", test_Rotation_Degrees),
-            ("test_Rotation_Radians", test_Rotation_Radians),
-            ("test_Inversion", test_Inversion),
-            ("test_IdentityTransformation", test_IdentityTransformation),
-            ("test_Translation", test_Translation),
-            ("test_TranslationComposed", test_TranslationComposed),
-            ("test_AppendTransform", test_AppendTransform),
-            ("test_PrependTransform", test_PrependTransform),
-            ("test_TransformComposition", test_TransformComposition),
-            ("test_hashing", test_hashing),
-            ("test_rotation_compose", test_rotation_compose),
-            ("test_translation_and_rotation", test_translation_and_rotation),
-            ("test_Equal", test_Equal),
-            ("test_NSCoding", test_NSCoding),
+            ("testConstruction", testConstruction),
+            ("testBridging", testBridging),
+            ("testEqualityHashing", testEqualityHashing),
+            ("testVectorTransformations", testVectorTransformations),
+            ("testIdentityConstruction", testIdentityConstruction),
+            ("testIdentity", testIdentity),
+            ("testTranslationConstruction", testTranslationConstruction),
+            ("testTranslation", testTranslation),
+            ("testScalingConstruction", testScalingConstruction),
+            ("testScaling", testScaling),
+            ("testRotationConstruction", testRotationConstruction),
+            ("testRotation", testRotation),
+            ("testTranslationScaling", testTranslationScaling),
+            ("testTranslationRotation", testTranslationRotation),
+            ("testScalingRotation", testScalingRotation),
+            ("testInversion", testInversion),
+            ("testPrependTransform", testPrependTransform),
+            ("testAppendTransform", testAppendTransform),
+            ("testNSCoding", testNSCoding),
         ]
     }
-    
-    func checkPointTransformation(_ transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
+}
+ 
+// MARK: - Helper
+
+extension TestAffineTransform {
+    func check(
+        vector: Vector,
+        withTransform transform: AffineTransform,
+        mapsToPoint expectedPoint: CGPoint,
+        mapsToSize expectedSize: CGSize,
+        _ message: String = "",
+        file: StaticString = #file, line: UInt = #line
+    ) {
+        let point = CGPoint(x: vector.dx, y: vector.dy)
+        let size = CGSize(width: vector.dx, height: vector.dy)
+        
         let newPoint = transform.transform(point)
-        XCTAssertEqual(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold,
-                       "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)", file: file, line: line)
-        XCTAssertEqual(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold,
-                       "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)", file: file, line: line)
-    }
-    
-    func checkSizeTransformation(_ transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newSize = transform.transform(size)
-        XCTAssertEqual(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold,
-                       "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)", file: file, line: line)
-        XCTAssertEqual(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold,
-                       "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)", file: file, line: line)
-    }
-    
-    func checkRectTransformation(_ transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
-        let newRect = transform.transformRect(rect)
         
-        checkPointTransformation(transform, point: newRect.origin, expectedPoint: expectedRect.origin,
-                                 "origin (expected: \(expectedRect.origin), was: \(newRect.origin)): \(message)", file: file, line: line)
-        checkSizeTransformation(transform, size: newRect.size, expectedSize: expectedRect.size,
-                                "size (expected: \(expectedRect.size), was: \(newRect.size)): \(message)", file: file, line: line)
-    }
-
-    func test_BasicConstruction() {
-        let identityTransform = NSAffineTransform()
-        let transformStruct = identityTransform.transformStruct
-
-        // The diagonal entries (1,1) and (2,2) of the identity matrix are ones. The other entries are zeros.
-        // TODO: These should use DBL_MAX but it's not available as part of Glibc on Linux
-        XCTAssertEqual(Double(transformStruct.m11), Double(1), accuracy: accuracyThreshold)
-        XCTAssertEqual(Double(transformStruct.m22), Double(1), accuracy: accuracyThreshold)
-
-        XCTAssertEqual(Double(transformStruct.m12), Double(0), accuracy: accuracyThreshold)
-        XCTAssertEqual(Double(transformStruct.m21), Double(0), accuracy: accuracyThreshold)
-        XCTAssertEqual(Double(transformStruct.tX), Double(0), accuracy: accuracyThreshold)
-        XCTAssertEqual(Double(transformStruct.tY), Double(0), accuracy: accuracyThreshold)
-    }
-
-    func test_IdentityTransformation() {
-        let identityTransform = NSAffineTransform()
-
-        func checkIdentityPointTransformation(_ point: NSPoint) {
-            checkPointTransformation(identityTransform, point: point, expectedPoint: point)
-        }
+        let nsTransform = transform as NSAffineTransform
+        XCTAssertEqual(
+            nsTransform.transform(point), newPoint,
+            "Expected NSAffineTransform to match AffineTransform's point-accepting transform(_:)",
+            file: file, line: line
+        )
+        XCTAssertEqual(
+            nsTransform.transform(size), newSize,
+            "Expected NSAffineTransform to match AffineTransform's size-accepting transform(_:)",
+            file: file, line: line
+        )
         
-        checkIdentityPointTransformation(NSPoint.zero)
-        checkIdentityPointTransformation(NSPoint(x: 24.5, y: 10.0))
-        checkIdentityPointTransformation(NSPoint(x: -7.5, y: 2.0))
-
-        func checkIdentitySizeTransformation(_ size: NSSize) {
-            checkSizeTransformation(identityTransform, size: size, expectedSize: size)
-        }
-
-        checkIdentitySizeTransformation(NSSize.zero)
-        checkIdentitySizeTransformation(NSSize(width: 13.0, height: 12.5))
-        checkIdentitySizeTransformation(NSSize(width: 100.0, height: -100.0))
-    }
-    
-    func test_Translation() {
-        let point = NSPoint.zero
-
-        let noop = NSAffineTransform()
-        noop.translateX(by: CGFloat(), yBy: CGFloat())
-        checkPointTransformation(noop, point: point, expectedPoint: point)
+        XCTAssertEqual(
+            newPoint.x, expectedPoint.x,
+            accuracy: accuracyThreshold,
+            "Invalid x: \(message)",
+            file: file, line: line
+        )
         
-        let translateH = NSAffineTransform()
-        translateH.translateX(by: CGFloat(10.0), yBy: CGFloat())
-        checkPointTransformation(translateH, point: point, expectedPoint: NSPoint(x: 10.0, y: 0.0))
+        XCTAssertEqual(
+            newPoint.y, expectedPoint.y,
+            accuracy: accuracyThreshold,
+            "Invalid y: \(message)",
+            file: file, line: line
+        )
         
-        let translateV = NSAffineTransform()
-        translateV.translateX(by: CGFloat(), yBy: CGFloat(20.0))
-        checkPointTransformation(translateV, point: point, expectedPoint: NSPoint(x: 0.0, y: 20.0))
-        
-        let translate = NSAffineTransform()
-        translate.translateX(by: CGFloat(-30.0), yBy: CGFloat(40.0))
-        checkPointTransformation(translate, point: point, expectedPoint: NSPoint(x: -30.0, y: 40.0))
-    }
-    
-    func test_Scale() {
-        let size = NSSize(width: 10.0, height: 10.0)
-        
-        let noop = NSAffineTransform()
-        noop.scale(by: CGFloat(1.0))
-        checkSizeTransformation(noop, size: size, expectedSize: size)
-        
-        let shrink = NSAffineTransform()
-        shrink.scale(by: CGFloat(0.5))
-        checkSizeTransformation(shrink, size: size, expectedSize: NSSize(width: 5.0, height: 5.0))
-        
-        let grow = NSAffineTransform()
-        grow.scale(by: CGFloat(3.0))
-        checkSizeTransformation(grow, size: size, expectedSize: NSSize(width: 30.0, height: 30.0))
-        
-        let stretch = NSAffineTransform()
-        stretch.scaleX(by: CGFloat(2.0), yBy: CGFloat(0.5))
-        checkSizeTransformation(stretch, size: size, expectedSize: NSSize(width: 20.0, height: 5.0))
-    }
-    
-    func test_Rotation_Degrees() {
-        let point = NSPoint(x: 10.0, y: 10.0)
-
-        let noop = NSAffineTransform()
-        noop.rotate(byDegrees: CGFloat())
-        checkPointTransformation(noop, point: point, expectedPoint: point)
-        
-        let tenEighty = NSAffineTransform()
-        tenEighty.rotate(byDegrees: CGFloat(1080.0))
-        checkPointTransformation(tenEighty, point: point, expectedPoint: point)
-        
-        let rotateCounterClockwise = NSAffineTransform()
-        rotateCounterClockwise.rotate(byDegrees: CGFloat(90.0))
-        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: -10.0, y: 10.0))
-        
-        let rotateClockwise = NSAffineTransform()
-        rotateClockwise.rotate(byDegrees: CGFloat(-90.0))
-        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: 10.0, y: -10.0))
-        
-        let reflectAboutOrigin = NSAffineTransform()
-        reflectAboutOrigin.rotate(byDegrees: CGFloat(180.0))
-        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: -10.0, y: -10.0))
-    }
-    
-    func test_Rotation_Radians() {
-        let point = NSPoint(x: 10.0, y: 10.0)
-
-        let noop = NSAffineTransform()
-        noop.rotate(byRadians: CGFloat())
-        checkPointTransformation(noop, point: point, expectedPoint: point)
-        
-        let tenEighty = NSAffineTransform()
-        tenEighty.rotate(byRadians: 6 * .pi)
-        checkPointTransformation(tenEighty, point: point, expectedPoint: point)
-        
-        let rotateCounterClockwise = NSAffineTransform()
-        rotateCounterClockwise.rotate(byRadians: .pi / 2)
-        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: -10.0, y: 10.0))
-        
-        let rotateClockwise = NSAffineTransform()
-        rotateClockwise.rotate(byRadians: -.pi / 2)
-        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: 10.0, y: -10.0))
-        
-        let reflectAboutOrigin = NSAffineTransform()
-        reflectAboutOrigin.rotate(byRadians: .pi)
-        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: -10.0, y: -10.0))
-    }
-    
-    func test_Inversion() {
-        let point = NSPoint(x: 10.0, y: 10.0)
-
-        var translate = AffineTransform()
-        translate.translate(x: CGFloat(-30.0), y: CGFloat(40.0))
-        
-        var rotate = AffineTransform()
-        translate.rotate(byDegrees: CGFloat(30.0))
-        
-        var scale = AffineTransform()
-        scale.scale(CGFloat(2.0))
-        
-        let identityTransform = NSAffineTransform()
-        
-        // append transformations
-        identityTransform.append(translate)
-        identityTransform.append(rotate)
-        identityTransform.append(scale)
-        
-        // invert transformations
-        scale.invert()
-        rotate.invert()
-        translate.invert()
-        
-        // append inverse transformations in reverse order
-        identityTransform.append(scale)
-        identityTransform.append(rotate)
-        identityTransform.append(translate)
-        
-        checkPointTransformation(identityTransform, point: point, expectedPoint: point)
-    }
-
-    func test_TranslationComposed() {
-        let xyPlus5 = NSAffineTransform()
-        xyPlus5.translateX(by: CGFloat(2.0), yBy: CGFloat(3.0))
-        xyPlus5.translateX(by: CGFloat(3.0), yBy: CGFloat(2.0))
-
-        checkPointTransformation(xyPlus5, point: NSPoint(x: -2.0, y: -3.0),
-                                  expectedPoint: NSPoint(x: 3.0, y: 2.0))
-    }
-
-    func test_Scaling() {
-        let xyTimes5 = NSAffineTransform()
-        xyTimes5.scale(by: CGFloat(5.0))
-
-        checkPointTransformation(xyTimes5, point: NSPoint(x: -2.0, y: 3.0),
-                                   expectedPoint: NSPoint(x: -10.0, y: 15.0))
-
-        let xTimes2YTimes3 = NSAffineTransform()
-        xTimes2YTimes3.scaleX(by: CGFloat(2.0), yBy: CGFloat(-3.0))
-
-        checkPointTransformation(xTimes2YTimes3, point: NSPoint(x: -1.0, y: 3.5),
-                                         expectedPoint: NSPoint(x: -2.0, y: -10.5))
-    }
-
-    func test_TranslationScaling() {
-        let xPlus2XYTimes5 = NSAffineTransform()
-        xPlus2XYTimes5.translateX(by: CGFloat(2.0), yBy: CGFloat())
-        xPlus2XYTimes5.scaleX(by: CGFloat(5.0), yBy: CGFloat(-5.0))
-
-        checkPointTransformation(xPlus2XYTimes5, point: NSPoint(x: 1.0, y: 2.0),
-                                         expectedPoint: NSPoint(x: 7.0, y: -10.0))
-    }
-
-    func test_ScalingTranslation() {
-        let xyTimes5XPlus3 = NSAffineTransform()
-        xyTimes5XPlus3.scale(by: CGFloat(5.0))
-        xyTimes5XPlus3.translateX(by: CGFloat(3.0), yBy: CGFloat())
-
-        checkPointTransformation(xyTimes5XPlus3, point: NSPoint(x: 1.0, y: 2.0),
-                                         expectedPoint: NSPoint(x: 20.0, y: 10.0))
-    }
-    
-    func test_AppendTransform() {
-        let point = NSPoint(x: 10.0, y: 10.0)
-
-        var identityTransform = AffineTransform()
-        identityTransform.append(identityTransform)
-        checkPointTransformation(NSAffineTransform(transform: identityTransform), point: point, expectedPoint: point)
-        
-        var translate = AffineTransform()
-        translate.translate(x: CGFloat(10.0), y: CGFloat())
-        
-        var scale = AffineTransform()
-        scale.scale(CGFloat(2.0))
-        
-        let translateThenScale = NSAffineTransform(transform: translate)
-        translateThenScale.append(scale)
-        checkPointTransformation(translateThenScale, point: point, expectedPoint: NSPoint(x: 40.0, y: 20.0))
-    }
-    
-    func test_PrependTransform() {
-        let point = NSPoint(x: 10.0, y: 10.0)
-        
-        var identityTransform = AffineTransform()
-        identityTransform.prepend(identityTransform)
-        checkPointTransformation(NSAffineTransform(transform: identityTransform), point: point, expectedPoint: point)
-        
-        var translate = AffineTransform()
-        translate.translate(x: CGFloat(10.0), y: CGFloat())
-        
-        var scale = AffineTransform()
-        scale.scale(CGFloat(2.0))
-        
-        let scaleThenTranslate = NSAffineTransform(transform: translate)
-        scaleThenTranslate.prepend(scale)
-        checkPointTransformation(scaleThenTranslate, point: point, expectedPoint: NSPoint(x: 30.0, y: 20.0))
-    }
-    
-    
-    func test_TransformComposition() {
-        let origin = NSPoint(x: 10.0, y: 10.0)
-        let size = NSSize(width: 40.0, height: 20.0)
-        let rect = NSRect(origin: origin, size: size)
-        let center = NSPoint(x: rect.midX, y: rect.midY)
-        
-        let rotate = NSAffineTransform()
-        rotate.rotate(byDegrees: CGFloat(90.0))
-        
-        var moveOrigin = AffineTransform()
-        moveOrigin.translate(x: -center.x, y: -center.y)
-        
-        var moveBack = moveOrigin
-        moveBack.invert()
-        
-        let rotateAboutCenter = rotate
-        rotateAboutCenter.prepend(moveOrigin)
-        rotateAboutCenter.append(moveBack)
-        
-        // center of rect shouldn't move as its the rotation anchor
-        checkPointTransformation(rotateAboutCenter, point: center, expectedPoint: center)
-    }
-
-    func test_hashing() {
-        let a = AffineTransform(m11: 1.0, m12: 2.5, m21: 66.2, m22: 40.2, tX: -5.5, tY: 3.7)
-        let b = AffineTransform(m11: -55.66, m12: 22.7, m21: 1.5, m22: 0.0, tX: -22, tY: -33)
-        let c = AffineTransform(m11: 4.5, m12: 1.1, m21: 0.025, m22: 0.077, tX: -0.55, tY: 33.2)
-        let d = AffineTransform(m11: 7.0, m12: -2.3, m21: 6.7, m22: 0.25, tX: 0.556, tY: 0.99)
-        let e = AffineTransform(m11: 0.498, m12: -0.284, m21: -0.742, m22: 0.3248, tX: 12, tY: 44)
-
-        // Samples testing that every component is properly hashed
-        let x1 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0)
-        let x2 = AffineTransform(m11: 1.5, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0)
-        let x3 = AffineTransform(m11: 1.0, m12: 2.5, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0)
-        let x4 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.5, m22: 4.0, tX: 5.0, tY: 6.0)
-        let x5 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.5, tX: 5.0, tY: 6.0)
-        let x6 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.5, tY: 6.0)
-        let x7 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.5)
-
-        @inline(never)
-        func bridged(_ t: AffineTransform) -> NSAffineTransform {
-            return t as NSAffineTransform
-        }
-
-        let values: [[AffineTransform]] = [
-            [AffineTransform.identity, NSAffineTransform() as AffineTransform],
-            [a, bridged(a) as AffineTransform],
-            [b, bridged(b) as AffineTransform],
-            [c, bridged(c) as AffineTransform],
-            [d, bridged(d) as AffineTransform],
-            [e, bridged(e) as AffineTransform],
-            [x1], [x2], [x3], [x4], [x5], [x6], [x7]
-        ]
-        checkHashableGroups(values)
-    }
-
-    func test_rotation_compose() {
-        var t = AffineTransform.identity
-        t.translate(x: 1.0, y: 1.0)
-        t.rotate(byDegrees: 90)
-        t.translate(x: -1.0, y: -1.0)
-        let result = t.transform(NSPoint(x: 1.0, y: 2.0))
-        XCTAssertEqual(0.0, Double(result.x), accuracy: accuracyThreshold)
-        XCTAssertEqual(1.0, Double(result.y), accuracy: accuracyThreshold)
-    }
-
-    func test_translation_and_rotation() {
-        let point = NSPoint(x: 10, y: 10)
-        var translateThenRotate = AffineTransform(translationByX: 20, byY: -30)
-        translateThenRotate.rotate(byRadians: .pi / 2)
-        checkPointTransformation(NSAffineTransform(transform: translateThenRotate), point: point, expectedPoint: NSPoint(x: 10, y: -20))
-    }
-
-    func test_Equal() {
-        let transform = NSAffineTransform()
-        let transform1 = NSAffineTransform()
-        
-        XCTAssertEqual(transform1, transform)
-        XCTAssertFalse(transform === transform1)
-    }
-    
-    func test_NSCoding() {
-        let transformA = NSAffineTransform()
-        transformA.scale(by: 2)
-        let transformB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: transformA)) as! NSAffineTransform
-        XCTAssertEqual(transformA, transformB, "Archived then unarchived `NSAffineTransform` must be equal.")
+        XCTAssertEqual(
+            newSize.width, expectedSize.width,
+            accuracy: accuracyThreshold,
+            "Invalid width: \(message)",
+            file: file, line: line
+        )
+        XCTAssertEqual(
+            newSize.height, expectedSize.height,
+            accuracy: accuracyThreshold,
+            "Invalid height: \(message)",
+            file: file, line: line
+        )
     }
 }
 
-extension NSAffineTransform {
-    func transformRect(_ aRect: NSRect) -> NSRect {
-        return NSRect(origin: transform(aRect.origin), size: transform(aRect.size))
+// MARK: - Construction
+
+extension TestAffineTransform {
+    func testConstruction() {
+        let transform = AffineTransform(
+            m11: 1, m12: 2,
+            m21: 3, m22: 4,
+             tX: 5,  tY: 6
+        )
+        
+        XCTAssertEqual(transform.m11, 1)
+        XCTAssertEqual(transform.m12, 2)
+        XCTAssertEqual(transform.m21, 3)
+        XCTAssertEqual(transform.m22, 4)
+        XCTAssertEqual(transform.tX , 5)
+        XCTAssertEqual(transform.tY , 6)
+    }
+}
+
+// MARK: - Bridging
+
+extension TestAffineTransform {
+    func testBridging() {
+        let transform = AffineTransform(
+            m11: 1, m12: 2,
+            m21: 3, m22: 4,
+             tX: 5,  tY: 6
+        )
+        
+        let nsTransform = NSAffineTransform(transform: transform)
+        
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        XCTAssertEqual(transform, nsTransform.affineTransform)
+        #endif
+        
+        XCTAssertEqual(nsTransform as AffineTransform, transform)
+    }
+}
+
+// MARK: Equality
+
+extension TestAffineTransform {
+    func testEqualityHashing() {
+        let samples = [
+            AffineTransform(m11: 1.5, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0),
+            AffineTransform(m11: 1.0, m12: 2.5, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0),
+            AffineTransform(m11: 1.0, m12: 2.0, m21: 3.5, m22: 4.0, tX: 5.0, tY: 6.0),
+            AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.5, tX: 5.0, tY: 6.0),
+            AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.5, tY: 6.0),
+            AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.5),
+        ].map(NSAffineTransform.init)
+        
+        for (index, sample) in samples.enumerated() {
+            let otherSamples: [NSAffineTransform] = {
+                var samplesCopy = samples
+                samplesCopy.remove(at: index)
+                return samplesCopy
+            }()
+            
+            XCTAssertEqual(sample, sample)
+            XCTAssertEqual(sample.hashValue, sample.hashValue)
+            
+            for otherSample in otherSamples {
+                XCTAssertNotEqual(sample, otherSample)
+                XCTAssertNotEqual(sample.hashValue, otherSample.hashValue)
+            }
+        }
+    }
+}
+
+// MARK: - Vector Transformations
+
+extension TestAffineTransform {
+    func testVectorTransformations() {
+        
+        // To transform a given size with coordinates w and h,
+        // we do:
+        //
+        //   [ w' h' ] = [ w   h ]  *  [ m11  m12 ]
+        //                             [ m21  m22 ]
+        //
+        //             = [ w*m11+h*m21  w*m12+h*m22 ]
+        //
+        // To find the transformed point with coordinates x, y
+        // where x=w and y=h, we simply add the translation vector
+        // [tX, tX] to our previous result:
+        //
+        // [ p' y' ] = [ w' h' ] + [ tX  tY ]
+        //           = [ x*m11+y*m21+tX  x*m12+y*m22+tY ]
+        
+        check(
+            vector: Vector(dx: 10, dy: 20),
+            withTransform: AffineTransform(
+                m11: 1, m12: 2,
+                m21: 3, m22: 4,
+                 tX: 5,  tY: 6
+            ),
+        
+            // [ px*m11+py*m21+tX  px*m12+py*m22+tY ]
+            // [   10*1+20*3+5       10*2+20*4+6    ]
+            // [       75                106        ]
+            mapsToPoint: CGPoint(x: 75, y: 106),
+            
+            // [ px*m11+py*m21  px*m12+py*m22 ]
+            // [   10*1+20*3       10*2+20*4  ]
+            // [      70              100     ]
+            mapsToSize: CGSize(width: 70, height: 100)
+        )
+        
+        check(
+            vector: Vector(dx: 5, dy: 25),
+            withTransform: AffineTransform(
+                m11: 5, m12: 4,
+                m21: 3, m22: 2,
+                 tX: 1,  tY: 0
+            ),
+            
+            // [ px*m11+py*m21+tX  px*m12+py*m22+tY ]
+            // [   5*5+25*3+1         5*4+25*2+0    ]
+            // [      101                 70        ]
+            mapsToPoint: CGPoint(x: 101, y: 70),
+            
+            // [ px*m11+py*m21  px*m12+py*m22 ]
+            // [   5*5+25*3       5*4+25*2    ]
+            // [     100             70       ]
+            mapsToSize: CGSize(width: 100, height: 70)
+        )
+    }
+}
+
+// MARK: - Identity
+
+extension TestAffineTransform {
+    func testIdentityConstruction() {
+        // Check that the transform matrix is the identity:
+        // [ 1 0 0 ]
+        // [ 0 1 0 ]
+        // [ 0 0 1 ]
+        let identity = AffineTransform(
+            m11: 1, m12: 0,
+            m21: 0, m22: 1,
+             tX: 0,  tY: 0
+        )
+        
+        XCTAssertEqual(AffineTransform(), identity)
+        XCTAssertEqual(AffineTransform.identity, identity)
+        XCTAssertEqual(NSAffineTransform().affineTransform, identity)
+    }
+    
+    func testIdentity() {
+        check(
+            vector: Vector(dx: 25, dy: 10),
+            withTransform: .identity,
+            mapsToPoint: CGPoint(x: 25, y: 10),
+            mapsToSize: CGSize(width: 25, height: 10)
+        )
+    }
+}
+
+// MARK: - Translation
+
+extension TestAffineTransform {
+    func testTranslationConstruction() {
+        let translatedIdentity: AffineTransform = {
+            var transform = AffineTransform.identity
+            transform.translate(x: 15, y: 20)
+            return transform
+        }()
+        
+        let translation = AffineTransform(
+            translationByX: 15, byY: 20
+        )
+        
+        let nsTranslation: NSAffineTransform = {
+            let transform = NSAffineTransform()
+            transform.translateX(by: 15, yBy: 20)
+            return transform
+        }()
+        
+        XCTAssertEqual(translatedIdentity, translation)
+        XCTAssertEqual(nsTranslation.affineTransform, translation)
+    }
+    
+    func testTranslation() {
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
+                translationByX: 0, byY: 0
+            ),
+            mapsToPoint: CGPoint(x: 10, y: 10),
+            mapsToSize: CGSize(width: 10, height: 10)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
+                translationByX: 0, byY: 5
+            ),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 10)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
+                translationByX: 5, byY: 5
+            ),
+            mapsToPoint: CGPoint(x: 15, y: 15),
+            mapsToSize: CGSize(width: 10, height: 10)
+        )
+        
+        check(
+            vector: Vector(dx: -2, dy: -3),
+            // Translate by 5
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.translate(x: 2, y: 3)
+                transform.translate(x: 3, y: 2)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 3, y: 2),
+            mapsToSize: CGSize(width: -2, height: -3)
+        )
+    }
+}
+
+// MARK: - Scaling
+
+extension TestAffineTransform {
+    func testScalingConstruction() {
+        // Distinct x/y Components
+        
+        let scaledIdentity: AffineTransform = {
+            var transform = AffineTransform.identity
+            transform.scale(x: 15, y: 20)
+            return transform
+        }()
+        
+        let scaling = AffineTransform(
+            scaleByX: 15, byY: 20
+        )
+        
+        let nsScaling: NSAffineTransform = {
+            let transform = NSAffineTransform()
+            transform.scaleX(by: 15, yBy: 20)
+            return transform
+        }()
+        
+        XCTAssertEqual(scaledIdentity, scaling)
+        XCTAssertEqual(nsScaling.affineTransform, scaling)
+        
+        // Same x/y Components
+        
+        let differentScaledIdentity = AffineTransform(
+            scaleByX: 20, byY: 20
+        )
+        
+        let sameScaledIdentity: AffineTransform = {
+            var transform = AffineTransform.identity
+            transform.scale(20)
+            return transform
+        }()
+        
+        let sameScaling = AffineTransform(
+            scale: 20
+        )
+        
+        let sameNSScaling: NSAffineTransform = {
+            let transform = NSAffineTransform()
+            transform.scale(by: 20)
+            return transform
+        }()
+        
+        XCTAssertEqual(sameScaling, differentScaledIdentity)
+        
+        XCTAssertEqual(sameScaledIdentity, sameScaling)
+        XCTAssertEqual(sameNSScaling.affineTransform, sameScaling)
+    }
+
+    func testScaling() {
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
+                scaleByX: 1, byY: 0
+            ),
+            mapsToPoint: CGPoint(x: 10, y: 0),
+            mapsToSize: CGSize(width: 10, height: 0)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
+                scaleByX: 0.5, byY: 1
+            ),
+            mapsToPoint: CGPoint(x: 5, y: 10),
+            mapsToSize: CGSize(width: 5, height: 10)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: AffineTransform(
+                scaleByX: 0, byY: 2
+            ),
+            mapsToPoint: CGPoint(x: 0, y: 20),
+            mapsToSize: CGSize(width: 0, height: 20)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            // Scale by (2, 0)
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.scale(x: 4, y: 0)
+                transform.scale(x: 0.5, y: 1)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 20, y: 0),
+            mapsToSize: CGSize(width: 20, height: 0)
+        )
+    }
+}
+
+// MARK: - Rotation
+
+extension TestAffineTransform {
+    func testRotationConstruction() {
+        let baseRotation = AffineTransform(
+            rotationByRadians: .pi
+        )
+        
+        func assertPiRotation(
+            _ rotation: AffineTransform,
+            file: StaticString = #file,
+            line: UInt = #line
+        ) {
+            let vector = Vector(dx: 10, dy: 15)
+            
+            self.check(
+                vector: vector, withTransform: rotation,
+                mapsToPoint: baseRotation.transform(
+                    CGPoint(x: vector.dx, y: vector.dy)
+                ),
+                mapsToSize: baseRotation.transform(
+                    CGSize(width: vector.dx, height: vector.dy)
+                ),
+                file: file, line: line
+            )
+        }
+        
+        // Radians
+        
+        assertPiRotation({
+            var transform = AffineTransform.identity
+            transform.rotate(byRadians: .pi)
+            return transform
+        }())
+        
+        assertPiRotation({
+            let transform = NSAffineTransform()
+            transform.rotate(byRadians: .pi)
+            return transform
+        }() as NSAffineTransform as AffineTransform)
+        
+        // Degrees
+        
+        assertPiRotation({
+            var transform = AffineTransform.identity
+            transform.rotate(byDegrees: 180)
+            return transform
+        }())
+        
+        assertPiRotation(AffineTransform(
+            rotationByDegrees: 180
+        ))
+        
+        assertPiRotation({
+            let transform = NSAffineTransform()
+            transform.rotate(byDegrees: 180)
+            return transform
+        }() as NSAffineTransform as AffineTransform)
+    }
+    
+    func testRotation() {
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            withTransform: AffineTransform(rotationByDegrees: 0),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            withTransform: AffineTransform(rotationByDegrees: 1080),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
+        )
+        
+        // Counter-clockwise rotation
+        check(
+            vector: Vector(dx: 15, dy: 10),
+            withTransform: AffineTransform(rotationByRadians: .pi / 2),
+            mapsToPoint: CGPoint(x: -10, y: 15),
+            mapsToSize: CGSize(width: -10, height: 15)
+        )
+        
+        // Clockwise rotation
+        check(
+            vector: Vector(dx: 15, dy: 10),
+            withTransform: AffineTransform(rotationByDegrees: -90),
+            mapsToPoint: CGPoint(x: 10, y: -15),
+            mapsToSize: CGSize(width: 10, height: -15)
+        )
+        
+        // Reflect about origin
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            withTransform: AffineTransform(rotationByRadians: .pi),
+            mapsToPoint: CGPoint(x: -10, y: -15),
+            mapsToSize: CGSize(width: -10, height: -15)
+        )
+        
+        // Composed reflection about origin
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            // Rotate by 180º
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.rotate(byDegrees: 90)
+                transform.rotate(byDegrees: 90)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: -10, y: -15),
+            mapsToSize: CGSize(width: -10, height: -15)
+        )
+    }
+}
+
+// MARK: - Permutations
+
+extension TestAffineTransform {
+    func testTranslationScaling() {
+        check(
+            vector: Vector(dx: 1, dy: 3),
+            // Translate by (2, 0) then scale by (5, -5)
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.translate(x: 2, y: 0)
+                transform.scale(x: 5, y: -5)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 15, y: -15),
+            // [  5   0 ]
+            // [  0  -5 ]
+            // [ 10   0 ]
+            mapsToSize: CGSize(width: 5, height: -15)
+        )
+        
+        check(
+            vector: Vector(dx: 3, dy: 1),
+            // Scale by (-5, 5) then scale by (0, 10)
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.scale(x: -5, y: 5)
+                transform.translate(x: 0, y: 10)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: -15, y: 15),
+            mapsToSize: CGSize(width: -15, height: 5)
+        )
+    }
+    
+    func testTranslationRotation() {
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            // Translate by (20, -5) then rotate by 90º
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.translate(x: 20, y: -5)
+                transform.rotate(byDegrees: 90)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: -5, y: 30),
+            mapsToSize: CGSize(width: -10, height: 10)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            // Rotate by 180º and then translate by (20, 15)
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.rotate(byDegrees: 180)
+                transform.translate(x: 20, y: 15)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 10, y: 5),
+            mapsToSize: CGSize(width: -10, height: -10)
+        )
+    }
+    
+    func testScalingRotation() {
+        check(
+            vector: Vector(dx: 20, dy: 5),
+            // Scale by (0.5, 3) then rotate by -90º
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.scale(x: 0.5, y: 3)
+                transform.rotate(byDegrees: -90)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 15, y: -10),
+            mapsToSize: CGSize(width: 15, height: -10)
+        )
+        
+        check(
+            vector: Vector(dx: 20, dy: 5),
+            // Rotate by -90º the scale by (0.5, 3)
+            withTransform: {
+                var transform = AffineTransform.identity
+                
+                transform.rotate(byDegrees: -90)
+                transform.scale(x: 3, y: -0.5)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 15, y: 10),
+            mapsToSize: CGSize(width: 15, height: 10)
+        )
+    }
+}
+
+// MARK: - Inversion
+
+extension TestAffineTransform {
+    func testInversion() {
+        let transforms = [
+            AffineTransform(translationByX: -30, byY: 40),
+            AffineTransform(rotationByDegrees: 30),
+            AffineTransform(scaleByX: 20, byY: -10),
+        ]
+        
+        let composeTransform: AffineTransform = {
+            var transform = AffineTransform.identity
+            
+            for component in transforms {
+                transform.append(component)
+            }
+            
+            return transform
+        }()
+        
+        let recoveredIdentity: AffineTransform = {
+            var transform = composeTransform
+            
+            // Append inverse transformations in reverse order
+            for component in transforms.reversed() {
+                transform.append(component.inverted()!)
+            }
+            
+            return transform
+        }()
+        
+        check(
+            vector: Vector(dx: 10, dy: 10),
+            withTransform: recoveredIdentity,
+            mapsToPoint: CGPoint(x: 10, y: 10),
+            mapsToSize: CGSize(width: 10, height: 10)
+        )
+    }
+}
+
+// MARK: - Concatenation
+
+extension TestAffineTransform {
+    func testPrependTransform() {
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            withTransform: {
+                var transform = AffineTransform.identity
+                transform.prepend(.identity)
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            // Scale by 2 then translate by (10, 0)
+            withTransform: {
+                let scale = AffineTransform(scale: 2)
+                
+                var transform = AffineTransform(
+                    translationByX: 10, byY: 0
+                )
+                transform.prepend(scale)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 30, y: 30),
+            mapsToSize: CGSize(width: 20, height: 30)
+        )
+    }
+    
+    func testAppendTransform() {
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            withTransform: {
+                var transform = AffineTransform.identity
+                transform.append(.identity)
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 10, y: 15),
+            mapsToSize: CGSize(width: 10, height: 15)
+        )
+        
+        check(
+            vector: Vector(dx: 10, dy: 15),
+            // Translate by (10, 0) then scale by 2
+            withTransform: {
+                let scale = AffineTransform(scale: 2)
+                
+                var transform = AffineTransform(
+                    translationByX: 10, byY: 0
+                )
+                transform.append(scale)
+                
+                return transform
+            }(),
+            mapsToPoint: CGPoint(x: 40, y: 30),
+            mapsToSize: CGSize(width: 20, height: 30)
+        )
+    }
+}
+
+// MARK: - Coding
+
+extension TestAffineTransform {
+    func testNSCoding() throws {
+        let transform = AffineTransform(
+            m11: 1, m12: 2,
+            m21: 3, m22: 4,
+             tX: 5,  tY: 6
+        )
+        
+        let encodedData = try JSONEncoder().encode(transform)
+        
+        let encodedString = String(
+            data: encodedData, encoding: .utf8
+        )
+        
+        let commaSeparatedNumbers = (1...6)
+            .map(String.init)
+            .joined(separator: ",")
+        
+        XCTAssertEqual(
+            encodedString, "[\(commaSeparatedNumbers)]",
+            "Invalid coding representation"
+        )
+        
+        let recovered = try JSONDecoder().decode(
+            AffineTransform.self, from: encodedData
+        )
+        
+        XCTAssertEqual(
+            transform, recovered,
+            "Encoded and then decoded transform does not equal original"
+        )
+        
+        let nsTransform = transform as NSAffineTransform
+        let nsRecoveredTransform = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: nsTransform)) as! NSAffineTransform
+        
+        XCTAssertEqual(
+            nsTransform, nsRecoveredTransform,
+            "Archived then unarchived `NSAffineTransform` must be equal."
+        )
     }
 }
