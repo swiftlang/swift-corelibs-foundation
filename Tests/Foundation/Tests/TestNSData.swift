@@ -20,7 +20,7 @@ import CoreFoundation
 class TestNSData: LoopbackServerTest {
     
     class AllOnesImmutableData : NSData {
-        private var _length : Int
+        private var __length : Int
         var _pointer : UnsafeMutableBufferPointer<UInt8>? {
             willSet {
                 if let p = _pointer { free(p.baseAddress) }
@@ -28,7 +28,7 @@ class TestNSData: LoopbackServerTest {
         }
         
         init(length: Int) {
-            _length = length
+            __length = length
             super.init()
         }
         
@@ -45,7 +45,7 @@ class TestNSData: LoopbackServerTest {
         
         override var length : Int {
             get {
-                return _length
+                return __length
             }
         }
         
@@ -78,7 +78,7 @@ class TestNSData: LoopbackServerTest {
     
     class AllOnesData : NSMutableData {
         
-        private var _length : Int
+        private var __length : Int
         var _pointer : UnsafeMutableBufferPointer<UInt8>? {
             willSet {
                 if let p = _pointer { free(p.baseAddress) }
@@ -86,7 +86,7 @@ class TestNSData: LoopbackServerTest {
         }
         
         override init(length: Int) {
-            _length = length
+            __length = length
             super.init()
         }
         
@@ -103,22 +103,22 @@ class TestNSData: LoopbackServerTest {
         
         override var length : Int {
             get {
-                return _length
+                return __length
             }
             set {
                 if let ptr = _pointer {
                     // Copy the data to our new length buffer
                     let newBuffer = malloc(newValue)!
-                    if newValue <= _length {
+                    if newValue <= __length {
                         memmove(newBuffer, ptr.baseAddress!, newValue)
-                    } else if newValue > _length {
-                        memmove(newBuffer, ptr.baseAddress!, _length)
-                        memset(newBuffer + _length, 1, newValue - _length)
+                    } else if newValue > __length {
+                        memmove(newBuffer, ptr.baseAddress!, __length)
+                        memset(newBuffer + __length, 1, newValue - __length)
                     }
                     let bytePtr = newBuffer.bindMemory(to: UInt8.self, capacity: newValue)
                     _pointer = UnsafeMutableBufferPointer(start: bytePtr, count: newValue)
                 }
-                _length = newValue
+                __length = newValue
             }
         }
         
@@ -138,7 +138,7 @@ class TestNSData: LoopbackServerTest {
         }
         
         override var mutableBytes: UnsafeMutableRawPointer {
-            let newBufferLength = _length
+            let newBufferLength = __length
             let newBuffer = malloc(newBufferLength)
             if let ptr = _pointer {
                 // Copy the existing data to the new box, then return its pointer
@@ -150,7 +150,7 @@ class TestNSData: LoopbackServerTest {
             let bytePtr = newBuffer!.bindMemory(to: UInt8.self, capacity: newBufferLength)
             let result = UnsafeMutableBufferPointer(start: bytePtr, count: newBufferLength)
             _pointer = result
-            _length = newBufferLength
+            __length = newBufferLength
             return UnsafeMutableRawPointer(result.baseAddress!)
         }
         
