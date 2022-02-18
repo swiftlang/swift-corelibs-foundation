@@ -340,7 +340,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return NSMutableData(bytes: UnsafeMutableRawPointer(mutating: bytes), length: length, copy: true, deallocator: nil)
     }
     
-    private func byteDescription(limit: Int? = nil) -> String {
+    internal func byteDescription(limit: Int? = nil) -> String {
         var s = ""
         var i = 0
         while i < self.length {
