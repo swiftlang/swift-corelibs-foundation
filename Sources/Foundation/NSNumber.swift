@@ -594,7 +594,7 @@ extension NSNumber : ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, Exp
 
 }
 
-private struct CFSInt128Struct {
+internal struct CFSInt128Struct {
     var high: Int64
     var low: UInt64
 }
@@ -606,8 +606,8 @@ fileprivate func cast<T, U>(_ t: T) -> U {
 open class NSNumber : NSValue {
     typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
-    private var _base = _CFInfo(typeID: CFNumberGetTypeID())
-    private var _pad: UInt64 = 0
+    internal var _base = _CFInfo(typeID: CFNumberGetTypeID())
+    internal var _pad: UInt64 = 0
 
     internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
@@ -903,7 +903,7 @@ open class NSNumber : NSValue {
         return .init(truncatingIfNeeded: value.low)
     }
 
-    private var int128Value: CFSInt128Struct {
+    internal var int128Value: CFSInt128Struct {
         var value = CFSInt128Struct(high: 0, low: 0)
         CFNumberGetValue(_cfObject, kCFNumberSInt128Type, &value)
         return value

@@ -14,6 +14,28 @@
 import Dispatch
 #endif
 
+fileprivate func getDescription(of object: Any) -> String? {
+    switch object {
+    case let nsArray as NSArray:
+        return nsArray.description(withLocale: nil, indent: 1)
+    case let nsDecimalNumber as NSDecimalNumber:
+        return nsDecimalNumber.description(withLocale: nil)
+    case let nsDate as NSDate:
+        return nsDate.description(with: nil)
+    case let nsOrderedSet as NSOrderedSet:
+        return nsOrderedSet.description(withLocale: nil)
+    case let nsSet as NSSet:
+        return nsSet.description(withLocale: nil)
+    case let nsDictionary as NSDictionary:
+        return nsDictionary.description(withLocale: nil)
+    case let hashableObject as Dictionary<AnyHashable, Any>:
+        return hashableObject._nsObject.description(withLocale: nil, indent: 1)
+    default:
+        return nil
+    }
+}
+
+
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByDictionaryLiteral {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
     internal var _storage: [NSObject: AnyObject]
@@ -299,27 +321,6 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return description(withLocale: nil)
     }
     
-    private func getDescription(of object: Any) -> String? {
-        switch object {
-        case let nsArray as NSArray:
-            return nsArray.description(withLocale: nil, indent: 1)
-        case let nsDecimalNumber as NSDecimalNumber:
-            return nsDecimalNumber.description(withLocale: nil)
-        case let nsDate as NSDate:
-            return nsDate.description(with: nil)
-        case let nsOrderedSet as NSOrderedSet:
-            return nsOrderedSet.description(withLocale: nil)
-        case let nsSet as NSSet:
-            return nsSet.description(withLocale: nil)
-        case let nsDictionary as NSDictionary:
-            return nsDictionary.description(withLocale: nil)
-        case let hashableObject as Dictionary<AnyHashable, Any>:
-            return hashableObject._nsObject.description(withLocale: nil, indent: 1)
-        default:
-            return nil
-        }
-    }
-
     open var descriptionInStringsFileFormat: String {
         var lines = [String]()
         for key in self.allKeys {
