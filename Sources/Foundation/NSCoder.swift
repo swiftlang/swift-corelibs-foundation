@@ -745,7 +745,7 @@ open class NSCoder : NSObject {
         _hasFailed = true
     }
     
-    internal private(set) var _hasFailed = false
+    internal var _hasFailed = false
     
     open internal(set) var decodingFailurePolicy: NSCoder.DecodingFailurePolicy = .raiseException
     

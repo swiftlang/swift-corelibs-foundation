@@ -62,11 +62,11 @@ fileprivate extension String {
 
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet
-    private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
-    private var _hashValue = UInt(0) // CFHashCode
-    private var _buffer: UnsafeMutableRawPointer? = nil
-    private var _length = Int(0) // CFIndex
-    private var _annex: UnsafeMutableRawPointer? = nil
+    internal var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
+    internal var _hashValue = UInt(0) // CFHashCode
+    internal var _buffer: UnsafeMutableRawPointer? = nil
+    internal var _length = Int(0) // CFIndex
+    internal var _annex: UnsafeMutableRawPointer? = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)

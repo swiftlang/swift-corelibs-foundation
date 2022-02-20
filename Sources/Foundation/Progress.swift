@@ -30,14 +30,14 @@ import Dispatch
  */
 open class Progress : NSObject {
     
-    private weak var _parent : Progress?
-    private var _children : Set<Progress>
-    private var _selfFraction : _ProgressFraction
-    private var _childFraction : _ProgressFraction
-    private var _userInfo : [ProgressUserInfoKey : Any]
+    internal weak var _parent : Progress?
+    internal var _children : Set<Progress>
+    internal var _selfFraction : _ProgressFraction
+    internal var _childFraction : _ProgressFraction
+    internal var _userInfo : [ProgressUserInfoKey : Any]
     
     // This is set once, but after initialization
-    private var _portionOfParent : Int64
+    internal var _portionOfParent : Int64
     
     static private var _tsdKey = "_Foundation_CurrentProgressKey"
     
@@ -167,7 +167,7 @@ open class Progress : NSObject {
         }
     }
     
-    private func _setParent(_ parent: Progress, portion: Int64) {
+    internal func _setParent(_ parent: Progress, portion: Int64) {
         _parent = parent
         _portionOfParent = portion
         
@@ -416,18 +416,18 @@ open class Progress : NSObject {
     // MARK: -
     // MARK: Implementation of unit counts
     
-    private var _overallFraction : _ProgressFraction {
+    internal var _overallFraction : _ProgressFraction {
         return _selfFraction + _childFraction
     }
     
-    private func _addCompletedUnitCount(_ unitCount : Int64) {
+    internal func _addCompletedUnitCount(_ unitCount : Int64) {
         let old = _overallFraction
         _selfFraction.completed += unitCount
         let new = _overallFraction
         _updateFractionCompleted(from: old, to: new)
     }
 
-    private func _updateFractionCompleted(from: _ProgressFraction, to: _ProgressFraction) {
+    internal func _updateFractionCompleted(from: _ProgressFraction, to: _ProgressFraction) {
         if from != to {
             _parent?._updateChild(self, from: from, to: to, portion: _portionOfParent)
         }

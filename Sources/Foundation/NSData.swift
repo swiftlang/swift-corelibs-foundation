@@ -56,7 +56,7 @@ extension NSData {
     }
 }
 
-private final class _NSDataDeallocator {
+internal final class _NSDataDeallocator {
     var handler: (UnsafeMutableRawPointer, Int) -> Void = {_,_ in }
 }
 
@@ -70,12 +70,12 @@ private let __kCFDontDeallocate: CFOptionFlags = 4
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
 
-    private var _base = _CFInfo(typeID: CFDataGetTypeID())
-    private var _length: Int = 0 // CFIndex
-    private var _capacity: Int = 0 // CFIndex
-    private var _deallocator: UnsafeMutableRawPointer? = nil // for CF only
-    private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
-    private var _bytes: UnsafeMutablePointer<UInt8>? = nil
+    internal var _base = _CFInfo(typeID: CFDataGetTypeID())
+    internal var _length: Int = 0 // CFIndex
+    internal var _capacity: Int = 0 // CFIndex
+    internal var _deallocator: UnsafeMutableRawPointer? = nil // for CF only
+    internal var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
+    internal var _bytes: UnsafeMutablePointer<UInt8>? = nil
 
     internal final var _cfObject: CFType {
         if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
@@ -112,7 +112,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
-    fileprivate init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+    internal init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         super.init()
         _init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
@@ -340,7 +340,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return NSMutableData(bytes: UnsafeMutableRawPointer(mutating: bytes), length: length, copy: true, deallocator: nil)
     }
     
-    private func byteDescription(limit: Int? = nil) -> String {
+    internal func byteDescription(limit: Int? = nil) -> String {
         var s = ""
         var i = 0
         while i < self.length {

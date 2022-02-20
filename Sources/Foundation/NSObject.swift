@@ -367,7 +367,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     // Please note:
     // the following methods are not overridable in swift-corelibs-foundation.
     
-    private class var nsObjectSuperclass: NSObject.Type? {
+    internal class var nsObjectSuperclass: NSObject.Type? {
         // Pretend that {Swift,}Foundation.NSObject is the top of the class hierarchy.
         // On Darwin, avoids dipping into the class hierarchy that exists above this class,
         // which is ultimately rooted in the ObjC NSObject class.
