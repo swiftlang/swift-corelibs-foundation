@@ -176,9 +176,19 @@ if(NOT BUILD_SHARED_LIBS)
   get_filename_component(icu_i18n_dir "${icui18n_path}" DIRECTORY)
   string(REPLACE "lib" "" icu_i18n_basename "${icu_i18n_basename}")
 
+  get_target_property(icuuc_path ICU::uc IMPORTED_LOCATION)
+  get_filename_component(icu_uc_basename "${icuuc_path}" NAME_WE)
+  string(REPLACE "lib" "" icu_uc_basename "${icu_uc_basename}")
+
+  get_target_property(icudata_path ICU::data IMPORTED_LOCATION)
+  get_filename_component(icu_data_basename "${icudata_path}" NAME_WE)
+  string(REPLACE "lib" "" icu_data_basename "${icu_data_basename}")
+
   target_compile_options(Foundation
     PRIVATE
       "SHELL:-Xfrontend -public-autolink-library -Xfrontend ${icu_i18n_basename}
+             -Xfrontend -public-autolink-library -Xfrontend ${icu_uc_basename}
+             -Xfrontend -public-autolink-library -Xfrontend ${icu_data_basename}
              -Xfrontend -public-autolink-library -Xfrontend BlocksRuntime")
   # ICU libraries are linked by absolute library path in this project,
   # but -public-autolink-library forces to resolve library path by
