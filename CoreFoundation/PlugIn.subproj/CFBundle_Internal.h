@@ -458,8 +458,29 @@ static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
 #else
 
 static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
-    #warning This platform does not have a way to go back from an open file descriptor to a path.
-    return false;
+    HANDLE hFile = _get_osfhandle(fd);
+    if (hFile == INVALID_HANDLE_VALUE)
+      return false;
+
+    DWORD dwLength = GetFinalPathNameByHandleW(hFile, NULL, 0, 0);
+
+    WCHAR *wszPath = (WCHAR *)malloc(dwLength);
+    if (wszPath == NULL)
+      return false;
+
+    if (GetFinalPathNameByHandleW(hFile, wszPath, dwLength, 0) != dwLength - 1) {
+      free(wszPath);
+      return false;
+    }
+
+    CFStringRef location =
+        CFStringCreateWithBytes(kCFAllocatorSystemDefault,
+                                (const UInt8 *)wszPath, dwLength - 1,
+                                kCFStringEncodingUTF16, false);
+    path = strdup(CFStringGetCStringPtr(location, kCFStringEncodingUTF8));
+    CFRelease(location);
+    free(wszPath);
+    return true;
 }
 
 #endif
