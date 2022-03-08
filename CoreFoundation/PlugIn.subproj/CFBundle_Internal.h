@@ -455,7 +455,7 @@ static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
     return true;
 }
 
-#else
+#elif TARGET_OS_WIN32
 
 static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
     HANDLE hFile = _get_osfhandle(fd);
@@ -481,6 +481,13 @@ static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
     CFRelease(location);
     free(wszPath);
     return true;
+}
+
+#else
+
+static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
+#warning This platform does not have a way to go back from an open file descriptor to a path.
+    return false;
 }
 
 #endif
