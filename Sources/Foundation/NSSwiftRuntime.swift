@@ -14,20 +14,17 @@
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 @_exported import Darwin
-#elseif os(Linux) || os(Android) || CYGWIN || os(OpenBSD)
+#elseif os(Linux) || os(Android) || os(Cygwin) || os(OpenBSD)
 @_exported import Glibc
 #elseif os(WASI)
 @_exported import WASILibc
 #elseif os(Windows)
 @_exported import CRT
+@_exported import WinSDK.core
 #endif
 
 #if !os(WASI)
 @_exported import Dispatch
-#endif
-
-#if os(Windows)
-import WinSDK
 #endif
 
 #if !_runtime(_ObjC)

@@ -10,6 +10,8 @@
 @_implementationOnly import CoreFoundation
 
 #if os(Windows)
+import struct WinSDK.FILETIME
+
 internal func joinPath(prefix: String, suffix: String) -> String {
     var pszPath: PWSTR?
 
@@ -1035,4 +1037,8 @@ extension FileManager.NSPathDirectoryEnumerator {
 
 }
 
+// FIXME: This is a workaround for CoreFoundation/WinSDK overload
+// of the same constants with different types.  We should prevent
+// CoreFoundation from re-exporting them.
+fileprivate let INVALID_FILE_ATTRIBUTES = DWORD(bitPattern: -1)
 #endif
