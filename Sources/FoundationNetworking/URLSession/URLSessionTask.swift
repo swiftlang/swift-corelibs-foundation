@@ -115,7 +115,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var _protocolStorage: ProtocolState = .toBeCreated
     internal    var _lastCredentialUsedFromStorageDuringAuthentication: (protectionSpace: URLProtectionSpace, credential: URLCredential)?
     
-    private var _protocolClass: URLProtocol.Type {
+    private var _protocolClass: URLProtocol.Type? {
         guard let request = currentRequest else { fatalError("A protocol class was requested, but we do not have a current request") }
         let protocolClasses = session.configuration.protocolClasses ?? []
         if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
@@ -128,8 +128,7 @@ open class URLSessionTask : NSObject, NSCopying {
                 return urlProtocol
             }
         }
-        
-        fatalError("Couldn't find a protocol appropriate for request: \(request)")
+        return nil
     }
     
     func _getProtocol(_ callback: @escaping (URLProtocol?) -> Void) {
@@ -137,6 +136,11 @@ open class URLSessionTask : NSObject, NSCopying {
         
         switch _protocolStorage {
         case .toBeCreated:
+            guard let protocolClass = self._protocolClass else {
+                _protocolLock.unlock() // Balances above ⬆
+                callback(nil)
+                break
+            }
             if let cache = session.configuration.urlCache, let me = self as? URLSessionDataTask {
                 let bag: Bag<(URLProtocol?) -> Void> = Bag()
                 bag.values.append(callback)
@@ -145,11 +149,11 @@ open class URLSessionTask : NSObject, NSCopying {
                 _protocolLock.unlock() // Balances above ⬆
                 
                 cache.getCachedResponse(for: me) { (response) in
-                    let urlProtocol = self._protocolClass.init(task: self, cachedResponse: response, client: nil)
+                    let urlProtocol = protocolClass.init(task: self, cachedResponse: response, client: nil)
                     self._satisfyProtocolRequest(with: urlProtocol)
                 }
             } else {
-                let urlProtocol = _protocolClass.init(task: self, cachedResponse: nil, client: nil)
+                let urlProtocol = protocolClass.init(task: self, cachedResponse: nil, client: nil)
                 _protocolStorage = .existing(urlProtocol)
                 _protocolLock.unlock() // Balances above ⬆
                 
