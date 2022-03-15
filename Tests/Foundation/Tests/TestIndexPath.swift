@@ -287,6 +287,15 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(ip4.count, 2)
         XCTAssertEqual(ip4[0], 2)
         XCTAssertEqual(ip4[1], 3)
+
+        let ip5 = ip3[1...]
+        XCTAssertEqual(ip5.count, 2)
+        XCTAssertEqual(ip5[0], 3)
+        XCTAssertEqual(ip5[1], 4)
+
+        let ip6 = ip3[2...]
+        XCTAssertEqual(ip6.count, 1)
+        XCTAssertEqual(ip6[0], 4)
     }
     
     func testAppending() {
