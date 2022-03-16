@@ -186,3 +186,6 @@ xctest_discover_tests(TestFoundation
                         ${CMAKE_BINARY_DIR}/TestFoundation.app
                       DISCOVERY_TIMEOUT
                         10
+                      PROPERTIES
+                        ENVIRONMENT
+                          LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/TestFoundation.app:$<TARGET_LINKER_FILE_DIR:XCTest>:$<TARGET_LINKER_FILE_DIR:dispatch>:$<TARGET_LINKER_FILE_DIR:swiftDispatch>:$<TARGET_LINKER_FILE_DIR:BlocksRuntime>)
