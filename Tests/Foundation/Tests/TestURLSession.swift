@@ -1819,6 +1819,8 @@ class TestURLSession: LoopbackServerTest {
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
             ("test_cancelTask", test_cancelTask),
+            ("test_unhandledURLProtocol", test_unhandledURLProtocol),
+            ("test_requestToNilURL", test_requestToNilURL),
             /* ⚠️ */ ("test_suspendResumeTask", testExpectedToFail(test_suspendResumeTask, "Occasionally breaks")),
             ("test_taskTimeout", test_taskTimeout),
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
