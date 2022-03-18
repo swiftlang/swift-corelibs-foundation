@@ -1254,7 +1254,7 @@ extension NSString {
         let length = self.length
         var numBytes = 0
         let theRange = NSRange(location: 0, length: length)
-        if !getBytes(nil, maxLength: Int.max - 1, usedLength: &numBytes, encoding: enc, options: [], range: theRange, remaining: nil) {
+        if !getBytes(nil, maxLength: Int.max - 1, usedLength: &numBytes, encoding: enc, options: [.externalRepresentation], range: theRange, remaining: nil) {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteInapplicableStringEncoding.rawValue, userInfo: [
                 NSURLErrorKey: dest,
             ])
@@ -1263,7 +1263,7 @@ extension NSString {
         // The getBytes:... call should hopefully not fail, given it succeeded above, but check anyway (mutable string changing behind our back?)
         var used = 0
         try mData.withUnsafeMutableBytes { (mutableRawBuffer: UnsafeMutableRawBufferPointer) -> Void in
-            if !getBytes(mutableRawBuffer.baseAddress, maxLength: numBytes, usedLength: &used, encoding: enc, options: [], range: theRange, remaining: nil) {
+            if !getBytes(mutableRawBuffer.baseAddress, maxLength: numBytes, usedLength: &used, encoding: enc, options: [.externalRepresentation], range: theRange, remaining: nil) {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [
                     NSURLErrorKey: dest,
                 ])
