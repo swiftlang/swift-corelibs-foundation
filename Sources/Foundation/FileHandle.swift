@@ -240,7 +240,7 @@ open class FileHandle : NSObject {
             let szFileSize: UInt64 = (UInt64(fiFileInfo.nFileSizeHigh) << 32) | UInt64(fiFileInfo.nFileSizeLow << 0)
             let szMapSize: UInt64 = Swift.min(UInt64(length), szFileSize)
             let pData: UnsafeMutableRawPointer =
-                MapViewOfFile(hMapping, DWORD(FILE_MAP_READ), 0, 0, szMapSize)
+                MapViewOfFile(hMapping, DWORD(FILE_MAP_READ), 0, 0, SIZE_T(szMapSize))
 
             return NSData.NSDataReadResult(bytes: pData, length: Int(szMapSize)) { buffer, length in
               if !UnmapViewOfFile(buffer) {
@@ -883,7 +883,7 @@ extension FileHandle {
                     var fileInfo = BY_HANDLE_FILE_INFORMATION()
                     GetFileInformationByHandle(self._handle, &fileInfo)
                     if fileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-                        translatedError = ERROR_DIRECTORY_NOT_SUPPORTED
+                        translatedError = Int32(ERROR_DIRECTORY_NOT_SUPPORTED)
                     }
                 }
                 userInfo["NSFileHandleError"] = Int(translatedError)

@@ -239,7 +239,11 @@ fileprivate extension sockaddr_in6 {
         self.init(settingLength: ())
         self.sin6_family = sa_family_t(AF_INET6)
         self.sin6_port = in_port_t(port)
+#if os(Windows)
+        self.sin6_flowinfo = ULONG(flowInfo)
+#else
         self.sin6_flowinfo = flowInfo
+#endif
         withUnsafeMutableBytes(of: &self.sin6_addr) { (buffer) in
             withUnsafeBytes(of: in6Addr) { buffer.copyMemory(from: $0) }
         }

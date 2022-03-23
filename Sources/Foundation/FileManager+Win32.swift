@@ -584,7 +584,7 @@ extension FileManager {
 
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
           if try !FileManager.default._fileSystemRepresentation(withPath: path, {
-            SetFileAttributesW($0, faAttributes.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY))
+            SetFileAttributesW($0, faAttributes.dwFileAttributes & ~DWORD(FILE_ATTRIBUTE_READONLY))
           }) {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
           }
@@ -634,7 +634,7 @@ extension FileManager {
                     itemPath = "\(currentDir)\\\(file)"
                     if ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
                       if try !FileManager.default._fileSystemRepresentation(withPath: itemPath, {
-                        SetFileAttributesW($0, ffd.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY))
+                        SetFileAttributesW($0, ffd.dwFileAttributes & ~DWORD(FILE_ATTRIBUTE_READONLY))
                       }) {
                         throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
                       }
@@ -776,11 +776,11 @@ extension FileManager {
         statInfo.st_gid = 0
         statInfo.st_atime = info.ftLastAccessTime.time_t
         statInfo.st_ctime = info.ftCreationTime.time_t
-        statInfo.st_dev = info.dwVolumeSerialNumber
+        statInfo.st_dev = _dev_t(info.dwVolumeSerialNumber)
         // The inode, and therefore st_ino, has no meaning in the FAT, HPFS, or
         // NTFS file systems. -- docs.microsoft.com
         statInfo.st_ino = 0
-        statInfo.st_rdev = info.dwVolumeSerialNumber
+        statInfo.st_rdev = _dev_t(info.dwVolumeSerialNumber)
 
         let isReparsePoint = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) != 0
         let isDir = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0
@@ -799,7 +799,7 @@ extension FileManager {
         guard info.nFileSizeHigh == 0 else {
             throw _NSErrorWithErrno(EOVERFLOW, reading: true, path: path)
         }
-        statInfo.st_size = Int32(info.nFileSizeLow)
+        statInfo.st_size = _off_t(info.nFileSizeLow)
         // Uid is always 0 on Windows systems
         statInfo.st_uid = 0
 
