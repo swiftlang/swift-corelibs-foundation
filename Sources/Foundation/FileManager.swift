@@ -431,7 +431,7 @@ open class FileManager : NSObject {
 
                     let hiddenAttrs = isHidden
                         ? attrs | DWORD(FILE_ATTRIBUTE_HIDDEN)
-                        : attrs & DWORD(bitPattern: ~FILE_ATTRIBUTE_HIDDEN)
+                        : attrs & ~DWORD(FILE_ATTRIBUTE_HIDDEN)
                     guard SetFileAttributesW(fsRep, hiddenAttrs) else {
                       throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
                     }

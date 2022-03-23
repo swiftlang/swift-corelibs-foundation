@@ -447,7 +447,7 @@ open class Process: NSObject {
       }
 
       var value: u_long = 1
-      if ioctlsocket(first, FIONBIO, &value) == SOCKET_ERROR {
+      if ioctlsocket(first, CLong(FIONBIO), &value) == SOCKET_ERROR {
         closesocket(first)
         return (first: INVALID_SOCKET, second: INVALID_SOCKET)
       }
@@ -638,7 +638,7 @@ open class Process: NSObject {
                 process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
                 process._terminationReason = .uncaughtSignal
             } else {
-                process._terminationStatus = Int32(bitPattern: dwExitCode)
+                process._terminationStatus = Int32(bitPattern: UInt32(dwExitCode))
                 process._terminationReason = .exit
             }
 
