@@ -82,10 +82,8 @@ internal class NSSpecialValue : NSValue {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         let specialFlags = aDecoder.decodeInteger(forKey: "NS.special")
-        guard let specialType = NSSpecialValue._typeFromFlags(specialFlags) else {
-            return nil
-        }
-        guard let specialValue = specialType.init(coder: aDecoder) else {
+        guard let specialType = NSSpecialValue._typeFromFlags(specialFlags),
+              let specialValue = specialType.init(coder: aDecoder) else {
             return nil
         }
         self.init(specialValue)
