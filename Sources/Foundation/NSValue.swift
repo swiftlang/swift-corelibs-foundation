@@ -8,89 +8,13 @@
 //
 
 open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
-
-    private static var SideTable = [ObjectIdentifier : NSValue]()
-    private static var SideTableLock = NSLock()
-
-    internal override init() {
-        super.init()
-        // on Darwin [NSValue new] returns nil
-    }
-    
-    // because we cannot support the class cluster pattern owing to a lack of
-    // factory initialization methods, we maintain a sidetable mapping instances
-    // of NSValue to NSConcreteValue
-    internal var _concreteValue: NSValue {
-        get {
-            return NSValue.SideTableLock.synchronized {
-                return NSValue.SideTable[ObjectIdentifier(self)]!
-            }
-        }
-        set {
-            NSValue.SideTableLock.synchronized {
-                NSValue.SideTable[ObjectIdentifier(self)] = newValue
-            }
-        }
-    }
-    
-    deinit {
-        if type(of: self) == NSValue.self {
-            NSValue.SideTableLock.synchronized {
-                NSValue.SideTable[ObjectIdentifier(self)] = nil
-            }
-        }
-    }
-    
-    open override var hash: Int {
-        get {
-            if type(of: self) == NSValue.self {
-                return _concreteValue.hash
-            } else {
-                return super.hash
-            }
-        }
-    }
-    
-    open override func isEqual(_ value: Any?) -> Bool {
-        guard let object = value as? NSValue else { return false }
-        
-        if self === object {
-            return true
-        } else {
-            // bypass _concreteValue accessor in order to avoid acquiring lock twice
-            let (lhs, rhs) = NSValue.SideTableLock.synchronized {
-                return (NSValue.SideTable[ObjectIdentifier(self)],
-                        NSValue.SideTable[ObjectIdentifier(object)])
-            }
-            guard let left = lhs, let right = rhs else { return false }
-            return left.isEqual(right)
-        }
-    }
-    
-    open override var description : String {
-        get {
-            if type(of: self) == NSValue.self {
-                return _concreteValue.description
-            } else {
-                return super.description
-            }
-        }
-    }
     
     open func getValue(_ value: UnsafeMutableRawPointer) {
-        if type(of: self) == NSValue.self {
-            return _concreteValue.getValue(value)
-        } else {
-            NSRequiresConcreteImplementation()
-        }
+        NSRequiresConcreteImplementation()
     }
     
     open var objCType: UnsafePointer<Int8> {
-        if type(of: self) == NSValue.self {
-            return _concreteValue.objCType
-        } else {
-            NSRequiresConcreteImplementation()
-        }
+        NSRequiresConcreteImplementation()
     }
     
     private static func _isSpecialObjCType(_ type: UnsafePointer<Int8>) -> Bool {
@@ -99,12 +23,15 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         if Swift.type(of: self) == NSValue.self {
-            self.init()
+            let concreteValue : NSValue
+
             if NSValue._isSpecialObjCType(type) {
-                self._concreteValue = NSSpecialValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)
+                concreteValue = NSSpecialValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)
             } else {
-                self._concreteValue = NSConcreteValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)
+                concreteValue = NSConcreteValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)
             }
+            
+            self.init { concreteValue as! Self }
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -112,12 +39,9 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience required init?(coder aDecoder: NSCoder) {
         if type(of: self) == NSValue.self {
-            self.init()
-            
-            var concreteValue : NSValue? = nil
+            let concreteValue : NSValue?
             
             if aDecoder.containsValue(forKey: "NS.special") {
-                // It's unfortunate that we can't specialise types at runtime
                 concreteValue = NSSpecialValue(coder: aDecoder)
             } else {
                 concreteValue = NSConcreteValue(coder: aDecoder)
@@ -127,18 +51,14 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
                 return nil
             }
             
-            self._concreteValue = concreteValue!
+            self.init { concreteValue as! Self }
         } else {
             NSRequiresConcreteImplementation()
         }
     }
         
     open func encode(with aCoder: NSCoder) {
-        if type(of: self) == NSValue.self {
-            _concreteValue.encode(with: aCoder)
-        } else {
-            NSRequiresConcreteImplementation()
-        }
+        NSRequiresConcreteImplementation()
     }
     
     open class var supportsSecureCoding: Bool {

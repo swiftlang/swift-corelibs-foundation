@@ -121,7 +121,6 @@ internal class NSSpecialValue : NSValue {
     }
     
     override var classForCoder: AnyClass {
-        // for some day when we support class clusters
         return NSValue.self
     }
     

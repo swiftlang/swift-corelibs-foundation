@@ -403,12 +403,11 @@ extension NSRange: NSSpecialValueCoding {
     
 extension NSValue {
     public convenience init(range: NSRange) {
-        self.init()
-        self._concreteValue = NSSpecialValue(range)
+        self.init { NSSpecialValue(range) as! Self }
     }
     
     public var rangeValue: NSRange {
-        let specialValue = self._concreteValue as! NSSpecialValue
+        let specialValue = self as! NSSpecialValue
         return specialValue._value as! NSRange
     }
 }
