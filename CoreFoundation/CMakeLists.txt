@@ -478,7 +478,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                           AdvAPI32
                           Secur32
                           User32
-                          mincore)
+                          mincore
+                          pathcch)
   target_link_libraries(CFURLSessionInterface
                         PRIVATE
                           AdvAPI32
