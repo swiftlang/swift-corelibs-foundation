@@ -443,7 +443,21 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     uintptr_t isa = __CFRuntimeObjCClassTable[typeID];
     CFIndex size = sizeof(CFRuntimeBase) + extraBytes;
     const CFRuntimeClass *cls = __CFRuntimeClassTable[typeID];
-    size_t align = (cls->version & _kCFRuntimeRequiresAlignment) ? cls->requiredAlignment : 16;
+
+#if !defined(__APPLE__) && (defined(__i686__) || (defined(__arm__) && !defined(__aarch64__)) || defined(_M_IX86) || defined(_M_ARM))
+    // Linux and Windows 32-bit targets perform 8-byte alignment by default.
+    static const kDefaultAlignment = 8;
+#else
+    static const kDefaultAlignment = 16;
+#endif
+
+    // Ensure that we get the alignment correct for various targets.  In the
+    // case that we are over-aligned `swift_allocObject` will go through a
+    // different allocator to ensure that the pointer is suitably aligned.  When
+    // we subsequently release the pointer we do not tag that release to go
+    // through the overalign'ed path.  This may result in a cross-domainf free
+    // and a resultant heap corruption.
+    size_t align = (cls->version & _kCFRuntimeRequiresAlignment) ? cls->requiredAlignment : kDefaultAlignment;
     
     CFRuntimeBase *memory = (CFRuntimeBase *)swift_allocObject(isa, size, align - 1);
     
