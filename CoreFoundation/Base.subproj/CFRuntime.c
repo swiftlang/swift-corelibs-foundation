@@ -42,6 +42,7 @@ OBJC_EXPORT void *objc_destructInstance(id obj);
 
 #if TARGET_OS_WIN32
 #include <Shellapi.h>
+#include <pathcch.h>
 #endif
 
 enum {
@@ -1321,33 +1322,24 @@ CF_PRIVATE void __CFSocketCleanup(void);
 CF_PRIVATE void __CFStreamCleanup(void);
 
 static CFBundleRef RegisterCoreFoundationBundle(void) {
-#ifdef _DEBUG
-    // might be nice to get this from the project file at some point
-    wchar_t *DLLFileName = (wchar_t *)L"CoreFoundation_debug.dll";
-#else
-    wchar_t *DLLFileName = (wchar_t *)L"CoreFoundation.dll";
-#endif
     wchar_t path[MAX_PATH+1];
     path[0] = path[1] = 0;
     DWORD wResult;
     CFIndex idx;
-    HMODULE ourModule = GetModuleHandleW(DLLFileName);
 
-    CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
+    HMODULE ourModule = NULL;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                       (LPCWSTR)&RegisterCoreFoundationBundle, &ourModule);
+    CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandleExW failed");
 
     wResult = GetModuleFileNameW(ourModule, path, MAX_PATH+1);
     CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
     CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", path);
 
     // strip off last component, the DLL name
-    for (idx = wResult - 1; idx; idx--) {
-        if ('\\' == path[idx]) {
-            path[idx] = '\0';
-            break;
-        }
-    }
+    PathCchRemoveFileSpec(path, wResult);
 
-    CFStringRef fsPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar*)path, idx);
+    CFStringRef fsPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar*)path, wcslen(path));
     CFURLRef dllURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, fsPath, kCFURLWindowsPathStyle, TRUE);
     CFURLRef bundleURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, dllURL, CFSTR("CoreFoundation.resources"), TRUE);
     CFRelease(fsPath);
