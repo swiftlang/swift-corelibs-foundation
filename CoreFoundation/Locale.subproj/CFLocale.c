@@ -293,7 +293,12 @@ CFLocaleRef CFLocaleGetSystem(void) {
             uselessLocale = locale;
 	}
     }
+#if !DEPLOYMENT_RUNTIME_SWIFT
+    // This line relies on the fact that outside of Swift, __CFLocaleSystem is immortal.
     locale = __CFLocaleSystem ? (CFLocaleRef)CFRetain(__CFLocaleSystem) : NULL;
+#else
+    locale = __CFLocaleSystem;
+#endif
     __CFLocaleUnlockGlobal();
     if (uselessLocale) CFRelease(uselessLocale);
     return locale;
