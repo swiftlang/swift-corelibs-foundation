@@ -311,14 +311,14 @@ open class NSKeyedUnarchiver : NSCoder {
             return aClass
         }
         
-        guard let unwrappedClassDict = classDict else {
+        guard let classDict = classDict else {
             return false
         }
         
         // TODO is it required to validate the superclass hierarchy?
-        let assertedClassName = unwrappedClassDict["$classname"] as? String
-        let assertedClassHints = unwrappedClassDict["$classhints"] as? [String]
-        let assertedClasses = unwrappedClassDict["$classes"] as? [String]
+        let assertedClassName = classDict["$classname"] as? String
+        let assertedClassHints = classDict["$classhints"] as? [String]
+        let assertedClasses = classDict["$classes"] as? [String]
         
         if let assertedClassName = assertedClassName {
             let assertedClass : AnyClass? = _classForClassName(assertedClassName)
