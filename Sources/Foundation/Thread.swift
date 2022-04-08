@@ -391,26 +391,29 @@ open class Thread : NSObject {
         return backtraceAddresses { (addresses, count) in
           var symbols: [String] = []
 
-          var buffer: UnsafeMutablePointer<Int8> =
-              UnsafeMutablePointer<Int8>
-                  .allocate(capacity: MemoryLayout<SYMBOL_INFO>.size + 128)
+          let buffer: UnsafeMutablePointer<UInt8> =
+              .allocate(capacity: MemoryLayout<SYMBOL_INFO>.size + 128)
           defer { buffer.deallocate() }
 
-          buffer.withMemoryRebound(to: SYMBOL_INFO.self, capacity: 1) {
-            $0.pointee.SizeOfStruct = ULONG(MemoryLayout<SYMBOL_INFO>.size)
-            $0.pointee.MaxNameLen = 128
+          let pSymbolInfo =
+              UnsafeMutableRawPointer(buffer).assumingMemoryBound(to: SYMBOL_INFO.self)
+          pSymbolInfo.pointee.SizeOfStruct = ULONG(MemoryLayout<SYMBOL_INFO>.size)
+          pSymbolInfo.pointee.MaxNameLen = 128
 
-            var address = addresses
-            for _ in 1...count {
-              var dwDisplacement: DWORD64 = 0
-              if !SymFromAddr(hProcess, unsafeBitCast(address.pointee, to: DWORD64.self), &dwDisplacement, $0) {
-                symbols.append("\($0.pointee)")
-              } else {
-                symbols.append(String(cString: &$0.pointee.Name))
+          let addresses: UnsafeMutableBufferPointer<PVOID?> =
+              UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
+          for address in addresses {
+            var dwDisplacement: DWORD64 = 0
+            if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
+                           &dwDisplacement, pSymbolInfo) {
+              withUnsafePointer(to: pSymbolInfo.pointee.Name) {
+                symbols.append(String(cString: $0))
               }
-              address = address.successor()
+            } else {
+              symbols.append("\(pSymbolInfo.pointee)")
             }
           }
+
           return symbols
         }
 #else
