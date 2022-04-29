@@ -750,37 +750,34 @@ extension JSONDecoderImpl {
         }
 
         func superDecoder() throws -> Decoder {
-            do {
-                return try decoderForKey(_JSONKey.super)
-            } catch DecodingError.keyNotFound {
-                var newPath = self.codingPath
-                newPath.append(_JSONKey.super)
-                return JSONDecoderImpl(
-                    userInfo: self.impl.userInfo,
-                    from: .null,
-                    codingPath: newPath,
-                    options: self.impl.options
-                )
-            }
+            return decoderForKeyNoThrow(_JSONKey.super)
         }
 
         func superDecoder(forKey key: K) throws -> Decoder {
-            do {
-                return try decoderForKey(key)
-            } catch DecodingError.keyNotFound {
-                var newPath = self.codingPath
-                newPath.append(key)
-                return JSONDecoderImpl(
-                    userInfo: self.impl.userInfo,
-                    from: .null,
-                    codingPath: newPath,
-                    options: self.impl.options
-                )
-            }
+            return decoderForKeyNoThrow(key)
         }
 
         private func decoderForKey<LocalKey: CodingKey>(_ key: LocalKey) throws -> JSONDecoderImpl {
             let value = try getValue(forKey: key)
+            var newPath = self.codingPath
+            newPath.append(key)
+
+            return JSONDecoderImpl(
+                userInfo: self.impl.userInfo,
+                from: value,
+                codingPath: newPath,
+                options: self.impl.options
+            )
+        }
+
+        private func decoderForKeyNoThrow<LocalKey: CodingKey>(_ key: LocalKey) -> JSONDecoderImpl {
+            let value: JSONValue
+            do {
+                value = try getValue(forKey: key)
+            } catch {
+                // if there no value for this key then return a null value
+                value = .null
+            }
             var newPath = self.codingPath
             newPath.append(key)
 

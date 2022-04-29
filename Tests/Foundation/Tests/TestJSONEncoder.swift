@@ -1500,6 +1500,7 @@ extension TestJSONEncoder {
             ("test_encodingNonConformingFloatStrings", test_encodingNonConformingFloatStrings),
             ("test_nestedContainerCodingPaths", test_nestedContainerCodingPaths),
             ("test_superEncoderCodingPaths", test_superEncoderCodingPaths),
+            ("test_notFoundSuperDecoder", test_notFoundSuperDecoder),
             ("test_codingOfBool", test_codingOfBool),
             ("test_codingOfNil", test_codingOfNil),
             ("test_codingOfInt8", test_codingOfInt8),
