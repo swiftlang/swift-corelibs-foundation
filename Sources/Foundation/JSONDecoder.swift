@@ -750,11 +750,33 @@ extension JSONDecoderImpl {
         }
 
         func superDecoder() throws -> Decoder {
-            try decoderForKey(_JSONKey.super)
+            do {
+                return try decoderForKey(_JSONKey.super)
+            } catch DecodingError.keyNotFound {
+                var newPath = self.codingPath
+                newPath.append(_JSONKey.super)
+                return JSONDecoderImpl(
+                    userInfo: self.impl.userInfo,
+                    from: .null,
+                    codingPath: newPath,
+                    options: self.impl.options
+                )
+            }
         }
 
         func superDecoder(forKey key: K) throws -> Decoder {
-            try decoderForKey(key)
+            do {
+                return try decoderForKey(key)
+            } catch DecodingError.keyNotFound {
+                var newPath = self.codingPath
+                newPath.append(key)
+                return JSONDecoderImpl(
+                    userInfo: self.impl.userInfo,
+                    from: .null,
+                    codingPath: newPath,
+                    options: self.impl.options
+                )
+            }
         }
 
         private func decoderForKey<LocalKey: CodingKey>(_ key: LocalKey) throws -> JSONDecoderImpl {
