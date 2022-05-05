@@ -50,7 +50,7 @@ public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
 open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFError
     
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return CFErrorCreate(kCFAllocatorSystemDefault, domain._cfObject, code, nil)
     }
     
@@ -1344,6 +1344,7 @@ extension POSIXError {
     /// Bad message.
     public static var EBADMSG: POSIXError.Code { return .EBADMSG }
 
+    #if !os(OpenBSD)
     /// Reserved.
     public static var EMULTIHOP: POSIXError.Code { return .EMULTIHOP }
 
@@ -1358,12 +1359,15 @@ extension POSIXError {
 
     /// Not a STREAM.
     public static var ENOSTR: POSIXError.Code { return .ENOSTR }
+    #endif
 
     /// Protocol error.
     public static var EPROTO: POSIXError.Code { return .EPROTO }
 
+    #if !os(OpenBSD)
     /// STREAM ioctl timeout.
     public static var ETIME: POSIXError.Code { return .ETIME }
+    #endif
     #endif
 
     #if canImport(Darwin)

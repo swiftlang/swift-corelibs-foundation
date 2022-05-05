@@ -74,6 +74,8 @@ static const uint8_t __CFNumberCanonicalTypeIndex[] = {
 
 
 #if TARGET_OS_WIN32
+#define isnan(A) _isnan(A)
+#define isinf(A) !_finite(A)
 #define copysign(A, B) _copysign(A, B)
 #endif
 
@@ -85,12 +87,12 @@ struct __CFBoolean {
 
 DECLARE_STATIC_CLASS_REF(__NSCFBoolean);
 
-static _CF_CONSTANT_OBJECT_BACKING struct __CFBoolean __kCFBooleanTrue = {
+_CF_CONSTANT_OBJECT_BACKING struct __CFBoolean __kCFBooleanTrue = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFBoolean, _kCFRuntimeIDCFBoolean)
 };
 const CFBooleanRef kCFBooleanTrue = &__kCFBooleanTrue;
 
-static _CF_CONSTANT_OBJECT_BACKING struct __CFBoolean __kCFBooleanFalse = {
+_CF_CONSTANT_OBJECT_BACKING struct __CFBoolean __kCFBooleanFalse = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFBoolean, _kCFRuntimeIDCFBoolean)
 };
 const CFBooleanRef kCFBooleanFalse = &__kCFBooleanFalse;
@@ -178,7 +180,7 @@ static const Float64Bits doubleOneBits = {.floatValue = 1.0f};
 #define BITSFORDOUBLEZERO doubleZeroBits.bits
 #define BITSFORDOUBLEONE  doubleOneBits.bits
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #define FLOAT_POSITIVE_2_TO_THE_64	0x1.0p+64L
 #define FLOAT_NEGATIVE_2_TO_THE_127	-0x1.0p+127L
 #define FLOAT_POSITIVE_2_TO_THE_127	0x1.0p+127L
@@ -1150,7 +1152,10 @@ static CFNumberRef _CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, 
 	// Forcing the type AFTER it was cached would cause a race condition with other
 	// threads pulling the number object out of the cache and using it.
         __CFRuntimeSetNumberType(result, (uint8_t)kCFNumberSInt32Type);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
 	if (OSAtomicCompareAndSwapPtrBarrier(NULL, (void *)result, (void *volatile *)&__CFNumberCache[valToBeCached - MinCachedInt])) {
+#pragma GCC diagnostic pop
 	    CFRetain(result);
 	} else {
 	    // Did not cache the number object, put original type back.
@@ -1167,10 +1172,18 @@ CFNumberRef CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, const vo
 }
 
 CFNumberType CFNumberGetType(CFNumberRef number) {
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFNumberType, (NSNumber *)number, _cfNumberType);
     CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFNumber, CFNumberType, (CFSwiftRef)number, NSNumber._cfNumberGetType);
-    __CFAssertIsNumber(number);
-    CFNumberType type = __CFNumberGetType(number);
+    CFNumberType type;
+#if DEPLOYMENT_RUNTIME_OBJC
+    if (CF_IS_OBJC(_kCFRuntimeIDCFNumber, (const void *)number)) {
+        type = (CFNumberType)[(NSNumber *)number _cfNumberType];
+    } else {
+#endif
+         __CFAssertIsNumber(number);
+        type = __CFNumberGetType(number);
+#if DEPLOYMENT_RUNTIME_OBJC
+    }
+#endif
     if (kCFNumberSInt128Type == type) type = kCFNumberSInt64Type; // must hide this type, since it is not public
     return type;
 }

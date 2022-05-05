@@ -59,11 +59,12 @@ CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
 
     CFStringRef theName = NULL;
 
+    os_unfair_lock_lock(&mappingTableLock);
     if (mappingTable) {
-        os_unfair_lock_lock(&mappingTableLock);
+        // Once added, the value is not removed, so no need to add an additional retain here (plus this function is a 'get').
         theName = (CFStringRef)CFDictionaryGetValue(mappingTable, (const void*)(uintptr_t)theEncoding);
-        os_unfair_lock_unlock(&mappingTableLock);
     }
+    os_unfair_lock_unlock(&mappingTableLock);
 
     if (!theName) {
         const char *encodingName = __CFStringEncodingGetName(theEncoding);
@@ -153,7 +154,7 @@ CFStringRef CFStringConvertEncodingToIANACharSetName(CFStringEncoding encoding) 
     return name;
 }
 
-enum {
+CF_ENUM(CFStringEncoding) {
     NSASCIIStringEncoding = 1,		/* 0..127 only */
     NSNEXTSTEPStringEncoding = 2,
     NSJapaneseEUCStringEncoding = 3,
@@ -175,7 +176,7 @@ enum {
     NSProprietaryStringEncoding = 65536    /* Installation-specific encoding */
 };
 
-#define NSENCODING_MASK (1 << 31)
+#define NSENCODING_MASK ((CFStringEncoding)1 << 31)
 
 unsigned long CFStringConvertEncodingToNSStringEncoding(CFStringEncoding theEncoding) {
     //These two are frequently used in situations that are otherwise very fast (e.g. tagged strings), so check them first
@@ -391,28 +392,29 @@ static UCollator *__CFStringCreateCollator(CFLocaleRef compareLocale) {
 static UCollator *__CFDefaultCollators[kCFMaxCachedDefaultCollators];
 static CFIndex __CFDefaultCollatorsCount = 0;
 static const void *__CFDefaultCollatorLocale = NULL;
-static CFLock_t __CFDefaultCollatorLock = CFLockInit;
+static os_unfair_lock __CFDefaultCollatorLock = OS_UNFAIR_LOCK_INIT;
 
 static UCollator *__CFStringCopyDefaultCollator(CFLocaleRef compareLocale) {
     CFLocaleRef currentLocale = NULL;
     UCollator * collator = NULL;
 
+    os_unfair_lock_lock_with_options(&__CFDefaultCollatorLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     if (compareLocale != __CFDefaultCollatorLocale) {
         currentLocale = CFLocaleCopyCurrent();
         if (compareLocale != currentLocale) {
 	    CFRelease(currentLocale);
+            os_unfair_lock_unlock(&__CFDefaultCollatorLock);
 	    return NULL;
 	}
     }
 
-    __CFLock(&__CFDefaultCollatorLock);
     if ((NULL != currentLocale) && (__CFDefaultCollatorLocale != currentLocale)) {
         while (__CFDefaultCollatorsCount > 0) ucol_close(__CFDefaultCollators[--__CFDefaultCollatorsCount]);
         __CFDefaultCollatorLocale = CFRetain(currentLocale);
     }
 
     if (__CFDefaultCollatorsCount > 0) collator = __CFDefaultCollators[--__CFDefaultCollatorsCount];
-    __CFUnlock(&__CFDefaultCollatorLock);
+    os_unfair_lock_unlock(&__CFDefaultCollatorLock);
 
     if (NULL == collator) {
 	collator = __CFStringCreateCollator(compareLocale);
@@ -428,12 +430,12 @@ static void __collatorFinalize(UCollator *collator) {
     CFLocaleRef locale = _CFGetTSD(__CFTSDKeyCollatorLocale);
     _CFSetTSD(__CFTSDKeyCollatorUCollator, NULL, NULL);
     _CFSetTSD(__CFTSDKeyCollatorLocale, NULL, NULL);
-    __CFLock(&__CFDefaultCollatorLock);
+    os_unfair_lock_lock_with_options(&__CFDefaultCollatorLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     if ((__CFDefaultCollatorLocale == locale) && (__CFDefaultCollatorsCount < kCFMaxCachedDefaultCollators)) {
         __CFDefaultCollators[__CFDefaultCollatorsCount++] = collator;
         collator = NULL;
     }
-    __CFUnlock(&__CFDefaultCollatorLock);
+    os_unfair_lock_unlock(&__CFDefaultCollatorLock);
     if (NULL != collator) ucol_close(collator);
 #ifndef __clang_analyzer__
     // This release is unbalanced from perspective of analyzer, but it is retained when __CFTSDKeyCollatorLocale is set
@@ -640,7 +642,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
         } else
 #endif
         {
-            compResult = ((memcmp(characters1, characters2, sizeof(UniChar) * MIN(range1.length, range2.length)) < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
+            compResult = ((memcmp(characters1, characters2, sizeof(UniChar) * __CFMin(range1.length, range2.length)) < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
         }
     } else {
         UniChar *buffer1 = NULL;

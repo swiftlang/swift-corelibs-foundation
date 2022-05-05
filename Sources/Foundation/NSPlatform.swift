@@ -9,7 +9,7 @@
 
 #if os(macOS) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
-#elseif os(Linux) || os(Android)
+#elseif os(Linux) || os(Android) || os(OpenBSD)
 fileprivate let _NSPageSize = Int(getpagesize())
 #elseif os(Windows)
 import WinSDK
@@ -18,6 +18,9 @@ fileprivate var _NSPageSize: Int {
   GetSystemInfo(&siInfo)
   return Int(siInfo.dwPageSize)
 }
+#elseif os(WASI)
+// WebAssembly defines a fixed page size
+fileprivate let _NSPageSize: Int = 65_536
 #endif
 
 public func NSPageSize() -> Int {

@@ -255,7 +255,7 @@ extension TimeZone : CustomStringConvertible, CustomDebugStringConvertible, Cust
     }
 }
 
-extension TimeZone {
+extension TimeZone : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

@@ -42,6 +42,7 @@ OBJC_EXPORT void *objc_destructInstance(id obj);
 
 #if TARGET_OS_WIN32
 #include <Shellapi.h>
+#include <pathcch.h>
 #endif
 
 enum {
@@ -190,7 +191,9 @@ CF_PRIVATE void objc_terminate(void) {
 
 // the lock does not protect most reading of these; we just leak the old table to allow read-only accesses to continue to work
 static os_unfair_lock __CFBigRuntimeFunnel = OS_UNFAIR_LOCK_INIT;
-CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize * 2] __attribute__((aligned)) = {
+
+_CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
+    .classTable = {
     [_kCFRuntimeIDNotAType] = &__CFNotATypeClass,
     [_kCFRuntimeIDCFType] = &__CFTypeClass,
     [_kCFRuntimeIDCFAllocator] = &__CFAllocatorClass,
@@ -254,7 +257,10 @@ CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize * 2] __at
     
     [_kCFRuntimeIDCFURLComponents] = &__CFURLComponentsClass,
     [_kCFRuntimeIDCFDateComponents] = &__CFDateComponentsClass,
-    
+    [_kCFRuntimeIDCFRelativeDateTimeFormatter] = &__CFRelativeDateTimeFormatterClass,
+    [_kCFRuntimeIDCFListFormatter] = &__CFListFormatterClass,
+    },
+    .objCClassTable = {0}
 };
 
 static int32_t __CFRuntimeClassTableCount = _kCFRuntimeStartingClassID;
@@ -437,7 +443,21 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     uintptr_t isa = __CFRuntimeObjCClassTable[typeID];
     CFIndex size = sizeof(CFRuntimeBase) + extraBytes;
     const CFRuntimeClass *cls = __CFRuntimeClassTable[typeID];
-    size_t align = (cls->version & _kCFRuntimeRequiresAlignment) ? cls->requiredAlignment : 16;
+
+#if !defined(__APPLE__) && (defined(__i686__) || (defined(__arm__) && !defined(__aarch64__)) || defined(_M_IX86) || defined(_M_ARM))
+    // Linux and Windows 32-bit targets perform 8-byte alignment by default.
+    static const kDefaultAlignment = 8;
+#else
+    static const kDefaultAlignment = 16;
+#endif
+
+    // Ensure that we get the alignment correct for various targets.  In the
+    // case that we are over-aligned `swift_allocObject` will go through a
+    // different allocator to ensure that the pointer is suitably aligned.  When
+    // we subsequently release the pointer we do not tag that release to go
+    // through the overalign'ed path.  This may result in a cross-domainf free
+    // and a resultant heap corruption.
+    size_t align = (cls->version & _kCFRuntimeRequiresAlignment) ? cls->requiredAlignment : kDefaultAlignment;
     
     CFRuntimeBase *memory = (CFRuntimeBase *)swift_allocObject(isa, size, align - 1);
     
@@ -601,7 +621,7 @@ void _CFRuntimeSetInstanceTypeID(CFTypeRef cf, CFTypeID newTypeID) {
 CF_PRIVATE void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID) {
     _CFRuntimeSetInstanceTypeID(cf, newTypeID);
 #if DEPLOYMENT_RUNTIME_SWIFT
-    if (((CFRuntimeBase *)cf)->_cfisa != __CFISAForTypeID(newTypeID)) {
+    if (_CFTypeGetClass(cf) != __CFISAForTypeID(newTypeID)) {
         ((CFSwiftRef)cf)->isa = (uintptr_t)__CFISAForTypeID(newTypeID);
     }
 #endif
@@ -718,6 +738,31 @@ CFTypeID CFGetTypeID(CFTypeRef cf) {
     
     __CFGenericAssertIsCF(cf);
     return __CFGenericTypeID_inline(cf);
+}
+
+CF_PRIVATE CFTypeID _CFGetNonObjCTypeID(CFTypeRef cf) {
+    __CFGenericAssertIsCF(cf);
+    return __CFGenericTypeID_inline(cf);
+}
+
+static const char *const _CFGetTypeIDDescription(CFTypeID type) {
+    if (type < __CFRuntimeClassTableCount &&
+        NULL != __CFRuntimeClassTable[type] &&
+        _kCFRuntimeIDNotAType != type &&
+        _kCFRuntimeIDCFType != type) {
+        return __CFRuntimeClassTable[type]->className;
+    } else {
+        return NULL;
+    }
+}
+
+__attribute__((cold, noinline, noreturn, not_tail_called))
+CF_PRIVATE void _CFAssertMismatchedTypeID(CFTypeID expected, CFTypeID actual) {
+    char msg[255];
+    const char *const expectedName = _CFGetTypeIDDescription(expected) ?: "<unknown>";
+    const char *const actualName = _CFGetTypeIDDescription(actual) ?: "<unknown>";
+    snprintf(msg, 255, "Expected typeID %lu (%s) does not match actual typeID %lu (%s)", expected, expectedName, actual, actualName);
+    HALT_MSG(msg);
 }
 
 CF_INLINE CFTypeID __CFGenericTypeID_inline(const void *cf) {
@@ -972,7 +1017,7 @@ extern CFTypeID CFTreeGetTypeID(void);
 extern CFTypeID CFPlugInInstanceGetTypeID(void);
 extern CFTypeID CFStringTokenizerGetTypeID(void);
 extern CFTypeID CFStorageGetTypeID(void);
-#if TARGET_OS_LINUX || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC)
+#if TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC)
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
 #if TARGET_OS_WIN32
@@ -1105,7 +1150,7 @@ Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms. 
 CF_EXPORT _CFThreadRef _CFMainPThread;
 _CFThreadRef _CFMainPThread = kNilPthreadT;
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 _CFThreadRef _CF_pthread_main_thread_np(void) {
@@ -1119,16 +1164,19 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD
 static void __CFInitialize(void) __attribute__ ((constructor));
-static
 #endif
 #if TARGET_OS_WIN32
 CF_EXPORT
 #endif
 
+CF_PRIVATE os_unfair_recursive_lock CFPlugInGlobalDataLock;
+
 void __CFInitialize(void) {
     if (!__CFInitialized && !__CFInitializing) {
         __CFInitializing = 1;
 
+    // This is a no-op on Darwin, but is needed on Linux and Windows.
+    _CFPerformDynamicInitOfOSRecursiveLock(&CFPlugInGlobalDataLock);
 
 #if TARGET_OS_WIN32
         if (!pthread_main_np()) HALT;   // CoreFoundation must be initialized on the main thread
@@ -1144,7 +1192,7 @@ void __CFInitialize(void) {
 #if TARGET_OS_WIN32
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
-#elif TARGET_OS_LINUX || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
         __CFTSDInitialize();
 #endif
         __CFProphylacticAutofsAccess = true;
@@ -1288,33 +1336,24 @@ CF_PRIVATE void __CFSocketCleanup(void);
 CF_PRIVATE void __CFStreamCleanup(void);
 
 static CFBundleRef RegisterCoreFoundationBundle(void) {
-#ifdef _DEBUG
-    // might be nice to get this from the project file at some point
-    wchar_t *DLLFileName = (wchar_t *)L"CoreFoundation_debug.dll";
-#else
-    wchar_t *DLLFileName = (wchar_t *)L"CoreFoundation.dll";
-#endif
     wchar_t path[MAX_PATH+1];
     path[0] = path[1] = 0;
     DWORD wResult;
     CFIndex idx;
-    HMODULE ourModule = GetModuleHandleW(DLLFileName);
 
-    CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandle failed");
+    HMODULE ourModule = NULL;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                       (LPCWSTR)&RegisterCoreFoundationBundle, &ourModule);
+    CFAssert(ourModule, __kCFLogAssertion, "GetModuleHandleExW failed");
 
     wResult = GetModuleFileNameW(ourModule, path, MAX_PATH+1);
     CFAssert1(wResult > 0, __kCFLogAssertion, "GetModuleFileName failed: %d", GetLastError());
     CFAssert1(wResult < MAX_PATH+1, __kCFLogAssertion, "GetModuleFileName result truncated: %s", path);
 
     // strip off last component, the DLL name
-    for (idx = wResult - 1; idx; idx--) {
-        if ('\\' == path[idx]) {
-            path[idx] = '\0';
-            break;
-        }
-    }
+    PathCchRemoveFileSpec(path, wResult);
 
-    CFStringRef fsPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar*)path, idx);
+    CFStringRef fsPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar*)path, wcslen(path));
     CFURLRef dllURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, fsPath, kCFURLWindowsPathStyle, TRUE);
     CFURLRef bundleURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, dllURL, CFSTR("CoreFoundation.resources"), TRUE);
     CFRelease(fsPath);
@@ -1389,7 +1428,7 @@ static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR) {
         refcount(+1, cf);
     } else {
 #if TARGET_RT_64_BIT
-        __CFInfoType newInfo;
+        __CFInfoType newInfo = info;
         do {
             if (__builtin_expect(tryR && (info & (RC_DEALLOCATING_BIT | RC_DEALLOCATED_BIT)), false)) {
                 // This object is marked for deallocation
@@ -1483,11 +1522,20 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
     swift_release((void *)cf);
 #else
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
+    CFTypeID typeID = __CFTypeIDFromInfo(info);
     if (info & RC_DEALLOCATED_BIT) {
-        CRSetCrashLogMessage("Detected over-release of a CFTypeRef");
+        char msg[256];
+
+        // Extra checking of values here because we're already in memory-corruption land
+        if (typeID < __CFRuntimeClassTableSize) {
+            CFRuntimeClass const *cfClass = __CFRuntimeClassTable[typeID];
+            snprintf(msg, 256, "Detected over-release of a CFTypeRef %p (%lu / %s)", cf, typeID, cfClass ? cfClass->className : "unknown");
+        } else {
+            snprintf(msg, 256, "Detected over-release of a CFTypeRef %p (unknown type)", cf);
+        }
+        CRSetCrashLogMessage(msg);
         HALT;
     }
-    CFTypeID typeID = __CFTypeIDFromInfo(info);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
     CFIndex start_rc = __builtin_expect(__CFOASafe, 0) ? CFGetRetainCount(cf) : 0;
@@ -1647,7 +1695,7 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
             allocator = CFGetAllocator(cf);
             usesSystemDefaultAllocator = _CFAllocatorIsSystemDefault(allocator);
 
-            if (_kCFRuntimeIDCFAllocator != __CFGenericTypeID_inline(cf)) {
+            if (__kCFAllocatorTypeID_CONST != __CFGenericTypeID_inline(cf)) {
                 allocatorToRelease = (CFAllocatorRef _Nonnull)__CFGetAllocator(cf);
             }
 	}
@@ -1751,7 +1799,6 @@ const char *_NSPrintForDebugger(void *cf) {
         if (!desc) {
             return "<no description>";
         }
-        CFRelease(desc);
         const char *cheapResult = CFStringGetCStringPtr((CFTypeRef)cf, kCFStringEncodingUTF8);
         if (cheapResult) {
             return cheapResult;

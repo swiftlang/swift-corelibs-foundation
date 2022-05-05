@@ -25,11 +25,13 @@
 #include <unicode/udat.h>
 #include <unicode/ustring.h>
 #include <CoreFoundation/CFDateFormatter.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <dirent.h>
 #include <unistd.h>
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
 #include <sys/fcntl.h>
+#elif TARGET_OS_WASI
+#include <fcntl.h>
 #else
 #include <sys/endian.h>
 #endif
@@ -47,7 +49,7 @@
 #include <tzfile.h>
 #define MACOS_TZDIR1 "/usr/share/zoneinfo/"          // 10.12 and earlier
 #define MACOS_TZDIR2 "/var/db/timezone/zoneinfo/"    // 10.13 onwards
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #ifndef TZDIR
 #define TZDIR	"/usr/share/zoneinfo/" /* Time zone object file directory */
 #endif /* !defined TZDIR */
@@ -57,7 +59,7 @@
 #endif /* !defined TZDEFAULT */
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
 struct tzhead {
     char	tzh_magic[4];		/* TZ_MAGIC */
     char	tzh_reserved[16];	/* reserved for future use */
@@ -351,7 +353,7 @@ static CFMutableArrayRef __CFCopyAndroidTimeZoneList() {
     return result;
 }
 
-#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
 #if !TARGET_OS_ANDROID
@@ -810,7 +812,7 @@ static void __InitTZStrings(void) {
 
 #elif TARGET_OS_ANDROID
 // Nothing
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static void __InitTZStrings(void) {
     __tzZoneInfo = CFSTR(TZDIR);
     __tzDir = TZDIR "zone.tab";
@@ -863,7 +865,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         if (result) return result;
     }
 
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
     if (!__tzZoneInfo) __InitTZStrings();
     ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
     // The link can be relative, we treat this the same as if there was no link
@@ -880,9 +882,11 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     } else
 #endif
     {
+        #if !TARGET_OS_WASI
         // TODO: This can still fail on Linux if the time zone is not recognized by ICU later
         // Try localtime
         tzset();
+        #endif
         time_t t = time(NULL);
         struct tm lt = {0};
         localtime_r(&t, &lt);
@@ -895,15 +899,6 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
-#if TARGET_OS_ANDROID
-    // Timezone database by name not available on Android.
-    // Approximate with gmtoff - could be general default.
-    struct tm info;
-    time_t now = time(NULL);
-    if (NULL != localtime_r(&now, &info)) {
-        return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, info.tm_gmtoff);
-    }
-#endif
     return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0);
 }
 
@@ -1348,7 +1343,8 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 
     return FALSE;
 #else
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
+
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
@@ -1367,7 +1363,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
         if (mapping) {
             name = mapping;
         }
-#if !TARGET_OS_ANDROID
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
         else if (CFStringHasPrefix(name, __tzZoneInfo)) {
             CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
             CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));

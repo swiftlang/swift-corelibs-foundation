@@ -25,7 +25,7 @@ swift-corelibs-foundation swift-corelibs-xctest
 
 Build and test steps:
 
-0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#apple-platforms) to start Xcode with the correct toolchain.
+0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#installation) to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
 0. Build the _SwiftFoundation_ target. This builds CoreFoundation and Foundation.
 0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation, then runs the tests.
@@ -37,8 +37,8 @@ Build and test steps:
 In order to increase the compatibility between corelibs-foundation and the native Foundation shipped with macOS, there is another Xcode project in the `swift-corelibs-foundation` repository called `DarwinCompatibilityTests.xcodeproj`. This project just runs all of the `TestFoundation` tests using native Foundation. Ideally, any new test written for corelibs-foundation should be tested against
 native Foundation to validate that that test is correct. The tests can be run individually using the Test navigator in the left hand pane.
 
-It should be noted that not all tests currently run correctly either due to differences between the two implentations, the test being used to validate some
-intenal functionality of corelibs-foundation or the test (and the implementation) actually being incorrect. Overtime these test differences should be reduced as compatibility is increased.
+It should be noted that not all tests currently run correctly either due to differences between the two implementations, the test being used to validate some
+internal functionality of corelibs-foundation or the test (and the implementation) actually being incorrect. Overtime these test differences should be reduced as compatibility is increased.
 
 
 ## On Linux
@@ -47,7 +47,7 @@ You will need:
 
 * A supported distribution of Linux. At this time, we support [Ubuntu 16.04 and Ubuntu 18.04](http://www.ubuntu.com).
 
-To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
+To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift/blob/main/docs/HowToGuides/GettingStarted.md#building-the-project-for-the-first-time). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
 The default build script does not include Foundation. To configure and build Foundation and TestFoundation including lldb for debugging and the correct ICU library, the following command can be used. All other tests are disabled to reduce build and test time. `--release` is used to avoid building LLVM and the compiler with debugging.
 ```
@@ -58,8 +58,8 @@ The default build script does not include Foundation. To configure and build Fou
 
 The build artifacts will be written to the subdirectory `build/Ninja-ReleaseAssert`. To use a different build directory set the `SWIFT_BUILD_ROOT` environment variable to point to a different directory to use instead of `build`.
 
-When developing on Foundation, it is simplest to write tests to check the functionality, even if the test is not something that can be used in the final PR, e.g. it runs continously to demostrate a memory leak. Tests are added
-to the appropiate file in the  `TestFoundation` directory, and remember to add the test in to the `allTests` array in that file.
+When developing on Foundation, it is simplest to write tests to check the functionality, even if the test is not something that can be used in the final PR, e.g. it runs continuously to demonstrate a memory leak. Tests are added
+to the appropriate file in the  `TestFoundation` directory, and remember to add the test in to the `allTests` array in that file.
 
 After the complete Swift build has finished you can iterate over changes you make to Foundation using `cmake` to build `TestFoundation` and run the tests.
 Note that `cmake` needs to be a relatively recent version, currently 3.15.1, and if this is not installed already
@@ -73,7 +73,7 @@ then it is built as part of the `build-script` invocation. Therefore `cmake` may
 % $SWIFT_BUILD_ROOT=build $BUILD_ROOT/cmake-linux-x86_64/bin/cmake --build $BUILD_ROOT/Ninja-ReleaseAssert/foundation-linux-x86_64/ -v -- -j4 test
 ```
 
-If `TestFoundation` needs to be run outside of `ctest`, perhaps to run under `lldb`  or to run individual tests, then it can be run directly but an appropiate `LD_LIBRARY_PATH`
+If `TestFoundation` needs to be run outside of `ctest`, perhaps to run under `lldb`  or to run individual tests, then it can be run directly but an appropriate `LD_LIBRARY_PATH`
 needs to be set so that `libdispatch` and `libXCTest` can be found.
 
 ```
@@ -84,7 +84,7 @@ needs to be set so that `libdispatch` and `libXCTest` can be found.
 To run only one test class or a single test, the tests to run can be specified as a command argument in the form of `TestFoundation.<TestClass>{/testName}` eg to run all of the tests in `TestDate` use
 `TestFoundation.TestDate`. To run just `test_BasicConstruction`, use `TestFoundation.TestDate/test_BasicConstruction`.
 
-If the tests need to be run under `lldb`, use the following comand:
+If the tests need to be run under `lldb`, use the following command:
 
 ```
 % export BUILD_DIR=build/Ninja-ReleaseAssert

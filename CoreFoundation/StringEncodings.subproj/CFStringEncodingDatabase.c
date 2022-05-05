@@ -568,7 +568,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetFromCanonicalName(const char *c
 }
 #undef LENGTH_LIMIT
 
-#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD
 // This list indexes from DOS range
 static uint16_t const __CFISO8859SimilarScriptList[] = {
     kCFStringEncodingMacRoman,
@@ -777,7 +777,7 @@ static const char * const __CFOtherNameList[] = {
     "Western (NextStep)",
     "Western (EBCDIC Latin 1)",
 };
-#endif /* TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 */
+#endif /* TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD */
 
 CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStringEncoding encoding) {
 #if TARGET_OS_OSX || TARGET_OS_LINUX
@@ -817,7 +817,7 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
         case kCFStringEncodingUTF7: return "Unicode (UTF-7)"; break;
     }
 
-#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD
     if (0x0200 == (encoding & 0x0F00)) {
         encoding &= 0x00FF;
 
@@ -827,7 +827,7 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
 
         if (kCFNotFound != index) return __CFOtherNameList[index];
     }
-#endif /* TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 */
+#endif /* TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD */
     
     return NULL;
 }

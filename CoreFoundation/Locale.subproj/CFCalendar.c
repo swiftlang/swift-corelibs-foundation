@@ -32,6 +32,16 @@ enum {
 
 #define ICU_LOG(FMT, ...) do { } while (0)
 
+#define MIN_CALENDAR_TIME -211845067200.0 // Julian day 0 (-4713-01-01 12:00:00 +0000) in CFAbsoluteTime.
+#define MAX_CALENDAR_TIME 15927175497600.0 // 50000-01-01 00:00:00 +0000, smaller than the max time ICU supported.
+#define __CFCalendarValidateAndCapTimeRange(at) do { \
+    if (at < MIN_CALENDAR_TIME || at > MAX_CALENDAR_TIME) { \
+        os_log_error(_CFOSLog(), "CFAbsoluteTime %lf exceeds calendar calculation range.", at); \
+        if (at < MIN_CALENDAR_TIME) { at = MIN_CALENDAR_TIME; } \
+        else { at = MAX_CALENDAR_TIME; } \
+    } \
+} while (0)
+
 extern CFDictionaryRef __CFLocaleGetPrefs(CFLocaleRef locale);
 
 #define MIN_TIMEZONE_UDATE -2177452800000.0  // 1901-01-01 00:00:00 +0000
@@ -606,7 +616,6 @@ static void __CFCalendarApplyUserSettingsFromLocale(CFCalendarRef calendar, CFLo
     }
 }
 
-
 static bool _CFCalendarInitialize(CFCalendarRef calendar, CFAllocatorRef allocator, CFStringRef identifier, CFTimeZoneRef tz, CFLocaleRef locale, CFIndex firstDayOfWeek, CFIndex minDaysInFirstWeek, CFDateRef gregorianStartDate) {
     ICU_LOG("                // CFCalendarCreateWithIdentifier enter\n");
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
@@ -632,7 +641,7 @@ static bool _CFCalendarInitialize(CFCalendarRef calendar, CFAllocatorRef allocat
     else if (CFEqual(kCFCalendarIdentifierIslamicUmmAlQura, identifier)) canonicalIdent = kCFCalendarIdentifierIslamicUmmAlQura;
     if (!canonicalIdent) ICU_LOG("                // CFCalendarCreateWithIdentifier exit NULL 1\n");
     if (!canonicalIdent) return false;
-
+    
     calendar->_identifier = (CFStringRef)CFRetain(canonicalIdent);
     calendar->_locale = locale ? CFLocaleCreateCopy(allocator, locale) : CFRetain(CFLocaleGetSystem());
     calendar->_tz = tz ? CFRetain(tz) : CFTimeZoneCopyDefault();
@@ -954,11 +963,37 @@ static UCalendarDateFields __CFCalendarGetICUFieldCode(CFCalendarUnit unit) {
     return (UCalendarDateFields)UCAL_FIELD_ERROR;
 }
 
+static CFCalendarUnit __CFCalendarUnitFromICUDateFields(UCalendarDateFields field) {
+    switch (field) {
+        case UCAL_ERA: return kCFCalendarUnitEra;
+        case UCAL_YEAR: return kCFCalendarUnitYear;
+        case UCAL_MONTH: return kCFCalendarUnitMonth;
+        case UCAL_WEEK_OF_YEAR: return kCFCalendarUnitWeekOfYear;
+        case UCAL_WEEK_OF_MONTH: return kCFCalendarUnitWeekOfMonth;
+        case UCAL_DATE: return kCFCalendarUnitDay; // same value as UCAL_DAY_OF_MONTH
+        case UCAL_DAY_OF_YEAR: return kCFCalendarUnitDay;
+        case UCAL_DAY_OF_WEEK: return kCFCalendarUnitWeekday;
+        case UCAL_DAY_OF_WEEK_IN_MONTH: return kCFCalendarUnitWeekdayOrdinal;
+        case UCAL_HOUR: return kCFCalendarUnitHour;
+        case UCAL_HOUR_OF_DAY: return kCFCalendarUnitHour;
+        case UCAL_MINUTE: return kCFCalendarUnitMinute;
+        case UCAL_SECOND: return kCFCalendarUnitSecond;
+        case UCAL_ZONE_OFFSET: return kCFCalendarUnitTimeZone;
+        case UCAL_YEAR_WOY: return kCFCalendarUnitYearForWeekOfYear;
+        case UCAL_IS_LEAP_MONTH: return kCFCalendarUnitLeapMonth;
+        case UCAL_EXTENDED_YEAR: return kCFCalendarUnitYear;
+    }
+    return 0;
+}
+
 static UCalendarDateFields __CFCalendarGetICUFieldCodeFromChar(char ch) {
     switch (ch) {
     case 'G': return UCAL_ERA;
     case 'y': return UCAL_YEAR;
+    case 'U': return UCAL_YEAR;
+    case 'r': return UCAL_YEAR;
     case 'M': return UCAL_MONTH;
+    case 'L': return UCAL_MONTH;
     case 'l': return UCAL_IS_LEAP_MONTH;
     case 'd': return UCAL_DAY_OF_MONTH;
     case 'h': return UCAL_HOUR;
@@ -971,6 +1006,7 @@ static UCalendarDateFields __CFCalendarGetICUFieldCodeFromChar(char ch) {
     case 'W': return UCAL_WEEK_OF_MONTH;
     case 'Y': return UCAL_YEAR_WOY;
     case 'E': return UCAL_DAY_OF_WEEK;
+    case 'c': return UCAL_DAY_OF_WEEK;
     case 'D': return UCAL_DAY_OF_YEAR;
     case 'F': return UCAL_DAY_OF_WEEK_IN_MONTH;
     case 'a': return UCAL_AM_PM;
@@ -1037,27 +1073,6 @@ static const char *__CFCalendarGetUnitName(CFCalendarUnit unit) {
     return "???";
 }
 
-static CFCalendarUnit __CFCalendarGetCalendarUnitFromChar(char ch) {
-    switch (ch) {
-    case 'G': return kCFCalendarUnitEra;
-    case 'y': return kCFCalendarUnitYear;
-    case 'Q': return kCFCalendarUnitQuarter;
-    case 'M': return kCFCalendarUnitMonth;
-    case 'l': return kCFCalendarUnitMonth;
-    case 'd': return kCFCalendarUnitDay;
-    case 'H': return kCFCalendarUnitHour;
-    case 'm': return kCFCalendarUnitMinute;
-    case 's': return kCFCalendarUnitSecond;
-    case '^': return kCFCalendarUnitWeek_Deprecated;
-    case 'w': return kCFCalendarUnitWeekOfYear;
-    case 'W': return kCFCalendarUnitWeekOfMonth;
-    case 'Y': return kCFCalendarUnitYearForWeekOfYear;
-    case 'E': return kCFCalendarUnitWeekday;
-    case 'F': return kCFCalendarUnitWeekdayOrdinal;
-    case '#': return kCFCalendarUnitNanosecond;
-    }
-    return (CFCalendarUnit)-1;
-}
 #pragma GCC diagnostic pop
 
 CFRange CFCalendarGetMinimumRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit unit) {
@@ -1116,7 +1131,7 @@ CFRange CFCalendarGetMinimumRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit u
 CFRange CFCalendarGetMaximumRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit unit) {
     ICU_LOG("                // CFCalendarGetMaximumRangeOfUnit enter (%s)\n", __CFCalendarGetUnitName(unit));
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFRange, (NSCalendar *)calendar, _maximumRangeOfUnit:(NSCalendarUnit)unit);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), CFRange, (NSCalendar *)calendar, _maximumRangeOfUnit:(NSCalendarUnit)unit);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     switch (unit) {
 #pragma GCC diagnostic push
@@ -1289,6 +1304,11 @@ Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsolute
         __cficu_ucal_clear(calendar->_cal);
         double startingInt;
         double startingFrac = modf(*atp, &startingInt);
+        if (startingFrac < 0) {
+            // `modf` returns negative integral and fractional parts when `*atp` is negative. In this case, we would wrongly turn the time backwards by adding the negative fractional part back after we're done with wrapping in `__CFCalendarAdd` below. To avoid this, ensure that `startingFrac` is always positive: subseconds do not contribute to the wrapping of a second, so they should always be additive to the time ahead.
+            startingFrac += 1.0;
+            startingInt -= 1.0;
+        }
         UDate udate = (startingInt + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
         __cficu_ucal_setMillis(calendar->_cal, udate, &status);
         int32_t nanosecond = 0;
@@ -1373,7 +1393,7 @@ Boolean CFCalendarComposeAbsoluteTime(CFCalendarRef calendar, /* out */ CFAbsolu
     va_list args;
     va_start(args, componentDesc);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, Boolean, (NSCalendar *)calendar, _composeAbsoluteTime:atp :(const unsigned char *)componentDesc :args);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), Boolean, (NSCalendar *)calendar, _composeAbsoluteTime:atp :(const unsigned char *)componentDesc :args);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     int32_t idx, cnt = strlen((char *)componentDesc);
     STACK_BUFFER_DECL(int32_t, vector, cnt);
@@ -1386,10 +1406,11 @@ Boolean CFCalendarComposeAbsoluteTime(CFCalendarRef calendar, /* out */ CFAbsolu
 }
 
 Boolean CFCalendarDecomposeAbsoluteTime(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, ...) {
+    __CFCalendarValidateAndCapTimeRange(at);
     va_list args;
     va_start(args, componentDesc);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, Boolean, (NSCalendar *)calendar, _decomposeAbsoluteTime:at :(const unsigned char *)componentDesc :args);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), Boolean, (NSCalendar *)calendar, _decomposeAbsoluteTime:at :(const unsigned char *)componentDesc :args);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     int32_t idx, cnt = strlen((char *)componentDesc);
     STACK_BUFFER_DECL(int32_t *, vector, cnt);
@@ -1402,10 +1423,11 @@ Boolean CFCalendarDecomposeAbsoluteTime(CFCalendarRef calendar, CFAbsoluteTime a
 }
 
 Boolean CFCalendarAddComponents(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, ...) {
+    __CFCalendarValidateAndCapTimeRange(*atp);
     va_list args;
     va_start(args, componentDesc);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, Boolean, (NSCalendar *)calendar, _addComponents:atp :options :(const unsigned char *)componentDesc :args);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), Boolean, (NSCalendar *)calendar, _addComponents:atp :options :(const unsigned char *)componentDesc :args);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     int32_t idx, cnt = strlen((char *)componentDesc);
     STACK_BUFFER_DECL(int32_t, vector, cnt);
@@ -1453,10 +1475,13 @@ CF_PRIVATE CFDateRef _CFCalendarCreateDateByAddingValueOfUnitToDate(CFCalendarRe
 }
 
 Boolean CFCalendarGetComponentDifference(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, ...) {
+    __CFCalendarValidateAndCapTimeRange(startingAT);
+    __CFCalendarValidateAndCapTimeRange(resultAT);
+
     va_list args;
     va_start(args, componentDesc);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, Boolean, (NSCalendar *)calendar, _diffComponents:startingAT :resultAT :options :(const unsigned char *)componentDesc :args);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), Boolean, (NSCalendar *)calendar, _diffComponents:startingAT :resultAT :options :(const unsigned char *)componentDesc :args);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     int32_t idx, cnt = strlen((char *)componentDesc);
     STACK_BUFFER_DECL(int32_t *, vector, cnt);
@@ -1470,8 +1495,9 @@ Boolean CFCalendarGetComponentDifference(CFCalendarRef calendar, CFAbsoluteTime 
 }
 
 Boolean CFCalendarGetTimeRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit unit, CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip) {
+    __CFCalendarValidateAndCapTimeRange(at);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, Boolean, (NSCalendar *)calendar, _rangeOfUnit:(NSCalendarUnit)unit startTime:startp interval:tip forAT:at);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), Boolean, (NSCalendar *)calendar, _rangeOfUnit:(NSCalendarUnit)unit startTime:startp interval:tip forAT:at);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
 
     const CFTimeInterval inf_ti = 4398046511104.0;
@@ -2925,6 +2951,26 @@ CF_PRIVATE CFDateRef _CFCalendarCreateDateByAddingDateComponentsToDate(CFAllocat
     return NULL;
 }
 
+CFCalendarUnit _CFCalendarGetUnitsFromDateFormat(CFStringRef format) {
+    CFCalendarUnit units = 0;
+    CFIndex cnt = CFStringGetLength(format);
+    for (CFIndex i = 0; i < cnt; ++i) {
+        UniChar c = CFStringGetCharacterAtIndex(format, i);
+#if __HAS_APPLE_ICU__
+        UDateFormatField fmt_field = udat_patternCharToDateFormatField(c);
+        UCalendarDateFields ucal_field = udat_toCalendarDateField(fmt_field);
+#else
+        UCalendarDateFields ucal_field = __CFCalendarGetICUFieldCodeFromChar(c);
+#endif
+        CFCalendarUnit unit = __CFCalendarUnitFromICUDateFields(ucal_field);
+        if (unit) {
+            units |= unit;
+        }
+    }
+
+    return units;
+}
+
 #pragma mark -
 
 #if 0
@@ -2955,15 +3001,17 @@ C: for range, allowed in 10.6
 #endif
 
 CFRange CFCalendarGetRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit smallerUnit, CFCalendarUnit biggerUnit, CFAbsoluteTime at) {
+    __CFCalendarValidateAndCapTimeRange(at);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFRange, (NSCalendar *)calendar, _rangeOfUnit:(NSCalendarUnit)smallerUnit inUnit:(NSCalendarUnit)biggerUnit forAT:at);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), CFRange, (NSCalendar *)calendar, _rangeOfUnit:(NSCalendarUnit)smallerUnit inUnit:(NSCalendarUnit)biggerUnit forAT:at);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return __CFCalendarGetRangeOfUnit3(calendar, smallerUnit, biggerUnit, at);
 }
 
 CFIndex CFCalendarGetOrdinalityOfUnit(CFCalendarRef calendar, CFCalendarUnit smallerUnit, CFCalendarUnit biggerUnit, CFAbsoluteTime at) {
+    __CFCalendarValidateAndCapTimeRange(at);
     // Note: We do not toll-free bridge for Swift
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFIndex, (NSCalendar *)calendar, _ordinalityOfUnit:(NSCalendarUnit)smallerUnit inUnit:(NSCalendarUnit)biggerUnit forAT:at);
+    CF_OBJC_FUNCDISPATCHV(CFCalendarGetTypeID(), CFIndex, (NSCalendar *)calendar, _ordinalityOfUnit:(NSCalendarUnit)smallerUnit inUnit:(NSCalendarUnit)biggerUnit forAT:at);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return __CFCalendarGetOrdinalityOfUnit3(calendar, smallerUnit, biggerUnit, at);
 }

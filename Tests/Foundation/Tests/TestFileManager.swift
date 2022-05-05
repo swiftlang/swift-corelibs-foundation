@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -25,6 +25,12 @@ class TestFileManager : XCTestCase {
 #endif
 
     func test_NSTemporaryDirectory() {
+        #if os(Windows)
+        let validPathSeps: [Character] = ["\\", "/"]
+        #else
+        let validPathSeps: [Character] = ["/"]
+        #endif
+        
         let tempDir = NSTemporaryDirectory()
         XCTAssertTrue(validPathSeps.contains(where: { tempDir.hasSuffix(String($0)) }), "Temporary directory path must end with path separator")
     }
@@ -259,8 +265,10 @@ class TestFileManager : XCTestCase {
     func test_isExecutableFile() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_isExecutableFile\(NSUUID().uuidString)"
+        let exePath = path + ".exe"
         defer {
             try? fm.removeItem(atPath: path)
+            try? fm.removeItem(atPath: exePath)
         }
 
         do {
@@ -269,16 +277,21 @@ class TestFileManager : XCTestCase {
 
             // test unExecutable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
-#if os(Windows)
-            // Files are always executable on Windows
-            XCTAssertTrue(fm.isExecutableFile(atPath: path))
-#else
             XCTAssertFalse(fm.isExecutableFile(atPath: path))
-#endif
 
+#if os(Windows)
+            // test unExecutable even if file has an `exe` extension
+            try fm.copyItem(atPath: path, toPath: exePath)
+            XCTAssertFalse(fm.isExecutableFile(atPath: exePath))
+#else
             // test executable if file has execute permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
             XCTAssertTrue(fm.isExecutableFile(atPath: path))
+#endif
+
+            // test against the test bundle itself
+            let testFoundationBinary = try XCTUnwrap(testBundle().path(forAuxiliaryExecutable: "TestFoundation"))
+            XCTAssertTrue(fm.isExecutableFile(atPath: testFoundationBinary))
         } catch let e {
             XCTFail("\(e)")
         }
@@ -424,9 +437,12 @@ class TestFileManager : XCTestCase {
         
         try? fm.removeItem(atPath: path)
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
-        
+
+        let modificationDate = NSDate(timeIntervalSince1970: 1234567890.5) // 2009-02-13T23:31:30.500Z
+
         do {
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0600))], ofItemAtPath: path)
+            try fm.setAttributes([.modificationDate: modificationDate], ofItemAtPath: path)
         }
         catch { XCTFail("\(error)") }
         
@@ -438,6 +454,7 @@ class TestFileManager : XCTestCase {
 #else
             XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
 #endif
+            XCTAssertEqual((attributes[.modificationDate] as? NSDate)?.timeIntervalSince1970 ?? .nan, modificationDate.timeIntervalSince1970, accuracy: 1.0)
         }
         catch { XCTFail("\(error)") }
 
@@ -472,11 +489,15 @@ class TestFileManager : XCTestCase {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: false, attributes: nil)
             try fm.createDirectory(atPath: basePath2, withIntermediateDirectories: false, attributes: nil)
 
-            let _ = fm.createFile(atPath: itemPath, contents: Data(count: 123), attributes: nil)
-            let _ = fm.createFile(atPath: itemPath2, contents: Data(count: 456), attributes: nil)
-
+            if !fm.createFile(atPath: itemPath, contents: Data(count: 123), attributes: nil) {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            if !fm.createFile(atPath: itemPath2, contents: Data(count: 456), attributes: nil) {
+                throw CocoaError(.fileWriteUnknown)
+            }
         } catch {
-            XCTFail()
+            XCTFail("Failed with error while creating temporary files: \(error)")
+            return
         }
 
         var item1FileAttributes: [FileAttributeKey: Any]!
@@ -1059,8 +1080,14 @@ class TestFileManager : XCTestCase {
         }
         XCTAssertNotEqual(0, volumes.count)
 #if os(Windows)
-        let url = URL(fileURLWithPath: String(NSTemporaryDirectory().prefix(3)))
-        XCTAssertTrue(volumes.contains(url))
+        guard let url: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .localDomainMask).first else {
+            XCTFail("unable to query a system directory")
+            return
+        }
+        let root: String = url.withUnsafeFileSystemRepresentation {
+            String(String(cString: $0!).prefix(3))
+        }
+        XCTAssertTrue(volumes.contains(URL(fileURLWithPath: root)))
 #else
         XCTAssertTrue(volumes.contains(URL(fileURLWithPath: "/")))
 #endif
@@ -1230,6 +1257,24 @@ class TestFileManager : XCTestCase {
         try? data.write(to: dataFile1)
         XCTAssertFalse(fm.contentsEqual(atPath: dataFile1.path, andPath: dataFile2.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+    }
+
+    func test_setInvalidFileAttributes() throws {
+        let path = "\(NSTemporaryDirectory())test_setInvalidFileAttributes\(NSUUID().uuidString)"
+        let FM = FileManager.default
+
+        try? FM.removeItem(atPath: path)
+        XCTAssertTrue(FM.createFile(atPath: path, contents: Data(), attributes: nil))
+
+        do {
+            try FM.setAttributes([
+                .size: NSNumber(value: Int16(16)),
+                .systemNumber: NSNumber(value: Int16(32)),
+                .systemFileNumber: NSNumber(value: Int16(48)),
+            ], ofItemAtPath: path)
+        } catch {
+            XCTFail("\(error)")
+        }
     }
 
     func test_copyItemsPermissions() throws {
@@ -1997,9 +2042,10 @@ VIDEOS=StopgapVideos
             ("test_displayNames", test_displayNames),
             ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
             ("test_contentsEqual", test_contentsEqual),
+            ("test_setInvalidFileAttributes", test_setInvalidFileAttributes),
             /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
             /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
-            ("test_concurrentGetItemReplacementDirectory", test_concurrentGetItemReplacementDirectory),
+            /* ⚠️  */("test_concurrentGetItemReplacementDirectory", testExpectedToFail(test_concurrentGetItemReplacementDirectory, "Intermittent SEGFAULT: rdar://84519512")),
             ("test_NSTemporaryDirectory", test_NSTemporaryDirectory),
         ]
         

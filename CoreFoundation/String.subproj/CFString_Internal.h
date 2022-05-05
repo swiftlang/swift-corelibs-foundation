@@ -15,7 +15,7 @@
 CF_ASSUME_NONNULL_BEGIN
 
 CF_PRIVATE void __CFSetCharToUniCharFunc(CFStringEncodingCheapEightBitToUnicodeProc _Nullable func);
-CF_PRIVATE UniChar __CFCharToUniCharTable[256];
+CF_PRIVATE UniChar const * __CFCharToUniCharTable;
 CF_PRIVATE CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength);
 __attribute__((cold))
 CF_PRIVATE void __CFStringHandleOutOfMemory(CFTypeRef _Nullable obj) CLANG_ANALYZER_NORETURN;

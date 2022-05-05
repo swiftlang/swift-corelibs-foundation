@@ -26,6 +26,10 @@
 #include <errno.h>
 #include <sys/types.h>
 
+#if (!TARGET_OS_MAC && !TARGET_OS_BSD) || defined(__OpenBSD__)
+#define strnstr(haystack, needle, size) strstr(haystack, needle)
+#endif
+
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <unistd.h>
 #if TARGET_OS_MAC || TARGET_OS_BSD
@@ -40,6 +44,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <winioctl.h>
 
 #define close _close
 #define write _write
@@ -96,12 +101,16 @@ CF_PRIVATE Boolean _CFIsResourceAtPath(CFStringRef path, Boolean *isDir) {
 }
 
 
-static CFStringRef _CFBundleGetResourceDirForVersion(uint8_t version) {
-    if (1 == version) {
+static CFStringRef _CFBundleGetResourceDirForVersion(_CFBundleVersion version) {
+    if (_CFBundleVersionOldStyleSupportFiles == version) {
         return _CFBundleSupportFilesDirectoryName1WithResources;
-    } else if (2 == version) {
+    } else if (_CFBundleVersionContentsResources == version) {
         return _CFBundleSupportFilesDirectoryName2WithResources;
-    } else if (0 == version) {
+    } else if (_CFBundleVersionWrappedContentsResources == version) {
+        return _CFBundleWrappedSupportFilesDirectoryName2WithResources;
+    } else if (_CFBundleVersionWrappedFlat == version) {
+        return _CFBundleWrapperLinkName;
+    } else if (_CFBundleVersionOldStyleResources == version) {
         return _CFBundleResourcesDirectoryName;
     }
     return CFSTR("");
@@ -173,7 +182,6 @@ CF_EXPORT CFArrayRef CFBundleCopyResourceURLsOfTypeInDirectory(CFURLRef bundleUR
 
 #pragma mark -
 
-#if TARGET_OS_OSX || TARGET_OS_WIN32
 CF_INLINE Boolean _CFBundleURLHasSubDir(CFURLRef url, CFStringRef subDirName) {
     Boolean isDir = false, result = false;
     CFURLRef dirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, subDirName, url);
@@ -183,20 +191,71 @@ CF_INLINE Boolean _CFBundleURLHasSubDir(CFURLRef url, CFStringRef subDirName) {
     }
     return result;
 }
+
+#if TARGET_OS_WIN32
+typedef signed long long ssize_t;
+static ssize_t readlink(const char * restrict pathname,
+                        char * restrict buffer, size_t bufsiz) {
+  ssize_t result = -1;
+
+  WIN32_FILE_ATTRIBUTE_DATA fsa;
+  HANDLE hFile = INVALID_HANDLE_VALUE;
+  REPARSE_DATA_BUFFER *pBuffer;
+  CHAR bBuffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+  DWORD dwCount;
+  size_t length;
+
+  if (!GetFileAttributesExA(pathname, GetFileExInfoStandard, &fsa))
+    goto out;
+
+  if (~fsa.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+    result = strncpy(buffer, pathname, bufsiz);
+    goto out;
+  }
+
+  hFile = CreateFileA(pathname, GENERIC_READ,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      NULL, OPEN_EXISTING,
+                      FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                      NULL);
+  if (hFile == INVALID_HANDLE_VALUE)
+    goto out;
+
+  if (!DeviceIoControl(hFile, FSCTL_GET_REPARSE_POINT, NULL, 0, bBuffer,
+                       sizeof(bBuffer), &dwCount, NULL))
+    goto out;
+
+  if (dwCount >= sizeof(bBuffer))
+    goto out;
+
+  pBuffer = (REPARSE_DATA_BUFFER *)bBuffer;
+  switch (pBuffer->ReparseTag) {
+  case IO_REPARSE_TAG_SYMLINK:
+    result = strncpy(buffer, pBuffer->GenericReparseBuffer.DataBuffer, bufsiz);
+    buffer[min(pBuffer->ReparseDataLength, result)] = '\0';
+  default:
+    break;
+  }
+
+out:
+  CloseHandle(hFile);
+  return result;
+}
 #endif
 
-CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
+CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
     // check for existence of "Resources" or "Contents" or "Support Files"
     // but check for the most likely one first
     // version 0:  old-style "Resources" bundles
     // version 1:  obsolete "Support Files" bundles
     // version 2:  modern "Contents" bundles
-    // version 3:  none of the above (see below)
+    // version 3:  none of the above (see below) (flat)
     // version 4:  not a bundle (for main bundle only)
+    // version 12: wrapper bundle of "Contents" bundle
+    // version 13: wrapper bundle of "Flat' bundle
     
-    CFURLRef absoluteURL = CFURLCopyAbsoluteURL(url);
-    CFStringRef directoryPath = CFURLCopyFileSystemPath(absoluteURL, PLATFORM_PATH_STYLE);
-    CFRelease(absoluteURL);
+    CFURLRef bundleAbsoluteURL = CFURLCopyAbsoluteURL(url);
+    CFStringRef bundlePath = CFURLCopyFileSystemPath(bundleAbsoluteURL, PLATFORM_PATH_STYLE);
     
     Boolean hasFrameworkSuffix = CFStringHasSuffix(CFURLGetString(url), CFSTR(".framework/"));
 #if TARGET_OS_WIN32
@@ -210,17 +269,21 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
      #define _CFBundleExecutablesDirectoryName CFSTR("Executables")
      #define _CFBundleNonLocalizedResourcesDirectoryName CFSTR("Non-localized Resources")
     */
-    __block uint8_t localVersion = 3;
+    __block _CFBundleVersion localVersion = _CFBundleVersionFlat;
     CFIndex resourcesDirectoryLength = CFStringGetLength(_CFBundleResourcesDirectoryName);
     CFIndex contentsDirectoryLength = CFStringGetLength(_CFBundleSupportFilesDirectoryName2);
     CFIndex supportFilesDirectoryLength = CFStringGetLength(_CFBundleSupportFilesDirectoryName1);
-    
+    CFIndex wrapperLinkLength = CFStringGetLength(_CFBundleWrapperLinkName);
+    CFIndex wrapperDirLength = CFStringGetLength(_CFBundleWrapperDirectoryName);
+
     __block Boolean foundResources = false;
     __block Boolean foundSupportFiles2 = false;
     __block Boolean foundSupportFiles1 = false;
+    __block Boolean foundAppWrapperLink = false;
+    __block Boolean foundAppWrapperDirectory = false;
     __block Boolean foundUnknown = false;
     
-    _CFIterateDirectory(directoryPath, false, NULL, ^Boolean (CFStringRef fileName, CFStringRef fileNameWithPrefix, uint8_t fileType) {
+    _CFIterateDirectory(bundlePath, false, NULL, ^Boolean (CFStringRef fileName, CFStringRef fileNameWithPrefix, uint8_t fileType) {
         // We're looking for a few different names, and also some info on if it's a directory or not.
         // We don't stop looking once we find one of the names. Otherwise we could run into the situation where we have both "Contents" and "Resources" in a framework, and we see Contents first but Resources is more important.
         if (fileType == DT_DIR || fileType == DT_LNK) {
@@ -231,6 +294,10 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
                 foundSupportFiles2 = true;
             } else if (fileNameLen == supportFilesDirectoryLength && CFStringCompareWithOptions(fileName, _CFBundleSupportFilesDirectoryName1, CFRangeMake(0, supportFilesDirectoryLength), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
                 foundSupportFiles1 = true;
+            } else if (fileNameLen == wrapperDirLength && CFStringCompareWithOptions(fileName, _CFBundleWrapperDirectoryName, CFRangeMake(0, wrapperDirLength), kCFCompareEqualTo) == kCFCompareEqualTo) {
+                foundAppWrapperDirectory = true;
+            } else if (fileType == DT_LNK && fileNameLen == wrapperLinkLength && CFStringCompareWithOptions(fileName, _CFBundleWrapperLinkName, CFRangeMake(0, wrapperLinkLength), kCFCompareEqualTo) == kCFCompareEqualTo) {
+                foundAppWrapperLink = true;
             }
         } else if (fileType == DT_UNKNOWN) {
             // We'll have to do a more expensive check later; readdir couldn't tell us what the kind of a file was. This may mean that we are looking on a network directory.
@@ -238,43 +305,178 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
         }
         return true;
     });
-    
-    // The order of these if statements is important - the Resources directory presence takes precedence over Contents, and so forth.
-    if (hasFrameworkSuffix) {
+
+    // If we are on a network mount (or FAT volume), we need to do an additional check to look for the symlink and directory for wrapped bundles. readdir will give us DT_UNKNOWN.
+    if (foundUnknown && localVersion == _CFBundleVersionFlat) {
+        // Look for wrapper directory
+        if (_CFBundleURLHasSubDir(url, _CFBundleWrapperDirectoryName)) {
+            foundAppWrapperDirectory = true;
+
+            // Look for wrapper link. Just verify something is there. We will verify it's linkiness later.
+            CFURLRef linkURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleWrapperLinkName, url);
+            Boolean isDir = false;
+            if (_CFIsResourceAtURL(linkURL, &isDir) && isDir) foundAppWrapperLink = true;
+            CFRelease(linkURL);
+
+            if (foundAppWrapperDirectory && foundAppWrapperLink) {
+                // Reset the unknown flag
+                foundUnknown = false;
+            }
+        }
+    }
+
+    if (foundAppWrapperDirectory && foundAppWrapperLink) {
+        // Default answer is flat until proven otherwise
+        localVersion = _CFBundleVersionFlat;
+
+        // Descend into the wrapper to find out what version it is
+        CFURLRef linkURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, bundleAbsoluteURL, _CFBundleWrapperLinkName, true);
+        CFStringRef linkPath = CFURLCopyFileSystemPath(linkURL, PLATFORM_PATH_STYLE);
+        CFRelease(linkURL);
+        
+        __block Boolean foundWrappedSupportFiles2 = false;
+        _CFIterateDirectory(linkPath, false, NULL, ^Boolean (CFStringRef fileName, CFStringRef fileNameWithPrefix, uint8_t fileType) {
+            // Only contents and flat directories are supported as wrapped bundles
+            if (fileType == DT_DIR || fileType == DT_LNK) {
+                CFIndex fileNameLen = CFStringGetLength(fileName);
+                if (fileNameLen == contentsDirectoryLength && CFStringCompareWithOptions(fileName, _CFBundleSupportFilesDirectoryName2, CFRangeMake(0, contentsDirectoryLength), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+                    foundWrappedSupportFiles2 = true;
+                }
+            }
+            return true;
+        });
+        
+        
+        
+        // 1. extension of bundle must match pointed-to
+        Boolean extensionCheckOk = false;
+        Boolean subdirectoryCheckOk = false;
+        
+        char linkPathCString[CFMaxPathSize];
+        char linkContentsCString[CFMaxPathSize];
+        char bundlePathCString[CFMaxPathSize];
+
+        if (CFStringGetFileSystemRepresentation(linkPath, linkPathCString, PATH_MAX) &&
+            CFStringGetFileSystemRepresentation(bundlePath, bundlePathCString, PATH_MAX)) {
+            // Leave room for a null terminator
+            ssize_t len = readlink(linkPathCString, linkContentsCString, CFMaxPathLength);
+            // Make sure this is not an absolute link but a relative one
+            if (len < 2 || (len > 1 && linkContentsCString[0] == '/')) {
+                os_log_error(_CFBundleResourceLogger(), "`WrappedBundle` link too short or pointed outside bundle at %{public}@", url);
+            } else {
+                // readlink does not null terminate, so we manually do it here
+                // CFStringGetFileSystemRepresentation does null terminate
+                linkContentsCString[len] = 0;
+                
+                const char *extensionOfWrapped = NULL;
+                const char *extensionOfWrapper = NULL;
+                
+                const char *lastPeriodInWrapped = strrchr(linkContentsCString, '.');
+                if (lastPeriodInWrapped) {
+                    extensionOfWrapped = lastPeriodInWrapped + 1; // advance past the .
+                }
+                
+                const char *lastPeriodInWrapper = strrchr(bundlePathCString, '.');
+                if (lastPeriodInWrapper) {
+                    extensionOfWrapper = lastPeriodInWrapper + 1; // advance past the .
+                }
+                
+                if (extensionOfWrapper && extensionOfWrapped) {
+                    if (strcmp(extensionOfWrapped, extensionOfWrapper) == 0) {
+                        extensionCheckOk = true;
+                    } else {
+                        os_log_error(_CFBundleResourceLogger(), "Extensions of wrapped bundles did not match at %{public}@", url);
+                    }
+                } else if (!extensionOfWrapper && !extensionOfWrapped) {
+                    // If they both have no extensions, that is allowed
+                    extensionCheckOk = true;
+                } else {
+                    // One doesn't have an extension
+                    os_log_error(_CFBundleResourceLogger(), "Extensions of wrapped bundles did not match (one missing) at %{public}@", url);
+                }
+                
+                // 2. pointed-to must not traverse outside bundle
+                // We check this by making sure that the path of the wrapper bundle is found at the start of the resolved symlink of the wrapped bundle. Also check for links to the same directory.
+#if TARGET_OS_WIN32
+                int resolvedWrappedBundleFd = _open(linkPathCString, O_RDONLY);
+                int resolvedBundlePathFd = _open(bundlePathCString, O_RDONLY);
+#else
+                int resolvedWrappedBundleFd = open(linkPathCString, O_RDONLY);
+                int resolvedBundlePathFd = open(bundlePathCString, O_RDONLY);
+#endif
+                
+                if (resolvedWrappedBundleFd > 0 && resolvedBundlePathFd > 0) {
+                    char resolvedWrappedBundlePath[PATH_MAX];
+                    char resolvedBundlePath[PATH_MAX];
+                    
+                    // Get the path for the wrapped bundle and the wrapper bundle here
+                    if (_CFGetPathFromFileDescriptor(resolvedWrappedBundleFd, resolvedWrappedBundlePath) &&
+                        _CFGetPathFromFileDescriptor(resolvedBundlePathFd, resolvedBundlePath) &&
+                        strncmp(resolvedWrappedBundlePath, resolvedBundlePath, PATH_MAX) != 0 &&
+                        strnstr(resolvedWrappedBundlePath, resolvedBundlePath, PATH_MAX) == resolvedWrappedBundlePath)
+                    {
+                        subdirectoryCheckOk = true;
+                    }
+                    
+                }
+                
+                if (resolvedWrappedBundleFd > 0) close(resolvedWrappedBundleFd);
+                if (resolvedBundlePathFd > 0) close(resolvedBundlePathFd);
+                
+                if (!subdirectoryCheckOk) {
+                    os_log_error(_CFBundleResourceLogger(), "`WrappedBundle` link invalid or pointed outside bundle at %{public}@", url);
+                }
+            }
+        }
+        
+        CFRelease(linkPath);
+
+        if (extensionCheckOk && subdirectoryCheckOk) {
+            if (foundWrappedSupportFiles2) {
+                localVersion = _CFBundleVersionWrappedContentsResources;
+            } else {
+                localVersion = _CFBundleVersionWrappedFlat;
+            }
+        }
+        
+    } else if (hasFrameworkSuffix) {
+        // The order of these if statements is important - the Resources directory presence takes precedence over Contents, and so forth. The order for frameworks is different than other bundles for compatibility reasons.
         if (foundResources) {
-            localVersion = 0;
+            localVersion = _CFBundleVersionOldStyleResources;
         } else if (foundSupportFiles2) {
-            localVersion = 2;
+            localVersion = _CFBundleVersionContentsResources;
         } else if (foundSupportFiles1) {
-            localVersion = 1;
+            localVersion = _CFBundleVersionOldStyleSupportFiles;
         }
     } else {
+        // The order of these if statements is important - the Resources directory presence takes precedence over Contents, and so forth.
         if (foundSupportFiles2) {
-            localVersion = 2;
+            localVersion = _CFBundleVersionContentsResources;
         } else if (foundResources) {
-            localVersion = 0;
+            localVersion = _CFBundleVersionOldStyleResources;
         } else if (foundSupportFiles1) {
-            localVersion = 1;
+            localVersion = _CFBundleVersionOldStyleSupportFiles;
         }
     }
 
 #if TARGET_OS_OSX || TARGET_OS_WIN32
     // Do a more substantial check for the subdirectories that make up version 0/1/2 bundles. These are sometimes symlinks (like in Frameworks) and they would have been missed by our check above.
     // n.b. that the readdir above may return DT_UNKNOWN, for example, when the directory is on a network mount.
-    if (foundUnknown && localVersion == 3) {
+    if (foundUnknown && localVersion == _CFBundleVersionFlat) {
         if (hasFrameworkSuffix) {
-            if (_CFBundleURLHasSubDir(url, _CFBundleResourcesURLFromBase0)) localVersion = 0;
-            else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase2)) localVersion = 2;
-            else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase1)) localVersion = 1;
+            if (_CFBundleURLHasSubDir(url, _CFBundleResourcesURLFromBase0)) localVersion = _CFBundleVersionOldStyleResources;
+            else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase2)) localVersion = _CFBundleVersionContentsResources;
+            else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase1)) localVersion = _CFBundleVersionOldStyleSupportFiles;
         } else {
-            if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase2)) localVersion = 2;
-            else if (_CFBundleURLHasSubDir(url, _CFBundleResourcesURLFromBase0)) localVersion = 0;
-            else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase1)) localVersion = 1;
+            if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase2)) localVersion = _CFBundleVersionContentsResources;
+            else if (_CFBundleURLHasSubDir(url, _CFBundleResourcesURLFromBase0)) localVersion = _CFBundleVersionOldStyleResources;
+            else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase1)) localVersion = _CFBundleVersionOldStyleSupportFiles;
         }
     }
 #endif
     
-    CFRelease(directoryPath);
+    CFRelease(bundleAbsoluteURL);
+    CFRelease(bundlePath);
     return localVersion;
 }
 
@@ -717,7 +919,7 @@ static void _CFBundleFindResourcesWithPredicate(CFMutableArrayRef interResult, C
     free(values);
 }
 
-static CFTypeRef _copyResourceURLsFromBundle(CFBundleRef bundle, CFURLRef bundleURL, CFArrayRef bundleURLLanguages, CFStringRef resourcesDirectory, CFStringRef subDir, CFStringRef key, CFStringRef lproj, Boolean returnArray, Boolean localized, uint8_t bundleVersion, Boolean (^predicate)(CFStringRef filename, Boolean *stop))
+static CFTypeRef _copyResourceURLsFromBundle(CFBundleRef bundle, CFURLRef bundleURL, CFArrayRef bundleURLLanguages, CFStringRef resourcesDirectory, CFStringRef subDir, CFStringRef key, CFStringRef lproj, Boolean returnArray, Boolean localized, _CFBundleVersion bundleVersion, Boolean (^predicate)(CFStringRef filename, Boolean *stop))
 {
     Boolean stop = false; // for predicate
     CFMutableArrayRef interResult = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
@@ -727,7 +929,7 @@ static CFTypeRef _copyResourceURLsFromBundle(CFBundleRef bundle, CFURLRef bundle
     CFDictionaryRef subTable = NULL;
     
     CFMutableStringRef path = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, resourcesDirectory);
-    if (1 == bundleVersion) {
+    if (_CFBundleVersionOldStyleSupportFiles == bundleVersion) {
         CFIndex savedPathLength = CFStringGetLength(path);
         // add the non-localized resource dir
         _CFAppendPathComponent2(path, _CFBundleNonLocalizedResourcesDirectoryName);
@@ -909,8 +1111,9 @@ static CFTypeRef _copyResourceURLsFromBundle(CFBundleRef bundle, CFURLRef bundle
 // Research shows that by far the most common scenario is to pass in a bundle object, a resource name, and a resource type, using the default localization.
 // It is probably the case that more than a few resources will be looked up, making the cost of a readdir less than repeated stats. But it is a relative waste of memory to create strings for every file name in the bundle, especially since those are not what are returned to the caller (URLs are). So, an idea: cache the existence of the most common file names (Info.plist, en.lproj, etc) instead of creating entries for them. If other resources are requested, then go ahead and do the readdir and cache the rest of the file names.
 // Another idea: if you want caching, you should create a bundle object. Otherwise we'll happily readdir each time.
-CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bundleURL, CFArrayRef _unused_pass_null_, CFStringRef resourceName, CFStringRef resourceType, CFStringRef subPath, CFStringRef lproj, Boolean returnArray, Boolean localized, Boolean (^predicate)(CFStringRef filename, Boolean *stop))
+CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef _Nullable bundle, CFURLRef _Nullable bundleURL, CFArrayRef _Nullable _unused_pass_null_, CFStringRef _Nullable resourceName, CFStringRef _Nullable resourceType, CFStringRef _Nullable subPath, CFStringRef _Nullable lproj, Boolean returnArray, Boolean localized, Boolean (^_Nullable predicate)(CFStringRef filename, Boolean *stop))
 {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFBundle, bundle);
     CFTypeRef returnValue = NULL;
 
     if (
@@ -1013,7 +1216,7 @@ CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef bundle, CFU
         _CFAppendPathComponent2((CFMutableStringRef)realSubdirectory, subPathFromResourceName);
     }
     
-    uint8_t bundleVersion = bundle ? _CFBundleLayoutVersion(bundle) : 0;
+    _CFBundleVersion bundleVersion = bundle ? _CFBundleLayoutVersion(bundle) : _CFBundleVersionOldStyleResources;
     CFArrayRef bundleURLLanguages = NULL;
     if (bundleURL) {
         bundleURLLanguages = _CFBundleCopyLanguageSearchListInDirectory(bundleURL, &bundleVersion);
@@ -1024,7 +1227,8 @@ CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef bundle, CFU
     // if returnArray is true then this function will always return a CFArrayRef, even if it's empty
     returnValue = _copyResourceURLsFromBundle(bundle, bundleURL, bundleURLLanguages, resDir, realSubdirectory, key, lproj, returnArray, localized, bundleVersion, predicate);
     
-    if ((!returnValue || (CFGetTypeID(returnValue) == CFArrayGetTypeID() && CFArrayGetCount((CFArrayRef)returnValue) == 0)) && (0 == bundleVersion || 2 == bundleVersion)) {
+    // This is a rarely taken path to add additional resources for old-style bundles and a special case (Spotlight)
+    if ((!returnValue || (CFGetTypeID(returnValue) == CFArrayGetTypeID() && CFArrayGetCount((CFArrayRef)returnValue) == 0)) && (_CFBundleVersionOldStyleResources == bundleVersion || _CFBundleVersionContentsResources == bundleVersion)) {
         CFStringRef bundlePath = NULL;
         if (bundle) {
             bundlePath = bundle->_bundleBasePath;
@@ -1034,16 +1238,16 @@ CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef bundle, CFU
             bundlePath = CFURLCopyFileSystemPath(absoluteURL, PLATFORM_PATH_STYLE);
             CFRelease(absoluteURL);
         }
-        if ((0 == bundleVersion) || CFEqual(CFSTR("/Library/Spotlight"), bundlePath)){
+        if ((_CFBundleVersionOldStyleResources == bundleVersion) || CFEqual(CFSTR("/Library/Spotlight"), bundlePath)){
             if (returnValue) CFRelease(returnValue);
-            if ((bundleVersion == 0 && realSubdirectory && CFEqual(realSubdirectory, CFSTR("Resources"))) || (bundleVersion == 2 && realSubdirectory && CFEqual(realSubdirectory, CFSTR("Contents/Resources")))) {
+            if ((bundleVersion == _CFBundleVersionOldStyleResources && realSubdirectory && CFEqual(realSubdirectory, CFSTR("Resources"))) || (bundleVersion == _CFBundleVersionContentsResources && realSubdirectory && CFEqual(realSubdirectory, CFSTR("Contents/Resources")))) {
                 if (realSubdirectory) CFRelease(realSubdirectory);
                 realSubdirectory = CFSTR("");
-            } else if (bundleVersion == 0 && realSubdirectory && CFStringGetLength(realSubdirectory) > 10 && CFStringHasPrefix(realSubdirectory, CFSTR("Resources/"))) {
+            } else if (bundleVersion == _CFBundleVersionOldStyleResources && realSubdirectory && CFStringGetLength(realSubdirectory) > 10 && CFStringHasPrefix(realSubdirectory, CFSTR("Resources/"))) {
                 CFStringRef tmpRealSubdirectory = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, realSubdirectory, CFRangeMake(10, CFStringGetLength(realSubdirectory) - 10));
                 if (realSubdirectory) CFRelease(realSubdirectory);
                 realSubdirectory = tmpRealSubdirectory;
-            } else if (bundleVersion == 2 && realSubdirectory && CFStringGetLength(realSubdirectory) > 19 && CFStringHasPrefix(realSubdirectory, CFSTR("Contents/Resources/"))) {
+            } else if (bundleVersion == _CFBundleVersionContentsResources && realSubdirectory && CFStringGetLength(realSubdirectory) > 19 && CFStringHasPrefix(realSubdirectory, CFSTR("Contents/Resources/"))) {
                 CFStringRef tmpRealSubdirectory = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, realSubdirectory, CFRangeMake(19, CFStringGetLength(realSubdirectory) - 19));
                 if (realSubdirectory) CFRelease(realSubdirectory);
                 realSubdirectory = tmpRealSubdirectory;

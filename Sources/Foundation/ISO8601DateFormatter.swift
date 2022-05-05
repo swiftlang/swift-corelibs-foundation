@@ -51,8 +51,8 @@ extension ISO8601DateFormatter {
 open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     
     typealias CFType = CFDateFormatter
-    private var __cfObject: CFType?
-    private var _cfObject: CFType {
+    private final var __cfObject: CFType?
+    private final var _cfObject: CFType {
         guard let obj = __cfObject else {
             let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
             let obj = CFDateFormatterCreateISO8601Formatter(kCFAllocatorSystemDefault, format)!
@@ -111,6 +111,13 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
         if let timeZone = timeZone {
             aCoder.encode(timeZone._nsObject, forKey: "NS.timeZone")
         }
+    }
+
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        let copied = ISO8601DateFormatter()
+        copied.timeZone = timeZone
+        copied.formatOptions = formatOptions
+        return copied
     }
     
     public static var supportsSecureCoding: Bool { return true }

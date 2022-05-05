@@ -42,7 +42,7 @@ CFStringEncodingCheapEightBitToUnicodeProc __CFCharToUniCharFunc = NULL;
 
 // To avoid early initialization issues, we just initialize this here
 // This should not be const as it is changed
-UniChar __CFCharToUniCharTable[256] = {
+static UniChar __CFMutableCharToUniCharTable[256] = {
   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,
  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,
@@ -59,19 +59,189 @@ UniChar __CFCharToUniCharTable[256] = {
 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
-};    
+};
+UniChar const * __CFCharToUniCharTable = __CFMutableCharToUniCharTable;
+
+UniChar const __CFIdempotentCharToUniCharTable[256] = {
+  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,
+ 16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
+ 32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,
+ 48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,
+ 64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+ 80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,
+ 96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127,
+128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
+144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175,
+176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191,
+192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207,
+208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
+224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
+};
+
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
+UniChar const __CFMacRomanCharToUnicharTable[256] = {
+  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,
+ 16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
+ 32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,
+ 48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,
+ 64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+ 80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,
+ 96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127,
+0x00C4, /* LATIN CAPITAL LETTER A WITH DIAERESIS */
+0x00C5, /* LATIN CAPITAL LETTER A WITH RING ABOVE */
+0x00C7, /* LATIN CAPITAL LETTER C WITH CEDILLA */
+0x00C9, /* LATIN CAPITAL LETTER E WITH ACUTE */
+0x00D1, /* LATIN CAPITAL LETTER N WITH TILDE */
+0x00D6, /* LATIN CAPITAL LETTER O WITH DIAERESIS */
+0x00DC, /* LATIN CAPITAL LETTER U WITH DIAERESIS */
+0x00E1, /* LATIN SMALL LETTER A WITH ACUTE */
+0x00E0, /* LATIN SMALL LETTER A WITH GRAVE */
+0x00E2, /* LATIN SMALL LETTER A WITH CIRCUMFLEX */
+0x00E4, /* LATIN SMALL LETTER A WITH DIAERESIS */
+0x00E3, /* LATIN SMALL LETTER A WITH TILDE */
+0x00E5, /* LATIN SMALL LETTER A WITH RING ABOVE */
+0x00E7, /* LATIN SMALL LETTER C WITH CEDILLA */
+0x00E9, /* LATIN SMALL LETTER E WITH ACUTE */
+0x00E8, /* LATIN SMALL LETTER E WITH GRAVE */
+0x00EA, /* LATIN SMALL LETTER E WITH CIRCUMFLEX */
+0x00EB, /* LATIN SMALL LETTER E WITH DIAERESIS */
+0x00ED, /* LATIN SMALL LETTER I WITH ACUTE */
+0x00EC, /* LATIN SMALL LETTER I WITH GRAVE */
+0x00EE, /* LATIN SMALL LETTER I WITH CIRCUMFLEX */
+0x00EF, /* LATIN SMALL LETTER I WITH DIAERESIS */
+0x00F1, /* LATIN SMALL LETTER N WITH TILDE */
+0x00F3, /* LATIN SMALL LETTER O WITH ACUTE */
+0x00F2, /* LATIN SMALL LETTER O WITH GRAVE */
+0x00F4, /* LATIN SMALL LETTER O WITH CIRCUMFLEX */
+0x00F6, /* LATIN SMALL LETTER O WITH DIAERESIS */
+0x00F5, /* LATIN SMALL LETTER O WITH TILDE */
+0x00FA, /* LATIN SMALL LETTER U WITH ACUTE */
+0x00F9, /* LATIN SMALL LETTER U WITH GRAVE */
+0x00FB, /* LATIN SMALL LETTER U WITH CIRCUMFLEX */
+0x00FC, /* LATIN SMALL LETTER U WITH DIAERESIS */
+0x2020, /* DAGGER */
+0x00B0, /* DEGREE SIGN */
+0x00A2, /* CENT SIGN */
+0x00A3, /* POUND SIGN */
+0x00A7, /* SECTION SIGN */
+0x2022, /* BULLET */
+0x00B6, /* PILCROW SIGN */
+0x00DF, /* LATIN SMALL LETTER SHARP S */
+0x00AE, /* REGISTERED SIGN */
+0x00A9, /* COPYRIGHT SIGN */
+0x2122, /* TRADE MARK SIGN */
+0x00B4, /* ACUTE ACCENT */
+0x00A8, /* DIAERESIS */
+0x2260, /* NOT EQUAL TO */
+0x00C6, /* LATIN CAPITAL LIGATURE AE */
+0x00D8, /* LATIN CAPITAL LETTER O WITH STROKE */
+0x221E, /* INFINITY */
+0x00B1, /* PLUS-MINUS SIGN */
+0x2264, /* LESS-THAN OR EQUAL TO */
+0x2265, /* GREATER-THAN OR EQUAL TO */
+0x00A5, /* YEN SIGN */
+0x00B5, /* MICRO SIGN */
+0x2202, /* PARTIAL DIFFERENTIAL */
+0x2211, /* N-ARY SUMMATION */
+0x220F, /* N-ARY PRODUCT */
+0x03C0, /* GREEK SMALL LETTER PI */
+0x222B, /* INTEGRAL */
+0x00AA, /* FEMININE ORDINAL INDICATOR */
+0x00BA, /* MASCULINE ORDINAL INDICATOR */
+0x03A9, /* OHM SIGN (Canonical mapping) */
+0x00E6, /* LATIN SMALL LIGATURE AE */
+0x00F8, /* LATIN SMALL LETTER O WITH STROKE */
+0x00BF, /* INVERTED QUESTION MARK */
+0x00A1, /* INVERTED EXCLAMATION MARK */
+0x00AC, /* NOT SIGN */
+0x221A, /* SQUARE ROOT */
+0x0192, /* LATIN SMALL LETTER F WITH HOOK */
+0x2248, /* ALMOST EQUAL TO */
+0x2206, /* INCREMENT */
+0x00AB, /* LEFT-POINTING DOUBLE ANGLE QUOTATION MARK */
+0x00BB, /* RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK */
+0x2026, /* HORIZONTAL ELLIPSIS */
+0x00A0, /* NO-BREAK SPACE */
+0x00C0, /* LATIN CAPITAL LETTER A WITH GRAVE */
+0x00C3, /* LATIN CAPITAL LETTER A WITH TILDE */
+0x00D5, /* LATIN CAPITAL LETTER O WITH TILDE */
+0x0152, /* LATIN CAPITAL LIGATURE OE */
+0x0153, /* LATIN SMALL LIGATURE OE */
+0x2013, /* EN DASH */
+0x2014, /* EM DASH */
+0x201C, /* LEFT DOUBLE QUOTATION MARK */
+0x201D, /* RIGHT DOUBLE QUOTATION MARK */
+0x2018, /* LEFT SINGLE QUOTATION MARK */
+0x2019, /* RIGHT SINGLE QUOTATION MARK */
+0x00F7, /* DIVISION SIGN */
+0x25CA, /* LOZENGE */
+0x00FF, /* LATIN SMALL LETTER Y WITH DIAERESIS */
+0x0178, /* LATIN CAPITAL LETTER Y WITH DIAERESIS */
+0x2044, /* FRACTION SLASH */
+0x20AC, /* EURO SIGN */
+0x2039, /* SINGLE LEFT-POINTING ANGLE QUOTATION MARK */
+0x203A, /* SINGLE RIGHT-POINTING ANGLE QUOTATION MARK */
+0xFB01, /* LATIN SMALL LIGATURE FI */
+0xFB02, /* LATIN SMALL LIGATURE FL */
+0x2021, /* DOUBLE DAGGER */
+0x00B7, /* MIDDLE DOT */
+0x201A, /* SINGLE LOW-9 QUOTATION MARK */
+0x201E, /* DOUBLE LOW-9 QUOTATION MARK */
+0x2030, /* PER MILLE SIGN */
+0x00C2, /* LATIN CAPITAL LETTER A WITH CIRCUMFLEX */
+0x00CA, /* LATIN CAPITAL LETTER E WITH CIRCUMFLEX */
+0x00C1, /* LATIN CAPITAL LETTER A WITH ACUTE */
+0x00CB, /* LATIN CAPITAL LETTER E WITH DIAERESIS */
+0x00C8, /* LATIN CAPITAL LETTER E WITH GRAVE */
+0x00CD, /* LATIN CAPITAL LETTER I WITH ACUTE */
+0x00CE, /* LATIN CAPITAL LETTER I WITH CIRCUMFLEX */
+0x00CF, /* LATIN CAPITAL LETTER I WITH DIAERESIS */
+0x00CC, /* LATIN CAPITAL LETTER I WITH GRAVE */
+0x00D3, /* LATIN CAPITAL LETTER O WITH ACUTE */
+0x00D4, /* LATIN CAPITAL LETTER O WITH CIRCUMFLEX */
+0xF8FF, /* Apple logo */
+0x00D2, /* LATIN CAPITAL LETTER O WITH GRAVE */
+0x00DA, /* LATIN CAPITAL LETTER U WITH ACUTE */
+0x00DB, /* LATIN CAPITAL LETTER U WITH CIRCUMFLEX */
+0x00D9, /* LATIN CAPITAL LETTER U WITH GRAVE */
+0x0131, /* LATIN SMALL LETTER DOTLESS I */
+0x02C6, /* MODIFIER LETTER CIRCUMFLEX ACCENT */
+0x02DC, /* SMALL TILDE */
+0x00AF, /* MACRON */
+0x02D8, /* BREVE */
+0x02D9, /* DOT ABOVE */
+0x02DA, /* RING ABOVE */
+0x00B8, /* CEDILLA */
+0x02DD, /* DOUBLE ACUTE ACCENT */
+0x02DB, /* OGONEK */
+0x02C7, /* CARON */
+};
+#endif
 
 CF_PRIVATE void __CFSetCharToUniCharFunc(CFStringEncodingCheapEightBitToUnicodeProc _Nullable func) {
     if (__CFCharToUniCharFunc != func) {
-        int ch;
-        __CFCharToUniCharFunc = func;
         if (func) {
-            for (ch = 128; ch < 256; ch++) {
-                UniChar uch;
-                __CFCharToUniCharTable[ch] = (__CFCharToUniCharFunc(0, ch, &uch) ? uch : 0xFFFD);
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
+            const CFStringEncodingConverter *converter = CFStringEncodingGetConverter(kCFStringEncodingMacRoman);
+            if (converter && converter->toUnicode.cheapEightBit == func) {
+                __CFCharToUniCharTable = __CFMacRomanCharToUnicharTable;
+            } else
+#endif
+            {
+                __CFCharToUniCharTable = __CFMutableCharToUniCharTable;
+                for (int ch = 128; ch < 256; ch++) {
+                    UniChar uch;
+                    __CFMutableCharToUniCharTable[ch] = (func(0, ch, &uch) ? uch : 0xFFFD);
+                }
             }
-        } else {	// If we have no __CFCharToUniCharFunc, assume 128..255 return the value as-is
-            for (ch = 128; ch < 256; ch++) __CFCharToUniCharTable[ch] = ch;
+            __CFCharToUniCharFunc = func;
+        } else {
+            // If we have no __CFCharToUniCharFunc, assume 128..255 return the value as-is
+            __CFCharToUniCharTable = __CFIdempotentCharToUniCharTable;
         }
     }
 }
@@ -320,12 +490,12 @@ Boolean __CFStringDecodeByteStream3(const uint8_t *bytes, CFIndex len, CFStringE
             memmove(buffer->chars.ascii, chars, len * sizeof(uint8_t));
         } else {
             CFIndex numDone;
+            static dispatch_once_t onceToken;
             static CFStringEncodingToUnicodeProc __CFFromUTF8 = NULL;
-            
-            if (!__CFFromUTF8) {
-                const CFStringEncodingConverter *converter = CFStringEncodingGetConverter(kCFStringEncodingUTF8);
-                __CFFromUTF8 = converter->toUnicode.standard;
-            }
+            dispatch_once(&onceToken, ^{
+                // This decoder is built in, no need to check it more than once
+                __CFFromUTF8 = CFStringEncodingGetConverter(kCFStringEncodingUTF8)->toUnicode.standard;
+            });
             
             buffer->shouldFreeChars = !buffer->chars.unicode && (len <= MAX_LOCAL_UNICHARS) ? false : true;
             buffer->chars.unicode = (buffer->chars.unicode ? buffer->chars.unicode : (len <= MAX_LOCAL_UNICHARS) ? (UniChar *)buffer->localBuffer : (UniChar *)CFAllocatorAllocate(buffer->allocator, len * sizeof(UniChar), 0));
@@ -510,12 +680,13 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
     const UniChar *unichars;
 
     if (encoding == kCFStringEncodingUTF8 && (unichars = CFStringGetCharactersPtr(string))) {
+        static dispatch_once_t onceToken;
         static CFStringEncodingToBytesProc __CFToUTF8 = NULL;
+        dispatch_once(&onceToken, ^{
+            // Thiis encoder is built-in, no need to check it more than once
+            __CFToUTF8 = CFStringEncodingGetConverter(kCFStringEncodingUTF8)->toBytes.standard;
+        });
 
-        if (!__CFToUTF8) {
-            const CFStringEncodingConverter *utf8Converter = CFStringEncodingGetConverter(kCFStringEncodingUTF8);
-            __CFToUTF8 = utf8Converter->toBytes.standard;
-        }
         numCharsProcessed = __CFToUTF8((generatingExternalFile ? kCFStringEncodingPrependBOM : 0), unichars + rangeLoc, rangeLen, buffer, (buffer ? max : 0), &totalBytesWritten);
 
     } else if (encoding == kCFStringEncodingNonLossyASCII) {
@@ -643,7 +814,10 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
         const unsigned char *cString = NULL;
         Boolean isASCIISuperset = __CFStringEncodingIsSupersetOfASCII(encoding);
 
-        if (!CFStringEncodingIsValidEncoding(encoding)) return 0;
+        if (!CFStringEncodingIsValidEncoding(encoding)) {
+            if (usedBufLen) *usedBufLen = 0;
+            return 0;
+        }
 
         if (!CF_IS_OBJC(_kCFRuntimeIDCFString, string) && isASCIISuperset) { // Checking for NSString to avoid infinite recursion
             const unsigned char *ptr;
@@ -656,7 +830,7 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
                     return numCharsProcessed;
                 }
 		
-                CFIndex uninterestingTailLen = buffer ? (rangeLen - MIN(max, rangeLen)) : 0;
+                CFIndex uninterestingTailLen = buffer ? (rangeLen - __CFMin(max, rangeLen)) : 0;
                 while (*ptr < 0x80 && rangeLen > uninterestingTailLen) {
                     ++ptr;
                     --rangeLen;
@@ -703,6 +877,11 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
             }
         }
 
+        // At this level, only a NULL buffer is an indicator that this operation should be a "dry run". However, we're about to call CFStringEncodingUnicodeToBytes() which infers that behavior only from its maxByteLen parameter being 0. Hence the following line that forces `max` to 0 if `buffer` is NULL. However, because of that difference in behavior, we DON'T want to proceed with CFStringEncodingUnicodeToBytes if our `buffer` is non-NULL and `max` is 0. Doing so would mislead the caller into believing that the string was successfully converted and potentially result in bugs like rdar://problem/70764833.
+        if (buffer && max == 0) {
+            if (usedBufLen) *usedBufLen = 0;
+            return 0;
+        }
         if (!buffer) max = 0;
 
         // Special case for Foundation. When lossByte == 0xFF && encoding kCFStringEncodingASCII, we do the default ASCII fallback conversion
@@ -930,7 +1109,6 @@ Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, uint8_t *buffer
 */
 void _CFStringGetUserDefaultEncoding(UInt32 *oScriptValue, UInt32 *oRegionValue) {
     char *stringValue;
-    char buffer[__kCFMaxDefaultEncodingFileLength];
     int uid = _CFGetEUID();
 
     if ((stringValue = (char *)__CFgetenv(__kCFUserEncodingEnvVariableName)) != NULL) {
@@ -941,6 +1119,10 @@ void _CFStringGetUserDefaultEncoding(UInt32 *oScriptValue, UInt32 *oRegionValue)
         }
     }
 
+#if TARGET_OS_OSX
+    // The .CFUserTextEncoding file (__kCFUserEncodingFileName) is only written out on mac.
+    // We should also consider deprecating it: 29116894
+    char buffer[__kCFMaxDefaultEncodingFileLength];
     if ((stringValue == NULL) && ((uid > 0) || __CFgetenv("HOME"))) {
         char passwdExtraBuf[1000 + MAXPATHLEN];  // Extra memory buffer for getpwuid_r(); no clue as to how large this should be...
         struct passwd passwdBuf, *passwdp = NULL;
@@ -988,6 +1170,14 @@ void _CFStringGetUserDefaultEncoding(UInt32 *oScriptValue, UInt32 *oRegionValue)
 	    if (-1 != no_hang_fd) close(no_hang_fd);
         }
     }
+#else
+    // Fallback to smRoman/verUS
+    if (stringValue == NULL && uid > 0) {
+        char encoding[32];
+        snprintf(encoding, sizeof(encoding), "0x%X:0:0", uid);
+        setenv(__kCFUserEncodingEnvVariableName, encoding, 1);
+    }
+#endif
 
     if (stringValue) {
         *oScriptValue = strtol_l(stringValue, &stringValue, 0, NULL);

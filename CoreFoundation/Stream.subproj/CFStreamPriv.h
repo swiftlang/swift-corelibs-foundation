@@ -55,19 +55,6 @@ struct _CFStream;
 
 CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream);
 
-#if !defined(CF_PRIVATE)
-#define CF_PRIVATE extern __attribute__((__visibility__("hidden")))
-#endif
-
-// cb version must be > 0
-CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info, const struct _CFStreamCallBacks *cb, Boolean isReading);
-
-// Returns an array of the runloops and modes on which the stream is currently scheduled
-CF_PRIVATE
-CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream);
-CF_PRIVATE
-CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream);
-
 CF_EXPORT
 CFReadStreamRef _CFReadStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 

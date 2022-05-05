@@ -742,8 +742,9 @@ static void _wakeUpRunLoop(struct _CFStream *stream) {
                 }
             }
         }
-        if (NULL != rl && CFRunLoopIsWaiting(rl)) 
+        if (NULL != rl) {
             CFRunLoopWakeUp(rl);
+        }
         CFRelease(rlArray);
     }
 }
@@ -1320,6 +1321,8 @@ CF_EXPORT Boolean CFReadStreamSetClient(CFReadStreamRef readStream, CFOptionFlag
             else {
                 _CFStreamDelegate* d = [[_CFStreamDelegate alloc] initWithStreamEvents:streamEvents callback:(void*) clientCB context:clientContext];
                 [is setDelegate:d];
+                objc_setAssociatedObject(is, (void *)[_CFStreamDelegate class], d, OBJC_ASSOCIATION_RETAIN);
+                [d release];
             }
             return true;
         }
@@ -1343,6 +1346,8 @@ CF_EXPORT Boolean CFWriteStreamSetClient(CFWriteStreamRef writeStream, CFOptionF
             else {
                 _CFStreamDelegate* d = [[_CFStreamDelegate alloc] initWithStreamEvents:streamEvents callback:(void*) clientCB context:clientContext];
                 [os setDelegate:d];
+                objc_setAssociatedObject(os, (void *)[_CFStreamDelegate class], d, OBJC_ASSOCIATION_RETAIN);
+                [d release];
             }
             return true;
         }
@@ -1669,17 +1674,16 @@ extern _CFThreadRef _CFMainPThread;
 static void _perform(void* info)
 {
 #if TARGET_OS_MAC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
     OSAtomicAdd64(1, &sPerformCount);
+#pragma GCC diagnostic pop
 #endif
 }
 
 static void* _legacyStreamRunLoop_workThread(void* arg)
 {
-#if TARGET_OS_LINUX
-    pthread_setname_np(pthread_self(), "com.apple.CFStream.LegacyThread");
-#else
-    pthread_setname_np("com.apple.CFStream.LegacyThread");
-#endif
+    _CFThreadSetName(pthread_self(), "com.apple.CFStream.LegacyThread");
     sLegacyRL = CFRunLoopGetCurrent();
 
 #if defined(LOG_STREAM)
@@ -1856,11 +1860,11 @@ static void waitForOpen(struct _CFStream *stream) {
     _CFStreamUnscheduleFromRunLoop(stream, runLoop, privateMode);
 }
 
-CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream) {
+CF_PRIVATE CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream) {
     return _CFStreamCopyRunLoopsAndModes((struct _CFStream *)readStream);
 }
 
-CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream) {
+CF_PRIVATE CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream) {
     return _CFStreamCopyRunLoopsAndModes((struct _CFStream *)writeStream);
 }
 

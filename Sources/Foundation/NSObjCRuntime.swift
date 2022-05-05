@@ -313,6 +313,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (UnitFrequency.self, "NSUnitFrequency"),
         (UnitFuelEfficiency.self, "NSUnitFuelEfficiency"),
         (UnitIlluminance.self, "NSUnitIlluminance"),
+        (UnitInformationStorage.self, "NSUnitInformationStorage"),
         (UnitLength.self, "NSUnitLength"),
         (UnitMass.self, "NSUnitMass"),
         (UnitPower.self, "NSUnitPower"),

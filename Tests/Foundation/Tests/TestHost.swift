@@ -12,7 +12,8 @@ class TestHost: XCTestCase {
     static var allTests: [(String, (TestHost) -> () throws -> Void)] {
         return [
             ("test_addressesDoNotGrow", test_addressesDoNotGrow),
-            ("test_isEqual", test_isEqual)
+            ("test_isEqual", test_isEqual),
+            ("test_localNamesNonEmpty", test_localNamesNonEmpty),
         ]
     }
     
@@ -48,6 +49,15 @@ class TestHost: XCTestCase {
 
         let google = Host(name: "google.com")
         XCTAssertFalse(swift0.isEqual(to: google))
+    }
+
+    // SR-14197
+    func test_localNamesNonEmpty() {
+        let local = Host.current()
+        XCTAssertTrue(local.names.count > 0)
+
+        let swift = Host(name: "localhost")
+        XCTAssertTrue(swift.names.count > 0)
     }
 }
 

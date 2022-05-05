@@ -190,10 +190,10 @@ static SInt32 _CFUserNotificationSendRequest(CFAllocatorRef allocator, CFStringR
     
 #if TARGET_OS_OSX
     const char *namebuffer = NOTIFICATION_PORT_NAME_MAC;
-    const nameLen = sizeof(NOTIFICATION_PORT_NAME_MAC);
+    const CFIndex nameLen = sizeof(NOTIFICATION_PORT_NAME_MAC);
 #else
     const char *namebuffer = NOTIFICATION_PORT_NAME_IOS;
-    const nameLen = sizeof(NOTIFICATION_PORT_NAME_IOS);
+    const CFIndex nameLen = sizeof(NOTIFICATION_PORT_NAME_IOS);
 #endif
     
     if (sessionID) {
@@ -299,6 +299,7 @@ static void _CFUserNotificationMachPortCallBack(CFMachPortRef port, void *m, CFI
 }
 
 SInt32 CFUserNotificationReceiveResponse(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags *responseFlags) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFUserNotification, userNotification);
     CHECK_FOR_FORK();
     SInt32 retval = ERR_SUCCESS;
     mach_msg_timeout_t msgtime = (timeout > 0.0 && 1000.0 * timeout < INT_MAX) ? (mach_msg_timeout_t)(1000.0 * timeout) : 0;
@@ -343,11 +344,15 @@ SInt32 CFUserNotificationReceiveResponse(CFUserNotificationRef userNotification,
 }
 
 CFStringRef CFUserNotificationGetResponseValue(CFUserNotificationRef userNotification, CFStringRef key, CFIndex idx) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFUserNotification, userNotification);
     CHECK_FOR_FORK();
     CFStringRef retval = NULL;
     CFTypeRef value = NULL;
     if (userNotification && userNotification->_responseDictionary) {
         value = CFDictionaryGetValue(userNotification->_responseDictionary, key);
+        if (value == NULL) {
+            return NULL;
+        }
         if (CFGetTypeID(value) == CFStringGetTypeID()) {
             if (0 == idx) retval = (CFStringRef)value;
         } else if (CFGetTypeID(value) == CFArrayGetTypeID()) {
@@ -358,11 +363,13 @@ CFStringRef CFUserNotificationGetResponseValue(CFUserNotificationRef userNotific
 }
 
 CFDictionaryRef CFUserNotificationGetResponseDictionary(CFUserNotificationRef userNotification) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFUserNotification, userNotification);
     CHECK_FOR_FORK();
     return userNotification ? userNotification->_responseDictionary : NULL;
 }
 
 SInt32 CFUserNotificationUpdate(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags flags, CFDictionaryRef dictionary) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFUserNotification, userNotification);
     CHECK_FOR_FORK();
     SInt32 retval = ERR_SUCCESS;
     if (userNotification && MACH_PORT_NULL != userNotification->_replyPort) {
@@ -373,6 +380,7 @@ SInt32 CFUserNotificationUpdate(CFUserNotificationRef userNotification, CFTimeIn
 }
 
 SInt32 CFUserNotificationCancel(CFUserNotificationRef userNotification) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFUserNotification, userNotification);
     CHECK_FOR_FORK();
     SInt32 retval = ERR_SUCCESS;
     if (userNotification && MACH_PORT_NULL != userNotification->_replyPort) {
@@ -383,6 +391,7 @@ SInt32 CFUserNotificationCancel(CFUserNotificationRef userNotification) {
 }
 
 CFRunLoopSourceRef CFUserNotificationCreateRunLoopSource(CFAllocatorRef allocator, CFUserNotificationRef userNotification, CFUserNotificationCallBack callout, CFIndex order) {
+    CF_ASSERT_TYPE_OR_NULL(_kCFRuntimeIDCFUserNotification, userNotification);
     CHECK_FOR_FORK();
     CFRunLoopSourceRef source = NULL;
     if (userNotification && callout && !userNotification->_machPort && MACH_PORT_NULL != userNotification->_replyPort) {

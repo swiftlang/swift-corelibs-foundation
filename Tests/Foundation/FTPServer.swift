@@ -17,6 +17,17 @@ import Dispatch
     import Darwin
 #endif
 
+public class ServerSemaphore {
+    let dispatchSemaphore = DispatchSemaphore(value: 0)
+
+    public func wait(timeout: DispatchTime) -> DispatchTimeoutResult {
+        return dispatchSemaphore.wait(timeout: timeout)
+    }
+
+    public func signal() {
+        dispatchSemaphore.signal()
+    }
+}
 
 class _FTPSocket {
 

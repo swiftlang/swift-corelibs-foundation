@@ -60,9 +60,6 @@
                   Identifier = "TestURLRequest/test_hash()">
                </Test>
                <Test
-                  Identifier = "TestURLSession">
-               </Test>
-               <Test
                   Identifier = "TestXMLDocument/test_creatingAnEmptyDocumentAndNode()">
                </Test>
             </SkippedTests>

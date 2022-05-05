@@ -64,6 +64,17 @@ target_link_libraries(FoundationNetworking
     CFURLSessionInterface
   PUBLIC
     Foundation)
+
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_options(FoundationNetworking
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend curl")
+
+  # Merge private dependencies into single static objects archive
+  set_property(TARGET FoundationNetworking PROPERTY STATIC_LIBRARY_OPTIONS
+    $<TARGET_OBJECTS:CFURLSessionInterface>)
+endif()
+
 set_target_properties(FoundationNetworking PROPERTIES
   INSTALL_RPATH "$ORIGIN"
   Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift

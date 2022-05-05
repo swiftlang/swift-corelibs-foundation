@@ -1176,6 +1176,34 @@ class TestNumberFormatter: XCTestCase {
 #endif
     }
 
+    func test_copy() throws {
+        let original = NumberFormatter()
+        let copied = try XCTUnwrap(original.copy() as? NumberFormatter)
+        XCTAssertFalse(original === copied)
+
+        func __assert<T>(_ property: KeyPath<NumberFormatter, T>,
+                         original expectedValueOfOriginalFormatter: T,
+                         copy expectedValueOfCopiedFormatter: T,
+                         file: StaticString = #file,
+                         line: UInt = #line) where T: Equatable {
+            XCTAssertEqual(original[keyPath: property], expectedValueOfOriginalFormatter,
+                           "Unexpected value in `original`.", file: file, line: line)
+            XCTAssertEqual(copied[keyPath: property], expectedValueOfCopiedFormatter,
+                           "Unexpected value in `copied`.", file: file, line: line)
+        }
+
+        copied.numberStyle = .decimal
+        __assert(\.numberStyle, original: .none, copy: .decimal)
+        __assert(\.maximumIntegerDigits, original: 42, copy: 2_000_000_000)
+        __assert(\.maximumFractionDigits, original: 0, copy: 3)
+        __assert(\.groupingSize, original: 0, copy: 3)
+
+        original.numberStyle = .percent
+        original.percentSymbol = "％"
+        __assert(\.numberStyle, original: .percent, copy: .decimal)
+        __assert(\.format, original: "#,##0%;0％;#,##0%", copy: "#,##0.###;0;#,##0.###")
+    }
+
     static var allTests: [(String, (TestNumberFormatter) -> () throws -> Void)] {
         return [
             ("test_defaultPropertyValues", test_defaultPropertyValues),
@@ -1238,6 +1266,7 @@ class TestNumberFormatter: XCTestCase {
             ("test_usingFormat", test_usingFormat),
             ("test_propertyChanges", test_propertyChanges),
             ("test_scientificStrings", test_scientificStrings),
+            ("test_copy", test_copy),
         ]
     }
 }

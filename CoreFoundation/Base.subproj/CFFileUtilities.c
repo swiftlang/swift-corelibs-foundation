@@ -371,6 +371,9 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
         }
     }
     
+#if TARGET_OS_MAC
+    struct dirent buffer;
+#endif
     struct dirent *dp;
     int err;
    
@@ -387,7 +390,11 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     }
     files = CFArrayCreateMutable(alloc, 0, & kCFTypeArrayCallBacks);
 
+#if TARGET_OS_MAC
+    while((0 == readdir_r(dirp, &buffer, &dp)) && dp) {
+#else
     while((dp = readdir(dirp))) {
+#endif
         CFURLRef fileURL;
 	unsigned namelen = strlen(dp->d_name);
 

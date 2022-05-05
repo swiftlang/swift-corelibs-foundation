@@ -152,7 +152,7 @@ CFUUIDRef CFUUIDCreate(CFAllocatorRef alloc) {
         long rStatus = UuidCreate(&u);
         if (RPC_S_OK != rStatus && RPC_S_UUID_LOCAL_ONLY != rStatus) retval = 1;
         memmove(&bytes, &u, sizeof(bytes));
-#elif TARGET_OS_MAC || TARGET_OS_LINUX
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
         static int8_t useV1UUIDs = -1;
         uuid_t uuid;
         if (useV1UUIDs == -1) {
@@ -293,6 +293,8 @@ CFUUIDRef CFUUIDCreateFromString(CFAllocatorRef alloc, CFStringRef uuidStr) {
 }
 
 CFStringRef CFUUIDCreateString(CFAllocatorRef alloc, CFUUIDRef uuid) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFUUID, uuid);
+    
     CFMutableStringRef str = CFStringCreateMutable(alloc, 0);
     UniChar buff[12];
 
@@ -363,6 +365,7 @@ CFUUIDRef CFUUIDGetConstantUUIDWithBytes(CFAllocatorRef alloc, uint8_t byte0, ui
 }
 
 CFUUIDBytes CFUUIDGetUUIDBytes(CFUUIDRef uuid) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFUUID, uuid);
     return uuid->_bytes;
 }
 

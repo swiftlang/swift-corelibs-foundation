@@ -37,6 +37,10 @@
 */
 #define __kCFStringCharSetMax 64
 
+/* The first builtin set ID number
+*/
+#define __kCFFirstBuiltinSetID kCFCharacterSetControl
+
 /* The last builtin set ID number
 */
 #define __kCFLastBuiltinSetID kCFCharacterSetNewline
@@ -177,22 +181,27 @@ CF_INLINE void __CFCSetPutCompactBitmapBits(CFMutableCharacterSetRef cset, uint8
 
 /* Validation funcs
 */
-#if defined(CF_ENABLE_ASSERTIONS)
+
 CF_INLINE void __CFCSetValidateBuiltinType(CFCharacterSetPredefinedSet type, const char *func) {
-    CFAssert2(type > 0 && type <= __kCFLastBuiltinSetID, __kCFLogAssertion, "%s: Unknowen builtin type %d", func, type);
-}
-CF_INLINE void __CFCSetValidateRange(CFRange theRange, const char *func) {
-    CFAssert3(theRange.location >= 0 && theRange.location + theRange.length <= 0x1FFFFF, __kCFLogAssertion, "%s: Range out of Unicode range (location -> %d length -> %d)", func, theRange.location, theRange.length);
+    if (type < __kCFFirstBuiltinSetID || type > __kCFLastBuiltinSetID) {
+        CFLog(__kCFLogAssertion, CFSTR("%s: Unknown builtin type %ld"), func, (long)type);
+        HALT_MSG("Unknown builtin CFCharacterSet type");
+    }
 }
 CF_INLINE void __CFCSetValidateTypeAndMutability(CFCharacterSetRef cset, const char *func) {
     __CFGenericValidateType(cset, _kCFRuntimeIDCFCharacterSet);
-    CFAssert1(__CFCSetIsMutable(cset), __kCFLogAssertion, "%s: Immutable character set passed to mutable function", func);
+    if (!__CFCSetIsMutable(cset)) {
+        CFLog(__kCFLogAssertion, CFSTR("%s: Immutable character set passed to mutable function"), func);
+        HALT_MSG("Immutable character set passed to mutable function");
+    }
 }
-#else
-#define __CFCSetValidateBuiltinType(t,f)
-#define __CFCSetValidateRange(r,f)
-#define __CFCSetValidateTypeAndMutability(r,f)
-#endif
+
+CF_INLINE void __CFCSetValidateRange(CFRange theRange, const char *func) {
+    if (theRange.location < UCHAR_MIN_VALUE || theRange.location > UCHAR_MAX_VALUE || theRange.length > UCHAR_MAX_VALUE + 1 || theRange.location + theRange.length < UCHAR_MIN_VALUE || theRange.location + theRange.length > UCHAR_MAX_VALUE + 1) {
+        CFLog(__kCFLogAssertion, CFSTR("%s: Range (location: %ld, length: %ld) outside of valid Unicode range (0x0 - 0x10FFFF)"), func, (long)theRange.location, (long)theRange.length);
+        HALT_MSG("CFCharacterSet range is outside of valid Unicode range (0x0 - 0x10FFFF)");
+    }
+}
 
 /* Inline utility funcs
 */
@@ -731,7 +740,7 @@ static void __CFCSetAddNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFRang
     int firstChar = (range.location & 0xFFFF);
     int maxChar = range.location + range.length;
     int idx = range.location >> 16; // first plane
-    int maxPlane = MIN((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
+    int maxPlane = __CFMin((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
     CFRange planeRange;
     CFMutableCharacterSetRef annexPlane;
 
@@ -775,7 +784,7 @@ static void __CFCSetRemoveNonBMPPlanesInRange(CFMutableCharacterSetRef cset, CFR
     int firstChar = (range.location & 0xFFFF);
     int maxChar = range.location + range.length;
     int idx = range.location >> 16; // first plane
-    int maxPlane = MIN((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
+    int maxPlane = __CFMin((maxChar - 1) >> 16, MAX_ANNEX_PLANE); // last plane
     CFRange planeRange;
     CFMutableCharacterSetRef annexPlane;
 
@@ -1362,8 +1371,6 @@ CFCharacterSetRef CFCharacterSetGetPredefined(CFCharacterSetPredefinedSet theSet
 
     __CFCSetValidateBuiltinType(theSetIdentifier, __PRETTY_FUNCTION__);
 
-    if ((theSetIdentifier < kCFCharacterSetControl) || (theSetIdentifier > __kCFLastBuiltinSetID)) { return NULL; }
-
     _CFCharacterSetLockGlobal();
     cset = __CFBuiltinSets[theSetIdentifier - 1];
     _CFCharacterSetUnlockGlobal();
@@ -1371,11 +1378,11 @@ CFCharacterSetRef CFCharacterSetGetPredefined(CFCharacterSetPredefinedSet theSet
     if (NULL != cset) return cset;
 
     if (!(cset = __CFCSetGenericCreate(kCFAllocatorSystemDefault, __kCFCharSetClassBuiltin, false))) return NULL;
+    __CFCSetPutBuiltinType((CFMutableCharacterSetRef)cset, theSetIdentifier); //make builtin
 
     _CFCharacterSetLockGlobal();
     if (__CFBuiltinSets[theSetIdentifier - 1] == NULL) {
         __CFBuiltinSets[theSetIdentifier - 1] = cset;
-        __CFCSetPutBuiltinType((CFMutableCharacterSetRef)cset, theSetIdentifier); //make builtin
         _CFCharacterSetUnlockGlobal();
     } else {
         CFCharacterSetRef tmp = cset;
@@ -1389,6 +1396,8 @@ CFCharacterSetRef CFCharacterSetGetPredefined(CFCharacterSetPredefinedSet theSet
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, CFRange theRange) {
+    __CFCSetValidateRange(theRange, __PRETTY_FUNCTION__);
+    
     if (theRange.length) {
         if (!__CFCSetGenericInit(cset, __kCFCharSetClassRange, false)) return false;
         __CFCSetPutRangeFirstChar(cset, theRange.location);
@@ -1403,9 +1412,9 @@ Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, 
 #endif
 
 CFCharacterSetRef CFCharacterSetCreateWithCharactersInRange(CFAllocatorRef allocator, CFRange theRange) {
-    CFMutableCharacterSetRef cset;
-
     __CFCSetValidateRange(theRange, __PRETTY_FUNCTION__);
+    
+    CFMutableCharacterSetRef cset;
 
     if (theRange.length) {
         if (!(cset = __CFCSetGenericCreate(allocator, __kCFCharSetClassRange, false))) return NULL;

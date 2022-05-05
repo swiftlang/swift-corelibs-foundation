@@ -32,11 +32,11 @@ static void _CFBundleInitializeMainBundleInfoDictionaryAlreadyLocked(CFStringRef
     CFBundleGetInfoDictionary(_mainBundle);
     if (!_mainBundle->_infoDict || CFDictionaryGetCount(_mainBundle->_infoDict) == 0) {
         // if type 3 bundle and no Info.plist, treat as unbundled, since this gives too many false positives
-        if (_mainBundle->_version == 3) _mainBundle->_version = 4;
-        if (_mainBundle->_version == 0) {
+        if (_mainBundle->_version == _CFBundleVersionFlat) _mainBundle->_version = _CFBundleVersionNotABundle;
+        if (_mainBundle->_version == _CFBundleVersionOldStyleResources) {
             // if type 0 bundle and no Info.plist and not main executable for bundle, treat as unbundled, since this gives too many false positives
             CFStringRef executableName = _CFBundleCopyExecutableName(_mainBundle, NULL, NULL);
-            if (!executableName || !executablePath || !CFStringHasSuffix(executablePath, executableName)) _mainBundle->_version = 4;
+            if (!executableName || !executablePath || !CFStringHasSuffix(executablePath, executableName)) _mainBundle->_version = _CFBundleVersionNotABundle;
             if (executableName) CFRelease(executableName);
         }
 #if defined(BINARY_SUPPORT_DYLD)
@@ -107,7 +107,11 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
                 // get cookie for already-loaded main bundle
 #if defined(BINARY_SUPPORT_DLFCN)
                 if (!_mainBundle->_handleCookie) {
-                    _mainBundle->_handleCookie = dlopen(NULL, RTLD_NOLOAD | RTLD_FIRST);
+#if TARGET_OS_MAC
+                    _mainBundle->_handleCookie = RTLD_MAIN_ONLY;
+#else
+                    _mainBundle->_handleCookie = dlopen(NULL, 0);
+#endif
 #if LOG_BUNDLE_LOAD
                     printf("main bundle %p getting handle %p\n", _mainBundle, _mainBundle->_handleCookie);
 #endif /* LOG_BUNDLE_LOAD */
@@ -125,7 +129,10 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
                 // This must be done after _isLoaded has been set, for security reasons (3624341).
                 // It is safe to unlock and re-lock here because we don't really do anything under the lock after we are done. It is just re-locked to satisfy the 'already locked' contract.
                 _CFMutexUnlock(&_mainBundleLock);
-                _CFBundleInitPlugIn(_mainBundle);
+                CFDictionaryRef infoDict = CFBundleGetInfoDictionary(_mainBundle);
+                // CFBundleInitPlugIn will return false if the factory ID already exists. For the main bundle, if that happens, we just continue on since we cannot just return NULL.
+                _CFBundleInitPlugIn(_mainBundle, infoDict, NULL);
+                _CFPlugInHandleDynamicRegistration(_mainBundle);
                 _CFMutexLock(&_mainBundleLock);
             }
         }
@@ -155,7 +162,7 @@ CF_EXPORT CFURLRef _CFBundleCopyMainBundleExecutableURL(Boolean *looksLikeBundle
     }
     if (looksLikeBundle) {
         CFBundleRef mainBundle = _mainBundle;
-        if (mainBundle && (3 == mainBundle->_version || 4 == mainBundle->_version)) mainBundle = NULL;
+        if (mainBundle && (_CFBundleVersionFlat == mainBundle->_version || _CFBundleVersionNotABundle == mainBundle->_version)) mainBundle = NULL;
         *looksLikeBundle = (mainBundle ? true : false);
     }
     return executableURL;

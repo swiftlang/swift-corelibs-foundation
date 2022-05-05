@@ -10,6 +10,10 @@ add_executable(TestFoundation
 # Test Cases
 target_sources(TestFoundation PRIVATE
   Tests/TestAffineTransform.swift
+  Tests/TestAttributedString.swift
+  Tests/TestAttributedStringCOW.swift
+  Tests/TestAttributedStringPerformance.swift
+  Tests/TestAttributedStringSupport.swift
   Tests/TestBridging.swift
   Tests/TestBundle.swift
   Tests/TestByteCountFormatter.swift
@@ -91,6 +95,7 @@ target_sources(TestFoundation PRIVATE
   Tests/TestTimer.swift
   Tests/TestTimeZone.swift
   Tests/TestUnitConverter.swift
+  Tests/TestUnitInformationStorage.swift
   Tests/TestUnitVolume.swift
   Tests/TestUnit.swift
   Tests/TestURLCache.swift
@@ -179,6 +184,8 @@ xctest_discover_tests(TestFoundation
                         ${CMAKE_BINARY_DIR}/TestFoundation.app/TestFoundation${CMAKE_EXECUTABLE_SUFFIX}
                       WORKING_DIRECTORY
                         ${CMAKE_BINARY_DIR}/TestFoundation.app
+                      DISCOVERY_TIMEOUT
+                        30
                       PROPERTIES
                         ENVIRONMENT
                           LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/TestFoundation.app:$<TARGET_LINKER_FILE_DIR:XCTest>:$<TARGET_LINKER_FILE_DIR:dispatch>:$<TARGET_LINKER_FILE_DIR:swiftDispatch>:$<TARGET_LINKER_FILE_DIR:BlocksRuntime>)

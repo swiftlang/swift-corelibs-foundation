@@ -38,9 +38,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
+option(HAS_LIBDISPATCH_API "has libdispatch API" ON)
+option(BUILD_NETWORKING "build FoundationNetworking module" ON)
+option(BUILD_TOOLS "build tools" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
-find_package(dispatch CONFIG REQUIRED)
+if(HAS_LIBDISPATCH_API)
+  find_package(dispatch CONFIG REQUIRED)
+endif()
+
+find_package(ICU COMPONENTS uc i18n REQUIRED OPTIONAL_COMPONENTS data)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -48,10 +55,20 @@ include(XCTest)
 
 set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG OFF)
+find_package(Threads REQUIRED)
+
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
 add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
+
+# BlocksRuntime is already in libdispatch so it is only needed if libdispatch is
+# NOT being used
+if(NOT HAS_LIBDISPATCH_API)
+  add_subdirectory(Sources/BlocksRuntime)
+endif()
 
 # Setup include paths for uuid/uuid.h
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/uuid-headers/uuid/uuid.h
@@ -74,9 +91,22 @@ endif()
 
 if(NOT BUILD_SHARED_LIBS)
   set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
-    CoreFoundation CFXMLInterface CFURLSessionInterface)
-  install(TARGETS CoreFoundation CFXMLInterface CFURLSessionInterface
+    CoreFoundation CFXMLInterface)
+
+  if(NOT HAS_LIBDISPATCH_API)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+      BlocksRuntime)
+  endif()
+
+  install(TARGETS CoreFoundation CFXMLInterface
     DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+
+  if(BUILD_NETWORKING)
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+      CFURLSessionInterface)
+    install(TARGETS CFURLSessionInterface
+      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+  endif()
 endif()
 
 set(swift_lib_dir "lib/swift")

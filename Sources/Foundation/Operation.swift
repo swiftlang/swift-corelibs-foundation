@@ -668,22 +668,16 @@ open class BlockOperation : Operation {
         }
         _lock()
         defer { _unlock() }
-        if _block == nil && _executionBlocks == nil {
+        if _block == nil {
             _block = block
+        } else if _executionBlocks == nil {
+            _executionBlocks = [block]
         } else {
-            if _executionBlocks == nil {
-                if let existing = _block {
-                    _executionBlocks = [existing, block]
-                } else {
-                    _executionBlocks = [block]
-                }
-            } else {
-                _executionBlocks?.append(block)
-            }
+            _executionBlocks?.append(block)
         }
     }
     
-    open var executionBlocks: [@convention(block) () -> Void] {
+    open var executionBlocks: [() -> Void] {
         get {
             _lock()
             defer { _unlock() }
@@ -938,15 +932,15 @@ open class OperationQueue : NSObject, ProgressReporting {
             let queue: DispatchQueue
             if let qos = _propertyQoS {
                 if let name = __name {
-                    queue = DispatchQueue(label: name, qos: qos.qosClass)
+                    queue = DispatchQueue(label: name, qos: qos.qosClass, attributes: .concurrent)
                 } else {
-                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())", qos: qos.qosClass)
+                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())", qos: qos.qosClass, attributes: .concurrent)
                 }
             } else {
                 if let name = __name {
-                    queue = DispatchQueue(label: name)
+                    queue = DispatchQueue(label: name, attributes: .concurrent)
                 } else {
-                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())")
+                    queue = DispatchQueue(label: "NSOperationQueue \(Unmanaged.passUnretained(self).toOpaque())", attributes: .concurrent)
                 }
             }
             __backingQueue = queue
@@ -993,7 +987,7 @@ open class OperationQueue : NSObject, ProgressReporting {
                 // if the cached state is possibly not valid then the isReady value needs to be re-updated
                 if Operation.__NSOperationState.enqueued == operation._state && operation._fetchCachedIsReady(&retest) {
                     if let previous = prev?.takeUnretainedValue() {
-                        previous.__nextOperation = next
+                        previous.__nextPriorityOperation = next
                     } else {
                         _setFirstPriorityOperation(prio, next)
                     }

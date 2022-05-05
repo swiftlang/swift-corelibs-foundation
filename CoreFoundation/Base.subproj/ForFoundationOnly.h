@@ -27,8 +27,11 @@
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFBag.h>
 #include <CoreFoundation/CFCalendar.h>
+
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStreamPriv.h>
 #include <CoreFoundation/CFRuntime.h>
+#endif
 #include <math.h>
 #include <limits.h>
 
@@ -60,6 +63,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <objc/message.h>
 #endif
 
+#if __BLOCKS__
 /* These functions implement standard error handling for reallocation. Their parameters match their unsafe variants (realloc/CFAllocatorReallocate). They differ from reallocf as they provide a chance for you to clean up a buffers contents (in addition to freeing the buffer, etc.)
  
    The optional reallocationFailureHandler is called only when the reallocation fails (with the original buffer passed in, so you can clean up the buffer/throw/abort/etc.
@@ -68,11 +72,42 @@ CF_IMPLICIT_BRIDGING_DISABLED
  */
 CF_EXPORT void *_Nonnull __CFSafelyReallocate(void * _Nullable destination, size_t newCapacity, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
 CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nullable, void * _Nullable destination, size_t newCapacity, CFOptionFlags options, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
+#endif
 
+Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef _Nullable allocator);
+typedef CF_ENUM(CFOptionFlags, _CFAllocatorHint) {
+    _CFAllocatorHintZeroWhenAllocating = 1
+};
 
+// Arguments to these are id, but this header is non-Objc
+#ifdef __OBJC__
+#define NSISARGTYPE id _Nullable
+#else
+#define NSISARGTYPE void * _Nullable
+#define BOOL _Bool
+#endif
+
+CF_EXPORT BOOL _NSIsNSArray(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSData(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSDate(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSDictionary(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSObject(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSOrderedSet(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSNumber(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSSet(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSString(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSTimeZone(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSValue(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSCFConstantString(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSIndexSet(NSISARGTYPE arg);
+CF_EXPORT BOOL _NSIsNSAttributedString(NSISARGTYPE arg);
+
+#if !TARGET_OS_WASI
 #pragma mark - CFBundle
 
 #include <CoreFoundation/CFBundlePriv.h>
+
+#define _CFBundleDefaultStringTableName CFSTR("Localizable")
 
 _CF_EXPORT_SCOPE_BEGIN
 
@@ -92,6 +127,7 @@ CF_EXPORT Boolean _CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, Bool
 CF_EXPORT CFErrorRef _CFBundleCreateError(CFAllocatorRef _Nullable allocator, CFBundleRef bundle, CFIndex code);
 
 _CF_EXPORT_SCOPE_END
+#endif
 
 #pragma mark - CFUUID
 
@@ -108,6 +144,28 @@ CF_INLINE Boolean __CFisEqualUUIDBytes(const void * const lhs, const void * cons
 
     uint64_t const equal = (lhsBytes[0] ^ rhsBytes[0]) | (lhsBytes[1] ^ rhsBytes[1]);
     return equal == 0;
+}
+
+/// Compares UUID bytes order using a secure constant-time comparison
+/// Ensure that `lhs` and `rhs` are 128-bytes (`CFUUIDBytes` or `uuid_t`) for the comparison to be valid.
+CF_INLINE int __CFCompareUUIDBytes(const void * const lhs, const void * const rhs) {
+    unsigned char lhsCharBytes[16];
+    memcpy(lhsCharBytes, lhs, sizeof(lhsCharBytes));
+    
+    unsigned char rhsCharBytes[16];
+    memcpy(rhsCharBytes, rhs, sizeof(rhsCharBytes));
+    
+    int result = 0, diff;
+    for (int i = sizeof(lhsCharBytes) - 1; i >= 0; i--) {
+        diff = lhsCharBytes[i] - rhsCharBytes[i];
+        // Constant time, no branching equivalent of
+        // if (diff != 0) {
+        //     result = diff;
+        // }
+        result = (result & -!diff) | diff;
+    }
+    
+    return result;
 }
 
 _CF_EXPORT_SCOPE_END
@@ -290,6 +348,12 @@ CF_EXPORT Boolean __CFStringDecodeByteStream3(const UInt8 *bytes, CFIndex len, C
 */
 CF_EXPORT CFStringEncodingCheapEightBitToUnicodeProc __CFCharToUniCharFunc;
 
+/* Built-in constant char to unichar tables that help avoid dynamic allocation and dirtying of memory in common scenarios */
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
+CF_EXPORT UniChar const __CFMacRomanCharToUnicharTable[256];
+#endif
+CF_EXPORT UniChar const __CFIdempotentCharToUniCharTable[256];
+
 /* Character class functions UnicodeData-2_1_5.txt
 */
 CF_INLINE Boolean __CFIsWhitespace(UniChar theChar) {
@@ -343,6 +407,17 @@ CF_EXPORT void _CFStringAppendFormatAndArgumentsAux2(CFMutableStringRef outputSt
 CF_EXPORT CFStringRef _Nullable _CFStringCreateWithFormatAndArgumentsAux2(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFStringRef format, va_list arguments);
 CF_EXPORT CFStringRef _Nullable CFStringCreateStringWithValidatedFormat(CFAllocatorRef alloc, CFDictionaryRef formatOptions, CFStringRef validFormatSpecifiers, CFStringRef format, va_list arguments, CFErrorRef _Nullable *_Nullable errorPtr) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 
+CF_EXPORT CFDictionaryRef _Nullable _CFStringGetFormatSpecifierConfiguration(CFStringRef aFormatString);
+
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataReplacementIndexKey;
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataSpecifierRangeLocationInFormatStringKey;
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataSpecifierRangeLengthInFormatStringKey;
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataReplacementRangeLocationKey;
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataReplacementRangeLengthKey;
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataArgumentObjectKey;
+CF_EXPORT CFStringRef const _kCFStringFormatMetadataArgumentNumberKey;
+CF_EXPORT CFStringRef _Nullable _CFStringCreateWithFormatAndArgumentsReturningMetadata(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFDictionaryRef _Nullable formatConfiguration, CFStringRef format, CFArrayRef _Nullable *_Nullable outMetadata, va_list arguments);
+
 /* For NSString (and NSAttributedString) usage, mutate with isMutable check
 */
 enum {_CFStringErrNone = 0, _CFStringErrNotMutable = 1, _CFStringErrNilArg = 2, _CFStringErrBounds = 3};
@@ -363,7 +438,6 @@ CF_EXPORT CFHashCode CFStringHashISOLatin1CString(const uint8_t *bytes, CFIndex 
 CF_EXPORT CFHashCode CFStringHashCString(const uint8_t *bytes, CFIndex len);
 CF_EXPORT CFHashCode CFStringHashCharacters(const UniChar *characters, CFIndex len);
 CF_EXPORT CFHashCode CFStringHashNSString(CFStringRef str);
-CF_EXPORT CFHashCode CFHashBytes(uint8_t *_Nullable bytes, CFIndex length);
 
 
 _CF_EXPORT_SCOPE_END
@@ -496,6 +570,7 @@ CF_EXPORT void _CFArraySetCapacity(CFMutableArrayRef array, CFIndex cap);
 CF_EXPORT void _CFBagSetCapacity(CFMutableBagRef bag, CFIndex cap);
 CF_EXPORT void _CFDictionarySetCapacity(CFMutableDictionaryRef dict, CFIndex cap);
 CF_EXPORT void _CFSetSetCapacity(CFMutableSetRef set, CFIndex cap);
+CF_EXPORT CFIndex _CFBagGetUniqueCount(CFBagRef hc);
 
 CF_EXPORT const void *_CFArrayCheckAndGetValueAtIndex(CFArrayRef array, CFIndex idx, Boolean *outOfBounds);
 CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void *_Nullable * _Nullable newValues, CFIndex newCount);
@@ -531,7 +606,7 @@ CF_INLINE CFHashCode _CFHashInt(long i) {
 CF_INLINE CFHashCode _CFHashDouble(const double d) {
     const double positive = (d < 0) ? -d : d;
     const double positiveInt = floor(positive + 0.5);
-    const double fractional = (positive - positiveInt) * (double)ULONG_MAX;
+    const double fractional = (positive - positiveInt) * (double)ULONG_MAX; // Casting `ULONG_MAX` to 'double' changes value from `18446744073709551615` to `18446744073709551616` [-Wimplicit-int-float-conversion]
     CFHashCode result = HASHFACTOR * (CFHashCode)fmod(positiveInt, (double)ULONG_MAX);
     if (fractional < 0) {
         // UBSan: Certain negative floating-point numbers are unrepresentable as 'unsigned long' which enters into undefined behavior territory in C. Thus we ensure it is positive, cast and then subtract as an integer where numbers behave correctly.
@@ -576,6 +651,7 @@ CF_CROSS_PLATFORM_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRe
 CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
 
+#if !TARGET_OS_WASI
 CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef mode);
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
 CF_EXPORT Boolean _CFRunLoopIsCurrent(CFRunLoopRef rl);
@@ -586,6 +662,7 @@ CF_EXPORT void _CFWriteStreamInitialize(CFWriteStreamRef writeStream);
 CF_EXPORT void _CFReadStreamDeallocate(CFReadStreamRef readStream);
 CF_EXPORT void _CFWriteStreamDeallocate(CFWriteStreamRef writeStream);
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(_Nullable CFAllocatorRef alloc, CFDataRef data);
+#endif
 
 #if TARGET_OS_MAC
 typedef struct {
@@ -657,12 +734,6 @@ typedef struct {
 CF_EXPORT CFOperatingSystemVersion _CFOperatingSystemVersionGetCurrent(void);
 
 CF_EXPORT Boolean _CFOperatingSystemVersionIsAtLeastVersion(CFOperatingSystemVersion version);
-
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
-CF_EXPORT Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier);
 
@@ -748,6 +819,62 @@ CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t
 
 
 _CF_EXPORT_SCOPE_END
+
+#if __OBJC__
+
+#define _scoped_id_array(N, C, Z, S) \
+    size_t N ## _count__ = (C); \
+    if (N ## _count__ > LONG_MAX / sizeof(id)) { \
+        CFStringRef reason = CFStringCreateWithFormat(NULL, NULL, CFSTR("*** attempt to create a temporary id buffer which is too large or with a negative count (%lu) -- possibly data is corrupt"), N ## _count__); \
+        NSException *e = [NSException exceptionWithName:NSGenericException reason:(NSString *)reason userInfo:nil]; \
+        CFRelease(reason); \
+        @throw e; \
+    } \
+    Boolean N ## _is_stack__ = (N ## _count__ <= 256) && (S); \
+    if (N ## _count__ == 0) { \
+        N ## _count__ = 1; \
+    } \
+    id N ## _scopedbuffer__ [N ## _is_stack__ ? N ## _count__ : 1]; \
+    if (N ## _is_stack__ && (Z)) { \
+        memset(N ## _scopedbuffer__, 0, N ## _count__ * sizeof(id)); \
+    } \
+    size_t N ## _unused__; \
+    id * __attribute__((cleanup(_scoped_id_array_cleanup))) N ## _mallocbuffer__ = N ## _is_stack__ ? NULL : (id *)_CFCreateArrayStorage(N ## _count__, (Z), & N ## _unused__); \
+    id * N = N ## _is_stack__ ? N ## _scopedbuffer__ : N ## _mallocbuffer__; \
+    do {} while (0)
+
+// These macros create an array that is 1) either stack or buffer allocated, depending on size, and 2) automatically cleaned up at the end of the lexical scope it is declared in.
+#define scoped_id_array(N, C) _scoped_id_array(N, C, false, true)
+#define scoped_and_zeroed_id_array(N, C) _scoped_id_array(N, C, true, true)
+
+#define scoped_heap_id_array(N, C) _scoped_id_array(N, C, false, false)
+
+// This macro either returns the buffer while simultaneously passing responsibility for freeing it to the caller, or it returns NULL if the buffer exists on the stack, and therefore can't pass ownership.
+#define try_adopt_scoped_id_array(N) (N ## _mallocbuffer__ ? ({id *tmp = N ## _mallocbuffer__; N ## _mallocbuffer__ = NULL; tmp;}) : NULL)
+
+CF_INLINE void _scoped_id_array_cleanup(id _Nonnull * _Nullable * _Nonnull mallocedbuffer) {
+    // Maybe be NULL, but free(NULL) is well defined as a no-op.
+    free(*mallocedbuffer);
+}
+#endif
+
+// Define NS_DIRECT / NS_DIRECT_MEMBERS Internally for CoreFoundation.
+
+#ifndef NS_DIRECT
+    #if __has_attribute(objc_direct)
+        #define NS_DIRECT __attribute__((objc_direct))
+    #else
+        #define NS_DIRECT
+    #endif
+#endif
+
+#ifndef NS_DIRECT_MEMBERS
+    #if __has_attribute(objc_direct_members)
+        #define NS_DIRECT_MEMBERS __attribute__((objc_direct_members))
+    #else
+        #define NS_DIRECT_MEMBERS
+    #endif
+#endif
 
 #endif /* ! __COREFOUNDATION_FORFOUNDATIONONLY__ */
 

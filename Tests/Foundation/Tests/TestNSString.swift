@@ -814,7 +814,8 @@ class TestNSString: LoopbackServerTest {
     }
 
     func test_initializeWithFormat4() {
-        let argument: [CVarArg] = ["One", "Two", "Three"]
+        // The NSString() is required on macOS to work around error: `Type of expression is ambiguous without more context`
+        let argument: [CVarArg] = [NSString("One"), NSString("Two"), NSString("Three")]
         withVaList(argument) {
             pointer in
             let string = NSString(format: "Testing %@ %@ %@", arguments: pointer)

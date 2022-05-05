@@ -24,6 +24,12 @@
 
 CF_EXTERN_C_BEGIN
 
+/* Like CFURLGetBytes(), but allows the output encoding to be specified. */
+CF_EXPORT
+CFIndex CFURLGetBytesUsingEncoding(CFURLRef url, UInt8 *buffer, CFIndex bufferLength, CFStringEncoding encoding);
+
+#pragma mark - FileURL
+
 // The kCFURLxxxxError enums are error codes in the Cocoa error domain and they mirror the exact same codes in <Foundation/FoundationErrors.h> (i.e. kCFURLReadNoPermissionError = NSFileReadNoPermissionError = 257). They were added to CFURLPriv.h so that CarbonCore and later CoreServicesInternal could return these error codes in the Cocoa error domain. If your code links with Foundation, you should use the codes in <Foundation/FoundationErrors.h>, not these codes.
 enum {
     // Resource I/O related errors, with kCFErrorURLKey containing URL
@@ -75,6 +81,9 @@ CF_EXPORT const CFStringRef _kCFURLNameExtensionKey API_AVAILABLE(macos(10.6), i
 CF_EXPORT const CFStringRef _kCFURLFinderInfoKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* A 16-byte Finder Info structure immediately followed by a 16-byte Extended Finder Info structure (CFData) */
 
+CF_EXPORT const CFStringRef _kCFURLHFSTypeCodeKey API_AVAILABLE(macos(12.0), ios(15.0), watchos(8.0), tvos(15.0));
+    /* A legacy 4-character code which identifies the file type. (CFNumber) */
+
 CF_EXPORT const CFStringRef _kCFURLIsUserNoDumpKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's UF_NODUMP flag is set (CFBoolean) */
 
@@ -122,6 +131,12 @@ CF_EXPORT const CFStringRef _kCFURLIsApplicationKey API_DEPRECATED("Use kCFURLIs
 
 CF_EXPORT const CFStringRef _kCFURLApplicationIsAppletKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
 /* The item is an OSA or Automator applet. Only applies to applications. (Read-only, value type CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLApplicationIsPlaceholderKey API_AVAILABLE(macos(11.2), ios(14.2), watchos(7.2), tvos(14.2));
+/* The item is a placeholder while an app installs or is an uninstalled iOS system app. Only applies to applications. (Read-only, value type CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLApplicationIsBetaKey API_AVAILABLE(macos(12.0), ios(15.0), watchos(8.0), tvos(15.0));
+/* The item is a TestFlight beta app. (Read-only, value type CFBoolean) */
 
 CF_EXPORT const CFStringRef _kCFURLApplicationHasSupportedFormatKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
 /* The item is an application that can be executed on the current system. (Read-only, value type CFBoolean) */
@@ -241,6 +256,13 @@ CF_EXPORT const CFStringRef _kCFURLApplicationPrefersExternalGPUKey API_AVAILABL
 CF_EXPORT const CFStringRef _kCFURLCanSetApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
     /* False if app’s Info.plist specifies a eGPU policy, True if app does not specify an policy. Finder does not show a checkbox when this value is false. (Read-only, CFBoolean) */
 
+#if !RC_HIDE_J316
+CF_EXPORT const CFStringRef _kCFURLApplicationPrefersSafeApertureSystemFullScreenCompatibilityKey API_AVAILABLE(macos(12.0)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT const CFStringRef _kCFURLApplicationPrefersSafeApertureAppFullScreenCompatibilityKey API_AVAILABLE(macos(12.0)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT const CFStringRef _kCFURLApplicationPrefersSafeApertureWindowedCompatibilityKey API_AVAILABLE(macos(12.0)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT const CFStringRef _kCFURLCanSetApplicationPrefersSafeApertureWindowedCompatibilityKey API_AVAILABLE(macos(12.0)) API_UNAVAILABLE(ios, watchos, tvos);
+#endif // RC_HIDE_J316
+
 CF_EXPORT const CFStringRef _kCFURLApplicationDeviceManagementPolicyKey API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
     /* For app bundle URLs, value is the Device Management framework's policy for the application. If the value is unavailable, returns DMFPolicyOK. For non-app URLs, value is nil. The calling process must be properly entitled with the Device Management framework to use this property. (Read-only, value type CFNumber) */
 
@@ -252,6 +274,9 @@ CF_EXPORT const CFStringRef _kCFURLIsExcludedFromUnencryptedBackupKey API_AVAILA
 
 CF_EXPORT const CFStringRef _kCFURLDeviceRefNumKey API_AVAILABLE(macos(10.15)) API_UNAVAILABLE(ios, watchos, tvos);
     /* an unique per-volume non-persistent identifier for volumes (much like _kCFURLVolumeRefNumKey) that is also unique per-device when the volume is really two devices (i.e. ROSP) (64-bit integer CFNumber). */
+
+CF_EXPORT const CFStringRef _kCFURLContentTypeKey API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
+    /* the file type of the resource (CFTypeRef/UTType *). */
 
 /* Additional volume properties */
 
@@ -299,6 +324,9 @@ CF_EXPORT const CFStringRef _kCFURLDiskImageBackingURLKey API_AVAILABLE(macos(10
 
 CF_EXPORT const CFStringRef _kCFURLVolumeIsFileVaultKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume uses File Vault encryption (CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLVolumeSupportsFileProtectionKey API_DEPRECATED("Use the kCFURLVolumeSupportsFileProtectionKey or NSURLVolumeSupportsFileProtectionKey public property keys", macosx(10.16, 10.16), ios(14.0, 14.0), watchos(7.0, 7.0), tvos(14.0, 14.0));
+    /* true if the volume supports data protection for files. (Read-only, value type CFBoolean) */
 
 CF_EXPORT const CFStringRef _kCFURLVolumeIsiDiskKey API_DEPRECATED("No supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - there are no more iDisks */
@@ -552,7 +580,9 @@ typedef CF_OPTIONS(unsigned long long, CFURLVolumePropertyFlags) {
                                                         =	   0x4000000LL,
     kCFURLVolumeIsEncrypted API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0))
                                                         =	   0x8000000LL,
-    
+    kCFURLVolumeSupportsFileProtection API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0))
+                                                        =	  0x10000000LL,
+
     // IMPORTANT: The values of the following flags must stay in sync with the
     // VolumeCapabilities flags in CarbonCore (FileIDTreeStorage.h)
     kCFURLVolumeSupportsPersistentIDs                   =        0x100000000LL,
@@ -740,9 +770,17 @@ void _CFURLAttachSecurityScopeToFileURL(CFURLRef url, CFDataRef sandboxExtension
 CF_EXPORT
 CFDataRef _CFURLCopySecurityScopeFromFileURL(CFURLRef url) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
+/** _CFURLNoteSecurityScopedResourceMove should be called preserve access to a scoped resource after it has been moved on the file system.
+ The process will lose access to sourceURL and gain access to destinationURL. For use by only FileCoordination!
+ */
+CF_EXPORT
+Boolean _CFURLNoteSecurityScopedResourceMoved(CFURLRef sourceURL, CFURLRef destinationURL) API_AVAILABLE(macos(12.0), ios(15.0), watchos(8.0), tvos(15.0));
+
 CF_EXPORT
 void _CFURLSetPermanentResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
+
+#pragma mark - Bookmarks
 
 // Returns a string describing the bookmark data. For debugging purposes only.
 CF_EXPORT
@@ -751,6 +789,7 @@ CFStringRef _CFURLBookmarkCopyDescription(CFDataRef bookmarkRef) API_AVAILABLE(m
 #if TARGET_OS_MAC || TARGET_OS_IPHONE
 // private CFURLBookmarkCreationOptions
 enum {
+    kCFURLBookmarkCreationSecurityScopeRevocable API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos) = ( 1 << 25 ), // if used with kCFURLBookmarkCreationWithSecurityScope, the bookmark can be revoked on a per-app basis.
     kCFURLBookmarkCreationWithFileProvider API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0)) = ( 1UL << 26 ), // private option to create bookmarks with file provider string. The file provider string overrides the rest of the bookmark data at resolution time.
     kCFURLBookmarkOperatingInsideScopedBookmarksAgent = (1UL << 27), // private option used internally by ScopedBookmarkAgent to prevent recursion between the agent and the framework code. Available 10_7, NA
     kCFURLBookmarkCreationAllowCreationIfResourceDoesNotExistMask = ( 1UL << 28 ),    // allow creation of a bookmark to a file: scheme with a CFURLRef of item which may not exist.  If the filesystem item does not exist, the created bookmark contains essentially no properties beyond the url string. Available 10_7, 5_0.
@@ -772,6 +811,8 @@ enum {
     kCFBookmarkResolutionPerformRelativeResolutionFirstMask API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0)) = ( 1UL << 11 ), // perform relative resolution before absolute resolution. If this bit is set, for this to be useful a relative URL must also have been passed in and the bookmark when created must have been created relative to another url.
     kCFURLBookmarkResolutionAllowingPromisedItem API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 12 ), // If kCFURLBookmarkResolutionAllowingPromisedItem is set, resolving a bookmark may return promise item URL if the target has been evicted to the cloud (instead of downloading the evicted document during bookmark resolution). Clients must use NSPromisedItems and NSFileCoordinator API to access promised item URLs. kCFURLBookmarkResolutionAllowingPromisedItem is ignored when resolving security-scoped bookmarks.
     kCFBookmarkResolutionQuarantineMountedNetworkVolumesMask API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)) = ( 1UL << 13 ), // quarantine any network volume mounted during resolution
+    kCFURLBookmarkResolutionFailPromisedItem API_AVAILABLE(macosx(11.0), ios(14.0), watchos(7.0), tvos(14.0)) = ( 1UL << 14 ), // If kCFURLBookmarkResolutionFailPromisedItem is set, resolving a bookmark will fail if the target has been evicted to the cloud (instead of downloading the evicted document during bookmark resolution).
+    kCFURLBookmarkResolutionWithoutExtendingAccess API_AVAILABLE(macos(11.2), ios(14.2), watchos(7.2), tvos(14.2)) = ( 1 << 15 ), // Disable automatic ephemeral extension of the sandbox during resolution. Instead, call `CFURLStartAccessingSecurityScopedResource` on the returned URL when ready to use the resource.
 };
 
 typedef CF_ENUM(CFIndex, CFURLBookmarkMatchResult) {
@@ -805,7 +846,32 @@ extern const CFStringRef kCFURLBookmarkOriginalVolumeNameKey API_AVAILABLE(macos
 extern const CFStringRef kCFURLBookmarkOriginalVolumeCreationDateKey API_AVAILABLE(macos(10.7), ios(5.0), watchos(2.0), tvos(9.0));
 extern const CFStringRef kCFURLBookmarkFileProviderStringKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 extern const CFStringRef _kCFURLBookmarkURLStringKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
-#endif
+#endif // TARGET_OS_MAC || TARGET_OS_IPHONE
+
+#pragma mark - Revocable Bookmarks
+
+CF_EXPORT const CFStringRef _kCFURLRevocableBookmarkBundleIdentifierKey API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);	// CFStringRef
+CF_EXPORT const CFStringRef _kCFURLRevocableBookmarkAppIdentifierKey API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);		// CFStringRef
+CF_EXPORT const CFStringRef _kCFURLRevocableBookmarkActiveStatusKey API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);		// CFBooleanRef
+CF_EXPORT const CFStringRef _kCFURLRevocableBookmarkSaltKey API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);			// CFDataRef
+
+/** Fetch a list of  clients.
+ *
+ * Returns an array of dictionaries, one per client app. Keys from the namespace _kCFURLRevocableBookmarkKey.
+ */
+CF_EXPORT CFArrayRef _CFURLRevocableBookmarksCopyClients(void) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
+
+/** Fetch a list of bundle identifiers for active clients. */
+CF_EXPORT CFArrayRef _CFURLRevocableBookmarksCopyClientBundleIdentifiers(Boolean includeInactive) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
+
+/** Set the active state of the app with the given bundle identifier. This does not delete the security token for the app, thus is less secure than revoking the bundle identifier. */
+CF_EXPORT Boolean _CFURLRevocableBookmarksSetActiveStatusForBundleIdentifier(CFStringRef identifier, Boolean active) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
+
+/** Securely revokes all bookmarks for the bundie identifier. This is not reversable. */
+CF_EXPORT Boolean _CFURLRevocableBookmarksRevokeForBundleIdentifier(CFStringRef identifier) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
+
+/** Notification sent when the set of active clients changes. */
+CF_EXPORT const CFNotificationName _kCFURLRevocableBookmarksClientsDidChangeNotification API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXTERN_C_END
 

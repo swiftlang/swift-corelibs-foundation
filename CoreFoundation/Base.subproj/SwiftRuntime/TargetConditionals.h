@@ -112,6 +112,7 @@
 #define TARGET_OS_WINDOWS      1
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         0
 #elif __unix__
 #define TARGET_OS_DARWIN       0
@@ -119,6 +120,7 @@
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          1
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         0
 #elif __wasi__
 #define TARGET_OS_DARWIN       0
@@ -126,6 +128,7 @@
 #define TARGET_OS_WINDOWS      0
 #define TARGET_OS_BSD          0
 #define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         1
 #else
 #error unknown operating system
@@ -134,6 +137,12 @@
 #define TARGET_OS_WIN32        TARGET_OS_WINDOWS
 #define TARGET_OS_MAC          TARGET_OS_DARWIN
 #define TARGET_OS_OSX          TARGET_OS_DARWIN
+
+// iOS, watchOS, and tvOS are not supported
+#define TARGET_OS_IPHONE        0
+#define TARGET_OS_IOS           0
+#define TARGET_OS_WATCH         0
+#define TARGET_OS_TV            0
 
 #if __x86_64__
 #define TARGET_CPU_PPC          0

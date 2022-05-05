@@ -237,8 +237,10 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         aCoder.encode(self.cachePolicy.rawValue._bridgeToObjectiveC(), forKey: "NS._cachePolicy")
         aCoder.encode(self.timeoutInterval._bridgeToObjectiveC(), forKey: "NS._timeoutInterval")
         if let httpBody = self.httpBody?._bridgeToObjectiveC() {
-            let bytePtr = httpBody.bytes.bindMemory(to: UInt8.self, capacity: httpBody.length)
-            aCoder.encodeBytes(bytePtr, length: httpBody.length, forKey: "NS.httpBody")
+            withExtendedLifetime(httpBody) {
+                let bytePtr = httpBody.bytes.bindMemory(to: UInt8.self, capacity: httpBody.length)
+                aCoder.encodeBytes(bytePtr, length: httpBody.length, forKey: "NS.httpBody")
+            }
         }
         //On macOS input stream is not encoded.
         aCoder.encode(self.networkServiceType.rawValue._bridgeToObjectiveC(), forKey: "NS._networkServiceType")

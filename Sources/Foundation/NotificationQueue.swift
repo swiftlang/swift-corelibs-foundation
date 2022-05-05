@@ -36,12 +36,12 @@ open class NotificationQueue: NSObject {
     internal let notificationCenter: NotificationCenter
     internal var asapList = NSNotificationList()
     internal var idleList = NSNotificationList()
-    internal lazy var idleRunloopObserver: CFRunLoopObserver = {
+    internal final lazy var idleRunloopObserver: CFRunLoopObserver = {
         return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFOptionFlags(kCFRunLoopBeforeTimers), true, 0) {[weak self] observer, activity in
             self!.notifyQueues(.whenIdle)
         }
     }()
-    internal lazy var asapRunloopObserver: CFRunLoopObserver = {
+    internal final lazy var asapRunloopObserver: CFRunLoopObserver = {
         return CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFOptionFlags(kCFRunLoopBeforeWaiting | kCFRunLoopExit), true, 0) {[weak self] observer, activity in
             self!.notifyQueues(.asap)
         }
@@ -130,12 +130,12 @@ open class NotificationQueue: NSObject {
 
     // MARK: Private
 
-    private func addRunloopObserver(_ observer: CFRunLoopObserver) {
+    private final func addRunloopObserver(_ observer: CFRunLoopObserver) {
         CFRunLoopAddObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopDefaultMode)
         CFRunLoopAddObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func removeRunloopObserver(_ observer: CFRunLoopObserver) {
+    private final func removeRunloopObserver(_ observer: CFRunLoopObserver) {
         CFRunLoopRemoveObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopDefaultMode)
         CFRunLoopRemoveObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopCommonModes)
     }

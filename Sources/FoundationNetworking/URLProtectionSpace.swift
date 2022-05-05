@@ -332,19 +332,32 @@ open class URLProtectionSpace : NSObject, NSCopying {
 
 extension URLProtectionSpace {
     //an internal helper to create a URLProtectionSpace from a HTTPURLResponse 
-    static func create(using response: HTTPURLResponse) -> URLProtectionSpace {
-        let host = response.url?.host ?? ""
-        let port = response.url?.port ?? 80        //HTTP
-        let _protocol = response.url?.scheme
-        guard let wwwAuthHeader = response.allHeaderFields["Www-Authenticate"] as? String else {
-            fatalError("Authentication failed but no Www-Authenticate header in response")
+    static func create(with response: HTTPURLResponse) -> URLProtectionSpace? {
+        // Using first challenge, as we don't support multiple challenges yet
+        guard let challenge = _HTTPURLProtocol._HTTPMessage._Challenge.challenges(from: response).first else {
+            return nil
         }
+        guard let url = response.url, let host = url.host, let proto = url.scheme, proto == "http" || proto == "https" else {
+            return nil
+        }
+        let port = url.port ?? (proto == "http" ? 80 : 443)
+        return URLProtectionSpace(host: host,
+                                  port: port,
+                                  protocol: proto,
+                                  realm: challenge.parameter(withName: "realm")?.value,
+                                  authenticationMethod: challenge.authenticationMethod)
+    }
+}
 
-        //The format of the authentication header is `<auth-scheme> realm="<realm value>"`
-        //Example: `Basic realm="Fake Realm"`
-        let authMethod = wwwAuthHeader.components(separatedBy: " ")[0]
-        let realm = String(String(wwwAuthHeader.components(separatedBy: "realm=")[1].dropFirst()).dropLast())
-        return URLProtectionSpace(host: host, port: port, protocol: _protocol, realm: realm, authenticationMethod: authMethod)
+extension _HTTPURLProtocol._HTTPMessage._Challenge {
+    var authenticationMethod: String? {
+        if authScheme.caseInsensitiveCompare(_HTTPURLProtocol._HTTPMessage._Challenge.AuthSchemeBasic) == .orderedSame {
+            return NSURLAuthenticationMethodHTTPBasic
+        } else if authScheme.caseInsensitiveCompare(_HTTPURLProtocol._HTTPMessage._Challenge.AuthSchemeDigest) == .orderedSame {
+            return NSURLAuthenticationMethodHTTPDigest
+        } else {
+            return nil
+        }
     }
 }
 

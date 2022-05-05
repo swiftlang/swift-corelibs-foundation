@@ -46,14 +46,18 @@
 #include <CoreFoundation/CFMessagePort.h>
 #endif
 
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSocket.h>
+#endif
 #include <CoreFoundation/CFBundlePriv.h>
+
 
 CF_EXTERN_C_BEGIN
 
 CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 
+#if !TARGET_OS_WASI
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
@@ -64,6 +68,7 @@ CF_EXPORT const char **_CFGetProgname(void);
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
+#endif
 #endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_OS_LINUX))
@@ -161,6 +166,7 @@ CF_EXPORT Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, UInt8
 /* If this is publicized, we might need to create a GetBytesPtr type function as well. */
 CF_EXPORT CFStringRef _CFStringCreateWithBytesNoCopy(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean externalFormat, CFAllocatorRef contentsDeallocator);
 
+#if !TARGET_OS_WASI
 /* These return NULL on MacOS 8 */
 // This one leaks the returned string in order to be thread-safe.
 // CF cannot help you in this matter if you continue to use this SPI.
@@ -172,6 +178,7 @@ CFStringRef CFCopyUserName(void);
 
 CF_EXPORT
 CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName);	/* Pass NULL for the current user's home directory */
+#endif
 
 
 /*
@@ -245,6 +252,10 @@ CF_EXPORT const CFStringRef kCFHTTPURLStatusLine;
 CF_EXPORT CFStringRef CFCopySystemVersionString(void);			// Human-readable string containing both marketing and build version
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);
 CF_EXPORT CFDictionaryRef _CFCopyServerVersionDictionary(void);
+
+// Returns the 'true' contents of SystemVersion.plist even when running in apps linked before 10.16
+CF_EXPORT CFDictionaryRef _CFCopySystemVersionPlatformDictionary(void) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
+
 CF_EXPORT CFStringRef _CFCopySystemVersionDictionaryValue(CFStringRef key) API_AVAILABLE(macos(10.15), ios(13.0), watchos(6.0), tvos(13.0));
 CF_EXPORT const CFStringRef _kCFSystemVersionProductNameKey;
 CF_EXPORT const CFStringRef _kCFSystemVersionProductCopyrightKey;
@@ -258,6 +269,8 @@ CF_EXPORT const CFStringRef _kCFSystemVersionBuildStringKey;		// Localized strin
 
 CF_EXPORT void CFMergeSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context);
 CF_EXPORT void CFQSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context);
+
+CF_EXPORT CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length);
 
 // For non-Darwin platforms _CFExecutableLinkedOnOrAfter(…) always returns true.
 
@@ -276,7 +289,6 @@ typedef CF_ENUM(CFIndex, CFSystemVersion) {
 };
 
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version);
-
 
 typedef CF_ENUM(CFIndex, CFStringCharacterClusterType) {
     kCFStringGraphemeCluster = 1, /* Unicode Grapheme Cluster */
@@ -563,7 +575,6 @@ CF_EXPORT CFHashCode _CFNonObjCHash(CFTypeRef cf);
 CF_EXPORT
 Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeIdentifier, LangCode *langCode, RegionCode *regCode, ScriptCode *scriptCode, CFStringEncoding *stringEncoding);
 
-CF_EXPORT void _CFLocaleResetCurrent(void);
 CF_EXPORT void _CFCalendarResetCurrent(void);
 
 #if TARGET_OS_WIN32
@@ -630,8 +641,10 @@ typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
     _CFBundleFilteredPlistMemoryMapped = 1
 } API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
+#if !TARGET_OS_WASI
 CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+#endif
 
 #if TARGET_OS_WIN32
 #include <CoreFoundation/CFNotificationCenter.h>
@@ -701,6 +714,12 @@ CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void) CF_RETURNS_RETAINED
 
 #endif // !DEPLOYMENT_RUNTIME_OBJC
 
+
+/// Retrieve a local handle for an inserted (DYLD_INSERT_LIBRARIES) or interposing library.
+CF_EXPORT void * _CFGetHandleForInsertedOrInterposingLibrary(char const *namePrefix) API_AVAILABLE(ios(13.0), macos(10.15), watchos(6.0), tvos(13.0));
+
+CF_EXPORT Boolean _CFRunLoopPerCalloutAutoreleasepoolEnabled(void) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
+CF_EXPORT Boolean _CFRunLoopSetPerCalloutAutoreleasepoolEnabled(Boolean enabled) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
 
 CF_EXTERN_C_END
 

@@ -29,7 +29,11 @@
 #include <string.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
+#include "CFPropertyList_Internal.h"
+
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFStream.h>
+#endif
 
 enum {
 	CF_NO_ERROR = 0,
@@ -122,6 +126,7 @@ CFKeyedArchiverUIDRef _CFKeyedArchiverUIDCreate(CFAllocatorRef allocator, uint32
 
 
 uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFKeyedArchiverUID, uid);
     return uid->_value;
 }
 
@@ -130,6 +135,7 @@ uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid) {
 
 CF_PRIVATE CFErrorRef __CFPropertyListCreateError(CFIndex code, CFStringRef debugString, ...);
 
+#if !TARGET_OS_WASI
 typedef struct {
     CFTypeRef stream;
     void *databytes;
@@ -656,12 +662,11 @@ CFIndex __CFBinaryPlistWriteToStreamWithOptions(CFPropertyListRef plist, CFTypeR
 
 CF_PRIVATE CFMutableDataRef _CFDataCreateFixedMutableWithBuffer(CFAllocatorRef allocator, CFIndex capacity, const uint8_t *bytes, CFAllocatorRef bytesDeallocator);
 
-CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPropertyListRef plist, CFAllocatorAllocateCallBack allocateBufferCallback, CFAllocatorDeallocateCallBack deallocateBufferCallback, uint64_t estimate, CFOptionFlags options, void *allocInfo, CFErrorRef *error) {
+CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPropertyListRef plist, uint64_t estimate, CFOptionFlags options, CFAllocatorRef (^allocatorCreator)(CFIndex bufferSize), CFErrorRef *error) {
     CFIndex size = __CFBinaryPlistWriteOrPresize(plist, NULL, estimate, options, true, error);
     CFDataRef result = NULL;
     if (size > 0) {
-        CFAllocatorContext context = {0, allocInfo, NULL, NULL, NULL, allocateBufferCallback, NULL, deallocateBufferCallback, NULL};
-        CFAllocatorRef allocator = CFAllocatorCreate(kCFAllocatorSystemDefault, &context);
+        CFAllocatorRef allocator = allocatorCreator(size);
         if (allocator) {
             void *buffer = CFAllocatorAllocate(allocator, size, 0);
             if (buffer) {
@@ -691,6 +696,7 @@ CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPro
     }
     return result;
 }
+#endif
 
 #pragma mark -
 #pragma mark Reading
@@ -707,11 +713,11 @@ CF_INLINE uint64_t _getSizedInt(const uint8_t *data, uint8_t valSize) {
     if (valSize == 1) {
         return (uint64_t)*data;
     } else if (valSize == 2) {
-        return (uint64_t)unaligned_load16be(data);
+        return (uint64_t)_CFUnalignedLoad16BE(data);
     } else if (valSize == 4) {
-        return (uint64_t)unaligned_load32be(data);
+        return (uint64_t)_CFUnalignedLoad32BE(data);
     } else if (valSize == 8) {
-        return unaligned_load64be(data);
+        return _CFUnalignedLoad64BE(data);
     }
 
     // Compatibility with existing archives, including anything with a non-power-of-2
@@ -1159,6 +1165,19 @@ extern CFArrayRef __CFArrayCreateTransfer(CFAllocatorRef allocator, const void *
 CF_PRIVATE void __CFPropertyListCreateSplitKeypaths(CFAllocatorRef allocator, CFSetRef currentKeys, CFSetRef *theseKeys, CFSetRef *nextKeys);
 
 CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *outPlist, CFTypeID *outPlistTypeID) {
+    
+    // NOTE: Bailing out here will cause us to attempt to parse
+    //       as XML (which will fail) then as a OpenSTEP plist
+    //       the final error string is less than helpful:
+    //       "Unexpected character b at line 1".
+    //       It would be nice to actually be more descriptive but that
+    //       would require a more scaffolding.
+    if (curDepth > _CFPropertyListMaxRecursionDepth()) {
+        // Bail before we get so far into the stack that we run out of space.
+        // Emit an `os_log_fault` to relay the issue to the debugger and to track how common this case may be.
+        os_log_fault(_CFOSLog(), "Too many nested arrays or dictionaries");
+        FAIL_FALSE;
+    }
 
     if (objects && outPlist) {
         *outPlist = CFDictionaryGetValue(objects, (const void *)(uintptr_t)startOffset);
@@ -1481,7 +1500,7 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 	if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
 	byte_cnt = check_size_t_mul(arrayCount, sizeof(CFPropertyListRef), &err);
 	if (CF_NO_ERROR != err) FAIL_FALSE;
-        STACK_BUFFER_DECL(CFPropertyListRef, buffer, arrayCount <= 256 ? arrayCount : 1);
+        STACK_BUFFER_DECL(CFPropertyListRef, buffer, (arrayCount > 0 && arrayCount <= 256) ? arrayCount : 1);
         if (outPlist) {
             list = (arrayCount <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, byte_cnt, 0);
             if (!list) FAIL_FALSE;
@@ -1713,6 +1732,12 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
                 }
                 if (list) {
                     *((void **)list + idx) = (void *)pl;
+#if __clang_analyzer__
+                    // The static analyzer can't reason that we're always looping through this an even number of times. It thinks list[idx + halfDictionaryCount] below will be uninitialized.
+                    if (idx % 2 == 0) {
+                        *((void **)list + halfDictionaryCount) = NULL;
+                    }
+#endif
                 }
                 ptr += trailer->_objectRefSize;
             }

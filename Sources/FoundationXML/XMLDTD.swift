@@ -13,7 +13,7 @@ import SwiftFoundation
 import Foundation
 #endif
 @_implementationOnly import CoreFoundation
-import CFXMLInterface
+@_implementationOnly import CFXMLInterface
 
 /*!
     @class XMLDTD

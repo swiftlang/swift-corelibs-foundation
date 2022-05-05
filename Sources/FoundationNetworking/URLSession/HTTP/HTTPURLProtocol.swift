@@ -448,7 +448,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         // Avoid a never ending redirect chain by having a hard limit on the number of redirects.
         // This value mirrors Darwin.
         redirectCount += 1
-        if redirectCount > 16 {
+        if redirectCount > 20 {
             self.internalState = .transferFailed
             let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorHTTPTooManyRedirects,
                                 userInfo: [NSLocalizedDescriptionKey: "too many HTTP redirects"])
@@ -460,8 +460,8 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
 
         guard let session = task?.session as? URLSession else { fatalError() }
-        switch session.behaviour(for: task!) {
-        case .taskDelegate(let delegate):
+
+        if let delegate = session.delegate as? URLSessionTaskDelegate {
             // At this point we need to change the internal state to note
             // that we're waiting for the delegate to call the completion
             // handler. Then we'll call the delegate callback
@@ -471,7 +471,6 @@ internal class _HTTPURLProtocol: _NativeProtocol {
 
             //TODO: Should the `public response: URLResponse` property be updated
             // before we call delegate API
-
             self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
             session.delegateQueue.addOperation {
@@ -482,9 +481,10 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                     }
                 }
             }
-        case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
+        } else {
             // Follow the redirect. Need to configure new request with cookies, etc.
             let configuredRequest = session._configuration.configure(request: request)
+            task?.knownBody = URLSessionTask._Body.none
             startNewTransfer(with: configuredRequest)
         }
     }
@@ -597,6 +597,7 @@ extension _HTTPURLProtocol {
         // Otherwise, we'll start a new transfer with the passed in request.
         if let r = request {
             lastRedirectBody = nil
+            task?.knownBody = URLSessionTask._Body.none
             startNewTransfer(with: r)
         } else {
             // If the redirect is not followed, return the redirect itself as the response
@@ -649,38 +650,31 @@ internal extension _HTTPURLProtocol {
     /// - SeeAlso: <https://tools.ietf.org/html/rfc7231#section-6.4>
     func redirectRequest(for response: HTTPURLResponse, fromRequest: URLRequest) -> URLRequest? {
         //TODO: Do we ever want to redirect for HEAD requests?
-        func methodAndURL() -> (String, URL)? {
-            guard
-                let location = response.value(forHeaderField: .location),
-                let targetURL = URL(string: location)
-                else {
-                    // Can't redirect when there's no location to redirect to.
-                    return nil
-            }
-
-            let method = fromRequest.httpMethod ?? "GET"
-            // Check for a redirect:
-            switch response.statusCode {
-                case 301, 302:
-                    // Change "POST" into "GET" but leave other methods unchanged:
-                    let newMethod = (method == "POST") ? "GET" : method
-                    return (newMethod, targetURL)
-
-                case 303:
-                    return ("GET", targetURL)
-
-                case 305...308:
-                    // Re-use existing method:
-                    return (method, targetURL)
-
-                default:
-                    return nil
-            }
+        
+        guard
+            let location = response.value(forHeaderField: .location),
+            let targetURL = URL(string: location)
+            else {
+                // Can't redirect when there's no location to redirect to.
+                return nil
         }
-
-        guard let (method, targetURL) = methodAndURL() else { return nil }
+        
         var request = fromRequest
-        request.httpMethod = method
+        
+        // Check for a redirect:
+        switch response.statusCode {
+            case 301...302 where request.httpMethod == "POST", 303:
+                // Change "POST" into "GET" but leave other methods unchanged:
+                request.httpMethod = "GET"
+                request.httpBody = nil
+
+            case 301...302, 305...308:
+                // Re-use existing method:
+                break
+
+            default:
+                return nil
+        }
 
         // If targetURL has only relative path of url, create a new valid url with relative path
         // Otherwise, return request with targetURL ie.url from location field

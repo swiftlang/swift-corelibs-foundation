@@ -11,8 +11,8 @@
 
 open class DateFormatter : Formatter {
     typealias CFType = CFDateFormatter
-    private var __cfObject: CFType?
-    private var _cfObject: CFType {
+    private final var __cfObject: CFType?
+    private final var _cfObject: CFType {
         guard let obj = __cfObject else {
             let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
             let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(self.timeStyle.rawValue))!
@@ -34,6 +34,51 @@ open class DateFormatter : Formatter {
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
+    }
+
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        let copied = DateFormatter()
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<DateFormatter, T>) {
+            copied[keyPath: keyPath] = self[keyPath: keyPath]
+        }
+
+        __copy(\.formattingContext)
+        __copy(\.dateStyle)
+        __copy(\.timeStyle)
+        __copy(\._locale)
+        __copy(\.generatesCalendarDates)
+        __copy(\._timeZone)
+        __copy(\._calendar)
+        __copy(\.isLenient)
+        __copy(\._twoDigitStartDate)
+        __copy(\._eraSymbols)
+        __copy(\._monthSymbols)
+        __copy(\._shortMonthSymbols)
+        __copy(\._weekdaySymbols)
+        __copy(\._shortWeekdaySymbols)
+        __copy(\._amSymbol)
+        __copy(\._pmSymbol)
+        __copy(\._longEraSymbols)
+        __copy(\._veryShortMonthSymbols)
+        __copy(\._standaloneMonthSymbols)
+        __copy(\._shortStandaloneMonthSymbols)
+        __copy(\._veryShortStandaloneMonthSymbols)
+        __copy(\._veryShortWeekdaySymbols)
+        __copy(\._standaloneWeekdaySymbols)
+        __copy(\._shortStandaloneWeekdaySymbols)
+        __copy(\._veryShortStandaloneWeekdaySymbols)
+        __copy(\._quarterSymbols)
+        __copy(\._shortQuarterSymbols)
+        __copy(\._standaloneQuarterSymbols)
+        __copy(\._shortStandaloneQuarterSymbols)
+        __copy(\._gregorianStartDate)
+        __copy(\.doesRelativeDateFormatting)
+
+        // The last is `_dateFormat` because setting `dateStyle` and `timeStyle` make it `nil`.
+        __copy(\._dateFormat)
+
+        return copied
     }
 
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
@@ -102,7 +147,7 @@ open class DateFormatter : Formatter {
         __cfObject = nil
     }
 
-    internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
+    internal final func _setFormatterAttributes(_ formatter: CFDateFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: isLenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: _timeZone?._cfObject)
         if let ident = _calendar?.identifier {
@@ -136,7 +181,7 @@ open class DateFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: _gregorianStartDate?._cfObject)
     }
 
-    internal func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
+    internal final func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFDateFormatterSetProperty(formatter, attributeName, value)
         }

@@ -15,8 +15,9 @@
 #include "CFRuntime_Internal.h"
 #include <string.h>
 
-#if DEPLOYMENT_RUNTIME_SWIFT
 
+
+#if DEPLOYMENT_RUNTIME_SWIFT
 DECLARE_STATIC_CLASS_REF(NSMutableData);
 static const void *_NSMutableData = STATIC_CLASS_REF(NSMutableData);
 static Boolean _CFDataShouldBridgeToSwift(CFTypeID type, CFDataRef data);
@@ -47,6 +48,11 @@ CF_INLINE unsigned long __CFPageSize() {
 #include <unistd.h>
 CF_INLINE unsigned long __CFPageSize() {
     return (unsigned long)getpagesize();
+}
+#elif TARGET_OS_WASI
+CF_INLINE unsigned long __CFPageSize() {
+    // WebAssembly linear memory pages are always 64KiB in size
+    return 65536;
 }
 #endif
 
@@ -202,15 +208,14 @@ static void __CFDataHandleOutOfMemory(CFTypeRef obj, CFIndex numBytes) CLANG_ANA
     HALT;
 }
 
-#if defined(DEBUG)
-CF_INLINE void __CFDataValidateRange(CFDataRef data, CFRange range, const char *func) {
-    CFAssert2(0 <= range.location && range.location <= __CFDataLength(data), __kCFLogAssertion, "%s(): range.location index (%ld) out of bounds", func, range.location);
-    CFAssert2(0 <= range.length, __kCFLogAssertion, "%s(): length (%ld) cannot be less than zero", func, range.length);
-    CFAssert2(range.location + range.length <= __CFDataLength(data), __kCFLogAssertion, "%s(): ending index (%ld) out of bounds", func, range.location + range.length);
+#define FAUX_HALT_MSG(msg) fprintf(stderr, "%s\n", msg)
+
+CF_INLINE void __CFDataValidateRange(CFDataRef data, CFRange range) {
+    if (range.location < 0) FAUX_HALT_MSG("range.location out of range (<0)");
+    if (range.location > __CFDataLength(data)) FAUX_HALT_MSG("range.location out of range (>len)");
+    if (range.length < 0) FAUX_HALT_MSG("length cannot be less than zero");
+    if (range.location + range.length > __CFDataLength(data)) FAUX_HALT_MSG("ending index out of bounds");
 }
-#else
-#define __CFDataValidateRange(a,r,f)
-#endif
 
 static Boolean __CFDataEqual(CFTypeRef cf1, CFTypeRef cf2) {
     CFDataRef data1 = (CFDataRef)cf1;
@@ -522,7 +527,7 @@ uint8_t *CFDataGetMutableBytePtr(CFMutableDataRef data) {
 void CFDataGetBytes(CFDataRef data, CFRange range, uint8_t *buffer) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSData *)data, getBytes:(void *)buffer range:NSMakeRange(range.location, range.length));
     CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.getBytes, range, buffer);
-    __CFDataValidateRange(data, range, __PRETTY_FUNCTION__);
+    __CFDataValidateRange(data, range);
     memmove(buffer, _CFDataGetBytePtrNonObjC(data) + range.location, range.length);
 }
 
@@ -619,10 +624,10 @@ void CFDataDeleteBytes(CFMutableDataRef data, CFRange range) {
 }
 
 void CFDataReplaceBytes(CFMutableDataRef data, CFRange range, const uint8_t *newBytes, CFIndex newBytesLength) {
-    CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, (NSMutableData *)data, replaceBytesInRange:NSMakeRange(range.location, range.length) withBytes:(const void *)newBytes length:(NSUInteger)newBytesLength);
+    CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSMutableData *)data, replaceBytesInRange:NSMakeRange(range.location, range.length) withBytes:(const void *)newBytes length:(NSUInteger)newBytesLength);
     CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.replaceBytes, range, newBytes, newBytesLength);
     __CFGenericValidateType(data, CFDataGetTypeID());
-    __CFDataValidateRange(data, range, __PRETTY_FUNCTION__);
+    __CFDataValidateRange(data, range);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);
     CFAssert2(0 <= newBytesLength, __kCFLogAssertion, "%s(): newLength (%ld) cannot be less than zero", __PRETTY_FUNCTION__, newBytesLength);
 
@@ -855,12 +860,11 @@ CFRange CFDataFind(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CF
     // No objc dispatch
     __CFGenericValidateType(data, CFDataGetTypeID());
     __CFGenericValidateType(dataToFind, CFDataGetTypeID());
-    __CFDataValidateRange(data, searchRange, __PRETTY_FUNCTION__);
+    __CFDataValidateRange(data, searchRange);
     
     return _CFDataFindBytes(data, dataToFind, searchRange, compareOptions);
 }
 
-#undef __CFDataValidateRange
 #undef INLINE_BYTES_THRESHOLD
 #undef CFDATA_MAX_SIZE
 #undef REVERSE_BUFFER

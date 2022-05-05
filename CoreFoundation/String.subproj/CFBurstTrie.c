@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <limits.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/mman.h>
@@ -248,6 +248,7 @@ struct _CFBurstTrie {
     uint32_t count;
     uint32_t containerSize;
     int retain;
+    bool isMmapped;
 #if TARGET_OS_WIN32
     HANDLE mapHandle;
     HANDLE mappedFileHandle;
@@ -377,6 +378,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
         trie->cflags = CFSwapInt32LittleToHost(((fileHeader*)trie->mapBase)->flags);
         trie->count = CFSwapInt32LittleToHost(((fileHeader*)trie->mapBase)->count);
         trie->retain = 1;
+        trie->isMmapped = true;
 #if TARGET_OS_WIN32
         trie->mappedFileHandle = mappedFileHandle;
         trie->mapHandle = mapHandle;
@@ -391,6 +393,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
         trie->cflags = CFSwapInt32LittleToHost(header->flags);
         trie->count = CFSwapInt32LittleToHost(header->count);
         trie->retain = 1;
+        trie->isMmapped = true;
 #if TARGET_OS_WIN32
         trie->mappedFileHandle = mappedFileHandle;
         trie->mapHandle = mapHandle;
@@ -416,6 +419,7 @@ CFBurstTrieRef CFBurstTrieCreateFromMapBytes(char *mapBase) {
         trie->cflags = CFSwapInt32LittleToHost(((fileHeader*)trie->mapBase)->flags);
         trie->count = CFSwapInt32LittleToHost(((fileHeader*)trie->mapBase)->count);
         trie->retain = 1;
+        trie->isMmapped = false;
     } else if (mapBase && (header->signature == 0xcafebabe || header->signature == 0x0ddba11)) {
         trie = (CFBurstTrieRef) malloc(sizeof(struct _CFBurstTrie));
         trie->mapBase = mapBase;
@@ -423,6 +427,7 @@ CFBurstTrieRef CFBurstTrieCreateFromMapBytes(char *mapBase) {
         trie->cflags = CFSwapInt32LittleToHost(header->flags);
         trie->count = CFSwapInt32LittleToHost(header->count);
         trie->retain = 1;
+        trie->isMmapped = false;
     }
     return trie;
 }
@@ -1987,7 +1992,7 @@ static size_t serializeCFBurstTrie(CFBurstTrieRef trie, size_t start_offset, int
 #endif
 
 static void destroyCFBurstTrie(CFBurstTrieRef trie) {
-    if (trie->mapBase) {
+    if (trie->mapBase && trie->isMmapped) {
 #if TARGET_OS_WIN32
         UnmapViewOfFile(trie->mapBase);
         CloseHandle(trie->mapHandle);
@@ -1995,7 +2000,7 @@ static void destroyCFBurstTrie(CFBurstTrieRef trie) {
 #else
         munmap(trie->mapBase, trie->mapSize);
 #endif
-    } else {
+    } else if (!trie->mapBase) {
         finalizeCFBurstTrie(&trie->root);
     }
     free(trie);

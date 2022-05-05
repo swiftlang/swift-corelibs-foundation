@@ -212,6 +212,8 @@ class TestNSData: LoopbackServerTest {
             ("testCopyBytes", testCopyBytes),
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
+            ("testFirstRangeEmptyData", testFirstRangeEmptyData),
+            ("testLastRangeEmptyData", testLastRangeEmptyData),
             ("testEquality", testEquality),
             ("testGenericAlgorithms", testGenericAlgorithms),
             ("testInitializationWithArray", testInitializationWithArray),
@@ -235,6 +237,7 @@ class TestNSData: LoopbackServerTest {
             ("test_writeToURLOptions", test_writeToURLOptions),
             ("test_writeToURLPermissions", test_writeToURLPermissions),
             ("test_writeToURLPermissionsWithAtomic", test_writeToURLPermissionsWithAtomic),
+            ("test_writeToURLSpecialFile", test_writeToURLSpecialFile),
             ("test_edgeNoCopyDescription", test_edgeNoCopyDescription),
             ("test_initializeWithBase64EncodedDataGetsDecodedData", test_initializeWithBase64EncodedDataGetsDecodedData),
             ("test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil", test_initializeWithBase64EncodedDataWithNonBase64CharacterIsNil),
@@ -244,11 +247,14 @@ class TestNSData: LoopbackServerTest {
             ("test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn", test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn),
             ("test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed", test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed),
             ("test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth", test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth),
+            ("test_base64EncodeDoesNotAddLineSeparatorsWhenStringFitsInLine", test_base64EncodeDoesNotAddLineSeparatorsWhenStringFitsInLine),
+            ("test_base64EncodeAddsLineSeparatorsWhenStringDoesNotFitInLine", test_base64EncodeAddsLineSeparatorsWhenStringDoesNotFitInLine),
             ("test_base64EncodedStringGetsEncodedText", test_base64EncodedStringGetsEncodedText),
             ("test_initializeWithBase64EncodedStringGetsDecodedData", test_initializeWithBase64EncodedStringGetsDecodedData),
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
             ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
             ("test_rangeOfData", test_rangeOfData),
+            ("test_sr10689_rangeOfDataProtocol", test_sr10689_rangeOfDataProtocol),
             ("test_initNSMutableData()", test_initNSMutableData),
             ("test_initNSMutableDataWithLength", test_initNSMutableDataWithLength),
             ("test_initNSMutableDataWithCapacity", test_initNSMutableDataWithCapacity),
@@ -618,6 +624,15 @@ class TestNSData: LoopbackServerTest {
 #endif
     }
 
+    func test_writeToURLSpecialFile() {
+#if os(Windows)
+        let url = URL(fileURLWithPath: "CON")
+#else
+        let url = URL(fileURLWithPath: "/dev/stdout")
+#endif
+        XCTAssertNoThrow(try Data("Output to STDOUT\n".utf8).write(to: url))
+    }
+
     func test_emptyDescription() {
         let expected = "<>"
         
@@ -814,6 +829,36 @@ class TestNSData: LoopbackServerTest {
         XCTAssertEqual(encodedTextResult, encodedText)
     }
     
+    func test_base64EncodeDoesNotAddLineSeparatorsWhenStringFitsInLine() {
+        
+        XCTAssertEqual(
+            Data(repeating: 0, count: 48).base64EncodedString(options: .lineLength64Characters),
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "each 3 byte is converted into 4 characterss. 48 / 3 * 4 <= 64, therefore result should not have line separator."
+        )
+        
+        XCTAssertEqual(
+            Data(repeating: 0, count: 57).base64EncodedString(options: .lineLength76Characters),
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "each 3 byte is converted into 4 characterss. 57 / 3 * 4 <= 76, therefore result should not have line separator."
+        )
+    }
+    
+    func test_base64EncodeAddsLineSeparatorsWhenStringDoesNotFitInLine() {
+        
+        XCTAssertEqual(
+            Data(repeating: 0, count: 49).base64EncodedString(options: .lineLength64Characters),
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAA==",
+            "each 3 byte is converted into 4 characterss. 49 / 3 * 4 > 64, therefore result should have lines with separator."
+        )
+        
+        XCTAssertEqual(
+            Data(repeating: 0, count: 58).base64EncodedString(options: .lineLength76Characters),
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAA==",
+            "each 3 byte is converted into 4 characterss. 58 / 3 * 4 > 76, therefore result should have lines with separator."
+        )
+    }
+    
     func test_base64EncodedStringGetsEncodedText() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhhZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
@@ -913,6 +958,97 @@ class TestNSData: LoopbackServerTest {
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards], in: baseFullRange),notFoundRange))
         XCTAssert(NSEqualRanges(base.range(of: empty, options: [.backwards,.anchored], in: baseFullRange),notFoundRange))
         
+    }
+
+    func test_sr10689_rangeOfDataProtocol() {
+        // https://bugs.swift.org/browse/SR-10689
+        
+        let base = Data([0x00, 0x01, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03,
+                         0x00, 0x01, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03])
+        let subdata = base[10..<13] // [0x02, 0x03, 0x00]
+        let oneByte = base[14..<15] // [0x02]
+        
+        do { // firstRange(of:in:)
+            func assertFirstRange(_ data: Data, _ fragment: Data, range: ClosedRange<Int>? = nil, expectedStartIndex: Int?,
+                                  message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line)
+            {
+                if let index = expectedStartIndex {
+                    let expectedRange: Range<Int> = index..<(index + fragment.count)
+                    if let someRange = range {
+                        XCTAssertEqual(data.firstRange(of: fragment, in: someRange), expectedRange, message(), file: file, line: line)
+                    } else {
+                        XCTAssertEqual(data.firstRange(of: fragment), expectedRange, message(), file: file, line: line)
+                    }
+                } else {
+                    if let someRange = range {
+                        XCTAssertNil(data.firstRange(of: fragment, in: someRange), message(), file: file, line: line)
+                    } else {
+                        XCTAssertNil(data.firstRange(of: fragment), message(), file: file, line: line)
+                    }
+                }
+            }
+            
+            assertFirstRange(base, base, expectedStartIndex: base.startIndex)
+            assertFirstRange(base, subdata, expectedStartIndex: 2)
+            assertFirstRange(base, oneByte, expectedStartIndex: 2)
+            
+            assertFirstRange(subdata, base, expectedStartIndex: nil)
+            assertFirstRange(subdata, subdata, expectedStartIndex: subdata.startIndex)
+            assertFirstRange(subdata, oneByte, expectedStartIndex: subdata.startIndex)
+            
+            assertFirstRange(oneByte, base, expectedStartIndex: nil)
+            assertFirstRange(oneByte, subdata, expectedStartIndex: nil)
+            assertFirstRange(oneByte, oneByte, expectedStartIndex: oneByte.startIndex)
+            
+            assertFirstRange(base, subdata, range: 1...14, expectedStartIndex: 2)
+            assertFirstRange(base, subdata, range: 6...8, expectedStartIndex: 6)
+            assertFirstRange(base, subdata, range: 8...10, expectedStartIndex: nil)
+            
+            assertFirstRange(base, oneByte, range: 1...14, expectedStartIndex: 2)
+            assertFirstRange(base, oneByte, range: 6...6, expectedStartIndex: 6)
+            assertFirstRange(base, oneByte, range: 8...9, expectedStartIndex: nil)
+        }
+        
+        do { // lastRange(of:in:)
+            func assertLastRange(_ data: Data, _ fragment: Data, range: ClosedRange<Int>? = nil, expectedStartIndex: Int?,
+                                 message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line)
+            {
+                if let index = expectedStartIndex {
+                    let expectedRange: Range<Int> = index..<(index + fragment.count)
+                    if let someRange = range {
+                        XCTAssertEqual(data.lastRange(of: fragment, in: someRange), expectedRange, message(), file: file, line: line)
+                    } else {
+                        XCTAssertEqual(data.lastRange(of: fragment), expectedRange, message(), file: file, line: line)
+                    }
+                } else {
+                    if let someRange = range {
+                        XCTAssertNil(data.lastRange(of: fragment, in: someRange), message(), file: file, line: line)
+                    } else {
+                        XCTAssertNil(data.lastRange(of: fragment), message(), file: file, line: line)
+                    }
+                }
+            }
+            
+            assertLastRange(base, base, expectedStartIndex: base.startIndex)
+            assertLastRange(base, subdata, expectedStartIndex: 10)
+            assertLastRange(base, oneByte, expectedStartIndex: 14)
+            
+            assertLastRange(subdata, base, expectedStartIndex: nil)
+            assertLastRange(subdata, subdata, expectedStartIndex: subdata.startIndex)
+            assertLastRange(subdata, oneByte, expectedStartIndex: subdata.startIndex)
+            
+            assertLastRange(oneByte, base, expectedStartIndex: nil)
+            assertLastRange(oneByte, subdata, expectedStartIndex: nil)
+            assertLastRange(oneByte, oneByte, expectedStartIndex: oneByte.startIndex)
+            
+            assertLastRange(base, subdata, range: 1...14, expectedStartIndex: 10)
+            assertLastRange(base, subdata, range: 6...8, expectedStartIndex: 6)
+            assertLastRange(base, subdata, range: 8...10, expectedStartIndex: nil)
+            
+            assertLastRange(base, oneByte, range: 1...14, expectedStartIndex: 14)
+            assertLastRange(base, oneByte, range: 6...6, expectedStartIndex: 6)
+            assertLastRange(base, oneByte, range: 8...9, expectedStartIndex: nil)
+        }
     }
 
     // Check all of the NSMutableData constructors are available.
@@ -1049,8 +1185,10 @@ class TestNSData: LoopbackServerTest {
         }
 
         let replacement = makeData([8, 9, 10])
-        mData.replaceBytes(in: NSRange(location: 1, length: 3), withBytes: replacement.bytes,
+        withExtendedLifetime(replacement) {
+            mData.replaceBytes(in: NSRange(location: 1, length: 3), withBytes: replacement.bytes,
             length: 3)
+        }
         let expected = makeData([0, 8, 9, 10, 0])
         XCTAssertEqual(mData, expected)
     }
@@ -1192,6 +1330,16 @@ extension TestNSData {
         s.insert(d3)
         
         XCTAssertEqual(s.count, 2, "Expected only two entries in the Set")
+    }
+    
+    func testFirstRangeEmptyData() {
+        let d = Data([1, 2, 3])
+        XCTAssertNil(d.firstRange(of: Data()))
+    }
+    
+    func testLastRangeEmptyData() {
+        let d = Data([1, 2, 3])
+        XCTAssertNil(d.lastRange(of: Data()))
     }
     
     func testReplaceSubrange() {
@@ -1560,10 +1708,12 @@ extension TestNSData {
         let contents = NSData(contentsOfFile: filename)
         XCTAssertNotNil(contents)
         if let contents = contents {
-            let ptr =  UnsafeMutableRawPointer(mutating: contents.bytes)
-            let str = String(bytesNoCopy: ptr, length: contents.length,
-                         encoding: .ascii, freeWhenDone: false)
-            XCTAssertEqual(str, "swift-corelibs-foundation")
+            withExtendedLifetime(contents) {
+                let ptr =  UnsafeMutableRawPointer(mutating: contents.bytes)
+                let str = String(bytesNoCopy: ptr, length: contents.length,
+                             encoding: .ascii, freeWhenDone: false)
+                XCTAssertEqual(str, "swift-corelibs-foundation")
+            }
         }
     }
 
@@ -1575,14 +1725,16 @@ extension TestNSData {
         let contents = NSData(contentsOfFile: "/proc/self/cmdline")
         XCTAssertNotNil(contents)
         if let contents = contents {
-            XCTAssertTrue(contents.length > 0)
-            let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
-            var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
-            if zeroIdx == NSNotFound { zeroIdx = contents.length }
-            if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
-                XCTAssertTrue(str.hasSuffix("TestFoundation"))
-            } else {
-                XCTFail("Cant create String")
+            withExtendedLifetime(contents) {
+                XCTAssertTrue(contents.length > 0)
+                let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
+                var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
+                if zeroIdx == NSNotFound { zeroIdx = contents.length }
+                if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
+                    XCTAssertTrue(str.hasSuffix("TestFoundation"))
+                } else {
+                    XCTFail("Cant create String")
+                }
             }
         }
 

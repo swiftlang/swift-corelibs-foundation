@@ -10,7 +10,9 @@
 // @_exported import of Dispatch here makes it available to all
 // classes in Foundation and all sources that import Foundation.
 // This brings it into line with Darwin usage for compatibility.
+#if !os(WASI)
 @_exported import Dispatch
+#endif
 
 @_implementationOnly import CoreFoundation
 
@@ -20,7 +22,7 @@
 /// 
 /// The Cocoa root class, NSObject, adopts this protocol, so all objects inheriting
 /// from NSObject have the features described by this protocol.
-public protocol NSObjectProtocol : class {
+public protocol NSObjectProtocol: AnyObject {
     
     /// Returns a Boolean value that indicates whether the instance
     /// and a given `object` are equal.

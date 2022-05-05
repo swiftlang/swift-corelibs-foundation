@@ -58,7 +58,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <unicode/uloc.h>
 #else
 #define ULOC_KEYWORD_SEPARATOR '@'
@@ -1157,7 +1157,7 @@ enum {
 };
  */
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 
 struct LocaleToLegacyCodes {
     const char *        locale;	// reduced to language plus one other component (script, region, variant), separators normalized to'_'
@@ -1595,7 +1595,7 @@ static void _UpdateFullLocaleString(char inLocaleString[], int locStringMaxLen,
     // If so, copy the keywords to varKeyValueString and delete the variant tag
     // from the original string (but don't otherwise use the ICU canonicalization).
     varKeyValueString[0] = 0;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
     if (variantTag) {
 		UErrorCode	icuStatus;
 		int			icuCanonStringLen;
@@ -1722,7 +1722,7 @@ static void _GetKeyValueString(char inLocaleString[], char keyValueString[]) {
 }
 
 static void _AppendKeyValueString(char inLocaleString[], int locStringMaxLen, char keyValueString[]) {
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 	if (keyValueString[0] != 0) {
 		UErrorCode		uerr = U_ZERO_ERROR;
 		UEnumeration *	uenum = uloc_openKeywords(keyValueString, &uerr);
@@ -1954,12 +1954,12 @@ SPI:  CFLocaleGetLanguageRegionEncodingForLocaleIdentifier gets the appropriate 
  preferred localization in the current context (this function returns NO for a NULL localeIdentifier); and in this function
  langCode, regCode, and scriptCode are all SInt16* (not SInt32* like the equivalent parameters in CFBundleGetLocalizationInfoForLocalization).
 */
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 static int CompareLocaleToLegacyCodesEntries( const void *entry1, const void *entry2 );
 #endif
 
 Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeIdentifier, LangCode *langCode, RegionCode *regCode, ScriptCode *scriptCode, CFStringEncoding *stringEncoding) {
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 	Boolean		returnValue = false;
 	CFStringRef	canonicalIdentifier = CFLocaleCreateCanonicalLocaleIdentifierFromString(NULL, localeIdentifier);
 	if (canonicalIdentifier) {
@@ -1980,6 +1980,7 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 				languagelength = strlen(searchString);	// in case it got truncated
 				icuStatus = U_ZERO_ERROR;
 				componentLength = uloc_getScript( localeCString, componentString, sizeof(componentString), &icuStatus );
+                                Boolean foundScript = false;
 				if ( U_FAILURE(icuStatus) || componentLength == 0 ) {
 					icuStatus = U_ZERO_ERROR;
 					componentLength = uloc_getCountry( localeCString, componentString, sizeof(componentString), &icuStatus );
@@ -1990,7 +1991,9 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 							componentLength = 0;
 						}
 					}
-				}
+                                } else {
+                                    foundScript = true;
+                                }
 				
 				// Append whichever other component we first found
 				if (componentLength > 0) {
@@ -2000,8 +2003,11 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 				
 				// Search
 				foundEntryPtr = (const LocaleToLegacyCodes *)bsearch( &searchEntry, localeToLegacyCodes, kNumLocaleToLegacyCodes, sizeof(LocaleToLegacyCodes), CompareLocaleToLegacyCodesEntries );
-				if (foundEntryPtr == NULL && (int32_t) strlen(searchString) > languagelength) {
-					// truncate to language al;one and try again
+
+                                // Do not try fallback if string encoding is requested AND a script is present in the passed-in locale since the script might affect the string encoding: <rdar://problem/54531339>
+                                BOOL lookingForScript = foundScript && stringEncoding != NULL;
+                                if (foundEntryPtr == NULL && (int32_t) strlen(searchString) > languagelength && !lookingForScript) {
+                                        // Otherwise truncate to language alone and try again
 					searchString[languagelength] = 0;
 					foundEntryPtr = (const LocaleToLegacyCodes *)bsearch( &searchEntry, localeToLegacyCodes, kNumLocaleToLegacyCodes, sizeof(LocaleToLegacyCodes), CompareLocaleToLegacyCodesEntries );
 				}
@@ -2037,7 +2043,7 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 #endif
 }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 static int CompareLocaleToLegacyCodesEntries( const void *entry1, const void *entry2 ) {
 	const char *	localeString1 = ((const LocaleToLegacyCodes *)entry1)->locale;
 	const char *	localeString2 = ((const LocaleToLegacyCodes *)entry2)->locale;
@@ -2047,7 +2053,7 @@ static int CompareLocaleToLegacyCodesEntries( const void *entry1, const void *en
 
 CFDictionaryRef CFLocaleCreateComponentsFromLocaleIdentifier(CFAllocatorRef allocator, CFStringRef localeID) {
     CFMutableDictionaryRef working = CFDictionaryCreateMutable(allocator, 10, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
     char cLocaleID[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
     char buffer[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
 
@@ -2177,7 +2183,7 @@ CFStringRef CFLocaleCreateLocaleIdentifierFromComponents(CFAllocatorRef allocato
     free(variant);
     free(buf1);
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
     for (CFIndex idx = 0; idx < cnt; idx++) {
 	if (keys[idx]) {
 	    char *key = __CStringFromString(keys[idx]);

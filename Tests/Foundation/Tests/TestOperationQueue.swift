@@ -34,11 +34,15 @@ class TestOperationQueue : XCTestCase {
             ("test_CancelWhileSuspended", test_CancelWhileSuspended),
             ("test_OperationOrder", test_OperationOrder),
             ("test_OperationOrder2", test_OperationOrder2),
+            ("test_ExecutionOrder", test_ExecutionOrder),
             ("test_WaitUntilFinished", test_WaitUntilFinished),
             ("test_OperationWaitUntilFinished", test_OperationWaitUntilFinished),
-            ("test_CustomOperationReady", test_CustomOperationReady),
+            /* ⚠️ */ ("test_CustomOperationReady", testExpectedToFail(test_CustomOperationReady, "Flaky test: https://bugs.swift.org/browse/SR-14657")),
             ("test_DependencyCycleBreak", test_DependencyCycleBreak),
             ("test_Lifecycle", test_Lifecycle),
+            ("test_ConcurrentOperations", test_ConcurrentOperations),
+            ("test_ConcurrentOperationsWithDependenciesAndCompletions", test_ConcurrentOperationsWithDependenciesAndCompletions),
+            ("test_BlockOperationAddExecutionBlock", test_BlockOperationAddExecutionBlock),
         ]
     }
     
@@ -531,6 +535,32 @@ class TestOperationQueue : XCTestCase {
         XCTAssertEqual(array, [5, 4, 3, 2, 1])
     }
 
+    func test_ExecutionOrder() {
+        let queue = OperationQueue()
+        
+        let didRunOp1 = expectation(description: "Did run first operation")
+        let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
+        let didRunOp2 = expectation(description: "Did run second operation")
+        var didRunOp1DependencyFirst = false
+        
+        let op1 = BlockOperation {
+            didRunOp1.fulfill()
+            XCTAssertTrue(didRunOp1DependencyFirst, "Dependency should be executed first")
+        }
+        let op1Dependency = BlockOperation {
+            didRunOp1Dependency.fulfill()
+            didRunOp1DependencyFirst = true
+        }
+        op1.addDependency(op1Dependency)
+        queue.addOperations([op1, op1Dependency], waitUntilFinished: false)
+        
+        queue.addOperation {
+            didRunOp2.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1.0)
+    }
+
     func test_WaitUntilFinished() {
         let queue1 = OperationQueue()
         let queue2 = OperationQueue()
@@ -671,6 +701,73 @@ class TestOperationQueue : XCTestCase {
 
         Thread.sleep(forTimeInterval: 1) // Let queue to be deallocated
         XCTAssertNil(weakQueue, "Queue should be deallocated at this point")
+    }
+
+    func test_ConcurrentOperations() {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        
+        // Running several iterations helps to reveal use-after-dealloc crashes
+        for _ in 0..<3 {
+            let didRunOp1 = expectation(description: "Did run first operation")
+            let didRunOp2 = expectation(description: "Did run second operation")
+            
+            queue.addOperation {
+                self.wait(for: [didRunOp2], timeout: 0.2)
+                didRunOp1.fulfill()
+            }
+            queue.addOperation {
+                didRunOp2.fulfill()
+            }
+            
+            self.wait(for: [didRunOp1], timeout: 0.3)
+        }
+    }
+
+    func test_ConcurrentOperationsWithDependenciesAndCompletions() {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        
+        // Running several iterations helps to reveal use-after-dealloc crashes
+        for _ in 0..<3 {
+            let didRunOp1 = expectation(description: "Did run first operation")
+            let didRunOp1Completion = expectation(description: "Did run first operation completion")
+            let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
+            let didRunOp2 = expectation(description: "Did run second operation")
+            
+            let op1 = BlockOperation {
+                self.wait(for: [didRunOp1Dependency, didRunOp2], timeout: 0.2)
+                didRunOp1.fulfill()
+            }
+            op1.completionBlock = {
+                didRunOp1Completion.fulfill()
+            }
+            let op1Dependency = BlockOperation {
+                didRunOp1Dependency.fulfill()
+            }
+            queue.addOperations([op1, op1Dependency], waitUntilFinished: false)
+            queue.addOperation {
+                didRunOp2.fulfill()
+            }
+            
+            self.wait(for: [didRunOp1, didRunOp1Completion], timeout: 0.3)
+        }
+    }
+
+    func test_BlockOperationAddExecutionBlock() {
+        let block1Expectation = expectation(description: "Block 1 executed")
+        let block2Expectation = expectation(description: "Block 2 executed")
+        
+        let blockOperation = BlockOperation {
+            block1Expectation.fulfill()
+        }
+        blockOperation.addExecutionBlock {
+            block2Expectation.fulfill()
+        }
+        XCTAssert(blockOperation.executionBlocks.count == 2)
+        let queue = OperationQueue()
+        queue.addOperation(blockOperation)
+        waitForExpectations(timeout: 1.0)
     }
 }
 

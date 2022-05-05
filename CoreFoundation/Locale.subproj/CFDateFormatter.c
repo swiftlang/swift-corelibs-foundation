@@ -100,16 +100,17 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
 static void _CFDateFormatterStripAMPMIndicators(UniChar **bpat, int32_t *bpatlen, CFIndex bufferSize) {
 
     //scan
+    CFCharacterSetRef whitespaceChars = CFCharacterSetGetPredefined(kCFCharacterSetWhitespace);
     for (CFIndex idx = 0; idx < *bpatlen; idx++) {
-        if (((*bpat)[idx] == 'a') || ((*bpat)[idx] == 'b') || ((*bpat)[idx] == 'B') || ((*bpat)[idx] == 'C')) {
-            
+        UniChar c = (*bpat)[idx];
+        if (c == 'a' || c == 'b' || c == 'B' || c == 'C') {
             //back up
-            while ((*bpat)[idx - 1] == ' ') {
+            while (CFCharacterSetIsCharacterMember(whitespaceChars, (*bpat)[idx - 1])) {
                 idx--;
             }
-            
+
             //shift
-            for (; (*bpat)[idx] == ' ' || (*bpat)[idx] == 'a' || (*bpat)[idx] == 'b' || (*bpat)[idx] == 'B' || (*bpat)[idx] == 'C'; idx++) {
+            for (c = (*bpat)[idx]; c == 'a' || c == 'b' || c == 'B' || c == 'C' || CFCharacterSetIsCharacterMember(whitespaceChars, c); idx++, c = (*bpat)[idx]) {
                 for (CFIndex shiftIdx = idx; shiftIdx < *bpatlen && shiftIdx + 1 < bufferSize; shiftIdx++) {
                     (*bpat)[shiftIdx] = (*bpat)[shiftIdx + 1];
                 }
@@ -1506,7 +1507,7 @@ static UDate __CFDateFormatterCorrectTimeToARangeAroundCurrentDate(UCalendar *ca
     return __CFDateFormatterCorrectTimeWithTarget(calendar, at, currEraOrCentury+offset, isEra, status);
 }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 static int32_t __CFDateFormatterGetMaxYearGivenJapaneseEra(UCalendar *calendar, int32_t era, UErrorCode *status) {
     int32_t years = 0;
     __cficu_ucal_clear(calendar);
@@ -1559,7 +1560,7 @@ static Boolean __CFDateFormatterHandleAmbiguousYear(CFDateFormatterRef formatter
             }
         }
     } else if (calendar_id == kCFCalendarIdentifierJapanese) { // ??? need more work
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
         __cficu_ucal_clear(cal);
         __cficu_ucal_set(cal, UCAL_ERA, 1);
         __cficu_udat_parseCalendar(df, cal, ustr, length, NULL, status);
@@ -2173,4 +2174,54 @@ CFTypeRef CFDateFormatterCopyProperty(CFDateFormatterRef formatter, CFStringRef 
     return NULL;
 }
 
+CFStringRef _CFDateFormatterCreateSkeletonFromTemplate(CFStringRef tmplateString, CFLocaleRef locale, UErrorCode *outErrorCode) {
+    CFIndex const tmpltLen = CFStringGetLength(tmplateString);
+    if (tmpltLen == 0) {
+        if (outErrorCode) {
+            *outErrorCode = U_ILLEGAL_ARGUMENT_ERROR;
+        }
+        return NULL;
+    }
 
+    __block CFStringRef result = NULL;
+    Boolean success = useTemplatePatternGenerator(locale, ^(UDateTimePatternGenerator *ptg) {
+#define BUFFER_SIZE 768
+
+        SAFE_STACK_BUFFER_DECL(UChar, ubuffer, tmpltLen, BUFFER_SIZE);
+        UChar const *ustr = (UChar *)CFStringGetCharactersPtr(tmplateString);
+        if (ustr == NULL) {
+            CFStringGetCharacters(tmplateString, CFRangeMake(0, tmpltLen), (UniChar *)ubuffer);
+            ustr = ubuffer;
+        }
+
+        UChar skel[BUFFER_SIZE] = {0};
+        int32_t patlen = tmpltLen;
+        UErrorCode status = U_ZERO_ERROR;
+        int32_t skelLen = __cficu_udatpg_getSkeleton(ptg, ustr, patlen, skel, sizeof(skel) / sizeof(skel[0]), &status);
+        if (U_SUCCESS(status)) {
+            result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, skel, skelLen);
+        } else if (status == U_BUFFER_OVERFLOW_ERROR) {
+            UChar *largerBuffer = calloc(skelLen + 1, sizeof(UChar));
+            skelLen = __cficu_udatpg_getSkeleton(ptg, ustr, patlen, skel, sizeof(skel) / sizeof(skel[0]), &status);
+            if (U_SUCCESS(status)) {
+                result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, largerBuffer, skelLen);
+            } else {
+                if (outErrorCode) {
+                    *outErrorCode = status;
+                }
+            }
+            free(largerBuffer);
+        } else {
+            *outErrorCode = status;
+        }
+
+        SAFE_STACK_BUFFER_CLEANUP(ubuffer);
+    });
+
+    if (!success && result != NULL) {
+        CFRelease(result);
+        result = NULL;
+    }
+
+    return result;
+}

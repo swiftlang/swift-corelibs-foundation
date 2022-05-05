@@ -118,7 +118,7 @@ open class Host: NSObject {
         return addresses.firstIndex { aHost.addresses.contains($0) } != nil
     }
     
-    internal func _resolveCurrent() {
+    internal func _resolveCurrent(withInfo info: String) {
 #if os(Windows)
         var szAddress: [WCHAR] =
             Array<WCHAR>(repeating: 0, count: Int(NI_MAXHOST))
@@ -165,6 +165,7 @@ open class Host: NSObject {
 
           pAdapter = pAdapter!.pointee.Next
         }
+        _names = [info]
         _resolved = true
 #else
         var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
@@ -182,13 +183,19 @@ open class Host: NSObject {
                 let family = ifa_addr.pointee.sa_family
                 if family == sa_family_t(AF_INET) || family == sa_family_t(AF_INET6) {
                     let sa_len: socklen_t = socklen_t((family == sa_family_t(AF_INET6)) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
-                    if getnameinfo(ifa_addr, sa_len, address, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
+#if os(OpenBSD)
+                    let hostlen = size_t(NI_MAXHOST)
+#else
+                    let hostlen = socklen_t(NI_MAXHOST)
+#endif
+                    if getnameinfo(ifa_addr, sa_len, address, hostlen, nil, 0, NI_NUMERICHOST) == 0 {
                         _addresses.append(String(cString: address))
                     }
                 }
             }
             ifa = ifaValue.ifa_next
         }
+        _names = [info]
         _resolved = true
 #endif
     }
@@ -197,7 +204,7 @@ open class Host: NSObject {
         guard _resolved == false else { return }
 #if os(Windows)
         if let info = _info {
-          if _type == .current { return _resolveCurrent() }
+          if _type == .current { return _resolveCurrent(withInfo: info) }
 
           var hints: ADDRINFOW = ADDRINFOW()
           memset(&hints, 0, MemoryLayout<ADDRINFOW>.size)
@@ -266,12 +273,12 @@ open class Host: NSObject {
             case .address:
                 flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
             case .current:
-                _resolveCurrent()
+                _resolveCurrent(withInfo: info)
                 return
             }
             var hints = addrinfo()
             hints.ai_family = PF_UNSPEC
-#if os(macOS) || os(iOS) || os(Android)
+#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD)
             hints.ai_socktype = SOCK_STREAM
 #else
             hints.ai_socktype = Int32(SOCK_STREAM.rawValue)
@@ -301,7 +308,12 @@ open class Host: NSObject {
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                 let lookupInfo = { (content: inout [String], flags: Int32) in
-                    if getnameinfo(info.ai_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, flags) == 0 {
+#if os(OpenBSD)
+                    let hostlen = size_t(NI_MAXHOST)
+#else
+                    let hostlen = socklen_t(NI_MAXHOST)
+#endif
+                    if getnameinfo(info.ai_addr, sa_len, host, hostlen, nil, 0, flags) == 0 {
                         content.append(String(cString: host))
                     }
                 }

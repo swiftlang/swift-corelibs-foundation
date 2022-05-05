@@ -27,38 +27,28 @@
 #pragma mark -
 #pragma mark Product and Platform Getters - Exported
 
-static CFStringRef _cfBundlePlatform = NULL;
-#if TARGET_OS_IPHONE
-static CFStringRef _cfBundlePlatformSuffix = NULL;
-CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void);
-#endif
 CF_EXPORT void _CFSetProductName(CFStringRef str) {
-    // TODO: This should be removed. The "CLASSIC" check below removes the need to set the product name manually.
-    if (str) CFRetain(str);
-    _cfBundlePlatform = str;
-    
-#if TARGET_OS_IPHONE
-    // Reset the suffix version too
-    _cfBundlePlatformSuffix = NULL;
-    (void)_CFBundleGetProductNameSuffix();
-#endif
-    // Note that the previous value is leaked, which is fine normally
-    // because the initial values would tend to be the constant strings
-    // below. That is required for thread-safety value due to the Get
-    // function [not being Copy]. It is also fine because people
-    // shouldn't be screwing around with this value casually.
+    // Obsolete, does nothing
 }
 
 CF_EXPORT CFStringRef _CFGetProductName(void) {
-#if TARGET_OS_IPHONE
-    if (!_cfBundlePlatform) {
+    static CFStringRef _cfBundlePlatform = NULL;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+#if TARGET_OS_MAC
         // We only honor the classic suffix if it is one of two preset values. Otherwise we fall back to the result of sysctlbyname.
         const char *classicSuffix = __CFgetenv("CLASSIC_SUFFIX");
         if (classicSuffix && strncmp(classicSuffix, "iphone", strlen("iphone")) == 0) {
-                _cfBundlePlatform = _CFBundleiPhoneDeviceName;
+            os_log_debug(_CFBundleResourceLogger(), "Using ~iphone resources (classic)");
+            _cfBundlePlatform = _CFBundleiPhoneDeviceName;
         } else if (classicSuffix && strncmp(classicSuffix, "ipad", strlen("ipad")) == 0) {
-                _cfBundlePlatform = _CFBundleiPadDeviceName;
+            os_log_debug(_CFBundleResourceLogger(), "Using ~ipad resources (classic)");
+            _cfBundlePlatform = _CFBundleiPadDeviceName;
         } else {
+#if TARGET_OS_OSX
+            // Do not check the sysctl on macOS
+            _cfBundlePlatform = CFSTR("");
+#else
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
             size_t buflen = sizeof(buffer);
@@ -68,12 +58,12 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
                 if (6 <= buflen && 0 == memcmp(buffer, "iPhone", 6)) {
                     _cfBundlePlatform = _CFBundleiPhoneDeviceName;
                 } else
-                if (4 <= buflen && 0 == memcmp(buffer, "iPod", 4)) {
-                    _cfBundlePlatform = _CFBundleiPodDeviceName;
-                } else
-                if (4 <= buflen && 0 == memcmp(buffer, "iPad", 4)) {
-                    _cfBundlePlatform = _CFBundleiPadDeviceName;
-                }
+                    if (4 <= buflen && 0 == memcmp(buffer, "iPod", 4)) {
+                        _cfBundlePlatform = _CFBundleiPodDeviceName;
+                    } else
+                        if (4 <= buflen && 0 == memcmp(buffer, "iPad", 4)) {
+                            _cfBundlePlatform = _CFBundleiPadDeviceName;
+                        }
 #elif TARGET_OS_WATCH
                 if (5 <= buflen && 0 == memcmp(buffer, "Watch", 5)) {
                     _cfBundlePlatform = _CFBundleAppleWatchDeviceName;
@@ -101,30 +91,33 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
                     }
                 }
             }
+#endif // TARGET_OS_OSX
+            
+            os_log_debug(_CFBundleResourceLogger(), "Using ~%@ resources", _cfBundlePlatform);
         }
+#endif // TARGET_OS_MAC
+
         // This used to fall back to "iphone" on all unknown TARGET_OS_IPHONE platforms, but since that macro covers a wide swath of platforms, it now falls back to an empty string.
-        if (!_cfBundlePlatform) _cfBundlePlatform = CFSTR(""); // fallback
-    }
+        if (!_cfBundlePlatform) {
+            os_log_debug(_CFBundleResourceLogger(), "Using ~ resources");
+            _cfBundlePlatform = CFSTR(""); // fallback
+        }
+    });
+    
     return _cfBundlePlatform;
-#endif
-    return CFSTR("");
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void) {
-#if TARGET_OS_IPHONE
-    // Not dispatch once, because this can be reset (by a rare API call). If a race happens, it just leaks one string.
-    if (!_cfBundlePlatformSuffix) {
+    static CFStringRef _cfBundlePlatformSuffix = NULL;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         CFStringRef productName = _CFGetProductName();
         if (CFEqual(productName, _CFBundleiPodDeviceName)) {
             productName = _CFBundleiPhoneDeviceName;
         }
         _cfBundlePlatformSuffix = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("~%@"), productName);
-    }
+    });
     return _cfBundlePlatformSuffix;
-#else
-    // Pedantically correct - _CFGetProductName returns an empty string on non-embedded platforms.
-    return CFSTR("~");
-#endif
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
@@ -442,6 +435,13 @@ CF_PRIVATE void _CFBundleInfoPlistProcessInfoDictionary(CFMutableDictionaryRef d
             CFStringRef keyPlatformSuffix, keyProductSuffix, keySpecialCaseSuffix, keyName;
             CFStringRef key = (CFStringRef)keys[idx];
 
+            // Non-string keys in plists aren't valid so remove them
+            // if we come across one
+            if (CFGetTypeID(key) != _kCFRuntimeIDCFString) {
+                CFDictionaryRemoveValue(dict, key);
+                continue;
+            }
+
             Boolean const useFallbackPlatformAndProductKey = false;
             if (_isSpecialCaseKey(key, &keyName, &keySpecialCaseSuffix)) {
                 // This special case key overrides the base value
@@ -666,7 +666,7 @@ static UInt32 _CFVersionNumberFromString(CFStringRef versStr) {
 #pragma mark Info Plist Functions
 
 // If infoPlistUrl is passed as non-null it will return retained as the out parameter; callers are responsible for releasing.
-static CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef * infoPlistUrl, uint8_t version) {
+static CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef * infoPlistUrl, _CFBundleVersion version) {
     // We only return NULL for a bad URL, otherwise we create a dummy dictionary
     if (!url) return NULL;
     
@@ -678,19 +678,27 @@ static CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAlloc
     CFStringRef infoURLFromBase = _CFBundleInfoURLFromBase0;
     CFURLRef directoryURL = NULL;
     
-    if (0 == version) {
+    if (_CFBundleVersionOldStyleResources == version) {
         directoryURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleResourcesURLFromBase0, url);
         platformInfoURLFromBase = _CFBundlePlatformInfoURLFromBase0;
         infoURLFromBase = _CFBundleInfoURLFromBase0;
-    } else if (1 == version) {
+    } else if (_CFBundleVersionOldStyleSupportFiles == version) {
         directoryURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleSupportFilesURLFromBase1, url);
         platformInfoURLFromBase = _CFBundlePlatformInfoURLFromBase1;
         infoURLFromBase = _CFBundleInfoURLFromBase1;
-    } else if (2 == version) {
+    } else if (_CFBundleVersionContentsResources == version) {
         directoryURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleSupportFilesURLFromBase2, url);
         platformInfoURLFromBase = _CFBundlePlatformInfoURLFromBase2;
         infoURLFromBase = _CFBundleInfoURLFromBase2;
-    } else if (3 == version) {
+    } else if (_CFBundleVersionWrappedContentsResources == version) {
+        directoryURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleWrappedSupportFilesURLFromBase2, url);
+        platformInfoURLFromBase = _CFBundleWrappedPlatformInfoURLFromBase2;
+        infoURLFromBase = _CFBundleWrappedInfoURLFromBase2;
+    } else if (_CFBundleVersionWrappedFlat == version) {
+        directoryURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleWrappedSupportFilesURLFromBase3, url);
+        platformInfoURLFromBase = _CFBundleWrappedPlatformInfoURLFromBase3;
+        infoURLFromBase = _CFBundleWrappedInfoURLFromBase3;
+    } else if (_CFBundleVersionFlat == version) {
         CFStringRef path = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
         // this test is necessary to exclude the case where a bundle is spuriously created from the innards of another bundle
         if (path) {
@@ -808,10 +816,10 @@ static CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAlloc
     return result;
 }
 
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, uint8_t *version) {
+CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, _CFBundleVersion *version) {
     CFDictionaryRef dict = NULL;
     unsigned char buff[CFMaxPathSize];
-    uint8_t localVersion = 0;
+    _CFBundleVersion localVersion = _CFBundleVersionOldStyleResources;
     
     if (CFURLGetFileSystemRepresentation(url, true, buff, CFMaxPathSize)) {
         CFURLRef newURL = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, buff, strlen((char *)buff), true);
@@ -1011,6 +1019,7 @@ CF_PRIVATE void _CFBundleRefreshInfoDictionaryAlreadyLocked(CFBundleRef bundle) 
 }
 
 CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFBundle, bundle);
     __CFLock(&bundle->_lock);
     _CFBundleRefreshInfoDictionaryAlreadyLocked(bundle);
     __CFUnlock(&bundle->_lock);
@@ -1022,6 +1031,7 @@ CFDictionaryRef _CFBundleGetLocalInfoDictionary(CFBundleRef bundle) {
 }
 
 CFDictionaryRef CFBundleGetLocalInfoDictionary(CFBundleRef bundle) {
+    CF_ASSERT_TYPE(_kCFRuntimeIDCFBundle, bundle);
     CFDictionaryRef localInfoDict = NULL;
     __CFLock(&bundle->_lock);
     localInfoDict = bundle->_localInfoDict;    
@@ -1132,6 +1142,14 @@ static void __addSuffixesToKeys(const void *value, void *context) {
 // from CFUtilities.c
 CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean uncached, void **outBytes, CFIndex *outLength, CFErrorRef *errorPtr);
 
+// Ensure keyPaths are actually `CFString`
+static void __validPlistKeys(const void *value, void *context) {
+    CFStringRef key = (CFStringRef)value;
+    if (CFGetTypeID(key) != _kCFRuntimeIDCFString) {
+        HALT_MSG("Property lists must have string keys!");
+    }
+}
+
 // implementation of below functions - takes URL as parameter
 static CFPropertyListRef _CFBundleCreateFilteredInfoPlistWithURL(CFURLRef infoPlistURL, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) {
     CFPropertyListRef result = NULL;
@@ -1156,6 +1174,11 @@ static CFPropertyListRef _CFBundleCreateFilteredInfoPlistWithURL(CFURLRef infoPl
     if (!success) return CFDictionaryCreate(kCFAllocatorSystemDefault, NULL, NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     
     CFDataRef infoPlistData = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, (const UInt8 *)bytes, length, kCFAllocatorNull);
+
+    // Ensure `keyPaths` are all actually `CFString`s
+    // if not `HALT` on first invalid keyPath
+    CFSetApplyFunction(keyPaths, __validPlistKeys, NULL);
+
     // We need to include all possible variants of the platform/product combo as possible keys.
     CFMutableSetRef newKeyPaths = CFSetCreateMutable(kCFAllocatorSystemDefault, CFSetGetCount(keyPaths), &kCFTypeSetCallBacks);
     CFSetApplyFunction(keyPaths, __addSuffixesToKeys, newKeyPaths);

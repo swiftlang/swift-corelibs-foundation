@@ -8,7 +8,9 @@
 //
 
 @_implementationOnly import CoreFoundation
+#if !os(WASI)
 import Dispatch
+#endif
 
 extension NSData {
     public struct ReadingOptions : OptionSet {
@@ -75,7 +77,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
     private var _bytes: UnsafeMutablePointer<UInt8>? = nil
 
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
@@ -149,11 +151,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         _init(bytes: bytes, length: length, copy: false, deallocator: deallocator)
     }
 
+#if !os(WASI)
     /// Initializes a data object with the contents of the file at a given path.
     public init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: readOptionsMask)
-        _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+
+        withExtendedLifetime(readResult) {
+            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+        }
     }
 
     /// Initializes a data object with the contents of the file at a given path.
@@ -161,11 +167,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         do {
             super.init()
             let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: [])
-            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            withExtendedLifetime(readResult) {
+                _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            }
         } catch {
             return nil
         }
     }
+#endif
 
     /// Initializes a data object with the contents of another data object.
     public init(data: Data) {
@@ -175,11 +184,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
+#if !os(WASI)
     /// Initializes a data object with the data from the location specified by a given URL.
     public init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
         let (data, _) = try NSData.contentsOf(url: url, options: readOptionsMask)
-        _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+        withExtendedLifetime(data) {
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+        }
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
@@ -187,7 +199,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         super.init()
         do {
             let (data, _) = try NSData.contentsOf(url: url)
-            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            withExtendedLifetime(data) {
+                _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            }
         } catch {
             return nil
         }
@@ -203,6 +217,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return try _NSNonfileURLContentLoader.current.contentsOf(url: url)
         }
     }
+#endif
 
     /// Initializes a data object with the given Base64 encoded string.
     public init?(base64Encoded base64String: String, options: Base64DecodingOptions = []) {
@@ -282,6 +297,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return isEqual(to: data._swiftObject)
         }
 
+#if !os(WASI)
         if let data = value as? DispatchData {
             if data.count != length {
                 return false
@@ -291,6 +307,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 return memcmp(bytes1, bytes2, length) == 0
             }
         }
+#endif
 
         return false
     }
@@ -375,15 +392,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            withExtendedLifetime(data) {
+                _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            }
         } else {
             let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
                 guard let buffer = $0 else { return nil }
                 return Data(buffer: buffer)
             }
             
-            guard let r = result else { return nil }
-            _init(bytes: UnsafeMutableRawPointer(mutating: r._nsObject.bytes), length: r.count, copy: true)
+            guard var r = result else { return nil }
+            r.withUnsafeMutableBytes {
+                _init(bytes: $0.baseAddress, length: $0.count, copy: true)
+            }
         }
     }
     
@@ -412,6 +433,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
+#if !os(WASI)
     internal static func readBytesFromFileWithExtendedAttributes(_ path: String, options: ReadingOptions) throws -> NSDataReadResult {
         guard let handle = FileHandle(path: path, flags: O_RDONLY, createMode: 0) else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
@@ -515,6 +537,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         try write(toFile: url.path, options: writeOptionsMask)
     }
+#endif
 
     // MARK: - Bytes
     /// Copies a number of bytes from the start of the data object into a given buffer.
@@ -559,24 +582,27 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Finds and returns the range of the first occurrence of the given data, within the given range, subject to given options.
     open func range(of dataToFind: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
         let dataToFind = dataToFind._nsObject
-        guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
-        guard let searchRange = Range(searchRange) else {fatalError("invalid range")}
-        
-        precondition(searchRange.upperBound <= self.length, "range outside the bounds of data")
 
-        let basePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
-        let baseData = UnsafeBufferPointer<UInt8>(start: basePtr, count: self.length)[searchRange]
-        let searchPtr = dataToFind.bytes.bindMemory(to: UInt8.self, capacity: dataToFind.length)
-        let search = UnsafeBufferPointer<UInt8>(start: searchPtr, count: dataToFind.length)
-        
-        let location : Int?
-        let anchored = mask.contains(.anchored)
-        if mask.contains(.backwards) {
-            location = NSData.searchSubSequence(search.reversed(), inSequence: baseData.reversed(),anchored : anchored).map {$0.base-search.count}
-        } else {
-            location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
+        return withExtendedLifetime(dataToFind) {
+            guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
+            guard let searchRange = Range(searchRange) else {fatalError("invalid range")}
+
+            precondition(searchRange.upperBound <= self.length, "range outside the bounds of data")
+
+            let basePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
+            let baseData = UnsafeBufferPointer<UInt8>(start: basePtr, count: self.length)[searchRange]
+            let searchPtr = dataToFind.bytes.bindMemory(to: UInt8.self, capacity: dataToFind.length)
+            let search = UnsafeBufferPointer<UInt8>(start: searchPtr, count: dataToFind.length)
+
+            let location : Int?
+            let anchored = mask.contains(.anchored)
+            if mask.contains(.backwards) {
+                location = NSData.searchSubSequence(search.reversed(), inSequence: baseData.reversed(),anchored : anchored).map {$0.base-search.count}
+            } else {
+                location = NSData.searchSubSequence(search, inSequence: baseData,anchored : anchored)
+            }
+            return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
         }
-        return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
 
     private static func searchSubSequence<T : Collection, T2 : Sequence>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element {
@@ -884,12 +910,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             // anyway.
             buffer.baseAddress!.advanced(by: outputIndex).copyMemory(from: &outputBytes, byteCount: 4)
             outputIndex += 4
+            bytesLeft = dataBuffer.count - inputIndex
+            
             if lineLength != 0 {
                 // Add required EOL markers.
                 currentLineCount += 4
                 assert(currentLineCount <= lineLength)
 
-                if currentLineCount == lineLength {
+                if currentLineCount == lineLength && bytesLeft > 0 {
                     buffer[outputIndex] = separatorByte1
                     outputIndex += 1
 
@@ -900,7 +928,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                     currentLineCount = 0
                 }
             }
-            bytesLeft = dataBuffer.count - inputIndex
         }
 
         // Return the number of ASCII bytes written to the buffer
@@ -930,7 +957,7 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
 
 // MARK: -
 open class NSMutableData : NSData {
-    internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
+    internal final var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
 
     public override init() {
         super.init(bytes: nil, length: 0)
@@ -977,6 +1004,7 @@ open class NSMutableData : NSData {
         super.init(data: data)
     }
 
+#if !os(WASI)
     public override init?(contentsOfFile path: String) {
         super.init(contentsOfFile: path)
     }
@@ -992,6 +1020,7 @@ open class NSMutableData : NSData {
     public override init(contentsOf url: URL, options: NSData.ReadingOptions = []) throws {
         try super.init(contentsOf: url, options: options)
     }
+#endif
 
     public override init?(base64Encoded base64Data: Data, options: NSData.Base64DecodingOptions = []) {
         super.init(base64Encoded: base64Data, options: options)

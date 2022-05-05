@@ -8,6 +8,11 @@
 //
 
 @_implementationOnly import CoreFoundation
+
+#if canImport(Glibc)
+import Glibc
+#endif
+
 #if os(Windows)
 import WinSDK
 #endif
@@ -21,7 +26,7 @@ public protocol NSLocking {
 private typealias _MutexPointer = UnsafeMutablePointer<SRWLOCK>
 private typealias _RecursiveMutexPointer = UnsafeMutablePointer<CRITICAL_SECTION>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<CONDITION_VARIABLE>
-#elseif CYGWIN
+#elseif CYGWIN || os(OpenBSD)
 private typealias _MutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
 private typealias _RecursiveMutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t?>
@@ -115,7 +120,11 @@ open class NSLock: NSObject, NSLocking {
         guard var endTime = timeSpecFrom(date: limit) else {
             return false
         }
+#if os(WASI)
+        return true
+#else
         return pthread_mutex_timedlock(mutex, &endTime) == 0
+#endif
 #endif
     }
 
@@ -130,6 +139,7 @@ extension NSLock {
     }
 }
 
+#if !os(WASI)
 open class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
@@ -222,6 +232,7 @@ open class NSConditionLock : NSObject, NSLocking {
     
     open var name: String?
 }
+#endif
 
 open class NSRecursiveLock: NSObject, NSLocking {
     internal var mutex = _RecursiveMutexPointer.allocate(capacity: 1)
@@ -237,14 +248,19 @@ open class NSRecursiveLock: NSObject, NSLocking {
         InitializeConditionVariable(timeoutCond)
         InitializeSRWLock(timeoutMutex)
 #else
-#if CYGWIN
+#if CYGWIN || os(OpenBSD)
         var attrib : pthread_mutexattr_t? = nil
 #else
         var attrib = pthread_mutexattr_t()
 #endif
         withUnsafeMutablePointer(to: &attrib) { attrs in
             pthread_mutexattr_init(attrs)
-            pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE))
+#if os(OpenBSD)
+            let type = Int32(PTHREAD_MUTEX_RECURSIVE.rawValue)
+#else
+            let type = Int32(PTHREAD_MUTEX_RECURSIVE)
+#endif
+            pthread_mutexattr_settype(attrs, type)
             pthread_mutex_init(mutex, attrs)
         }
 #if os(macOS) || os(iOS)
@@ -317,7 +333,11 @@ open class NSRecursiveLock: NSObject, NSLocking {
         guard var endTime = timeSpecFrom(date: limit) else {
             return false
         }
+#if os(WASI)
+        return true
+#else
         return pthread_mutex_timedlock(mutex, &endTime) == 0
+#endif
 #endif
     }
 

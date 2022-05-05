@@ -115,51 +115,51 @@ extension FileManager {
                 return []
             }
 
-            case .downloadsDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Downloads)]
+        case .downloadsDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Downloads)]
 
-            case .userDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_UserProfiles)]
+        case .userDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_UserProfiles)]
 
-            case .moviesDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Videos)]
+        case .moviesDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Videos)]
 
-            case .musicDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Music)]
+        case .musicDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Music)]
 
-            case .picturesDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_PicturesLibrary)]
+        case .picturesDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_PicturesLibrary)]
 
-            case .sharedPublicDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_Public)]
+        case .sharedPublicDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_Public)]
 
-            case .trashDirectory:
-                guard domain == .user else { return [] }
-                return [FileManager.url(for: FOLDERID_RecycleBinFolder)]
+        case .trashDirectory:
+            guard domain == .user else { return [] }
+            return [FileManager.url(for: FOLDERID_RecycleBinFolder)]
 
-                // None of these are supported outside of Darwin:
-            case .applicationDirectory,
-                 .demoApplicationDirectory,
-                 .developerApplicationDirectory,
-                 .adminApplicationDirectory,
-                 .libraryDirectory,
-                 .developerDirectory,
-                 .documentationDirectory,
-                 .coreServiceDirectory,
-                 .inputMethodsDirectory,
-                 .preferencePanesDirectory,
-                 .applicationScriptsDirectory,
-                 .allApplicationsDirectory,
-                 .allLibrariesDirectory,
-                 .printerDescriptionDirectory,
-                 .itemReplacementDirectory:
-                return []
+            // None of these are supported outside of Darwin:
+        case .applicationDirectory,
+                .demoApplicationDirectory,
+                .developerApplicationDirectory,
+                .adminApplicationDirectory,
+                .libraryDirectory,
+                .developerDirectory,
+                .documentationDirectory,
+                .coreServiceDirectory,
+                .inputMethodsDirectory,
+                .preferencePanesDirectory,
+                .applicationScriptsDirectory,
+                .allApplicationsDirectory,
+                .allLibrariesDirectory,
+                .printerDescriptionDirectory,
+                .itemReplacementDirectory:
+            return []
         }
     }
 
@@ -267,6 +267,11 @@ extension FileManager {
             var liFree: ULARGE_INTEGER = ULARGE_INTEGER()
             guard GetDiskFreeSpaceExW(&szVolumePath, nil, &liTotal, &liFree) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+            }
+
+            let hr: HRESULT = PathCchStripToRoot(&szVolumePath, szVolumePath.count)
+            guard hr == S_OK || hr == S_FALSE else {
+                throw _NSErrorWithWindowsError(DWORD(hr & 0xffff), reading: true, paths: [path])
             }
 
             var volumeSerialNumber: DWORD = 0
@@ -579,7 +584,7 @@ extension FileManager {
 
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
           if try !FileManager.default._fileSystemRepresentation(withPath: path, {
-            SetFileAttributesW($0, faAttributes.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY))
+            SetFileAttributesW($0, faAttributes.dwFileAttributes & ~DWORD(FILE_ATTRIBUTE_READONLY))
           }) {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
           }
@@ -629,7 +634,7 @@ extension FileManager {
                     itemPath = "\(currentDir)\\\(file)"
                     if ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
                       if try !FileManager.default._fileSystemRepresentation(withPath: itemPath, {
-                        SetFileAttributesW($0, ffd.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY))
+                        SetFileAttributesW($0, ffd.dwFileAttributes & ~DWORD(FILE_ATTRIBUTE_READONLY))
                       }) {
                         throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
                       }
@@ -709,9 +714,10 @@ extension FileManager {
     }
 
     internal func _isExecutableFile(atPath path: String) -> Bool {
-        var isDirectory: ObjCBool = false
-        guard fileExists(atPath: path, isDirectory: &isDirectory) else { return false }
-        return !isDirectory.boolValue && _isReadableFile(atPath: path)
+        var binaryType = DWORD(0)
+        return path.withCString(encodedAs: UTF16.self) {
+            GetBinaryTypeW($0, &binaryType)
+        }
     }
 
     internal func _isDeletableFile(atPath path: String) -> Bool {
@@ -734,6 +740,12 @@ extension FileManager {
     }
 
     internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> stat {
+        let (stbuf, _) = try _statxFile(atPath: path, withFileSystemRepresentation: fsRep)
+        return stbuf
+    }
+
+    // FIXME(compnerd) the UInt64 should be UInt128 to uniquely identify the file across volumes
+    internal func _statxFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> (stat, UInt64) {
         let _fsRep: UnsafePointer<NativeFSRCharType>
         if fsRep == nil {
             _fsRep = try __fileSystemRepresentation(withPath: path)
@@ -764,10 +776,11 @@ extension FileManager {
         statInfo.st_gid = 0
         statInfo.st_atime = info.ftLastAccessTime.time_t
         statInfo.st_ctime = info.ftCreationTime.time_t
-        statInfo.st_dev = info.dwVolumeSerialNumber
-        // inodes have meaning on FAT/HPFS/NTFS
+        statInfo.st_dev = _dev_t(info.dwVolumeSerialNumber)
+        // The inode, and therefore st_ino, has no meaning in the FAT, HPFS, or
+        // NTFS file systems. -- docs.microsoft.com
         statInfo.st_ino = 0
-        statInfo.st_rdev = info.dwVolumeSerialNumber
+        statInfo.st_rdev = _dev_t(info.dwVolumeSerialNumber)
 
         let isReparsePoint = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) != 0
         let isDir = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0
@@ -786,10 +799,11 @@ extension FileManager {
         guard info.nFileSizeHigh == 0 else {
             throw _NSErrorWithErrno(EOVERFLOW, reading: true, path: path)
         }
-        statInfo.st_size = Int32(info.nFileSizeLow)
+        statInfo.st_size = _off_t(info.nFileSizeLow)
         // Uid is always 0 on Windows systems
         statInfo.st_uid = 0
-        return statInfo
+
+        return (statInfo, UInt64(info.nFileIndexHigh << 32) | UInt64(info.nFileIndexLow))
     }
 
     internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {

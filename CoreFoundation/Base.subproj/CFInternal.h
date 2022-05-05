@@ -100,6 +100,7 @@ CF_EXTERN_C_BEGIN
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/CFRuntime.h>
+#include "CFRuntime_Internal.h"
 #include <limits.h>
 #include <stdatomic.h>
 #include <Block.h>
@@ -121,6 +122,9 @@ CF_EXTERN_C_BEGIN
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
+#if __has_include(<pthread_np.h>)
+#include <pthread_np.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #include <os/log.h>
@@ -130,6 +134,7 @@ typedef struct os_log_s *os_log_t;
 #define os_log_info(...) do { } while (0)
 #define os_log_debug(...) do { } while (0)
 #define os_log_error(...) do { } while (0)
+#define os_log_fault(...) do { } while (0)
 #define os_log_create(...) (NULL)
 #define os_log_debug_enabled(...) (0)
 #endif
@@ -442,10 +447,12 @@ extern CFStringRef __CFCopyFormattingDescription(CFTypeRef cf, CFDictionaryRef f
 
 /* Enhanced string formatting support
  */
-CF_PRIVATE CFDictionaryRef _CFStringGetFormatSpecifierConfiguration(CFStringRef aFormatString);
 CF_PRIVATE CFStringRef _CFStringCopyWithFomatStringConfiguration(CFStringRef aFormatString, CFDictionaryRef formatConfiguration);
 CF_PRIVATE CFStringRef _CFCopyResolvedFormatStringWithConfiguration(CFTypeRef anObject, CFDictionaryRef aConfiguration, CFDictionaryRef formatOptions);
 CF_PRIVATE CFStringRef _CFStringCreateWithWidthContexts(CFDictionaryRef widthContexts);
+CF_PRIVATE CFStringRef _CFStringCreateWithMarkdownAndConfiguration(CFStringRef stringWithMarkup, CFDictionaryRef configuration, CFURLRef tableURL);
+CF_PRIVATE Boolean _CFStringObjCFormatRequiresInflection(CFStringRef format);
+CF_PRIVATE CFStringRef _CFStringCreateFormatWithInflectionAndArguments(CFAllocatorRef alloc, CFDictionaryRef formatOptions, CFStringRef format, va_list arguments);
 
 /* result is long long or int, depending on doLonglong
 */
@@ -548,8 +555,6 @@ CF_EXPORT void __CFSetLastAllocationEventName(void *ptr, const char *classname);
 /* Comparators are passed the address of the values; this is somewhat different than CFComparatorFunction is used in public API usually. */
 CF_EXPORT CFIndex	CFBSearch(const void *element, CFIndex elementSize, const void *list, CFIndex count, CFComparatorFunction comparator, void *context);
 
-CF_EXPORT CFHashCode	CFHashBytes(UInt8 *bytes, CFIndex length);
-
 CF_EXPORT CFStringEncoding CFStringFileSystemEncoding(void);
 
 CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(CFAllocatorRef alloc, const void *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean possiblyExternalFormat, Boolean tryToReduceUnicode, Boolean hasLengthByte, Boolean hasNullByte, Boolean noCopy, CFAllocatorRef contentsDeallocator, UInt32 converterFlags);
@@ -571,52 +576,28 @@ CF_EXPORT id const __NSArray0__;
 #else
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
-#endif // __OBJC2__
+#endif
 
 #include <CoreFoundation/CFLocking.h>
-
-#if __has_include(<os/lock.h>)
-#include <os/lock.h>
-#elif _POSIX_THREADS
-#define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
-typedef pthread_mutex_t os_unfair_lock;
-typedef pthread_mutex_t * os_unfair_lock_t;
-CF_INLINE void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
-CF_INLINE void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
-#elif defined(_WIN32)
-#define OS_UNFAIR_LOCK_INIT CFLockInit
-#define os_unfair_lock CFLock_t
-#define os_unfair_lock_t CFLock_t *
-#define os_unfair_lock_lock __CFLock
-#define os_unfair_lock_unlock __CFUnlock
-#endif // __has_include(<os/lock.h>)
-
-#if __has_include(<os/lock_private.h>)
-#include <os/lock_private.h>
-#else
-// Private:
-#define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION 0
-CF_INLINE void os_unfair_lock_lock_with_options(os_unfair_lock_t lock, uint32_t options) { os_unfair_lock_lock(lock); }
-#endif
 
 #if _POSIX_THREADS
 typedef pthread_mutex_t _CFMutex;
 #define _CF_MUTEX_STATIC_INITIALIZER PTHREAD_MUTEX_INITIALIZER
-static int _CFMutexCreate(_CFMutex *lock) {
+CF_INLINE int _CFMutexCreate(_CFMutex *lock) {
   return pthread_mutex_init(lock, NULL);
 }
-static int _CFMutexDestroy(_CFMutex *lock) {
+CF_INLINE int _CFMutexDestroy(_CFMutex *lock) {
   return pthread_mutex_destroy(lock);
 }
-static int _CFMutexLock(_CFMutex *lock) {
+CF_INLINE int _CFMutexLock(_CFMutex *lock) {
   return pthread_mutex_lock(lock);
 }
-static int _CFMutexUnlock(_CFMutex *lock) {
+CF_INLINE int _CFMutexUnlock(_CFMutex *lock) {
   return pthread_mutex_unlock(lock);
 }
 
 typedef pthread_mutex_t _CFRecursiveMutex;
-static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -627,55 +608,96 @@ static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
 
   return result;
 }
-static int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
   return pthread_mutex_destroy(mutex);
 }
-static int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
   return pthread_mutex_lock(mutex);
 }
-static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
   return pthread_mutex_unlock(mutex);
 }
 #elif defined(_WIN32)
 typedef SRWLOCK _CFMutex;
 #define _CF_MUTEX_STATIC_INITIALIZER SRWLOCK_INIT
-static int _CFMutexCreate(_CFMutex *lock) {
+CF_INLINE int _CFMutexCreate(_CFMutex *lock) {
   InitializeSRWLock(lock);
   return 0;
 }
-static int _CFMutexDestroy(_CFMutex *lock) {
+CF_INLINE int _CFMutexDestroy(_CFMutex *lock) {
   (void)lock;
   return 0;
 }
-static int _CFMutexLock(_CFMutex *lock) {
+CF_INLINE int _CFMutexLock(_CFMutex *lock) {
   AcquireSRWLockExclusive(lock);
   return 0;
 }
-static int _CFMutexUnlock(_CFMutex *lock) {
+CF_INLINE int _CFMutexUnlock(_CFMutex *lock) {
   ReleaseSRWLockExclusive(lock);
   return 0;
 }
 
 typedef CRITICAL_SECTION _CFRecursiveMutex;
-static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
   InitializeCriticalSection(mutex);
   return 0;
 }
-static int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
   DeleteCriticalSection(mutex);
   return 0;
 }
-static int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
   EnterCriticalSection(mutex);
   return 0;
 }
-static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+CF_INLINE int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
   LeaveCriticalSection(mutex);
   return 0;
 }
 #else
 #error "do not know how to define mutex and recursive mutex for this OS"
 #endif
+
+#if __has_include(<os/lock.h>)
+#include <os/lock.h>
+#if __has_include(<os/lock_private.h>)
+#include <os/lock_private.h>
+#define _CF_HAS_OS_UNFAIR_RECURSIVE_LOCK 1
+#else
+#define os_unfair_lock_lock_with_options(lock, options) os_unfair_lock_lock(lock)
+#define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION (0)
+#endif
+
+#elif _POSIX_THREADS
+#define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
+typedef pthread_mutex_t os_unfair_lock;
+typedef pthread_mutex_t * os_unfair_lock_t;
+typedef uint32_t os_unfair_lock_options_t;
+#define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION (0)
+static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
+static void os_unfair_lock_lock_with_options(os_unfair_lock_t lock, os_unfair_lock_options_t options) { pthread_mutex_lock(lock); }
+static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
+#elif defined(_WIN32)
+#define OS_UNFAIR_LOCK_INIT CFLockInit
+#define os_unfair_lock CFLock_t
+#define os_unfair_lock_lock __CFLock
+#define os_unfair_lock_unlock __CFUnlock
+#define os_unfair_lock_lock_with_options(lock, options) __CFLock(lock)
+#define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION
+#endif // __has_include(<os/lock.h>)
+
+#if defined(_CF_HAS_OS_UNFAIR_RECURSIVE_LOCK)
+#undef _CF_HAS_OS_UNFAIR_RECURSIVE_LOCK // Nothing to do here.
+#define _CFPerformDynamicInitOfOSRecursiveLock(lock) do {} while (0)
+#else
+#define os_unfair_recursive_lock _CFRecursiveMutex
+#define OS_UNFAIR_RECURSIVE_LOCK_INIT { 0 }
+#define _CFPerformDynamicInitOfOSRecursiveLock _CFRecursiveMutexCreate
+#define os_unfair_recursive_lock_lock _CFRecursiveMutexLock
+#define os_unfair_recursive_lock_lock_with_options(lock, more) _CFRecursiveMutexLock(lock)
+#define os_unfair_recursive_lock_unlock _CFRecursiveMutexUnlock
+#endif
+
 
 #if !__HAS_DISPATCH__
 
@@ -821,18 +843,96 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #define CF_SWIFT_CALLV(obj, fn, ...) (0)
 #endif
 
-CF_PRIVATE CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize * 2];
+#ifndef __has_attribute
+#define __has_attribute(...) 0
+#endif
 
-#define __CFRuntimeObjCClassTable (((uintptr_t *)__CFRuntimeClassTable) + __CFRuntimeClassTableSize)
+#if TARGET_OS_WIN32
+#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
+#elif __has_attribute(visibility)
+#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE __attribute__((visibility("hidden")))
+#else
+#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
+#endif
+
+typedef struct __CFClassTables {
+    CFRuntimeClass const * classTable[__CFRuntimeClassTableSize];
+    // This can be safely `_Atomic` because we just store the signed classes; you can't sign / auth _Atomic pointers
+    _Atomic(uintptr_t) objCClassTable[__CFRuntimeClassTableSize];
+} _CFClassTables;
+
+// IMPORTANT: 'heap' and other memory tools look up this symbol by name. Even though it is not exported, the name is ABI. Changes must be coordinated with them.
+CF_PRIVATE _CFClassTables __CFRuntimeClassTables;
+
+#define __CFRuntimeClassTable __CFRuntimeClassTables.classTable
+#define __CFRuntimeObjCClassTable __CFRuntimeClassTables.objCClassTable
+
+#if __has_feature(ptrauth_intrinsics)
+__attribute__((visibility("hidden")))
+CF_INLINE uintptr_t ___CFRUNTIME_OBJC_CLASSTABLE_PTRAUTH_DISCRIMINATOR(void const * const tableSlotAddr) {
+    return ptrauth_blend_discriminator(tableSlotAddr, ptrauth_string_discriminator("__CFRuntimeObjCClassTable"));
+}
+#endif
+
+CF_INLINE uintptr_t _GetCFRuntimeObjcClassAtIndex(CFTypeID typeID) {
+    uintptr_t obj = atomic_load_explicit(&__CFRuntimeObjCClassTable[typeID], memory_order_relaxed);
+
+#if __has_feature(ptrauth_intrinsics)
+    // Auth using a discriminator that uses the address of the slot
+    // in __CFRuntimeObjCClassTable and a known string discriminator.
+    void const * const slot = &__CFRuntimeObjCClassTable[typeID];
+    return (uintptr_t)ptrauth_auth_data((void *)obj,
+                                        ptrauth_key_process_dependent_data,
+                                        ___CFRUNTIME_OBJC_CLASSTABLE_PTRAUTH_DISCRIMINATOR(slot));
+#else
+    return (uintptr_t)obj;
+#endif
+}
+
+CF_INLINE void _SetCFRuntimeObjcClass(uintptr_t aClass, CFTypeID typeID) {
+    uintptr_t classToStore = aClass;
+
+#if __has_feature(ptrauth_intrinsics)
+    // validate the current entry; ignore the return value we just want to ensure our table is in a valid state before mutation
+    _GetCFRuntimeObjcClassAtIndex(typeID);
+    // If we're using ptrauth, we'll sign using a discriminator that uses the address of the slot
+    // in __CFRuntimeObjCClassTable and a known string discriminator.
+    // Later we'll auth this using the the same discriminator to ensure the table hasn't been messed with
+    // and that the class we've stored in the table is the one we expect it to be.
+    void const * const slot = &__CFRuntimeObjCClassTable[typeID];
+    classToStore = (uintptr_t)ptrauth_sign_unauthenticated((void *)classToStore,
+                                                           ptrauth_key_process_dependent_data,
+                                                           ___CFRUNTIME_OBJC_CLASSTABLE_PTRAUTH_DISCRIMINATOR(slot));
+#endif
+
+    atomic_store_explicit(&__CFRuntimeObjCClassTable[typeID], classToStore, memory_order_relaxed);
+}
 
 CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
-    return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
+    if (typeID < __CFRuntimeClassTableSize) {
+        // There is a "race" here between CFRetain / CFRelease (which call CF_IS_OBJC)
+        // and _CFRuntimeBridgeClasses. Except... that because this array is
+        // pointer-sized, the only possible races are on access to the same index in
+        // both cases.
+        // So we have two cases:
+        // - if you call CF_IS_OBJC on a CF object, it means that type has been registered
+        //   previously: no race
+        // - if you call CF_IS_OBJC on an objc object, and __CFGenericTypeID_inline
+        //   interpreted some bits of the object as a type ID, we don't really care
+        //   if the value we read is outdated or not, since we will fail the isa comparison
+        //   in CF_IS_OBJC
+
+        return _GetCFRuntimeObjcClassAtIndex(typeID);
+    } else {
+        return 0;
+    }
 }
 
 #define CF_OBJC_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
 #define CF_OBJC_RETAINED_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
 #define CF_OBJC_CALLV(obj, ...) (0)
 #define CF_IS_OBJC(typeID, obj) (0)
+#define _CFTypeGetClass(obj) ((uintptr_t)((CFRuntimeBase *)obj)->_cfisa)
 
 /* See comments in CFBase.c
 */
@@ -1032,9 +1132,9 @@ CF_INLINE const char *CFPathRelativeToAppleFrameworksRoot(const char *path, Bool
 enum {
     DISPATCH_QUEUE_OVERCOMMIT = 0x2ull,
 };
-#endif // __has_include(<dispatch/private.h>)
+#endif
 
-#if TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW
@@ -1048,7 +1148,7 @@ CF_INLINE long qos_class_self() {
     return QOS_CLASS_DEFAULT;
 }
 
-#endif // TARGET_OS_LINUX || TARGET_OS_WIN32
+#endif
 
 // Returns a generic dispatch queue for when you want to just throw some work
 // into the concurrent pile to execute, and don't care about specifics except
@@ -1072,13 +1172,12 @@ CF_INLINE dispatch_queue_t __CFDispatchQueueGetGenericBackground(void) {
     return dispatch_get_global_queue(QOS_CLASS_UTILITY, DISPATCH_QUEUE_OVERCOMMIT);
 }
 
-CF_PRIVATE dispatch_data_t _CFDataCreateDispatchData(CFDataRef data); //avoids copying in most cases
-
-#endif // __HAS_DISPATCH__
+#endif
 
 CF_PRIVATE CFStringRef _CFStringCopyBundleUnloadingProtectedString(CFStringRef str);
 
 CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data);
+CF_PRIVATE dispatch_data_t _CFDataCreateDispatchData(CFDataRef data); //avoids copying in most cases
 
 // Use this for functions that are intended to be breakpoint hooks. If you do not, the compiler may optimize them away.
 // Based on: BREAKPOINT_FUNCTION in objc-os.h
@@ -1134,7 +1233,7 @@ CF_EXTERN_C_END
 // processor and the compiler will convert these byte accesses into the appropiate DWORD/QWORD memory
 // access.
 
-CF_INLINE uint32_t unaligned_load32(const void *ptr) {
+CF_INLINE uint32_t _CFUnalignedLoad32(const void *ptr) {
     uint8_t *bytes = (uint8_t *)ptr;
 #if __LITTLE_ENDIAN__
     uint32_t result = (uint32_t)bytes[0];
@@ -1151,7 +1250,7 @@ CF_INLINE uint32_t unaligned_load32(const void *ptr) {
 }
 
 
-CF_INLINE void unaligned_store32(void *ptr, uint32_t value) {
+CF_INLINE void _CFUnalignedStore32(void *ptr, uint32_t value) {
     uint8_t *bytes = (uint8_t *)ptr;
 #if __LITTLE_ENDIAN__
     bytes[0] = (uint8_t)(value & 0xff);
@@ -1168,7 +1267,7 @@ CF_INLINE void unaligned_store32(void *ptr, uint32_t value) {
 
 
 // Load values stored in Big Endian order in memory.
-CF_INLINE uint16_t unaligned_load16be(const void *ptr) {
+CF_INLINE uint16_t _CFUnalignedLoad16BE(const void *ptr) {
     uint8_t *bytes = (uint8_t *)ptr;
     uint16_t result = (uint16_t)bytes[0] << 8;
     result |= (uint16_t)bytes[1];
@@ -1177,7 +1276,7 @@ CF_INLINE uint16_t unaligned_load16be(const void *ptr) {
 }
 
 
-CF_INLINE uint32_t unaligned_load32be(const void *ptr) {
+CF_INLINE uint32_t _CFUnalignedLoad32BE(const void *ptr) {
     uint8_t *bytes = (uint8_t *)ptr;
     uint32_t result = (uint32_t)bytes[0] << 24;
     result |= ((uint32_t)bytes[1] << 16);
@@ -1188,7 +1287,7 @@ CF_INLINE uint32_t unaligned_load32be(const void *ptr) {
 }
 
 
-CF_INLINE uint64_t unaligned_load64be(const void *ptr) {
+CF_INLINE uint64_t _CFUnalignedLoad64BE(const void *ptr) {
     uint8_t *bytes = (uint8_t *)ptr;
     uint64_t result = (uint64_t)bytes[0] << 56;
     result |= ((uint64_t)bytes[1] << 48);

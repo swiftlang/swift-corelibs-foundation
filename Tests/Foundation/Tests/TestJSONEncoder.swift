@@ -49,7 +49,7 @@ class TestJSONEncoder : XCTestCase {
         _testFragment(value: true, fragment: "true")
         _testFragment(value: Float(1), fragment: "1")
         _testFragment(value: Double(2), fragment: "2")
-        _testFragment(value: Decimal(Double.leastNormalMagnitude), fragment: "0.0000000000000000000000000000000000000000000000000002225073858507201792")
+        _testFragment(value: Decimal(Double(Float.leastNormalMagnitude)), fragment: "0.000000000000000000000000000000000000011754943508222875648")
         _testFragment(value: "test", fragment: "\"test\"")
         let v: Int? = nil
         _testFragment(value: v, fragment: "null")
@@ -601,14 +601,23 @@ class TestJSONEncoder : XCTestCase {
 
     func test_codingOfFloat() {
         test_codingOf(value: Float(1.5), toAndFrom: "1.5")
+
+        // Check value too large fails to decode.
+        XCTAssertThrowsError(try JSONDecoder().decode(Float.self, from: "1e100".data(using: .utf8)!))
     }
 
     func test_codingOfDouble() {
         test_codingOf(value: Double(1.5), toAndFrom: "1.5")
+
+        // Check value too large fails to decode.
+        XCTAssertThrowsError(try JSONDecoder().decode(Double.self, from: "100e323".data(using: .utf8)!))
     }
 
     func test_codingOfDecimal() {
         test_codingOf(value: Decimal.pi, toAndFrom: "3.14159265358979323846264338327950288419")
+
+        // Check value too large fails to decode.
+        XCTAssertThrowsError(try JSONDecoder().decode(Decimal.self, from: "100e200".data(using: .utf8)!))
     }
 
     func test_codingOfString() {
@@ -858,6 +867,39 @@ class TestJSONEncoder : XCTestCase {
             XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
         }
         XCTAssertEqual(JSONEncoder.OutputFormatting.withoutEscapingSlashes.rawValue, 8)
+    }
+
+    func test_SR17581_codingEmptyDictionaryWithNonstringKeyDoesRoundtrip() throws {
+        struct Something: Codable {
+            struct Key: Codable, Hashable {
+                var x: String
+            }
+
+            var dict: [Key: String]
+
+            enum CodingKeys: String, CodingKey {
+                case dict
+            }
+
+            init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.dict = try container.decode([Key: String].self, forKey: .dict)
+            }
+
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(dict, forKey: .dict)
+            }
+
+            init(dict: [Key: String]) {
+                self.dict = dict
+            }
+        }
+
+        let toEncode = Something(dict: [:])
+        let data = try JSONEncoder().encode(toEncode)
+        let result = try JSONDecoder().decode(Something.self, from: data)
+        XCTAssertEqual(result.dict.count, 0)
     }
 
     // MARK: - Helper Functions
@@ -1462,6 +1504,7 @@ extension TestJSONEncoder {
             ("test_dictionary_snake_case_decoding", test_dictionary_snake_case_decoding),
             ("test_dictionary_snake_case_encoding", test_dictionary_snake_case_encoding),
             ("test_OutputFormattingValues", test_OutputFormattingValues),
+            ("test_SR17581_codingEmptyDictionaryWithNonstringKeyDoesRoundtrip", test_SR17581_codingEmptyDictionaryWithNonstringKeyDoesRoundtrip),
         ]
     }
 }

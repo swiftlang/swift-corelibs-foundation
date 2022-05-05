@@ -10,7 +10,12 @@
 #if !defined(__COREFOUNDATION_CFBASE__)
 #define __COREFOUNDATION_CFBASE__ 1
 
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
+#else
+#include <TargetConditionals.h>
+#endif
+
 #include <CoreFoundation/CFAvailability.h>
 
 #if (defined(__CYGWIN32__) || defined(_WIN32)) && !defined(__WIN32__)
@@ -686,8 +691,29 @@ CFTypeRef CFMakeCollectable(CFTypeRef cf) CF_AUTOMATED_REFCOUNT_UNAVAILABLE;
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-#define _CF_SWIFT_RC_PINNED_FLAG (0x1)
+#if TARGET_RT_64_BIT
+#define _CF_SWIFT_RC_PINNED_FLAG (0x80000004ffffffff)
+#else
+#define _CF_SWIFT_RC_PINNED_FLAG (0x800004FF)
+#endif
 #define _CF_CONSTANT_OBJECT_STRONG_RC ((uintptr_t)_CF_SWIFT_RC_PINNED_FLAG)
+#endif
+
+#if __has_include(<ptrauth.h>)
+#include <ptrauth.h>
+#endif
+
+#ifndef __ptrauth_objc_isa_pointer
+#define __ptrauth_objc_isa_pointer
+#endif
+
+#define ISA_PTRAUTH_DISCRIMINATOR 0x6AE1
+#if defined(__ptrauth_objc_isa_uintptr)
+#define __ptrauth_cf_objc_isa_pointer __ptrauth_objc_isa_uintptr
+#elif defined(__arm64e__) && defined(__PTRAUTH_INTRINSICS__) && __has_feature(ptrauth_objc_isa)
+#define __ptrauth_cf_objc_isa_pointer __ptrauth_restricted_intptr(ptrauth_key_objc_isa_pointer, 1, ISA_PTRAUTH_DISCRIMINATOR)
+#else
+#define __ptrauth_cf_objc_isa_pointer
 #endif
 
 CF_EXTERN_C_END

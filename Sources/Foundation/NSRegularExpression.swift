@@ -29,7 +29,7 @@ extension NSRegularExpression {
 
 open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
     internal var _internalStorage: AnyObject
-    internal var _internal: _CFRegularExpression {
+    internal final var _internal: _CFRegularExpression {
         unsafeBitCast(_internalStorage, to: _CFRegularExpression.self)
     }
     

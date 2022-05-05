@@ -49,7 +49,9 @@ extension Int8 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Int8?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Int8?) -> Bool {
@@ -87,7 +89,9 @@ extension UInt8 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt8?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt8?) -> Bool {
@@ -125,7 +129,9 @@ extension Int16 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Int16?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Int16?) -> Bool {
@@ -163,7 +169,9 @@ extension UInt16 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt16?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt16?) -> Bool {
@@ -201,7 +209,9 @@ extension Int32 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Int32?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Int32?) -> Bool {
@@ -239,7 +249,9 @@ extension UInt32 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt32?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt32?) -> Bool {
@@ -277,7 +289,9 @@ extension Int64 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Int64?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Int64?) -> Bool {
@@ -315,7 +329,9 @@ extension UInt64 : _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt64?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt64?) -> Bool {
@@ -353,7 +369,9 @@ extension Int : _ObjectiveCBridgeable {
     }
     
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Int?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Int?) -> Bool {
@@ -391,7 +409,9 @@ extension UInt : _ObjectiveCBridgeable {
     }
     
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout UInt?) -> Bool {
@@ -437,7 +457,9 @@ extension Float : _ObjectiveCBridgeable {
     }
     
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Float?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Float?) -> Bool {
@@ -488,7 +510,9 @@ extension Double : _ObjectiveCBridgeable {
     }
     
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Double?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Double?) -> Bool {
@@ -533,7 +557,9 @@ extension Bool : _ObjectiveCBridgeable {
     }
     
     public static func _forceBridgeFromObjectiveC(_ x: NSNumber, result: inout Bool?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(type(of: x)) to \(self)")
+        }
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Bool?) -> Bool {
@@ -583,7 +609,7 @@ open class NSNumber : NSValue {
     private var _base = _CFInfo(typeID: CFNumberGetTypeID())
     private var _pad: UInt64 = 0
 
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
@@ -712,7 +738,7 @@ open class NSNumber : NSValue {
         var value = value
         #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
             self.init(bytes: &value, numberType: kCFNumberSInt64Type)
-        #elseif arch(i386) || arch(arm)
+        #elseif arch(i386) || arch(arm) || arch(wasm32)
             self.init(bytes: &value, numberType: kCFNumberSInt32Type)
         #else
             #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
@@ -728,7 +754,7 @@ open class NSNumber : NSValue {
             var value = Int64(value)
             self.init(bytes: &value, numberType: kCFNumberSInt64Type)
         }
-    #elseif arch(i386) || arch(arm)
+    #elseif arch(i386) || arch(arm) || arch(wasm32)
         var value = Int64(value)
         self.init(bytes: &value, numberType: kCFNumberSInt64Type)
     #else
@@ -896,10 +922,7 @@ open class NSNumber : NSValue {
     }
     
     open var boolValue: Bool {
-        // Darwin Foundation NSNumber appears to have a bug and return false for NSNumber(value: Int64.min).boolValue,
-        // even though the documentation says:
-        // "A 0 value always means false, and any nonzero value is interpreted as true."
-        return (int64Value != 0) && (int64Value != Int64.min)
+        return int64Value != 0
     }
 
     open var intValue: Int {
@@ -1065,7 +1088,7 @@ open class NSNumber : NSValue {
         }
     }
     
-    internal func _getValue(_ valuePtr: UnsafeMutableRawPointer, forType type: CFNumberType) -> Bool {
+    internal final func _getValue(_ valuePtr: UnsafeMutableRawPointer, forType type: CFNumberType) -> Bool {
         switch type {
         case kCFNumberSInt8Type:
             valuePtr.assumingMemoryBound(to: Int8.self).pointee = int8Value

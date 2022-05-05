@@ -1,4 +1,4 @@
-/*	CFInternal.h
+/*	CFLocking.h
 	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
 
 	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
@@ -14,7 +14,11 @@
 #if !defined(__COREFOUNDATION_CFLOCKING_H__)
 #define __COREFOUNDATION_CFLOCKING_H__ 1
 
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
+#else
+#include <TargetConditionals.h>
+#endif
 
 #if TARGET_OS_MAC
 

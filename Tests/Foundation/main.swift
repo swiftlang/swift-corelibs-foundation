@@ -13,6 +13,8 @@
     import Darwin
 #elseif canImport(Glibc)
     import Glibc
+#elseif canImport(CRT)
+    import CRT
 #endif
 
 #if !os(Windows)
@@ -98,7 +100,6 @@ var allTestCases = [
     testCase(TestURLRequest.allTests),
     testCase(TestURLResponse.allTests),
     testCase(TestHTTPURLResponse.allTests),
-    testCaseExpectedToFail(TestURLSession.allTests, "URLSession test interdependencies are causing intermittent CI issues."),
     testCase(TestNSUUID.allTests),
     testCase(TestUUID.allTests),
     testCase(TestNSValue.allTests),
@@ -121,14 +122,28 @@ var allTestCases = [
     testCase(TestDimension.allTests),
     testCase(TestMeasurement.allTests),
     testCase(TestUnitVolume.allTests),
+    testCase(TestUnitInformationStorage.allTests),
     testCase(TestNSLock.allTests),
     testCase(TestNSSortDescriptor.allTests),
 ]
 
+if #available(macOS 12, *) {
+    allTestCases.append(contentsOf: [
+        testCase(TestAttributedString.allTests),
+        testCase(TestAttributedStringCOW.allTests),
+        testCase(TestAttributedStringPerformance.allTests)
+    ])
+}
+
 #if !os(Windows)
 allTestCases.append(contentsOf: [
+    testCase(TestURLSession.allTests),
     testCase(TestURLSessionFTP.allTests),
 ])
 #endif
 
+atexit({
+    fflush(stdout)
+    fflush(stderr)
+})
 XCTMain(allTestCases)

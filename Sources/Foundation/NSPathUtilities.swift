@@ -63,9 +63,11 @@ public func NSTemporaryDirectory() -> String {
       }
     }
 #endif
+#if !os(WASI)
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         return normalizedPath(with: tmpdir)
     }
+#endif
 #if os(Android)
     // Bionic uses /data/local/tmp/ as temporary directory. TMPDIR is rarely
     // defined.
@@ -190,6 +192,7 @@ extension String {
         return temp
     }
     
+#if !os(WASI)
     internal func _tryToRemovePathPrefix(_ prefix: String) -> String? {
         guard self != prefix else {
             return nil
@@ -202,6 +205,7 @@ extension String {
         
         return nil
     }
+#endif
 }
 
 extension NSString {
@@ -331,6 +335,7 @@ extension NSString {
         return result._stringByFixingSlashes()
     }
 
+#if !os(WASI)
     public var expandingTildeInPath: String {
         guard hasPrefix("~") else {
             return _swiftObject
@@ -351,6 +356,7 @@ extension NSString {
         
         return result
     }
+#endif
 
 #if os(Windows)
     public var unixPath: String {
@@ -365,6 +371,7 @@ extension NSString {
     }
 #endif
     
+#if !os(WASI)
     public var standardizingPath: String {
 #if os(Windows)
         let expanded = unixPath.expandingTildeInPath
@@ -412,6 +419,7 @@ extension NSString {
         
         return resolvedPath
     }
+#endif
     
     public func stringsByAppendingPaths(_ paths: [String]) -> [String] {
         if self == "" {
@@ -420,6 +428,7 @@ extension NSString {
         return paths.map(appendingPathComponent)
     }
     
+#if !os(WASI)
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePath(into outputName: inout String?, caseSensitive flag: Bool, matchesInto outputArray: inout [String], filterTypes: [String]?) -> Int {
@@ -522,6 +531,7 @@ extension NSString {
             return { $0.lowercased().hasPrefix(prefix) }
         }
     }
+#endif
     
     internal func _longestCommonPrefix(_ strings: [String], caseSensitive: Bool) -> String? {
         guard !strings.isEmpty else {
@@ -569,9 +579,11 @@ extension NSString {
         return path + "/"
     }
     
+#if !os(WASI)
     public var fileSystemRepresentation: UnsafePointer<Int8> {
         return FileManager.default.fileSystemRepresentation(withPath: self._swiftObject)
     }
+#endif
 
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {
 #if os(Windows)
@@ -640,6 +652,7 @@ extension NSString {
 
 }
 
+#if !os(WASI)
 extension FileManager {
     public enum SearchPathDirectory: UInt {
         
@@ -735,7 +748,6 @@ public func NSFullUserName() -> String {
 }
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
-    let template = filePath + ".tmp.XXXXXX"
 #if os(Windows)
     let maxLength: Int = Int(MAX_PATH + 1)
     var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
@@ -760,17 +772,40 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     // Don't close h, fd is transferred ownership
     let fd = _open_osfhandle(intptr_t(bitPattern: h), 0)
 #else
-    let maxLength = Int(PATH_MAX) + 1
-    var buf = [Int8](repeating: 0, count: maxLength)
-    let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
-    guard let name = mktemp(&buf) else {
-        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+    var template = URL(fileURLWithPath: filePath)
+    
+    let filename = template.lastPathComponent
+    let hashed = String(format: "%llx", Int64(filename.hashValue))
+    template.deleteLastPathComponent()
+    template.appendPathComponent("SCF.\(hashed).tmp.XXXXXX")
+
+
+    let (fd, errorCode, pathResult) = template.withUnsafeFileSystemRepresentation { ptr -> (Int32, Int32, String) in
+        let length = strlen(ptr!)
+        
+        // buffer is updated with the temp file name on success.
+        let buffer = UnsafeMutableBufferPointer<CChar>.allocate(capacity: length + 1 /* the null character */)
+        UnsafeRawBufferPointer(start: ptr!, count: length + 1 /* the null character */)
+            .copyBytes(to: UnsafeMutableRawBufferPointer(buffer))
+        defer { buffer.deallocate() }
+        
+        let fd = mkstemp(buffer.baseAddress!)
+        let errorCode = errno
+        return (fd,
+         errorCode,
+         FileManager.default.string(withFileSystemRepresentation: buffer.baseAddress!, length: strlen(buffer.baseAddress!)))
     }
-    let fd = open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
+
     if fd == -1 {
-        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+        throw _NSErrorWithErrno(errorCode, reading: false, path: pathResult)
     }
-    let pathResult = FileManager.default.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
+
+    // Set the file mode to match macOS
+    guard fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH) != -1 else {
+        let _errno = errno
+        close(fd)
+        throw _NSErrorWithErrno(_errno, reading: false, path: pathResult)
+    }
 #endif
     return (fd, pathResult)
 }
@@ -785,9 +820,11 @@ internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String)
         }
 #else
         if rename($0, $1) != 0 {
+            let errorCode = errno
             try? FileManager.default.removeItem(atPath: auxFilePath)
-            throw _NSErrorWithErrno(errno, reading: false, path: filePath)
+            throw _NSErrorWithErrno(errorCode, reading: false, path: filePath)
         }
 #endif
     })
 }
+#endif

@@ -44,8 +44,8 @@ extension NumberFormatter {
 open class NumberFormatter : Formatter {
 
     typealias CFType = CFNumberFormatter
-    private var _currentCfFormatter: CFType?
-    private var _cfFormatter: CFType {
+    private final var _currentCfFormatter: CFType?
+    private final var _cfFormatter: CFType {
         if let obj = _currentCfFormatter {
             return obj
         } else {
@@ -64,6 +64,87 @@ open class NumberFormatter : Formatter {
             _currentCfFormatter = obj
             return obj
         }
+    }
+
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        let copied = NumberFormatter()
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<NumberFormatter, T>) {
+            copied[keyPath: keyPath] = self[keyPath: keyPath]
+        }
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<NumberFormatter, T>) where T: NSCopying {
+            copied[keyPath: keyPath] = self[keyPath: keyPath].copy(with: zone) as! T
+        }
+
+        func __copy<T>(_ keyPath: ReferenceWritableKeyPath<NumberFormatter, T?>) where T: NSCopying {
+            copied[keyPath: keyPath] = self[keyPath: keyPath]?.copy(with: zone) as! T?
+        }
+
+        __copy(\.formattingContext)
+        __copy(\._numberStyle)
+        __copy(\._locale)
+        __copy(\._generatesDecimalNumbers)
+        __copy(\._textAttributesForNegativeValues)
+        __copy(\._textAttributesForPositiveValues)
+        __copy(\._allowsFloats)
+        __copy(\._decimalSeparator)
+        __copy(\._alwaysShowsDecimalSeparator)
+        __copy(\._currencyDecimalSeparator)
+        __copy(\._usesGroupingSeparator)
+        __copy(\._groupingSeparator)
+        __copy(\._zeroSymbol)
+        __copy(\._textAttributesForZero)
+        __copy(\._nilSymbol)
+        __copy(\._textAttributesForNil)
+        __copy(\._notANumberSymbol)
+        __copy(\._textAttributesForNotANumber)
+        __copy(\._positiveInfinitySymbol)
+        __copy(\._textAttributesForPositiveInfinity)
+        __copy(\._negativeInfinitySymbol)
+        __copy(\._textAttributesForNegativeInfinity)
+        __copy(\._positivePrefix)
+        __copy(\._positiveSuffix)
+        __copy(\._negativePrefix)
+        __copy(\._negativeSuffix)
+        __copy(\._currencyCode)
+        __copy(\._currencySymbol)
+        __copy(\._internationalCurrencySymbol)
+        __copy(\._percentSymbol)
+        __copy(\._perMillSymbol)
+        __copy(\._minusSign)
+        __copy(\._plusSign)
+        __copy(\._exponentSymbol)
+        __copy(\._groupingSize)
+        __copy(\._secondaryGroupingSize)
+        __copy(\._multiplier)
+        __copy(\._formatWidth)
+        __copy(\._paddingCharacter)
+        __copy(\._paddingPosition)
+        __copy(\._roundingMode)
+        __copy(\._roundingIncrement)
+        __copy(\._minimumIntegerDigits)
+        __copy(\._maximumIntegerDigits)
+        __copy(\._minimumFractionDigits)
+        __copy(\._maximumFractionDigits)
+        __copy(\._minimum)
+        __copy(\._maximum)
+        __copy(\._currencyGroupingSeparator)
+        __copy(\._lenient)
+        __copy(\._usesSignificantDigits)
+        __copy(\._minimumSignificantDigits)
+        __copy(\._maximumSignificantDigits)
+        __copy(\._partialStringValidationEnabled)
+        __copy(\._hasThousandSeparators)
+        __copy(\._thousandSeparator)
+        __copy(\._localizesFormat)
+        __copy(\._positiveFormat)
+        __copy(\._negativeFormat)
+        __copy(\._attributedStringForZero)
+        __copy(\._attributedStringForNotANumber)
+        __copy(\._roundingBehavior)
+
+        return copied
     }
 
     // this is for NSUnitFormatter
@@ -111,7 +192,7 @@ open class NumberFormatter : Formatter {
         _currentCfFormatter = nil
     }
 
-    private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
+    private final func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         if numberStyle == .currency {
             // Prefer currencySymbol, then currencyCode then locale.currencySymbol
             if let symbol = _currencySymbol {
@@ -172,13 +253,13 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
+    private final func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFNumberFormatterSetProperty(formatter, attributeName, value)
         }
     }
 
-    private func _getFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString) -> String? {
+    private final func _getFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString) -> String? {
         return CFNumberFormatterCopyProperty(formatter, attributeName) as? String
     }
 

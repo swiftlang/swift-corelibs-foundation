@@ -18,13 +18,17 @@
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include "CFLocaleInternal.h"
+#if !TARGET_OS_WASI
 #include "CFBundle_Internal.h"
+#endif
 #include <CoreFoundation/CFPriv.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFURLAccess.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFPropertyList.h>
+#endif
 #if TARGET_OS_WIN32
 #include <process.h>
 #endif
@@ -65,7 +69,7 @@
 #include <os/lock.h>
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <string.h>
 #include <sys/mman.h>
 #endif
@@ -91,7 +95,8 @@
 #endif
 
 CF_PRIVATE os_log_t _CFOSLog(void) {
-    static os_log_t logger;
+    static os_log_t logger = NULL;
+
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         logger = os_log_create("com.apple.foundation", "general");
@@ -354,6 +359,7 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     return (CFDictionaryRef)plist;
 }
 
+#if !TARGET_OS_WASI
 CFStringRef _CFCopySystemVersionDictionaryValue(CFStringRef key) {
     CFStringRef versionString;
     CFDictionaryRef dict = _CFCopyServerVersionDictionary();
@@ -377,6 +383,26 @@ CFDictionaryRef _CFCopySystemVersionDictionary(void) {
         CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
         CFPropertyListRef plist = _CFCopyVersionDictionary(path);
         CFRelease(path);
+        result = (CFDictionaryRef)plist;
+    });
+    if (result) {
+        return CFRetain(result);
+    } else {
+        return NULL;
+    }
+}
+
+CFDictionaryRef _CFCopySystemVersionPlatformDictionary(void) {
+    static dispatch_once_t onceToken;
+    static CFDictionaryRef result = NULL;
+    dispatch_once(&onceToken, ^{
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/.SystemVersionPlatform.plist"));
+        CFPropertyListRef plist = _CFCopyVersionDictionary(path);
+        CFRelease(path);
+        if (!plist) {
+            // Fall back to the normal one in case the .SystemVersionPlatform.plist symlink is missing
+            plist = _CFCopySystemVersionDictionary();
+        }
         result = (CFDictionaryRef)plist;
     });
     if (result) {
@@ -412,7 +438,8 @@ static CFOperatingSystemVersion _CFCalculateOSVersion(void) {
         versionStruct.patchVersion = windowsVersion.dwBuildNumber;
     }
 #else
-    CFStringRef productVersion = _CFCopySystemVersionDictionaryValue(_kCFSystemVersionProductVersionKey);
+    CFStringRef resolvedProductVersionKey = _kCFSystemVersionProductVersionKey;
+    CFStringRef productVersion = _CFCopySystemVersionDictionaryValue(resolvedProductVersionKey);
     if (productVersion) {
         CFArrayRef components = CFStringCreateArrayBySeparatingStrings(kCFAllocatorDefault, productVersion, CFSTR("."));
         if (components) {
@@ -462,14 +489,11 @@ CONST_STRING_DECL(_kCFSystemVersionProductUserVisibleVersionKey, "ProductUserVis
 CONST_STRING_DECL(_kCFSystemVersionBuildVersionKey, "ProductBuildVersion")
 CONST_STRING_DECL(_kCFSystemVersionProductVersionStringKey, "Version")
 CONST_STRING_DECL(_kCFSystemVersionBuildStringKey, "Build")
-
+#endif
 
 CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
     return true;
 }
-
-
-
 
 #if TARGET_OS_OSX
 CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
@@ -544,7 +568,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void) {
     if (result != 0) {
         pcnt = 0;
     }
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 
 #ifdef HAVE_SCHED_GETAFFINITY
     cpu_set_t set;
@@ -571,7 +595,7 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
     if (result != 0) {
         pcnt = 0;
     }
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     pcnt = sysconf(_SC_NPROCESSORS_CONF);
 #else
     // Assume the worst
@@ -583,13 +607,13 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
 CF_PRIVATE uint64_t __CFMemorySize() {
     uint64_t memsize = 0;
 #if TARGET_OS_MAC
-    int32_t mib[] = {CTL_HW, HW_NCPU};
+    int32_t mib[] = {CTL_HW, HW_MEMSIZE};
     size_t len = sizeof(memsize);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &memsize, &len, NULL, 0);
     if (result != 0) {
         memsize = 0;
     }
-#elif TARGET_OS_LINUX
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     memsize = sysconf(_SC_PHYS_PAGES);
     memsize *= sysconf(_SC_PAGESIZE);
 #endif
@@ -637,7 +661,8 @@ CF_INLINE BOOL _CFCanChangeEUIDs(void) {
     return true;
 #endif
 }
-    
+
+#if !TARGET_OS_WASI
 typedef struct _ugids {
     uid_t _euid;
     uid_t _egid;
@@ -690,6 +715,7 @@ CF_EXPORT uid_t _CFGetEGID(void) {
     __CFGetUGIDs(NULL, &egid);
     return egid;
 }
+#endif
 
 const char *_CFPrintForDebugger(const void *obj) {
 	static char *result = NULL;
@@ -900,6 +926,9 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
 #elif TARGET_OS_WIN32
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%lx] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
     asprintf(thread, "%lx", GetCurrentThreadId());
+#elif TARGET_OS_WASI
+    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%x] ", year, month, day, hour, minute, second, ms, (unsigned int)pthread_self());
+    asprintf(thread, "%lx", pthread_self());
 #else
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());
@@ -1081,7 +1110,12 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
 void CFLog(int32_t lev, CFStringRef format, ...) {
     va_list args;
     va_start(args, format); 
+    
+    #if !TARGET_OS_WASI
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
+    #else
+    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
+    #endif
     va_end(args);
 }
     
@@ -1333,7 +1367,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     if (0LL == statBuf.st_size) {
         bytes = malloc(8); // don't return constant string -- it's freed!
 	length = 0;
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
     } else if (map) {
         if((void *)-1 == (bytes = mmap(0, (size_t)statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0))) {
 	    int32_t savederrno = errno;
@@ -1628,7 +1662,7 @@ CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) {
 }
 
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_RUNTIME_SWIFT && !TARGET_OS_WASI
 
 CFDictionaryRef __CFGetEnvironment() {
     static dispatch_once_t once = 0L;
@@ -1637,7 +1671,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN || TARGET_OS_WASI
         extern char **environ;
         char **envp = environ;
 #elif TARGET_OS_LINUX

@@ -41,6 +41,20 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(["bar": "baz"], query)
     }
 
+    func test_percentEncodedQueryItems() {
+        let urlString = "http://localhost:8080/foo?feed%20me=feed%20me"
+        let url = URL(string: urlString)!
+
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+
+        var query = [String: String]()
+        components?.percentEncodedQueryItems?.forEach {
+            query[$0.name] = $0.value ?? ""
+        }
+        XCTAssertEqual(["feed%20me": "feed%20me"], query)
+    }
+
+
     func test_string() {
         for obj in getTestData()! {
             let testDict = obj as! [String: Any]
@@ -207,6 +221,24 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(urlComponents.queryItems?.count, 4)
     }
 
+    func test_createURLWithComponentsPercentEncoded() {
+        let urlComponents = NSURLComponents()
+        urlComponents.scheme = "https";
+        urlComponents.host = "com.test.swift";
+        urlComponents.path = "/test/path";
+        let query = URLQueryItem(name: "simple%20string", value: "true%20is%20false")
+        urlComponents.percentEncodedQueryItems = [query]
+        XCTAssertNotNil(urlComponents.url?.query)
+        XCTAssertEqual(urlComponents.queryItems?.count, 1)
+        XCTAssertEqual(urlComponents.percentEncodedQueryItems?.count, 1)
+        guard let item = urlComponents.percentEncodedQueryItems?[0] else {
+            XCTFail("first element is missing")
+            return
+        }
+        XCTAssertEqual(item.name, "simple%20string")
+        XCTAssertEqual(item.value, "true%20is%20false")
+    }
+
     func test_path() {
         let c1 = URLComponents()
         XCTAssertEqual(c1.path, "")
@@ -250,12 +282,14 @@ class TestURLComponents: XCTestCase {
     static var allTests: [(String, (TestURLComponents) -> () throws -> Void)] {
         return [
             ("test_queryItems", test_queryItems),
+            ("test_percentEncodedQueryItems", test_percentEncodedQueryItems),
             ("test_string", test_string),
             ("test_port", test_portSetter),
             ("test_url", test_url),
             ("test_copy", test_copy),
             ("test_hash", test_hash),
             ("test_createURLWithComponents", test_createURLWithComponents),
+            ("test_createURLWithComponentsPercentEncoded", test_createURLWithComponentsPercentEncoded),
             ("test_path", test_path),
             ("test_percentEncodedPath", test_percentEncodedPath),
         ]

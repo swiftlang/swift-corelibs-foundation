@@ -806,6 +806,37 @@ class TestProcess : XCTestCase {
         }
     }
 
+#if !os(Windows)
+    func test_processGroup() throws {
+        // The process group of the child process should be different to the parent's.
+        let process = Process()
+
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--pgrp"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = nil
+
+        try process.run()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+
+        let data = pipe.fileHandleForReading.availableData
+        guard let string = String(data: data, encoding: .ascii) else {
+            XCTFail("Could not read stdout")
+            return
+        }
+
+        let parts = string.trimmingCharacters(in: .newlines).components(separatedBy: ": ")
+        guard parts.count == 2, parts[0] == "pgrp", let childPgrp = Int(parts[1]) else {
+            XCTFail("Could not pgrp fron stdout")
+            return
+        }
+        let parentPgrp = Int(getpgrp())
+        XCTAssertNotEqual(parentPgrp, childPgrp, "Child process group \(parentPgrp) should not equal parent process group \(childPgrp)")
+    }
+#endif
+
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
             ("test_exit0" , test_exit0),
@@ -843,6 +874,7 @@ class TestProcess : XCTestCase {
             ("test_interrupt", test_interrupt),
             ("test_suspend_resume", test_suspend_resume),
             ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
+            ("test_processGroup", test_processGroup),
         ]
 #endif
         return tests

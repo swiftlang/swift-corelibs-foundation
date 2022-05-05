@@ -10,12 +10,13 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFByteOrder.h>
+#include "CFBase.h"
 #include "CFInternal.h"
 #include "CFUniChar.h" 
 #include "CFStringEncodingConverterExt.h"
 #include "CFUnicodeDecomposition.h"
 #include "CFUniCharPriv.h"
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,7 +35,7 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 
 #if TARGET_OS_MAC
 #define __kCFCharacterSetDir "/System/Library/CoreServices"
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #define __kCFCharacterSetDir "/usr/local/share/CoreFoundation"
 #elif TARGET_OS_WIN32
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
@@ -42,7 +43,7 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 
 #if TARGET_OS_MAC
 #define USE_MACHO_SEGMENT 1
-#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32)
+#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI)
 #define USE_RAW_SYMBOL 1
 #endif
 
@@ -107,7 +108,7 @@ static const void *__CFGetSectDataPtr(const char *segname, const char *sectname,
 
 // Memory map the file
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 CF_INLINE void __CFUniCharCharacterSetPath(char *cpath) {
 #elif TARGET_OS_WIN32
 CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
@@ -171,7 +172,7 @@ void __AddBitmapStateForName(const wchar_t *bitmapName) {
 }
 #endif
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static bool __CFUniCharLoadBytesFromFile(const char *fileName, const void **bytes, int64_t *fileSize) {
 #elif TARGET_OS_WIN32
 static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **bytes, int64_t *fileSize) {
@@ -238,7 +239,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #endif // USE_MACHO_SEGMENT
 
     
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #if !defined(CF_UNICHAR_BITMAP_FILE)
 #if USE_MACHO_SEGMENT
 #define CF_UNICHAR_BITMAP_FILE "__csbitmaps"
@@ -254,7 +255,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
     
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #if __CF_BIG_ENDIAN__
 #if USE_MACHO_SEGMENT
 #define MAPPING_TABLE_FILE "__data"
@@ -286,7 +287,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
     
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #if USE_MACHO_SEGMENT
 #define PROP_DB_FILE "__properties"
 #else
@@ -308,7 +309,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define CF_UNICODE_DATA_SYM __CFUnicodeDataL
 #endif
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static bool __CFUniCharLoadFile(const char *bitmapName, const void **bytes, int64_t *fileSize) {
 #if USE_MACHO_SEGMENT
     *bytes = __CFGetSectDataPtr("__UNICODE", bitmapName, NULL);
@@ -632,7 +633,7 @@ CF_PRIVATE uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, 
             numBytes /= 4; // for 32bit
 
             while (numBytes-- > 0) {
-                unaligned_store32(bitmap, value);
+                _CFUnalignedStore32(bitmap, value);
 #if defined (__cplusplus)
 				bitmap = (uint8_t *)bitmap + sizeof(uint32_t);				
 #else
@@ -744,7 +745,7 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
         headerSize = *((uint8_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
 		bytes += 4; // Skip Unicode version
-        headerSize = unaligned_load32(bytes);
+        headerSize = _CFUnalignedLoad32(bytes);
         bytes += sizeof(uint32_t);
 #endif    
         headerSize -= (sizeof(uint32_t) * 2);
@@ -758,7 +759,7 @@ CF_PRIVATE const void *CFUniCharGetMappingData(uint32_t type) {
 #if defined (__cplusplus)            
             __CFUniCharMappingTables[idx] = (char *)bodyBase + *((uint32_t *)bytes); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
-			__CFUniCharMappingTables[idx] = (char *)bodyBase + unaligned_load32(bytes);
+			__CFUniCharMappingTables[idx] = (char *)bodyBase + _CFUnalignedLoad32(bytes);
             bytes += sizeof(uint32_t);
 #endif
         }
@@ -785,8 +786,8 @@ typedef struct {
 static uint32_t __CFUniCharGetMappedCase(const __CFUniCharCaseMappings *theTable, uint32_t numElem, UTF32Char character) {
     const __CFUniCharCaseMappings *p, *q, *divider;
 
-#define READ_KEY(x)     unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _key))
-#define READ_VALUE(x)   unaligned_load32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _value))
+#define READ_KEY(x)     _CFUnalignedLoad32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _key))
+#define READ_VALUE(x)   _CFUnalignedLoad32(((uint8_t *)x) + offsetof(__CFUniCharCaseMappings, _value))
 
     if ((character < READ_KEY(&theTable[0])) || (character > READ_KEY(&theTable[numElem-1]))) {
         return 0;
@@ -826,9 +827,9 @@ static bool __CFUniCharLoadCaseMappingTable(void) {
     __CFUniCharCaseMappingExtraTable = (const uint32_t **)__CFUniCharCaseMappingTable + NUM_CASE_MAP_DATA;
 
     for (idx = 0;idx < NUM_CASE_MAP_DATA;idx++) {
-        countArray[idx] = unaligned_load32(__CFUniCharMappingTables[idx]) / (sizeof(uint32_t) * 2);
+        countArray[idx] = _CFUnalignedLoad32(__CFUniCharMappingTables[idx]) / (sizeof(uint32_t) * 2);
         __CFUniCharCaseMappingTable[idx] = ((uint32_t *)__CFUniCharMappingTables[idx]) + 1;
-        __CFUniCharCaseMappingExtraTable[idx] = (const uint32_t *)((char *)__CFUniCharCaseMappingTable[idx] + unaligned_load32(__CFUniCharMappingTables[idx]));
+        __CFUniCharCaseMappingExtraTable[idx] = (const uint32_t *)((char *)__CFUniCharCaseMappingTable[idx] + _CFUnalignedLoad32(__CFUniCharMappingTables[idx]));
     }
 
     __CFUniCharCaseMappingTableCounts = countArray;
@@ -1042,7 +1043,7 @@ caseFoldRetry:
                 } else {
                     CFIndex idx;
 
-                    for (idx = 0;idx < count;idx++) *(convertedChar++) = (UTF16Char)unaligned_load32(extraMapping++);
+                    for (idx = 0;idx < count;idx++) *(convertedChar++) = (UTF16Char)_CFUnalignedLoad32(extraMapping++);
                     return count;
                 }
             }
@@ -1227,7 +1228,7 @@ static __CFUniCharBitmapData *__CFUniCharUnicodePropertyTable = NULL;
 static int __CFUniCharUnicodePropertyTableCount = 0;
 
 const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint32_t plane) {
-    static dispatch_once_t once = 0L;
+    static dispatch_once_t once = 0;
     dispatch_once(&once, ^{
         __CFUniCharBitmapData *table;
         const void *bytes;
@@ -1249,7 +1250,7 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
         headerSize = CFSwapInt32BigToHost(*((uint32_t *)bytes)); bytes = (uint8_t *)bytes + sizeof(uint32_t);
 #else
         bytes += 4; // Skip Unicode version
-        headerSize = unaligned_load32be(bytes);
+        headerSize = _CFUnalignedLoad32BE(bytes);
         bytes += sizeof(uint32_t);
 #endif
         
@@ -1284,7 +1285,7 @@ const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint3
             bodyBase = (const uint8_t *)bodyBase + (CFSwapInt32BigToHost(*(uint32_t *)bytes));
             ((uint32_t *&)bytes) ++;
 #else
-            bodyBase += unaligned_load32be(bytes++);
+            bodyBase += _CFUnalignedLoad32BE(bytes++);
 #endif
         }
 

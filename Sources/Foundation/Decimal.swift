@@ -20,7 +20,7 @@ public struct Decimal {
             return Int32(__exponent)
         }
         set {
-            __exponent = Int8(truncatingIfNeeded: newValue)
+            __exponent = Int8(newValue)
         }
     }
 
@@ -83,8 +83,9 @@ public struct Decimal {
     }
 
     public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        precondition(_length <= 15)
         self._mantissa = _mantissa
-        self.__exponent = Int8(truncatingIfNeeded: _exponent)
+        self.__exponent = Int8(_exponent)
         self.__lengthAndFlags = UInt8(_length & 0b1111)
         self.__reserved = 0
         self._isNegative = _isNegative
@@ -106,7 +107,7 @@ public func pow(_ x: Decimal, _ y: Int) -> Decimal {
 }
 
 extension Decimal : Hashable, Comparable {
-    // (Used by VariableLengthNumber and doubleValue.)
+    // (Used by `VariableLengthNumber` and `doubleValue`.)
     fileprivate subscript(index: UInt32) -> UInt16 {
         get {
             switch index {
@@ -136,7 +137,7 @@ extension Decimal : Hashable, Comparable {
         }
     }
 
-    // (Used by NSDecimalNumber and hash(into:).)
+    // (Used by `NSDecimalNumber` and `hash(into:)`.)
     internal var doubleValue: Double {
         if _length == 0 {
             return _isNegative == 1 ? Double.nan : 0
@@ -159,9 +160,12 @@ extension Decimal : Hashable, Comparable {
         return _isNegative != 0 ? -d : d
     }
 
-    // The low 64 bits of the integer part. (Used by uint64Value and int64Value.)
+    // The low 64 bits of the integer part.
+    // (Used by `uint64Value` and `int64Value`.)
     private var _unsignedInt64Value: UInt64 {
-        if _exponent < -20 || _exponent > 20 {
+        // Quick check if number if has too many zeros before decimal point or too many trailing zeros after decimal point.
+        // Log10 (2^64) ~ 19, log10 (2^128) ~ 38
+        if _exponent < -38 || _exponent > 20 {
             return 0
         }
         if _length == 0 || isZero || magnitude < (0 as Decimal) {
@@ -184,7 +188,8 @@ extension Decimal : Hashable, Comparable {
     }
 
     // A best-effort conversion of the integer value, trying to match Darwin for
-    // values outside of UInt64.min...UInt64.max. (Used by NSDecimalNumber.)
+    // values outside of UInt64.min...UInt64.max.
+    // (Used by `NSDecimalNumber`.)
     internal var uint64Value: UInt64 {
         let value = _unsignedInt64Value
         if !self.isNegative {
@@ -202,7 +207,8 @@ extension Decimal : Hashable, Comparable {
     }
 
     // A best-effort conversion of the integer value, trying to match Darwin for
-    // values outside of Int64.min...Int64.max. (Used by NSDecimalNumber.)
+    // values outside of Int64.min...Int64.max.
+    // (Used by `NSDecimalNumber`.)
     internal var int64Value: Int64 {
         let uint64Value = _unsignedInt64Value
         if self.isNegative {
@@ -359,13 +365,13 @@ extension Decimal : SignedNumeric {
         var mantissa = source.magnitude
         var exponent: Int32 = 0
 
-        let maxExponent = type(of: __exponent).max
+        let maxExponent = Int8.max
         while mantissa.isMultiple(of: 10) && (exponent < maxExponent) {
             exponent += 1
             mantissa /= 10
         }
 
-        // If the matinssa still requires more than 128bits of storage then it is too large.
+        // If the mantissa still requires more than 128 bits of storage then it is too large.
         if mantissa.bitWidth > 128 && (mantissa >> 128 != zero) { return nil }
 
         let mantissaParts: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)
@@ -479,12 +485,106 @@ extension Decimal {
 
 extension Decimal : Strideable {
     public func distance(to other: Decimal) -> Decimal {
-        return self - other
+        return other - self
     }
     public func advanced(by n: Decimal) -> Decimal {
         return self + n
     }
 }
+
+private extension Decimal {
+    // Creates a value with zero exponent.
+    // (Used by `_powersOfTen*`.)
+    init(_length: UInt32, _isCompact: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        self.init(_exponent: 0, _length: _length, _isNegative: 0, _isCompact: _isCompact,
+                  _reserved: 0, _mantissa: _mantissa)
+    }
+}
+
+private let _powersOfTen = [
+/* 10**00 */ Decimal(_length: 1, _isCompact: 1, _mantissa: (0x0001,0,0,0,0,0,0,0)),
+/* 10**01 */ Decimal(_length: 1, _isCompact: 0, _mantissa: (0x000a,0,0,0,0,0,0,0)),
+/* 10**02 */ Decimal(_length: 1, _isCompact: 0, _mantissa: (0x0064,0,0,0,0,0,0,0)),
+/* 10**03 */ Decimal(_length: 1, _isCompact: 0, _mantissa: (0x03e8,0,0,0,0,0,0,0)),
+/* 10**04 */ Decimal(_length: 1, _isCompact: 0, _mantissa: (0x2710,0,0,0,0,0,0,0)),
+/* 10**05 */ Decimal(_length: 2, _isCompact: 0, _mantissa: (0x86a0, 0x0001,0,0,0,0,0,0)),
+/* 10**06 */ Decimal(_length: 2, _isCompact: 0, _mantissa: (0x4240, 0x000f,0,0,0,0,0,0)),
+/* 10**07 */ Decimal(_length: 2, _isCompact: 0, _mantissa: (0x9680, 0x0098,0,0,0,0,0,0)),
+/* 10**08 */ Decimal(_length: 2, _isCompact: 0, _mantissa: (0xe100, 0x05f5,0,0,0,0,0,0)),
+/* 10**09 */ Decimal(_length: 2, _isCompact: 0, _mantissa: (0xca00, 0x3b9a,0,0,0,0,0,0)),
+/* 10**10 */ Decimal(_length: 3, _isCompact: 0, _mantissa: (0xe400, 0x540b, 0x0002,0,0,0,0,0)),
+/* 10**11 */ Decimal(_length: 3, _isCompact: 0, _mantissa: (0xe800, 0x4876, 0x0017,0,0,0,0,0)),
+/* 10**12 */ Decimal(_length: 3, _isCompact: 0, _mantissa: (0x1000, 0xd4a5, 0x00e8,0,0,0,0,0)),
+/* 10**13 */ Decimal(_length: 3, _isCompact: 0, _mantissa: (0xa000, 0x4e72, 0x0918,0,0,0,0,0)),
+/* 10**14 */ Decimal(_length: 3, _isCompact: 0, _mantissa: (0x4000, 0x107a, 0x5af3,0,0,0,0,0)),
+/* 10**15 */ Decimal(_length: 4, _isCompact: 0, _mantissa: (0x8000, 0xa4c6, 0x8d7e, 0x0003,0,0,0,0)),
+/* 10**16 */ Decimal(_length: 4, _isCompact: 0, _mantissa: (0x0000, 0x6fc1, 0x86f2, 0x0023,0,0,0,0)),
+/* 10**17 */ Decimal(_length: 4, _isCompact: 0, _mantissa: (0x0000, 0x5d8a, 0x4578, 0x0163,0,0,0,0)),
+/* 10**18 */ Decimal(_length: 4, _isCompact: 0, _mantissa: (0x0000, 0xa764, 0xb6b3, 0x0de0,0,0,0,0)),
+/* 10**19 */ Decimal(_length: 4, _isCompact: 0, _mantissa: (0x0000, 0x89e8, 0x2304, 0x8ac7,0,0,0,0)),
+/* 10**20 */ Decimal(_length: 5, _isCompact: 0, _mantissa: (0x0000, 0x6310, 0x5e2d, 0x6bc7, 0x0005,0,0,0)),
+/* 10**21 */ Decimal(_length: 5, _isCompact: 0, _mantissa: (0x0000, 0xdea0, 0xadc5, 0x35c9, 0x0036,0,0,0)),
+/* 10**22 */ Decimal(_length: 5, _isCompact: 0, _mantissa: (0x0000, 0xb240, 0xc9ba, 0x19e0, 0x021e,0,0,0)),
+/* 10**23 */ Decimal(_length: 5, _isCompact: 0, _mantissa: (0x0000, 0xf680, 0xe14a, 0x02c7, 0x152d,0,0,0)),
+/* 10**24 */ Decimal(_length: 5, _isCompact: 0, _mantissa: (0x0000, 0xa100, 0xcced, 0x1bce, 0xd3c2,0,0,0)),
+/* 10**25 */ Decimal(_length: 6, _isCompact: 0, _mantissa: (0x0000, 0x4a00, 0x0148, 0x1614, 0x4595, 0x0008,0,0)),
+/* 10**26 */ Decimal(_length: 6, _isCompact: 0, _mantissa: (0x0000, 0xe400, 0x0cd2, 0xdcc8, 0xb7d2, 0x0052,0,0)),
+/* 10**27 */ Decimal(_length: 6, _isCompact: 0, _mantissa: (0x0000, 0xe800, 0x803c, 0x9fd0, 0x2e3c, 0x033b,0,0)),
+/* 10**28 */ Decimal(_length: 6, _isCompact: 0, _mantissa: (0x0000, 0x1000, 0x0261, 0x3e25, 0xce5e, 0x204f,0,0)),
+/* 10**29 */ Decimal(_length: 7, _isCompact: 0, _mantissa: (0x0000, 0xa000, 0x17ca, 0x6d72, 0x0fae, 0x431e, 0x0001,0)),
+/* 10**30 */ Decimal(_length: 7, _isCompact: 0, _mantissa: (0x0000, 0x4000, 0xedea, 0x4674, 0x9cd0, 0x9f2c, 0x000c,0)),
+/* 10**31 */ Decimal(_length: 7, _isCompact: 0, _mantissa: (0x0000, 0x8000, 0x4b26, 0xc091, 0x2022, 0x37be, 0x007e,0)),
+/* 10**32 */ Decimal(_length: 7, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0xef81, 0x85ac, 0x415b, 0x2d6d, 0x04ee,0)),
+/* 10**33 */ Decimal(_length: 7, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0x5b0a, 0x38c1, 0x8d93, 0xc644, 0x314d,0)),
+/* 10**34 */ Decimal(_length: 8, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0x8e64, 0x378d, 0x87c0, 0xbead, 0xed09, 0x0001)),
+/* 10**35 */ Decimal(_length: 8, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0x8fe8, 0x2b87, 0x4d82, 0x72c7, 0x4261, 0x0013)),
+/* 10**36 */ Decimal(_length: 8, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0x9f10, 0xb34b, 0x0715, 0x7bc9, 0x97ce, 0x00c0)),
+/* 10**37 */ Decimal(_length: 8, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0x36a0, 0x00f4, 0x46d9, 0xd5da, 0xee10, 0x0785)),
+/* 10**38 */ Decimal(_length: 8, _isCompact: 0, _mantissa: (0x0000, 0x0000, 0x2240, 0x098a, 0xc47a, 0x5a86, 0x4ca8, 0x4b3b))
+/* 10**39 is on 9 shorts. */
+]
+
+private let _powersOfTenDividingUInt128Max = [
+/* 10**00 dividing UInt128.max is deliberately omitted. */
+/* 10**01 */ Decimal(_length: 8, _isCompact: 1, _mantissa: (0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x1999)),
+/* 10**02 */ Decimal(_length: 8, _isCompact: 1, _mantissa: (0xf5c2, 0x5c28, 0xc28f, 0x28f5, 0x8f5c, 0xf5c2, 0x5c28, 0x028f)),
+/* 10**03 */ Decimal(_length: 8, _isCompact: 1, _mantissa: (0x1893, 0x5604, 0x2d0e, 0x9db2, 0xa7ef, 0x4bc6, 0x8937, 0x0041)),
+/* 10**04 */ Decimal(_length: 8, _isCompact: 1, _mantissa: (0x0275, 0x089a, 0x9e1b, 0x295e, 0x10cb, 0xbac7, 0x8db8, 0x0006)),
+/* 10**05 */ Decimal(_length: 7, _isCompact: 1, _mantissa: (0x3372, 0x80dc, 0x0fcf, 0x8423, 0x1b47, 0xac47, 0xa7c5,0)),
+/* 10**06 */ Decimal(_length: 7, _isCompact: 1, _mantissa: (0x3858, 0xf349, 0xb4c7, 0x8d36, 0xb5ed, 0xf7a0, 0x10c6,0)),
+/* 10**07 */ Decimal(_length: 7, _isCompact: 1, _mantissa: (0xec08, 0x6520, 0x787a, 0xf485, 0xabca, 0x7f29, 0x01ad,0)),
+/* 10**08 */ Decimal(_length: 7, _isCompact: 1, _mantissa: (0x4acd, 0x7083, 0xbf3f, 0x1873, 0xc461, 0xf31d, 0x002a,0)),
+/* 10**09 */ Decimal(_length: 7, _isCompact: 1, _mantissa: (0x5447, 0x8b40, 0x2cb9, 0xb5a5, 0xfa09, 0x4b82, 0x0004,0)),
+/* 10**10 */ Decimal(_length: 6, _isCompact: 1, _mantissa: (0xa207, 0x5ab9, 0xeadf, 0x5ef6, 0x7f67, 0x6df3,0,0)),
+/* 10**11 */ Decimal(_length: 6, _isCompact: 1, _mantissa: (0xf69a, 0xef78, 0x4aaf, 0xbcb2, 0xbff0, 0x0afe,0,0)),
+/* 10**12 */ Decimal(_length: 6, _isCompact: 1, _mantissa: (0x7f0f, 0x97f2, 0xa111, 0x12de, 0x7998, 0x0119,0,0)),
+/* 10**13 */ Decimal(_length: 6, _isCompact: 0, _mantissa: (0x0cb4, 0xc265, 0x7681, 0x6849, 0x25c2, 0x001c,0,0)),
+/* 10**14 */ Decimal(_length: 6, _isCompact: 1, _mantissa: (0x4e12, 0x603d, 0x2573, 0x70d4, 0xd093, 0x0002,0,0)),
+/* 10**15 */ Decimal(_length: 5, _isCompact: 1, _mantissa: (0x87ce, 0x566c, 0x9d58, 0xbe7b, 0x480e,0,0,0)),
+/* 10**16 */ Decimal(_length: 5, _isCompact: 1, _mantissa: (0xda61, 0x6f0a, 0xf622, 0xaca5, 0x0734,0,0,0)),
+/* 10**17 */ Decimal(_length: 5, _isCompact: 1, _mantissa: (0x4909, 0xa4b4, 0x3236, 0x77aa, 0x00b8,0,0,0)),
+/* 10**18 */ Decimal(_length: 5, _isCompact: 1, _mantissa: (0xa0e7, 0x43ab, 0xd1d2, 0x725d, 0x0012,0,0,0)),
+/* 10**19 */ Decimal(_length: 5, _isCompact: 1, _mantissa: (0xc34a, 0x6d2a, 0x94fb, 0xd83c, 0x0001,0,0,0)),
+/* 10**20 */ Decimal(_length: 4, _isCompact: 1, _mantissa: (0x46ba, 0x2484, 0x4219, 0x2f39,0,0,0,0)),
+/* 10**21 */ Decimal(_length: 4, _isCompact: 1, _mantissa: (0xd3df, 0x83a6, 0xed02, 0x04b8,0,0,0,0)),
+/* 10**22 */ Decimal(_length: 4, _isCompact: 1, _mantissa: (0x7b96, 0x405d, 0xe480, 0x0078,0,0,0,0)),
+/* 10**23 */ Decimal(_length: 4, _isCompact: 1, _mantissa: (0x5928, 0xa009, 0x16d9, 0x000c,0,0,0,0)),
+/* 10**24 */ Decimal(_length: 4, _isCompact: 1, _mantissa: (0x88ea, 0x299a, 0x357c, 0x0001,0,0,0,0)),
+/* 10**25 */ Decimal(_length: 3, _isCompact: 1, _mantissa: (0xda7d, 0xd0f5, 0x1ef2,0,0,0,0,0)),
+/* 10**26 */ Decimal(_length: 3, _isCompact: 1, _mantissa: (0x95d9, 0x4818, 0x0318,0,0,0,0,0)),
+/* 10**27 */ Decimal(_length: 3, _isCompact: 0, _mantissa: (0xdbc8, 0x3a68, 0x004f,0,0,0,0,0)),
+/* 10**28 */ Decimal(_length: 3, _isCompact: 1, _mantissa: (0xaf94, 0xec3d, 0x0007,0,0,0,0,0)),
+/* 10**29 */ Decimal(_length: 2, _isCompact: 1, _mantissa: (0xf7f5, 0xcad2,0,0,0,0,0,0)),
+/* 10**30 */ Decimal(_length: 2, _isCompact: 1, _mantissa: (0x4bfe, 0x1448,0,0,0,0,0,0)),
+/* 10**31 */ Decimal(_length: 2, _isCompact: 1, _mantissa: (0x3acc, 0x0207,0,0,0,0,0,0)),
+/* 10**32 */ Decimal(_length: 2, _isCompact: 1, _mantissa: (0xec47, 0x0033,0,0,0,0,0,0)),
+/* 10**33 */ Decimal(_length: 2, _isCompact: 1, _mantissa: (0x313a, 0x0005,0,0,0,0,0,0)),
+/* 10**34 */ Decimal(_length: 1, _isCompact: 1, _mantissa: (0x84ec,0,0,0,0,0,0,0)),
+/* 10**35 */ Decimal(_length: 1, _isCompact: 1, _mantissa: (0x0d4a,0,0,0,0,0,0,0)),
+/* 10**36 */ Decimal(_length: 1, _isCompact: 0, _mantissa: (0x0154,0,0,0,0,0,0,0)),
+/* 10**37 */ Decimal(_length: 1, _isCompact: 1, _mantissa: (0x0022,0,0,0,0,0,0,0)),
+/* 10**38 */ Decimal(_length: 1, _isCompact: 1, _mantissa: (0x0003,0,0,0,0,0,0,0))
+]
 
 // The methods in this extension exist to match the protocol requirements of
 // FloatingPoint, even if we can't conform directly.
@@ -492,15 +592,6 @@ extension Decimal : Strideable {
 // If it becomes clear that conformance is truly impossible, we can deprecate
 // some of the methods (e.g. `isEqual(to:)` in favor of operators).
 extension Decimal {
-    public static let leastFiniteMagnitude = Decimal(
-        _exponent: 127,
-        _length: 8,
-        _isNegative: 1,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
-    )
-
     public static let greatestFiniteMagnitude = Decimal(
         _exponent: 127,
         _length: 8,
@@ -511,7 +602,7 @@ extension Decimal {
     )
 
     public static let leastNormalMagnitude = Decimal(
-        _exponent: -127,
+        _exponent: -128,
         _length: 1,
         _isNegative: 0,
         _isCompact: 1,
@@ -519,14 +610,10 @@ extension Decimal {
         _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
     )
 
-    public static let leastNonzeroMagnitude = Decimal(
-        _exponent: -127,
-        _length: 1,
-        _isNegative: 0,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
-    )
+    public static let leastNonzeroMagnitude = leastNormalMagnitude
+
+    @available(*, deprecated, message: "Use '-Decimal.greatestFiniteMagnitude' for least finite value or '0' for least finite magnitude")
+    public static let leastFiniteMagnitude = -greatestFiniteMagnitude
 
     public static let pi = Decimal(
         _exponent: -38,
@@ -537,11 +624,11 @@ extension Decimal {
         _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58)
     )
 
-    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
-    public static var infinity: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+    @available(*, unavailable, message: "Decimal does not fully adopt FloatingPoint.")
+    public static var infinity: Decimal { fatalError("Decimal does not fully adopt FloatingPoint") }
 
-    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
-    public static var signalingNaN: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+    @available(*, unavailable, message: "Decimal does not fully adopt FloatingPoint.")
+    public static var signalingNaN: Decimal { fatalError("Decimal does not fully adopt FloatingPoint") }
 
     public static var quietNaN: Decimal {
         return Decimal(
@@ -616,7 +703,7 @@ extension Decimal {
     }
 
     public init(_ value: Double) {
-        precondition(!value.isInfinite, "Decimal does not yet fully adopt FloatingPoint")
+        precondition(!value.isInfinite, "Decimal does not fully adopt FloatingPoint")
         if value.isNaN {
             self = Decimal.nan
         } else if value == 0.0 {
@@ -625,18 +712,38 @@ extension Decimal {
             self = Decimal()
             let negative = value < 0
             var val = negative ? -1 * value : value
-            var exponent = 0
+            var exponent: Int8 = 0
+
+            // Try to get val as close to UInt64.max whilst adjusting the exponent
+            // to reduce the number of digits after the decimal point.
             while val < Double(UInt64.max - 1) {
+                guard exponent > Int8.min else {
+                    self = Decimal.nan
+                    return
+                }
                 val *= 10.0
                 exponent -= 1
             }
-            while Double(UInt64.max - 1) < val {
+            while Double(UInt64.max) <= val {
+                guard exponent < Int8.max else {
+                    self = Decimal.nan
+                    return
+                }
                 val /= 10.0
                 exponent += 1
             }
-            var mantissa = UInt64(val)
 
-            var i: Int32 = 0
+            var mantissa: UInt64
+            let maxMantissa = Double(UInt64.max).nextDown
+            if val > maxMantissa {
+                // UInt64(Double(UInt64.max)) gives an overflow error; this is the largest
+                // mantissa that can be set.
+                mantissa = UInt64(maxMantissa)
+            } else {
+                mantissa = UInt64(val)
+            }
+
+            var i: UInt32 = 0
             // This is a bit ugly but it is the closest approximation of the C
             // initializer that can be expressed here.
             while mantissa != 0 && i < NSDecimalMaxSize {
@@ -663,7 +770,7 @@ extension Decimal {
                 mantissa = mantissa >> 16
                 i += 1
             }
-            _length = UInt32(i)
+            _length = i
             _isNegative = negative ? 1 : 0
             _isCompact = 0
             _exponent = Int32(exponent)
@@ -672,13 +779,13 @@ extension Decimal {
     }
 
     public init(sign: FloatingPointSign, exponent: Int, significand: Decimal) {
-        self.init(
-            _exponent: Int32(exponent) + significand._exponent,
-            _length: significand._length,
-            _isNegative: sign == .plus ? 0 : 1,
-            _isCompact: significand._isCompact,
-            _reserved: 0,
-            _mantissa: significand._mantissa)
+        self = significand
+        let error = withUnsafeMutablePointer(to: &self) {
+            NSDecimalMultiplyByPowerOf10($0, $0, Int16(clamping: exponent), .plain)
+        }
+        if error == .underflow { self = 0 }
+        // We don't need to check for overflow because `Decimal` cannot represent infinity.
+        if sign == .minus { negate() }
     }
 
     public init(signOf: Decimal, magnitudeOf magnitude: Decimal) {
@@ -697,7 +804,7 @@ extension Decimal {
 
     public var significand: Decimal {
         return Decimal(
-            _exponent: 0, _length: _length, _isNegative: _isNegative, _isCompact: _isCompact,
+            _exponent: 0, _length: _length, _isNegative: 0, _isCompact: _isCompact,
             _reserved: 0, _mantissa: _mantissa)
     }
 
@@ -706,22 +813,47 @@ extension Decimal {
     }
 
     public var ulp: Decimal {
-        if !self.isFinite { return Decimal.nan }
+        guard isFinite else { return .nan }
+
+        let exponent: Int32
+        if isZero {
+            exponent = .min
+        } else {
+            let significand_ = significand
+            let shift =
+                _powersOfTenDividingUInt128Max.firstIndex { significand_ > $0 }
+                    ?? _powersOfTenDividingUInt128Max.count
+            exponent = _exponent &- Int32(shift)
+        }
+
         return Decimal(
-            _exponent: _exponent, _length: 8, _isNegative: 0, _isCompact: 1,
+            _exponent: max(exponent, -128), _length: 1, _isNegative: 0, _isCompact: 1,
             _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
     }
 
     public var nextUp: Decimal {
-        return self + Decimal(
-            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
-            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
+        if _isNegative == 1 {
+            if _exponent > -128
+                && (_mantissa.0, _mantissa.1, _mantissa.2, _mantissa.3) == (0x999a, 0x9999, 0x9999, 0x9999)
+                && (_mantissa.4, _mantissa.5, _mantissa.6, _mantissa.7) == (0x9999, 0x9999, 0x9999, 0x1999) {
+                return Decimal(
+                    _exponent: _exponent &- 1, _length: 8, _isNegative: 1, _isCompact: 1,
+                    _reserved: 0, _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff))
+            }
+        } else {
+            if _exponent < 127
+            && (_mantissa.0, _mantissa.1, _mantissa.2, _mantissa.3) == (0xffff, 0xffff, 0xffff, 0xffff)
+            && (_mantissa.4, _mantissa.5, _mantissa.6, _mantissa.7) == (0xffff, 0xffff, 0xffff, 0xffff) {
+                return Decimal(
+                    _exponent: _exponent &+ 1, _length: 8, _isNegative: 0, _isCompact: 1,
+                    _reserved: 0, _mantissa: (0x999a, 0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x9999, 0x1999))
+            }
+        }
+        return self + ulp
     }
 
     public var nextDown: Decimal {
-        return self - Decimal(
-            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
-            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
+        return -(-self).nextUp
     }
 
     /// The IEEE 754 "class" of this type.
@@ -798,8 +930,8 @@ extension Decimal {
         return true
     }
 
-    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
-    public mutating func formTruncatingRemainder(dividingBy other: Decimal) { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+    @available(*, unavailable, message: "Decimal does not fully adopt FloatingPoint.")
+    public mutating func formTruncatingRemainder(dividingBy other: Decimal) { fatalError("Decimal does not fully adopt FloatingPoint") }
 }
 
 extension Decimal: _ObjectiveCBridgeable {
@@ -1208,14 +1340,14 @@ fileprivate func integerMultiplyByPowerOf10<T:VariableLengthNumber>(_ result: in
     }
     result = left
 
-    let maxpow10 = pow10.count - 1
+    let maxpow10 = _powersOfTen.count - 1
     var error:NSDecimalNumber.CalculationError = .noError
 
     while power > maxpow10 {
         var big = T()
 
         power -= maxpow10
-        let p10 = pow10[maxpow10]
+        let p10 = _powersOfTen[maxpow10]
 
         if !isNegative {
             error = integerMultiply(&big,result,p10)
@@ -1237,7 +1369,7 @@ fileprivate func integerMultiplyByPowerOf10<T:VariableLengthNumber>(_ result: in
     var big = T()
 
     // Handle the rest of the power (<= maxpow10)
-    let p10 = pow10[Int(power)]
+    let p10 = _powersOfTen[Int(power)]
 
     if !isNegative {
         error = integerMultiply(&big, result, p10)
@@ -1921,14 +2053,6 @@ fileprivate struct WideDecimal : VariableLengthNumber {
 extension Decimal {
     fileprivate static let maxSize: UInt32 = UInt32(NSDecimalMaxSize)
 
-    fileprivate init(length: UInt32, mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
-        self._mantissa = mantissa
-        self.__exponent = 0
-        self.__lengthAndFlags = 0
-        self.__reserved = 0
-        self._length = length
-    }
-
     fileprivate var isCompact: Bool {
         get {
             return _isCompact != 0
@@ -2187,50 +2311,6 @@ extension Decimal {
     }
 }
 
-fileprivate let pow10 = [
-/*^00*/ Decimal(length: 1, mantissa:( 0x0001,0,0,0,0,0,0,0)),
-/*^01*/ Decimal(length: 1, mantissa:( 0x000a,0,0,0,0,0,0,0)),
-/*^02*/ Decimal(length: 1, mantissa:( 0x0064,0,0,0,0,0,0,0)),
-/*^03*/ Decimal(length: 1, mantissa:( 0x03e8,0,0,0,0,0,0,0)),
-/*^04*/ Decimal(length: 1, mantissa:( 0x2710,0,0,0,0,0,0,0)),
-/*^05*/ Decimal(length: 2, mantissa:( 0x86a0, 0x0001,0,0,0,0,0,0)),
-/*^06*/ Decimal(length: 2, mantissa:( 0x4240, 0x000f,0,0,0,0,0,0)),
-/*^07*/ Decimal(length: 2, mantissa:( 0x9680, 0x0098,0,0,0,0,0,0)),
-/*^08*/ Decimal(length: 2, mantissa:( 0xe100, 0x05f5,0,0,0,0,0,0)),
-/*^09*/ Decimal(length: 2, mantissa:( 0xca00, 0x3b9a,0,0,0,0,0,0)),
-/*^10*/ Decimal(length: 3, mantissa:( 0xe400, 0x540b, 0x0002,0,0,0,0,0)),
-/*^11*/ Decimal(length: 3, mantissa:( 0xe800, 0x4876, 0x0017,0,0,0,0,0)),
-/*^12*/ Decimal(length: 3, mantissa:( 0x1000, 0xd4a5, 0x00e8,0,0,0,0,0)),
-/*^13*/ Decimal(length: 3, mantissa:( 0xa000, 0x4e72, 0x0918,0,0,0,0,0)),
-/*^14*/ Decimal(length: 3, mantissa:( 0x4000, 0x107a, 0x5af3,0,0,0,0,0)),
-/*^15*/ Decimal(length: 4, mantissa:( 0x8000, 0xa4c6, 0x8d7e, 0x0003,0,0,0,0)),
-/*^16*/ Decimal(length: 4, mantissa:( 0x0000, 0x6fc1, 0x86f2, 0x0023,0,0,0,0)),
-/*^17*/ Decimal(length: 4, mantissa:( 0x0000, 0x5d8a, 0x4578, 0x0163,0,0,0,0)),
-/*^18*/ Decimal(length: 4, mantissa:( 0x0000, 0xa764, 0xb6b3, 0x0de0,0,0,0,0)),
-/*^19*/ Decimal(length: 4, mantissa:( 0x0000, 0x89e8, 0x2304, 0x8ac7,0,0,0,0)),
-/*^20*/ Decimal(length: 5, mantissa:( 0x0000, 0x6310, 0x5e2d, 0x6bc7, 0x0005,0,0,0)),
-/*^21*/ Decimal(length: 5, mantissa:( 0x0000, 0xdea0, 0xadc5, 0x35c9, 0x0036,0,0,0)),
-/*^22*/ Decimal(length: 5, mantissa:( 0x0000, 0xb240, 0xc9ba, 0x19e0, 0x021e,0,0,0)),
-/*^23*/ Decimal(length: 5, mantissa:( 0x0000, 0xf680, 0xe14a, 0x02c7, 0x152d,0,0,0)),
-/*^24*/ Decimal(length: 5, mantissa:( 0x0000, 0xa100, 0xcced, 0x1bce, 0xd3c2,0,0,0)),
-/*^25*/ Decimal(length: 6, mantissa:( 0x0000, 0x4a00, 0x0148, 0x1614, 0x4595, 0x0008,0,0)),
-/*^26*/ Decimal(length: 6, mantissa:( 0x0000, 0xe400, 0x0cd2, 0xdcc8, 0xb7d2, 0x0052,0,0)),
-/*^27*/ Decimal(length: 6, mantissa:( 0x0000, 0xe800, 0x803c, 0x9fd0, 0x2e3c, 0x033b,0,0)),
-/*^28*/ Decimal(length: 6, mantissa:( 0x0000, 0x1000, 0x0261, 0x3e25, 0xce5e, 0x204f,0,0)),
-/*^29*/ Decimal(length: 7, mantissa:( 0x0000, 0xa000, 0x17ca, 0x6d72, 0x0fae, 0x431e, 0x0001,0)),
-/*^30*/ Decimal(length: 7, mantissa:( 0x0000, 0x4000, 0xedea, 0x4674, 0x9cd0, 0x9f2c, 0x000c,0)),
-/*^31*/ Decimal(length: 7, mantissa:( 0x0000, 0x8000, 0x4b26, 0xc091, 0x2022, 0x37be, 0x007e,0)),
-/*^32*/ Decimal(length: 7, mantissa:( 0x0000, 0x0000, 0xef81, 0x85ac, 0x415b, 0x2d6d, 0x04ee,0)),
-/*^33*/ Decimal(length: 7, mantissa:( 0x0000, 0x0000, 0x5b0a, 0x38c1, 0x8d93, 0xc644, 0x314d,0)),
-/*^34*/ Decimal(length: 8, mantissa:( 0x0000, 0x0000, 0x8e64, 0x378d, 0x87c0, 0xbead, 0xed09, 0x0001)),
-/*^35*/ Decimal(length: 8, mantissa:( 0x0000, 0x0000, 0x8fe8, 0x2b87, 0x4d82, 0x72c7, 0x4261, 0x0013)),
-/*^36*/ Decimal(length: 8, mantissa:( 0x0000, 0x0000, 0x9f10, 0xb34b, 0x0715, 0x7bc9, 0x97ce, 0x00c0)),
-/*^37*/ Decimal(length: 8, mantissa:( 0x0000, 0x0000, 0x36a0, 0x00f4, 0x46d9, 0xd5da, 0xee10, 0x0785)),
-/*^38*/ Decimal(length: 8, mantissa:( 0x0000, 0x0000, 0x2240, 0x098a, 0xc47a, 0x5a86, 0x4ca8, 0x4b3b))
-/*^39 is on 9 shorts. */
-]
-
-
 // Could be silently inexact for float and double.
 extension Scanner {
 
@@ -2271,7 +2351,7 @@ extension Scanner {
                     repeat {
                         buf.advance()
                     } while decimalValue(buf.currentCharacter) != nil
-                    return Decimal.nan
+                    return nil
                 }
                 result._exponent += 1
             }
@@ -2291,7 +2371,7 @@ extension Scanner {
                         repeat {
                             buf.advance()
                         } while decimalValue(buf.currentCharacter) != nil
-                        return Decimal.nan
+                        return nil
                     }
                     result._exponent -= 1
                 }
@@ -2315,7 +2395,7 @@ extension Scanner {
             while let numeral = decimalValue(buf.currentCharacter) {
                 exponent = 10 * exponent + Int32(numeral)
                 guard exponent <= 2*Int32(Int8.max) else {
-                    return Decimal.nan
+                    return nil
                 }
 
                 buf.advance()
@@ -2326,7 +2406,7 @@ extension Scanner {
             }
             exponent += result._exponent
             guard exponent >= Int32(Int8.min) && exponent <= Int32(Int8.max) else {
-                return Decimal.nan
+                return nil
             }
             result._exponent = exponent
         }

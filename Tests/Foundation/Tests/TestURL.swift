@@ -132,7 +132,7 @@ class TestURL : XCTestCase {
         #elseif os(Android)
         let baseURL = URL(fileURLWithPath: "/data", isDirectory: true)
         let relativePath = "local"
-        #elseif os(Linux)
+        #elseif os(Linux) || os(OpenBSD)
         let baseURL = URL(fileURLWithPath: "/usr", isDirectory: true)
         let relativePath = "include"
         #elseif os(Windows)

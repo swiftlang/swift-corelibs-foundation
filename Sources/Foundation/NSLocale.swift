@@ -21,7 +21,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     private var _lock: _NSCFLock = _NSCFLockInit()
     private var _nullLocale: Bool = false
 
-    internal var _cfObject: CFType {
+    internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
@@ -199,9 +199,11 @@ extension NSLocale {
 }
 
 
+#if !os(WASI)
 extension NSLocale {
     public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
 }
+#endif
 
 
 extension CFLocale : _NSBridgeable, _SwiftBridgeable {

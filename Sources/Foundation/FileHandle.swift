@@ -240,7 +240,7 @@ open class FileHandle : NSObject {
             let szFileSize: UInt64 = (UInt64(fiFileInfo.nFileSizeHigh) << 32) | UInt64(fiFileInfo.nFileSizeLow << 0)
             let szMapSize: UInt64 = Swift.min(UInt64(length), szFileSize)
             let pData: UnsafeMutableRawPointer =
-                MapViewOfFile(hMapping, DWORD(FILE_MAP_READ), 0, 0, szMapSize)
+                MapViewOfFile(hMapping, DWORD(FILE_MAP_READ), 0, 0, SIZE_T(szMapSize))
 
             return NSData.NSDataReadResult(bytes: pData, length: Int(szMapSize)) { buffer, length in
               if !UnmapViewOfFile(buffer) {
@@ -477,7 +477,7 @@ open class FileHandle : NSObject {
         // - deinit tries to .sync { … } to serialize the work on the handle queue, _which we're already on_
         // - deadlock! DispatchQueue's deadlock detection triggers and crashes us.
         // since all operations on the handle queue retain the handle during use, if the handle is being deinited, then there are no more operations on the queue, so this is serial with respect to them anyway. Just close the handle immediately.
-        try? _immediatelyClose()
+        try? _immediatelyClose(closeFd: _closeOnDealloc)
     }
 
     // MARK: -
@@ -592,10 +592,27 @@ open class FileHandle : NSObject {
         
         #if os(Windows)
         guard FlushFileBuffers(self._handle) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            let dwError: DWORD = GetLastError()
+            // If the handle is a handle to the console output,
+            // `FlushFileBuffers` will fail and return `ERROR_INVALID_HANDLE` as
+            // console output is not buffered.
+            if dwError == ERROR_INVALID_HANDLE &&
+                    GetFileType(self._handle) == FILE_TYPE_CHAR {
+                // Simlar to the Linux, macOS, BSD cases below, ignore the error
+                // on the special file type.
+                return
+            }
+            throw _NSErrorWithWindowsError(dwError, reading: false)
         }
         #else
-        guard fsync(_fd) >= 0 else { throw _NSErrorWithErrno(errno, reading: false) }
+        // Linux, macOS, OpenBSD return -1 and errno == EINVAL if trying to sync a special file,
+        // eg a fifo, character device etc which can be ignored.
+        // Additionally, Linux may return EROFS if tying to sync on a readonly filesystem, which also can be ignored.
+        // macOS can also return ENOTSUP for pipes but dont ignore it, so that the behaviour matches Darwin's Foundation.
+        if fsync(_fd) < 0 {
+            if errno == EINVAL || errno == EROFS { return }
+            throw _NSErrorWithErrno(errno, reading: false)
+        }
         #endif
     }
     
@@ -619,8 +636,9 @@ open class FileHandle : NSObject {
             try _immediatelyClose()
         }
     }
-    
-    private func _immediatelyClose() throws {
+
+    // Shutdown any read/write sources and handlers, and optionally close the file descriptor.
+    private func _immediatelyClose(closeFd: Bool = true) throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         guard _isPlatformHandleValid else { return }
         
@@ -632,18 +650,21 @@ open class FileHandle : NSObject {
         writabilitySource = nil
         readabilitySource = nil
         privateAsyncVariablesLock.unlock()
-        
-        #if os(Windows)
-        guard CloseHandle(self._handle) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
-        }
-        self._handle = INVALID_HANDLE_VALUE
-        #else
-        guard _close(_fd) >= 0 else {
-            throw _NSErrorWithErrno(errno, reading: true)
-        }
-        _fd = -1
-        #endif
+
+#if os(Windows)
+            // SR-13822 - Not Closing the file descriptor on Windows causes a Stack Overflow
+            guard CloseHandle(self._handle) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+            }
+            self._handle = INVALID_HANDLE_VALUE
+#else
+            if closeFd {
+                guard _close(_fd) >= 0 else {
+                    throw _NSErrorWithErrno(errno, reading: true)
+                }
+                _fd = -1
+            }
+#endif
     }
     
     // MARK: -
@@ -862,7 +883,7 @@ extension FileHandle {
                     var fileInfo = BY_HANDLE_FILE_INFORMATION()
                     GetFileInformationByHandle(self._handle, &fileInfo)
                     if fileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-                        translatedError = ERROR_DIRECTORY_NOT_SUPPORTED
+                        translatedError = Int32(ERROR_DIRECTORY_NOT_SUPPORTED)
                     }
                 }
                 userInfo["NSFileHandleError"] = Int(translatedError)

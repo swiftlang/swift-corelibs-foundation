@@ -24,13 +24,15 @@ CFData read/write routines
 #include <CoreFoundation/CFNumber.h>
 #include <string.h>
 #include <ctype.h>
-#if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <stdlib.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if !TARGET_OS_WASI
 #include <pwd.h>
+#endif
 #include <fcntl.h>
 #elif TARGET_OS_WIN32
 #include <io.h>
@@ -41,7 +43,7 @@ CFData read/write routines
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if TARGET_OS_OSX || TARGET_OS_IOS
+#if TARGET_OS_MAC
 #include <dlfcn.h>
 #endif
 
@@ -200,6 +202,7 @@ static CFDictionaryRef _CFFileURLCreatePropertiesFromResource(CFAllocatorRef all
     return propertyDict;
 }
 
+#if !TARGET_OS_WASI
 static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef propertyDict, SInt32 *errorCode) {
     CFTypeRef buffer[16];
     CFTypeRef *keys;
@@ -233,7 +236,7 @@ static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef
                 CFNumberRef modeNum = (CFNumberRef)value;
                 CFNumberGetValue(modeNum, kCFNumberSInt32Type, &mode);
             } else {
-#if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #define MODE_TYPE mode_t
 #elif TARGET_OS_WIN32
 #define MODE_TYPE uint16_t
@@ -255,6 +258,7 @@ static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef
     if (errorCode) *errorCode = result ? 0 : kCFURLUnknownError;
     return result;
 }
+#endif
 
 static Boolean _CFFileURLCreateDataAndPropertiesFromResource(CFAllocatorRef alloc, CFURLRef url, CFDataRef *fetchedData, CFArrayRef desiredProperties, CFDictionaryRef *fetchedProperties, SInt32 *errorCode) {
     Boolean success = true;
@@ -774,11 +778,13 @@ Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef data, CFDi
                 if (!success && errorCode) *errorCode = kCFURLUnknownError;
             }
         }
+#if !TARGET_OS_WASI
         if (propertyDict) {
             if (!_CFFileURLWritePropertiesToResource(url, propertyDict, errorCode))
                 success = false;
         }
         return success;
+#endif
     } else {
         CFRelease(scheme);
 #if TARGET_OS_MAC

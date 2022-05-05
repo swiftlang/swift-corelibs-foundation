@@ -110,4 +110,8 @@
 #define __cficu_ureldatefmt_formatNumeric ureldatefmt_formatNumeric
 #define __cficu_ureldatefmt_format ureldatefmt_format
 #define __cficu_ureldatefmt_close ureldatefmt_close
+// ulistfmt
+#define __cficu_ulistfmt_open ulistfmt_open
+#define __cficu_ulistfmt_close ulistfmt_close
+#define __cficu_ulistfmt_format ulistfmt_format
 #endif
