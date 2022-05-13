@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2022 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -1644,6 +1644,112 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(String(ns), "Test")
     }
 
+    func test_initString_utf8StringWithArrayInput() {
+        var source: [CChar] = [0x61, 0x62, 0, 0x63]
+        var str: String?
+        str = String(utf8String: source)
+        XCTAssertNotNil(str)
+        source.withUnsafeBufferPointer {
+            XCTAssertEqual(str, String(utf8String: $0.baseAddress!))
+        }
+        // substitute a value not valid in UTF-8
+        source[1] = CChar(bitPattern: 0xff)
+        str = String(utf8String: source)
+        XCTAssertNil(str)
+    }
+
+    @available(*, deprecated) // silence the deprecation warning within
+    func test_initString_utf8StringWithStringInput() {
+        let source = "ab\0c"
+        var str: String?
+        str = String(utf8String: source)
+        XCTAssertNotNil(str)
+        source.withCString {
+            XCTAssertEqual(str, String(utf8String: $0))
+        }
+        str = String(utf8String: "")
+        XCTAssertNotNil(str)
+        XCTAssertEqual(str?.isEmpty, true)
+    }
+
+    @available(*, deprecated) // silence the deprecation warning within
+    func test_initString_utf8StringWithInoutConversion() {
+        var c = CChar.zero
+        var str: String?
+        str = String(utf8String: &c)
+        // Any other value of `c` would violate the null-terminated precondition
+        XCTAssertNotNil(str)
+        XCTAssertEqual(str?.isEmpty, true)
+    }
+
+    func test_initString_cStringWithArrayInput() {
+        var source: [CChar] = [0x61, 0x62, 0, 0x63]
+        var str: String?
+        str = String(cString: source, encoding: .utf8)
+        XCTAssertNotNil(str)
+        source.withUnsafeBufferPointer {
+            XCTAssertEqual(
+                str, String(cString: $0.baseAddress!, encoding: .utf8)
+            )
+        }
+        str = String(cString: source, encoding: .ascii)
+        XCTAssertNotNil(str)
+        source.withUnsafeBufferPointer {
+            XCTAssertEqual(
+                str, String(cString: $0.baseAddress!, encoding: .ascii)
+            )
+        }
+        str = String(cString: source, encoding: .macOSRoman)
+        XCTAssertNotNil(str)
+        source.withUnsafeBufferPointer {
+            XCTAssertEqual(
+                str, String(cString: $0.baseAddress!, encoding: .macOSRoman)
+            )
+        }
+        // substitute a value not valid in UTF-8
+        source[1] = CChar(bitPattern: 0xff)
+        str = String(cString: source, encoding: .utf8)
+        XCTAssertNil(str)
+        str = String(cString: source, encoding: .macOSRoman)
+        XCTAssertNotNil(str)
+        source.withUnsafeBufferPointer {
+            XCTAssertEqual(
+                str, String(cString: $0.baseAddress!, encoding: .macOSRoman)
+            )
+        }
+    }
+
+    @available(*, deprecated) // silence the deprecation warning within
+    func test_initString_cStringWithStringInput() {
+        let source = "ab\0c"
+        var str: String?
+        str = String(cString: source, encoding: .utf8)
+        XCTAssertNotNil(str)
+        source.withCString {
+            XCTAssertEqual(str, String(cString: $0, encoding: .utf8))
+        }
+        str = String(cString: source, encoding: .ascii)
+        XCTAssertNotNil(str)
+        source.withCString {
+            XCTAssertEqual(str, String(cString: $0, encoding: .ascii))
+        }
+        str = String(cString: "", encoding: .utf8)
+        XCTAssertNotNil(str)
+        XCTAssertEqual(str?.isEmpty, true)
+        str = String(cString: "Caractères", encoding: .ascii)
+        XCTAssertNil(str)
+    }
+
+    @available(*, deprecated) // silence the deprecation warning within
+    func test_initString_cStringWithInoutConversion() {
+        var c = CChar.zero
+        var str: String?
+        str = String(cString: &c, encoding: .ascii)
+        // Any other value of `c` would violate the null-terminated precondition
+        XCTAssertNotNil(str)
+        XCTAssertEqual(str?.isEmpty, true)
+    }
+
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         var tests = [
             ("test_initData", test_initData),
@@ -1718,6 +1824,12 @@ class TestNSString: LoopbackServerTest {
             ("test_enumerateSubstrings", test_enumerateSubstrings),
             ("test_paragraphRange", test_paragraphRange),
             ("test_initStringWithNSString", test_initStringWithNSString),
+            ("test_initString_utf8StringWithArrayInput", test_initString_utf8StringWithArrayInput),
+            ("test_initString_utf8StringWithStringInput", test_initString_utf8StringWithStringInput),
+            ("test_initString_utf8StringWithInoutConversion", test_initString_utf8StringWithInoutConversion),
+            ("test_initString_cStringWithArrayInput", test_initString_cStringWithArrayInput),
+            ("test_initString_cStringWithStringInput", test_initString_cStringWithStringInput),
+            ("test_initString_cStringWithInoutConversion", test_initString_cStringWithInoutConversion),
         ]
 
 #if !os(Windows)
