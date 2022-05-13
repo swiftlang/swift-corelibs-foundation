@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2022 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -20,7 +20,7 @@
 // This file is shared between two projects:
 //
 // 1. https://github.com/apple/swift/tree/master/stdlib/public/Darwin/Foundation
-// 2. https://github.com/apple/swift-corelibs-foundation/tree/master/Foundation
+// 2. https://github.com/apple/swift-corelibs-foundation/tree/main/Foundation
 //
 // If you change this file, you must update it in both places.
 
@@ -176,7 +176,7 @@ extension String {
     // + (instancetype)stringWithUTF8String:(const char *)bytes
 
     /// Creates a string by copying the data from a given
-    /// C array of UTF8-encoded bytes.
+    /// null-terminated C array of UTF8-encoded bytes.
     public init?(utf8String bytes: UnsafePointer<CChar>) {
         if let str = String(validatingUTF8: bytes) {
             self = str
@@ -187,6 +187,54 @@ extension String {
         } else {
             return nil
         }
+    }
+
+    /// Creates a string by copying the data from a given
+    /// null-terminated array of UTF8-encoded bytes.
+    @_alwaysEmitIntoClient
+    public init?(utf8String bytes: [CChar]) {
+        // the stdlib's validatingUTF8 [CChar] overload checks for null termination.
+        if let str = String(validatingUTF8: bytes) {
+            self = str
+            return
+        }
+        guard let nullPosition = bytes.firstIndex(of: 0) else {
+            fatalError(
+                "input of String.init(utf8String:) must be null-terminated"
+            )
+        }
+        let ns = bytes.withUnsafeBytes {
+            NSString(bytes: $0.baseAddress!,
+                     length: nullPosition,
+                     encoding: Encoding.utf8.rawValue)
+        }
+        guard let ns = ns else {
+            return nil
+        }
+        self = String._unconditionallyBridgeFromObjectiveC(ns)
+    }
+
+    @_alwaysEmitIntoClient
+    @available(*, deprecated, message: "Use a copy of the String argument")
+    public init?(utf8String bytes: String) {
+        var decoded = bytes
+        decoded.makeContiguousUTF8()
+        if let null = decoded.firstIndex(of: "\0") {
+            decoded = String(decoded[..<null])
+        }
+        self = decoded
+    }
+
+    @_alwaysEmitIntoClient
+    @available(*, deprecated, message: "Use String(_ scalar: Unicode.Scalar)")
+    public init?(utf8String bytes: inout CChar) {
+        // a byte interpreted as a buffer is valid only if the value is zero.
+        guard bytes == 0 else {
+            fatalError(
+                "input of String.init(utf8String:) must be null-terminated"
+            )
+        }
+        self = ""
     }
 }
 
@@ -369,21 +417,80 @@ extension String {
     //     initWithCString:(const char *)nullTerminatedCString
     //     encoding:(NSStringEncoding)encoding
 
-    /// Produces a string containing the bytes in a given C array,
-    /// interpreted according to a given encoding.
-    public init?(
-        cString: UnsafePointer<CChar>,
-        encoding enc: Encoding
-        ) {
-        if enc == .utf8, let str = String(validatingUTF8: cString) {
-            self = str
-            return
+    /// Produces a string by copying the null-terminated bytes
+    /// in a given C array, interpreted according to a given encoding.
+    public init?(cString: UnsafePointer<CChar>, encoding enc: Encoding) {
+        if enc == .utf8 || enc == .ascii {
+            if let str = String(validatingUTF8: cString) {
+                if enc == .utf8 || str._guts._isContiguousASCII {
+                    self = str
+                    return
+                }
+            }
         }
         if let ns = NSString(cString: cString, encoding: enc.rawValue) {
             self = String._unconditionallyBridgeFromObjectiveC(ns)
         } else {
             return nil
         }
+    }
+
+    /// Produces a string by copying the null-terminated bytes
+    /// in a given array, interpreted according to a given encoding.
+    @_alwaysEmitIntoClient
+    public init?(cString: [CChar], encoding enc: Encoding) {
+        if enc == .utf8 || enc == .ascii {
+            // the stdlib's validatingUTF8 [CChar] overload checks for null termination.
+            if let str = String(validatingUTF8: cString) {
+                if enc == .utf8 || str._guts._isContiguousASCII {
+                    self = str
+                    return
+                }
+            }
+        }
+        guard let nullPosition = cString.firstIndex(of: 0) else {
+            fatalError(
+                "input of String.init(cString:encoding:) must be null-terminated"
+            )
+        }
+        let ns = cString.withUnsafeBytes {
+            NSString(bytes: $0.baseAddress!,
+                     length: nullPosition,
+                     encoding: enc.rawValue)
+        }
+        guard let ns = ns else {
+            return nil
+        }
+        self = String._unconditionallyBridgeFromObjectiveC(ns)
+    }
+
+    @_alwaysEmitIntoClient
+    @available(*, deprecated, message: "Use a copy of the String argument")
+    public init?(cString: String, encoding enc: Encoding) {
+        if enc == .utf8 || enc == .ascii {
+            var decoded = cString
+            decoded.makeContiguousUTF8()
+            if let null = decoded.firstIndex(of: "\0") {
+                decoded = String(decoded[..<null])
+            }
+            if enc == .utf8 || decoded.utf8.allSatisfy({ $0 < 128 }) {
+                self = decoded
+                return
+            }
+        }
+        return nil
+    }
+
+    @_alwaysEmitIntoClient
+    @available(*, deprecated, message: "Use String(_ scalar: Unicode.Scalar)")
+    public init?(cString: inout CChar, encoding enc: Encoding) {
+        // a byte interpreted as a buffer is valid only if the value is zero.
+        guard cString == 0 else {
+            fatalError(
+                "input of String.init(cString:encoding:) must be null-terminated"
+            )
+        }
+        self = ""
     }
 
     // FIXME: handle optional locale with default arguments
@@ -463,7 +570,7 @@ extension String {
     }
 }
 
-extension StringProtocol where Index == String.Index {
+extension StringProtocol {
     //===--- Bridging Helpers -----------------------------------------------===//
     //===--------------------------------------------------------------------===//
 
