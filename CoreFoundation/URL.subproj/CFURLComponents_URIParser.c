@@ -9,6 +9,10 @@
 #include "CFURLComponents_Internal.h"
 #include "CFInternal.h"
 
+#if TARGET_OS_WIN32
+#define bzero(dst, size)    ZeroMemory(dst, size)
+#endif
+
 typedef CF_ENUM(CFIndex, URLPredefinedCharacterSet) {
     kURLUserAllowedCharacterSet     = 0,
     kURLPasswordAllowedCharacterSet = 1,
