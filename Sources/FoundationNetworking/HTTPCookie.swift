@@ -13,7 +13,9 @@ import SwiftFoundation
 import Foundation
 #endif
 
-#if os(Windows)
+#if canImport(Glibc)
+import Glibc
+#elseif os(Windows)
 import WinSDK
 #endif
 
