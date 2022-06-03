@@ -20,7 +20,7 @@
 
 #define DEPLOYMENT_RUNTIME_SWIFT 1
 
-#if !defined(CF_EXCLUDE_CSTD_HEADERS)
+#if defined(CF_BUILDING_CF)
 
 #include <sys/types.h>
 #include <stdarg.h>
