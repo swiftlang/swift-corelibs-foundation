@@ -391,26 +391,28 @@ open class Thread : NSObject {
         return backtraceAddresses { (addresses, count) in
           var symbols: [String] = []
 
-          let buffer: UnsafeMutablePointer<UInt8> =
-              .allocate(capacity: MemoryLayout<SYMBOL_INFO>.size + 128)
-          defer { buffer.deallocate() }
-
-          let pSymbolInfo =
-              UnsafeMutableRawPointer(buffer).assumingMemoryBound(to: SYMBOL_INFO.self)
-          pSymbolInfo.pointee.SizeOfStruct = ULONG(MemoryLayout<SYMBOL_INFO>.size)
-          pSymbolInfo.pointee.MaxNameLen = 128
-
           let addresses: UnsafeMutableBufferPointer<PVOID?> =
               UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
-          for address in addresses {
-            var dwDisplacement: DWORD64 = 0
-            if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
-                           &dwDisplacement, pSymbolInfo) {
-              withUnsafePointer(to: pSymbolInfo.pointee.Name) {
-                symbols.append(String(cString: $0))
+          withUnsafeTemporaryAllocation(byteCount: MemoryLayout<SYMBOL_INFO>.size + 127,
+                                        alignment: 8) { buffer in
+            let pSymbolInfo: UnsafeMutablePointer<SYMBOL_INFO> =
+                buffer.baseAddress!.assumingMemoryBound(to: SYMBOL_INFO.self)
+
+            for address in addresses {
+              pSymbolInfo.pointe.SizeOfStruct =
+                    ULONG(MemoryLayout<SYMBOL_INFO>.size)
+              pSymbolInfo.pointee.MaxNameLen = 128
+
+              var dwDisplacement: DWORD64 = 0
+              if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
+                             &dwDisplacement, &pSymbolInfo.pointee) {
+                symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
+                  strncpy($0.baseAddress, &pSymbolInfo.pointee.Name, $0.count)
+                  return $0.count
+                })
+              } else {
+                symbols.append("\(address)")
               }
-            } else {
-              symbols.append("\(pSymbolInfo.pointee)")
             }
           }
 
