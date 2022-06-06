@@ -391,26 +391,31 @@ open class Thread : NSObject {
         return backtraceAddresses { (addresses, count) in
           var symbols: [String] = []
 
-          var buffer: UnsafeMutablePointer<Int8> =
-              UnsafeMutablePointer<Int8>
-                  .allocate(capacity: MemoryLayout<SYMBOL_INFO>.size + 128)
-          defer { buffer.deallocate() }
+          let addresses: UnsafeMutableBufferPointer<PVOID?> =
+              UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
+          withUnsafeTemporaryAllocation(byteCount: MemoryLayout<SYMBOL_INFO>.size + 127,
+                                        alignment: 8) { buffer in
+            let pSymbolInfo: UnsafeMutablePointer<SYMBOL_INFO> =
+                buffer.baseAddress!.assumingMemoryBound(to: SYMBOL_INFO.self)
 
-          buffer.withMemoryRebound(to: SYMBOL_INFO.self, capacity: 1) {
-            $0.pointee.SizeOfStruct = ULONG(MemoryLayout<SYMBOL_INFO>.size)
-            $0.pointee.MaxNameLen = 128
+            for address in addresses {
+              pSymbolInfo.pointe.SizeOfStruct =
+                    ULONG(MemoryLayout<SYMBOL_INFO>.size)
+              pSymbolInfo.pointee.MaxNameLen = 128
 
-            var address = addresses
-            for _ in 1...count {
               var dwDisplacement: DWORD64 = 0
-              if !SymFromAddr(hProcess, unsafeBitCast(address.pointee, to: DWORD64.self), &dwDisplacement, $0) {
-                symbols.append("\($0.pointee)")
+              if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
+                             &dwDisplacement, &pSymbolInfo.pointee) {
+                symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
+                  strncpy($0.baseAddress, &pSymbolInfo.pointee.Name, $0.count)
+                  return $0.count
+                })
               } else {
-                symbols.append(String(cString: &$0.pointee.Name))
+                symbols.append("\(address)")
               }
-              address = address.successor()
             }
           }
+
           return symbols
         }
 #else
