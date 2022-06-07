@@ -399,7 +399,7 @@ open class Thread : NSObject {
                 buffer.baseAddress!.assumingMemoryBound(to: SYMBOL_INFO.self)
 
             for address in addresses {
-              pSymbolInfo.pointe.SizeOfStruct =
+              pSymbolInfo.pointee.SizeOfStruct =
                     ULONG(MemoryLayout<SYMBOL_INFO>.size)
               pSymbolInfo.pointee.MaxNameLen = 128
 
