@@ -656,6 +656,66 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_encodeDecodeNumericTypesBaseline() throws {
+        struct NumericTypesStruct: Codable, Equatable {
+            let int8Value: Int8
+            let uint8Value: UInt8
+            let int16Value: Int16
+            let uint16Value: UInt16
+            let int32Value: Int32
+            let uint32Value: UInt32
+            let int64Value: Int64
+            let intValue: Int
+            let uintValue: UInt
+            let uint64Value: UInt64
+            let floatValue: Float
+            let doubleValue: Double
+            let decimalValue: Decimal
+        }
+
+        let source = NumericTypesStruct(
+            int8Value: -12,
+            uint8Value: 34,
+            int16Value: -5678, 
+            uint16Value: 9011,
+            int32Value: -12141516,
+            uint32Value: 17181920,
+            int64Value: -21222324252627,
+            intValue: -2829303132,
+            uintValue: 33343536,
+            uint64Value: 373839404142,
+            floatValue: 1.234,
+            doubleValue: 5.101520,
+            decimalValue: Decimal(10))
+
+        let data = try JSONEncoder().encode(source)
+        let destination = try JSONDecoder().decode(NumericTypesStruct.self, from: data)
+        XCTAssertEqual(source, destination)
+
+        // Ensure that if a value is expressed as a floating point number, it casts correctly into the underlying type.
+
+        let json = """
+        {
+            "int8Value": -12.0,
+            "uint8Value": 34.0,
+            "int16Value": -5678.0, 
+            "uint16Value": 9011.0,
+            "int32Value": -12141516.0,
+            "uint32Value": 17181920.0,
+            "int64Value": -21222324252627.0,
+            "intValue": -2829303132.0,
+            "uintValue": 33343536.0,
+            "uint64Value": 373839404142.0,
+            "floatValue": 1.234,
+            "doubleValue": 5.101520,
+            "decimalValue": 10.0
+        }
+        """
+
+        let destination2 = try JSONDecoder().decode(NumericTypesStruct.self, from: Data(json.utf8))
+        XCTAssertEqual(source, destination2)
+    }
+
     func test_numericLimits() {
         struct DataStruct: Codable {
             let int8Value: Int8?
@@ -1479,6 +1539,7 @@ extension TestJSONEncoder {
             ("test_encodingCustomDataEmpty", test_encodingCustomDataEmpty),
             ("test_encodingNonConformingFloats", test_encodingNonConformingFloats),
             ("test_encodingNonConformingFloatStrings", test_encodingNonConformingFloatStrings),
+            ("test_encodeDecodeNumericTypesBaseline", test_encodeDecodeNumericTypesBaseline),
             ("test_nestedContainerCodingPaths", test_nestedContainerCodingPaths),
             ("test_superEncoderCodingPaths", test_superEncoderCodingPaths),
             ("test_codingOfBool", test_codingOfBool),
