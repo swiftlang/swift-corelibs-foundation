@@ -454,30 +454,30 @@ extension JSONDecoderImpl: Decoder {
                 return nsNumber.uint8Value as! T
             }
             if type == Int8.self, NSNumber(value: nsNumber.int8Value) == nsNumber {
-                return nsNumber.uint8Value as! T
+                return nsNumber.int8Value as! T
             }
             if type == UInt16.self, NSNumber(value: nsNumber.uint16Value) == nsNumber {
                 return nsNumber.uint16Value as! T
             }
             if type == Int16.self, NSNumber(value: nsNumber.int16Value) == nsNumber {
-                return nsNumber.uint16Value as! T
+                return nsNumber.int16Value as! T
             }
             if type == UInt32.self, NSNumber(value: nsNumber.uint32Value) == nsNumber {
                 return nsNumber.uint32Value as! T
             }
             if type == Int32.self, NSNumber(value: nsNumber.int32Value) == nsNumber {
-                return nsNumber.uint32Value as! T
+                return nsNumber.int32Value as! T
             }
             if type == UInt64.self, NSNumber(value: nsNumber.uint64Value) == nsNumber {
                 return nsNumber.uint64Value as! T
             }
             if type == Int64.self, NSNumber(value: nsNumber.int64Value) == nsNumber {
-                return nsNumber.uint64Value as! T
+                return nsNumber.int64Value as! T
             }
             if type == UInt.self, NSNumber(value: nsNumber.uintValue) == nsNumber {
                 return nsNumber.uintValue as! T
             }
-            if type == Int.self, NSNumber(value: nsNumber.uintValue) == nsNumber {
+            if type == Int.self, NSNumber(value: nsNumber.intValue) == nsNumber {
                 return nsNumber.intValue as! T
             }
         }
