@@ -2071,7 +2071,7 @@ extension Range where Bound == String.Index {
     }
 }
 
-internal func __equalAttributes(_ lhs: Any?, _ rhs: Any?) ->Bool {
+internal func __equalAttributes(_ lhs: Any?, _ rhs: Any?) -> Bool {
     switch (lhs, rhs) {
     case (.none, .none):
         return true
