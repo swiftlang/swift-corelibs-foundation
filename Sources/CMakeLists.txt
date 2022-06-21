@@ -2,4 +2,7 @@ add_subdirectory(UUID)
 add_subdirectory(Foundation)
 add_subdirectory(FoundationNetworking)
 add_subdirectory(FoundationXML)
-add_subdirectory(Tools)
+
+if(BUILD_TOOLS)
+  add_subdirectory(Tools)
+endif()
