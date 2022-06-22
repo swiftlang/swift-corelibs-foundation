@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Dispatch
+
 class TestProcess : XCTestCase {
     
     func test_exit0() throws {
@@ -697,6 +699,53 @@ class TestProcess : XCTestCase {
             let code = CocoaError.Code(rawValue: (error as? NSError)!.code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
+    }
+
+    func test_currentDirectoryDoesNotChdirParentProcess() throws {
+        // This test only behaves correctly on Linux and Windows: other platforms don't have an
+        // appropriate API for this in posix_spawn or similar.
+        #if os(Linux) || os(Windows)
+        let backgroundQueue = DispatchQueue(label: "background-processor")
+        let group = DispatchGroup()
+        let startSemaphore = DispatchSemaphore()
+        let currentWorkingDirectory = FileManager.shared.currentDirectoryPath
+        var shouldRun = true
+        let shouldRunLock = Lock()
+
+        XCTAssertNotEqual(currentWorkingDirectory, "/")
+
+        // Kick off the background task. This will spin on our current working directory and confirm
+        // it doesn't change.
+        backgroundQueue.async(group: group) {
+            startSemaphore.signal()
+
+            while true {
+                let newCWD = FileManager.shared.currentDirectoryPath
+                XCTAssertEqual(newCWD, currentWorkingDirectory)
+
+                shouldRunLock.lock()
+                if shouldRun {
+                    shouldRunLock.unlock()
+                } else {
+                    shouldRunLock.unlock()
+                    break
+                }
+            }
+        }
+
+        startSemaphore.wait()
+
+        // We run the task 50 times just to try to encourage it to fail.
+        for _ in 0..<50 {
+            XCTAssertNoThrow(try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/"))
+        }
+
+        shouldRunLock.lock()
+        shouldRun = false
+        shouldRunLock.unlock()
+
+        group.wait()
+        #endif
     }
 
     #if !os(Windows)
