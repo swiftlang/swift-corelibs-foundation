@@ -28,6 +28,13 @@ public struct Date : ReferenceConvertible, Comparable, Equatable {
     }
     
     /// Returns a `Date` initialized to the current date and time.
+    public static var now: Date {
+        get {
+            init()
+        }
+    }
+    
+    /// Returns a `Date` initialized to the current date and time.
     public init() {
         _time = CFAbsoluteTimeGetCurrent()
     }
