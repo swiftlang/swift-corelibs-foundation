@@ -112,6 +112,12 @@ typedef struct {
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
     mach_port_t	(*getPort)(void *info);
     void *	(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info);
+#elif TARGET_OS_LINUX
+    int     (*getPort)(void *info);
+    void	(*perform)(void *info);
+#elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
+    HANDLE	(*getPort)(void *info);
+    void	(*perform)(void *info);
 #else
     void *	(*getPort)(void *info);
     void	(*perform)(void *info);

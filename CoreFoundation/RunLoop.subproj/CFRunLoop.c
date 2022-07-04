@@ -408,7 +408,7 @@ static kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
 }
 
 #elif TARGET_OS_LINUX
-// eventfd/timerfd descriptor
+// any file descriptor
 typedef int __CFPort;
 #define CFPORT_NULL -1
 #define MACH_PORT_NULL CFPORT_NULL
@@ -433,8 +433,7 @@ CF_INLINE kern_return_t __CFPortSetInsert(__CFPort port, __CFPortSet portSet) {
     if (CFPORT_NULL == port) {
         return -1;
     }
-    struct epoll_event event;
-    memset(&event, 0, sizeof(event));
+    struct epoll_event event = {0};
     event.data.fd = port;
     event.events = EPOLLIN|EPOLLET;
     
@@ -776,6 +775,34 @@ static kern_return_t mk_timer_cancel(int timer, const void *unused) {
 
 CF_INLINE int64_t __CFUInt64ToAbsoluteTime(int64_t x) {
     return x;
+}
+
+CF_INLINE int __CFWriteTrivialFileDescriptorValue(__CFPort fileDescriptor, eventfd_t value) {
+    int ret;
+    do {
+        ret = eventfd_write(fileDescriptor, value);
+    } while (ret == -1 && errno == EINTR);
+    return ret;
+}
+
+CF_INLINE Boolean __CFReadTrivialFileDescriptorValueAndDiscard(__CFPort fileDescriptor) {
+    // Now we acknowledge the wakeup. awokenFd is an eventfd (or possibly a
+    // timerfd ?). In either case, we read an 8-byte integer, as per eventfd(2)
+    // and timerfd_create(2).
+    uint64_t value;
+    ssize_t result;
+    do {
+        result = read(fileDescriptor, &value, sizeof(value));
+    } while (result == -1 && errno == EINTR);
+    
+    if (result == -1 && errno == EAGAIN) {
+        // Another thread stole the wakeup for this fd. (FIXME Can this actually happen?)
+        return false;
+    }
+
+    CFAssert2(result == sizeof(value), __kCFLogAssertion, "%s(): error %d from read(2) while acknowledging wakeup", __PRETTY_FUNCTION__, errno);
+
+    return true;
 }
 
 #elif TARGET_OS_WIN32
@@ -2805,30 +2832,43 @@ static int __CFPollFileDescriptors(struct pollfd *fds, nfds_t nfds, uint64_t tim
     }
 }
 
-// pass in either a portSet or onePort. portSet is an epollfd, onePort is either a timerfd or an eventfd.
-// TODO: Better error handling. What should happen if we get an error on a file descriptor?
-static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort onePort, uint64_t timeout, int *livePort) {
-    struct pollfd fdInfo = {
-        .fd = (onePort == CFPORT_NULL) ? portSet : onePort,
-        .events = POLLIN
-    };
-    
-    ssize_t result = __CFPollFileDescriptors(&fdInfo, 1, timeout);
-    if (result == 0)
-        return false;
-    
-    CFAssert2(result != -1, __kCFLogAssertion, "%s(): error %d from ppoll", __PRETTY_FUNCTION__, errno);
-    
+/// Invokes native OS wait primitive on either portSet or onePort. If both are provided the portSet is ignored and wait is performed only on onePort.
+/// The code will perform ppoll wait on onePort or epoll_wait on portSet. If the resulting awoken file descriptor is one of the following, this function performs "acknowledgement" of port wakeup:
+/// - wake up port of Run Loop itself
+/// - timer port of Run Loop itself
+/// - libdispatch port notifying Run Loop that main queue needs servicing
+/// This filtering is needed to unblock processing of custom run loop sources from client code. For each of those three ports owned by CoreFoundation "acknowledgement" means reading 8-byte integer from the file descriptor itself. For custom run loop sources of clients this operation must be berformed only by client code as part of source callout.
+/// TODO: Better error handling. What should happen if we get an error on a file descriptor?
+/// @param portSet File descriptor that represents epollfd. Passing anything else is undefined behavior, but might work if it is supported by epoll_wait
+/// @param onePort Any POSIX file descriptor that can be polled via ppoll. This includes timerfd and eventfd
+/// @param timeout Timeout to be passed to ppoll or epoll_wait
+/// @param livePort Output variable which is populated with file descriptor that generated an event and "woke up" the run loop
+/// @param rl Run Loop that initiated polling on given port or portset
+/// @param rlm Run Loop Mode in which the Run Loop `rl` is currently running
+/// @param dispatchPort File descriptor returned by _dispatch_get_main_queue_port_4CF from libdispatch. Used to filter out file descriptors "owned" by CFRunLoop 
+/// @return Boolean indicating that polling operation resulted in some event on the portSet or onePort
+static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort onePort, uint64_t timeout, int *livePort, CFRunLoopRef rl, CFRunLoopModeRef rlm, __CFPort dispatchPort) {
+    ssize_t result;
     int awokenFd;
     
     if (onePort != CFPORT_NULL) {
+        struct pollfd fdInfo = {
+            .fd = onePort,
+            .events = POLLIN
+        };
+        
+        result = __CFPollFileDescriptors(&fdInfo, 1, timeout);
+        if (result == 0)
+            return false;
+        
+        CFAssert2(result != -1, __kCFLogAssertion, "%s(): error %d from ppoll", __PRETTY_FUNCTION__, errno);
+
         CFAssert1(0 == (fdInfo.revents & (POLLERR|POLLHUP)), __kCFLogAssertion, "%s(): ppoll reported error for fd", __PRETTY_FUNCTION__);
         awokenFd = onePort;
-        
     } else {
         struct epoll_event event;
         do {
-            result = epoll_wait(portSet, &event, 1 /*numEvents*/, 0 /*timeout*/);
+            result = epoll_wait(portSet, &event, 1 /*numEvents*/, timeout /*timeout*/);
         } while (result == -1 && errno == EINTR);
         CFAssert2(result >= 0, __kCFLogAssertion, "%s(): error %d from epoll_wait", __PRETTY_FUNCTION__, errno);
         
@@ -2839,21 +2879,13 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort o
         awokenFd = event.data.fd;
     }
     
-    // Now we acknowledge the wakeup. awokenFd is an eventfd (or possibly a
-    // timerfd ?). In either case, we read an 8-byte integer, as per eventfd(2)
-    // and timerfd_create(2).
-    uint64_t value;
-    do {
-        result = read(awokenFd, &value, sizeof(value));
-    } while (result == -1 && errno == EINTR);
-    
-    if (result == -1 && errno == EAGAIN) {
-        // Another thread stole the wakeup for this fd. (FIXME Can this actually
-        // happen?)
-        return false;
+    if (awokenFd == rl->_wakeUpPort 
+        || (rlm->_timerPort != MACH_PORT_NULL && awokenFd == rlm->_timerPort)
+        || (dispatchPort != MACH_PORT_NULL && awokenFd == dispatchPort)) {
+        if (!__CFReadTrivialFileDescriptorValueAndDiscard(awokenFd)) {
+            return false;
+        }
     }
-    
-    CFAssert2(result == sizeof(value), __kCFLogAssertion, "%s(): error %d from read(2) while acknowledging wakeup", __PRETTY_FUNCTION__, errno);
     
     if (livePort)
         *livePort = awokenFd;
@@ -3027,7 +3059,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
                 goto handle_msg;
             }
 #elif TARGET_OS_LINUX && !TARGET_OS_CYGWIN
-            if (__CFRunLoopServiceFileDescriptors(CFPORTSET_NULL, dispatchPort, 0, &livePort)) {
+            if (__CFRunLoopServiceFileDescriptors(CFPORTSET_NULL, dispatchPort, 0, &livePort, rl, rlm, dispatchPort)) {
                 goto handle_msg;
             }
 #elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
@@ -3094,7 +3126,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         // Here, use the app-supplied message queue mask. They will set this if they are interested in having this run loop receive windows messages.
         __CFRunLoopWaitForMultipleObjects(waitSet, NULL, poll ? 0 : TIMEOUT_INFINITY, rlm->_msgQMask, &livePort, &windowsMessageReceived);
 #elif TARGET_OS_LINUX
-        __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, poll ? 0 : TIMEOUT_INFINITY, &livePort);
+        __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, poll ? 0 : TIMEOUT_INFINITY, &livePort, rl, rlm, dispatchPort);
 #elif TARGET_OS_BSD
         __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, poll ? 0 : TIMEOUT_INFINITY, &livePort);
 #else
@@ -3399,9 +3431,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
     if (ret != MACH_MSG_SUCCESS && ret != MACH_SEND_TIMED_OUT) CRASH("*** Unable to send message to wake up port. (%x) ***", ret);
 #elif TARGET_OS_LINUX && !TARGET_OS_CYGWIN
     int ret;
-    do {
-        ret = eventfd_write(rl->_wakeUpPort, 1);
-    } while (ret == -1 && errno == EINTR);
+    ret = __CFWriteTrivialFileDescriptorValue(rl->_wakeUpPort, 1);
     
     CFAssert1(0 == ret, __kCFLogAssertion, "%s(): Unable to send wake message to eventfd", __PRETTY_FUNCTION__);
 #elif TARGET_OS_WIN32
