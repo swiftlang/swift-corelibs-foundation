@@ -90,6 +90,7 @@ target_sources(TestFoundation PRIVATE
   Tests/TestRunLoop.swift
   Tests/TestScanner.swift
   Tests/TestSocketPort.swift
+  Tests/TestCFFileDescriptor.swift
   Tests/TestStream.swift
   Tests/TestThread.swift
   Tests/TestTimer.swift

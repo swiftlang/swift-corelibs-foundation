@@ -81,6 +81,7 @@ var allTestCases = [
     testCase(TestScanner.allTests),
     testCase(TestNSSet.allTests),
     testCase(TestSocketPort.allTests),
+    testCase(TestCFFileDescriptor.allTests),
     testCase(TestStream.allTests),
     testCase(TestNSString.allTests),
     testCase(TestThread.allTests),

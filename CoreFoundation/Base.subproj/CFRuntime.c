@@ -237,7 +237,9 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
     [_kCFRuntimeIDCFMachPort] = &__CFMachPortClass,
 #endif
 
-
+#if TARGET_OS_LINUX
+    [_kCFRuntimeIDCFFileDescriptor] = &__CFFileDescriptorClass,
+#endif
 
     [_kCFRuntimeIDCFRunLoopMode] = &__CFRunLoopModeClass,
     [_kCFRuntimeIDCFRunLoop] = &__CFRunLoopClass,

@@ -179,6 +179,9 @@ CF_PRIVATE const CFRuntimeClass __CFDateComponentsClass;
 CF_PRIVATE const CFRuntimeClass __CFRelativeDateTimeFormatterClass;
 CF_PRIVATE const CFRuntimeClass __CFListFormatterClass;
 CF_PRIVATE const CFRuntimeClass __CFDateIntervalFormatterClass;
+#if TARGET_OS_LINUX
+CF_PRIVATE const CFRuntimeClass __CFFileDescriptorClass;
+#endif
 
 #pragma mark - Private initialiers to run at process start time
 

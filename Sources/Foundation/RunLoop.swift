@@ -40,7 +40,7 @@ extension RunLoop.Mode {
     public static let common: RunLoop.Mode = RunLoop.Mode("kCFRunLoopCommonModes")
     
     // Use this instead of .rawValue._cfObject; this will allow CFRunLoop to use pointer equality internally.
-    fileprivate var _cfStringUniquingKnown: CFString {
+    internal var _cfStringUniquingKnown: CFString {
         if self == .default {
             return kCFRunLoopDefaultMode
         } else if self == .common {

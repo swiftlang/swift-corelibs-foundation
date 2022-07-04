@@ -256,6 +256,7 @@ add_framework(CoreFoundation
                 Preferences.subproj/CFPreferences.h
                 # RunLoop
                 RunLoop.subproj/CFMachPort.h
+                RunLoop.subproj/CFFileDescriptor.h
                 RunLoop.subproj/CFMessagePort.h
                 RunLoop.subproj/CFRunLoop.h
                 RunLoop.subproj/CFSocket.h
@@ -339,6 +340,7 @@ add_framework(CoreFoundation
                 # RunLoop
                 # TODO(compnerd) make this empty on non-Mach targets
                 # RunLoop.subproj/CFMachPort.c
+                RunLoop.subproj/CFFileDescriptor.c
                 # RunLoop.subproj/CFMachPort_Lifetime.c
                 # RunLoop.subproj/CFMessagePort.c
                 RunLoop.subproj/CFRunLoop.c

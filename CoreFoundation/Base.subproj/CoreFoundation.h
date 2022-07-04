@@ -89,6 +89,10 @@
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
 #endif
 
+#if TARGET_OS_LINUX
+#include <CoreFoundation/CFFileDescriptor.h>
+#endif
+
 #include <CoreFoundation/CFUserNotification.h>
 
 #if !DEPLOYMENT_RUNTIME_SWIFT

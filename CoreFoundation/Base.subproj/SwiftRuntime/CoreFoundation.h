@@ -95,6 +95,7 @@
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFMachPort.h>
+#include <CoreFoundation/CFFileDescriptor.h>
 #endif
 
 #include <CoreFoundation/CFAttributedString.h>
