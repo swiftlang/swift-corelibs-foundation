@@ -459,7 +459,7 @@ class TestDateFormatter: XCTestCase {
             let parsed = formatter.date(from: "令和1年5月1日 23:10")
             XCTAssertEqual(parsed?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
             
-            // Test for 元年(Gannen) representaion of 1st year
+            // Test for 元年(Gannen) representation of 1st year
             let parsedAlt = formatter.date(from: "令和元年5月1日 23:10")
             XCTAssertEqual(parsedAlt?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
 

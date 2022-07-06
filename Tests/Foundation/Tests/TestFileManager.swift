@@ -1505,7 +1505,7 @@ VIDEOS=StopgapVideos
 
         // Some of these tests will throw an NSException on Darwin which would be normally be
         // modelled by a fatalError() or other hard failure, however since most of these functions
-        // are thorwable, an NSError is thrown instead which is more useful.
+        // are throwable, an NSError is thrown instead which is more useful.
         let fm = FileManager.default
 
         XCTAssertNil(fm.homeDirectory(forUser: ""))

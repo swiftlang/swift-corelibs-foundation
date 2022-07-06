@@ -155,7 +155,7 @@ class TestURLProtectionSpace : XCTestCase {
         XCTAssertEqual(param1_1_3.name, "other")
         XCTAssertEqual(param1_1_3.value, "be2e96ad8ab8acb7ccfb49bc7e162914")
         
-        // Several chalenges, but only two of them should be valid
+        // Several challenges, but only two of them should be valid
         let challenges2 = _HTTPURLProtocol._HTTPMessage._Challenge.challenges(from: "Digest realm=\"Unsupported\", Basic, basic realm =    \"First \\\" realm\", Basic realm=\"Second realm\"")
         XCTAssertEqual(challenges2.count, 2, "String contains 2 valid challenges")
         let challenge2_1 = try XCTUnwrap(challenges2.first)

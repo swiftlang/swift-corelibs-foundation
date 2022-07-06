@@ -59,7 +59,7 @@ extension AttributeScopes.TestAttributes {
     
     enum TestForegroundColorAttribute: CodableAttributedStringKey, MarkdownDecodableAttributedStringKey {
         typealias Value = Color
-        static let name = "ForgroundColor"
+        static let name = "ForegroundColor"
     }
     
     enum TestBackgroundColorAttribute: CodableAttributedStringKey, MarkdownDecodableAttributedStringKey {
