@@ -995,14 +995,6 @@ extension POSIXErrorCode: _ErrorCodeProtocol {
     public typealias _ErrorType = POSIXError
 }
 
-#if os(Windows)
-extension POSIXErrorCode {
-  public static var ECANCELED: POSIXErrorCode {
-      return POSIXError.Code(rawValue: WinSDK.ECANCELED)!
-  }
-}
-#endif
-
 extension POSIXError {
     /// Operation not permitted.
     public static var EPERM: POSIXError.Code { return .EPERM }
@@ -1322,7 +1314,13 @@ extension POSIXError {
     #endif
 
     /// Operation canceled.
-    public static var ECANCELED: POSIXError.Code { return .ECANCELED }
+    public static var ECANCELED: POSIXError.Code {
+#if os(Windows)
+        return POSIXError.Code(rawValue: ERROR_CANCELLED)!
+#else
+        return .ECANCELED
+#endif
+    }
 
     #if !os(Windows)
     /// Identifier removed.
