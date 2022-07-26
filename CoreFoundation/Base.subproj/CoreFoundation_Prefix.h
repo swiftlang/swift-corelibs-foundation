@@ -448,7 +448,7 @@ CF_INLINE int popcountll(long long x) {
 #define CF_TEST_PRIVATE CF_PRIVATE
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_WIN32 || (TARGET_OS_LINUX && !defined(_GNU_SOURCE))
 
 #include <stdarg.h>
 

@@ -1510,7 +1510,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
 #pragma mark -
 #pragma mark Windows and Linux Helpers
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || (TARGET_OS_LINUX && !defined(_GNU_SOURCE))
 
 #include <stdio.h>
 
