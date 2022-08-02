@@ -67,6 +67,8 @@ typedef mach_port_t dispatch_runloop_handle_t;
 typedef int dispatch_runloop_handle_t;
 #elif TARGET_OS_WIN32
 typedef HANDLE dispatch_runloop_handle_t;
+#else
+typedef uint64_t dispatch_runloop_handle_t;
 #endif
 
 #endif
@@ -110,9 +112,12 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void * _Null_unspecified)
 dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
 extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 
+#else
+dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
+extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 #endif
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
 #endif
@@ -164,6 +169,8 @@ typedef int kern_return_t;
 #else
 
 static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
+typedef int kern_return_t;
+#define KERN_SUCCESS 0
 #define pthreadPointer(a) a
 #define lockCount(a) a
 #endif
@@ -447,6 +454,269 @@ CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
 CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
     close(portSet);
 }
+#elif TARGET_OS_BSD
+
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#include <poll.h>
+
+typedef uint64_t __CFPort;
+#define CFPORT_NULL ((__CFPort)-1)
+
+// _dispatch_get_main_queue_port_4CF is a uint64_t, i.e., a __CFPort.
+// That is, we can't use one type for the queue handle in Dispatch and a
+// different type for __CFPort in CF.
+#define __CFPORT_PACK(rfd, wfd) (((uint64_t)(rfd) << 32) | ((uint32_t)(wfd)))
+#define __CFPORT_UNPACK_W(port) ((uint32_t)((port) & 0xffffffff))
+#define __CFPORT_UNPACK_R(port) ((uint32_t)((port) >> 32))
+
+typedef struct ___CFPortSet {
+    int kq;
+} *__CFPortSet;
+#define CFPORTSET_NULL NULL
+
+#define TIMEOUT_INFINITY UINT64_MAX
+
+// Timers are not pipes; they are kevents on a parent kqueue.
+// We must flag these to differentiate them from pipes, but we have
+// to pack the (kqueue, timer ident) pair like a __CFPort.
+#define __CFPORT_TIMER_PACK(ident, kq) \
+    ((1ULL << 63) | ((uint64_t)(ident) << 32) | ((uint32_t)(kq)))
+#define __CFPORT_IS_TIMER(port) ((port) & (1ULL << 63))
+
+static __CFPort __CFPortAllocate(__unused uintptr_t guard) {
+    __CFPort port;
+    int fds[2];
+    int r = pipe2(fds, O_CLOEXEC | O_NONBLOCK);
+    if (r == -1) {
+        return CFPORT_NULL;
+    }
+
+    uint32_t rfd = (uint32_t)fds[0], wfd = (uint32_t)fds[1];
+    port = __CFPORT_PACK(rfd, wfd);
+
+    if (__CFPORT_IS_TIMER(port)) {
+      // This port is not distinguishable from a flagged packed timer.
+      close((int)(__CFPORT_UNPACK_W(port)));
+      close((int)(__CFPORT_UNPACK_R(port)));
+      return CFPORT_NULL;
+    }
+
+    return port;
+}
+
+static void __CFPortTrigger(__CFPort port) {
+    int wfd = (int)__CFPORT_UNPACK_W(port);
+    ssize_t result;
+    do {
+        result = write(wfd, "x", 1);
+    } while (result == -1 && errno == EINTR);
+}
+
+CF_INLINE void __CFPortFree(__CFPort port, __unused uintptr_t guard) {
+    close((int)(__CFPORT_UNPACK_W(port)));
+    close((int)(__CFPORT_UNPACK_R(port)));
+}
+
+#define __CFPORT_TIMER_UNPACK_ID(port) (((port) >> 32) & 0x7fffffff)
+#define __CFPORT_TIMER_UNPACK_KQ(port) ((port) & 0xffffffff)
+#define MAX_TIMERS 16
+uintptr_t ident = 0;
+
+static __CFPort mk_timer_create(__CFPortSet parent) {
+    if (ident > MAX_TIMERS) return CFPORT_NULL;
+    ident++;
+
+    int kq = parent->kq;
+    __CFPort port = __CFPORT_TIMER_PACK(ident, kq);
+
+    return port;
+}
+
+static kern_return_t mk_timer_arm(__CFPort timer, int64_t expire_tsr) {
+    uint64_t now = mach_absolute_time();
+    uint64_t expire_time = __CFTSRToNanoseconds(expire_tsr);
+    int64_t duration = 0;
+    if (now <= expire_time) {
+        duration = __CFTSRToTimeInterval(expire_time - now) * 1000;
+    }
+
+    int id = __CFPORT_TIMER_UNPACK_ID(timer);
+    struct kevent tev;
+    EV_SET(
+        &tev,
+        id,
+        EVFILT_TIMER,
+        EV_ADD | EV_ENABLE,
+        0,
+        duration,
+        (void *)timer);
+
+    int kq = __CFPORT_TIMER_UNPACK_KQ(timer);
+    int r = kevent(kq, &tev, 1, NULL, 0, NULL);
+
+    return KERN_SUCCESS;
+}
+
+static kern_return_t mk_timer_cancel(__CFPort timer, const void *unused) {
+    int id = __CFPORT_TIMER_UNPACK_ID(timer);
+    struct kevent tev;
+    EV_SET(
+        &tev,
+        id,
+        EVFILT_TIMER,
+        EV_DISABLE,
+        0,
+        0,
+        (void *)timer);
+
+    int kq = __CFPORT_TIMER_UNPACK_KQ(timer);
+    int r = kevent(kq, &tev, 1, NULL, 0, NULL);
+
+    return KERN_SUCCESS;
+}
+
+static kern_return_t mk_timer_destroy(__CFPort timer) {
+    int id = __CFPORT_TIMER_UNPACK_ID(timer);
+    struct kevent tev;
+    EV_SET(
+        &tev,
+        id,
+        EVFILT_TIMER,
+        EV_DELETE,
+        0,
+        0,
+        (void *)timer);
+
+    int kq = __CFPORT_TIMER_UNPACK_KQ(timer);
+    int r = kevent(kq, &tev, 1, NULL, 0, NULL);
+
+    ident--;
+    return KERN_SUCCESS;
+}
+
+CF_INLINE __CFPortSet __CFPortSetAllocate(void) {
+    struct ___CFPortSet *set = malloc(sizeof(struct ___CFPortSet));
+    set->kq = kqueue();
+    return set;
+}
+
+CF_INLINE kern_return_t __CFPortSetInsert(__CFPort port, __CFPortSet set) {
+    if (__CFPORT_IS_TIMER(port)) {
+        return 0;
+    }
+
+    struct kevent change;
+    EV_SET(&change,
+        __CFPORT_UNPACK_R(port),
+        EVFILT_READ,
+        EV_ADD | EV_ENABLE | EV_CLEAR | EV_RECEIPT,
+        0,
+        0,
+        (void *)port);
+    struct timespec timeout = {0, 0};
+    int r = kevent(set->kq, &change, 1, NULL, 0, &timeout);
+
+    return 0;
+}
+
+CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet set) {
+    if (__CFPORT_IS_TIMER(port)) {
+        return 0;
+    }
+
+    struct kevent change;
+    EV_SET(&change,
+        __CFPORT_UNPACK_R(port),
+        EVFILT_READ,
+        EV_DELETE | EV_RECEIPT,
+        0,
+        0,
+        (void *)port);
+    struct timespec timeout = {0, 0};
+    int r = kevent(set->kq, &change, 1, NULL, 0, &timeout);
+
+    return 0;
+}
+
+CF_INLINE void __CFPortSetFree(__CFPortSet set) {
+    close(set->kq);
+    free(set);
+}
+
+static int __CFPollFileDescriptors(struct pollfd *fds, nfds_t nfds, uint64_t timeout) {
+    uint64_t elapsed = 0;
+    uint64_t start = mach_absolute_time();
+    int result = 0;
+    while (1) {
+        struct timespec ts = {0};
+        struct timespec *tsPtr = &ts;
+        if (timeout == TIMEOUT_INFINITY) {
+            tsPtr = NULL;
+        } else if (elapsed < timeout) {
+            uint64_t delta = timeout - elapsed;
+            ts.tv_sec = delta / 1000000000UL;
+            ts.tv_nsec = delta % 1000000000UL;
+        }
+
+        result = ppoll(fds, 1, tsPtr, NULL);
+
+        if (result == -1 && errno == EINTR) {
+            uint64_t end = mach_absolute_time();
+            elapsed += (end - start);
+            start = end;
+        } else {
+            return result;
+        }
+    }
+}
+
+static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet set, __CFPort port, uint64_t timeout, __CFPort *livePort) {
+    __CFPort awokenPort = CFPORT_NULL;
+
+    if (port != CFPORT_NULL) {
+        int rfd = __CFPORT_UNPACK_R(port);
+        struct pollfd fdInfo = {
+            .fd = rfd,
+            .events = POLLIN,
+        };
+
+        ssize_t result = __CFPollFileDescriptors(&fdInfo, 1, timeout);
+        if (result == 0)
+            return false;
+
+        awokenPort = port;
+    } else {
+        struct kevent awake;
+        struct timespec timeout = {0, 0};
+
+        int r = kevent(set->kq, NULL, 0, &awake, 1, &timeout);
+
+        if (r == 0) {
+            return false;
+        }
+
+        if (awake.flags == EV_ERROR) {
+            return false;
+        }
+
+        if (awake.filter == EVFILT_READ) {
+            char x;
+            r = read(awake.ident, &x, 1);
+        }
+
+        awokenPort = (__CFPort)awake.udata;
+    }
+
+    if (livePort)
+        *livePort = awokenPort;
+
+    return true;
+}
+
+#else
+#error "CFPort* stubs for this platform must be implemented
 #endif
 
 #if TARGET_OS_MAC
@@ -541,6 +811,13 @@ static kern_return_t mk_timer_cancel(HANDLE name, uint64_t *result_time) {
     }
     return (int)res;
 }
+#elif TARGET_OS_BSD
+/*
+ * This implementation of the mk_timer_* stubs is defined with the
+ * implementation of the CFPort* stubs.
+ */
+#else
+#error "mk_timer_* stubs for this platform must be implemented"
 #endif
 
 
@@ -642,7 +919,7 @@ static void __CFRunLoopModeDeallocate(CFTypeRef cf) {
         dispatch_release(rlm->_queue);
     }
 #endif
-    if (MACH_PORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
+    if (CFPORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
     _CFRecursiveMutexDestroy(&rlm->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x7C, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase));
 }
@@ -832,8 +1109,8 @@ static CFRunLoopModeRef __CFRunLoopCopyMode(CFRunLoopRef rl, CFStringRef modeNam
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
     rlm->_timerFired = false;
     rlm->_queue = _dispatch_runloop_root_queue_create_4CF("Run Loop Mode Queue", 0);
-    mach_port_t queuePort = _dispatch_runloop_root_queue_get_port_4CF(rlm->_queue);
-    if (queuePort == MACH_PORT_NULL) CRASH("*** Unable to create run loop mode queue port. (%d) ***", -1);
+    __CFPort queuePort = _dispatch_runloop_root_queue_get_port_4CF(rlm->_queue);
+    if (queuePort == CFPORT_NULL) CRASH("*** Unable to create run loop mode queue port. (%d) ***", -1);
     rlm->_timerSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, rlm->_queue);
     
     __block Boolean *timerFiredPointer = &(rlm->_timerFired);
@@ -847,10 +1124,14 @@ static CFRunLoopModeRef __CFRunLoopCopyMode(CFRunLoopRef rl, CFStringRef modeNam
     
     ret = __CFPortSetInsert(queuePort, rlm->_portSet);
     if (KERN_SUCCESS != ret) CRASH("*** Unable to insert timer port into port set. (%d) ***", ret);
-    
 #endif
+    rlm->_timerPort = CFPORT_NULL;
+#if TARGET_OS_BSD
+    rlm->_timerPort = mk_timer_create(rlm->_portSet);
+#else
     rlm->_timerPort = mk_timer_create();
-    if (rlm->_timerPort == MACH_PORT_NULL) {
+#endif
+    if (rlm->_timerPort == CFPORT_NULL) {
         CRASH("*** Unable to create timer Port (%d) ***", rlm->_timerPort);
     }
     ret = __CFPortSetInsert(rlm->_timerPort, rlm->_portSet);
@@ -2722,6 +3003,8 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         Boolean windowsMessageReceived = false;
 #elif TARGET_OS_LINUX
         int livePort = -1;
+#else
+        __CFPort livePort = CFPORT_NULL;
 #endif
 	__CFPortSet waitSet = rlm->_portSet;
 
@@ -2745,7 +3028,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         Boolean poll = sourceHandledThisLoop || (0ULL == termTSR);
 
 #if __HAS_DISPATCH__
-        if (MACH_PORT_NULL != dispatchPort && !didDispatchPortLastTime) {
+        if (CFPORT_NULL != dispatchPort && !didDispatchPortLastTime) {
 #if TARGET_OS_MAC
             msg = (mach_msg_header_t *)msg_buffer;
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL, rl, rlm)) {
@@ -2759,6 +3042,12 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             if (__CFRunLoopWaitForMultipleObjects(NULL, &dispatchPort, 0, 0, &livePort, NULL)) {
                 goto handle_msg;
             }
+#elif TARGET_OS_BSD
+            if (__CFRunLoopServiceFileDescriptors(CFPORTSET_NULL, dispatchPort, 0, &livePort)) {
+                goto handle_msg;
+            }
+#else
+#error "invoking the port select implementation is required"
 #endif
         }
 #endif
@@ -2817,6 +3106,10 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         __CFRunLoopWaitForMultipleObjects(waitSet, NULL, timeout, rlm->_msgQMask, &livePort, &windowsMessageReceived);
 #elif TARGET_OS_LINUX
         __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, timeout, &livePort);
+#elif TARGET_OS_BSD
+        __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, poll ? 0 : TIMEOUT_INFINITY, &livePort);
+#else
+#error "invoking the port set select implementation is required"
 #endif
 
         __cftrace_runloop_trace_waiting_for_event_end(runloopNestingLevel, livePort, rl, rlm, dispatchPort, modeQueuePort);
@@ -2880,7 +3173,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         
         
 #endif
-        if (MACH_PORT_NULL == livePort) {
+        if (CFPORT_NULL == livePort) {
             CFRUNLOOP_WAKEUP_FOR_NOTHING();
             // handle nothing
         } else if (livePort == rl->_wakeUpPort) {
@@ -2900,7 +3193,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             }
         }
 #endif
-        else if (rlm->_timerPort != MACH_PORT_NULL && livePort == rlm->_timerPort) {
+        else if (rlm->_timerPort != CFPORT_NULL && livePort == rlm->_timerPort) {
             CFRUNLOOP_WAKEUP_FOR_TIMER();
             // On Windows, we have observed an issue where the timer port is set before the time which we requested it to be set. For example, we set the fire time to be TSR 167646765860, but it is actually observed firing at TSR 167646764145, which is 1715 ticks early. The result is that, when __CFRunLoopDoTimers checks to see if any of the run loop timers should be firing, it appears to be 'too early' for the next timer, and no timers are handled.
             // In this case, the timer port has been automatically reset (since it was returned from MsgWaitForMultipleObjectsEx), and if we do not re-arm it, then no timers will ever be serviced again unless something adjusts the timer list (e.g. adding or removing timers). The fix for the issue is to reset the timer here if CFRunLoopDoTimers did not handle a timer itself. 9308754
@@ -2926,7 +3219,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             __CFRunLoopUnlock(rl);
             _CFSetTSD(__CFTSDKeyIsInGCDMainQ, (void *)6, NULL);
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
             void *msg = 0;
 #endif
             CFRUNLOOP_ARP_BEGIN(NULL)
@@ -3225,6 +3518,10 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
     CFAssert1(0 == ret, __kCFLogAssertion, "%s(): Unable to send wake message to eventfd", __PRETTY_FUNCTION__);
 #elif TARGET_OS_WIN32
     SetEvent(rl->_wakeUpPort);
+#elif TARGET_OS_BSD
+    __CFPortTrigger(rl->_wakeUpPort);
+#else
+#error "required"
 #endif
     
     cf_trace(KDEBUG_EVENT_CFRL_WAKEUP | DBG_FUNC_END, rl, 0, 0, 0);

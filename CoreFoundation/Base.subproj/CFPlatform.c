@@ -247,7 +247,11 @@ const char *_CFProcessPath(void) {
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_EXPORT_NONOBJC_ONLY Boolean _CFIsMainThread(void) {
+#if defined(__OpenBSD__)
+    return pthread_equal(pthread_self(), _CFMainPThread) != 0;
+#else
     return pthread_main_np() == 1;
+#endif
 }
 #endif
 
@@ -772,7 +776,7 @@ static void __CFTSDFinalize(void *arg) {
 #if TARGET_OS_WASI
     __CFMainThreadHasExited = true;
 #else
-    if (pthread_main_np() == 1) {
+    if (_CFIsMainThread()) {
         // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
         __CFMainThreadHasExited = true;
     }
