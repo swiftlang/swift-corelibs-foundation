@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+#if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(OpenBSD)
 import CoreFoundation
 #else
 @_implementationOnly import CoreFoundation
@@ -90,7 +90,7 @@ open class RunLoop: NSObject {
     // On platforms where it's available, getCFRunLoop() can be overridden and we use it below.
     // Make sure we honor the override -- var currentCFRunLoop will do so on platforms where overrides are available.
 
-    #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(OpenBSD)
     internal var currentCFRunLoop: CFRunLoop { getCFRunLoop() }
 
     @available(*, deprecated, message: "Directly accessing the run loop may cause your code to not become portable in the future.")
