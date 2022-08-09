@@ -11,6 +11,8 @@
 
 #if canImport(Darwin)
 import Darwin
+#elseif canImport(WinSDK)
+import WinSDK
 #endif
 
 #if canImport(WinSDK)

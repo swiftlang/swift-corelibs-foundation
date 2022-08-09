@@ -20,11 +20,14 @@
 @_exported import WASILibc
 #elseif os(Windows)
 @_exported import CRT
-@_exported import WinSDK.core
 #endif
 
 #if !os(WASI)
 @_exported import Dispatch
+#endif
+
+#if os(Windows)
+import WinSDK
 #endif
 
 #if !_runtime(_ObjC)

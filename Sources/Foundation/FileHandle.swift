@@ -25,6 +25,7 @@ fileprivate let _close = Glibc.close(_:)
 #endif
 
 #if canImport(WinSDK)
+import WinSDK.core
 // We used to get the alias that was re-exported by CoreFoundation
 // but we want to explicitly depend on its types in this file,
 // so we need to make sure Swift doesn't think it's @_implementationOnly.

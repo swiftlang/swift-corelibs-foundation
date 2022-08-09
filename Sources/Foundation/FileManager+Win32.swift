@@ -10,6 +10,7 @@
 @_implementationOnly import CoreFoundation
 
 #if os(Windows)
+import WinSDK.core
 import struct WinSDK.FILETIME
 
 internal func joinPath(prefix: String, suffix: String) -> String {
