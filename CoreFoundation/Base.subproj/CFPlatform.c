@@ -26,6 +26,7 @@
 
 
 #if TARGET_OS_WIN32
+#include <lm.h>
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
@@ -577,15 +578,44 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
         return result;
     }
 #elif TARGET_OS_WIN32
-    // This code can only get the directory for the current user
-    CFStringRef userName = uName ? CFCopyUserName() : NULL;
-    if (uName && !CFEqual(uName, userName)) {
-        CFLog(kCFLogLevelError, CFSTR("CFCopyHomeDirectoryURLForUser(): Unable to get home directory for other user"));
-        if (userName) CFRelease(userName);
-        return NULL;
+    if (uName == NULL) {
+      return CFCopyHomeDirectoryURL();
     }
-    if (userName) CFRelease(userName);
-    return CFCopyHomeDirectoryURL();
+
+    CFStringRef home = NULL;
+    LPUSER_INFO_1 pBuffer = NULL;
+    DWORD dwEntriesRead = 0;
+    DWORD dwEntries = 0;
+    DWORD dwToken = 0;
+    NTSTATUS nStatus;
+    do {
+      nStatus = NetUserEnum(NULL, 1, FILTER_NORMAL_ACCOUNT, (LPBYTE*)&pBuffer,
+                            MAX_PREFERRED_LENGTH, &dwEntriesRead, &dwEntries,
+                            &dwToken);
+      if (nStatus == NERR_Success || nStatus == ERROR_MORE_DATA) {
+        for (unsigned uiEntry = 0; !home && uiEntry < dwEntriesRead; ++uiEntry) {
+          CFStringRef name =
+              CFStringCreateWithCStringNoCopy(kCFAllocatorSystemDefault,
+                                              pBuffer[uiEntry].usri1_name,
+                                              kCFStringEncodingUTF16,
+                                              kCFAllocatorNull);
+
+          if (CFEqual(uName, name)) {
+            home = pBuffer[uiEntry].usri1_home_dir
+                      ? CFStringCreateWithCString(kCFAllocatorSystemDefault,
+                                                  pBuffer[uiEntry].usri1_home_dir,
+                                                  kCFStringEncodingUTF16)
+                      : CFSTR("");
+          }
+
+          CFRelease(name);
+        }
+      }
+      NetApiBufferFree(pBuffer);
+      pBuffer = NULL;
+    } while (nStatus == ERROR_MORE_DATA);
+
+    return home;
 #else
 #error Dont know how to compute users home directories on this platform
 #endif
