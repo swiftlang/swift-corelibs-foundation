@@ -331,6 +331,54 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
+    func test_unhandledURLProtocol() {
+        let urlString = "foobar://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+        let url = URL(string: urlString)!
+        let session = URLSession(configuration: URLSessionConfiguration.default,
+                                 delegate: nil,
+                                 delegateQueue: nil)
+        let completionExpectation = expectation(description: "GET \(urlString): Unsupported URL error")
+        let task = session.dataTask(with: url) { (data, response, _error) in
+            XCTAssertNil(data)
+            XCTAssertNil(response)
+            let error = _error as? URLError
+            XCTAssertNotNil(error)
+            XCTAssertEqual(error?.code, .unsupportedURL)
+            completionExpectation.fulfill()
+        }
+        task.resume()
+
+        waitForExpectations(timeout: 5) { error in
+            XCTAssertNil(error)
+            XCTAssertEqual((task.error as? URLError)?.code, .unsupportedURL)
+        }
+    }
+
+    func test_requestToNilURL() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+        let url = URL(string: urlString)!
+        let session = URLSession(configuration: URLSessionConfiguration.default,
+                                 delegate: nil,
+                                 delegateQueue: nil)
+        let completionExpectation = expectation(description: "DataTask with nil URL: Unsupported URL error")
+        var request = URLRequest(url: url)
+        request.url = nil
+        let task = session.dataTask(with: request) { (data, response, _error) in
+            XCTAssertNil(data)
+            XCTAssertNil(response)
+            let error = _error as? URLError
+            XCTAssertNotNil(error)
+            XCTAssertEqual(error?.code, .unsupportedURL)
+            completionExpectation.fulfill()
+        }
+        task.resume()
+
+        waitForExpectations(timeout: 5) { error in
+            XCTAssertNil(error)
+            XCTAssertEqual((task.error as? URLError)?.code, .unsupportedURL)
+        }
+    }
+
     func test_suspendResumeTask() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/get"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -1819,6 +1867,8 @@ class TestURLSession: LoopbackServerTest {
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
             ("test_cancelTask", test_cancelTask),
+            ("test_unhandledURLProtocol", test_unhandledURLProtocol),
+            ("test_requestToNilURL", test_requestToNilURL),
             /* ⚠️ */ ("test_suspendResumeTask", testExpectedToFail(test_suspendResumeTask, "Occasionally breaks")),
             ("test_taskTimeout", test_taskTimeout),
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
