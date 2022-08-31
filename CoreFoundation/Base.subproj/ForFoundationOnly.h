@@ -84,7 +84,7 @@ typedef CF_ENUM(CFOptionFlags, _CFAllocatorHint) {
 #define NSISARGTYPE id _Nullable
 #else
 #define NSISARGTYPE void * _Nullable
-#define BOOL _Bool
+#define BOOL bool
 #endif
 
 CF_EXPORT BOOL _NSIsNSArray(NSISARGTYPE arg);

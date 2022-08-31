@@ -15,8 +15,8 @@
 #if __has_include(<os/overflow.h>)
 #include <os/overflow.h>
 #else
-    static _Bool __os_warn_unused(_Bool x) __attribute__((__warn_unused_result__));
-    static _Bool __os_warn_unused(_Bool x) { return x; }
+    static bool __os_warn_unused(bool x) __attribute__((__warn_unused_result__));
+    static bool __os_warn_unused(bool x) { return x; }
 
     #if __has_builtin(__builtin_add_overflow) && \
     __has_builtin(__builtin_sub_overflow) && \
