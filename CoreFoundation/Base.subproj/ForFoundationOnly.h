@@ -529,12 +529,6 @@ CF_EXPORT CFErrorUserInfoKeyCallBackBlock CFErrorGetCallBackBlockForDomain(CFStr
 CF_EXPORT CFErrorUserInfoKeyCallBackBlock CFErrorCopyCallBackBlockForDomain(CFStringRef domainName) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 #endif
 
-/* This variant of the error domain callback has been deprecated and will be removed.  This callback function is consulted if a key is not present in the userInfo dictionary. Note that setting a callback for the same domain again simply replaces the previous callback. Set NULL as the callback to remove it. The callback function should return a result that is retained.
- */
-typedef CFTypeRef _Nonnull (*CFErrorUserInfoKeyCallBack)(CFErrorRef err, CFStringRef key);
-CF_EXPORT void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack _Nullable callBack) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
-CF_EXPORT CFErrorUserInfoKeyCallBack _Nullable CFErrorGetCallBackForDomain(CFStringRef domainName) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
-
 _CF_EXPORT_SCOPE_END
 
 // ---- Windows-specific material ---------------------------------------

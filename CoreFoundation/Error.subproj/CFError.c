@@ -621,27 +621,3 @@ static void __CFErrorSetCallBackForDomainNoLock(CFStringRef domainName, CFErrorU
         CFDictionaryRemoveValue(_CFErrorCallBackTable, domainName);
     }
 }
-
-// !!! This function can go away after 10.13/iOS 11
-void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack) {
-    // Since we have replaced the callback functionality with a callback block functionality, we now register (legacy) callback functions embedded in a block which autoreleases the result
-    CFErrorUserInfoKeyCallBackBlock block = (!callBack) ? NULL : ^(CFErrorRef err, CFStringRef key){
-        CFTypeRef result = callBack(err, key);
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        if (result) CFAutorelease(result);
-#endif
-        return result;
-    };
-    CFErrorSetCallBackBlockForDomain(domainName, block);
-}
-
-// !!! This function can go away after 10.13/iOS 11
-CFErrorUserInfoKeyCallBack CFErrorGetCallBackForDomain(CFStringRef domainName) {
-    // Since there were no callers other than CF, removed as of 10.11/iOS9
-    // Otherwise would have had to have separate tables for callback functions and blocks
-    return NULL;
-}
-
-
-
-
