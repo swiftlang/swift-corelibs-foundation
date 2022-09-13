@@ -367,7 +367,7 @@ void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexO
     UniChar stackBuffer[STACK_BUFFER_SIZE];
     void *bufferToFree = NULL, *utextToFree = NULL;
     struct regexCallBackContext context;
-    CFIndex offset, length = CFStringGetLength(string);
+    CFIndex offset;
     _CFRegularExpressionMatchingFlags flags;
     Boolean checkedOutRegex = true;
     Boolean stop = false;
