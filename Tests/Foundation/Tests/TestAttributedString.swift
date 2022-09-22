@@ -989,6 +989,19 @@ E {
             XCTAssertFalse(desc.isEmpty)
         }
     }
+    
+    func testSubstringEquality() {
+        let str = AttributedString("")
+        let range = str.startIndex ..< str.endIndex
+        XCTAssertEqual(str[range], str[range])
+        
+        let str2 = "A" + AttributedString("A", attributes: .init().testInt(2))
+        let substringA = str2[str2.startIndex ..< str2.index(afterCharacter: str2.startIndex)]
+        let substringB = str2[str2.index(afterCharacter: str2.startIndex) ..< str2.endIndex]
+        XCTAssertNotEqual(substringA, substringB)
+        XCTAssertEqual(substringA, substringA)
+        XCTAssertEqual(substringB, substringB)
+    }
 
     // MARK: - Coding Tests
     
@@ -2196,6 +2209,7 @@ E {
             ("testSubstringBase", testSubstringBase),
             ("testSubstringGetAttribute", testSubstringGetAttribute),
             ("testSubstringDescription", testSubstringDescription),
+            ("testSubstringEquality", testSubstringEquality),
             ("testJSONEncoding", testJSONEncoding),
             ("testDecodingThenConvertingToNSAttributedString", testDecodingThenConvertingToNSAttributedString),
             ("testCustomAttributeCoding", testCustomAttributeCoding),

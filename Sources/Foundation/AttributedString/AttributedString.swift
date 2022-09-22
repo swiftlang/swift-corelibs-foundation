@@ -974,18 +974,35 @@ public struct AttributedString : AttributedStringProtocol {
         public static func == (lhs: Runs, rhs: Runs) -> Bool {
             let lhsSlice = lhs._guts.runs[lhs._startingRunIndex ..< lhs._endingRunIndex]
             let rhsSlice = rhs._guts.runs[rhs._startingRunIndex ..< rhs._endingRunIndex]
-            guard lhsSlice.count == rhs.count else {
+            
+            // If there are different numbers of runs, they aren't equal
+            guard lhsSlice.count == rhsSlice.count else {
                 return false
             }
-            // Compare all inner runs (their lengths will not be limited by _range)
-            if lhsSlice.count > 2 && !lhsSlice[lhsSlice.startIndex + 1 ..< lhsSlice.endIndex - 1].elementsEqual(rhsSlice[rhsSlice.startIndex + 1 ..< rhsSlice.endIndex - 1]) {
+            
+            let runCount = lhsSlice.count
+            
+            // Empty slices are always equal
+            guard runCount > 0 else {
+                return true
+            }
+            
+            // Compare the first run (clamping their ranges) since we know each has at least one run
+            if lhs._guts.run(at: lhs.startIndex, clampedBy: lhs._range) != rhs._guts.run(at: rhs.startIndex, clampedBy: rhs._range) {
                 return false
             }
-            // If the inner runs are equivalent, check the first and last runs with clamped ranges
-            if lhsSlice.count > 1 && lhs._guts.run(at: Index(rangeIndex: lhs._endingRunIndex - 1), clampedBy: lhs._range) != rhs._guts.run(at: Index(rangeIndex: rhs._endingRunIndex - 1), clampedBy: rhs._range) {
+            
+            // Compare all inner runs if they exist without needing to clamp ranges
+            if runCount > 2 && !lhsSlice[lhsSlice.startIndex + 1 ..< lhsSlice.endIndex - 1].elementsEqual(rhsSlice[rhsSlice.startIndex + 1 ..< rhsSlice.endIndex - 1]) {
                 return false
             }
-            return lhs._guts.run(at: lhs.startIndex, clampedBy: lhs._range) == rhs._guts.run(at: rhs.startIndex, clampedBy: rhs._range)
+            
+            // If there are more than one run (so we didn't already check this as the first run), check the last run (clamping its range)
+            if runCount > 1 && lhs._guts.run(at: Index(rangeIndex: lhs._endingRunIndex - 1), clampedBy: lhs._range) != rhs._guts.run(at: Index(rangeIndex: rhs._endingRunIndex - 1), clampedBy: rhs._range) {
+                return false
+            }
+            
+            return true
         }
         
         public var description: String {
