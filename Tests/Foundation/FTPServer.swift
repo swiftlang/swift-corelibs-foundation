@@ -11,6 +11,14 @@
 //This is a very rudimentary FTP server written plainly for testing URLSession FTP Implementation.
 import Dispatch
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
+#endif
+
 #if canImport(Glibc)
     import Glibc
 #elseif canImport(Darwin)
