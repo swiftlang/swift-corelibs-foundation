@@ -22,7 +22,7 @@ class TestNSTextCheckingResult: XCTestCase {
            XCTAssertEqual(result.range(at: 0).location, 6)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 6)
-           if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+           if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
                XCTAssertEqual(result.range(withName: "aname").location, 6)
            }
            //Negative offset
@@ -30,7 +30,7 @@ class TestNSTextCheckingResult: XCTestCase {
            XCTAssertEqual(result.range(at: 0).location, 3)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 3)
-           if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+           if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
                XCTAssertEqual(result.range(withName: "aname").location, 3)
            }
            //ZeroOffset
@@ -38,7 +38,7 @@ class TestNSTextCheckingResult: XCTestCase {
            XCTAssertEqual(result.range(at: 0).location, 5)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 5)
-           if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+           if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
                XCTAssertEqual(result.range(withName: "aname").location, 5)
            }
        } catch {
@@ -59,14 +59,14 @@ class TestNSTextCheckingResult: XCTestCase {
             XCTAssertEqual(matches[0].range, NSRange(location: 0, length: 6))
             XCTAssertEqual(matches[0].range(at: 0), NSRange(location: 0, length: 6))
             XCTAssertEqual(matches[0].range(at: 1), NSRange(location: 0, length: 5))
-            if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+            if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
                 XCTAssertEqual(matches[0].range(withName: "name"), NSRange(location: 0, length: 5))
             }
             XCTAssertEqual(matches[1].numberOfRanges, 2)
             XCTAssertEqual(matches[1].range, NSRange(location: 7, length: 6))
             XCTAssertEqual(matches[1].range(at: 0), NSRange(location: 7, length: 6))
             XCTAssertEqual(matches[1].range(at: 1), NSRange(location: 7, length: 5))
-            if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+            if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
                 XCTAssertEqual(matches[1].range(withName: "name"), NSRange(location: 7, length: 5))
             }
         } catch {

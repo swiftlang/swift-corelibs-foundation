@@ -135,7 +135,7 @@ class TestJSONEncoder : XCTestCase {
     }
     
     let model = Model.testValue
-    if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+    if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
       let expectedJSON = "{\"top\":{\"first\":\"Johnny Appleseed\",\"second\":\"appleseed@apple.com\"}}".data(using: .utf8)!
       _testRoundTrip(of: model, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
     } else {
@@ -178,7 +178,7 @@ class TestJSONEncoder : XCTestCase {
     let model = Model.testValue
     // This following test would fail as it attempts to re-encode into already encoded container is invalid. This will always fail
     expectCrashLater()
-    if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+    if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
       _testEncodeFailure(of: model)
     } else {
       _testEncodeFailure(of: model)
@@ -200,7 +200,7 @@ class TestJSONEncoder : XCTestCase {
   }
 
   func testEncodingOutputFormattingSortedKeys() {
-    if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+    if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
       let expectedJSON = "{\"email\":\"appleseed@apple.com\",\"name\":\"Johnny Appleseed\"}".data(using: .utf8)!
       let person = Person.testValue
       _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
@@ -208,7 +208,7 @@ class TestJSONEncoder : XCTestCase {
   }
 
   func testEncodingOutputFormattingPrettyPrintedSortedKeys() {
-    if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+    if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
       let expectedJSON = "{\n  \"email\" : \"appleseed@apple.com\",\n  \"name\" : \"Johnny Appleseed\"\n}".data(using: .utf8)!
       let person = Person.testValue
       _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
@@ -307,7 +307,7 @@ class TestJSONEncoder : XCTestCase {
   }
 
   func testEncodingDateISO8601() {
-    if #available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+    if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
       let formatter = ISO8601DateFormatter()
       formatter.formatOptions = .withInternetDateTime
 

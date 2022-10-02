@@ -55,7 +55,7 @@ class TestPersonNameComponents : XCTestCase {
     }
 
     func test_AnyHashableContainingPersonNameComponents() {
-        if #available(OSX 10.11, iOS 9.0, *) {
+        if #available(macOS 10.11, iOS 9.0, *) {
             let values: [PersonNameComponents] = [
                 makePersonNameComponents(givenName: "Kevin", familyName: "Frank"),
                 makePersonNameComponents(givenName: "John", familyName: "Appleseed"),
@@ -79,7 +79,7 @@ class TestPersonNameComponents : XCTestCase {
     }
 
     func test_AnyHashableCreatedFromNSPersonNameComponents() {
-        if #available(OSX 10.11, iOS 9.0, *) {
+        if #available(macOS 10.11, iOS 9.0, *) {
             let values: [NSPersonNameComponents] = [
                 makeNSPersonNameComponents(givenName: "Kevin", familyName: "Frank"),
                 makeNSPersonNameComponents(givenName: "John", familyName: "Appleseed"),

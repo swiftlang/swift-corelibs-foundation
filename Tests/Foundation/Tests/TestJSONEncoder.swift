@@ -130,7 +130,7 @@ class TestJSONEncoder : XCTestCase {
         _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted])
 
         let encoder = JSONEncoder()
-        if #available(OSX 10.13, *) {
+        if #available(macOS 10.13, *) {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         } else {
             // Fallback on earlier versions
@@ -942,7 +942,7 @@ class TestJSONEncoder : XCTestCase {
 
     func test_OutputFormattingValues() {
         XCTAssertEqual(JSONEncoder.OutputFormatting.prettyPrinted.rawValue, 1)
-        if #available(OSX 10.13, *) {
+        if #available(macOS 10.13, *) {
             XCTAssertEqual(JSONEncoder.OutputFormatting.sortedKeys.rawValue, 2)
         }
         XCTAssertEqual(JSONEncoder.OutputFormatting.withoutEscapingSlashes.rawValue, 8)
