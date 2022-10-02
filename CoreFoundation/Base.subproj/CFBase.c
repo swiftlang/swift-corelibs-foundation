@@ -583,6 +583,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
     CFAllocatorAllocateCallBack allocateFunc;
     void *newptr = NULL;
 
+    if (0 < size) {
     if (NULL == allocator) {
 	allocator = __CFGetDefaultAllocator();
     }
@@ -594,16 +595,14 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
-    if (0 == size) return NULL;
 #if TARGET_OS_MAC
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_malloc((malloc_zone_t *)allocator, size);
     }
 #endif
-    newptr = NULL;
     allocateFunc = __CFAllocatorGetAllocateFunction(&allocator->_context);
-    if (allocateFunc) {
-        newptr = (void *)INVOKE_CALLBACK3(allocateFunc, size, hint, allocator->_context.info);
+    if (NULL == allocateFunc) return NULL;
+    newptr = (void *)INVOKE_CALLBACK3(allocateFunc, size, hint, allocator->_context.info);
     }
     return newptr;
 }
@@ -631,14 +630,12 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 	    return malloc_zone_malloc((malloc_zone_t *)allocator, newsize);
 	}
 #endif
-	newptr = NULL;
 	allocateFunc = __CFAllocatorGetAllocateFunction(&allocator->_context);
-	if (allocateFunc) {
-		newptr = (void *)INVOKE_CALLBACK3(allocateFunc, newsize, hint, allocator->_context.info);
-	}
+	if (NULL == allocateFunc) return NULL;
+	newptr = (void *)INVOKE_CALLBACK3(allocateFunc, newsize, hint, allocator->_context.info);
 	return newptr;
     }
-    if (NULL != ptr && 0 == newsize) {
+    if (NULL != ptr && 0 >= newsize) {
 #if TARGET_OS_MAC
 	if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
@@ -655,7 +652,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 	}
 	return NULL;
     }
-    if (NULL == ptr && 0 == newsize) return NULL;
+    if (NULL == ptr && 0 >= newsize) return NULL;
 #if TARGET_OS_MAC
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_realloc((malloc_zone_t *)allocator, ptr, newsize);
@@ -670,6 +667,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr) {
     CFAllocatorDeallocateCallBack deallocateFunc;
 
+    if (NULL != ptr) {
     if (NULL == allocator) {
         allocator = __CFGetDefaultAllocator();
     }
@@ -691,35 +689,38 @@ void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr) {
     }
 #endif
     deallocateFunc = __CFAllocatorGetDeallocateFunction(&allocator->_context);
-    if (NULL != ptr && NULL != deallocateFunc) {
+    if (NULL != deallocateFunc) {
 	INVOKE_CALLBACK2(deallocateFunc, ptr, allocator->_context.info);
+    }
     }
 }
 
 CFIndex CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint) {
     CFAllocatorPreferredSizeCallBack prefFunc;
-    CFIndex newsize = 0;
+    CFIndex newsize;
 
+#if !TARGET_OS_MAC
+    if (0 >= size) {
+        return 0;
+    }
+#endif
     if (NULL == allocator) {
         allocator = __CFGetDefaultAllocator();
     }
-
-#if TARGET_OS_MAC
-    if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
-	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
-    }
-#else
-    __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
-#endif
 #if TARGET_OS_MAC
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_good_size(size);
     }
-#endif
-    prefFunc = __CFAllocatorGetPreferredSizeFunction(&allocator->_context);
-    if (0 < size && NULL != prefFunc) {
-	newsize = (CFIndex)(INVOKE_CALLBACK3(prefFunc, size, hint, allocator->_context.info));
+    if (0 >= size) {
+        return 0;
     }
+#endif
+    __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
+    prefFunc = __CFAllocatorGetPreferredSizeFunction(&allocator->_context);
+    if (NULL == prefFunc) {
+        return size;
+    }
+    newsize = (CFIndex)(INVOKE_CALLBACK3(prefFunc, size, hint, allocator->_context.info));
     if (newsize < size) newsize = size;
     return newsize;
 }
