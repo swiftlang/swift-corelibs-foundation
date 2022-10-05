@@ -456,6 +456,25 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_notFoundSuperDecoder() {
+        struct NotFoundSuperDecoderTestType: Decodable {
+            init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                _ = try container.superDecoder(forKey: .superDecoder)
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case superDecoder = "super"
+            }
+        }
+        let decoder = JSONDecoder()
+        do {
+            let _ = try decoder.decode(NotFoundSuperDecoderTestType.self, from: Data(#"{}"#.utf8))
+        } catch {
+            XCTFail("Caught error during decoding empty super decoder: \(error)")
+        }
+    }
+
     // MARK: - Test encoding and decoding of built-in Codable types
     func test_codingOfBool() {
         test_codingOf(value: Bool(true), toAndFrom: "true")
@@ -1542,6 +1561,7 @@ extension TestJSONEncoder {
             ("test_encodeDecodeNumericTypesBaseline", test_encodeDecodeNumericTypesBaseline),
             ("test_nestedContainerCodingPaths", test_nestedContainerCodingPaths),
             ("test_superEncoderCodingPaths", test_superEncoderCodingPaths),
+            ("test_notFoundSuperDecoder", test_notFoundSuperDecoder),
             ("test_codingOfBool", test_codingOfBool),
             ("test_codingOfNil", test_codingOfNil),
             ("test_codingOfInt8", test_codingOfInt8),
