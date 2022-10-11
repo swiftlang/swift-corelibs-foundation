@@ -545,6 +545,14 @@ func shouldAttemptXFailTests(_ reason: String) -> Bool {
     }
 }
 
+func shouldAttemptDarwinXFailTests(_ reason: String) -> Bool {
+    #if canImport(Darwin)
+    return shouldAttemptXFailTests(reason)
+    #else
+    return true
+    #endif
+}
+
 func shouldAttemptWindowsXFailTests(_ reason: String) -> Bool {
     #if os(Windows)
     return shouldAttemptXFailTests(reason)
@@ -583,6 +591,10 @@ func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [
 
 func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
     testExpectedToFailWithCheck(check: shouldAttemptXFailTests(_:), test, reason)
+}
+
+func testExpectedToFailOnDarwin<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    testExpectedToFailWithCheck(check: shouldAttemptDarwinXFailTests(_:), test, reason)
 }
 
 func testExpectedToFailOnWindows<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {

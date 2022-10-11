@@ -9901,9 +9901,9 @@ API Surface:
 		- uploadTask(with:fromFile:) @done
 		- uploadTask(with:fromFile:completionHandler:) @done
 		- uploadTask(withStreamedRequest:) @done
-		- webSocketTask(with:)
-		- webSocketTask(with:)
-		- webSocketTask(with:protocols:)
+		- webSocketTask(with:) @done
+		- webSocketTask(with:) @done
+		- webSocketTask(with:protocols:) @done
 	- URLSessionConfiguration
 		- allowsCellularAccess @done
 		- allowsConstrainedNetworkAccess
@@ -10104,12 +10104,12 @@ API Surface:
 	- URLSessionUploadTask @done
 		- init()
 		- new() @done @unsupported @useSwiftForMemoryManagement
-	- URLSessionWebSocketDelegate
+	- URLSessionWebSocketDelegate @done
 		- urlSession(_:webSocketTask:didCloseWith:reason:)
 			- Swift.Void
 		- urlSession(_:webSocketTask:didOpenWithProtocol:)
 			- Swift.Void
-	- URLSessionWebSocketTask
+	- URLSessionWebSocketTask @done
 		- CloseCode
 			- RawValue
 			- abnormalClosure

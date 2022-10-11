@@ -75,7 +75,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
                   urlCredentialStorage: .shared,
                   urlCache: .shared,
                   shouldUseExtendedBackgroundIdleMode: false,
-                  protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self])
+                  protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self, _WebSocketURLProtocol.self])
     }
     
     private init(identifier: String?,

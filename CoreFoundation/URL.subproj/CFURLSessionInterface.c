@@ -19,6 +19,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "CFURLSessionInterface.h"
+#include <CoreFoundation/CFInternal.h>
 #include <CoreFoundation/CFString.h>
 #include <curl/curl.h>
 
@@ -138,6 +139,43 @@ CFURLSessionMultiCode CFURLSession_multi_setopt_tf(CFURLSessionMultiHandle _Nonn
 CFURLSessionEasyCode CFURLSessionInit(void) {
     return MakeEasyCode(curl_global_init(CURL_GLOBAL_SSL));
 }
+
+#if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 86)
+
+CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebServicesFrame * _Nullable receivedFrame) {
+    CURLcode retVal = curl_ws_recv(handle, data, dataLen, receivedDataLen, (struct curl_ws_frame **)receivedFrame);
+    
+    return MakeEasyCode(retVal);
+}
+
+CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebServicesMessageFlag messageFlags) {
+    CURLcode retVal = curl_ws_send(handle, data, dataLen, writtenDataLen, frameSize, messageFlags);
+    return MakeEasyCode(retVal);
+}
+
+CFURLSessionWebServicesFrame * _Nonnull CFURLSessionEasyHandleWebServicesMetadata(CFURLSessionEasyHandle _Nonnull handle) {
+    return (CFURLSessionWebServicesFrame *)curl_ws_meta(handle);
+}
+
+#else
+
+CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebServicesFrame * _Nullable receivedFrame) {
+    CFAssert(false, __kCFLogAssertion, "Cannot use WebServices functions without libcurl >= 7.86.0 ");
+    return CFURLSessionEasyCodeNOT_BUILT_IN;
+}
+CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebServicesMessageFlag messageFlags) {
+    CFAssert(false, __kCFLogAssertion, "Cannot use WebServices functions without libcurl >= 7.86.0 ");
+    return CFURLSessionEasyCodeNOT_BUILT_IN;
+}
+
+struct CFURLSessionWebServicesFrame emptyFrame = { 0, 0, 0, 0 };
+
+CFURLSessionWebServicesFrame * _Nonnull CFURLSessionEasyHandleWebServicesMetadata(CFURLSessionEasyHandle _Nonnull handle) {
+    CFAssert(false, __kCFLogAssertion, "Cannot use WebServices functions without libcurl >= 7.86.0 ");
+    return &emptyFrame;
+}
+
+#endif
 
 int const CFURLSessionEasyErrorSize = { CURL_ERROR_SIZE + 1 };
 
@@ -260,6 +298,27 @@ CFURLSessionProtocol const CFURLSessionProtocolRTMPS = CURLPROTO_RTMPS;
 CFURLSessionProtocol const CFURLSessionProtocolRTMPTS = CURLPROTO_RTMPTS;
 CFURLSessionProtocol const CFURLSessionProtocolGOPHER = CURLPROTO_GOPHER;
 CFURLSessionProtocol const CFURLSessionProtocolALL = CURLPROTO_ALL;
+
+
+#if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 86)
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesText = CURLWS_TEXT;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesBinary = CURLWS_BINARY;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesCont = CURLWS_CONT;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesClose = CURLWS_CLOSE;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPing = CURLWS_PING;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPong = CURLWS_PONG;
+
+CFURLSessionOption const CFURLSessionWebServicesRawMode = { CURLWS_RAW_MODE };
+#else
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesText = -1;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesBinary = -1;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesCont = -1;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesClose = -1;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPing = -1;
+CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPong = -1;
+
+CFURLSessionOption const CFURLSessionWebServicesRawMode = { -1 };
+#endif
 
 
 size_t const CFURLSessionMaxWriteSize = CURL_MAX_WRITE_SIZE;

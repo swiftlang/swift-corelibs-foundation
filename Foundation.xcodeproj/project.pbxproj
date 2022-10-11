@@ -59,7 +59,7 @@
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
 		15A619DC245A2895003C8C62 /* libCFXMLInterface.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1550106A22EA24D10088F082 /* libCFXMLInterface.a */; };
 		15A619E0245A298C003C8C62 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 15A619DF245A298C003C8C62 /* CFXMLInterface.c */; };
-		15B80388228F376000B30FF6 /* libcurl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */; };
+		15B80388228F376000B30FF6 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.4.dylib */; };
 		15B8039E228F376000B30FF6 /* URLProtectionSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B821BD15DFF00C49C64 /* URLProtectionSpace.swift */; };
 		15B803B4228F376000B30FF6 /* URLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B7F1BD15DFF00C49C64 /* URLCredential.swift */; };
 		15B803CF228F376000B30FF6 /* URLAuthenticationChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B7D1BD15DFF00C49C64 /* URLAuthenticationChallenge.swift */; };
@@ -108,6 +108,7 @@
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
 		555683BD1C1250E70041D4C6 /* TestUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555683BC1C1250E70041D4C6 /* TestUserDefaults.swift */; };
 		559451EC1F706BFA002807FB /* CFXMLPreferencesDomain.c in Sources */ = {isa = PBXBuildFile; fileRef = 559451EA1F706BF5002807FB /* CFXMLPreferencesDomain.c */; };
+		5A6AC80C28E7BC8F00A22FA7 /* WebSocketURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6AC80A28E7652D00A22FA7 /* WebSocketURLProtocol.swift */; };
 		5B0163BB1D024EB7003CCD96 /* DateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0163BA1D024EB7003CCD96 /* DateComponents.swift */; };
 		5B13B3251C582D4700651CE2 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
 		5B13B3261C582D4C00651CE2 /* TestAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */; };
@@ -154,7 +155,7 @@
 		5B13B3511C582D4C00651CE2 /* TestByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */; };
 		5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
 		5B1FD9C51D6D16150080E83C /* CFURLSessionInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */; };
-		5B1FD9E11D6D178E0080E83C /* libcurl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */; };
+		5B1FD9E11D6D178E0080E83C /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.4.dylib */; };
 		5B1FD9E31D6D17B80080E83C /* TestURLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9E21D6D17B80080E83C /* TestURLSession.swift */; };
 		5B23AB891CE62D4D000DB898 /* ReferenceConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */; };
 		5B23AB8B1CE62F9B000DB898 /* PersonNameComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB8A1CE62F9B000DB898 /* PersonNameComponents.swift */; };
@@ -851,11 +852,12 @@
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
 		555683BC1C1250E70041D4C6 /* TestUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUserDefaults.swift; sourceTree = "<group>"; usesTabs = 1; };
 		559451EA1F706BF5002807FB /* CFXMLPreferencesDomain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLPreferencesDomain.c; sourceTree = "<group>"; };
+		5A6AC80A28E7652D00A22FA7 /* WebSocketURLProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WebSocketURLProtocol.swift; path = URLSession/WebSocket/WebSocketURLProtocol.swift; sourceTree = "<group>"; };
 		5B0163BA1D024EB7003CCD96 /* DateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateComponents.swift; sourceTree = "<group>"; };
 		5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRegularExpression.swift; sourceTree = "<group>"; };
 		5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLSessionInterface.c; sourceTree = "<group>"; };
 		5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLSessionInterface.h; sourceTree = "<group>"; };
-		5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.3.dylib; path = usr/lib/libcurl.3.dylib; sourceTree = SDKROOT; };
+		5B1FD9E01D6D178E0080E83C /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.4.dylib; path = usr/lib/libcurl.4.dylib; sourceTree = SDKROOT; };
 		5B1FD9E21D6D17B80080E83C /* TestURLSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestURLSession.swift; sourceTree = "<group>"; };
 		5B23AB861CE62D17000DB898 /* Boxing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Boxing.swift; sourceTree = "<group>"; };
 		5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReferenceConvertible.swift; sourceTree = "<group>"; };
@@ -1352,7 +1354,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				15FF00CC22934AD7004AD205 /* libCFURLSessionInterface.a in Frameworks */,
-				15B80388228F376000B30FF6 /* libcurl.3.dylib in Frameworks */,
+				15B80388228F376000B30FF6 /* libcurl.4.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1367,7 +1369,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B1FD9E11D6D178E0080E83C /* libcurl.3.dylib in Frameworks */,
+				5B1FD9E11D6D178E0080E83C /* libcurl.4.dylib in Frameworks */,
 				5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */,
 				5B7C8B031BEA86A900C5B690 /* libCoreFoundation.a in Frameworks */,
 				5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */,
@@ -1433,6 +1435,14 @@
 				474E124C26BCD6D00016C28A /* AttributedString+Locking.swift */,
 			);
 			path = AttributedString;
+			sourceTree = "<group>";
+		};
+		5A6AC80728E7649D00A22FA7 /* WebSocket */ = {
+			isa = PBXGroup;
+			children = (
+				5A6AC80A28E7652D00A22FA7 /* WebSocketURLProtocol.swift */,
+			);
+			name = WebSocket;
 			sourceTree = "<group>";
 		};
 		5B5D88531BBC938800234F36 = {
@@ -1784,7 +1794,7 @@
 		5B5D89AB1BBDCD0B00234F36 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */,
+				5B1FD9E01D6D178E0080E83C /* libcurl.4.dylib */,
 				5B40F9F31C12524C000E72E3 /* libxml2.dylib */,
 				5B5D89751BBDADD300234F36 /* libicucore.dylib */,
 				5B5D89791BBDADDF00234F36 /* libobjc.dylib */,
@@ -2266,6 +2276,7 @@
 		F023072D23F0B6D70023DBEC /* URLSession */ = {
 			isa = PBXGroup;
 			children = (
+				5A6AC80728E7649D00A22FA7 /* WebSocket */,
 				F023073A23F0B7060023DBEC /* libcurl */,
 				F023073523F0B6F60023DBEC /* HTTP */,
 				F023073223F0B6E90023DBEC /* FTP */,
@@ -2714,7 +2725,7 @@
 					};
 					5B7C8A6D1BEA7F8F00C5B690 = {
 						CreatedOnToolsVersion = 7.2;
-						LastSwiftMigration = 1150;
+						LastSwiftMigration = 1410;
 						ProvisioningStyle = Manual;
 					};
 					5BDC405B1BD6D83B00ED97BB = {
@@ -2874,6 +2885,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B91161AA2429860900BD2907 /* DataURLProtocol.swift in Sources */,
+				5A6AC80C28E7BC8F00A22FA7 /* WebSocketURLProtocol.swift in Sources */,
 				F023073823F0B6FE0023DBEC /* HTTPMessage.swift in Sources */,
 				15B8043D228F38A600B30FF6 /* URLCredentialStorage.swift in Sources */,
 				F023074023F0B7100023DBEC /* libcurlHelpers.swift in Sources */,
