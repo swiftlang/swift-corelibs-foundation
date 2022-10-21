@@ -1569,7 +1569,8 @@ int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
 #elif TARGET_OS_LINUX
     return pthread_setname_np(thread, name);
 #elif TARGET_OS_BSD
-    return pthread_set_name_np(thread, name);
+    pthread_set_name_np(thread, name);
+    return 0;
 #else
     return -1;
 #endif
@@ -1753,7 +1754,7 @@ int _CFOpenFile(const char *path, int opts) {
 }
 
 CF_EXPORT_NONOBJC_ONLY void *_CFReallocf(void *ptr, size_t size) {
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || defined(__OpenBSD__)
     void *mem = realloc(ptr, size);
     if (mem == NULL && ptr != NULL && size != 0) {
         free(ptr);

@@ -262,7 +262,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 
 #define __kCFLogAssertion	3
 
-#if (TARGET_OS_MAC || TARGET_OS_BSD) && __has_include(<sys/cdefs.h>)
+#if (TARGET_OS_MAC || TARGET_OS_BSD) && !defined(__OpenBSD__) && __has_include(<sys/cdefs.h>)
 #include <sys/cdefs.h>
 #else
 #define __printflike(a, b)

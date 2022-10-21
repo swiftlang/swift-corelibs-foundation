@@ -99,7 +99,11 @@ static CFDataRef _CFBundleMapStringsFile(CFURLRef url) CF_RETURNS_RETAINED {
     static __typeof__(__NSCreateBPlistMappedDataFromURL) *__weak__NSCreateBPlistMappedDataFromURL = NULL;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+#ifdef RTLD_NOLOAD
         void * handle = dlopen("/System/Library/Frameworks/Foundation.framework/Foundation", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
+#else
+        void * handle = dlopen("/System/Library/Frameworks/Foundation.framework/Foundation", RTLD_LAZY | RTLD_LOCAL);
+#endif
         __weak__NSCreateBPlistMappedDataFromURL = dlsym(handle, "__NSCreateBPlistMappedDataFromURL");
         if (!__weak__NSCreateBPlistMappedDataFromURL) {
             os_log_info(_CFBundleLocalizedStringLogger(), "CFBundle unable to map strings files, because Foundation is not linked");

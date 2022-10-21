@@ -1210,7 +1210,11 @@ static CFStringRef _createMapBackedString(CFDataRef data, uint64_t offset) CF_RE
     static __typeof__(__NSCreateBPlistMappedString) *__weak__NSCreateBPlistMappedString = NULL;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+#ifdef RTLD_NOLOAD
         void * handle = dlopen("/System/Library/Frameworks/Foundation.framework/Foundation", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
+#else
+        void * handle = dlopen("/System/Library/Frameworks/Foundation.framework/Foundation", RTLD_LAZY | RTLD_LOCAL);
+#endif
         __weak__NSCreateBPlistMappedString = dlsym(handle, "__NSCreateBPlistMappedString");
     });
     if (__weak__NSCreateBPlistMappedString) {
