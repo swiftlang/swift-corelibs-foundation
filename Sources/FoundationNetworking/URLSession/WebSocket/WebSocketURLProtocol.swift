@@ -89,7 +89,7 @@ internal class _WebSocketURLProtocol: _HTTPURLProtocol {
     }
     
     func sendWebSocketData(_ data: Data, flags: _EasyHandle.WebSocketFlags) throws {
-        try easyHandle.sendWebServicesData(data, flags: flags)
+        try easyHandle.sendWebSocketsData(data, flags: flags)
     }
     
     override func didReceive(data: Data) -> _EasyHandle._Action {

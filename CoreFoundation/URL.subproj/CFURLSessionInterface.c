@@ -142,36 +142,54 @@ CFURLSessionEasyCode CFURLSessionInit(void) {
 
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 86)
 
-CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebServicesFrame * _Nullable receivedFrame) {
+Boolean CFURLSessionWebSocketsSupported(void) {
+    curl_version_info_data *info = curl_version_info(CURLVERSION_NOW);
+    for (int i = 0; ; i++) {
+        const char * const protocol = info->protocols[i];
+        if (protocol == NULL) {
+            break;
+        }
+        if ((0 == strncmp(protocol, "ws", 2)) ||
+            (0 == strncmp(protocol, "wss", 3))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+CFURLSessionEasyCode CFURLSessionEasyHandleWebSocketsReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebSocketsFrame * _Nullable receivedFrame) {
     CURLcode retVal = curl_ws_recv(handle, data, dataLen, receivedDataLen, (struct curl_ws_frame **)receivedFrame);
-    
     return MakeEasyCode(retVal);
 }
 
-CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebServicesMessageFlag messageFlags) {
+CFURLSessionEasyCode CFURLSessionEasyHandleWebSocketsSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebSocketsMessageFlag messageFlags) {
     CURLcode retVal = curl_ws_send(handle, data, dataLen, writtenDataLen, frameSize, messageFlags);
     return MakeEasyCode(retVal);
 }
 
-CFURLSessionWebServicesFrame * _Nonnull CFURLSessionEasyHandleWebServicesMetadata(CFURLSessionEasyHandle _Nonnull handle) {
-    return (CFURLSessionWebServicesFrame *)curl_ws_meta(handle);
+CFURLSessionWebSocketsFrame * _Nonnull CFURLSessionEasyHandleWebSocketsMetadata(CFURLSessionEasyHandle _Nonnull handle) {
+    return (CFURLSessionWebSocketsFrame *)curl_ws_meta(handle);
 }
 
 #else
 
-CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebServicesFrame * _Nullable receivedFrame) {
-    CFAssert(false, __kCFLogAssertion, "Cannot use WebServices functions without libcurl >= 7.86.0 ");
+Boolean CFURLSessionWebSocketsSupported(void) {
+    return false;
+}
+
+CFURLSessionEasyCode CFURLSessionEasyHandleWebSocketsReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebSocketsFrame * _Nullable receivedFrame) {
+    CFAssert(false, __kCFLogAssertion, "Cannot use WebSockets functions without libcurl >= 7.86.0");
     return CFURLSessionEasyCodeNOT_BUILT_IN;
 }
-CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebServicesMessageFlag messageFlags) {
-    CFAssert(false, __kCFLogAssertion, "Cannot use WebServices functions without libcurl >= 7.86.0 ");
+CFURLSessionEasyCode CFURLSessionEasyHandleWebSocketsSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebSocketsMessageFlag messageFlags) {
+    CFAssert(false, __kCFLogAssertion, "Cannot use WebSockets functions without libcurl >= 7.86.0");
     return CFURLSessionEasyCodeNOT_BUILT_IN;
 }
 
-struct CFURLSessionWebServicesFrame emptyFrame = { 0, 0, 0, 0 };
+struct CFURLSessionWebSocketsFrame emptyFrame = { 0, 0, 0, 0 };
 
-CFURLSessionWebServicesFrame * _Nonnull CFURLSessionEasyHandleWebServicesMetadata(CFURLSessionEasyHandle _Nonnull handle) {
-    CFAssert(false, __kCFLogAssertion, "Cannot use WebServices functions without libcurl >= 7.86.0 ");
+CFURLSessionWebSocketsFrame * _Nonnull CFURLSessionEasyHandleWebSocketsMetadata(CFURLSessionEasyHandle _Nonnull handle) {
+    CFAssert(false, __kCFLogAssertion, "Cannot use WebSockets functions without libcurl >= 7.86.0");
     return &emptyFrame;
 }
 
@@ -301,23 +319,23 @@ CFURLSessionProtocol const CFURLSessionProtocolALL = CURLPROTO_ALL;
 
 
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 86)
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesText = CURLWS_TEXT;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesBinary = CURLWS_BINARY;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesCont = CURLWS_CONT;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesClose = CURLWS_CLOSE;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPing = CURLWS_PING;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPong = CURLWS_PONG;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsText = CURLWS_TEXT;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsBinary = CURLWS_BINARY;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsCont = CURLWS_CONT;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsClose = CURLWS_CLOSE;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPing = CURLWS_PING;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPong = CURLWS_PONG;
 
-CFURLSessionOption const CFURLSessionWebServicesRawMode = { CURLWS_RAW_MODE };
+CFURLSessionOption const CFURLSessionWebSocketsRawMode = { CURLWS_RAW_MODE };
 #else
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesText = -1;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesBinary = -1;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesCont = -1;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesClose = -1;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPing = -1;
-CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPong = -1;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsText = -1;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsBinary = -1;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsCont = -1;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsClose = -1;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPing = -1;
+CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPong = -1;
 
-CFURLSessionOption const CFURLSessionWebServicesRawMode = { -1 };
+CFURLSessionOption const CFURLSessionWebSocketsRawMode = { -1 };
 #endif
 
 

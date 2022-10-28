@@ -7,6 +7,14 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundationNetworking) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundationNetworking
+    #else
+        @testable import FoundationNetworking
+    #endif
+#endif
+
 class TestURLSession: LoopbackServerTest {
 
     let httpMethods = ["HEAD", "GET", "PUT", "POST", "DELETE"]
@@ -1849,12 +1857,17 @@ class TestURLSession: LoopbackServerTest {
         }
     }
     
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_webSocket() async throws {
         guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
-
+        guard URLSessionWebSocketTask.supportsWebSockets else {
+            print("libcurl lacks WebSockets support, skipping \(#function)")
+            return
+        }
+        
         let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket"
         let url = try XCTUnwrap(URL(string: urlString))
-        var request = URLRequest(url: url)
+        let request = URLRequest(url: url)
         
         let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
         let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
@@ -1893,6 +1906,10 @@ class TestURLSession: LoopbackServerTest {
     
     func test_webSocketSpecificProtocol() async throws {
         guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard URLSessionWebSocketTask.supportsWebSockets else {
+            print("libcurl lacks WebSockets support, skipping \(#function)")
+            return
+        }
 
         let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket/chatbot"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -1915,6 +1932,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(task.closeCode, .normalClosure)
         XCTAssertEqual(task.closeReason, "BuhBye".data(using: .utf8))
     }
+#endif
     
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
         var retVal = [

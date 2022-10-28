@@ -827,7 +827,7 @@ open class URLSessionWebSocketTask : URLSessionTask {
     private func doPendingWork() {
         self.workQueue.async {
             let session = self.session as! URLSession
-            if let taskError = self.taskError {
+            if let taskError = self.taskError ?? self.error {
                 for (_, handler) in self.sendBuffer {
                     session.delegateQueue.addOperation {
                         handler(taskError)
@@ -890,6 +890,29 @@ open class URLSessionWebSocketTask : URLSessionTask {
                 }
             }
         }
+    }
+    
+    override open func resume() {
+        guard _EasyHandle.supportsWebSockets else {
+            workQueue.async {
+                var userInfo: [String: Any] = [NSLocalizedDescriptionKey: "WebSockets not supported by libcurl"]
+                if let url = self.originalRequest?.url {
+                    userInfo[NSURLErrorFailingURLErrorKey] = url
+                    userInfo[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                }
+                let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
+                                                          code: NSURLErrorUnsupportedURL,
+                                                          userInfo: userInfo))
+                self.error = urlError
+                _ProtocolClient().urlProtocol(task: self, didFailWithError: urlError)
+            }
+            return
+        }
+        super.resume()
+    }
+    
+    internal static var supportsWebSockets: Bool {
+        _EasyHandle.supportsWebSockets
     }
 }
 

@@ -541,31 +541,33 @@ CF_EXPORT CFURLSessionProtocol const CFURLSessionProtocolGOPHER; // CURLPROTO_GO
 CF_EXPORT CFURLSessionProtocol const CFURLSessionProtocolALL; // CURLPROTO_ALL
 
 
-// The following WebServices symbols are -1 on libcurl < 7.86.0
+// The following WebSockets symbols are -1 on libcurl < 7.86.0, or when WebSockets are disabled
 
-typedef unsigned int CFURLSessionWebServicesMessageFlag;
+typedef unsigned int CFURLSessionWebSocketsMessageFlag;
 
-CF_EXPORT CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesText; // CURLWS_TEXT
-CF_EXPORT CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesBinary; // CURLWS_BINARY
-CF_EXPORT CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesCont; // CURLWS_CONT
-CF_EXPORT CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesClose; // CURLWS_CLOSE
-CF_EXPORT CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPing; // CURLWS_PING
-CF_EXPORT CFURLSessionWebServicesMessageFlag const CFURLSessionWebServicesPong; // CURLWS_PONG
+CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsText; // CURLWS_TEXT
+CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsBinary; // CURLWS_BINARY
+CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsCont; // CURLWS_CONT
+CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsClose; // CURLWS_CLOSE
+CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPing; // CURLWS_PING
+CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPong; // CURLWS_PONG
 
-CF_EXPORT CFURLSessionOption const CFURLSessionWebServicesRawMode; // CURLWS_RAW_MODE
+CF_EXPORT CFURLSessionOption const CFURLSessionWebSocketsRawMode; // CURLWS_RAW_MODE
 
-// The following WebServices functions are functional with libcurl 7.86.0 or later, and otherwise will trap on use
-typedef struct CFURLSessionWebServicesFrame {
+// The following WebSockets functions are functional with libcurl 7.86.0 or later, when WebSockets support is enabled.  On libcurl versions without WebSockets support, they'll trap on use.  Consult CFURLSessionWebSocketsSupported() to get a runtime signal whether they're functional.
+CF_EXPORT Boolean CFURLSessionWebSocketsSupported(void);
+
+typedef struct CFURLSessionWebSocketsFrame {
     int age; /* always zero */
-    CFURLSessionWebServicesMessageFlag flags;
+    CFURLSessionWebSocketsMessageFlag flags;
     long long offset;
     long long bytesLeft;
-} CFURLSessionWebServicesFrame;
+} CFURLSessionWebSocketsFrame;
 
-CF_EXPORT CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebServicesFrame * _Nullable receivedFrame);
-CF_EXPORT CFURLSessionEasyCode CFURLSessionEasyHandleWebServicesSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebServicesMessageFlag messageFlags);
+CF_EXPORT CFURLSessionEasyCode CFURLSessionEasyHandleWebSocketsReceive(CFURLSessionEasyHandle _Nonnull handle, char *_Nonnull data, size_t dataLen, size_t * _Nonnull receivedDataLen, CFURLSessionWebSocketsFrame * _Nullable receivedFrame);
+CF_EXPORT CFURLSessionEasyCode CFURLSessionEasyHandleWebSocketsSend(CFURLSessionEasyHandle _Nonnull handle, const char *_Nonnull data, size_t dataLen, size_t * _Nonnull writtenDataLen, long long frameSize, CFURLSessionWebSocketsMessageFlag messageFlags);
 
-CF_EXPORT CFURLSessionWebServicesFrame * _Nonnull CFURLSessionEasyHandleWebServicesMetadata(CFURLSessionEasyHandle _Nonnull handle);
+CF_EXPORT CFURLSessionWebSocketsFrame * _Nonnull CFURLSessionEasyHandleWebSocketsMetadata(CFURLSessionEasyHandle _Nonnull handle);
 
 
 CF_EXPORT size_t const CFURLSessionMaxWriteSize; // CURL_MAX_WRITE_SIZE

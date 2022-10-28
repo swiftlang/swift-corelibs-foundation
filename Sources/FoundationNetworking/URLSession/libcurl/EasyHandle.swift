@@ -296,31 +296,31 @@ extension _EasyHandle {
     struct WebSocketFlags: OptionSet {
         internal private(set) var rawValue: UInt32
         
-        static let text   = WebSocketFlags(rawValue: CFURLSessionWebServicesText)
-        static let binary = WebSocketFlags(rawValue: CFURLSessionWebServicesBinary)
-        static let cont   = WebSocketFlags(rawValue: CFURLSessionWebServicesCont)
-        static let close  = WebSocketFlags(rawValue: CFURLSessionWebServicesClose)
-        static let ping   = WebSocketFlags(rawValue: CFURLSessionWebServicesPing)
-        static let pong   = WebSocketFlags(rawValue: CFURLSessionWebServicesPong)
+        static let text   = WebSocketFlags(rawValue: CFURLSessionWebSocketsText)
+        static let binary = WebSocketFlags(rawValue: CFURLSessionWebSocketsBinary)
+        static let cont   = WebSocketFlags(rawValue: CFURLSessionWebSocketsCont)
+        static let close  = WebSocketFlags(rawValue: CFURLSessionWebSocketsClose)
+        static let ping   = WebSocketFlags(rawValue: CFURLSessionWebSocketsPing)
+        static let pong   = WebSocketFlags(rawValue: CFURLSessionWebSocketsPong)
     }
     
     // Only valid to call within a didReceive(data:size:nmemb:) call
     func getWebSocketFlags() -> WebSocketFlags {
-        let metadataPointer = CFURLSessionEasyHandleWebServicesMetadata(rawHandle)
+        let metadataPointer = CFURLSessionEasyHandleWebSocketsMetadata(rawHandle)
         let flags = WebSocketFlags(rawValue: metadataPointer.pointee.flags)
         return flags
     }
     
-    func receiveWebServicesData() throws -> (Data, WebSocketFlags) {
+    func receiveWebSocketsData() throws -> (Data, WebSocketFlags) {
         let len = 16 * 1024 // pulled out of a hat
         var data = Data.init(capacity: len)
         var bytesRead: Int = 0
-        var frameMetadata = CFURLSessionWebServicesFrame()
+        var frameMetadata = CFURLSessionWebSocketsFrame()
         try data.withUnsafeMutableBytes { bytes in
             try bytes.baseAddress!.withMemoryRebound(to: CChar.self, capacity: len) { bytesPtr in
                 try withUnsafeMutablePointer(to: &bytesRead) { bytesReadPtr in
                     try withUnsafeMutablePointer(to: &frameMetadata) { metadataPtr in
-                        try CFURLSessionEasyHandleWebServicesReceive(rawHandle, bytesPtr, len, bytesReadPtr, metadataPtr).asError()
+                        try CFURLSessionEasyHandleWebSocketsReceive(rawHandle, bytesPtr, len, bytesReadPtr, metadataPtr).asError()
                     }
                 }
             }
@@ -329,19 +329,23 @@ extension _EasyHandle {
         return (data, flags)
     }
     
-    func sendWebServicesData(_ data: Data, flags: WebSocketFlags) throws {
-        let cfurlSessionFlags = flags.rawValue as CFURLSessionWebServicesMessageFlag
+    func sendWebSocketsData(_ data: Data, flags: WebSocketFlags) throws {
+        let cfurlSessionFlags = flags.rawValue as CFURLSessionWebSocketsMessageFlag
         
         try data.withUnsafeBytes { bytes in
             try bytes.baseAddress!.withMemoryRebound(to: CChar.self, capacity: data.count) { bytesPtr in
                 var offset = 0
                 repeat {
                     var amountWritten = 0
-                    try CFURLSessionEasyHandleWebServicesSend(rawHandle, bytesPtr.advanced(by: offset), data.count, &amountWritten, 0, cfurlSessionFlags).asError()
+                    try CFURLSessionEasyHandleWebSocketsSend(rawHandle, bytesPtr.advanced(by: offset), data.count, &amountWritten, 0, cfurlSessionFlags).asError()
                     offset += amountWritten
                 } while offset < data.count
             }
         }
+    }
+    
+    static var supportsWebSockets: Bool {
+        return CFURLSessionWebSocketsSupported()
     }
 }
 
