@@ -523,7 +523,7 @@ open class URLSession : NSObject {
     }
 
     open func webSocketTask(with request: URLRequest) -> URLSessionWebSocketTask {
-        webSocketTask(with: _Request(request), behavior: .callDelegate)
+        return webSocketTask(with: _Request(request), behavior: .callDelegate)
     }
 }
 
