@@ -572,7 +572,6 @@ CF_EXPORT CFURLSessionWebSocketsFrame * _Nonnull CFURLSessionEasyHandleWebSocket
 
 CF_EXPORT size_t const CFURLSessionMaxWriteSize; // CURL_MAX_WRITE_SIZE
 
-
 CF_EXPORT char * _Nonnull CFURLSessionCurlVersionString(void);
 typedef struct CFURLSessionCurlVersion {
     int major;
