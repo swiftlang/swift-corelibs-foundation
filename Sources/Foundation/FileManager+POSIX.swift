@@ -1275,16 +1275,6 @@ extension FileManager {
                     return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                         if let originalFS = originalFS,
                            let newItemFS = newItemFS {
-
-                                #if os(Linux)
-                                if _CFHasRenameat2 && kernelSupportsRenameat2 {
-                                    if _CF_renameat2(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, _CF_renameat2_RENAME_EXCHANGE) == 0 {
-                                        return nil
-                                    } else {
-                                        return errno
-                                    }
-                                }
-                                #endif
                                 if renameat(AT_FDCWD, originalFS, AT_FDCWD, newItemFS) == 0 {
                                     return nil
                                 } else {
