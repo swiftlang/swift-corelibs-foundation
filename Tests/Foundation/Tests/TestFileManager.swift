@@ -1837,6 +1837,9 @@ VIDEOS=StopgapVideos
                 
                 let newA = try XCTUnwrap(result)
 
+                let bAttributes = try? fm.attributesOfItem(atPath: b.path)
+                XCTAssertNil(bAttributes)
+
                 let finalAttributes = try fm.attributesOfItem(atPath: newA.path)
                 XCTAssertEqual(initialAttributes[.creationDate] as? AnyHashable, finalAttributes[.creationDate] as? AnyHashable)
                 XCTAssertEqual(initialAttributes[.posixPermissions] as? AnyHashable, finalAttributes[.posixPermissions] as? AnyHashable)
