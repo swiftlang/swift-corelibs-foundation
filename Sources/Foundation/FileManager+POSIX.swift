@@ -1252,7 +1252,7 @@ extension FileManager {
                 let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
                     return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                         // Note that Darwin allows swapping a file with a directory this way.
-                        if renameatx_np(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, UInt32(RENAME_SWAP)) == 0 {
+                        if renameatx_np(AT_FDCWD, newItemFS, AT_FDCWD, originalFS, 0) == 0 {
                             return nil
                         } else {
                             return errno
@@ -1275,7 +1275,7 @@ extension FileManager {
                     return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                         if let originalFS = originalFS,
                            let newItemFS = newItemFS {
-                                if renameat(AT_FDCWD, originalFS, AT_FDCWD, newItemFS) == 0 {
+                                if renameat(AT_FDCWD, newItemFS, AT_FDCWD, originalFS) == 0 {
                                     return nil
                                 } else {
                                     return errno
