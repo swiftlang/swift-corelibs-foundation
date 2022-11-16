@@ -206,6 +206,13 @@ extension _EasyHandle {
         //CURLOPT_DEFAULT_PROTOCOL available only in libcurl 7.45.0
     }
     
+    func setAllowedProtocolsToAll() {
+        let protocols = (CFURLSessionProtocolALL)
+        let redirectProtocols = (CFURLSessionProtocolHTTP | CFURLSessionProtocolHTTPS)
+        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPROTOCOLS, protocols).asError()
+        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionREDIR_PROTOCOLS, redirectProtocols).asError()
+    }
+    
     //TODO: Proxy setting, namely CFURLSessionOptionPROXY, CFURLSessionOptionPROXYPORT,
     // CFURLSessionOptionPROXYTYPE, CFURLSessionOptionNOPROXY, CFURLSessionOptionHTTPPROXYTUNNEL, CFURLSessionOptionPROXYHEADER,
     // CFURLSessionOptionHEADEROPT, etc.
@@ -274,7 +281,7 @@ extension _EasyHandle {
     }
 
     func set(timeout value: Int) {
-       try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, numericCast(value)).asError()
+        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, numericCast(value)).asError()
     }
 
     func getTimeoutIntervalSpent() -> Double {
@@ -282,7 +289,64 @@ extension _EasyHandle {
         CFURLSession_easy_getinfo_double(rawHandle, CFURLSessionInfoTOTAL_TIME, &timeSpent)
         return timeSpent / 1000
     }
+}
 
+/// WebSocket support
+extension _EasyHandle {
+    struct WebSocketFlags: OptionSet {
+        internal private(set) var rawValue: UInt32
+        
+        static let text   = WebSocketFlags(rawValue: CFURLSessionWebSocketsText)
+        static let binary = WebSocketFlags(rawValue: CFURLSessionWebSocketsBinary)
+        static let cont   = WebSocketFlags(rawValue: CFURLSessionWebSocketsCont)
+        static let close  = WebSocketFlags(rawValue: CFURLSessionWebSocketsClose)
+        static let ping   = WebSocketFlags(rawValue: CFURLSessionWebSocketsPing)
+        static let pong   = WebSocketFlags(rawValue: CFURLSessionWebSocketsPong)
+    }
+    
+    // Only valid to call within a didReceive(data:size:nmemb:) call
+    func getWebSocketFlags() -> WebSocketFlags {
+        let metadataPointer = CFURLSessionEasyHandleWebSocketsMetadata(rawHandle)
+        let flags = WebSocketFlags(rawValue: metadataPointer.pointee.flags)
+        return flags
+    }
+    
+    func receiveWebSocketsData() throws -> (Data, WebSocketFlags) {
+        let len = 16 * 1024 // pulled out of a hat
+        var data = Data.init(capacity: len)
+        var bytesRead: Int = 0
+        var frameMetadata = CFURLSessionWebSocketsFrame()
+        try data.withUnsafeMutableBytes { bytes in
+            try bytes.baseAddress!.withMemoryRebound(to: CChar.self, capacity: len) { bytesPtr in
+                try withUnsafeMutablePointer(to: &bytesRead) { bytesReadPtr in
+                    try withUnsafeMutablePointer(to: &frameMetadata) { metadataPtr in
+                        try CFURLSessionEasyHandleWebSocketsReceive(rawHandle, bytesPtr, len, bytesReadPtr, metadataPtr).asError()
+                    }
+                }
+            }
+        }
+        let flags = WebSocketFlags(rawValue: frameMetadata.flags)
+        return (data, flags)
+    }
+    
+    func sendWebSocketsData(_ data: Data, flags: WebSocketFlags) throws {
+        let cfurlSessionFlags = flags.rawValue as CFURLSessionWebSocketsMessageFlag
+        
+        try data.withUnsafeBytes { bytes in
+            try bytes.baseAddress!.withMemoryRebound(to: CChar.self, capacity: data.count) { bytesPtr in
+                var offset = 0
+                repeat {
+                    var amountWritten = 0
+                    try CFURLSessionEasyHandleWebSocketsSend(rawHandle, bytesPtr.advanced(by: offset), data.count, &amountWritten, 0, cfurlSessionFlags).asError()
+                    offset += amountWritten
+                } while offset < data.count
+            }
+        }
+    }
+    
+    static var supportsWebSockets: Bool {
+        return CFURLSessionWebSocketsSupported()
+    }
 }
 
 fileprivate func printLibcurlDebug(handle: CFURLSessionEasyHandle, type: CInt, data: UnsafeMutablePointer<Int8>, size: Int, userInfo: UnsafeMutableRawPointer?) -> CInt {
@@ -440,7 +504,9 @@ fileprivate extension _EasyHandle {
     func resetTimer() {
         //simply create a new timer with the same queue, timeout and handler
         //this must cancel the old handler and reset the timer
-        timeoutTimer = _TimeoutSource(queue: timeoutTimer.queue, milliseconds: timeoutTimer.milliseconds, handler: timeoutTimer.handler)
+        if let timeoutTimer {
+            self.timeoutTimer = _TimeoutSource(queue: timeoutTimer.queue, milliseconds: timeoutTimer.milliseconds, handler: timeoutTimer.handler)
+        }
     }
 
     /// Forward the libcurl callbacks into Swift methods

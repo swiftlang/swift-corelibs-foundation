@@ -83,7 +83,7 @@ class TestPropertyListSerialization : XCTestCase {
 
     func test_decodeEmptyData() {
         XCTAssertThrowsError(try PropertyListSerialization.propertyList(from: Data(), format: nil)) { error in
-            let nserror = error as NSError
+            let nserror = error as! NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Cannot parse a NULL or zero-length data")

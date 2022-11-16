@@ -499,9 +499,106 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
         return nil
     }
-}
+    
+    /// Whenever we receive a response (i.e. a complete header) from libcurl,
+    /// this method gets called.
+    func didReceiveResponse() {
+        guard let _ = task as? URLSessionDataTask else { return }
+        guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
+        guard let response = ts.response as? HTTPURLResponse else { fatalError("Header complete, but not URL response.") }
+        guard let session = task?.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: self.task!) {
+        case .noDelegate:
+            break
+        case .taskDelegate:
+            //TODO: There's a problem with libcurl / with how we're using it.
+            // We're currently unable to pause the transfer / the easy handle:
+            // https://curl.haxx.se/mail/lib-2016-03/0222.html
+            //
+            // For now, we'll notify the delegate, but won't pause the transfer,
+            // and we'll disregard the completion handler:
+            switch response.statusCode {
+            case 301, 302, 303, 305...308:
+                break
+            default:
+                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            }
+        case .dataCompletionHandler:
+            break
+        case .downloadCompletionHandler:
+            break
+        }
+    }
 
-fileprivate extension _HTTPURLProtocol {
+    /// If the response is a redirect, return the new request
+    ///
+    /// RFC 7231 section 6.4 defines redirection behavior for HTTP/1.1
+    ///
+    /// - SeeAlso: <https://tools.ietf.org/html/rfc7231#section-6.4>
+    func redirectRequest(for response: HTTPURLResponse, fromRequest: URLRequest) -> URLRequest? {
+        //TODO: Do we ever want to redirect for HEAD requests?
+        
+        guard
+            let location = response.value(forHeaderField: .location),
+            let targetURL = URL(string: location)
+            else {
+                // Can't redirect when there's no location to redirect to.
+                return nil
+        }
+        
+        var request = fromRequest
+        
+        // Check for a redirect:
+        switch response.statusCode {
+            case 301...302 where request.httpMethod == "POST", 303:
+                // Change "POST" into "GET" but leave other methods unchanged:
+                request.httpMethod = "GET"
+                request.httpBody = nil
+
+            case 301...302, 305...308:
+                // Re-use existing method:
+                break
+
+            default:
+                return nil
+        }
+
+        // If targetURL has only relative path of url, create a new valid url with relative path
+        // Otherwise, return request with targetURL ie.url from location field
+        guard targetURL.scheme == nil || targetURL.host == nil else {
+            request.url = targetURL
+            return request
+        }
+
+        guard
+            let fromUrl = fromRequest.url,
+            var components = URLComponents(url: fromUrl, resolvingAgainstBaseURL: false)
+            else { return nil }
+
+        // If the new URL contains a host, use the host and port from the new URL.
+        // Otherwise, the host and port from the original URL are used.
+        if targetURL.host != nil {
+            components.host = targetURL.host
+            components.port = targetURL.port
+        }
+        
+        // The path must either begin with "/" or be an empty string.
+        if targetURL.path.hasPrefix("/") {
+            components.path = targetURL.path
+        } else {
+            components.path = "/" + targetURL.path
+        }
+        
+        // The query and fragment components are set separately to prevent them from being
+        // percent encoded again.
+        components.percentEncodedQuery = targetURL.query
+        components.percentEncodedFragment = targetURL.fragment
+
+        guard let url = components.url else { fatalError("Invalid URL") }
+        request.url = url
+
+        return request
+    }
 
     /// These are a list of headers that should be passed to libcurl.
     ///
@@ -608,109 +705,6 @@ extension _HTTPURLProtocol {
             self.internalState = .transferCompleted(response: response, bodyDataDrain: bodyDataDrain)
             completeTask()
         }
-    }
-}
-
-/// Response processing
-internal extension _HTTPURLProtocol {
-    /// Whenever we receive a response (i.e. a complete header) from libcurl,
-    /// this method gets called.
-    func didReceiveResponse() {
-        guard let _ = task as? URLSessionDataTask else { return }
-        guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
-        guard let response = ts.response as? HTTPURLResponse else { fatalError("Header complete, but not URL response.") }
-        guard let session = task?.session as? URLSession else { fatalError() }
-        switch session.behaviour(for: self.task!) {
-        case .noDelegate:
-            break
-        case .taskDelegate:
-            //TODO: There's a problem with libcurl / with how we're using it.
-            // We're currently unable to pause the transfer / the easy handle:
-            // https://curl.haxx.se/mail/lib-2016-03/0222.html
-            //
-            // For now, we'll notify the delegate, but won't pause the transfer,
-            // and we'll disregard the completion handler:
-            switch response.statusCode {
-            case 301, 302, 303, 305...308:
-                break
-            default:
-                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-            }
-        case .dataCompletionHandler:
-            break
-        case .downloadCompletionHandler:
-            break
-        }
-    }
-
-    /// If the response is a redirect, return the new request
-    ///
-    /// RFC 7231 section 6.4 defines redirection behavior for HTTP/1.1
-    ///
-    /// - SeeAlso: <https://tools.ietf.org/html/rfc7231#section-6.4>
-    func redirectRequest(for response: HTTPURLResponse, fromRequest: URLRequest) -> URLRequest? {
-        //TODO: Do we ever want to redirect for HEAD requests?
-        
-        guard
-            let location = response.value(forHeaderField: .location),
-            let targetURL = URL(string: location)
-            else {
-                // Can't redirect when there's no location to redirect to.
-                return nil
-        }
-        
-        var request = fromRequest
-        
-        // Check for a redirect:
-        switch response.statusCode {
-            case 301...302 where request.httpMethod == "POST", 303:
-                // Change "POST" into "GET" but leave other methods unchanged:
-                request.httpMethod = "GET"
-                request.httpBody = nil
-
-            case 301...302, 305...308:
-                // Re-use existing method:
-                break
-
-            default:
-                return nil
-        }
-
-        // If targetURL has only relative path of url, create a new valid url with relative path
-        // Otherwise, return request with targetURL ie.url from location field
-        guard targetURL.scheme == nil || targetURL.host == nil else {
-            request.url = targetURL
-            return request
-        }
-
-        guard
-            let fromUrl = fromRequest.url,
-            var components = URLComponents(url: fromUrl, resolvingAgainstBaseURL: false)
-            else { return nil }
-
-        // If the new URL contains a host, use the host and port from the new URL.
-        // Otherwise, the host and port from the original URL are used.
-        if targetURL.host != nil {
-            components.host = targetURL.host
-            components.port = targetURL.port
-        }
-        
-        // The path must either begin with "/" or be an empty string.
-        if targetURL.path.hasPrefix("/") {
-            components.path = targetURL.path
-        } else {
-            components.path = "/" + targetURL.path
-        }
-        
-        // The query and fragment components are set separately to prevent them from being
-        // percent encoded again.
-        components.percentEncodedQuery = targetURL.query
-        components.percentEncodedFragment = targetURL.fragment
-
-        guard let url = components.url else { fatalError("Invalid URL") }
-        request.url = url
-
-        return request
     }
 }
 

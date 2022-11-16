@@ -26,7 +26,7 @@ public struct Vector {
 // MARK: - Tests
 
 class TestAffineTransform: XCTestCase {
-    private let accuracyThreshold = 0.001
+    private let accuracyThreshold: CGFloat = 0.001
 
     static var allTests: [(String, (TestAffineTransform) -> () throws -> Void)] {
         return [

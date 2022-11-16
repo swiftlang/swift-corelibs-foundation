@@ -200,6 +200,7 @@ open class URLSession : NSObject {
         _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
         _ = URLProtocol.registerClass(_FTPURLProtocol.self)
         _ = URLProtocol.registerClass(_DataURLProtocol.self)
+        _ = URLProtocol.registerClass(_WebSocketURLProtocol.self)
     }()
     
     /*
@@ -510,6 +511,20 @@ open class URLSession : NSObject {
      */
     @available(*, unavailable, message: "URLSessionStreamTask is not available in swift-corelibs-foundation")
     open func streamTask(withHostName hostname: String, port: Int) -> URLSessionStreamTask { NSUnsupported() }
+    
+    open func webSocketTask(with url: URL) -> URLSessionWebSocketTask {
+        return webSocketTask(with: _Request(url), behavior: .callDelegate)
+    }
+    
+    open func webSocketTask(with url: URL, protocols: [String]) -> URLSessionWebSocketTask {
+        var request = URLRequest(url: url)
+        request.setValue(protocols.joined(separator: ", "), forHTTPHeaderField: "Sec-WebSocket-Protocol")
+        return webSocketTask(with: request)
+    }
+
+    open func webSocketTask(with request: URLRequest) -> URLSessionWebSocketTask {
+        return webSocketTask(with: _Request(request), behavior: .callDelegate)
+    }
 }
 
 
@@ -591,7 +606,19 @@ fileprivate extension URLSession {
         }
         return task
     }
-    
+  
+    /// Create a web socket task
+    func webSocketTask(with request: _Request, behavior: _TaskRegistry._Behaviour) -> URLSessionWebSocketTask {
+        guard !self.invalidated else { fatalError("Session invalidated") }
+        let r = createConfiguredRequest(from: request)
+        let i = createNextTaskIdentifier()
+        let task = URLSessionWebSocketTask(session: self, request: r, taskIdentifier: i, body: URLSessionTask._Body.none)
+        workQueue.async {
+            self.taskRegistry.add(task, behaviour: behavior)
+        }
+        return task
+    }
+
     /// Create a download task that is marked invalid.
     func invalidDownloadTask(behavior: _TaskRegistry._Behaviour) -> URLSessionDownloadTask {
         /* We do not support resume data in swift-corelibs-foundation, so whatever we are passed, we should just behave as Darwin does in the presence of invalid data. */
