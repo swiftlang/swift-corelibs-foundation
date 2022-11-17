@@ -1805,7 +1805,7 @@ const char *_NSPrintForDebugger(void *cf) {
         }
         
         CFIndex bufferSize = 0;
-        CFIndex numberConverted = CFStringGetBytes((CFStringRef)cf, CFRangeMake(0, CFStringGetLength((CFStringRef)cf)), kCFStringEncodingUTF8, 0, false, NULL, 0, &bufferSize);
+        CFStringGetBytes((CFStringRef)cf, CFRangeMake(0, CFStringGetLength((CFStringRef)cf)), kCFStringEncodingUTF8, 0, false, NULL, 0, &bufferSize);
         const char *result = malloc(bufferSize);
         if (!result) {
             return "<unable to fetch description>";
