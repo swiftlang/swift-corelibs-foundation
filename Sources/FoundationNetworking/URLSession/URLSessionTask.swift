@@ -754,7 +754,9 @@ open class URLSessionWebSocketTask : URLSessionTask {
                             pongReceiveHandler(error)
                         }
                     } else {
-                        pongReceiveHandler(POSIXError(.ENOTCONN))
+                        let disconnectedError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
+                                                                           code: NSURLErrorNetworkConnectionLost))
+                        pongReceiveHandler(disconnectedError)
                     }
                 }
             }
@@ -782,7 +784,8 @@ open class URLSessionWebSocketTask : URLSessionTask {
             
             self.closeCode = code
             self.closeReason = reason
-            self.taskError = POSIXError(.ENOTCONN)
+            self.taskError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
+                                                        code: NSURLErrorNetworkConnectionLost))
             self.closeMessage = (code, reason ?? Data())
             self.doPendingWork()
         }
