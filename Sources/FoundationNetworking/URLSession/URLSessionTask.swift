@@ -664,269 +664,6 @@ open class URLSessionDownloadTask : URLSessionTask {
 }
 
 /*
- * A URLSessionWebSocketTask is a task that allows clients to connect to servers supporting
- * WebSocket. The task will perform the HTTP handshake to upgrade the connection
- * and once the WebSocket handshake is successful, the client can read and write
- * messages that will be framed using the WebSocket protocol by the framework.
- */
-open class URLSessionWebSocketTask : URLSessionTask {
-    public enum CloseCode : Int, @unchecked Sendable {
-        case invalid = 0
-        case normalClosure = 1000
-        case goingAway = 1001
-        case protocolError = 1002
-        case unsupportedData = 1003
-        case noStatusReceived = 1005
-        case abnormalClosure = 1006
-        case invalidFramePayloadData = 1007
-        case policyViolation = 1008
-        case messageTooBig = 1009
-        case mandatoryExtensionMissing = 1010
-        case internalServerError = 1011
-        case tlsHandshakeFailure = 1015
-    }
-    
-    public enum Message {
-        case data(Data)
-        case string(String)
-    }
-    
-    internal var handshakeCompleted = false {
-        didSet {
-            doPendingWork()
-        }
-    }
-    
-    private var taskError: Error? = nil {
-        didSet {
-            doPendingWork()
-        }
-    }
-
-    private var sendBuffer = [(Message, (Error?) -> Void)]()
-    private var receiveBuffer = [Message]()
-    private var receiveCompletionHandlers = [(Result<Message, Error>) -> Void]()
-    private var pongCompletionHandlers = [(Error?) -> Void]()
-    private var closeMessage: (CloseCode, Data)? = nil
-    
-    internal var protocolPicked: String? = nil
-    
-    func appendReceivedMessage(_ message: Message) {
-        workQueue.async {
-            self.receiveBuffer.append(message)
-            self.doPendingWork()
-        }
-    }
-    
-    func noteReceivedPong() {
-        workQueue.async {
-            guard !self.pongCompletionHandlers.isEmpty else {
-                self.close(code: .protocolError, reason: nil)
-                return
-            }
-            let completionHandler = self.pongCompletionHandlers.removeFirst()
-            completionHandler(nil)
-        }
-    }
-
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    open func sendPing() async throws {
-        let _: Void = try await withCheckedThrowingContinuation { continuation in
-            sendPing { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: ())
-                }
-            }
-        }
-    }
-    
-    open func sendPing(pongReceiveHandler: @escaping (Error?) -> Void) {
-        self.workQueue.async {
-            self._getProtocol { urlProtocol in
-                self.workQueue.async {
-                    if let webSocketProtocol = urlProtocol as? _WebSocketURLProtocol {
-                        do {
-                            try webSocketProtocol.sendWebSocketData(Data(), flags: [.ping])
-                            self.pongCompletionHandlers.append(pongReceiveHandler)
-                        } catch {
-                            pongReceiveHandler(error)
-                        }
-                    } else {
-                        pongReceiveHandler(POSIXError(.ENOTCONN))
-                    }
-                }
-            }
-        }
-    }
-    
-    override open func cancel() {
-        cancel(with: .invalid, reason: nil)
-    }
-    
-    open func cancel(with closeCode: CloseCode, reason: Data?) {
-        close(code: closeCode, reason: reason)
-    }
-    
-    open var maximumMessageSize: Int = 1 * 1024 * 1024
-    
-    open private(set) var closeCode: CloseCode = .invalid
-    
-    open private(set) var closeReason: Data? = nil
-    
-    internal func close(code: CloseCode, reason: Data?) {
-        workQueue.async {
-            // If we've already errored out in some way, no need to re-close.
-            if self.taskError != nil { return }
-            
-            self.closeCode = code
-            self.closeReason = reason
-            self.taskError = POSIXError(.ENOTCONN)
-            self.closeMessage = (code, reason ?? Data())
-            self.doPendingWork()
-        }
-    }
-    
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    public func send(_ message: Message) async throws -> Void {
-        let _: Void = try await withCheckedThrowingContinuation { continuation in
-            send(message) { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: ())
-                }
-            }
-        }
-    }
-    
-    private func send(_ message: Message, completionHandler: @escaping (Error?) -> Void) {
-        self.workQueue.async {
-            self.sendBuffer.append((message, completionHandler))
-            self.doPendingWork()
-        }
-    }
-    
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    public func receive() async throws -> Message {
-        try await withCheckedThrowingContinuation { continuation in
-            receive() { result in
-                continuation.resume(with: result)
-            }
-        }
-    }
-
-    private func receive(completionHandler: @escaping (Result<Message, Error>) -> Void) {
-        self.workQueue.async {
-            self.receiveCompletionHandlers.append(completionHandler)
-            self.doPendingWork()
-        }
-    }
-    
-    private func doPendingWork() {
-        self.workQueue.async {
-            let session = self.session as! URLSession
-            if let taskError = self.taskError ?? self.error {
-                for (_, handler) in self.sendBuffer {
-                    session.delegateQueue.addOperation {
-                        handler(taskError)
-                    }
-                }
-                self.sendBuffer.removeAll()
-                for handler in self.receiveCompletionHandlers {
-                    session.delegateQueue.addOperation {
-                        handler(.failure(taskError))
-                    }
-                }
-                self.receiveCompletionHandlers.removeAll()
-                self._getProtocol { urlProtocol in
-                    self.workQueue.async {
-                        if self.handshakeCompleted && self.state != .completed {
-                            if let webSocketProtocol = urlProtocol as? _WebSocketURLProtocol {
-                                if let closeMessage = self.closeMessage {
-                                    self.closeMessage = nil
-                                    var closeData = Data([UInt8(closeMessage.0.rawValue >> 8), UInt8(closeMessage.0.rawValue & 0xFF)])
-                                    closeData.append(contentsOf: closeMessage.1)
-                                    try? webSocketProtocol.sendWebSocketData(closeData, flags: [.close])
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                self._getProtocol { urlProtocol in
-                    self.workQueue.async {
-                        if self.handshakeCompleted {
-                            if let webSocketProtocol = urlProtocol as? _WebSocketURLProtocol {
-                                while !self.sendBuffer.isEmpty {
-                                    let (message, completionHandler) = self.sendBuffer.removeFirst()
-                                    do {
-                                        switch message {
-                                        case .data(let data):
-                                            try webSocketProtocol.sendWebSocketData(data, flags: [.binary])
-                                        case .string(let str):
-                                            try webSocketProtocol.sendWebSocketData(str.data(using: .utf8)!, flags: [.text])
-                                        }
-                                        completionHandler(nil)
-                                    } catch {
-                                        completionHandler(error)
-                                    }
-                                }
-                                if let closeMessage = self.closeMessage {
-                                    self.closeMessage = nil
-                                    var closeData = Data([UInt8(closeMessage.0.rawValue >> 8), UInt8(closeMessage.0.rawValue & 0xFF)])
-                                    closeData.append(contentsOf: closeMessage.1)
-                                    try? webSocketProtocol.sendWebSocketData(closeData, flags: [.close])
-                                }
-                            }
-                        }
-                        while !self.receiveBuffer.isEmpty && !self.receiveCompletionHandlers.isEmpty {
-                            let message = self.receiveBuffer.removeFirst()
-                            let handler = self.receiveCompletionHandlers.removeFirst()
-                            handler(.success(message))
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    override open func resume() {
-        guard _EasyHandle.supportsWebSockets else {
-            workQueue.async {
-                var userInfo: [String: Any] = [NSLocalizedDescriptionKey: "WebSockets not supported by libcurl"]
-                if let url = self.originalRequest?.url {
-                    userInfo[NSURLErrorFailingURLErrorKey] = url
-                    userInfo[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
-                }
-                let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
-                                                          code: NSURLErrorUnsupportedURL,
-                                                          userInfo: userInfo))
-                self.error = urlError
-                _ProtocolClient().urlProtocol(task: self, didFailWithError: urlError)
-            }
-            return
-        }
-        super.resume()
-    }
-    
-    internal static var supportsWebSockets: Bool {
-        _EasyHandle.supportsWebSockets
-    }
-}
-
-public protocol URLSessionWebSocketDelegate : URLSessionTaskDelegate {
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?)
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?)
-}
-
-extension URLSessionWebSocketDelegate {
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {}
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {}
-}
-
-/*
  * An URLSessionStreamTask provides an interface to perform reads
  * and writes to a TCP/IP stream created via URLSession.  This task
  * may be explicitly created from an URLSession, or created as a
@@ -1018,6 +755,7 @@ extension _ProtocolClient : URLProtocolClient {
         guard let task = `protocol`.task else { fatalError("Received response, but there's no task.") }
         task.response = response
         let session = task.session as! URLSession
+        guard let dataTask = task as? URLSessionDataTask else { return }
         
         // Only cache data tasks:
         self.cachePolicy = policy
@@ -1035,21 +773,13 @@ extension _ProtocolClient : URLProtocolClient {
         }
         
         switch session.behaviour(for: task) {
-        case .taskDelegate(let delegate):
-            if let dataDelegate = delegate as? URLSessionDataDelegate,
-               let dataTask = task as? URLSessionDataTask {
-                session.delegateQueue.addOperation {
-                    dataDelegate.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in
-                        URLSession.printDebug("warning: Ignoring disposition from completion handler.")
-                    })
-                }
-            } else if let webSocketDelegate = delegate as? URLSessionWebSocketDelegate,
-                      let webSocketTask = task as? URLSessionWebSocketTask {
-                session.delegateQueue.addOperation {
-                    webSocketDelegate.urlSession(session, webSocketTask: webSocketTask, didOpenWithProtocol: webSocketTask.protocolPicked)
-                }
+        case .taskDelegate(let delegate as URLSessionDataDelegate):
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in
+                    URLSession.printDebug("warning: Ignoring disposition from completion handler.")
+                })
             }
-        case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
+        case .noDelegate, .taskDelegate, .dataCompletionHandler, .downloadCompletionHandler:
             break
         }
     }
@@ -1127,11 +857,6 @@ extension _ProtocolClient : URLProtocolClient {
             if let downloadDelegate = delegate as? URLSessionDownloadDelegate, let downloadTask = task as? URLSessionDownloadTask {
                 session.delegateQueue.addOperation {
                     downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as! URL)
-                }
-            } else if let webSocketDelegate = delegate as? URLSessionWebSocketDelegate,
-                      let webSocketTask = task as? URLSessionWebSocketTask {
-                session.delegateQueue.addOperation {
-                    webSocketDelegate.urlSession(session, webSocketTask: webSocketTask, didCloseWith: webSocketTask.closeCode, reason: webSocketTask.closeReason)
                 }
             }
             session.delegateQueue.addOperation {

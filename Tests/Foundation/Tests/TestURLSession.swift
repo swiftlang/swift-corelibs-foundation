@@ -7,14 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    #if canImport(SwiftFoundationNetworking) && !DEPLOYMENT_RUNTIME_OBJC
-        @testable import SwiftFoundationNetworking
-    #else
-        @testable import FoundationNetworking
-    #endif
-#endif
-
 class TestURLSession: LoopbackServerTest {
 
     let httpMethods = ["HEAD", "GET", "PUT", "POST", "DELETE"]
@@ -1857,85 +1849,8 @@ class TestURLSession: LoopbackServerTest {
         }
     }
     
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    func test_webSocket() async throws {
-        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
-        guard URLSessionWebSocketTask.supportsWebSockets else {
-            print("libcurl lacks WebSockets support, skipping \(#function)")
-            return
-        }
-        
-        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket"
-        let url = try XCTUnwrap(URL(string: urlString))
-        let request = URLRequest(url: url)
-        
-        let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
-        let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
-        
-        // We interleave sending and receiving, as the test HTTPServer implementation is barebones, and can't handle receiving more than one frame at a time.  So, this back-and-forth acts as a gating mechanism
-        try await task.send(.string("Hello"))
-        
-        let stringMessage = try await task.receive()
-        switch stringMessage {
-        case .string(let str):
-            XCTAssert(str == "Hello")
-        default:
-            XCTFail("Unexpected String Message")
-        }
-        
-        try await task.send(.data(Data([0x20, 0x22, 0x10, 0x03])))
-        
-        let dataMessage = try await task.receive()
-        switch dataMessage {
-        case .data(let data):
-            XCTAssert(data == Data([0x20, 0x22, 0x10, 0x03]))
-        default:
-            XCTFail("Unexpected Data Message")
-        }
-        
-        try await task.sendPing()
-
-        wait(for: [delegate.expectation], timeout: 50)
-        
-        let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
-                          "urlSession(_:webSocketTask:didCloseWith:reason:)",
-                          "urlSession(_:task:didCompleteWithError:)" ]
-        XCTAssertEqual(delegate.callbacks.count, callbacks.count)
-        XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
-    }
-    
-    func test_webSocketSpecificProtocol() async throws {
-        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
-        guard URLSessionWebSocketTask.supportsWebSockets else {
-            print("libcurl lacks WebSockets support, skipping \(#function)")
-            return
-        }
-
-        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket/chatbot"
-        let url = try XCTUnwrap(URL(string: urlString))
-        let request = URLRequest(url: url)
-        
-        let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
-        let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4, protocols: ["chatbot", "IRC", "BulletinBoard"])
-        
-        DispatchQueue.global(qos: .default).asyncAfter(wallDeadline: .now() + 1) {
-            task.cancel(with: .normalClosure, reason: "BuhBye".data(using: .utf8))
-        }
-        
-        wait(for: [delegate.expectation], timeout: 50)
-        
-        let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
-                          "urlSession(_:task:didCompleteWithError:)" ]
-        XCTAssertEqual(delegate.callbacks.count, callbacks.count)
-        XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
-        
-        XCTAssertEqual(task.closeCode, .normalClosure)
-        XCTAssertEqual(task.closeReason, "BuhBye".data(using: .utf8))
-    }
-#endif
-    
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
-        var retVal = [
+        return [
             ("test_dataTaskWithURL", test_dataTaskWithURL),
             ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
@@ -2007,13 +1922,6 @@ class TestURLSession: LoopbackServerTest {
             /* ⚠️ */      testExpectedToFail(test_noDoubleCallbackWhenCancellingAndProtocolFailsFast, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11310")),
             /* ⚠️ */ ("test_cancelledTasksCannotBeResumed", testExpectedToFail(test_cancelledTasksCannotBeResumed, "Breaks on Ubuntu 18.04")),
         ]
-        if #available(macOS 12.0, *) {
-            retVal.append(contentsOf: [
-                ("test_webSocket", asyncTest(test_webSocket)),
-                ("test_webSocketSpecificProtocol", asyncTest(test_webSocketSpecificProtocol)),
-            ])
-        }
-        return retVal
     }
     
 }
@@ -2034,10 +1942,10 @@ extension SharedDelegate: URLSessionDownloadDelegate {
 }
 
 
-class SessionDelegate: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate {
+class SessionDelegate: NSObject, URLSessionDelegate {
     var expectation: XCTestExpectation! = nil
     var session: URLSession! = nil
-    var task: URLSessionTask! = nil
+    var task: URLSessionDataTask! = nil
     var cancelExpectation: XCTestExpectation? = nil
     var invalidateExpectation: XCTestExpectation? = nil
 
@@ -2098,22 +2006,7 @@ class SessionDelegate: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate
         task = session.uploadTask(withStreamedRequest: request)
         task.resume()
     }
-    
-    func runWebSocketTask(with request: URLRequest, timeoutInterval: Double = 3, protocols: [String] = []) -> URLSessionWebSocketTask {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = timeoutInterval
-        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-        let webSocketTask: URLSessionWebSocketTask
-        if protocols.isEmpty {
-            webSocketTask = session.webSocketTask(with: request)
-        } else {
-            webSocketTask = session.webSocketTask(with: request.url!, protocols: protocols)
-        }
-        task = webSocketTask
-        task.resume()
-        return webSocketTask
-    }
-        
+
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
         callbacks.append(#function)
         self.error = error
@@ -2121,13 +2014,6 @@ class SessionDelegate: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate
     }
 
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        callbacks.append(#function)
-    }
-    
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        callbacks.append(#function)
-    }
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
         callbacks.append(#function)
     }
 }

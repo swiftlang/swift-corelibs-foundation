@@ -36,7 +36,6 @@ add_library(FoundationNetworking
   URLSession/FTP/FTPURLProtocol.swift
   URLSession/HTTP/HTTPMessage.swift
   URLSession/HTTP/HTTPURLProtocol.swift
-  URLSession/WebSocket/WebSocketURLProtocol.swift
   URLSession/Message.swift
   URLSession/NativeProtocol.swift
   URLSession/NetworkingSpecific.swift

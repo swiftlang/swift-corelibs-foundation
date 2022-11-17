@@ -577,7 +577,6 @@ struct _HTTPRequest: CustomStringConvertible {
 
 struct _HTTPResponse {
     enum Response: Int {
-        case SWITCHING_PROTOCOLS = 101
         case OK = 200
         case FOUND = 302
         case BAD_REQUEST = 400
@@ -686,8 +685,6 @@ public class TestURLSessionServer: CustomStringConvertible {
             try httpServer.respondWithAuthResponse(request: req)
         } else if req.uri.hasPrefix("/unauthorized") {
             try httpServer.respondWithUnauthorizedHeader()
-        } else if req.uri.hasPrefix("/web-socket") {
-            try handleWebSocketRequest(req)
         } else {
             let response = try getResponse(request: req)
             try httpServer.respond(with: response)
@@ -867,154 +864,6 @@ public class TestURLSessionServer: CustomStringConvertible {
         return try _HTTPResponse(response: .OK, body: capital)
     }
 
-    private func unmaskedPayload(from masked: Data) throws -> Data {
-        if masked.count < 6 {
-            throw InternalServerError.badBody
-        }
-        if masked.count == 6 {
-            return Data()
-        }
-        var maskingKey: UInt32 = 0
-        _ = withUnsafeMutableBytes(of: &maskingKey) { buffer in
-            masked.subdata(in: 2..<6).copyBytes(to: buffer)
-        }
-        var paddedMasked = masked
-        var padCount = 0
-        while paddedMasked.count % 4 != 2 {
-            paddedMasked.append(0x00)
-            padCount += 1
-        }
-        let maskedPayload = paddedMasked.suffix(from: 6)
-        let unmaskedPayload = maskedPayload.enumerated().map { i, byte in
-            let maskByte: UInt8
-            switch i % 4 {
-            case 3: maskByte = UInt8(maskingKey >> 24)
-            case 2: maskByte = UInt8((maskingKey >> 16) & 0xFF)
-            case 1: maskByte = UInt8((maskingKey >> 8) & 0xFF)
-            case 0: maskByte = UInt8(maskingKey & 0xFF)
-            default: fatalError()
-            }
-            return maskByte ^ byte
-        }
-        return Data(unmaskedPayload.dropLast(padCount))
-    }
-
-    func handleWebSocketRequest(_ request: _HTTPRequest) throws {
-        guard request.method == .GET,
-              "websocket" == request.getHeader(for: "upgrade"),
-              let connectionHeader = request.getHeader(for: "connection"),
-              connectionHeader.lowercased().contains("upgrade") else {
-            try httpServer.respond(with: _HTTPResponse(response: .NOT_FOUND))
-            return
-        }
-        
-        var responseHeaders = ["Upgrade: websocket",
-                               "Connection: Upgrade"]
-        
-        let expectFullRequestResponseTests: Bool
-        let uri = request.uri
-        if uri.count > "/web-socket/".count {
-            let expectedProtocol = String(uri.suffix(from: uri.index(uri.startIndex, offsetBy: "/web-socket/".count)))
-            guard let receivedProtocolStr = request.getHeader(for: "Sec-WebSocket-Protocol"),
-                  expectedProtocol == receivedProtocolStr.components(separatedBy: ", ")[0] else {
-                NSLog("Expected Sec-WebSocket-Protocol")
-                throw InternalServerError.badHeaders
-            }
-            responseHeaders.append("Sec-WebSocket-Protocol: \(expectedProtocol)")
-            expectFullRequestResponseTests = false
-        } else {
-            expectFullRequestResponseTests = true
-        }
-            
-        var upgradeResponse = _HTTPResponse(response: .SWITCHING_PROTOCOLS, headers: responseHeaders)
-        // Lacking an available SHA1 implementation, we'll only include this response for a well-known key
-        if "dGhlIHNhbXBsZSBub25jZQ==" == request.getHeader(for: "sec-websocket-key") {
-            upgradeResponse.addHeader("Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
-        }
-        
-        try httpServer.respond(with: upgradeResponse)
-        
-        do {
-            let closeCode = 1000
-            let closeReason = "BuhBye".data(using: .utf8)!
-            let closePayload = Data([UInt8(closeCode >> 8),
-                                     UInt8(closeCode & 0xFF)]) + closeReason
-
-            if expectFullRequestResponseTests {
-                let stringPayload = "Hello".data(using: .utf8)!
-                let dataPayload = Data([0x20, 0x22, 0x10, 0x03])
-                let pingPayload = "Hi".data(using: .utf8)!
-                
-                // Receive a string message
-                guard let stringFrame = try httpServer.tcpSocket.readData(),
-                      stringFrame.count == (2 + 4 + stringPayload.count),
-                      Data(stringFrame.prefix(2)) == Data([0x81, (0x80 | UInt8(stringPayload.count))]),
-                      try unmaskedPayload(from: stringFrame) == stringPayload else {
-                    NSLog("Invalid string frame")
-                    throw InternalServerError.badBody
-                }
-                
-                // Send a string message
-                let sendStringFrame = Data([0x81, UInt8(stringPayload.count)]) + stringPayload
-                try httpServer.tcpSocket.writeRawData(sendStringFrame)
-                
-                // Receive a data message
-                guard let dataFrame = try httpServer.tcpSocket.readData(),
-                      dataFrame.count == (2 + 4 + dataPayload.count),
-                      Data(dataFrame.prefix(2)) == Data([0x82, (0x80 | UInt8(dataPayload.count))]),
-                      try unmaskedPayload(from: dataFrame) == dataPayload else {
-                    NSLog("Invalid data frame")
-                    throw InternalServerError.badBody
-                }
-                
-                // Send a data message
-                let sendDataFrame = Data([0x82, UInt8(dataPayload.count)]) + dataPayload
-                try httpServer.tcpSocket.writeRawData(sendDataFrame)
-                
-                // Receive a ping
-                guard let pingFrame = try httpServer.tcpSocket.readData(),
-                      pingFrame.count == (2 + 4 + 0),
-                      Data(pingFrame.prefix(2)) == Data([0x89, 0x80]),
-                      try unmaskedPayload(from: pingFrame) == Data() else {
-                    NSLog("Invalid ping frame")
-                    throw InternalServerError.badBody
-                }
-                // ... and pong it
-                try httpServer.tcpSocket.writeRawData(Data([0x8a, 0x00]))
-                
-                // Send a ping
-                let sendPingFrame = Data([0x89, UInt8(pingPayload.count)]) + pingPayload
-                try httpServer.tcpSocket.writeRawData(sendPingFrame)
-                // ... and receive its pong
-                guard let pongFrame = try httpServer.tcpSocket.readData(),
-                      pongFrame.count == (2 + 4 + pingPayload.count),
-                      Data(pongFrame.prefix(2)) == Data([0x8a, (0x80 | UInt8(pingPayload.count))]),
-                      try unmaskedPayload(from: pongFrame) == pingPayload else {
-                    NSLog("Invalid pong frame")
-                    throw InternalServerError.badBody
-                }
-                
-                // Send a close
-                let sendCloseFrame = Data([0x88, UInt8(closePayload.count)]) + closePayload
-                try httpServer.tcpSocket.writeRawData(sendCloseFrame)
-            }
-            
-            // Receive a close message
-            guard let closeFrame = try httpServer.tcpSocket.readData(),
-                  closeFrame.count == (2 + 4 + closePayload.count),
-                  Data(closeFrame.prefix(2)) == Data([0x88, (0x80 | UInt8(closePayload.count))]),
-                  try unmaskedPayload(from: closeFrame) == closePayload else {
-                NSLog("Invalid close payload")
-                throw InternalServerError.badBody
-            }
-
-        } catch {
-            let badBodyCloseFrame = Data([0x88, 0x08, 0x03, 0xEA, 0x42, 0x75, 0x68, 0x42, 0x79, 0x65])
-            try httpServer.tcpSocket.writeRawData(badBodyCloseFrame)
-            throw error
-        }
-    }
-    
     private func statusCodeResponse(forRequest request: _HTTPRequest, statusCode: Int) throws -> _HTTPResponse {
         guard let bodyData = try? request.headersAsJSON() else {
             return try _HTTPResponse(response: .SERVER_ERROR, body: "Cant convert headers to JSON object")
@@ -1064,7 +913,6 @@ enum InternalServerError : Error {
     case socketAlreadyClosed
     case requestTooShort
     case badBody
-    case badHeaders
 }
 
 
@@ -1110,7 +958,7 @@ class LoopbackServerTest : XCTestCase {
                         do {
                             try subServer.readAndRespond()
                         } catch {
-                            NSLog("readAndRespond: \(error)")
+                            NSLog("reandAndRespond: \(error)")
                         }
                     }
                 } catch {
