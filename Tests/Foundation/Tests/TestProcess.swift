@@ -707,10 +707,10 @@ class TestProcess : XCTestCase {
         #if os(Linux) || os(Windows)
         let backgroundQueue = DispatchQueue(label: "background-processor")
         let group = DispatchGroup()
-        let startSemaphore = DispatchSemaphore()
+        let startSemaphore = DispatchSemaphore(value: 0)
         let currentWorkingDirectory = FileManager.shared.currentDirectoryPath
         var shouldRun = true
-        let shouldRunLock = Lock()
+        let shouldRunLock = NSLock()
 
         XCTAssertNotEqual(currentWorkingDirectory, "/")
 
@@ -720,7 +720,7 @@ class TestProcess : XCTestCase {
             startSemaphore.signal()
 
             while true {
-                let newCWD = FileManager.shared.currentDirectoryPath
+                let newCWD = FileManager.default.currentDirectoryPath
                 XCTAssertEqual(newCWD, currentWorkingDirectory)
 
                 shouldRunLock.lock()
