@@ -1,0 +1,78 @@
+#!/bin/bash
+
+set -e
+
+export SKIP_FETCH=1
+echo "Testing pre-push hook..."
+
+# Setup workspace
+workspace=/tmp/test_$RANDOM
+hook=hooks/pre-push
+
+echo "1. Test internal and public fetch url"
+
+test1_dir=$workspace/test_1
+mkdir -p $test1_dir 
+git_cmd="git -C $test1_dir"
+git init $test1_dir
+cp $hook $test1_dir/.git/hooks/
+touch $test1_dir/foo
+$git_cmd checkout -b main
+$git_cmd add foo
+$git_cmd commit -m "First commit"
+$git_cmd status
+$git_cmd remote add internal ssh://stash.sd.apple.com:test/test1.git
+$git_cmd remote add public git@github.com:apple/swift-issues.git
+set +e
+$git_cmd push --dry-run public main
+test1_status=$?
+set -e
+
+echo "2. Test only public url in the remote"
+
+test2_dir=$workspace/test_2
+mkdir -p $test2_dir
+git_cmd="git -C $test2_dir"
+git init $test2_dir
+cp $hook $test2_dir/.git/hooks/
+touch $test2_dir/foo
+$git_cmd checkout -b test2
+$git_cmd add foo
+$git_cmd commit -m "First commit"
+$git_cmd status
+$git_cmd remote add public git@github.com:apple/swift-issues.git
+set +e
+$git_cmd push --dry-run public test2
+test2_status=$?
+set -e
+
+echo "3. Test only internal url in the remote"
+
+test3_dir=$workspace/test_3
+mkdir -p $test3_dir
+git_cmd="git -C $test3_dir"
+git init $test3_dir
+cp $hook $test3_dir/.git/hooks/
+touch $test3_dir/foo
+$git_cmd checkout -b test3
+$git_cmd add foo
+$git_cmd commit -m "First commit"
+$git_cmd status
+$git_cmd remote add internal ssh://git@stash.sd.apple.com/devtoolsint/dt-git-hooks.git
+set +e
+$git_cmd push --dry-run internal test3
+test3_status=$?
+set -e
+
+function assert {
+   if [[ $1 == $2 ]]; then
+      printf '%s' "✅"
+   else
+      printf '%s' "❌"
+   fi
+}
+echo "===================="
+echo "Test1: `assert $test1_status 1`"
+echo "Test2: `assert $test2_status 0`"
+echo "Test3: `assert $test3_status 0`"
+echo "===================="
