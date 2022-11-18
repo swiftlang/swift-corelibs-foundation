@@ -20,10 +20,6 @@ import Darwin
 import WinSDK
 #endif
 
-#if canImport(Glibc)
-@_implementationOnly import Glibc
-#endif
-
 extension Process {
     public enum TerminationReason : Int {
         case exit
