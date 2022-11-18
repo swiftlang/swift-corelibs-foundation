@@ -704,7 +704,6 @@ CF_EXPORT int _CFPosixSpawnFileActionsDestroy(_CFPosixSpawnFileActionsRef file_a
 CF_EXPORT void _CFPosixSpawnFileActionsDealloc(_CFPosixSpawnFileActionsRef file_actions);
 CF_EXPORT int _CFPosixSpawnFileActionsAddDup2(_CFPosixSpawnFileActionsRef file_actions, int filedes, int newfiledes);
 CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_actions, int filedes);
-CF_EXPORT int _CFPosixSpawnFileActionsAddChdirNP(_CFPosixSpawnFileActionsRef file_actions, const char *path);
 #ifdef __cplusplus
 CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *const argv[], char *const envp[]);
 #else
@@ -712,9 +711,7 @@ CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT pa
 #endif // __cplusplus
 
 #if TARGET_OS_LINUX
-static inline _CFPosixSpawnFileActionsAddChdirNP(_CFPosixSpawnFileActionsRef file_actions, const char *_CF_RESTRICT path) {
-    
-}
+CF_EXPORT int _CFPosixSpawnFileActionsAddChdirNP(_CFPosixSpawnFileActionsRef file_actions, const char *path);
 #endif // TARGET_OS_LINUX
 #endif // !TARGET_OS_WIN32
 
