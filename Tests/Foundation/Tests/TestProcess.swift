@@ -708,7 +708,7 @@ class TestProcess : XCTestCase {
         let backgroundQueue = DispatchQueue(label: "background-processor")
         let group = DispatchGroup()
         let startSemaphore = DispatchSemaphore(value: 0)
-        let currentWorkingDirectory = FileManager.shared.currentDirectoryPath
+        let currentWorkingDirectory = FileManager.default.currentDirectoryPath
         var shouldRun = true
         let shouldRunLock = NSLock()
 
