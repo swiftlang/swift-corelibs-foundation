@@ -2046,8 +2046,7 @@ VIDEOS=StopgapVideos
             ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
             ("test_contentsEqual", test_contentsEqual),
             ("test_setInvalidFileAttributes", test_setInvalidFileAttributes),
-            /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
-            /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
+            ("test_replacement", test_replacement),
             /* ⚠️  */("test_concurrentGetItemReplacementDirectory", testExpectedToFail(test_concurrentGetItemReplacementDirectory, "Intermittent SEGFAULT: rdar://84519512")),
             ("test_NSTemporaryDirectory", test_NSTemporaryDirectory),
         ]

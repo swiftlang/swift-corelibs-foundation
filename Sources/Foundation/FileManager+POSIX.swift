@@ -1286,8 +1286,10 @@ extension FileManager {
                     }
                 }
                 
-                // ENOTDIR is raised if the objects are directories; EINVAL may indicate that the filesystem does not support the operation.
-                if let finalErrno = finalErrno, finalErrno != ENOTDIR && finalErrno != EINVAL {
+                // ENOTDIR and EISDIR are raised if the objects are directories; EINVAL may indicate that the filesystem does not support the operation.
+                // ENOTEMPTY is raised if the target is a directory that isn't empty.
+                let nonFatalErrors = [ENOTDIR, EISDIR, EINVAL, ENOTEMPTY]
+                if let finalErrno = finalErrno, !nonFatalErrors.contains(finalErrno) {
                     throw _NSErrorWithErrno(finalErrno, reading: false, url: originalItemURL)
                 } else if finalErrno == nil {
                     try applyPostprocessingRequiredByOptions()
