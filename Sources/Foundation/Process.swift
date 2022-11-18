@@ -944,7 +944,7 @@ open class Process: NSObject {
 
         #if os(Linux)
         if let dir = currentDirectoryURL?.path {
-            try _throwIfPosixError(posix_spawn_file_actions_addchdir_np(fileActions, dir))
+            try _throwIfPosixError(_CFPosixSpawnFileActionsAddChdirNP(fileActions, dir))
         }
         #else
         // This is an unfortunate workaround: posix_spawn has no POSIX-specified way to set the working directory
