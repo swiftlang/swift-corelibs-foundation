@@ -1790,31 +1790,6 @@ bool _CFIsSwift(CFTypeID type, CFSwiftRef obj) {
     if (obj->isa == (uintptr_t)__CFConstantStringClassReferencePtr) return false;
     return obj->isa != __CFRuntimeObjCClassTable[type];
 }
-
-const char *_NSPrintForDebugger(void *cf) {
-    if (CF_IS_SWIFT(_kCFRuntimeNotATypeID, cf)) {
-        return "Not a CF Type";
-    } else {
-        CFStringRef desc = CFCopyDescription((CFTypeRef)cf);
-        if (!desc) {
-            return "<no description>";
-        }
-        const char *cheapResult = CFStringGetCStringPtr((CFTypeRef)cf, kCFStringEncodingUTF8);
-        if (cheapResult) {
-            return cheapResult;
-        }
-        
-        CFIndex bufferSize = 0;
-        CFIndex numberConverted = CFStringGetBytes((CFStringRef)cf, CFRangeMake(0, CFStringGetLength((CFStringRef)cf)), kCFStringEncodingUTF8, 0, false, NULL, 0, &bufferSize);
-        const char *result = malloc(bufferSize);
-        if (!result) {
-            return "<unable to fetch description>";
-        }
-        CFStringGetBytes((CFStringRef)cf, CFRangeMake(0, CFStringGetLength((CFStringRef)cf)), kCFStringEncodingUTF8, 0, false, (UInt8 *)result, bufferSize, NULL);
-        // Yes, this leaks
-        return result;
-    }
-}
         
 CFHashCode __CFHashDouble(double d) {
     return _CFHashDouble(d);
