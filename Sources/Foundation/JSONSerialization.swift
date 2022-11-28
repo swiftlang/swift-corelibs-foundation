@@ -183,22 +183,22 @@ open class JSONSerialization : NSObject {
      */
     open class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
         do {
-            let jsonValue = try data.withUnsafeBytes { (ptr) -> JSONValue in
-                let (encoding, advanceBy) = JSONSerialization.detectEncoding(ptr)
-                
+            let jsonValue = try {
+                let (encoding, advanceBy) = JSONSerialization.detectEncoding(data)
+
                 if encoding == .utf8 {
                     // we got utf8... happy path
-                    var parser = JSONParser(bytes: Array(ptr[advanceBy..<ptr.count]))
+                    var parser = JSONParser(bytes: data[advanceBy...])
                     return try parser.parse()
                 }
-                
-                guard let utf8String = String(bytes: ptr[advanceBy..<ptr.count], encoding: encoding) else {
+
+                guard let utf8String = String(bytes: data[advanceBy...], encoding: encoding) else {
                     throw JSONError.cannotConvertInputDataToUTF8
                 }
-                
-                var parser = JSONParser(bytes: Array(utf8String.utf8))
+
+                var parser = JSONParser(bytes: utf8String.data(using: .utf8)!)
                 return try parser.parse()
-            }
+            }()
             
             if jsonValue.isValue, !opt.contains(.fragmentsAllowed) {
                 throw JSONError.singleFragmentFoundButNotAllowed
@@ -306,7 +306,7 @@ open class JSONSerialization : NSObject {
 
 private extension JSONSerialization {
     /// Detect the encoding format of the NSData contents
-    static func detectEncoding(_ bytes: UnsafeRawBufferPointer) -> (String.Encoding, Int) {
+    static func detectEncoding(_ bytes: Data) -> (String.Encoding, Int) {
         // According to RFC8259, the text encoding in JSON must be UTF8 in nonclosed systems
         // https://tools.ietf.org/html/rfc8259#section-8.1
         // However, since Darwin Foundation supports utf16 and utf32, so should Swift Foundation.
@@ -360,7 +360,7 @@ private extension JSONSerialization {
         return (.utf8, 0)
     }
     
-    static func parseBOM(_ bytes: UnsafeRawBufferPointer) -> (encoding: String.Encoding, skipLength: Int)? {
+    static func parseBOM(_ bytes: Data) -> (encoding: String.Encoding, skipLength: Int)? {
         
         return nil
     }
