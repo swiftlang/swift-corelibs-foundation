@@ -1171,9 +1171,19 @@ CF_EXPORT
 
 CF_PRIVATE os_unfair_recursive_lock CFPlugInGlobalDataLock;
 
+#if __HAS_DISPATCH__
+extern void libdispatch_init();
+#endif
+
 void __CFInitialize(void) {
     if (!__CFInitialized && !__CFInitializing) {
         __CFInitializing = 1;
+
+#if __HAS_DISPATCH__
+    // libdispatch has to be initialized before CoreFoundation, so to avoid
+    // issues with static initializer ordering, we are doing it explicitly.
+    libdispatch_init();
+#endif
 
     // This is a no-op on Darwin, but is needed on Linux and Windows.
     _CFPerformDynamicInitOfOSRecursiveLock(&CFPlugInGlobalDataLock);
