@@ -703,6 +703,12 @@ open class URLSessionWebSocketTask : URLSessionTask {
         }
     }
 
+    open override var error: Error? {
+        didSet {
+            doPendingWork()
+        }
+    }
+
     private var sendBuffer = [(Message, (Error?) -> Void)]()
     private var receiveBuffer = [Message]()
     private var receiveCompletionHandlers = [(Result<Message, Error>) -> Void]()

@@ -912,8 +912,28 @@ public class TestURLSessionServer: CustomStringConvertible {
                                "Connection: Upgrade"]
         
         let expectFullRequestResponseTests: Bool
+        let sendClosePacket: Bool
+        let completeUpgrade: Bool
+        
         let uri = request.uri
-        if uri.count > "/web-socket/".count {
+        switch uri {
+        case "/web-socket":
+            expectFullRequestResponseTests = true
+            completeUpgrade = true
+            sendClosePacket = true
+        case "/web-socket/semi-abrupt-close":
+            expectFullRequestResponseTests = false
+            completeUpgrade = true
+            sendClosePacket = false
+        case "/web-socket/abrupt-close":
+            expectFullRequestResponseTests = false
+            completeUpgrade = false
+            sendClosePacket = false
+        default:
+            guard uri.count > "/web-socket/".count else {
+                NSLog("Expected Sec-WebSocket-Protocol")
+                throw InternalServerError.badHeaders
+            }
             let expectedProtocol = String(uri.suffix(from: uri.index(uri.startIndex, offsetBy: "/web-socket/".count)))
             guard let receivedProtocolStr = request.getHeader(for: "Sec-WebSocket-Protocol"),
                   expectedProtocol == receivedProtocolStr.components(separatedBy: ", ")[0] else {
@@ -922,10 +942,12 @@ public class TestURLSessionServer: CustomStringConvertible {
             }
             responseHeaders.append("Sec-WebSocket-Protocol: \(expectedProtocol)")
             expectFullRequestResponseTests = false
-        } else {
-            expectFullRequestResponseTests = true
+            completeUpgrade = true
+            sendClosePacket = true
         }
             
+        guard completeUpgrade else { return }
+
         var upgradeResponse = _HTTPResponse(response: .SWITCHING_PROTOCOLS, headers: responseHeaders)
         // Lacking an available SHA1 implementation, we'll only include this response for a well-known key
         if "dGhlIHNhbXBsZSBub25jZQ==" == request.getHeader(for: "sec-websocket-key") {
@@ -940,10 +962,11 @@ public class TestURLSessionServer: CustomStringConvertible {
             let closePayload = Data([UInt8(closeCode >> 8),
                                      UInt8(closeCode & 0xFF)]) + closeReason
 
+            let pingPayload = "Hi".data(using: .utf8)!
+
             if expectFullRequestResponseTests {
                 let stringPayload = "Hello".data(using: .utf8)!
                 let dataPayload = Data([0x20, 0x22, 0x10, 0x03])
-                let pingPayload = "Hi".data(using: .utf8)!
                 
                 // Receive a string message
                 guard let stringFrame = try httpServer.tcpSocket.readData(),
@@ -981,31 +1004,35 @@ public class TestURLSessionServer: CustomStringConvertible {
                 }
                 // ... and pong it
                 try httpServer.tcpSocket.writeRawData(Data([0x8a, 0x00]))
-                
-                // Send a ping
-                let sendPingFrame = Data([0x89, UInt8(pingPayload.count)]) + pingPayload
-                try httpServer.tcpSocket.writeRawData(sendPingFrame)
-                // ... and receive its pong
-                guard let pongFrame = try httpServer.tcpSocket.readData(),
-                      pongFrame.count == (2 + 4 + pingPayload.count),
-                      Data(pongFrame.prefix(2)) == Data([0x8a, (0x80 | UInt8(pingPayload.count))]),
-                      try unmaskedPayload(from: pongFrame) == pingPayload else {
-                    NSLog("Invalid pong frame")
-                    throw InternalServerError.badBody
-                }
-                
-                // Send a close
-                let sendCloseFrame = Data([0x88, UInt8(closePayload.count)]) + closePayload
-                try httpServer.tcpSocket.writeRawData(sendCloseFrame)
             }
             
-            // Receive a close message
-            guard let closeFrame = try httpServer.tcpSocket.readData(),
-                  closeFrame.count == (2 + 4 + closePayload.count),
-                  Data(closeFrame.prefix(2)) == Data([0x88, (0x80 | UInt8(closePayload.count))]),
-                  try unmaskedPayload(from: closeFrame) == closePayload else {
-                NSLog("Invalid close payload")
+            // Send a ping
+            let sendPingFrame = Data([0x89, UInt8(pingPayload.count)]) + pingPayload
+            try httpServer.tcpSocket.writeRawData(sendPingFrame)
+            // ... and receive its pong
+            guard let pongFrame = try httpServer.tcpSocket.readData(),
+                  pongFrame.count == (2 + 4 + pingPayload.count),
+                  Data(pongFrame.prefix(2)) == Data([0x8a, (0x80 | UInt8(pingPayload.count))]),
+                  try unmaskedPayload(from: pongFrame) == pingPayload else {
+                NSLog("Invalid pong frame")
                 throw InternalServerError.badBody
+            }
+            
+            if sendClosePacket {
+                if expectFullRequestResponseTests {
+                    // Send a close
+                    let sendCloseFrame = Data([0x88, UInt8(closePayload.count)]) + closePayload
+                    try httpServer.tcpSocket.writeRawData(sendCloseFrame)
+                }
+
+                // Receive a close message
+                guard let closeFrame = try httpServer.tcpSocket.readData(),
+                      closeFrame.count == (2 + 4 + closePayload.count),
+                      Data(closeFrame.prefix(2)) == Data([0x88, (0x80 | UInt8(closePayload.count))]),
+                      try unmaskedPayload(from: closeFrame) == closePayload else {
+                    NSLog("Invalid close payload")
+                    throw InternalServerError.badBody
+                }
             }
 
         } catch {
