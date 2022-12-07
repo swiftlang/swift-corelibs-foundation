@@ -191,7 +191,7 @@ open class JSONSerialization : NSObject {
             throw JSONError.cannotConvertInputDataToUTF8
         }
 
-        var parser = JSONParser(bytes: utf8String.data(using: .utf8)!)
+        var parser = JSONParser(bytes: Data(utf8String.utf8))
         return parser
     }
     
