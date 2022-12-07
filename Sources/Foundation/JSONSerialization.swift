@@ -183,7 +183,7 @@ open class JSONSerialization : NSObject {
 
         if encoding == .utf8 {
             // we got utf8... happy path
-            var parser = JSONParser(bytes: data[advanceBy...])
+            let parser = JSONParser(bytes: data[advanceBy...])
             return parser
         }
 
@@ -191,7 +191,7 @@ open class JSONSerialization : NSObject {
             throw JSONError.cannotConvertInputDataToUTF8
         }
 
-        var parser = JSONParser(bytes: Data(utf8String.utf8))
+        let parser = JSONParser(bytes: Data(utf8String.utf8))
         return parser
     }
     
