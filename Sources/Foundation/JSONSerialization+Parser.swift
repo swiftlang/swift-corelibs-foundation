@@ -339,10 +339,10 @@ extension JSONParser {
                     self.moveReaderIndex(forwardBy: copy + 1)
                     guard var result = output else {
                         // if we don't have an output string we create a new string
-                        return String(decoding: self[stringStartIndex ..< stringStartIndex + copy], as: Unicode.UTF8.self)
+                        return try Self.makeString(self[stringStartIndex ..< stringStartIndex + copy])
                     }
                     // if we have an output string we append
-                    result += String(decoding: self[stringStartIndex ..< stringStartIndex + copy], as: Unicode.UTF8.self)
+                    result += try Self.makeString(self[stringStartIndex ..< stringStartIndex + copy])
                     return result
 
                 case 0 ... 31:
@@ -352,15 +352,15 @@ extension JSONParser {
                     // through U+001F).
                     var string = output ?? ""
                     let errorIndex = self.readerIndex + copy
-                    string += self.makeStringFast(self.array[stringStartIndex ... errorIndex])
+                    string += try Self.makeString(self.array[stringStartIndex ... errorIndex])
                     throw JSONError.unescapedControlCharacterInString(ascii: byte, in: string, index: errorIndex)
 
                 case UInt8(ascii: "\\"):
                     self.moveReaderIndex(forwardBy: copy)
                     if output != nil {
-                        output! += self.makeStringFast(self.array[stringStartIndex ..< stringStartIndex + copy])
+                        output! += try Self.makeString(self.array[stringStartIndex ..< stringStartIndex + copy])
                     } else {
-                        output = self.makeStringFast(self.array[stringStartIndex ..< stringStartIndex + copy])
+                        output = try Self.makeString(self.array[stringStartIndex ..< stringStartIndex + copy])
                     }
                     
                     let escapedStartIndex = self.readerIndex
@@ -371,13 +371,13 @@ extension JSONParser {
                         stringStartIndex = self.readerIndex
                         copy = 0
                     } catch EscapedSequenceError.unexpectedEscapedCharacter(let ascii, let failureIndex) {
-                        output! += makeStringFast(array[escapedStartIndex ..< self.readerIndex])
+                        output! += try Self.makeString(array[escapedStartIndex ..< self.readerIndex])
                         throw JSONError.unexpectedEscapedCharacter(ascii: ascii, in: output!, index: failureIndex)
                     } catch EscapedSequenceError.expectedLowSurrogateUTF8SequenceAfterHighSurrogate(let failureIndex) {
-                        output! += makeStringFast(array[escapedStartIndex ..< self.readerIndex])
+                        output! += try Self.makeString(array[escapedStartIndex ..< self.readerIndex])
                         throw JSONError.expectedLowSurrogateUTF8SequenceAfterHighSurrogate(in: output!, index: failureIndex)
                     } catch EscapedSequenceError.couldNotCreateUnicodeScalarFromUInt32(let failureIndex, let unicodeScalarValue) {
-                        output! += makeStringFast(array[escapedStartIndex ..< self.readerIndex])
+                        output! += try Self.makeString(array[escapedStartIndex ..< self.readerIndex])
                         throw JSONError.couldNotCreateUnicodeScalarFromUInt32(
                             in: output!, index: failureIndex, unicodeScalarValue: unicodeScalarValue
                         )
@@ -392,15 +392,11 @@ extension JSONParser {
             throw JSONError.unexpectedEndOfFile
         }
 
-        // can be removed as soon https://bugs.swift.org/browse/SR-12126 and
-        // https://bugs.swift.org/browse/SR-12125 has landed.
-        // Thanks @weissi for making my code fast!
-        private func makeStringFast<Bytes: Collection>(_ bytes: Bytes) -> String where Bytes.Element == UInt8 {
-            if let string = bytes.withContiguousStorageIfAvailable({ String(decoding: $0, as: Unicode.UTF8.self) }) {
-                return string
-            } else {
-                return String(decoding: bytes, as: Unicode.UTF8.self)
+        private static func makeString<Bytes: Collection>(_ bytes: Bytes) throws -> String where Bytes.Element == UInt8 {
+            guard let str = String(bytes: bytes, encoding: .utf8) else {
+                throw JSONError.cannotConvertInputDataToUTF8
             }
+            return str
         }
 
         private mutating func parseEscapeSequence() throws -> String {
@@ -606,7 +602,7 @@ extension JSONParser {
                     let numberStartIndex = self.readerIndex
                     self.moveReaderIndex(forwardBy: numberchars)
 
-                    return self.makeStringFast(self[numberStartIndex ..< self.readerIndex])
+                    return String(decoding: self[numberStartIndex ..< self.readerIndex], as: Unicode.UTF8.self)
                 default:
                     throw JSONError.unexpectedCharacter(ascii: byte, characterIndex: readerIndex + numberchars)
                 }
