@@ -201,15 +201,15 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _objectInCurrentDecodingContext<T>(forKey key: String?) -> T? {
-        var unwrappedKey = key
+        let unwrappedKey: String
         
-        if key != nil {
-            unwrappedKey = escapeArchiverKey(key!)
+        if let key = key {
+            unwrappedKey = escapeArchiverKey(key)
         } else {
             unwrappedKey = _nextGenericKey()
         }
 
-        if let v = _currentDecodingContext.dict[unwrappedKey!] {
+        if let v = _currentDecodingContext.dict[unwrappedKey] {
             return v as? T
         }
         return nil
@@ -272,18 +272,18 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _isClassAllowed(_ assertedClass: AnyClass?, allowedClasses: [AnyClass]?) -> Bool {
-        if assertedClass == nil {
+        guard let assertedClass = assertedClass else {
             return false
         }
         
         if _flags.contains(.requiresSecureCoding) {
             if let unwrappedAllowedClasses = allowedClasses {
-                if unwrappedAllowedClasses.contains(where: {NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
+                if unwrappedAllowedClasses.contains(where: {NSKeyedUnarchiver._classIsKindOfClass(assertedClass, $0)}) {
                     return true
                 }
             }
             
-            fatalError("Value was of unexpected class \(assertedClass!)")
+            fatalError("Value was of unexpected class \(assertedClass)")
         } else {
             return true
         }
@@ -311,25 +311,25 @@ open class NSKeyedUnarchiver : NSCoder {
             return aClass
         }
         
-        guard let unwrappedClassDict = classDict else {
+        guard let classDict = classDict else {
             return false
         }
         
         // TODO is it required to validate the superclass hierarchy?
-        let assertedClassName = unwrappedClassDict["$classname"] as? String
-        let assertedClassHints = unwrappedClassDict["$classhints"] as? [String]
-        let assertedClasses = unwrappedClassDict["$classes"] as? [String]
+        let assertedClassName = classDict["$classname"] as? String
+        let assertedClassHints = classDict["$classhints"] as? [String]
+        let assertedClasses = classDict["$classes"] as? [String]
         
-        if assertedClassName != nil {
-            let assertedClass : AnyClass? = _classForClassName(assertedClassName!)
+        if let assertedClassName = assertedClassName {
+            let assertedClass : AnyClass? = _classForClassName(assertedClassName)
             if _isClassAllowed(assertedClass, allowedClasses: allowedClasses) {
                 classToConstruct = assertedClass
                 return true
             }
         }
         
-        if assertedClassHints != nil {
-            for assertedClassHint in assertedClassHints! {
+        if let assertedClassHints = assertedClassHints {
+            for assertedClassHint in assertedClassHints {
                 // FIXME check whether class hints should be subject to mapping or not
                 let assertedClass : AnyClass? = NSClassFromString(assertedClassHint)
                 if _isClassAllowed(assertedClass, allowedClasses: allowedClasses) {
@@ -339,11 +339,11 @@ open class NSKeyedUnarchiver : NSCoder {
             }
         }
         
-        if assertedClassName != nil {
+        if let assertedClassName = assertedClassName {
             if let unwrappedDelegate = self.delegate {
                 classToConstruct = unwrappedDelegate.unarchiver(self,
-                                                                cannotDecodeObjectOfClassName: assertedClassName!,
-                                                                originalClasses: assertedClasses != nil ? assertedClasses! : [])
+                                                                cannotDecodeObjectOfClassName: assertedClassName,
+                                                                originalClasses: assertedClasses ?? [])
                 if classToConstruct != nil {
                     return true
                 }
@@ -417,28 +417,26 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _replacementObject(_ decodedObject: Any?) -> Any? {
-        var object : Any? = nil // object to encode after substitution
-        
-        // nil cannot be mapped
-        if decodedObject == nil {
+        // nil cannot be mapped (this appears to differ from Darwin?)
+        guard let decodedObject = decodedObject else {
             return nil
         }
         
         // check replacement cache
-        object = self._replacementMap[__SwiftValue.store(decodedObject!)]
-        if object != nil {
+        if let object = self._replacementMap[__SwiftValue.store(decodedObject)] {
             return object
         }
-        
-        // object replaced by delegate. If the delegate returns nil, nil is encoded
+
+        // object replaced by delegate. If using ARC, the delegate should only return
+        // nil if the object itself is nil.
         if let unwrappedDelegate = self.delegate {
-            object = unwrappedDelegate.unarchiver(self, didDecode: decodedObject!)
-            if object != nil {
-                replaceObject(decodedObject!, withObject: object!)
-                return object
-            }
+             let object = unwrappedDelegate.unarchiver(self, didDecode: decodedObject)
+             if object != nil {
+                 replaceObject(decodedObject, withObject: object!)
+                 return object
+             }
         }
-        
+
         return decodedObject
     }
     
@@ -470,12 +468,12 @@ open class NSKeyedUnarchiver : NSCoder {
             throw InternalError.decodingHasAlreadyFailed
         }
 
-        if !(objectRef is _NSKeyedArchiverUID) {
+        guard let objectRef = objectRef as? _NSKeyedArchiverUID else {
             throw _decodingError(.coderReadCorrupt,
                                  withDescription: "Object \(objectRef) is not a reference. The data may be corrupt.")
         }
-
-        guard let dereferencedObject = _dereferenceObjectReference(objectRef as! _NSKeyedArchiverUID) else {
+        
+        guard let dereferencedObject = _dereferenceObjectReference(objectRef) else {
             throw _decodingError(.coderReadCorrupt,
                                  withDescription: "Invalid object reference \(objectRef). The data may be corrupt.")
         }
@@ -486,7 +484,7 @@ open class NSKeyedUnarchiver : NSCoder {
 
         if _isContainer(dereferencedObject) {
             // check cached of decoded objects
-            object = _cachedObjectForReference(objectRef as! _NSKeyedArchiverUID)
+            object = _cachedObjectForReference(objectRef)
             if object == nil {
                 guard let dict = dereferencedObject as? Dictionary<String, Any> else {
                     throw _decodingError(.coderReadCorrupt,
@@ -523,7 +521,7 @@ open class NSKeyedUnarchiver : NSCoder {
                                          withDescription: "Class \(classToConstruct!) failed to decode. The data may be corrupt.")
                 }
 
-                _cacheObject(object!, forReference: objectRef as! _NSKeyedArchiverUID)
+                _cacheObject(object!, forReference: objectRef)
             }
         } else {
             object = __SwiftValue.store(dereferencedObject)

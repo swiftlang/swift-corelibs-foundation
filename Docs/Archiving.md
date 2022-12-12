@@ -37,7 +37,7 @@ There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver w
 * NSTimeZone
 * NSURL
 * NSUUID
-* NSValue (via class cluster hack)
+* NSValue
 
 ## TODO
 

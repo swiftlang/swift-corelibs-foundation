@@ -1085,42 +1085,38 @@ public func NSRectFromString(_ aString: String) -> NSRect {
 
 extension NSValue {
     public convenience init(point: NSPoint) {
-        self.init()
-        self._concreteValue = NSSpecialValue(point)
+        self.init { NSSpecialValue(point) as! Self }
     }
     
     public convenience init(size: NSSize) {
-        self.init()
-        self._concreteValue = NSSpecialValue(size)
+        self.init { NSSpecialValue(size) as! Self }
     }
     
     public convenience init(rect: NSRect) {
-        self.init()
-        self._concreteValue = NSSpecialValue(rect)
+        self.init { NSSpecialValue(rect) as! Self }
     }
     
     public convenience init(edgeInsets insets: NSEdgeInsets) {
-        self.init()
-        self._concreteValue = NSSpecialValue(insets)
+        self.init { NSSpecialValue(insets) as! Self }
     }
     
     public var pointValue: NSPoint {
-        let specialValue = self._concreteValue as! NSSpecialValue
+        let specialValue = self as! NSSpecialValue
         return specialValue._value as! NSPoint
     }
     
     public var sizeValue: NSSize {
-        let specialValue = self._concreteValue as! NSSpecialValue
+        let specialValue = self as! NSSpecialValue
         return specialValue._value as! NSSize
     }
     
     public var rectValue: NSRect {
-        let specialValue = self._concreteValue as! NSSpecialValue
+        let specialValue = self as! NSSpecialValue
         return specialValue._value as! NSRect
     }
     
     public var edgeInsetsValue: NSEdgeInsets {
-        let specialValue = self._concreteValue as! NSSpecialValue
+        let specialValue = self as! NSSpecialValue
         return specialValue._value as! NSEdgeInsets
     }
 }

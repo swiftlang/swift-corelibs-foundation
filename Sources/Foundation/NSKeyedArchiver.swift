@@ -405,11 +405,12 @@ open class NSKeyedArchiver : NSCoder {
         Returns true if the object has already been encoded.
      */ 
     private func _haveVisited(_ objv: Any?) -> Bool {
-        if objv == nil {
-            return true // always have a null reference
-        } else {
-            return self._objRefMap[__SwiftValue.store(objv!)] != nil
+        guard let objv = objv else {
+            // always have a null reference
+            return true
         }
+        
+        return self._objRefMap[__SwiftValue.store(objv)] != nil
     }
     
     /**

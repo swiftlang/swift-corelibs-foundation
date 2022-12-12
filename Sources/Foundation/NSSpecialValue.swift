@@ -46,33 +46,17 @@ internal class NSSpecialValue : NSValue {
     }
     
     private static func _flagsFromType(_ type: NSSpecialValueCoding.Type) -> Int {
-        for (F, T) in _specialTypes {
-            if T == type {
-                return F
-            }
-        }
-        return 0
+        return _specialTypes.first(where: { $1 == type })?.0 ?? 0
     }
     
     private static func _objCTypeFromType(_ type: NSSpecialValueCoding.Type) -> String? {
-        for (_, T) in _specialTypes {
-            if T == type {
-                return T.objCType()
-            }
-        }
-        return nil
+        return _specialTypes.first(where: { $1 == type })?.1.objCType()
     }
     
     internal static func _typeFromObjCType(_ type: UnsafePointer<Int8>) -> NSSpecialValueCoding.Type? {
         let objCType = String(cString: type)
         
-        for (_, T) in _specialTypes {
-            if T.objCType() == objCType {
-                return T
-            }
-        }
-        
-        return nil
+        return _specialTypes.first(where: { $1.objCType() == objCType })?.1
     }
     
     internal var _value : NSSpecialValueCoding
@@ -98,10 +82,8 @@ internal class NSSpecialValue : NSValue {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         let specialFlags = aDecoder.decodeInteger(forKey: "NS.special")
-        guard let specialType = NSSpecialValue._typeFromFlags(specialFlags) else {
-            return nil
-        }
-        guard let specialValue = specialType.init(coder: aDecoder) else {
+        guard let specialType = NSSpecialValue._typeFromFlags(specialFlags),
+              let specialValue = specialType.init(coder: aDecoder) else {
             return nil
         }
         self.init(specialValue)
@@ -121,7 +103,6 @@ internal class NSSpecialValue : NSValue {
     }
     
     override var classForCoder: AnyClass {
-        // for some day when we support class clusters
         return NSValue.self
     }
     
