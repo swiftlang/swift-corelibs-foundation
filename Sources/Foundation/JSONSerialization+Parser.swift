@@ -29,7 +29,7 @@ internal struct JSONParser {
             }
         }
         #endif
-        
+
         // ensure only white space is remaining
         var whitespace = 0
         while let next = reader.peek(offset: whitespace) {
@@ -41,7 +41,7 @@ internal struct JSONParser {
                 throw JSONError.unexpectedCharacter(ascii: next, characterIndex: reader.readerIndex + whitespace)
             }
         }
-        
+
         return value
     }
 
@@ -107,15 +107,15 @@ internal struct JSONParser {
         default:
             break
         }
-        
+
         var array = [JSONValue]()
         array.reserveCapacity(10)
-        
+
         // parse values
         while true {
             let value = try parseValue()
             array.append(value)
-            
+
             // consume the whitespace after the value before the comma
             let ascii = try reader.consumeWhitespace()
             switch ascii {
@@ -161,7 +161,7 @@ internal struct JSONParser {
         default:
             break
         }
-        
+
         var object = [String: JSONValue]()
         object.reserveCapacity(20)
 
@@ -174,7 +174,7 @@ internal struct JSONParser {
             reader.moveReaderIndex(forwardBy: 1)
             try reader.consumeWhitespace()
             object[key] = try self.parseValue()
-            
+
             let commaOrBrace = try reader.consumeWhitespace()
             switch commaOrBrace {
             case ._closebrace:
@@ -196,11 +196,11 @@ internal struct JSONParser {
 }
 
 extension JSONParser {
-    
+
     struct DocumentReader {
         let bytes: Data
 
-        private(set) var readerIndex: Int = 0
+        private(set) var readerIndex: Int
 
         private var readableBytes: Int {
             self.bytes.endIndex - self.readerIndex
@@ -213,6 +213,7 @@ extension JSONParser {
 
         init(bytes: Data) {
             self.bytes = bytes
+            self.readerIndex = bytes.startIndex
         }
 
         subscript(bounds: Range<Int>) -> Data {
@@ -514,9 +515,9 @@ extension JSONParser {
                 return nil
             }
         }
-        
+
         // MARK: Numbers
-        
+
         private enum ControlCharacter {
             case operand
             case decimalPoint
@@ -550,7 +551,7 @@ extension JSONParser {
             }
 
             var numberchars = 1
-            
+
             // parse everything else
             while let byte = self.peek(offset: numberchars) {
                 switch byte {
@@ -623,32 +624,32 @@ extension JSONParser {
 }
 
 extension UInt8 {
-    
+
     internal static let _space = UInt8(ascii: " ")
     internal static let _return = UInt8(ascii: "\r")
     internal static let _newline = UInt8(ascii: "\n")
     internal static let _tab = UInt8(ascii: "\t")
-    
+
     internal static let _colon = UInt8(ascii: ":")
     internal static let _comma = UInt8(ascii: ",")
-    
+
     internal static let _openbrace = UInt8(ascii: "{")
     internal static let _closebrace = UInt8(ascii: "}")
-    
+
     internal static let _openbracket = UInt8(ascii: "[")
     internal static let _closebracket = UInt8(ascii: "]")
-    
+
     internal static let _quote = UInt8(ascii: "\"")
     internal static let _backslash = UInt8(ascii: "\\")
-    
+
 }
 
 extension Array where Element == UInt8 {
-    
+
     internal static let _true = [UInt8(ascii: "t"), UInt8(ascii: "r"), UInt8(ascii: "u"), UInt8(ascii: "e")]
     internal static let _false = [UInt8(ascii: "f"), UInt8(ascii: "a"), UInt8(ascii: "l"), UInt8(ascii: "s"), UInt8(ascii: "e")]
     internal static let _null = [UInt8(ascii: "n"), UInt8(ascii: "u"), UInt8(ascii: "l"), UInt8(ascii: "l")]
-    
+
 }
 
 enum JSONError: Swift.Error, Equatable {
