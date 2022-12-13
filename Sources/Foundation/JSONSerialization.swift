@@ -178,7 +178,7 @@ open class JSONSerialization : NSObject {
         return try _data(withJSONObject: value, options: opt, stream: false)
     }
 
-    private static func createParser(with data: Data) throws -> JSONParser {
+    internal static func createParser(with data: Data) throws -> JSONParser {
         let (encoding, advanceBy) = JSONSerialization.detectEncoding(data)
 
         if encoding == .utf8 {
