@@ -916,7 +916,35 @@ extension NSURL {
 #endif
         }
 
-        
+#if os(Windows)
+        let hFile: HANDLE = absolutePath.withCString(encodedAs: UTF16.self) {
+          CreateFileW($0, GENERIC_READ,
+                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
+                      nil, DWORD(OPEN_EXISTING),
+                      DWORD(FILE_FLAG_BACKUP_SEMANTICS), nil)
+        }
+        guard hFile == INVALID_HANDLE_VALUE else {
+          defer { CloseHandle(hFile) }
+
+          let dwLength = GetFinalPathNameByHandleW(hFile, nil, 0, 0)
+          return withUnsafeTemporaryAllocation(of: WCHAR.self, capacity: Int(dwLength)) {
+            let dwLength =
+                GetFinalPathNameByHandleW(hFile, $0.baseAddress, DWORD($0.count), 0)
+            assert(dwLength < $0.count)
+
+            var resolved = String(decodingCString: $0.baseAddress!, as: UTF16.self)
+            if preserveDirectoryFlag {
+              var isExistingDirectory: ObjCBool = false
+              let _ = FileManager.default.fileExists(atPath: resolved, isDirectory: &isExistingDirectory)
+              if isExistingDirectory.boolValue && !resolved.hasSuffix("/") {
+                resolved += "/"
+              }
+            }
+            return URL(fileURLWithPath: resolved)
+          }
+        }
+#endif
+
         var components = URL(fileURLWithPath: absolutePath).pathComponents
         guard !components.isEmpty else {
             return URL(string: absoluteString)
