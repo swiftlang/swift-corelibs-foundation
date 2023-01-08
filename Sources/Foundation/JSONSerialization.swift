@@ -337,7 +337,7 @@ private extension JSONSerialization {
         // If there is no BOM present, we might be able to determine the encoding based on
         // occurences of null bytes.
         if bytes.count >= 4 {
-            switch (bytes[0], bytes[1], bytes[2], bytes[3]) {
+            switch (bytes[bytes.startIndex], bytes[bytes.startIndex + 1], bytes[bytes.startIndex + 2], bytes[bytes.startIndex + 3]) {
             case (0, 0, 0, _):
                 return (.utf32BigEndian, 0)
             case (_, 0, 0, 0):
@@ -351,7 +351,7 @@ private extension JSONSerialization {
             }
         }
         else if bytes.count >= 2 {
-            switch (bytes[0], bytes[1]) {
+            switch (bytes[bytes.startIndex], bytes[bytes.startIndex + 1]) {
             case (0, _):
                 return (.utf16BigEndian, 0)
             case (_, 0):
