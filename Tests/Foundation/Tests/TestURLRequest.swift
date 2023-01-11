@@ -22,6 +22,8 @@ class TestURLRequest : XCTestCase {
             ("test_methodNormalization", test_methodNormalization),
             ("test_description", test_description),
             ("test_relativeURL", test_relativeURL),
+            ("test_invalidHeaderValues", test_invalidHeaderValues),
+            ("test_validLineFoldedHeaderValues", test_validLineFoldedHeaderValues),
         ]
     }
     
@@ -314,5 +316,42 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(nsreq.url?.absoluteURL.description, "http://httpbin.org/get")
         XCTAssertEqual(nsreq.url?.absoluteURL.relativeString, "http://httpbin.org/get")
         XCTAssertEqual(nsreq.url?.absoluteURL.absoluteString, "http://httpbin.org/get")
+    }
+
+    func test_invalidHeaderValues() {
+        let url = URL(string: "http://swift.org")!
+        var request = URLRequest(url: url)
+
+        let invalidHeaderValues = [
+            "\r\nevil: hello\r\n\r\nGET /other HTTP/1.1\r\nevil: hello",
+            "invalid\0NUL",
+            "invalid\rCR",
+            "invalidCR\r",
+            "invalid\nLF",
+            "invalidLF\n",
+            "invalid\r\nCRLF",
+            "invalidCRLF\r\n",
+            "invalid\r\rCRCR"
+        ]
+
+        for (i, value) in invalidHeaderValues.enumerated() {
+            request.setValue("Bar\(value)", forHTTPHeaderField: "Foo\(i)")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Foo\(i)"))
+            request.addValue("Bar\(value)", forHTTPHeaderField: "Foo\(i)")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Foo\(i)"))
+        }
+    }
+
+    func test_validLineFoldedHeaderValues() {
+        let url = URL(string: "http://swift.org")!
+        var request = URLRequest(url: url)
+
+        let validHeaderValueLineFoldedTab = "Bar\r\n\tBuz"
+        request.setValue(validHeaderValueLineFoldedTab, forHTTPHeaderField: "FooTab")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "FooTab"), validHeaderValueLineFoldedTab)
+
+        let validHeaderValueLineFoldedSpace = "Bar\r\n Buz"
+        request.setValue(validHeaderValueLineFoldedSpace, forHTTPHeaderField: "FooSpace")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "FooSpace"), validHeaderValueLineFoldedSpace)
     }
 }
