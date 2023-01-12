@@ -472,6 +472,10 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func setValue(_ value: String?, forHTTPHeaderField field: String) {
+        // Check that the header value is valid
+        if let value = value, !httpHeaderValueIsValid(value) {
+            return
+        }
         // Store the field name capitalized to match native Foundation
         let capitalizedFieldName = field.capitalized
         var f: [String : String] = allHTTPHeaderFields ?? [:]
@@ -494,6 +498,10 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func addValue(_ value: String, forHTTPHeaderField field: String) {
+        // Check that the header value is valid
+        if !httpHeaderValueIsValid(value) {
+            return
+        }
         // Store the field name capitalized to match native Foundation
         let capitalizedFieldName = field.capitalized
         var f: [String : String] = allHTTPHeaderFields ?? [:]
@@ -569,6 +577,42 @@ open class NSMutableURLRequest : NSURLRequest {
     
     // These properties are settable using URLProtocol's class methods.
     var protocolProperties: [String: Any] = [:]
+}
+
+/// Checks if a header value is valid.
+/// Allows header line folding, but rejects other invalid uses of CR or LF.
+private func httpHeaderValueIsValid(_ value: String) -> Bool {
+    // Use a state machine to process the header value, transitioning on special
+    // characters such as CR and LF. The begin state is the accept state. CRLF
+    // must be followed by a SP or HTAB for valid header line folding.
+    enum CRLFState {
+        case begin
+        case crlf
+    }
+    var state = CRLFState.begin
+    for ch in value {
+        switch ch {
+        case "\0", "\r", "\n":
+            return false
+        case "\r\n": // Treated as a single Character in Swift
+            if state == .begin {
+                state = .crlf
+            } else {
+                return false
+            }
+        case " ", "\t":
+            if state == .crlf {
+                state = .begin
+            }
+            break
+        default:
+            if state != .begin {
+                return false
+            }
+            break
+        }
+    }
+    return state == .begin
 }
 
 /// Returns an existing key-value pair inside the header fields if it exists.
