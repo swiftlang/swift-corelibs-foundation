@@ -446,9 +446,9 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
 
 #if !defined(__APPLE__) && (defined(__i686__) || (defined(__arm__) && !defined(__aarch64__)) || defined(_M_IX86) || defined(_M_ARM))
     // Linux and Windows 32-bit targets perform 8-byte alignment by default.
-    static const kDefaultAlignment = 8;
+    static const int kDefaultAlignment = 8;
 #else
-    static const kDefaultAlignment = 16;
+    static const int kDefaultAlignment = 16;
 #endif
 
     // Ensure that we get the alignment correct for various targets.  In the
