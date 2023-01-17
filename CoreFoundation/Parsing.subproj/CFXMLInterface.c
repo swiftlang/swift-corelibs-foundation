@@ -1125,7 +1125,7 @@ _CFXMLDTDPtr _CFXMLNewDTD(_CFXMLDocPtr doc, const unsigned char* name, const uns
     return xmlNewDtd(doc, name, publicID, systemID);
 }
 
-void _CFXMLNotationScanner(void* payload, void* data, xmlChar* name) {
+void _CFXMLNotationScanner(void* payload, void* data, const xmlChar* name) {
     xmlNotationPtr notation = (xmlNotationPtr)payload;
     _cfxmlNotation* node = (_cfxmlNotation*)data;
     node->type = XML_NOTATION_NODE;
@@ -1147,7 +1147,7 @@ _CFXMLDTDNodePtr _CFXMLParseDTDNode(const unsigned char* xmlString) {
         xmlUnlinkNode(node);
     } else if (dtd->notations) {
         node = (xmlNodePtr)calloc(1, sizeof(_cfxmlNotation));
-        xmlHashScan((xmlNotationTablePtr)dtd->notations, &_CFXMLNotationScanner, (void*)node);
+        xmlHashScan((xmlNotationTablePtr)dtd->notations, &_CFXMLNotationScanner, node);
     }
 
     return node;
