@@ -1019,21 +1019,22 @@ class TestNSString: LoopbackServerTest {
         do {
             let path: NSString = "~"
             let result = path.expandingTildeInPath
-            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
+            XCTAssertEqual(result, NSHomeDirectory(), "Could resolve home directory for current user")
             XCTAssertFalse(result.hasSuffix("/") && result != rootDirectory, "Result should not have a trailing path separator")
         }
         
         do {
             let path: NSString = "~/"
             let result = path.expandingTildeInPath
-            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
+            XCTAssertEqual(result, NSHomeDirectory(), "Could resolve home directory for current user")
             XCTAssertFalse(result.hasSuffix("/") && result != rootDirectory, "Result should not have a trailing path separator")
         }
         
         do {
             let path = NSString(string: "~\(NSUserName())")
             let result = path.expandingTildeInPath
-            XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for specific user")
+            XCTAssertEqual(result, NSHomeDirectory(),
+                           "Could resolve home directory for specific user")
             XCTAssertFalse(result.hasSuffix("/") && result != rootDirectory, "Result should not have a trailing path separator")
         }
         
