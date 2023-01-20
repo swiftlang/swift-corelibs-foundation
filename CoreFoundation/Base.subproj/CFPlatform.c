@@ -582,40 +582,28 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
       return CFCopyHomeDirectoryURL();
     }
 
-    CFStringRef home = NULL;
-    LPUSER_INFO_1 pBuffer = NULL;
-    DWORD dwEntriesRead = 0;
-    DWORD dwEntries = 0;
-    DWORD dwToken = 0;
-    NTSTATUS nStatus;
-    do {
-      nStatus = NetUserEnum(NULL, 1, FILTER_NORMAL_ACCOUNT, (LPBYTE*)&pBuffer,
-                            MAX_PREFERRED_LENGTH, &dwEntriesRead, &dwEntries,
-                            &dwToken);
-      if (nStatus == NERR_Success || nStatus == ERROR_MORE_DATA) {
-        for (unsigned uiEntry = 0; !home && uiEntry < dwEntriesRead; ++uiEntry) {
-          CFStringRef name =
-              CFStringCreateWithCStringNoCopy(kCFAllocatorSystemDefault,
-                                              pBuffer[uiEntry].usri1_name,
-                                              kCFStringEncodingUTF16,
-                                              kCFAllocatorNull);
+    CFIndex ulLength = CFStringGetLength(uName);
 
-          if (CFEqual(uName, name)) {
-            home = pBuffer[uiEntry].usri1_home_dir
-                      ? CFStringCreateWithCString(kCFAllocatorSystemDefault,
-                                                  pBuffer[uiEntry].usri1_home_dir,
-                                                  kCFStringEncodingUTF16)
-                      : CFSTR("");
-          }
+    UniChar *buffer = calloc(ulLength + 1, sizeof(UniChar));
+    if (buffer == NULL)
+      return NULL;
+    CFStringGetCharacters(uName, CFRangeMake(0, ulLength), buffer);
 
-          CFRelease(name);
-        }
-      }
-      NetApiBufferFree(pBuffer);
-      pBuffer = NULL;
-    } while (nStatus == ERROR_MORE_DATA);
+    CFURLRef url = NULL;
+    LPUSER_INFO_1 lpUI1 = NULL;
+    if (NetUserGetInfo(NULL, buffer, 1, (LPBYTE*)&lpUI1) == NERR_Success) {
+      CFStringRef path =
+          CFStringCreateWithCharacters(kCFAllocatorSystemDefault,
+                                       lpUI1->usri1_home_dir,
+                                       wcslen(lpUI1->usri1_home_dir));
+      url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, path,
+                                          kCFURLWindowsPathStyle, true);
+      CFRelease(path);
+      NetApiBufferFree(lpUI1);
+    }
+    free(buffer);
 
-    return home;
+    return url;
 #else
 #error Dont know how to compute users home directories on this platform
 #endif
