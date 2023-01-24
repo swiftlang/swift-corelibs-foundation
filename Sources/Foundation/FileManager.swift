@@ -1140,7 +1140,7 @@ open class FileManager : NSObject {
     }
 
     open var homeDirectoryForCurrentUser: URL {
-        return homeDirectory(forUser: NSUserName())!
+        CFCopyHomeDirectoryURLForUser(nil)!.takeRetainedValue()._swiftObject
     }
     
     open var temporaryDirectory: URL {
@@ -1149,8 +1149,13 @@ open class FileManager : NSObject {
     
     open func homeDirectory(forUser userName: String) -> URL? {
         guard !userName.isEmpty else { return nil }
-        guard let url = CFCopyHomeDirectoryURLForUser(userName._cfObject) else { return nil }
-        return  url.takeRetainedValue()._swiftObject
+        // Prefer to take the `CFCopyHomeDirectoryURLForUser` path for the
+        // current user.
+        return CFCopyHomeDirectoryURLForUser(userName == NSUserName()
+                                                ? nil
+                                                : userName._cfObject)?
+                    .takeRetainedValue()
+                    ._swiftObject
     }
 }
 
