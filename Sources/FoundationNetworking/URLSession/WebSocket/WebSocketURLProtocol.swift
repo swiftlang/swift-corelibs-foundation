@@ -88,6 +88,13 @@ internal class _WebSocketURLProtocol: _HTTPURLProtocol {
         return .completeTask
     }
     
+    override func completeTask() {
+        if let webSocketTask = task as? URLSessionWebSocketTask {
+            webSocketTask.close(code: .normalClosure, reason: nil)
+        }
+        super.completeTask()
+    }
+
     func sendWebSocketData(_ data: Data, flags: _EasyHandle.WebSocketFlags) throws {
         try easyHandle.sendWebSocketsData(data, flags: flags)
     }

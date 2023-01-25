@@ -1894,8 +1894,16 @@ class TestURLSession: LoopbackServerTest {
         }
         
         try await task.sendPing()
-
+        
         wait(for: [delegate.expectation], timeout: 50)
+        
+        do {
+            _ = try await task.receive()
+            XCTFail("Expected to throw when receiving on closed task")
+        } catch {
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+        }
         
         let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
                           "urlSession(_:webSocketTask:didCloseWith:reason:)",
@@ -1925,6 +1933,7 @@ class TestURLSession: LoopbackServerTest {
         wait(for: [delegate.expectation], timeout: 50)
         
         let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
+                          "urlSession(_:webSocketTask:didCloseWith:reason:)",
                           "urlSession(_:task:didCompleteWithError:)" ]
         XCTAssertEqual(delegate.callbacks.count, callbacks.count)
         XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
@@ -1932,8 +1941,90 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(task.closeCode, .normalClosure)
         XCTAssertEqual(task.closeReason, "BuhBye".data(using: .utf8))
     }
-#endif
     
+    func test_webSocketAbruptClose() async throws {
+        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard URLSessionWebSocketTask.supportsWebSockets else {
+            print("libcurl lacks WebSockets support, skipping \(#function)")
+            return
+        }
+
+        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket/abrupt-close"
+        let url = try XCTUnwrap(URL(string: urlString))
+        let request = URLRequest(url: url)
+        
+        let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
+        let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
+        
+        do {
+            _ = try await task.receive()
+            XCTFail("Expected to throw when server closes connection")
+        } catch {
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorBadServerResponse)
+        }
+
+        wait(for: [delegate.expectation], timeout: 50)
+
+        do {
+            _ = try await task.receive()
+            XCTFail("Expected to throw when receiving on closed connection")
+        } catch {
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorBadServerResponse)
+        }
+
+        let callbacks = [ "urlSession(_:task:didCompleteWithError:)" ]
+        XCTAssertEqual(delegate.callbacks.count, callbacks.count)
+        XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
+        
+        XCTAssertEqual(task.closeCode, .invalid)
+        XCTAssertEqual(task.closeReason, nil)
+    }
+
+    func test_webSocketSemiAbruptClose() async throws {
+        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard URLSessionWebSocketTask.supportsWebSockets else {
+            print("libcurl lacks WebSockets support, skipping \(#function)")
+            return
+        }
+
+        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket/semi-abrupt-close"
+        let url = try XCTUnwrap(URL(string: urlString))
+        let request = URLRequest(url: url)
+        
+        let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
+        let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
+        
+        do {
+            _ = try await task.receive()
+            XCTFail("Expected to throw when server closes connection")
+        } catch {
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+        }
+
+        wait(for: [delegate.expectation], timeout: 50)
+
+        do {
+            _ = try await task.receive()
+            XCTFail("Expected to throw when receiving on closed connection")
+        } catch {
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+        }
+
+        let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
+                          "urlSession(_:webSocketTask:didCloseWith:reason:)",
+                          "urlSession(_:task:didCompleteWithError:)" ]
+        XCTAssertEqual(delegate.callbacks.count, callbacks.count)
+        XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
+        
+        XCTAssertEqual(task.closeCode, .normalClosure)
+        XCTAssertEqual(task.closeReason, nil)
+    }
+#endif
+  
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
         var retVal = [
             ("test_dataTaskWithURL", test_dataTaskWithURL),
@@ -2011,6 +2102,8 @@ class TestURLSession: LoopbackServerTest {
             retVal.append(contentsOf: [
                 ("test_webSocket", asyncTest(test_webSocket)),
                 ("test_webSocketSpecificProtocol", asyncTest(test_webSocketSpecificProtocol)),
+                ("test_webSocketAbruptClose", asyncTest(test_webSocketAbruptClose)),
+                ("test_webSocketSemiAbruptClose", asyncTest(test_webSocketSemiAbruptClose)),
             ])
         }
         return retVal
