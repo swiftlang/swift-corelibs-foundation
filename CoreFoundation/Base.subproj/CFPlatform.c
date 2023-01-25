@@ -27,8 +27,10 @@
 
 #if TARGET_OS_WIN32
 #include <lm.h>
+#include <sddl.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <shlwapi.h>
 #include <WinIoCtl.h>
 #include <direct.h>
 #include <process.h>
@@ -582,26 +584,76 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
       return CFCopyHomeDirectoryURL();
     }
 
-    CFIndex ulLength = CFStringGetLength(uName);
-
-    UniChar *buffer = calloc(ulLength + 1, sizeof(UniChar));
-    if (buffer == NULL)
-      return NULL;
-    CFStringGetCharacters(uName, CFRangeMake(0, ulLength), buffer);
+    static const wchar_t * const kProfileListPath =
+        L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\";
+    static const wchar_t * const kProfileImagePath = L"ProfileImagePath";
 
     CFURLRef url = NULL;
-    LPUSER_INFO_1 lpUI1 = NULL;
-    if (NetUserGetInfo(NULL, buffer, 1, (LPBYTE*)&lpUI1) == NERR_Success) {
-      CFStringRef path =
-          CFStringCreateWithCharacters(kCFAllocatorSystemDefault,
-                                       lpUI1->usri1_home_dir,
-                                       wcslen(lpUI1->usri1_home_dir));
-      url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, path,
-                                          kCFURLWindowsPathStyle, true);
-      CFRelease(path);
-      NetApiBufferFree(lpUI1);
+
+    CFIndex ulLength = CFStringGetLength(uName);
+    UniChar *pwszUserName =
+        CFAllocatorAllocate(kCFAllocatorSystemDefault,
+                            (ulLength + 1) * sizeof(UniChar), 0);
+    if (pwszUserName == NULL)
+      return NULL;
+
+    CFStringGetCharacters(uName, CFRangeMake(0, ulLength), pwszUserName);
+    pwszUserName[ulLength] = L'\0';
+
+    DWORD cbSID = 0;
+    DWORD cchReferencedDomainName = 0;
+    SID_NAME_USE eUse;
+    LookupAccountNameW(NULL, pwszUserName, NULL, &cbSID, NULL,
+                       &cchReferencedDomainName, &eUse);
+
+    LPBYTE pSID = CFAllocatorAllocate(kCFAllocatorSystemDefault, cbSID, 0);
+    LPWSTR pwszReferencedDomainName =
+        CFAllocatorAllocate(kCFAllocatorSystemDefault,
+                            (cchReferencedDomainName + 1) * sizeof(UniChar), 0);
+
+    if (LookupAccountNameW(NULL, pwszUserName, pSID, &cbSID,
+                           pwszReferencedDomainName, &cchReferencedDomainName,
+                           &eUse)) {
+      LPWSTR pwszSID;
+
+      if (ConvertSidToStringSidW(pSID, &pwszSID)) {
+        DWORD cchBuffer = wcslen(kProfileListPath) + wcslen(pwszSID) + 1;
+        PWSTR pwszKeyPath =
+            CFAllocatorAllocate(kCFAllocatorSystemDefault,
+                                cchBuffer * sizeof(UniChar), 0);
+
+        DWORD dwOffset =
+            StrCatChainW(pwszKeyPath, cchBuffer, 0, kProfileListPath);
+        StrCatChainW(pwszKeyPath, cchBuffer, dwOffset, pwszSID);
+
+        DWORD cbData = 0;
+        RegGetValueW(HKEY_LOCAL_MACHINE, pwszKeyPath, kProfileImagePath,
+                     RRF_RT_REG_SZ, NULL, NULL, &cbData);
+
+        LPWSTR pwszProfileImagePath =
+            CFAllocatorAllocate(kCFAllocatorSystemDefault, cbData, 0);
+        RegGetValueW(HKEY_LOCAL_MACHINE, pwszKeyPath, kProfileImagePath,
+                     RRF_RT_REG_SZ, NULL, pwszProfileImagePath, &cbData);
+
+        CFStringRef profile =
+            CFStringCreateWithCharacters(kCFAllocatorSystemDefault,
+                                         pwszProfileImagePath,
+                                         cbData / sizeof(wchar_t));
+
+        url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault,
+                                            profile, kCFURLWindowsPathStyle,
+                                            true);
+        CFRelease(profile);
+        CFAllocatorDeallocate(kCFAllocatorSystemDefault, pwszProfileImagePath);
+        CFAllocatorDeallocate(kCFAllocatorSystemDefault, pwszKeyPath);
+      }
+
+      LocalFree(pwszSID);
     }
-    free(buffer);
+
+    CFAllocatorDeallocate(kCFAllocatorSystemDefault, pwszReferencedDomainName);
+    CFAllocatorDeallocate(kCFAllocatorSystemDefault, pSID);
+    CFAllocatorDeallocate(kCFAllocatorSystemDefault, pwszUserName);
 
     return url;
 #else
