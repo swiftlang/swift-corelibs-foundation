@@ -30,9 +30,10 @@
 #include "../Tests/CFCountingAllocator.c"
 #endif
 
-#include <assert.h>
-#include "CFRuntime_Internal.h"
 #include "CFKnownLocations.h"
+#include "CFRuntime_Internal.h"
+#include <assert.h>
+#include <stdatomic.h>
 
 CF_PRIVATE Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain);
 CF_PRIVATE void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable);
@@ -116,11 +117,9 @@ CF_PRIVATE CFStringRef _CFGetHostUUIDString(void) {
         
         CFUUIDRef uuidRef = CFUUIDCreateFromUUIDBytes(kCFAllocatorSystemDefault, uuidBytes);
         CFStringRef uuidAsString = CFUUIDCreateString(kCFAllocatorSystemDefault, uuidRef);
-        
-        if (!OSAtomicCompareAndSwapPtrBarrier(NULL, (void *)uuidAsString, (void *)&__hostUUIDString)) {
+        if (!atomic_compare_exchange_strong((volatile CFStringRef *)&__hostUUIDString, NULL, uuidAsString)) {
             CFRelease(uuidAsString);    // someone else made the assignment, so just release the extra string.
         }
-        
         CFRelease(uuidRef);
     }
     
@@ -139,11 +138,11 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
                 CFMutableStringRef tmpstr = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, lastField);
                 CFStringLowercase(tmpstr, NULL);
                 CFStringRef downcasedField = CFStringCreateCopy(kCFAllocatorSystemDefault, tmpstr);
-                
-                if (!OSAtomicCompareAndSwapPtrBarrier(NULL, (void *)downcasedField, (void *)&__byHostIdentifierString)) {
+
+                if (!atomic_compare_exchange_strong((volatile CFStringRef*)&__byHostIdentifierString), NULL, (void *)downcasedField) {
                     CFRelease(downcasedField);
                 }
-                
+
                 CFRelease(tmpstr);
                 CFRelease(lastField);
             } else {

@@ -3,15 +3,16 @@
 // Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 #include "Block_private.h"
+#include <stdatomic.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #if TARGET_OS_WIN32
 #include <Windows.h>
 #include <Psapi.h>
@@ -32,20 +33,6 @@
 
 #if !defined(__has_builtin)
 #define __has_builtin(builtin) 0
-#endif
-
-#if __has_builtin(__sync_bool_compare_and_swap)
-#define OSAtomicCompareAndSwapInt(Old, New, Ptr)                               \
-  __sync_bool_compare_and_swap(Ptr, Old, New)
-#elif TARGET_OS_WIN32
-#define _CRT_SECURE_NO_WARNINGS 1
-#include <Windows.h>
-static __inline bool OSAtomicCompareAndSwapInt(int oldi, int newi,
-                                               int volatile *dst) {
-  // fixme barrier is overkill -- see objc-os.h
-  int original = InterlockedCompareExchange((LONG volatile *)dst, newi, oldi);
-  return (original == oldi);
-}
 #endif
 
 /***********************
@@ -70,8 +57,8 @@ static int32_t latching_incr_int(volatile int32_t *where) {
         if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) {
             return BLOCK_REFCOUNT_MASK;
         }
-        if (OSAtomicCompareAndSwapInt(old_value, old_value+2, where)) {
-            return old_value+2;
+        if (atomic_compare_exchange_strong(where, old_value, old_value + 2)) {
+            return old_value + 2;
         }
     }
 }
@@ -87,7 +74,7 @@ static bool latching_incr_int_not_deallocating(volatile int32_t *where) {
             // if latched, we're leaking this block, and we succeed
             return true;
         }
-        if (OSAtomicCompareAndSwapInt(old_value, old_value+2, where)) {
+        if (atomic_compare_exchange_strong(where, old_value, old_value + 2)) {
             // otherwise, we must store a new retained value without the deallocating bit set
             return true;
         }
@@ -111,7 +98,7 @@ static bool latching_decr_int_should_deallocate(volatile int32_t *where) {
             new_value = old_value - 1;
             result = true;
         }
-        if (OSAtomicCompareAndSwapInt(old_value, new_value, where)) {
+        if (atomic_compare_exchange_strong(where, old_value, new_value)) {
             return result;
         }
     }
@@ -128,7 +115,7 @@ static bool latching_decr_int_now_zero(volatile int32_t *where) {
             return false;   // underflow, latch low
         }
         int32_t new_value = old_value - 2;
-        if (OSAtomicCompareAndSwapInt(old_value, new_value, where)) {
+        if (atomic_compare_exchange_strong(where, old_value, new_value)) {
             return (new_value & BLOCK_REFCOUNT_MASK) == 0;
         }
     }
@@ -142,9 +129,9 @@ GC support stub routines
 #pragma mark GC Support Routines
 #endif
 
-
-
 static void *_Block_alloc_default(size_t size, const bool initialCountIsOne, const bool isObject) {
+    (void)initialCountIsOne;
+    (void)isObject;
     return malloc(size);
 }
 
@@ -153,14 +140,20 @@ static void _Block_assign_default(void *value, void **destptr) {
 }
 
 static void _Block_setHasRefcount_default(const void *ptr, const bool hasRefcount) {
+    (void)ptr;
+    (void)hasRefcount;
 }
 
-static void _Block_do_nothing(const void *aBlock) { }
+static void _Block_do_nothing(const void *aBlock) {
+    (void)aBlock;
+}
 
 static void _Block_retain_object_default(const void *ptr) {
+    (void)ptr;
 }
 
 static void _Block_release_object_default(const void *ptr) {
+    (void)ptr;
 }
 
 static void _Block_assign_weak_default(const void *ptr, void *dest) {
@@ -186,7 +179,9 @@ static void _Block_memmove_gc_broken(void *dest, void *src, unsigned long size) 
     }
 }
 
-static void _Block_destructInstance_default(const void *aBlock) {}
+static void _Block_destructInstance_default(const void *aBlock) {
+    (void)aBlock;
+}
 
 /**************************************************************************
 GC support callout functions - initially set to stub routines
@@ -475,17 +470,17 @@ static void _Block_byref_release(const void *arg) {
 
     // dereference the forwarding pointer since the compiler isn't doing this anymore (ever?)
     byref = byref->forwarding;
-    
+
     // To support C++ destructors under GC we arrange for there to be a finalizer for this
     // by using an isa that directs the code to a finalizer that calls the byref_destroy method.
     if ((byref->flags & BLOCK_BYREF_NEEDS_FREE) == 0) {
         return; // stack or GC or global
     }
     refcount = byref->flags & BLOCK_REFCOUNT_MASK;
-	os_assert(refcount);
+    os_assert(refcount);
     if (latching_decr_int_should_deallocate(&byref->flags)) {
         if (byref->flags & BLOCK_BYREF_HAS_COPY_DISPOSE) {
-            struct Block_byref_2 *byref2 = (struct Block_byref_2 *)(byref+1);
+            struct Block_byref_2 *byref2 = (struct Block_byref_2 *)(byref + 1);
             (*byref2->byref_destroy)(byref);
         }
         _Block_deallocator((struct Block_layout *)byref);

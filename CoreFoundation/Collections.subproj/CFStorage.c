@@ -30,9 +30,10 @@
 
 #define NO_SHIFTER ((uint32_t)(-1))
 
-#include <CoreFoundation/CFStorage.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
+#include <CoreFoundation/CFStorage.h>
+#include <stdatomic.h>
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
 #endif
@@ -189,10 +190,7 @@ CF_INLINE CFRange __CFStorageConvertValuesToByteRange(ConstCFStorageRef storage,
 #pragma mark Node reference counting and freezing
 
 CF_INLINE CFStorageNode *__CFStorageRetainNode(CFStorageNode *node) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-    if (node->refCount > 0) OSAtomicIncrement32((int32_t *)&node->refCount);
-#pragma GCC diagnostic pop
+    if (node->refCount > 0) atomic_fetch_add(&node->refCount, 1);
     return node;
 }
 
@@ -206,10 +204,7 @@ static void __CFStorageDeallocateNode(CFStorageRef storage, CFStorageNode *node)
 
 CF_INLINE void __CFStorageReleaseNode(CFStorageRef storage, CFStorageNode * _Nonnull node) {
     if (node->refCount > 0) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-	uint32_t newRefCount = OSAtomicDecrement32((int32_t *)&node->refCount);
-#pragma GCC diagnostic pop
+	uint32_t newRefCount = atomic_fetch_sub(&node->refCount, 1);
 	if (newRefCount == 0) {
 	    __CFStorageDeallocateNode(storage, node);
 	}

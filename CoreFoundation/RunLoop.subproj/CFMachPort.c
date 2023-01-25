@@ -15,13 +15,13 @@
 #if __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #endif
-#include <mach/mach.h>
-#include <dlfcn.h>
-#include <stdio.h>
 #include "CFInternal.h"
-#include "CFRuntime_Internal.h"
 #include "CFMachPort_Lifetime.h"
-
+#include "CFRuntime_Internal.h"
+#include <dlfcn.h>
+#include <mach/mach.h>
+#include <stdatomic.h>
+#include <stdio.h>
 
 // This queue is used for the cancel/event handler for dead name notification.
 static dispatch_queue_t _CFMachPortQueue() {
@@ -136,10 +136,7 @@ CF_INLINE void __CFMachPortInvalidateLocked(CFRunLoopSourceRef source, CFMachPor
         __CFLock(&mp->_lock);
     }
     mp->_state = kCFMachPortStateInvalid;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-    OSMemoryBarrier();
-#pragma GCC diagnostic pop
+    atomic_thread_fence(memory_order_seq_cst);
 }
 
 static void __CFMachPortDeallocate(CFTypeRef cf) {
@@ -152,10 +149,7 @@ static void __CFMachPortDeallocate(CFTypeRef cf) {
     Boolean wasReady = (mp->_state == kCFMachPortStateReady);
     if (wasReady) {
         mp->_state = kCFMachPortStateInvalidating;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-        OSMemoryBarrier();
-#pragma GCC diagnostic pop
+        atomic_thread_fence(memory_order_seq_cst);
         if (mp->_dsrc) {
             dispatch_source_cancel(mp->_dsrc);
             mp->_dsrc = NULL;
@@ -209,10 +203,7 @@ static void __CFMachPortChecker(void) {
                 }
                 else {
                     mp->_state = kCFMachPortStateInvalidating;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-                    OSMemoryBarrier();
-#pragma GCC diagnostic pop
+                    atomic_thread_fence(memory_order_seq_cst);
                     if (mp->_dsrc) {
                         dispatch_source_cancel(mp->_dsrc);
                         mp->_dsrc = NULL;
@@ -391,10 +382,7 @@ void CFMachPortInvalidate(CFMachPortRef mp) {
     wasReady = (mp->_state == kCFMachPortStateReady);
     if (wasReady) {
         mp->_state = kCFMachPortStateInvalidating;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-        OSMemoryBarrier();
-#pragma GCC diagnostic pop
+        atomic_thread_fence(memory_order_seq_cst);
         for (CFIndex idx = 0, cnt = __CFAllMachPorts ? CFArrayGetCount(__CFAllMachPorts) : 0; idx < cnt; idx++) {
             CFMachPortRef p = (CFMachPortRef)CFArrayGetValueAtIndex(__CFAllMachPorts, idx);
             if (p == mp) {

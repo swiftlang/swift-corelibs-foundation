@@ -20,73 +20,7 @@
 
 #include <sys/stat.h>
 
-CF_EXPORT bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
-{ 
-    return oldp == InterlockedCompareExchangePointer(dst, newp, oldp);
-}
-
-CF_EXPORT bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst) 
-{ 
-    return oldl == InterlockedCompareExchange(dst, newl, oldl);
-}
-
-CF_EXPORT bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst) 
-{ 
-    return oldp == InterlockedCompareExchangePointer(dst, newp, oldp);
-}
-
-CF_EXPORT int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst)
-{
-    return InterlockedDecrement((volatile long *)dst);
-}
-
-CF_EXPORT int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst)
-{
-    return InterlockedIncrement((volatile long *)dst);
-}
-
-CF_EXPORT int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue ) {
-    return (InterlockedExchangeAdd((volatile LONG *)theValue, theAmount) + theAmount);
-}
-
-CF_EXPORT bool OSAtomicCompareAndSwap32Barrier(int32_t oldValue, int32_t newValue, volatile int32_t *theValue) {
-    return oldValue == InterlockedCompareExchange((long *)theValue, newValue, oldValue);
-}
-
-CF_EXPORT int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue ) {
-    return (InterlockedExchangeAdd((volatile LONG *)theValue, theAmount) + theAmount);
-}
-
-CF_EXPORT int32_t OSAtomicIncrement32(volatile int32_t *theValue) {
-    return InterlockedIncrement((volatile long *)theValue);
-}
-
-CF_EXPORT int32_t OSAtomicDecrement32(volatile int32_t *theValue) {
-    return InterlockedDecrement((volatile long *)theValue);
-}
-
-// These 64-bit versions of InterlockedCompareExchange are only available on client Vista and later, so we can't use them (yet).
-/*
-CF_EXPORT bool OSAtomicCompareAndSwap64( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue ) {
-    return __oldValue == InterlockedCompareExchange64((volatile LONGLONG *)__theValue, __newValue, __oldValue);
-}
-
-CF_EXPORT bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue ) {
-    return __oldValue == InterlockedCompareExchange64((volatile LONGLONG *)__theValue, __newValue, __oldValue);
-}
-
-CF_EXPORT int64_t OSAtomicAdd64( int64_t __theAmount, volatile int64_t *__theValue ) {
-    return (InterlockedExchangeAdd64((volatile LONGLONG *)__theValue, __theAmount) + __theAmount);
-}
-
-CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *__theValue ) {
-    retun (InterlockedExchangeAdd64((volatile LONGLONG *)__theValue, __theAmount) + __theAmount);
-}
- */
-
-void OSMemoryBarrier() {
-    MemoryBarrier();
-}
+#include <stdatomic.h>
 
 void _CFGetFrameworkPath(wchar_t *path, int maxLength) {
 #ifdef _DEBUG

@@ -11,8 +11,9 @@
 	Copyright (c) 2015 Apple Inc. and the Swift project authors
  */
 
-#include <CoreFoundation/CFRegularExpression.h>
 #include "CFInternal.h"
+#include <CoreFoundation/CFRegularExpression.h>
+#include <stdatomic.h>
 #define U_SHOW_DRAFT_API 1
 #define U_SHOW_INTERNAL_API 1
 #include <unicode/uregex.h>
@@ -232,8 +233,7 @@ static UBool regexFindProgressCallback(const void *context, int64_t matchIndex) 
 CF_INLINE URegularExpression *checkOutRegularExpression(void *internal, int32_t *checkout, Boolean *checkedOutRegex) {
     URegularExpression *regex = NULL;
     UErrorCode errorCode = U_ZERO_ERROR;
-    Boolean checkedOut = false;
-    checkedOut = OSAtomicCompareAndSwap32Barrier(0, 1, (volatile int32_t *)checkout);
+    Boolean checkedOut = atomic_compare_exchange_strong((volatile int32_t *)checkout, 0, 1);
     if (checkedOut) {
         regex = (URegularExpression *)internal;
     } else {
@@ -353,7 +353,7 @@ CF_INLINE void returnRegularExpression(URegularExpression *regex, int32_t *check
             if (reportProgress || anchored) uregex_setFindProgressCallback(regex, NULL, NULL, &errorCode);
             if (transparentBounds) uregex_useTransparentBounds(regex, 0, &errorCode);
             if (nonAnchoringBounds) uregex_useAnchoringBounds(regex, 1, &errorCode);
-            OSMemoryBarrier();
+            atomic_thread_fence(memory_order_seq_cst);
             *checkout = 0;
         } else {
             uregex_close(regex);

@@ -14,6 +14,7 @@
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFNumber_Private.h>
+#include <stdatomic.h>
 #include <math.h>
 #include <float.h>
 #include <assert.h>
@@ -1152,10 +1153,7 @@ static CFNumberRef _CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, 
 	// Forcing the type AFTER it was cached would cause a race condition with other
 	// threads pulling the number object out of the cache and using it.
         __CFRuntimeSetNumberType(result, (uint8_t)kCFNumberSInt32Type);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-	if (OSAtomicCompareAndSwapPtrBarrier(NULL, (void *)result, (void *volatile *)&__CFNumberCache[valToBeCached - MinCachedInt])) {
-#pragma GCC diagnostic pop
+    if (atomic_compare_exchange_strong((volatile CFNumberRef*)&__CFNumberCache[valToBeCached - MinCachedInt], NULL, (void *)result)) {
 	    CFRetain(result);
 	} else {
 	    // Did not cache the number object, put original type back.

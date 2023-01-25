@@ -8,12 +8,13 @@
 	Responsibility: John Iarocci
 */
 
-#include <CoreFoundation/CFRuntime.h>
-#include <CoreFoundation/CFNumber.h>
-#include <string.h>
-#include "CFStreamInternal.h"
 #include "CFRuntime_Internal.h"
+#include "CFStreamInternal.h"
+#include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFRuntime.h>
+#include <stdatomic.h>
 #include <stdio.h>
+#include <string.h>
 #if TARGET_OS_WIN32
 #include <process.h>
 #endif
@@ -1674,10 +1675,7 @@ extern _CFThreadRef _CFMainPThread;
 static void _perform(void* info)
 {
 #if TARGET_OS_MAC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-    OSAtomicAdd64(1, &sPerformCount);
-#pragma GCC diagnostic pop
+    atomic_fetch_add(&sPerformCount, 1);
 #endif
 }
 
