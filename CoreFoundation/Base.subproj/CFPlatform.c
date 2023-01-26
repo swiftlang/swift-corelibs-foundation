@@ -731,6 +731,9 @@ typedef struct __CFTSDTable {
     tsdDestructor destructors[CF_TSD_MAX_SLOTS];
 } __CFTSDTable;
 
+#if TARGET_OS_WIN32
+__stdcall
+#endif
 static void __CFTSDFinalize(void *arg);
 
 #if TARGET_OS_WIN32
@@ -792,6 +795,9 @@ static void *__CFTSDGetSpecific() {
 
 _Atomic(bool) __CFMainThreadHasExited = false;
 
+#if TARGET_OS_WIN32
+__stdcall
+#endif
 static void __CFTSDFinalize(void *arg) {
 #if TARGET_OS_WASI
     __CFMainThreadHasExited = true;
@@ -1574,6 +1580,9 @@ typedef struct _CFThreadSpecificData {
 } _CFThreadSpecificData;
 #endif
 
+#if TARGET_OS_WIN32
+__stdcall
+#endif
 static void _CFThreadSpecificDestructor(void *ctx) {
 #if TARGET_OS_WIN32
     _CFThreadSpecificData *data = (_CFThreadSpecificData *)ctx;
