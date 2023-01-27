@@ -1147,7 +1147,13 @@ _CFXMLDTDNodePtr _CFXMLParseDTDNode(const unsigned char* xmlString) {
         xmlUnlinkNode(node);
     } else if (dtd->notations) {
         node = (xmlNodePtr)calloc(1, sizeof(_cfxmlNotation));
+        // libxml2 v2.9.8 fixed their function signatures, but before that
+        // `xmlHashScanner` was defined without the const on `xmlChar *`.
+#if LIBXML_VERSION > 20907
         xmlHashScan((xmlNotationTablePtr)dtd->notations, &_CFXMLNotationScanner, node);
+#else
+        xmlHashScan((xmlNotationTablePtr)dtd->notations, (void (*)(void *, void *, xmlChar *))&_CFXMLNotationScanner, node);
+#endif
     }
 
     return node;
