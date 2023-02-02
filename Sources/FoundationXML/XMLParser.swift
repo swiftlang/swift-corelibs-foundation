@@ -601,7 +601,7 @@ open class XMLParser : NSObject {
         var result = true
         var chunkStart = 0
         var chunkEnd = min(_chunkSize, data.count)
-        while result && chunkStart != chunkEnd {
+        while result && chunkStart < chunkEnd {
             let chunk = data[chunkStart..<chunkEnd]
             result = parseData(chunk)
             chunkStart = chunkEnd
