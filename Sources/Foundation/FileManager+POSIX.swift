@@ -1252,7 +1252,7 @@ extension FileManager {
                 let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
                     return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                         // Note that Darwin allows swapping a file with a directory this way.
-                        if renameatx_np(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, UInt32(RENAME_SWAP)) == 0 {
+                        if renameatx_np(AT_FDCWD, newItemFS, AT_FDCWD, originalFS, 0) == 0 {
                             return nil
                         } else {
                             return errno
@@ -1275,17 +1275,7 @@ extension FileManager {
                     return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                         if let originalFS = originalFS,
                            let newItemFS = newItemFS {
-
-                                #if os(Linux)
-                                if _CFHasRenameat2 && kernelSupportsRenameat2 {
-                                    if _CF_renameat2(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, _CF_renameat2_RENAME_EXCHANGE) == 0 {
-                                        return nil
-                                    } else {
-                                        return errno
-                                    }
-                                }
-                                #endif
-                                if renameat(AT_FDCWD, originalFS, AT_FDCWD, newItemFS) == 0 {
+                                if renameat(AT_FDCWD, newItemFS, AT_FDCWD, originalFS) == 0 {
                                     return nil
                                 } else {
                                     return errno
@@ -1296,8 +1286,10 @@ extension FileManager {
                     }
                 }
                 
-                // ENOTDIR is raised if the objects are directories; EINVAL may indicate that the filesystem does not support the operation.
-                if let finalErrno = finalErrno, finalErrno != ENOTDIR && finalErrno != EINVAL {
+                // ENOTDIR and EISDIR are raised if the objects are directories; EINVAL may indicate that the filesystem does not support the operation.
+                // ENOTEMPTY and EEXIST is raised if the target is a directory that isn't empty.
+                let nonFatalErrors = [ENOTDIR, EISDIR, EINVAL, ENOTEMPTY, EEXIST]
+                if let finalErrno = finalErrno, !nonFatalErrors.contains(finalErrno) {
                     throw _NSErrorWithErrno(finalErrno, reading: false, url: originalItemURL)
                 } else if finalErrno == nil {
                     try applyPostprocessingRequiredByOptions()
