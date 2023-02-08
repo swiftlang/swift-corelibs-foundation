@@ -529,6 +529,22 @@ extension URL : CustomPlaygroundDisplayConvertible {
     }
 }
 
+extension URL {
+    public enum DirectoryHint: Sendable, Equatable, Hashable {
+        /// Specifies that the `URL` does reference a directory
+        case isDirectory
+
+        /// Specifies that the `URL` does **not** reference a directory
+        case notDirectory
+
+        /// Specifies that `URL` should check with the file system to determine whether it references a directory
+        case checkFileSystem
+
+        /// Specifies that `URL` should infer whether is references a directory based on whether it has a trialing slash
+        case inferFromPath
+    }
+}
+
 //===----------------------------------------------------------------------===//
 // File references, for playgrounds.
 //===----------------------------------------------------------------------===//
