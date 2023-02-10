@@ -525,6 +525,134 @@ class TestURL : XCTestCase {
         XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
     }
 
+    func test_directoryHint() throws {
+        if !TestURL.setup_test_paths() {
+            let error = strerror(errno)!
+            XCTFail("Failed to set up test paths: \(String(cString: error))")
+        }
+        defer { FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
+
+
+        let webBaseURL = try XCTUnwrap(URL(string: "https://example.com/foo"))
+        XCTAssertEqual(
+            webBaseURL.appending(components: "bar", "baz", directoryHint: .checkFileSystem),
+            URL(string: "https://example.com/foo/bar/baz")
+        )
+        XCTAssertEqual(
+            webBaseURL.appending(components: "bar", "baz", directoryHint: .inferFromPath),
+            URL(string: "https://example.com/foo/bar/baz")
+        )
+        XCTAssertEqual(
+            webBaseURL.appending(components: "bar", "baz", directoryHint: .isDirectory),
+            URL(string: "https://example.com/foo/bar/baz/")
+        )
+        XCTAssertEqual(
+            webBaseURL.appending(components: "bar", "baz", directoryHint: .notDirectory),
+            URL(string: "https://example.com/foo/bar/baz")
+        )
+
+        let incompleteURL = try XCTUnwrap(URL(string: "foo/bar"))
+        XCTAssertEqual(incompleteURL.appending(component: "baz", directoryHint: .checkFileSystem),
+                       URL(string: "foo/bar/baz"))
+        XCTAssertEqual(incompleteURL.appending(component: "baz", directoryHint: .inferFromPath),
+                       URL(string: "foo/bar/baz"))
+        XCTAssertEqual(incompleteURL.appending(component: "baz", directoryHint: .isDirectory),
+                       URL(string: "foo/bar/baz/"))
+        XCTAssertEqual(incompleteURL.appending(component: "baz", directoryHint: .notDirectory),
+                       URL(string: "foo/bar/baz"))
+
+
+        // Initialize with a file path.
+        XCTAssertEqual(
+            URL(filePath: TestURL.gFileExistsPath, directoryHint: .checkFileSystem).absoluteString,
+            "file://\(TestURL.gFileExistsPath)"
+        )
+        XCTAssertEqual(
+            URL(filePath: TestURL.gFileExistsPath, directoryHint: .inferFromPath).absoluteString,
+            "file://\(TestURL.gFileExistsPath)"
+        )
+        XCTAssertEqual(
+            URL(filePath: TestURL.gFileExistsPath, directoryHint: .isDirectory).absoluteString,
+            "file://\(TestURL.gFileExistsPath)/"
+        )
+        XCTAssertEqual(
+            URL(filePath: TestURL.gFileExistsPath, directoryHint: .notDirectory).absoluteString,
+            "file://\(TestURL.gFileExistsPath)"
+        )
+
+        // Initialize with a directory path.
+        XCTAssertEqual(
+            URL(filePath: TestURL.gDirectoryExistsPath, directoryHint: .checkFileSystem).absoluteString,
+            "file://\(TestURL.gDirectoryExistsPath)/"
+        )
+        XCTAssertEqual(
+            URL(filePath: TestURL.gDirectoryExistsPath, directoryHint: .inferFromPath).absoluteString,
+            "file://\(TestURL.gDirectoryExistsPath)"
+        )
+        XCTAssertEqual(
+            URL(filePath: TestURL.gDirectoryExistsPath, directoryHint: .isDirectory).absoluteString,
+            "file://\(TestURL.gDirectoryExistsPath)/"
+        )
+        XCTAssertEqual(
+            URL(filePath: TestURL.gDirectoryExistsPath, directoryHint: .notDirectory).absoluteString,
+            "file://\(TestURL.gDirectoryExistsPath)"
+        )
+
+
+        let newFilename = UUID().description
+        let newFilePath = TestURL.gDirectoryExistsPath + "/\(newFilename)"
+        let dirURL = URL(filePath: TestURL.gDirectoryExistsPath, directoryHint: .isDirectory)
+
+        appending_filename: do {
+            guard FileManager.default.createFile(atPath: newFilePath, contents: nil) else {
+                XCTFail("Failed to create a file at \(newFilePath).")
+                break appending_filename
+            }
+
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .checkFileSystem).absoluteString,
+                "file://\(newFilePath)"
+            )
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .inferFromPath).absoluteString,
+                "file://\(newFilePath)"
+            )
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .isDirectory).absoluteString,
+                "file://\(newFilePath)/"
+            )
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .notDirectory).absoluteString,
+                "file://\(newFilePath)"
+            )
+
+            try FileManager.default.removeItem(atPath: newFilePath)
+        }
+
+        appending_directory_name: do {
+            try FileManager.default.createDirectory(atPath: newFilePath, withIntermediateDirectories: false)
+
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .checkFileSystem).absoluteString,
+                "file://\(newFilePath)/"
+            )
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .inferFromPath).absoluteString,
+                "file://\(newFilePath)"
+            )
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .isDirectory).absoluteString,
+                "file://\(newFilePath)/"
+            )
+            XCTAssertEqual(
+                dirURL.appending(component: newFilename, directoryHint: .notDirectory).absoluteString,
+                "file://\(newFilePath)"
+            )
+
+            try FileManager.default.removeItem(atPath: newFilePath)
+        }
+    }
+
     func test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators() {
         let url = URL(fileURLWithPath: "//foo///bar////baz/")
         let result = url.resolvingSymlinksInPath()
@@ -798,5 +926,48 @@ class TestURL : XCTestCase {
         }
 
         super.tearDown()
+    }
+
+    static var allTests: [(String, (TestURL) -> () throws -> Void)] {
+        var tests: [(String, (TestURL) -> () throws -> Void)] = [
+            ("test_URLStrings", test_URLStrings),
+            ("test_fileURLWithPath_relativeTo", test_fileURLWithPath_relativeTo ),
+            ("test_relativeFilePath", test_relativeFilePath),
+            // TODO: these tests fail on linux, more investigation is needed
+            ("test_fileURLWithPath", test_fileURLWithPath),
+            ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
+            ("test_directoryHint", test_directoryHint),
+            ("test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators", test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators),
+            ("test_URLByResolvingSymlinksInPathShouldRemoveSingleDotsBetweenSeparators", test_URLByResolvingSymlinksInPathShouldRemoveSingleDotsBetweenSeparators),
+            ("test_URLByResolvingSymlinksInPathShouldCompressDoubleDotsBetweenSeparators", test_URLByResolvingSymlinksInPathShouldCompressDoubleDotsBetweenSeparators),
+            ("test_URLByResolvingSymlinksInPathShouldUseTheCurrentDirectory", test_URLByResolvingSymlinksInPathShouldUseTheCurrentDirectory),
+            ("test_resolvingSymlinksInPathShouldAppendTrailingSlashWhenExistingDirectory", test_resolvingSymlinksInPathShouldAppendTrailingSlashWhenExistingDirectory),
+            ("test_resolvingSymlinksInPathShouldResolveSymlinks", test_resolvingSymlinksInPathShouldResolveSymlinks),
+            ("test_resolvingSymlinksInPathShouldNotChangeNonFileURLs", test_resolvingSymlinksInPathShouldNotChangeNonFileURLs),
+            ("test_resolvingSymlinksInPathShouldNotChangePathlessURLs", test_resolvingSymlinksInPathShouldNotChangePathlessURLs),
+            ("test_reachable", test_reachable),
+            ("test_copy", test_copy),
+            ("test_itemNSCoding", test_itemNSCoding),
+            ("test_dataRepresentation", test_dataRepresentation),
+            ("test_description", test_description),
+            ("test_URLResourceValues", testExpectedToFail(test_URLResourceValues,
+                "test_URLResourceValues: Except for .nameKey, we have no testable attributes that work in the environment Swift CI uses, for now. SR-XXXX")),
+        ]
+
+#if os(Windows)
+        tests.append(contentsOf: [
+            ("test_WindowsPathSeparator", test_WindowsPathSeparator),
+            ("test_WindowsPathSeparator2", test_WindowsPathSeparator2),
+        ])
+#endif
+
+#if canImport(Darwin)
+        tests += [
+            ("test_resolvingSymlinksInPathShouldRemovePrivatePrefix", test_resolvingSymlinksInPathShouldRemovePrivatePrefix),
+            ("test_resolvingSymlinksInPathShouldNotRemovePrivatePrefixIfOnlyComponent", test_resolvingSymlinksInPathShouldNotRemovePrivatePrefixIfOnlyComponent),
+        ]
+#endif
+
+        return tests
     }
 }
