@@ -26,7 +26,7 @@ internal let kCFURLPlatformPathStyle = kCFURLWindowsPathStyle
 internal let kCFURLPlatformPathStyle = kCFURLPOSIXPathStyle
 #endif
 
-private func _standardizedPath(_ path: String) -> String {
+internal func _standardizedPath(_ path: String) -> String {
     if !path.isAbsolutePath {
         return path._nsObject.standardizingPath
     }
