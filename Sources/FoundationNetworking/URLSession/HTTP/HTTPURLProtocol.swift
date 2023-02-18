@@ -525,6 +525,8 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             }
         case .dataCompletionHandler:
             break
+        case .dataCompletionHandlerWithTaskDelegate:
+            break
         case .downloadCompletionHandler:
             break
         }
