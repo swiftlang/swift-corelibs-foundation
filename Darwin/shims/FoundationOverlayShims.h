@@ -37,10 +37,10 @@
 typedef struct {
     void *_Nonnull memory;
     size_t capacity;
-    _Bool onStack;
+    bool onStack;
 } _ConditionalAllocationBuffer;
 
-static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
+static inline bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
     size_t amount = malloc_good_size(amt);
     if (amount <= buffer->capacity) { return true; }
     void *newMemory;
@@ -59,7 +59,7 @@ static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuf
     return true;
 }
 
-static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
+static inline bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
     _ConditionalAllocationBuffer buffer;
     buffer.capacity = malloc_good_size(amount);
     buffer.onStack = (pthread_main_np() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);

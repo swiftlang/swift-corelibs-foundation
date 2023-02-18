@@ -66,8 +66,9 @@
 
 #if defined(__GNUC__) || TARGET_OS_WIN32
 #include <stdint.h>
-#include <stdbool.h>
 #endif
+
+#include <stdbool.h>
 
 #if __BLOCKS__ && (TARGET_OS_OSX || TARGET_OS_IPHONE)
 #include <Block.h>
@@ -80,7 +81,7 @@
 #if !defined(__MACTYPES__)
 #if !defined(_OS_OSTYPES_H)
 #if DEPLOYMENT_RUNTIME_SWIFT
-    typedef _Bool                   Boolean;
+    typedef bool                    Boolean;
 #else
     typedef unsigned char           Boolean;
 #endif

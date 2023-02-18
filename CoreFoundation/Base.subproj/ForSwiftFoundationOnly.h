@@ -482,10 +482,10 @@ CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFTypeRef cf);
 typedef struct {
     void *_Nonnull memory;
     size_t capacity;
-    _Bool onStack;
+    bool onStack;
 } _ConditionalAllocationBuffer;
 
-static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
+static inline bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
 #if TARGET_OS_MAC
     size_t amount = malloc_good_size(amt);
 #else
@@ -509,7 +509,7 @@ static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuf
 }
 
 #if TARGET_OS_WASI
-static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
+static inline bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
     _ConditionalAllocationBuffer buffer;
     buffer.capacity = amount;
     buffer.onStack = false;
@@ -520,7 +520,7 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
     return true;
 }
 #else
-static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
+static inline bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
     _ConditionalAllocationBuffer buffer;
 #if TARGET_OS_MAC
     buffer.capacity = malloc_good_size(amount);
@@ -538,7 +538,7 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
 }
 #endif
 
-static inline _Bool _withStackOrHeapBufferWithResultInArguments(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(void *_Nonnull memory, size_t capacity, _Bool onStack)) {
+static inline bool _withStackOrHeapBufferWithResultInArguments(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(void *_Nonnull memory, size_t capacity, bool onStack)) {
     return _withStackOrHeapBuffer(amount, ^(_ConditionalAllocationBuffer *buffer) {
         applier(buffer->memory, buffer->capacity, buffer->onStack);
     });
@@ -645,13 +645,13 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
 
 static unsigned int const _CF_renameat2_RENAME_EXCHANGE = 1 << 1;
 #ifdef SYS_renameat2
-static _Bool const _CFHasRenameat2 = 1;
+static bool const _CFHasRenameat2 = 1;
 static inline int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
                                 int newdirfd, const char *_Nonnull newpath, unsigned int flags) {
     return syscall(SYS_renameat2, olddirfd, oldpath, newdirfd, newpath, flags);
 }
 #else
-static _Bool const _CFHasRenameat2 = 0;
+static bool const _CFHasRenameat2 = 0;
 static inline int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
                                 int newdirfd, const char *_Nonnull newpath, unsigned int flags) {
     return ENOSYS;
