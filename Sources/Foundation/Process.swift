@@ -452,6 +452,13 @@ open class Process: NSObject {
         return (first: INVALID_SOCKET, second: INVALID_SOCKET)
       }
 
+      var option: CInt = 1
+      if setsockopt(first, IPPROTO_TCP.rawValue, TCP_NODELAY, &option,
+                    CInt(MemoryLayout.size(ofValue: option))) == SOCKET_ERROR {
+        closesocket(first)
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
       let second: SOCKET = accept(listener, nil, nil)
       if second == INVALID_SOCKET {
         closesocket(first)
