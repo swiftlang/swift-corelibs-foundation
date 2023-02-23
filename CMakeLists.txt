@@ -59,6 +59,12 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG OFF)
 find_package(Threads REQUIRED)
 
+set(SWIFT_INSTALL_SUBDIR "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
+  get_swift_host_arch(swift_arch)
+  set(SWIFT_INSTALL_SUBDIR "${SWIFT_INSTALL_SUBDIR}/${swift_arch}")
+endif()
+
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
 add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
@@ -99,13 +105,13 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
 
   install(TARGETS CoreFoundation CFXMLInterface
-    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+    DESTINATION lib/swift_static/${SWIFT_INSTALL_SUBDIR})
 
   if(BUILD_NETWORKING)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
       CFURLSessionInterface)
     install(TARGETS CFURLSessionInterface
-      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+      DESTINATION lib/swift_static/${SWIFT_INSTALL_SUBDIR})
   endif()
 endif()
 

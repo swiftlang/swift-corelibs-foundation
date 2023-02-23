@@ -67,15 +67,19 @@ function(_install_target module)
     set(swift swift)
   endif()
 
+  get_swift_host_arch(swift_arch)
+  set(install_subdir "${swift_os}")
+  if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
+    set(install_subdir "${install_subdir}/${swift_arch}")
+  endif()
   install(TARGETS ${module}
-    ARCHIVE DESTINATION lib/${swift}/${swift_os}
-    LIBRARY DESTINATION lib/${swift}/${swift_os}
+    ARCHIVE DESTINATION lib/${swift}/${install_subdir}
+    LIBRARY DESTINATION lib/${swift}/${install_subdir}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   if(type STREQUAL EXECUTABLE)
     return()
   endif()
 
-  get_swift_host_arch(swift_arch)
   get_target_property(module_name ${module} Swift_MODULE_NAME)
   if(NOT module_name)
     set(module_name ${module})
