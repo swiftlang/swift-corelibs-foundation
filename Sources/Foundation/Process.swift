@@ -11,13 +11,15 @@
 
 #if canImport(Darwin)
 import Darwin
+#elseif canImport(WinSDK)
+import WinSDK
 #endif
 
 #if canImport(WinSDK)
-// We used to get the copy that was re-exported by CoreFoundation
+// We used to get the alias that was re-exported by CoreFoundation
 // but we want to explicitly depend on its types in this file,
 // so we need to make sure Swift doesn't think it's @_implementationOnly.
-import WinSDK
+import struct WinSDK.HANDLE
 #endif
 
 extension Process {
@@ -1169,6 +1171,13 @@ open class Process: NSObject {
 }
 
 extension Process {
-    
     public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
 }
+
+#if os(Windows)
+// FIXME: This is a workaround for CoreFoundation/WinSDK overload
+// of the same constants with different types.  We should prevent
+// CoreFoundation from re-exporting them.
+fileprivate let HANDLE_FLAG_INHERIT = DWORD(0x00000001)
+fileprivate let STARTF_USESTDHANDLES = DWORD(0x00000100)
+#endif

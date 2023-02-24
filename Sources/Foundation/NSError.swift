@@ -16,6 +16,7 @@ import Darwin
 import Glibc
 #elseif canImport(CRT)
 import CRT
+import WinSDK
 #endif
 
 @_implementationOnly import CoreFoundation

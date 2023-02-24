@@ -9,6 +9,10 @@
 
 @_implementationOnly import CoreFoundation
 
+#if os(Windows)
+import WinSDK.core
+#endif
+
 #if os(Android)
     // Android Glibc differs a little with respect to the Linux Glibc.
 

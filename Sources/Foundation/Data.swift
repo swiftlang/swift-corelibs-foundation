@@ -26,6 +26,13 @@
 @usableFromInline let memset = WASILibc.memset
 @usableFromInline let memcpy = WASILibc.memcpy
 @usableFromInline let memcmp = WASILibc.memcmp
+#elseif canImport(CRT)
+@usableFromInline let calloc = ucrt.calloc
+@usableFromInline let malloc = ucrt.malloc
+@usableFromInline let free = ucrt.free
+@usableFromInline let memset = ucrt.memset
+@usableFromInline let memcpy = ucrt.memcpy
+@usableFromInline let memcmp = ucrt.memcmp
 #endif
 
 #if !canImport(Darwin)

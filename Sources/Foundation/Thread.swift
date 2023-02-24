@@ -11,6 +11,8 @@
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(WinSDK)
+import WinSDK.core
 #endif
 
 // WORKAROUND_SR9811
