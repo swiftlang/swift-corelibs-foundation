@@ -8,16 +8,15 @@
 //
 
 @_implementationOnly import CoreFoundation
+#if os(Windows)
+import WinSDK
+import let WinSDK.HANDLE_FLAG_INHERIT
+import let WinSDK.STARTF_USESTDHANDLES
+import struct WinSDK.HANDLE
+#endif
 
 #if canImport(Darwin)
 import Darwin
-#endif
-
-#if canImport(WinSDK)
-// We used to get the copy that was re-exported by CoreFoundation
-// but we want to explicitly depend on its types in this file,
-// so we need to make sure Swift doesn't think it's @_implementationOnly.
-import WinSDK
 #endif
 
 extension Process {

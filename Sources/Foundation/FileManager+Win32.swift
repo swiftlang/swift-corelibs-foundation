@@ -10,6 +10,9 @@
 @_implementationOnly import CoreFoundation
 
 #if os(Windows)
+import let WinSDK.INVALID_FILE_ATTRIBUTES
+import WinSDK
+
 internal func joinPath(prefix: String, suffix: String) -> String {
     var pszPath: PWSTR?
 
