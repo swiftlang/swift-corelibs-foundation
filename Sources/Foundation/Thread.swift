@@ -8,6 +8,9 @@
 //
 
 @_implementationOnly import CoreFoundation
+#if os(Windows)
+import WinSDK
+#endif
 
 #if canImport(Glibc)
 import Glibc

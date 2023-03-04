@@ -9,6 +9,9 @@
 
 
 @_implementationOnly import CoreFoundation
+#if os(Windows)
+import WinSDK
+#endif
 
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle

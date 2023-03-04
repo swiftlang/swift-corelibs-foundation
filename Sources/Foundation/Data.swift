@@ -12,6 +12,15 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
+#if os(Windows)
+@usableFromInline let calloc = ucrt.calloc
+@usableFromInline let malloc = ucrt.malloc
+@usableFromInline let free = ucrt.free
+@usableFromInline let memset = ucrt.memset
+@usableFromInline let memcpy = ucrt.memcpy
+@usableFromInline let memcmp = ucrt.memcmp
+#endif
+
 #if canImport(Glibc)
 @usableFromInline let calloc = Glibc.calloc
 @usableFromInline let malloc = Glibc.malloc
