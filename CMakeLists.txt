@@ -99,19 +99,19 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
 
   install(TARGETS CoreFoundation CFXMLInterface
-    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
 
   if(BUILD_NETWORKING)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
       CFURLSessionInterface)
     install(TARGETS CFURLSessionInterface
-      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
   endif()
 endif()
 
-set(swift_lib_dir "lib/swift")
+set(swift_lib_dir "${CMAKE_INSTALL_LIBDIR}/swift")
 if(NOT BUILD_SHARED_LIBS)
-  set(swift_lib_dir "lib/swift_static")
+  set(swift_lib_dir "${CMAKE_INSTALL_LIBDIR}/swift_static")
 endif()
 
 # TODO(compnerd) install as a Framework as that is how swift actually is built
