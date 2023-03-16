@@ -70,7 +70,7 @@ function(_install_target module)
   install(TARGETS ${module}
     ARCHIVE DESTINATION lib/${swift}/${swift_os}
     LIBRARY DESTINATION lib/${swift}/${swift_os}
-    RUNTIME DESTINATION bin)
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   if(type STREQUAL EXECUTABLE)
     return()
   endif()
