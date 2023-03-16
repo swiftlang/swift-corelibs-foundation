@@ -4058,9 +4058,9 @@ static CFStringRef WindowsPathToURLPath(CFStringRef path, CFAllocatorRef alloc, 
     CFArrayRef urlComponents;
     CFStringRef str;
 
-    if (CFStringGetLength(path) == 0) return CFStringCreateWithCString(alloc, "", kCFStringEncodingASCII);
+    if (CFStringGetLength(path) == 0) return CFSTR("");
     urlComponents = WindowsPathToURLComponents(path, alloc, isDir, isAbsolute);
-    if (!urlComponents) return CFStringCreateWithCString(alloc, "", kCFStringEncodingASCII);
+    if (!urlComponents) return CFSTR("");
 
     // WindowsPathToURLComponents already added percent escapes for us; no need to add them again here.
     str = CFStringCreateByCombiningStrings(alloc, urlComponents, CFSTR("/"));

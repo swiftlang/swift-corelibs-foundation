@@ -979,7 +979,7 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
 }
 
 CFDateFormatterRef CFDateFormatterCreateISO8601Formatter(CFAllocatorRef allocator, CFISO8601DateFormatOptions formatOptions) {
-    CFStringRef localeStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, "en_US_POSIX", kCFStringEncodingUTF8);
+    CFStringRef localeStr = CFSTR("en_US_POSIX");
     CFLocaleRef locale = CFLocaleCreate(kCFAllocatorSystemDefault, localeStr);
     CFDateFormatterRef ISO8601Formatter = __CreateCFDateFormatter(allocator, locale, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle, kCFBooleanTrue);  // dateStyle and timeStyle are not relevant for ISO8601
 
@@ -991,7 +991,6 @@ CFDateFormatterRef CFDateFormatterCreateISO8601Formatter(CFAllocatorRef allocato
         }
     }
 
-    CFRelease(localeStr);
     CFRelease(locale);
 
     return ISO8601Formatter;
