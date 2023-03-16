@@ -350,7 +350,7 @@ void _CFXMLInterfaceSAX2UnparsedEntityDecl(_CFXMLInterfaceParserContext ctx, con
 }
 
 CFErrorRef _CFErrorCreateFromXMLInterface(_CFXMLInterfaceError err) {
-    return __CFSwiftXMLParserBridgeCF.CFErrorCreate(*(__CFSwiftXMLParserBridgeCF.kCFAllocatorSystemDefault), CFSTR("NSXMLParserErrorDomain"), err->code, NULL);
+    return __CFSwiftXMLParserBridgeCF.CFErrorCreate(*(__CFSwiftXMLParserBridgeCF.kCFAllocatorSystemDefault), __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "NSXMLParserErrorDomain", kCFStringEncodingUTF8), err->code, NULL);
 }
 
 _CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr namespace, const char* name) {
@@ -594,14 +594,14 @@ void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  co
             // rather than writing custom code to parse the new content into the correct
             // xmlElementContent structures, let's leverage what we've already got.
             CFMutableStringRef xmlString = __CFSwiftXMLParserBridgeCF.CFStringCreateMutable(NULL, 0);
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(xmlString, CFSTR("<!ELEMENT "));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(xmlString, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "<!ELEMENT ", kCFStringEncodingUTF8));
             __CFSwiftXMLParserBridgeCF.CFStringAppendCString(xmlString, (const char*)element->name, kCFStringEncodingUTF8);
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(xmlString, CFSTR(" "));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(xmlString, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, " ", kCFStringEncodingUTF8));
             __CFSwiftXMLParserBridgeCF.CFStringAppendCString(xmlString, (const char*)content, kCFStringEncodingUTF8);
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(xmlString, CFSTR(">"));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(xmlString, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, ">", kCFStringEncodingUTF8));
 
             size_t bufferSize = __CFSwiftXMLParserBridgeCF.CFStringGetMaximumSizeForEncoding(__CFSwiftXMLParserBridgeCF.CFStringGetLength(xmlString), kCFStringEncodingUTF8) + 1;
-            char* buffer = calloc(1, bufferSize);
+            char* buffer = calloc(bufferSize, 1);
             __CFSwiftXMLParserBridgeCF.CFStringGetCString(xmlString, buffer, bufferSize, kCFStringEncodingUTF8);
             xmlElementPtr resultNode = _CFXMLParseDTDNode((const xmlChar*)buffer);
 
@@ -864,35 +864,35 @@ CFStringRef _CFXMLCopyStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
         // predefined entities need special handling, libxml2 just tosses an error and returns a NULL string
         // if we try to use xmlSaveTree on a predefined entity
         CFMutableStringRef result = __CFSwiftXMLParserBridgeCF.CFStringCreateMutable(NULL, 0);
-        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("<!ENTITY "));
+        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "<!ENTITY ", kCFStringEncodingUTF8));
         __CFSwiftXMLParserBridgeCF.CFStringAppendCString(result, (const char*)((xmlEntityPtr)node)->name, kCFStringEncodingUTF8);
-        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR(" \""));
+        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, " \"", kCFStringEncodingUTF8));
         __CFSwiftXMLParserBridgeCF.CFStringAppendCString(result, (const char*)((xmlEntityPtr)node)->content, kCFStringEncodingUTF8);
-        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("\">"));
+        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "\">", kCFStringEncodingUTF8));
 
         return result;
     } else if (((xmlNodePtr)node)->type == XML_NOTATION_NODE) {
         // This is not actually a thing that occurs naturally in libxml2
         xmlNotationPtr notation = ((_cfxmlNotation*)node)->notation;
         CFMutableStringRef result = __CFSwiftXMLParserBridgeCF.CFStringCreateMutable(NULL, 0);
-        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("<!NOTATION "));
+        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "<!NOTATION ", kCFStringEncodingUTF8));
         __CFSwiftXMLParserBridgeCF.CFStringAppendCString(result, (const char*)notation->name, kCFStringEncodingUTF8);
-        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR(" "));
+        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, " ", kCFStringEncodingUTF8));
         if (notation->PublicID == NULL && notation->SystemID != NULL) {
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("SYSTEM "));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "SYSTEM ", kCFStringEncodingUTF8));
         } else if (notation->PublicID != NULL) {
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("PUBLIC \""));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "PUBLIC \"", kCFStringEncodingUTF8));
             __CFSwiftXMLParserBridgeCF.CFStringAppendCString(result, (const char*)notation->PublicID, kCFStringEncodingUTF8);
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("\""));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "\"", kCFStringEncodingUTF8));
         }
 
         if (notation->SystemID != NULL) {
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("\""));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "\"", kCFStringEncodingUTF8));
             __CFSwiftXMLParserBridgeCF.CFStringAppendCString(result, (const char*)notation->SystemID, kCFStringEncodingUTF8);
-            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR("\""));
+            __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "\"", kCFStringEncodingUTF8));
         }
 
-        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, CFSTR(" >"));
+        __CFSwiftXMLParserBridgeCF.CFStringAppend(result, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, " >", kCFStringEncodingUTF8));
 
         return result;
     }
@@ -918,7 +918,7 @@ CFStringRef _CFXMLCopyStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
     int error = xmlSaveClose(ctx);
 
     if (error == -1) {
-        return CFSTR("");
+        return __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "", kCFStringEncodingUTF8);
     }
 
     const xmlChar* bufferContents = xmlBufferContent(buffer);
@@ -1111,7 +1111,7 @@ bool _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error) {
         CFMutableDictionaryRef userInfo = __CFSwiftXMLParserBridgeCF.CFDictionaryCreateMutable(NULL, 1, __CFSwiftXMLParserBridgeCF.kCFCopyStringDictionaryKeyCallBacks, __CFSwiftXMLParserBridgeCF.kCFTypeDictionaryValueCallBacks);
         __CFSwiftXMLParserBridgeCF.CFDictionarySetValue(userInfo, *(__CFSwiftXMLParserBridgeCF.kCFErrorLocalizedDescriptionKey), errorMessage);
 
-        *error = __CFSwiftXMLParserBridgeCF.CFErrorCreate(NULL, CFSTR("NSXMLParserErrorDomain"), 0, userInfo);
+        *error = __CFSwiftXMLParserBridgeCF.CFErrorCreate(NULL, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "NSXMLParserErrorDomain", kCFStringEncodingUTF8), 0, userInfo);
 
         __CFSwiftXMLParserBridgeCF.CFRelease(userInfo);
     }
@@ -1177,7 +1177,7 @@ _CFXMLDTDPtr _Nullable _CFXMLParseDTDFromData(CFDataRef data, CFErrorRef _Nullab
         CFMutableDictionaryRef userInfo = __CFSwiftXMLParserBridgeCF.CFDictionaryCreateMutable(NULL, 1, __CFSwiftXMLParserBridgeCF.kCFCopyStringDictionaryKeyCallBacks, __CFSwiftXMLParserBridgeCF.kCFTypeDictionaryValueCallBacks);
         __CFSwiftXMLParserBridgeCF.CFDictionarySetValue(userInfo, *(__CFSwiftXMLParserBridgeCF.kCFErrorLocalizedDescriptionKey), errorMessage);
 
-        *error = __CFSwiftXMLParserBridgeCF.CFErrorCreate(NULL, CFSTR("NSXMLParserErrorDomain"), 0, userInfo);
+        *error = __CFSwiftXMLParserBridgeCF.CFErrorCreate(NULL, __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, "NSXMLParserErrorDomain", kCFStringEncodingUTF8), 0, userInfo);
 
         __CFSwiftXMLParserBridgeCF.CFRelease(userInfo);
     }

@@ -278,11 +278,8 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
         const char *processName = *_CFGetProgname();
-        CFStringRef newStr;
-        if (processName)
-            newStr  = CFStringCreateWithCString(kCFAllocatorSystemDefault, processName, kCFPlatformInterfaceStringEncoding);
-        else
-            newStr = CFSTR("");
+        if (!processName) processName = "";
+        CFStringRef newStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, processName, kCFPlatformInterfaceStringEncoding);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
         if (!OSAtomicCompareAndSwapPtrBarrier(NULL, (void *) newStr, (void * volatile *)& __CFProcessNameString)) {
@@ -395,7 +392,7 @@ CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
     char myName[CFMaxHostNameSize];
 
     // return @"" instead of nil a la CFUserName() and Ali Ozer
-    if (0 != gethostname(myName, CFMaxHostNameSize)) return CFSTR("");
+    if (0 != gethostname(myName, CFMaxHostNameSize)) myName[0] = '\0';
     return CFStringCreateWithCString(kCFAllocatorSystemDefault, myName, kCFPlatformInterfaceStringEncoding);
 }
 
