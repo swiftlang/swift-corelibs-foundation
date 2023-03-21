@@ -800,7 +800,7 @@ class TestProcess : XCTestCase {
         do {
             let data = try XCTUnwrap(pipe3.fileHandleForReading.readToEnd())
             let pwd = String.init(decoding: data, as: UTF8.self).trimmingCharacters(in: CharacterSet(["\n", "\r"]))
-            XCTAssertEqual(pwd, FileManager.default.currentDirectoryPath.standardizePath())
+            XCTAssertEqual(pwd, FileManager.default.currentDirectoryPath)
         } catch {
             XCTFail("\(error)")
         }
