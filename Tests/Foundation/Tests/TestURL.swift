@@ -559,7 +559,7 @@ class TestURL : XCTestCase {
 
         let url = URL(fileURLWithPath: "foo/bar/baz")
         let result = url.resolvingSymlinksInPath()
-        XCTAssertEqual(result, URL(fileURLWithPath: writableTestDirectoryURL.path + "/foo/bar/baz"))
+        XCTAssertEqual(result, URL(fileURLWithPath: writableTestDirectoryURL.path + "/foo/bar/baz").resolvingSymlinksInPath())
     }
 
     func test_resolvingSymlinksInPathShouldAppendTrailingSlashWhenExistingDirectory() throws {
@@ -573,7 +573,7 @@ class TestURL : XCTestCase {
         }
         let url = URL(fileURLWithPath: path)
         let result = url.resolvingSymlinksInPath()
-        XCTAssertEqual(result, URL(fileURLWithPath: path + "/"))
+        XCTAssertEqual(result, URL(fileURLWithPath: path + "/").resolvingSymlinksInPath())
     }
 
     func test_resolvingSymlinksInPathShouldResolveSymlinks() throws {
@@ -588,7 +588,7 @@ class TestURL : XCTestCase {
         try fileManager.createSymbolicLink(at: symbolicLink, withDestinationURL: destination)
 
         let result = symbolicLink.resolvingSymlinksInPath()
-        XCTAssertEqual(result, URL(fileURLWithPath: writableTestDirectoryURL.path + "/destination"))
+        XCTAssertEqual(result, URL(fileURLWithPath: writableTestDirectoryURL.path + "/destination").resolvingSymlinksInPath())
     }
 
     func test_resolvingSymlinksInPathShouldRemovePrivatePrefix() {
