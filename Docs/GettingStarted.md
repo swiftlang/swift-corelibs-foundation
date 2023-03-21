@@ -16,11 +16,10 @@ Foundation is developed at the same time as the rest of Swift, so the most recen
 
 The repository includes an Xcode project file as well as an Xcode workspace. The workspace includes both Foundation and XCTest, which makes it easy to build and run everything together. The workspace assumes that Foundation and XCTest are checked out from GitHub in sibling directories. For example:
 
-```
-% cd Development
-% ls
+```sh
+cd Development
+ls
 swift-corelibs-foundation swift-corelibs-xctest
-%
 ```
 
 Build and test steps:
@@ -50,8 +49,9 @@ You will need:
 To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift/blob/main/docs/HowToGuides/GettingStarted.md#building-the-project-for-the-first-time). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
 The default build script does not include Foundation. To configure and build Foundation and TestFoundation including lldb for debugging and the correct ICU library, the following command can be used. All other tests are disabled to reduce build and test time. `--release` is used to avoid building LLVM and the compiler with debugging.
-```
-% swift/utils/build-script  --libicu --lldb --release --test --foundation --xctest \
+
+```sh
+swift/utils/build-script  --libicu --lldb --release --test --foundation --xctest \
   --foundation-build-type=debug  --skip-test-swift --skip-build-benchmarks \
   --skip-test-lldb --skip-test-xctest --skip-test-libdispatch --skip-test-libicu --skip-test-cmark
 ```
@@ -65,31 +65,31 @@ After the complete Swift build has finished you can iterate over changes you mak
 Note that `cmake` needs to be a relatively recent version, currently 3.15.1, and if this is not installed already
 then it is built as part of the `build-script` invocation. Therefore `cmake` may be installed in `build/cmake`.
 
-
-```
+```sh
 # Build TestFoundation
-% $SWIFT_BUILD_ROOT=build $BUILD_ROOT/cmake-linux-x86_64/bin/cmake --build $BUILD_ROOT/Ninja-ReleaseAssert/foundation-linux-x86_64/ -v -- -j4 TestFoundation
+$SWIFT_BUILD_ROOT=build $BUILD_ROOT/cmake-linux-x86_64/bin/cmake --build $BUILD_ROOT/Ninja-ReleaseAssert/foundation-linux-x86_64/ -v -- -j4 TestFoundation
 # Run the tests
-% $SWIFT_BUILD_ROOT=build $BUILD_ROOT/cmake-linux-x86_64/bin/cmake --build $BUILD_ROOT/Ninja-ReleaseAssert/foundation-linux-x86_64/ -v -- -j4 test
+$SWIFT_BUILD_ROOT=build $BUILD_ROOT/cmake-linux-x86_64/bin/cmake --build $BUILD_ROOT/Ninja-ReleaseAssert/foundation-linux-x86_64/ -v -- -j4 test
 ```
 
 If `TestFoundation` needs to be run outside of `ctest`, perhaps to run under `lldb`  or to run individual tests, then it can be run directly but an appropriate `LD_LIBRARY_PATH`
 needs to be set so that `libdispatch` and `libXCTest` can be found.
 
+```sh
+export BUILD_DIR=build/Ninja-ReleaseAssert
+export LD_LIBRARY_PATH=$BUILD_DIR/foundation-linux-x86_64/Foundation:$BUILD_DIR/xctest-linux-x86_64:$BUILD_DIR/libdispatch-linux-x86_64
+$BUILD_DIR/foundation-linux-x86_64/TestFoundation.app/TestFoundation
 ```
-% export BUILD_DIR=build/Ninja-ReleaseAssert
-% export LD_LIBRARY_PATH=$BUILD_DIR/foundation-linux-x86_64/Foundation:$BUILD_DIR/xctest-linux-x86_64:$BUILD_DIR/libdispatch-linux-x86_64
-% $BUILD_DIR/foundation-linux-x86_64/TestFoundation.app/TestFoundation
-```
+
 To run only one test class or a single test, the tests to run can be specified as a command argument in the form of `TestFoundation.<TestClass>{/testName}` eg to run all of the tests in `TestDate` use
 `TestFoundation.TestDate`. To run just `test_BasicConstruction`, use `TestFoundation.TestDate/test_BasicConstruction`.
 
 If the tests need to be run under `lldb`, use the following command:
 
-```
-% export BUILD_DIR=build/Ninja-ReleaseAssert
-% export LD_LIBRARY_PATH=$BUILD_DIR/foundation-linux-x86_64/Foundation:$BUILD_DIR/xctest-linux-x86_64:$BUILD_DIR/libdispatch-linux-x86_64
-% $BUILD_DIR/lldb-linux-x86_64/bin/lldb $BUILD_DIR/foundation-linux-x86_64/TestFoundation.app/TestFoundation
+```sh
+export BUILD_DIR=build/Ninja-ReleaseAssert
+export LD_LIBRARY_PATH=$BUILD_DIR/foundation-linux-x86_64/Foundation:$BUILD_DIR/xctest-linux-x86_64:$BUILD_DIR/libdispatch-linux-x86_64
+$BUILD_DIR/lldb-linux-x86_64/bin/lldb $BUILD_DIR/foundation-linux-x86_64/TestFoundation.app/TestFoundation
 ```
 
 When new source files or flags are added to any of the `CMakeLists.txt` files, the project will need to be reconfigured in order for the build system to pick them up. Simply rerun the `cmake` command to build `TestFoundation` given above and it should be reconfigured and built correctly. 
