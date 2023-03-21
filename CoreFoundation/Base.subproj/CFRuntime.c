@@ -274,7 +274,7 @@ bool (*__CFObjCIsCollectable)(void *) = NULL;
 // The constant string class reference is set at link time to _NSCFConstantString
 void *__CFConstantStringClassReferencePtr = &_CF_CONSTANT_STRING_SWIFT_CLASS;
 #else
-#if !__CONSTANT_CFSTRINGS__
+#ifndef __CONSTANT_CFSTRINGS__
 // Compiler uses this symbol name; must match compiler built-in decl, so we use 'int'
 #if TARGET_RT_64_BIT
 int __CFConstantStringClassReference[24] = {0};
