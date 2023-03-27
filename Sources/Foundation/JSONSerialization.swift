@@ -260,6 +260,10 @@ open class JSONSerialization : NSObject {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     NSDebugDescriptionErrorKey : #"Number \#(parsed) is not representable in Swift."#
                 ])
+            case .invalidUTF8Sequence(let data, characterIndex: let index):
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
+                    NSDebugDescriptionErrorKey : #"Invalid UTF-8 sequence \#(data) starting from character \#(index)."#
+                ])
             }
         } catch {
             preconditionFailure("Only `JSONError` expected")
