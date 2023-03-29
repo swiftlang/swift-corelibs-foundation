@@ -630,9 +630,17 @@ public final class UnitDuration : Dimension {
         static let seconds  = "s"
         static let minutes  = "m"
         static let hours    = "h"
+        static let millisconds = "ms"
+        static let microseconds = "µs"
+        static let nanoseconds = "ns"
+        static let picoseconds = "ps"
     }
     
     private struct Coefficient {
+        static let picoseconds = 1e-12
+        static let nanoseconds = 1e-9
+        static let microseconds = 1e-6
+        static let millisconds = 1e-3
         static let seconds  = 1.0
         static let minutes  = 60.0
         static let hours    = 3600.0
@@ -640,6 +648,30 @@ public final class UnitDuration : Dimension {
     
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    }
+
+    public class var picoseconds: UnitDuration {
+        get {
+            return UnitDuration(symbol: Symbol.picoseconds, coefficient: Coefficient.picoseconds)
+        }
+    }
+    
+    public class var nanoseconds: UnitDuration {
+        get {
+            return UnitDuration(symbol: Symbol.nanoseconds, coefficient: Coefficient.nanoseconds)
+        }
+    }
+    
+    public class var microseconds: UnitDuration {
+        get {
+            return UnitDuration(symbol: Symbol.microseconds, coefficient: Coefficient.microseconds)
+        }
+    }
+    
+    public class var millisconds: UnitDuration {
+        get {
+            return UnitDuration(symbol: Symbol.millisconds, coefficient: Coefficient.millisconds)
+        }
     }
     
     public class var seconds: UnitDuration {
@@ -659,7 +691,7 @@ public final class UnitDuration : Dimension {
             return UnitDuration(symbol: Symbol.hours, coefficient: Coefficient.hours)
         }
     }
-    
+
     public override class func baseUnit() -> UnitDuration {
         return .seconds
     }
