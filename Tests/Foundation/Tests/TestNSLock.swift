@@ -14,6 +14,7 @@ class TestNSLock: XCTestCase {
             ("test_lockWait", test_lockWait),
             ("test_threadsAndLocks", test_threadsAndLocks),
             ("test_recursiveLock", test_recursiveLock),
+            ("test_withLock", test_withLock),
             
         ]
     }
@@ -186,5 +187,34 @@ class TestNSLock: XCTestCase {
         XCTAssertEqual(resultCountdownValue, 0, "Wrong coundtdown means unresolved race conditions, locks broken")
         
         threadCompletedCondition.unlock()
+    }
+
+    func test_withLock() {
+        let lock = NSLock()
+
+        var counter = 0
+        let counterIncrementPerThread = 10_000
+
+        let threadCount = 10
+
+        let threadCompletedExpectation = expectation(description: "Expected threads to complete.")
+        threadCompletedExpectation.expectedFulfillmentCount = threadCount
+
+        for _ in 0..<threadCount {
+            let thread = Thread {
+                for _ in 0..<counterIncrementPerThread {
+                    lock.withLock {
+                        counter += 1
+                    }
+                }
+
+                threadCompletedExpectation.fulfill()
+            }
+            thread.start()
+        }
+
+        wait(for: [threadCompletedExpectation], timeout: 10)
+
+        XCTAssertEqual(counter, counterIncrementPerThread * threadCount)
     }
 }

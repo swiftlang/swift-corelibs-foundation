@@ -22,6 +22,19 @@ public protocol NSLocking {
     func unlock()
 }
 
+extension NSLocking {
+    @_alwaysEmitIntoClient
+    @_disfavoredOverload
+    public func withLock<R>(_ body: () throws -> R) rethrows -> R {
+        self.lock()
+        defer {
+            self.unlock()
+        }
+
+        return try body()
+    }
+}
+
 #if os(Windows)
 private typealias _MutexPointer = UnsafeMutablePointer<SRWLOCK>
 private typealias _RecursiveMutexPointer = UnsafeMutablePointer<CRITICAL_SECTION>
