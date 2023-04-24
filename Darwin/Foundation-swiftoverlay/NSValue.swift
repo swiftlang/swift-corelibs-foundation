@@ -25,7 +25,7 @@ extension NSRange: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(NSRange.self)) == 0,
                  "NSValue does not contain the right type to bridge to NSRange")
     result = NSRange()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<NSRange>.size)
     } else {
       source.getValue(&result!)
@@ -40,7 +40,7 @@ extension NSRange: _ObjectiveCBridgeable {
       return false
     }
     result = NSRange()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<NSRange>.size)
     } else {
       source.getValue(&result!)
@@ -55,7 +55,7 @@ extension NSRange: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(NSRange.self)) == 0,
                  "NSValue does not contain the right type to bridge to NSRange")
     var result = NSRange()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       unwrappedSource.getValue(&result, size: MemoryLayout<NSRange>.size)
     } else {
       unwrappedSource.getValue(&result)
@@ -77,7 +77,7 @@ extension CGRect: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGRect.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGRect")
     result = CGRect()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGRect>.size)
     } else {
       source.getValue(&result!)
@@ -92,7 +92,7 @@ extension CGRect: _ObjectiveCBridgeable {
       return false
     }
     result = CGRect()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGRect>.size)
     } else {
       source.getValue(&result!)
@@ -107,7 +107,7 @@ extension CGRect: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGRect.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGRect")
     var result = CGRect()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       unwrappedSource.getValue(&result, size: MemoryLayout<CGRect>.size)
     } else {
       unwrappedSource.getValue(&result)
@@ -129,7 +129,7 @@ extension CGPoint: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGPoint.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGPoint")
     result = CGPoint()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGPoint>.size)
     } else {
       source.getValue(&result!)
@@ -144,7 +144,7 @@ extension CGPoint: _ObjectiveCBridgeable {
       return false
     }
     result = CGPoint()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGPoint>.size)
     } else {
       source.getValue(&result!)
@@ -159,7 +159,7 @@ extension CGPoint: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGPoint.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGPoint")
     var result = CGPoint()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       unwrappedSource.getValue(&result, size: MemoryLayout<CGPoint>.size)
     } else {
       unwrappedSource.getValue(&result)
@@ -181,7 +181,7 @@ extension CGVector: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGVector.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGVector")
     result = CGVector()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGVector>.size)
     } else {
       source.getValue(&result!)
@@ -196,7 +196,7 @@ extension CGVector: _ObjectiveCBridgeable {
       return false
     }
     result = CGVector()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGVector>.size)
     } else {
       source.getValue(&result!)
@@ -211,7 +211,7 @@ extension CGVector: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGVector.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGVector")
     var result = CGVector()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       unwrappedSource.getValue(&result, size: MemoryLayout<CGVector>.size)
     } else {
       unwrappedSource.getValue(&result)
@@ -233,7 +233,7 @@ extension CGSize: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGSize.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGSize")
     result = CGSize()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGSize>.size)
     } else {
       source.getValue(&result!)
@@ -248,7 +248,7 @@ extension CGSize: _ObjectiveCBridgeable {
       return false
     }
     result = CGSize()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGSize>.size)
     } else {
       source.getValue(&result!)
@@ -263,7 +263,7 @@ extension CGSize: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGSize.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGSize")
     var result = CGSize()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       unwrappedSource.getValue(&result, size: MemoryLayout<CGSize>.size)
     } else {
       unwrappedSource.getValue(&result)
@@ -285,7 +285,7 @@ extension CGAffineTransform: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGAffineTransform.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGAffineTransform")
     result = CGAffineTransform()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGAffineTransform>.size)
     } else {
       source.getValue(&result!)
@@ -300,7 +300,7 @@ extension CGAffineTransform: _ObjectiveCBridgeable {
       return false
     }
     result = CGAffineTransform()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       source.getValue(&result!, size: MemoryLayout<CGAffineTransform>.size)
     } else {
       source.getValue(&result!)
@@ -315,7 +315,7 @@ extension CGAffineTransform: _ObjectiveCBridgeable {
                         _getObjCTypeEncoding(CGAffineTransform.self)) == 0,
                  "NSValue does not contain the right type to bridge to CGAffineTransform")
     var result = CGAffineTransform()
-    if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+    if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
       unwrappedSource.getValue(&result, size: MemoryLayout<CGAffineTransform>.size)
     } else {
       unwrappedSource.getValue(&result)

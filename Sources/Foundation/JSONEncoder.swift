@@ -1010,7 +1010,7 @@ extension JSONValue {
                 }
                 bytes.append(._closebracket)
             case .object(let dict):
-                if #available(OSX 10.13, *), options.contains(.sortedKeys) {
+                if #available(macOS 10.13, *), options.contains(.sortedKeys) {
                     let sorted = dict.sorted { $0.key < $1.key }
                     self.writeObject(sorted, into: &bytes)
                 } else {
@@ -1072,7 +1072,7 @@ extension JSONValue {
                 self.addInset(to: &bytes, depth: depth)
                 bytes.append(._closebracket)
             case .object(let dict):
-                if #available(OSX 10.13, *), options.contains(.sortedKeys) {
+                if #available(macOS 10.13, *), options.contains(.sortedKeys) {
                     let sorted = dict.sorted { $0.key < $1.key }
                     self.writePrettyObject(sorted, into: &bytes, depth: depth)
                 } else {

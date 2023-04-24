@@ -63,7 +63,7 @@ class TestURL : XCTestCase {
 #if os(macOS)
     func testQuarantineProperties() {
         // Test the quarantine stuff; it has special logic
-        if #available(OSX 10.11, iOS 9.0, *) {
+        if #available(macOS 10.11, iOS 9.0, *) {
             // Create a temporary file
             var file = URL(fileURLWithPath: NSTemporaryDirectory())
             let name = "my_great_file" + UUID().uuidString
@@ -179,13 +179,13 @@ class TestURL : XCTestCase {
         XCTAssertEqual("www.apple.com", components.host)
         
         
-        if #available(OSX 10.11, iOS 9.0, *) {
+        if #available(macOS 10.11, iOS 9.0, *) {
             let rangeOfHost = components.rangeOfHost!
             XCTAssertNotNil(rangeOfHost)
             XCTAssertEqual(s[rangeOfHost], "www.apple.com")
         }
         
-        if #available(OSX 10.10, iOS 8.0, *) {
+        if #available(macOS 10.10, iOS 8.0, *) {
             let qi = components.queryItems!
             XCTAssertNotNil(qi)
             
@@ -197,7 +197,7 @@ class TestURL : XCTestCase {
             XCTAssertEqual("global|nav", first.value)
         }
 
-        if #available(OSX 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+        if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
             components.percentEncodedQuery = "name1%E2%80%A2=value1%E2%80%A2&name2%E2%80%A2=value2%E2%80%A2"
             var qi = components.queryItems!
             XCTAssertNotNil(qi)
@@ -349,7 +349,7 @@ class TestURL : XCTestCase {
     }
 
     func test_AnyHashableContainingURLQueryItem() {
-        if #available(OSX 10.10, iOS 8.0, *) {
+        if #available(macOS 10.10, iOS 8.0, *) {
             let values: [URLQueryItem] = [
                 URLQueryItem(name: "foo", value: nil),
                 URLQueryItem(name: "bar", value: nil),
@@ -365,7 +365,7 @@ class TestURL : XCTestCase {
     }
 
     func test_AnyHashableCreatedFromNSURLQueryItem() {
-        if #available(OSX 10.10, iOS 8.0, *) {
+        if #available(macOS 10.10, iOS 8.0, *) {
             let values: [NSURLQueryItem] = [
                 NSURLQueryItem(name: "foo", value: nil),
                 NSURLQueryItem(name: "bar", value: nil),

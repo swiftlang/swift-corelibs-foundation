@@ -12,7 +12,7 @@ class TestProcess : XCTestCase {
     func test_exit0() throws {
         let process = Process()
         let executableURL = xdgTestHelperURL()
-        if #available(OSX 10.13, *) {
+        if #available(macOS 10.13, *) {
             process.executableURL = executableURL
         } else {
             // Fallback on earlier versions

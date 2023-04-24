@@ -15,7 +15,7 @@ import XCTest
 
 class TestProgress : XCTestCase {
     func testUserInfoConveniences() {
-        if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+        if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
             let p = Progress(parent:nil, userInfo: nil)
             
             XCTAssertNil(p.userInfo[.throughputKey])
@@ -45,7 +45,7 @@ class TestProgress : XCTestCase {
     }
     
     func testPerformAsCurrent() {
-        if #available(OSX 10.11, iOS 8.0, *) {
+        if #available(macOS 10.11, iOS 8.0, *) {
             // This test can be enabled once <rdar://problem/31867347> is in the SDK
             /*
             let p = Progress.discreteProgress(totalUnitCount: 10)

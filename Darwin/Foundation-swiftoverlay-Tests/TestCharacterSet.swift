@@ -269,7 +269,7 @@ class TestCharacterSet : XCTestCase {
     
     func test_setOperationsOfEmptySet() {
         // The following tests pass on these versions of the OS
-        if #available(OSX 10.12.3, iOS 10.3, watchOS 3.2, tvOS 10.2, *) {
+        if #available(macOS 10.12.3, iOS 10.3, watchOS 3.2, tvOS 10.2, *) {
             let emptySet = CharacterSet()
             let abcSet = CharacterSet(charactersIn: "abc")
             
@@ -304,7 +304,7 @@ class TestCharacterSet : XCTestCase {
 
         /*  Disabled now: rdar://problem/31746923
         #if os(macOS)
-            if #available(OSX 10.12.4, iOS 10.3, watchOS 3.2, tvOS 10.2, *) {
+            if #available(macOS 10.12.4, iOS 10.3, watchOS 3.2, tvOS 10.2, *) {
                 let abcSet = CharacterSet(charactersIn: "abc")
                 let abcdSet = CharacterSet(charactersIn: "abcd")
                 

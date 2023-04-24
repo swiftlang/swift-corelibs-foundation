@@ -49,7 +49,7 @@ extension FileManager {
             return urls
         }
 
-        if #available(OSX 10.13, *) {
+        if #available(macOS 10.13, *) {
             var statBufPtr: UnsafeMutablePointer<statfs>?
             let fsCount = getmntinfo_r_np(&statBufPtr, MNT_WAIT)
             guard let statBuf = statBufPtr, fsCount > 0 else {
