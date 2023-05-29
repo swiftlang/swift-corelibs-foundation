@@ -560,8 +560,11 @@ class TestBundle : XCTestCase {
         let maybeURL = Bundle.main.executableURL
         XCTAssertNotNil(maybeURL)
         guard let url = maybeURL else { return }
-        
-        XCTAssertEqual(url.path, ProcessInfo.processInfo._processPath)
+
+        let path = url.withUnsafeFileSystemRepresentation {
+            String(cString: $0!)
+        }
+        XCTAssertEqual(path, ProcessInfo.processInfo._processPath)
     }
 #endif
     
@@ -585,7 +588,7 @@ class TestBundle : XCTestCase {
             ("test_bundleForClass", testExpectedToFailOnWindows(test_bundleForClass, "Functionality not yet implemented on Windows. SR-XXXX")),
         ]
         
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows)
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         tests.append(contentsOf: [
             ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
             ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
