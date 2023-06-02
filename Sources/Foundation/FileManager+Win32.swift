@@ -986,7 +986,9 @@ extension FileManager {
                        ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN == FILE_ATTRIBUTE_HIDDEN {
                       continue
                     }
-                    _stack.append(URL(fileURLWithPath: file, relativeTo: _lastReturned))
+
+                    let isDirectory = ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY && ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT
+                    _stack.append(_lastReturned.appendingPathComponent(file, isDirectory: isDirectory))
                 } while FindNextFileW(handle, &ffd)
             }
             return firstValidItem()

@@ -754,7 +754,22 @@ class TestFileManager : XCTestCase {
             XCTFail("Failed to clean up files")
         }
     }
-    
+
+    func test_contentsOfDirectoryEnumeration() throws {
+        let fm = FileManager.default
+
+        let root = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(NSUUID().uuidString, isDirectory: true)
+        let subdirectory = root.appendingPathComponent("subdirectory", isDirectory: true)
+        let file = subdirectory.appendingPathComponent("file", isDirectory: false)
+        try? fm.removeItem(at: root)
+
+        try XCTAssertNoThrow(fm.createDirectory(at: subdirectory, withIntermediateDirectories: true, attributes: nil))
+        try XCTAssertNoThrow(fm.createFile(atPath: file.path, contents: Data(), attributes: nil))
+        let contents = try XCTUnwrap(fm.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles]))
+        XCTAssertEqual(contents.count, 1)
+        XCTAssertEqual(contents, [subdirectory])
+    }
+
     func test_subpathsOfDirectoryAtPath() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "testdir"
@@ -2032,6 +2047,7 @@ VIDEOS=StopgapVideos
             ("test_directoryEnumerator", test_directoryEnumerator),
             ("test_pathEnumerator",test_pathEnumerator),
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
+            ("test_contentsOfDirectoryEnumeration", test_contentsOfDirectoryEnumeration),
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
             ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
             ("test_linkItemAtPathToPath", testExpectedToFailOnAndroid(test_linkItemAtPathToPath, "Android doesn't allow hard links")),
