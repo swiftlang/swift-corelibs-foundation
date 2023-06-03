@@ -481,12 +481,16 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     // Memory leak. See https://github.com/apple/swift-corelibs-foundation/blob/master/Docs/Issues.md
     open var fileSystemRepresentation: UnsafePointer<Int8> {
-
 #if os(Windows)
-        let bufSize = Int(MAX_PATH + 1)
+        if let resolved = CFURLCopyAbsoluteURL(_cfObject),
+                let representation = CFURLCopyFileSystemPath(resolved, kCFURLWindowsPathStyle)?._swiftObject {
+            let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: representation.count + 1)
+            representation.withCString { buffer.initialize(from: $0, count: representation.count + 1) }
+            buffer[representation.count] = 0
+            return UnsafePointer(buffer)
+        }
 #else
         let bufSize = Int(PATH_MAX + 1)
-#endif
 
         let _fsrBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: bufSize)
         _fsrBuffer.initialize(repeating: 0, count: bufSize)
@@ -494,6 +498,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         if getFileSystemRepresentation(_fsrBuffer, maxLength: bufSize) {
             return UnsafePointer(_fsrBuffer)
         }
+#endif
 
         // FIXME: This used to return nil, but the corresponding Darwin
         // implementation is marked as non-nullable.
