@@ -228,8 +228,8 @@ extension FileManager {
 
         try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
             contents.append(entryName)
-            if entryType & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY
-                 && entryType & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT {
+            if DWORD(entryType) & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY
+                 && DWORD(entryType) & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT {
                 let subPath: String = joinPath(prefix: path, suffix: entryName)
                 let entries = try subpathsOfDirectory(atPath: subPath)
                 contents.append(contentsOf: entries.map { joinPath(prefix: entryName, suffix: $0).standardizingPath })
@@ -313,7 +313,7 @@ extension FileManager {
                 guard let faAttributes = try? windowsFileAttributes(atPath: resolvedDest) else {
                     throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path, destPath])
                 }
-                if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+                if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
                     dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
                 }
         }
@@ -327,7 +327,7 @@ extension FileManager {
 
     internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
         let faAttributes = try windowsFileAttributes(atPath: path)
-        guard faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) else {
+        guard faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT else {
             throw _NSErrorWithWindowsError(DWORD(ERROR_BAD_ARGUMENTS), reading: false)
         }
 
@@ -484,12 +484,12 @@ extension FileManager {
 
     internal func _copySymlink(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
         let faAttributes: WIN32_FILE_ATTRIBUTE_DATA = try windowsFileAttributes(atPath: srcPath)
-        guard faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) else {
+        guard faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT else {
             throw _NSErrorWithErrno(EINVAL, reading: true, path: srcPath, extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
 
         let destination = try destinationOfSymbolicLink(atPath: srcPath)
-        let isDir = try windowsFileAttributes(atPath: srcPath).dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY)
+        let isDir = try windowsFileAttributes(atPath: srcPath).dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY
         if fileExists(atPath: dstPath) {
             try removeItem(atPath: dstPath)
         }
@@ -585,15 +585,15 @@ extension FileManager {
             }
         }
 
-        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
+        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
           if try !FileManager.default._fileSystemRepresentation(withPath: path, {
-            SetFileAttributesW($0, faAttributes.dwFileAttributes & ~DWORD(FILE_ATTRIBUTE_READONLY))
+            SetFileAttributesW($0, faAttributes.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY)
           }) {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
           }
         }
 
-        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0 {
+        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == 0 {
           if try !FileManager.default._fileSystemRepresentation(withPath: path, DeleteFileW) {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
           }
@@ -635,15 +635,15 @@ extension FileManager {
                     }
 
                     itemPath = "\(currentDir)\\\(file)"
-                    if ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
+                    if ffd.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
                       if try !FileManager.default._fileSystemRepresentation(withPath: itemPath, {
-                        SetFileAttributesW($0, ffd.dwFileAttributes & ~DWORD(FILE_ATTRIBUTE_READONLY))
+                        SetFileAttributesW($0, ffd.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY)
                       }) {
                         throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
                       }
                     }
 
-                    if (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0) {
+                    if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0) {
                         if file != "." && file != ".." {
                             dirStack.append(itemPath)
                         }
@@ -682,7 +682,7 @@ extension FileManager {
     internal func _fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
-        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
+        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
           let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
             CreateFileW($0, /* dwDesiredAccess= */ DWORD(0),
                         DWORD(FILE_SHARE_READ), /* lpSecurityAttributes= */ nil,
@@ -695,11 +695,11 @@ extension FileManager {
           if let isDirectory = isDirectory {
             var info: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
             GetFileInformationByHandle(handle, &info)
-            isDirectory.pointee = ObjCBool(info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY))
+            isDirectory.pointee = ObjCBool(info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY)
           }
         } else {
           if let isDirectory = isDirectory {
-            isDirectory.pointee = ObjCBool(faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY))
+            isDirectory.pointee = ObjCBool(faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY)
           }
         }
         return true
@@ -713,7 +713,7 @@ extension FileManager {
 
     internal func _isWritableFile(atPath path: String) -> Bool {
         guard let faAttributes: WIN32_FILE_ATTRIBUTE_DATA = try? windowsFileAttributes(atPath: path) else { return false }
-        return faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) != DWORD(FILE_ATTRIBUTE_READONLY)
+        return faAttributes.dwFileAttributes & FILE_ATTRIBUTE_READONLY != FILE_ATTRIBUTE_READONLY
     }
 
     internal func _isExecutableFile(atPath path: String) -> Bool {
@@ -730,12 +730,12 @@ extension FileManager {
         let parent = path._nsObject.deletingLastPathComponent
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: parent) } catch { return false }
-        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == DWORD(FILE_ATTRIBUTE_READONLY) {
+        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
             return false
         }
 
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
-        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == DWORD(FILE_ATTRIBUTE_READONLY) {
+        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
             return false
         }
 
@@ -785,15 +785,15 @@ extension FileManager {
         statInfo.st_ino = 0
         statInfo.st_rdev = _dev_t(info.dwVolumeSerialNumber)
 
-        let isReparsePoint = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) != 0
-        let isDir = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0
+        let isReparsePoint = info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != 0
+        let isDir = info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0
         let fileMode = isDir ? _S_IFDIR : _S_IFREG
         // On a symlink to a directory, Windows sets both the REPARSE_POINT and
         // DIRECTORY attributes. Since Windows doesn't provide S_IFLNK and we
         // want unix style "symlinks to directories are not directories
         // themselves, we say symlinks are regular files
         statInfo.st_mode = UInt16(isReparsePoint ? _S_IFREG : fileMode)
-        let isReadOnly = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) != 0
+        let isReadOnly = info.dwFileAttributes & FILE_ATTRIBUTE_READONLY != 0
         statInfo.st_mode |= UInt16(isReadOnly ? _S_IREAD : (_S_IREAD | _S_IWRITE))
         statInfo.st_mode |= UInt16(_S_IEXEC)
 
@@ -860,10 +860,10 @@ extension FileManager {
 
         let path1Attrs = path1FileInfo.dwFileAttributes
         let path2Attrs = path2FileInfo.dwFileAttributes
-        if path1Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT
-             || path2Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT {
-            guard path1Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT
-                    && path2Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT else {
+        if path1Attrs & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT
+             || path2Attrs & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
+            guard path1Attrs & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT
+                    && path2Attrs & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT else {
                 return false
             }
             guard let pathDest1 = try? _destinationOfSymbolicLink(atPath: path1),
@@ -871,10 +871,10 @@ extension FileManager {
                 return false
             }
             return pathDest1 == pathDest2
-        } else if DWORD(FILE_ATTRIBUTE_DIRECTORY) & path1Attrs == DWORD(FILE_ATTRIBUTE_DIRECTORY)
-                    || DWORD(FILE_ATTRIBUTE_DIRECTORY) & path2Attrs == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-            guard DWORD(FILE_ATTRIBUTE_DIRECTORY) & path1Attrs == DWORD(FILE_ATTRIBUTE_DIRECTORY)
-                    && DWORD(FILE_ATTRIBUTE_DIRECTORY) & path2Attrs == FILE_ATTRIBUTE_DIRECTORY else {
+        } else if FILE_ATTRIBUTE_DIRECTORY & path1Attrs == FILE_ATTRIBUTE_DIRECTORY
+                    || FILE_ATTRIBUTE_DIRECTORY & path2Attrs == FILE_ATTRIBUTE_DIRECTORY {
+            guard FILE_ATTRIBUTE_DIRECTORY & path1Attrs == FILE_ATTRIBUTE_DIRECTORY
+                    && FILE_ATTRIBUTE_DIRECTORY & path2Attrs == FILE_ATTRIBUTE_DIRECTORY else {
                 return false
             }
             return _compareDirectories(atPath: path1, andPath: path2)
@@ -966,8 +966,8 @@ extension FileManager {
                 return firstValidItem()
             }
 
-            let isDir = attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) &&
-                attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == 0
+            let isDir = attrs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY &&
+                attrs.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == 0
             if isDir && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
                 var ffd = WIN32_FIND_DATAW()
                 let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
@@ -986,7 +986,7 @@ extension FileManager {
                     }
                     if file == "." || file == ".." { continue }
                     if _options.contains(.skipsHiddenFiles) &&
-                       ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_HIDDEN) == DWORD(FILE_ATTRIBUTE_HIDDEN) {
+                       ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN == FILE_ATTRIBUTE_HIDDEN {
                       continue
                     }
                     _stack.append(URL(fileURLWithPath: file, relativeTo: _lastReturned))

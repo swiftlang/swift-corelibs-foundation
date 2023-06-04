@@ -880,7 +880,7 @@ extension FileHandle {
                 if error == ERROR_ACCESS_DENIED {
                     var fileInfo = BY_HANDLE_FILE_INFORMATION()
                     GetFileInformationByHandle(self._handle, &fileInfo)
-                    if fileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+                    if fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
                         translatedError = Int32(ERROR_DIRECTORY_NOT_SUPPORTED)
                     }
                 }

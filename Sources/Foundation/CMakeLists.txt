@@ -146,7 +146,8 @@ add_library(Foundation
   URLQueryItem.swift
   URLResourceKey.swift
   UserDefaults.swift
-  UUID.swift)
+  UUID.swift
+  WinSDK+Extensions.swift)
 target_compile_definitions(Foundation PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(Foundation PUBLIC
