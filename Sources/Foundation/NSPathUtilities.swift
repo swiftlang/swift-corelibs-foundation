@@ -767,7 +767,7 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
                               DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
                               nil,
                               DWORD(OPEN_EXISTING),
-                              DWORD(FILE_ATTRIBUTE_NORMAL),
+                              FILE_ATTRIBUTE_NORMAL,
                               nil),
           h != INVALID_HANDLE_VALUE else {
       throw _NSErrorWithWindowsError(GetLastError(), reading: false)
