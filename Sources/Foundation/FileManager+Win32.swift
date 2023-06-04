@@ -944,13 +944,10 @@ extension FileManager {
             func firstValidItem() -> URL? {
                 while let url = _stack.popLast() {
                     if !FileManager.default.fileExists(atPath: url.path) {
-                      if let handler = _errorHandler {
+                        guard let handler = _errorHandler else { return nil }
                         if !handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [url.path])) {
-                          return nil
+                            return nil
                         }
-                      } else {
-                        return nil
-                      }
                     }
                     _lastReturned = url
                     return _lastReturned
