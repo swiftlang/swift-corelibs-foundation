@@ -13,6 +13,16 @@
 import let WinSDK.INVALID_FILE_ATTRIBUTES
 import WinSDK
 
+extension URL {
+    internal var NTPath: String {
+        return "\\\\?\\\(CFURLCopyFileSystemPath(CFURLCopyAbsoluteURL(_cfObject), kCFURLWindowsPathStyle)!._swiftObject)"
+    }
+
+    internal func withUnsafeNTPath<Result>(_ body: (UnsafePointer<WCHAR>) throws -> Result) rethrows -> Result {
+        return try NTPath.withCString(encodedAs: UTF16.self, body)
+    }
+}
+
 internal func joinPath(prefix: String, suffix: String) -> String {
     var pszPath: PWSTR?
 
