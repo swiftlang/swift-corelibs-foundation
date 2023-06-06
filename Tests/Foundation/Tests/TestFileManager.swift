@@ -322,7 +322,11 @@ class TestFileManager : XCTestCase {
         catch { XCTFail("\(error)") }
 
         // test against known undeletable file
+#if os(Windows)
+        XCTAssertFalse(fm.isDeletableFile(atPath: "NUL"))
+#else
         XCTAssertFalse(fm.isDeletableFile(atPath: "/dev/null"))
+#endif
     }
 
     func test_fileAttributes() throws {
