@@ -235,27 +235,73 @@ class TestJSONEncoder : XCTestCase {
 """)
     }
 
-    func test_encodingOutputFormattingSortedKeys() {
-        let expectedJSON = "{\"email\":\"appleseed@apple.com\",\"name\":\"Johnny Appleseed\"}".data(using: .utf8)!
-        let person = Person.testValue
+    func test_encodingOutputFormattingSortedKeys() throws {
+        let expectedJSON = try XCTUnwrap("""
+        {"2":"2","7":"7","25":"25","ａｌｉｃｅ":"ａｌｉｃｅ","bob":"bob","Charlie":"Charlie","中国":"中国","日本":"日本","韓国":"韓国"}
+        """.data(using: .utf8))
+        let testValue = [
+            "2": "2",
+            "25": "25",
+            "7": "7",
+            "ａｌｉｃｅ": "ａｌｉｃｅ",
+            "bob": "bob",
+            "Charlie": "Charlie",
+            "日本": "日本",
+            "中国": "中国",
+            "韓国": "韓国",
+        ]
 #if os(macOS) || DARWIN_COMPATIBILITY_TESTS
         if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
-            _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            let payload = try encoder.encode(testValue)
+            XCTAssertEqual(expectedJSON, payload)
         }
 #else
-        _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let payload = try encoder.encode(testValue)
+        XCTAssertEqual(expectedJSON, payload)
 #endif
     }
 
-    func test_encodingOutputFormattingPrettyPrintedSortedKeys() {
-        let expectedJSON = "{\n  \"email\" : \"appleseed@apple.com\",\n  \"name\" : \"Johnny Appleseed\"\n}".data(using: .utf8)!
-        let person = Person.testValue
+    func test_encodingOutputFormattingPrettyPrintedSortedKeys() throws {
+        let expectedJSON = try XCTUnwrap("""
+        {
+          "2" : "2",
+          "7" : "7",
+          "25" : "25",
+          "ａｌｉｃｅ" : "ａｌｉｃｅ",
+          "bob" : "bob",
+          "Charlie" : "Charlie",
+          "中国" : "中国",
+          "日本" : "日本",
+          "韓国" : "韓国"
+        }
+        """.data(using: .utf8))
+        let testValue = [
+            "2": "2",
+            "25": "25",
+            "7": "7",
+            "ａｌｉｃｅ": "ａｌｉｃｅ",
+            "bob": "bob",
+            "Charlie": "Charlie",
+            "日本": "日本",
+            "中国": "中国",
+            "韓国": "韓国",
+        ]
 #if os(macOS) || DARWIN_COMPATIBILITY_TESTS
         if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
-            _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let payload = try encoder.encode(testValue)
+            XCTAssertEqual(expectedJSON, payload)
         }
 #else
-        _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let payload = try encoder.encode(testValue)
+        XCTAssertEqual(expectedJSON, payload)
 #endif
     }
 
