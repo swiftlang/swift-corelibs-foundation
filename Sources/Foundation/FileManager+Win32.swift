@@ -13,6 +13,92 @@
 import let WinSDK.INVALID_FILE_ATTRIBUTES
 import WinSDK
 
+extension URL {
+    fileprivate var NTPath: String {
+        // Use a NT style, device path to avoid the 261-character path
+        // limitation on Windows APIs.  The addition of the prefix will bypass
+        // the Win32 layer for the path handling and thus must be fully resolved
+        // and normalised before being passed in.  This allows us access to the
+        // complete path limit as imposed by the NT kernel rather than the 260
+        // character limit as imposed by Win32.
+        #"\\?\\#(CFURLCopyFileSystemPath(CFURLCopyAbsoluteURL(_cfObject), kCFURLWindowsPathStyle)!._swiftObject)"#
+    }
+
+    fileprivate func withUnsafeNTPath<Result>(_ body: (UnsafePointer<WCHAR>) throws -> Result) rethrows -> Result {
+        try self.NTPath.withCString(encodedAs: UTF16.self, body)
+    }
+}
+
+
+private func withNTPathRepresentation<Result>(of path: String, _ body: (UnsafePointer<WCHAR>) throws -> Result) throws -> Result {
+    guard !path.isEmpty else {
+        throw CocoaError.error(.fileReadInvalidFileName, userInfo: [NSFilePathErrorKey:path])
+    }
+
+    // 1. Normalize the path first.
+
+    var path = path
+
+    // Strip the leading `/` on a RFC8089 path (`/[drive-letter]:/...` ).  A
+    // leading slash indicates a rooted path on the drive for teh current
+    // working directory.
+    var iter = path.makeIterator()
+    if iter.next() == "/", iter.next()?.isLetter ?? false, iter.next() == ":" {
+        path.removeFirst()
+    }
+
+    // Win32 APIs can support `/` for the arc separator. However,
+    // symlinks created with `/` do not resolve properly, so normalize
+    // the path.
+    path = path.replacing("/", with: "\\")
+
+    // Droop trailing slashes unless it follows a drive specification.  The
+    // trailing arc separator after a drive specifier iindicates the root as
+    // opposed to a drive relative path.
+    while path.count > 1, path[path.index(before: path.endIndex)] == "\\",
+            !(path.count == 3 &&
+                path[path.index(path.endIndex, offsetBy: -2)] == ":" &&
+                path[path.index(path.endIndex, offsetBy: -3)].isLetter) {
+        path.removeLast()
+    }
+
+    // 2. Perform the operation on the normalized path.
+
+    return try path.withCString(encodedAs: UTF16.self) { pwszPath in
+        guard !path.hasPrefix(#"\\"#) else { return try body(pwszPath) }
+
+        let dwLength = GetFullPathNameW(pwszPath, 0, nil, nil)
+        let path = withUnsafeTemporaryAllocation(of: WCHAR.self, capacity: Int(dwLength)) {
+            _ = GetFullPathNameW(pwszPath, DWORD($0.count), $0.baseAddress, nil)
+            return String(decodingCString: $0.baseAddress!, as: UTF16.self)
+        }
+        return try #"\\?\\#(path)"#.withCString(encodedAs: UTF16.self, body)
+    }
+}
+
+private func walk(directory path: URL, _ body: (String, DWORD) throws -> Void) rethrows {
+    try "\(path.NTPath)\\*".withCString(encodedAs: UTF16.self) {
+        var ffd: WIN32_FIND_DATAW = .init()
+
+        let hFind: HANDLE = FindFirstFileW($0, &ffd)
+        if hFind == INVALID_HANDLE_VALUE {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path.path])
+        }
+
+        defer { FindClose(hFind) }
+
+        repeat {
+            let entry: String = withUnsafeBytes(of: ffd.cFileName) {
+                $0.withMemoryRebound(to: WCHAR.self) {
+                    String(decodingCString: $0.baseAddress!, as: UTF16.self)
+                }
+            }
+
+            try body(entry, ffd.dwFileAttributes)
+        } while FindNextFileW(hFind, &ffd)
+    }
+}
+
 internal func joinPath(prefix: String, suffix: String) -> String {
     var pszPath: PWSTR?
 
@@ -198,28 +284,13 @@ extension FileManager {
     }
 
     internal func _contentsOfDir(atPath path: String, _ closure: (String, Int32) throws -> () ) throws {
-        guard path != "" else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInvalidFileName.rawValue, userInfo: [NSFilePathErrorKey : NSString(path)])
+        guard !path.isEmpty else {
+            throw CocoaError.error(.fileReadInvalidFileName, userInfo: [NSFilePathErrorKey:path])
         }
-        try FileManager.default._fileSystemRepresentation(withPath: path + "\\*") {
-            var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
 
-            let hDirectory: HANDLE = FindFirstFileW($0, &ffd)
-            if hDirectory == INVALID_HANDLE_VALUE {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
-            }
-            defer { FindClose(hDirectory) }
-
-            repeat {
-                let path: String = withUnsafePointer(to: &ffd.cFileName) {
-                    $0.withMemoryRebound(to: UInt16.self, capacity: MemoryLayout.size(ofValue: $0) / MemoryLayout<WCHAR>.size) {
-                        String(decodingCString: $0, as: UTF16.self)
-                    }
-                }
-                if path != "." && path != ".." {
-                    try closure(path.standardizingPath, Int32(ffd.dwFileAttributes))
-                }
-            } while FindNextFileW(hDirectory, &ffd)
+        try walk(directory: URL(fileURLWithPath: path, isDirectory: true)) { entry, attributes in
+            if entry == "." || entry == ".." { return }
+            try closure(entry.standardizingPath, Int32(attributes))
         }
     }
 
@@ -239,13 +310,13 @@ extension FileManager {
     }
 
     internal func windowsFileAttributes(atPath path: String) throws -> WIN32_FILE_ATTRIBUTE_DATA {
-      return try FileManager.default._fileSystemRepresentation(withPath: path) {
-        var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
-        if !GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) {
-          throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+        return try withNTPathRepresentation(of: path) {
+            var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
+            if !GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) {
+              throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
+            }
+            return faAttributes
         }
-        return faAttributes
-      }
     }
 
     internal func _attributesOfFileSystemIncludingBlockSize(forPath path: String) throws -> (attributes: [FileAttributeKey : Any], blockSize: UInt64?) {
@@ -571,94 +642,83 @@ extension FileManager {
             return
         }
 
-        let faAttributes: WIN32_FILE_ATTRIBUTE_DATA
-        do {
-            faAttributes = try windowsFileAttributes(atPath: path)
-        } catch {
-            // removeItem on POSIX throws fileNoSuchFile rather than
-            // fileReadNoSuchFile that windowsFileAttributes will
-            // throw if it doesn't find the file.
-            if (error as NSError).code == CocoaError.fileReadNoSuchFile.rawValue {
+        try withNTPathRepresentation(of: path) {
+            var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
+            if !GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
-            } else {
-                throw error
             }
-        }
 
-        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
-          if try !FileManager.default._fileSystemRepresentation(withPath: path, {
-            SetFileAttributesW($0, faAttributes.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY)
-          }) {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
-          }
-        }
-
-        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == 0 {
-          if try !FileManager.default._fileSystemRepresentation(withPath: path, DeleteFileW) {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
-          }
-          return
-        }
-
-        var dirStack = [path]
-        var itemPath = ""
-        while let currentDir = dirStack.popLast() {
-            do {
-                itemPath = currentDir
-                guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
-                    continue
+            if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
+                if !SetFileAttributesW($0, faAttributes.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY) {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
                 }
+            }
 
-                if try FileManager.default._fileSystemRepresentation(withPath: itemPath, RemoveDirectoryW) {
-                  continue
+            if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == 0 || faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
+                if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
+                    guard RemoveDirectoryW($0) else {
+                        throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+                    }
+                } else {
+                    guard DeleteFileW($0) else {
+                        throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+                    }
                 }
-                guard GetLastError() == ERROR_DIR_NOT_EMPTY else {
-                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [itemPath])
-                }
-                dirStack.append(itemPath)
-                var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
-                let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
+                return
+            }
 
-                let handle: HANDLE = try FileManager.default._fileSystemRepresentation(withPath: itemPath + "\\*") {
-                  FindFirstFileW($0, &ffd)
-                }
-                if handle == INVALID_HANDLE_VALUE {
-                  throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [itemPath])
-                }
-                defer { FindClose(handle) }
-
-                repeat {
-                    let file = withUnsafePointer(to: &ffd.cFileName) {
-                      $0.withMemoryRebound(to: WCHAR.self, capacity: capacity) {
-                        String(decodingCString: $0, as: UTF16.self)
-                      }
+            var stack = [path]
+            while let directory = stack.popLast() {
+                do {
+                    guard alreadyConfirmed || shouldRemoveItemAtPath(directory, isURL: isURL) else {
+                        continue
                     }
 
-                    itemPath = "\(currentDir)\\\(file)"
-                    if ffd.dwFileAttributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
-                      if try !FileManager.default._fileSystemRepresentation(withPath: itemPath, {
-                        SetFileAttributesW($0, ffd.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY)
-                      }) {
-                        throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
-                      }
-                    }
+                    let root = URL(fileURLWithPath: directory, isDirectory: true)
+                        try root.withUnsafeNTPath {
+                            if RemoveDirectoryW($0) { return }
+                            guard GetLastError() == ERROR_DIR_NOT_EMPTY else {
+                                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [directory])
+                            }
+                            stack.append(directory)
 
-                    if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0) {
-                        if file != "." && file != ".." {
-                            dirStack.append(itemPath)
+                            try walk(directory: root) { entry, attributes in
+                                if entry == "." || entry == ".." { return }
+
+                                let isDirectory = attributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY && attributes & FILE_ATTRIBUTE_REPARSE_POINT == 0
+                                let path = root.appendingPathComponent(entry, isDirectory: isDirectory)
+
+                                if isDirectory {
+                                    stack.append(path.path)
+                                } else {
+                                    guard alreadyConfirmed || shouldRemoveItemAtPath(path.path, isURL: isURL) else {
+                                        return
+                                    }
+
+                                    try path.withUnsafeNTPath {
+                                        if attributes & FILE_ATTRIBUTE_READONLY == FILE_ATTRIBUTE_READONLY {
+                                            if !SetFileAttributesW($0, attributes & ~FILE_ATTRIBUTE_READONLY) {
+                                                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [entry])
+                                            }
+                                        }
+
+                                        if attributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
+                                            if !RemoveDirectoryW($0) {
+                                                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [entry])
+                                            }
+                                        } else {
+                                            if !DeleteFileW($0) {
+                                                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [entry])
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    } else {
-                        guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
-                            continue
-                        }
-                        if try !FileManager.default._fileSystemRepresentation(withPath: itemPath, DeleteFileW) {
-                          throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
-                        }
+                } catch {
+                    if !shouldProceedAfterError(error, removingItemAtPath: directory, isURL: isURL) {
+                        throw error
                     }
-                } while FindNextFileW(handle, &ffd)
-            } catch {
-                if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
-                    throw error
                 }
             }
         }
@@ -970,30 +1030,14 @@ extension FileManager {
             guard let _lastReturned else { return firstValidItem() }
 
             if _lastReturned.hasDirectoryPath && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
-                var ffd = WIN32_FIND_DATAW()
-                let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
-
-                let handle = (try? FileManager.default._fileSystemRepresentation(withPath: _lastReturned.path + "\\*") {
-                  FindFirstFileW($0, &ffd)
-                }) ?? INVALID_HANDLE_VALUE
-                if handle == INVALID_HANDLE_VALUE { return firstValidItem() }
-                defer { FindClose(handle) }
-
-                repeat {
-                    let file = withUnsafePointer(to: &ffd.cFileName) {
-                      $0.withMemoryRebound(to: WCHAR.self, capacity: capacity) {
-                        String(decodingCString: $0, as: UTF16.self)
-                      }
+                try walk(directory: _lastReturned) { entry, attributes in
+                    if entry == "." || entry == ".." { return }
+                    if _options.contains(.skipsHiddenFiles) && attributes & FILE_ATTRIBUTE_HIDDEN == FILE_ATTRIBUTE_HIDDEN {
+                        return
                     }
-                    if file == "." || file == ".." { continue }
-                    if _options.contains(.skipsHiddenFiles) &&
-                       ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN == FILE_ATTRIBUTE_HIDDEN {
-                      continue
-                    }
-
-                    let isDirectory = ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY && ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT
-                    _stack.append(_lastReturned.appendingPathComponent(file, isDirectory: isDirectory))
-                } while FindNextFileW(handle, &ffd)
+                    let isDirectory = attributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY && attributes & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT
+                    _stack.append(_lastReturned.appendingPathComponent(entry, isDirectory: isDirectory))
+                }
             }
 
             return firstValidItem()
