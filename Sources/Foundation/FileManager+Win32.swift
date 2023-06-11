@@ -929,15 +929,14 @@ extension FileManager {
         var _options : FileManager.DirectoryEnumerationOptions
         var _errorHandler : ((URL, Error) -> Bool)?
         var _stack: [URL]
-        var _lastReturned: URL
-        var _rootDepth : Int
+        var _lastReturned: URL?
+        var _root: URL
 
         init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, Error) -> Bool)?) {
             _options = options
             _errorHandler = errorHandler
             _stack = []
-            _rootDepth = url.pathComponents.count
-            _lastReturned = url
+            _root = url
         }
 
         override func nextObject() -> Any? {
@@ -955,17 +954,22 @@ extension FileManager {
                 return nil
             }
 
-            // If we most recently returned a directory, decend into it
-            guard let attrs = try? FileManager.default.windowsFileAttributes(atPath: _lastReturned.path) else {
-                guard let handler = _errorHandler,
-                    handler(_lastReturned, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [_lastReturned.path]))
-                else { return nil }
-                return firstValidItem()
+            if _lastReturned == nil {
+                guard let attrs = try? FileManager.default.windowsFileAttributes(atPath: _root.path) else {
+                    guard let handler = _errorHandler else { return nil }
+                    if !handler(_root, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [_root.path])) {
+                        return nil
+                    }
+                    return firstValidItem()
+                }
+
+                let isDirectory = attrs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY && attrs.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT
+                _lastReturned = URL(fileURLWithPath: _root.path, isDirectory: isDirectory)
             }
 
-            let isDir = attrs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY &&
-                attrs.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == 0
-            if isDir && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
+            guard let _lastReturned else { return firstValidItem() }
+
+            if _lastReturned.hasDirectoryPath && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
                 var ffd = WIN32_FIND_DATAW()
                 let capacity = MemoryLayout.size(ofValue: ffd.cFileName)
 
@@ -991,11 +995,13 @@ extension FileManager {
                     _stack.append(_lastReturned.appendingPathComponent(file, isDirectory: isDirectory))
                 } while FindNextFileW(handle, &ffd)
             }
+
             return firstValidItem()
         }
 
         override var level: Int {
-            return _lastReturned.pathComponents.count - _rootDepth
+            guard let _lastReturned else { return 0 }
+            return _lastReturned.pathComponents.count - _root.pathComponents.count
         }
 
         override func skipDescendants() {
