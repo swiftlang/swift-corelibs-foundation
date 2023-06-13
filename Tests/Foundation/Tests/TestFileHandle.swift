@@ -133,9 +133,9 @@ class TestFileHandle : XCTestCase {
             // NOTE(compnerd) we need the FILE_FLAG_BACKUP_SEMANTICS so that we
             // can create the handle to the directory.
             CreateFileW($0, GENERIC_READ,
-                        DWORD(FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE),
-                        nil, DWORD(OPEN_EXISTING),
-                        DWORD(FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS), nil)
+                        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nil, OPEN_EXISTING,
+                        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS, nil)
         }
         if hDirectory == INVALID_HANDLE_VALUE {
           fatalError("unable to create handle to current directory")

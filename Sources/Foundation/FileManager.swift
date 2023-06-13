@@ -1300,11 +1300,10 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
         } else if attributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
             // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
             let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
-              CreateFileW($0, /*dwDesiredAccess=*/DWORD(0),
-                          DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE),
-                          /*lpSecurityAttributes=*/nil, DWORD(OPEN_EXISTING),
-                          DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
-                          /*hTemplateFile=*/nil)
+              CreateFileW($0, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nil,
+                          OPEN_EXISTING,
+                          FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                          nil)
             }) ?? INVALID_HANDLE_VALUE
             if handle == INVALID_HANDLE_VALUE {
                 self = .typeUnknown

@@ -762,13 +762,9 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
       throw _NSErrorWithWindowsError(GetLastError(), reading: false)
     }
     let pathResult = FileManager.default.string(withFileSystemRepresentation: String(decoding: buf, as: UTF16.self), length: wcslen(buf))
-    guard let h = CreateFileW(buf,
-                              GENERIC_READ | DWORD(GENERIC_WRITE),
-                              DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
-                              nil,
-                              DWORD(OPEN_EXISTING),
-                              FILE_ATTRIBUTE_NORMAL,
-                              nil),
+    guard let h = CreateFileW(buf, GENERIC_READ | GENERIC_WRITE,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                              nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nil),
           h != INVALID_HANDLE_VALUE else {
       throw _NSErrorWithWindowsError(GetLastError(), reading: false)
     }
