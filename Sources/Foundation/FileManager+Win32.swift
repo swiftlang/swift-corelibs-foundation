@@ -404,9 +404,9 @@ extension FileManager {
 
         let handle: HANDLE = try FileManager.default._fileSystemRepresentation(withPath: path) {
           CreateFileW($0, GENERIC_READ,
-                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
-                      nil, DWORD(OPEN_EXISTING),
-                      DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      nil, OPEN_EXISTING,
+                      FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
                       nil)
         }
         if handle == INVALID_HANDLE_VALUE {
@@ -518,10 +518,9 @@ extension FileManager {
         let hFile: HANDLE = try FileManager.default._fileSystemRepresentation(withPath: path) {
           // BACKUP_SEMANTICS are (confusingly) required in order to receive a
           // handle to a directory
-          CreateFileW($0, /*dwDesiredAccess=*/DWORD(0),
-                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
-                      /*lpSecurityAttributes=*/nil, DWORD(OPEN_EXISTING),
-                      DWORD(FILE_FLAG_BACKUP_SEMANTICS), /*hTemplateFile=*/nil)
+          CreateFileW($0, 0,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nil)
         }
         if hFile == INVALID_HANDLE_VALUE {
           return try FileManager.default._fileSystemRepresentation(withPath: path) {
@@ -744,10 +743,8 @@ extension FileManager {
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
         if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
           let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
-            CreateFileW($0, /* dwDesiredAccess= */ DWORD(0),
-                        DWORD(FILE_SHARE_READ), /* lpSecurityAttributes= */ nil,
-                        DWORD(OPEN_EXISTING),
-                        DWORD(FILE_FLAG_BACKUP_SEMANTICS), /* hTemplateFile= */ nil)
+            CreateFileW($0, 0, FILE_SHARE_READ, nil, OPEN_EXISTING,
+                        FILE_FLAG_BACKUP_SEMANTICS, nil)
           }) ?? INVALID_HANDLE_VALUE
           if handle == INVALID_HANDLE_VALUE { return false }
           defer { CloseHandle(handle) }
@@ -822,11 +819,9 @@ extension FileManager {
 
         var statInfo = stat()
         let handle =
-            CreateFileW(_fsRep, /*dwDesiredAccess=*/DWORD(0),
-                        DWORD(FILE_SHARE_READ), /*lpSecurityAttributes=*/nil,
-                        DWORD(OPEN_EXISTING),
-                        DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
-                        /*hTemplateFile=*/nil)
+            CreateFileW(_fsRep, 0, FILE_SHARE_READ, nil, OPEN_EXISTING,
+                        FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                        nil)
         if handle == INVALID_HANDLE_VALUE {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
         }
@@ -872,9 +867,9 @@ extension FileManager {
     internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
         let path1Handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path1) {
           CreateFileW($0, GENERIC_READ,
-                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
-                      nil, DWORD(OPEN_EXISTING),
-                      DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      nil, OPEN_EXISTING,
+                      FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
                       nil)
         }) ?? INVALID_HANDLE_VALUE
         if path1Handle == INVALID_HANDLE_VALUE { return false }
@@ -882,9 +877,9 @@ extension FileManager {
 
         let path2Handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path2) {
           CreateFileW($0, GENERIC_READ,
-                      DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
-                      nil, DWORD(OPEN_EXISTING),
-                      DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      nil, OPEN_EXISTING,
+                      FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
                       nil)
         }) ?? INVALID_HANDLE_VALUE
         if path2Handle == INVALID_HANDLE_VALUE { return false }
@@ -972,8 +967,8 @@ extension FileManager {
           FILETIME(from: time_t((modificationTime ?? stat.lastModificationDate).timeIntervalSince1970))
 
       let hFile: HANDLE =
-        CreateFileW(fsr, DWORD(GENERIC_WRITE), DWORD(FILE_SHARE_WRITE),
-                    nil, DWORD(OPEN_EXISTING), 0, nil)
+        CreateFileW(fsr, GENERIC_WRITE, FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0,
+                    nil)
       if hFile == INVALID_HANDLE_VALUE {
           throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
       }
