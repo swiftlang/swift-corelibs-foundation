@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Dispatch
+
 class TestProcess : XCTestCase {
     
     func test_exit0() throws {
@@ -699,6 +701,55 @@ class TestProcess : XCTestCase {
         }
     }
 
+    func test_currentDirectoryDoesNotChdirParentProcess() throws {
+        // This test only behaves correctly on Linux and Windows: other platforms don't have an
+        // appropriate API for this in posix_spawn or similar.
+        #if os(Linux) || os(Windows)
+        let backgroundQueue = DispatchQueue(label: "background-processor")
+        let group = DispatchGroup()
+        let startSemaphore = DispatchSemaphore(value: 0)
+        let currentWorkingDirectory = FileManager.default.currentDirectoryPath
+        var shouldRun = true
+        let shouldRunLock = NSLock()
+
+        XCTAssertNotEqual(currentWorkingDirectory, "/")
+
+        // Kick off the background task. This will spin on our current working directory and confirm
+        // it doesn't change.
+        backgroundQueue.async(group: group) {
+            startSemaphore.signal()
+
+            while true {
+                let newCWD = FileManager.default.currentDirectoryPath
+                XCTAssertEqual(newCWD, currentWorkingDirectory)
+
+                shouldRunLock.lock()
+                if shouldRun {
+                    shouldRunLock.unlock()
+                } else {
+                    shouldRunLock.unlock()
+                    break
+                }
+            }
+        }
+
+        startSemaphore.wait()
+
+        // We run the task 50 times just to try to encourage it to fail.
+        for _ in 0..<50 {
+            XCTAssertNoThrow(try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/"))
+        }
+
+        shouldRunLock.lock()
+        shouldRun = false
+        shouldRunLock.unlock()
+
+        group.wait()
+        #else
+        throw XCTSkip()
+        #endif
+    }
+
     #if !os(Windows)
     func test_fileDescriptorsAreNotInherited() throws {
         let task = Process()
@@ -866,6 +917,7 @@ class TestProcess : XCTestCase {
             ("test_currentDirectory", test_currentDirectory),
             ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
             ("test_multiProcesses", test_multiProcesses),
+            ("test_currentDirectoryDoesNotChdirParentProcess", test_currentDirectoryDoesNotChdirParentProcess),
         ]
 
 #if !os(Windows)

@@ -944,6 +944,17 @@ open class Process: NSObject {
         }
 #endif
 
+        #if os(Linux)
+        if let dir = currentDirectoryURL?.path {
+            try _throwIfPosixError(_CFPosixSpawnFileActionsAddChdirNP(fileActions, dir))
+        }
+        #else
+        // This is an unfortunate workaround: posix_spawn has no POSIX-specified way to set the working directory
+        // of the child process. glibc has a non-POSIX API option, which we use above. Here we take a brute-force
+        // approach of just changing our current working directory. This is not a great implementation and it's likely
+        // to cause subtle issues in those environments. However, the Apple Foundation library doesn't have this problem,
+        // and this library does the right thing on Linux and Windows, so the overwhelming majority of users are
+        // well-served.
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
         if let dir = currentDirectoryURL?.path, !fileManager.changeCurrentDirectoryPath(dir) {
@@ -954,6 +965,7 @@ open class Process: NSObject {
             // Reset the previous working directory path.
             fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
         }
+        #endif
 
         // Launch
         var pid = pid_t()
