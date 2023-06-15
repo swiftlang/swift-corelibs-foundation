@@ -2210,8 +2210,28 @@ CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_
   return posix_spawn_file_actions_addclose((posix_spawn_file_actions_t *)file_actions, filedes);
 }
 
+CF_EXPORT bool _CFPosixSpawnFileActionsAddChdirNPIsSupported() {
+#if defined(__GLIBC__)
+#  if __GLIBC_PREREQ(2, 29)
+    return true;
+#  else
+    return false;
+#  endif
+#else
+    return false;
+#endif
+}
+
 CF_EXPORT int _CFPosixSpawnFileActionsAddChdirNP(_CFPosixSpawnFileActionsRef file_actions, const char *path) {
-  return posix_spawn_file_actions_addchdir_np((posix_spawn_file_actions_t *)file_actions, path);
+#if defined(__GLIBC__)
+#  if __GLIBC_PREREQ(2, 29)
+    return posix_spawn_file_actions_addchdir_np((posix_spawn_file_actions_t *)file_actions, path);
+#  else
+    return ENOSYS;
+#  endif
+#else
+    return ENOSYS;
+#endif
 }
 
 CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {

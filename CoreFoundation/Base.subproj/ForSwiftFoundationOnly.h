@@ -711,6 +711,7 @@ CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT pa
 #endif // __cplusplus
 
 #if TARGET_OS_LINUX
+CF_EXPORT bool _CFPosixSpawnFileActionsAddChdirNPIsSupported(void);
 CF_EXPORT int _CFPosixSpawnFileActionsAddChdirNP(_CFPosixSpawnFileActionsRef file_actions, const char *path);
 #endif // TARGET_OS_LINUX
 #endif // !TARGET_OS_WIN32
