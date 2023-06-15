@@ -944,11 +944,38 @@ open class Process: NSObject {
         }
 #endif
 
-        #if os(Linux)
-        if let dir = currentDirectoryURL?.path {
+#if os(Linux)
+        if let dir = currentDirectoryURL?.path, _CFPosixSpawnFileActionsAddChdirNPIsSupported() {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddChdirNP(fileActions, dir))
+        } else {
+            try withCurrentDirectoryPath {
+                try posixLaunch(
+                    launchPath: launchPath, 
+                    taskSocketPair: taskSocketPair, 
+                    fileActions: fileActions, 
+                    spawnAttrs: &spawnAttrs, 
+                    argv: argv, 
+                    envp: envp
+                )
+            }
         }
-        #else
+#else
+        try withCurrentDirectoryPath {
+            try posixLaunch(
+                launchPath: launchPath, 
+                taskSocketPair: taskSocketPair, 
+                fileActions: fileActions, 
+                spawnAttrs: &spawnAttrs, 
+                argv: argv, 
+                envp: envp
+            )
+        }
+#endif // os(Linux)
+#endif // os(Windows)
+    }
+
+#if !os(Windows)
+    private func withCurrentDirectoryPath(_ closure: () throws -> ()) throws {
         // This is an unfortunate workaround: posix_spawn has no POSIX-specified way to set the working directory
         // of the child process. glibc has a non-POSIX API option, which we use above. Here we take a brute-force
         // approach of just changing our current working directory. This is not a great implementation and it's likely
@@ -965,14 +992,24 @@ open class Process: NSObject {
             // Reset the previous working directory path.
             fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
         }
-        #endif
 
+        try closure()
+    }
+
+    private func posixLaunch(
+        launchPath: String,
+        taskSocketPair: [Int32], 
+        fileActions: _CFPosixSpawnFileActionsRef, 
+        spawnAttrs: UnsafeMutablePointer<posix_spawnattr_t>,
+        argv: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>,
+        envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
+    ) throws {
         // Launch
         var pid = pid_t()
-        guard _CFPosixSpawn(&pid, launchPath, fileActions, &spawnAttrs, argv, envp) == 0 else {
+        guard _CFPosixSpawn(&pid, launchPath, fileActions, spawnAttrs, argv, envp) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
         }
-        posix_spawnattr_destroy(&spawnAttrs)
+        posix_spawnattr_destroy(spawnAttrs)
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
@@ -1004,9 +1041,9 @@ open class Process: NSObject {
         isRunning = true
         
         self.processIdentifier = pid
-#endif
     }
-    
+#endif
+
     open func interrupt() {
         precondition(hasStarted, "task not launched")
 #if os(Windows)
