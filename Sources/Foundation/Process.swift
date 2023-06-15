@@ -988,10 +988,12 @@ open class Process: NSObject {
             throw _NSErrorWithErrno(errno, reading: true, url: currentDirectoryURL)
         }
 
-        try closure()
+        defer {
+            // Reset the previous working directory path.
+            fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
+        }
 
-        // Reset the previous working directory path.
-        fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
+        try closure()
     }
 
     private func posixLaunch(
