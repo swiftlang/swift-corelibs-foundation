@@ -974,6 +974,7 @@ open class Process: NSObject {
 #endif // os(Windows)
     }
 
+#if !os(Windows)
     private func withCurrentDirectoryPath(_ closure: () throws -> ()) throws {
         // This is an unfortunate workaround: posix_spawn has no POSIX-specified way to set the working directory
         // of the child process. glibc has a non-POSIX API option, which we use above. Here we take a brute-force
@@ -1039,7 +1040,8 @@ open class Process: NSObject {
         
         self.processIdentifier = pid
     }
-    
+#endif
+
     open func interrupt() {
         precondition(hasStarted, "task not launched")
 #if os(Windows)
