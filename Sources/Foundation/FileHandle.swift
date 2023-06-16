@@ -432,12 +432,12 @@ open class FileHandle : NSObject {
     }
 
     internal convenience init?(path: String, flags: Int32, createMode: Int) {
-      guard let fd: Int32 = try? FileManager.default._fileSystemRepresentation(withPath: path, {
-        _CFOpenFileWithMode($0, flags, mode_t(createMode))
-      }), fd > 0 else { return nil }
+        guard let fd: CInt = try? withNTPathRepresentation(of: path, {
+            _CFOpenFileWithMode($0, flags, mode_t(createMode))
+        }), fd > 0 else { return nil }
 
-      self.init(fileDescriptor: fd, closeOnDealloc: true)
-      if self._handle == INVALID_HANDLE_VALUE { return nil }
+        self.init(fileDescriptor: fd, closeOnDealloc: true)
+        if self._handle == INVALID_HANDLE_VALUE { return nil }
     }
 #else
     public init(fileDescriptor fd: Int32, closeOnDealloc closeopt: Bool) {

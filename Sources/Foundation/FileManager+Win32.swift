@@ -30,7 +30,7 @@ extension URL {
 }
 
 
-private func withNTPathRepresentation<Result>(of path: String, _ body: (UnsafePointer<WCHAR>) throws -> Result) throws -> Result {
+internal func withNTPathRepresentation<Result>(of path: String, _ body: (UnsafePointer<WCHAR>) throws -> Result) throws -> Result {
     guard !path.isEmpty else {
         throw CocoaError.error(.fileReadInvalidFileName, userInfo: [NSFilePathErrorKey:path])
     }
@@ -71,6 +71,9 @@ private func withNTPathRepresentation<Result>(of path: String, _ body: (UnsafePo
         let path = withUnsafeTemporaryAllocation(of: WCHAR.self, capacity: Int(dwLength)) {
             _ = GetFullPathNameW(pwszPath, DWORD($0.count), $0.baseAddress, nil)
             return String(decodingCString: $0.baseAddress!, as: UTF16.self)
+        }
+        guard !path.hasPrefix(#"\\"#) else {
+            return try path.withCString(encodedAs: UTF16.self, body)
         }
         return try #"\\?\\#(path)"#.withCString(encodedAs: UTF16.self, body)
     }
