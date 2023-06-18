@@ -15,7 +15,7 @@ import CoreFoundation
 import XCTest
 
 class TestPersonNameComponents : XCTestCase {
-    @available(OSX 10.11, iOS 9.0, *)
+    @available(macOS 10.11, iOS 9.0, *)
     func makePersonNameComponents(givenName: String, familyName: String) -> PersonNameComponents {
         var result = PersonNameComponents()
         result.givenName = givenName
@@ -70,7 +70,7 @@ class TestPersonNameComponents : XCTestCase {
         }
     }
 
-    @available(OSX 10.11, iOS 9.0, *)
+    @available(macOS 10.11, iOS 9.0, *)
     func makeNSPersonNameComponents(givenName: String, familyName: String) -> NSPersonNameComponents {
         let result = NSPersonNameComponents()
         result.givenName = givenName
