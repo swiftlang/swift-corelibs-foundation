@@ -269,20 +269,20 @@ extension FileManager {
             }
         }
 
-        try FileManager.default._fileSystemRepresentation(withPath: path) { fsr in
-          var saAttributes: SECURITY_ATTRIBUTES =
-            SECURITY_ATTRIBUTES(nLength: DWORD(MemoryLayout<SECURITY_ATTRIBUTES>.size),
-                                lpSecurityDescriptor: nil,
-                                bInheritHandle: false)
-          try withUnsafeMutablePointer(to: &saAttributes) {
-            if !CreateDirectoryW(fsr, $0) {
-              throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+        try withNTPathRepresentation(of: path) { wszPath in
+            var saAttributes: SECURITY_ATTRIBUTES =
+                SECURITY_ATTRIBUTES(nLength: DWORD(MemoryLayout<SECURITY_ATTRIBUTES>.size),
+                                    lpSecurityDescriptor: nil,
+                                    bInheritHandle: false)
+            try withUnsafeMutablePointer(to: &saAttributes) { pSecurityAttributes in
+                guard CreateDirectoryW(wszPath, pSecurityAttributes) else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+                }
             }
-          }
+        }
 
-          if let attr = attributes {
-            try self.setAttributes(attr, ofItemAtPath: path)
-          }
+        if let attributes {
+            try self.setAttributes(attributes, ofItemAtPath: path)
         }
     }
 
