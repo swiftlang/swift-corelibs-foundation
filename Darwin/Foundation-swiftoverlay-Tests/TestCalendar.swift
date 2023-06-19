@@ -114,7 +114,7 @@ class TestCalendar : XCTestCase {
 
     func test_properties() {
         // Mainly we want to just make sure these go through to the NSCalendar implementation at this point.
-        if #available(iOS 8.0, OSX 10.7, *) {
+        if #available(iOS 8.0, macOS 10.7, *) {
             var c = Calendar(identifier: .gregorian)
             // Use english localization
             c.locale = Locale(identifier: "en_US")
@@ -158,7 +158,7 @@ class TestCalendar : XCTestCase {
             XCTAssertEqual(Date(timeIntervalSince1970: 1468652400.0), d1)
             XCTAssertEqual(86400, ti)
             
-            if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+            if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
                 let dateInterval = c.dateInterval(of: .day, for: d)
                 XCTAssertEqual(DateInterval(start: d1, duration: ti), dateInterval)
             }
@@ -202,7 +202,7 @@ class TestCalendar : XCTestCase {
             
             XCTAssertTrue(c.dateIntervalOfWeekend(containing: d, start: &d1, interval: &ti))
             
-            if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+            if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
                 let thisWeekend = DateInterval(start: Date(timeIntervalSince1970: 1468652400.0), duration: 172800.0)
                 
                 XCTAssertEqual(thisWeekend, DateInterval(start: d1, duration: ti))
@@ -212,7 +212,7 @@ class TestCalendar : XCTestCase {
 
             XCTAssertTrue(c.nextWeekend(startingAfter: d, start: &d1, interval: &ti))
             
-            if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+            if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
                 let nextWeekend = DateInterval(start: Date(timeIntervalSince1970: 1469257200.0), duration: 172800.0)
             
                 XCTAssertEqual(nextWeekend, DateInterval(start: d1, duration: ti))

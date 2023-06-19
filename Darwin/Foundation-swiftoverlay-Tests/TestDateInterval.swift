@@ -23,7 +23,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_compareDateIntervals() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start = dateWithString("2010-05-17 14:49:47 -0700")
             let duration: TimeInterval = 10000000.0
             let testInterval1 = DateInterval(start: start, duration: duration)
@@ -45,7 +45,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_isEqualToDateInterval() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start = dateWithString("2010-05-17 14:49:47 -0700")
             let duration = 10000000.0
             let testInterval1 = DateInterval(start: start, duration: duration)
@@ -89,7 +89,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_checkIntersection() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start1 = dateWithString("2010-05-17 14:49:47 -0700")
             let end1 = dateWithString("2010-08-17 14:49:47 -0700")
             
@@ -112,7 +112,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_validIntersections() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start1 = dateWithString("2010-05-17 14:49:47 -0700")
             let end1 = dateWithString("2010-08-17 14:49:47 -0700")
             
@@ -139,7 +139,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_containsDate() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start = dateWithString("2010-05-17 14:49:47 -0700")
             let duration = 10000000.0
             
@@ -154,7 +154,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_AnyHashableContainingDateInterval() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start = dateWithString("2010-05-17 14:49:47 -0700")
             let duration = 10000000.0
             let values: [DateInterval] = [
@@ -172,7 +172,7 @@ class TestDateInterval : XCTestCase {
     }
 
     func test_AnyHashableCreatedFromNSDateInterval() {
-        if #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(iOS 10.10, macOS 10.12, tvOS 10.0, watchOS 3.0, *) {
             let start = dateWithString("2010-05-17 14:49:47 -0700")
             let duration = 10000000.0
             let values: [NSDateInterval] = [

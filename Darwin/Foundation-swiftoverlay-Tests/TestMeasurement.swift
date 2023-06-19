@@ -14,7 +14,7 @@ import Foundation
 import XCTest
 
 // We define our own units here so that we can have closer control over checking the behavior of just struct Measurement and not the rest of Foundation
-@available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 class MyDimensionalUnit : Dimension {
     class var unitA : MyDimensionalUnit {
         return MyDimensionalUnit(symbol: "a", converter: UnitConverterLinear(coefficient: 1))
@@ -30,7 +30,7 @@ class MyDimensionalUnit : Dimension {
     }
 }
 
-@available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 class CustomUnit : Unit {
     override init(symbol: String) {
         super.init(symbol: symbol)
@@ -44,7 +44,7 @@ class CustomUnit : Unit {
     public static let features = CustomUnit(symbol: "feature")
 }
 
-@available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 class TestMeasurement : XCTestCase {
     
     func testBasicConstruction() {

@@ -76,7 +76,7 @@ class TestNSTextCheckingResult: XCTestCase {
 
 
     func test_rangeWithName() {
-        guard #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) else {
+        guard #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) else {
             return
         }
 

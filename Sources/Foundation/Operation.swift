@@ -756,7 +756,7 @@ extension OperationQueue {
     public static let defaultMaxConcurrentOperationCount: Int = -1
 }
 
-@available(OSX 10.5, *)
+@available(macOS 10.5, *)
 open class OperationQueue : NSObject, ProgressReporting {
     let __queueLock = NSLock()
     let __atomicLoad = NSLock()
@@ -1423,7 +1423,7 @@ open class OperationQueue : NSObject, ProgressReporting {
 extension OperationQueue {
     // These two functions are inherently a race condition and should be avoided if possible
     
-    @available(OSX, introduced: 10.5, deprecated: 100000, message: "access to operations is inherently a race condition, it should not be used. For barrier style behaviors please use addBarrierBlock: instead")
+    @available(macOS, introduced: 10.5, deprecated: 100000, message: "access to operations is inherently a race condition, it should not be used. For barrier style behaviors please use addBarrierBlock: instead")
     open var operations: [Operation] {
         get {
             return _operations(includingBarriers: false)
@@ -1431,7 +1431,7 @@ extension OperationQueue {
     }
     
     
-    @available(OSX, introduced: 10.6, deprecated: 100000)
+    @available(macOS, introduced: 10.6, deprecated: 100000)
     open var operationCount: Int {
         get {
             return _operationCount
