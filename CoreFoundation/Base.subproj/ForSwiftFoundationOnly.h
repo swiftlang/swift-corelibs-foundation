@@ -564,7 +564,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
-#elif TARGET_OS_ANDROID || !defined(__GLIBC_PREREQ)
+#elif TARGET_OS_ANDROID || !defined(__GLIBC__)
     return strlen(entry->d_name);
 #else
     return entry->d_namlen;
