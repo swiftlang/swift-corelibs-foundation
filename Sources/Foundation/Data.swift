@@ -660,7 +660,7 @@ internal class __NSSwiftData : NSData {
 }
 
 @frozen
-public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessCollection, MutableCollection, RangeReplaceableCollection, MutableDataProtocol, ContiguousBytes {
+public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessCollection, MutableCollection, RangeReplaceableCollection, MutableDataProtocol, ContiguousBytes, @unchecked Sendable {
     public typealias ReferenceType = NSData
 
     public typealias ReadingOptions = NSData.ReadingOptions

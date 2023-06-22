@@ -19,7 +19,7 @@ import CoreFoundation
  
  A `Date` is independent of a particular calendar or time zone. To represent a `Date` to a user, you must interpret it in the context of a `Calendar`.
 */
-public struct Date : ReferenceConvertible, Comparable, Equatable {
+public struct Date : ReferenceConvertible, Comparable, Equatable, Sendable {
     public typealias ReferenceType = NSDate
     
     fileprivate var _time : TimeInterval
