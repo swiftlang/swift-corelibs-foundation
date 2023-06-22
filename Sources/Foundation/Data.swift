@@ -28,6 +28,13 @@
 @usableFromInline let memset = Glibc.memset
 @usableFromInline let memcpy = Glibc.memcpy
 @usableFromInline let memcmp = Glibc.memcmp
+#elseif canImport(Musl)
+@usableFromInline let calloc = Musl.calloc
+@usableFromInline let malloc = Musl.malloc
+@usableFromInline let free = Musl.free
+@usableFromInline let memset = Musl.memset
+@usableFromInline let memcpy = Musl.memcpy
+@usableFromInline let memcmp = Musl.memcmp
 #elseif canImport(WASILibc)
 @usableFromInline let calloc = WASILibc.calloc
 @usableFromInline let malloc = WASILibc.malloc
