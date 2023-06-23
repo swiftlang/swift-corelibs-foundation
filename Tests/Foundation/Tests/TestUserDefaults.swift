@@ -30,6 +30,10 @@ class TestUserDefaults : XCTestCase {
 			("test_setValue_BoolFromString", test_setValue_BoolFromString ),
 			("test_setValue_IntFromString", test_setValue_IntFromString ),
 			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
+			("test_setValue_StringFromBool", test_setValue_StringFromBool ),
+			("test_setValue_StringFromInt", test_setValue_StringFromInt ),
+			("test_setValue_StringFromFloat", test_setValue_StringFromFloat ),
+			("test_setValue_StringFromDouble", test_setValue_StringFromDouble ),
 			("test_volatileDomains", test_volatileDomains),
 			("test_persistentDomain", test_persistentDomain ),
 		]
@@ -245,6 +249,42 @@ class TestUserDefaults : XCTestCase {
 		XCTAssertEqual(defaults.double(forKey: "key1"), 12.34)
 	}
 	
+	func test_setValue_StringFromBool() {
+		let defaults = UserDefaults.standard
+
+		// Register a bool default value. UserDefaults.string(forKey:) is supposed to return the converted String value
+		defaults.set(true, forKey: "key1")
+
+		XCTAssertEqual(defaults.string(forKey: "key1"), "1")
+	}
+
+	func test_setValue_StringFromInt() {
+		let defaults = UserDefaults.standard
+
+		// Register a int default value. UserDefaults.string(forKey:) is supposed to return the converted String value
+		defaults.set(42, forKey: "key1")
+
+		XCTAssertEqual(defaults.string(forKey: "key1"), "42")
+	}
+
+	func test_setValue_StringFromFloat() {
+		let defaults = UserDefaults.standard
+
+		// Register a float default value. UserDefaults.string(forKey:) is supposed to return the converted String value
+		defaults.set(12.34 as Float, forKey: "key1")
+
+		XCTAssertEqual(defaults.string(forKey: "key1"), "12.34")
+	}
+
+	func test_setValue_StringFromDouble() {
+		let defaults = UserDefaults.standard
+
+		// Register a double default value. UserDefaults.string(forKey:) is supposed to return the converted String value
+		defaults.set(12.34, forKey: "key1")
+
+		XCTAssertEqual(defaults.string(forKey: "key1"), "12.34")
+	}
+
 	func test_volatileDomains() {
 		let dateKey = "A Date",
 		stringKey = "A String",
