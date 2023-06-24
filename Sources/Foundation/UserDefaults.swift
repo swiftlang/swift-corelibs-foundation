@@ -191,6 +191,15 @@ open class UserDefaults: NSObject {
         if let bVal = aVal as? Int {
             return bVal
         }
+        if let bVal = aVal as? Bool {
+            return NSNumber(value: bVal).intValue
+        }
+        if let bVal = aVal as? Float {
+            return NSNumber(value: bVal).intValue
+        }
+        if let bVal = aVal as? Double {
+            return NSNumber(value: bVal).intValue
+        }
         if let bVal = aVal as? String {
             return NSString(string: bVal).integerValue
         }
