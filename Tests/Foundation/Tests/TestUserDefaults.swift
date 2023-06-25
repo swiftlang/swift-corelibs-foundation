@@ -29,6 +29,10 @@ class TestUserDefaults : XCTestCase {
 			("test_setValue_Data", test_setValue_Data ),
 			("test_setValue_BoolFromString", test_setValue_BoolFromString ),
 			("test_setValue_IntFromString", test_setValue_IntFromString ),
+			("test_setValue_FloatFromBool", test_setValue_FloatFromBool ),
+			("test_setValue_FloatFromInt", test_setValue_FloatFromInt ),
+			("test_setValue_FloatFromDouble", test_setValue_FloatFromDouble ),
+			("test_setValue_FloatFromString", test_setValue_FloatFromString ),
 			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
 			("test_volatileDomains", test_volatileDomains),
 			("test_persistentDomain", test_persistentDomain ),
@@ -236,6 +240,42 @@ class TestUserDefaults : XCTestCase {
 		XCTAssertEqual(defaults.integer(forKey: "key1"), 1234)
 	}
 	
+	func test_setValue_FloatFromBool() {
+		let defaults = UserDefaults.standard
+
+		// Register a boolean default value. UserDefaults.float(forKey:) is supposed to return the converted Float value
+		defaults.set(true, forKey: "key1")
+
+		XCTAssertEqual(defaults.float(forKey: "key1"), 1)
+	}
+
+	func test_setValue_FloatFromInt() {
+		let defaults = UserDefaults.standard
+
+		// Register an integer default value. UserDefaults.float(forKey:) is supposed to return the converted Float value
+		defaults.set(42, forKey: "key1")
+
+		XCTAssertEqual(defaults.float(forKey: "key1"), 42)
+	}
+
+	func test_setValue_FloatFromDouble() {
+		let defaults = UserDefaults.standard
+
+		// Register a double default value. UserDefaults.float(forKey:) is supposed to return the converted Float value
+		defaults.set(12.34, forKey: "key1")
+
+		XCTAssertEqual(defaults.float(forKey: "key1"), 12.34)
+	}
+
+	func test_setValue_FloatFromString() {
+		let defaults = UserDefaults.standard
+
+		// Register a string default value. UserDefaults.float(forKey:) is supposed to return the parsed Float value
+		defaults.set("1234", forKey: "key1")
+
+		XCTAssertEqual(defaults.float(forKey: "key1"), 1234)
+	}
+
 	func test_setValue_DoubleFromString() {
 		let defaults = UserDefaults.standard
 		
