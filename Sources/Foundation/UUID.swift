@@ -16,7 +16,7 @@ public typealias uuid_t = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt
 public typealias uuid_string_t = (Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8, Int8)
 
 /// Represents UUID strings, which can be used to uniquely identify types, interfaces, and other items.
-public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConvertible {
+public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConvertible, Sendable {
     public typealias ReferenceType = NSUUID
     
     public private(set) var uuid: uuid_t = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
