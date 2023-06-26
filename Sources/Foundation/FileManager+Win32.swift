@@ -742,27 +742,33 @@ extension FileManager {
     }
 
     internal func _fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
-        var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
-        do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
-        if faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
-          let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
-            CreateFileW($0, 0, FILE_SHARE_READ, nil, OPEN_EXISTING,
-                        FILE_FLAG_BACKUP_SEMANTICS, nil)
-          }) ?? INVALID_HANDLE_VALUE
-          if handle == INVALID_HANDLE_VALUE { return false }
-          defer { CloseHandle(handle) }
+        return (try? withNTPathRepresentation(of: path) {
+            var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
+            guard GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) else {
+                return false
+            }
 
-          if let isDirectory = isDirectory {
-            var info: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
-            GetFileInformationByHandle(handle, &info)
-            isDirectory.pointee = ObjCBool(info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY)
-          }
-        } else {
-          if let isDirectory = isDirectory {
-            isDirectory.pointee = ObjCBool(faAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY)
-          }
-        }
-        return true
+            var dwFileAttributes = faAttributes.dwFileAttributes
+            if dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
+                // We use the `CreateFileW` here to ensure that the destination
+                // of the reparse point exists.  The previous check would only
+                // ensure that the reparse point exists, not the destination of
+                // it.
+                let hFile: HANDLE = CreateFileW($0, 0, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nil)
+                if hFile == INVALID_HANDLE_VALUE { return false }
+                defer { CloseHandle(hFile) }
+
+                var info: BY_HANDLE_FILE_INFORMATION = .init()
+                GetFileInformationByHandle(hFile, &info)
+                dwFileAttributes = info.dwFileAttributes
+            }
+
+            if let isDirectory {
+                isDirectory.pointee = ObjCBool(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY)
+            }
+
+            return true
+        }) ?? false
     }
 
 
