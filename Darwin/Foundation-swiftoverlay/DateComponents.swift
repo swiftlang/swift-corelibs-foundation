@@ -19,7 +19,7 @@
  
  When a new instance of `DateComponents` is created, the date components are set to `nil`.
 */
-public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _MutableBoxing {
+public struct DateComponents : ReferenceConvertible, Hashable, Equatable, @unchecked Sendable, _MutableBoxing {
     public typealias ReferenceType = NSDateComponents
     
     internal var _handle: _MutableHandle<NSDateComponents>
