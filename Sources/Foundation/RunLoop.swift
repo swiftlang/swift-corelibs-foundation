@@ -62,9 +62,16 @@ open class RunLoop: NSObject {
         get { unsafeBitCast(_cfRunLoopStorage, to: CFRunLoop?.self) }
         set { _cfRunLoopStorage = newValue }
     }
-    
-    internal static var _mainRunLoop : RunLoop = {
-        return RunLoop(cfObject: CFRunLoopGetMain())
+
+    internal static var _mainRunLoop: RunLoop = {
+        let cfObject: CFRunLoop! = CFRunLoopGetMain()
+#if os(Windows)
+        // Enable the main runloop on Windows to process the Windows UI events.
+        // Windows, similar to AppKit and UIKit, expects to process the UI
+        // events on the main thread.
+        _CFRunLoopSetWindowsMessageQueueMask(cfObject, QS_ALLINPUT, kCFRunLoopDefaultMode)
+#endif
+        return RunLoop(cfObject: cfObject)
     }()
 
     internal init(cfObject : CFRunLoop) {
@@ -76,7 +83,7 @@ open class RunLoop: NSObject {
     }
 
     open class var main: RunLoop {
-        return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
+        return _CFRunLoopGet2(_mainRunLoop._cfRunLoop) as! RunLoop
     }
 
     open var currentMode: RunLoop.Mode? {
