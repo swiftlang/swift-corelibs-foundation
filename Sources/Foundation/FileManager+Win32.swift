@@ -601,14 +601,17 @@ extension FileManager {
             return
         }
 
-        guard !self.fileExists(atPath: dstPath) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteFileExists.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
-        }
+        try withNTPathRepresentation(of: dstPath) { wszDestination in
+            var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
+            if GetFileAttributesExW(wszDestination, GetFileExInfoStandard, &faAttributes) {
+                throw CocoaError.error(.fileWriteFileExists, userInfo: [NSFilePathErrorKey:dstPath])
+            }
 
-        try FileManager.default._fileSystemRepresentation(withPath: srcPath, andPath: dstPath) {
-          if !MoveFileExW($0, $1, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [srcPath, dstPath])
-          }
+            try withNTPathRepresentation(of: srcPath) { wszSource in
+                if !MoveFileExW(wszSource, wszDestination, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [srcPath, dstPath])
+                }
+            }
         }
     }
 
