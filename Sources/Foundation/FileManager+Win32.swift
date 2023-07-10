@@ -548,11 +548,13 @@ extension FileManager {
     }
 
     internal func _copyRegularFile(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
-      try FileManager.default._fileSystemRepresentation(withPath: srcPath, andPath: dstPath) {
-        if !CopyFileW($0, $1, false) {
-          throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [srcPath, dstPath])
+        try withNTPathRepresentation(of: srcPath) { wszSource in
+            try withNTPathRepresentation(of: dstPath) { wszDestination in
+                if !CopyFileW(wszSource, wszDestination, false) {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [srcPath, dstPath])
+                }
+            }
         }
-      }
     }
 
     internal func _copySymlink(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
