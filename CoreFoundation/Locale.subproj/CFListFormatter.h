@@ -22,7 +22,10 @@ typedef struct CF_BRIDGED_TYPE(id) __CFListFormatter *CFListFormatterRef;
 CF_EXPORT
 CFTypeID _CFListFormatterGetTypeID(void);
 
+CF_EXPORT
 CFListFormatterRef _Nullable _CFListFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale);
+
+CF_EXPORT
 CFStringRef _Nullable _CFListFormatterCreateStringByJoiningStrings(CFAllocatorRef allocator, CFListFormatterRef formatter, const CFArrayRef strings);
 
 CF_ASSUME_NONNULL_END
