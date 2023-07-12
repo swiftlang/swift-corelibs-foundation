@@ -30,6 +30,16 @@ class TestListFormatter: XCTestCase {
         super.tearDown()
     }
 
+    func test_locale() throws {
+        XCTAssertEqual(formatter.locale, Locale.autoupdatingCurrent)
+
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        XCTAssertEqual(formatter.locale, Locale(identifier: "en_US_POSIX"))
+
+        formatter.locale = nil
+        XCTAssertEqual(formatter.locale, Locale.autoupdatingCurrent)
+    }
+
     func test_copy() throws {
         formatter.itemFormatter = NumberFormatter()
 
@@ -85,6 +95,7 @@ class TestListFormatter: XCTestCase {
 
     static var allTests: [(String, (TestListFormatter) -> () throws -> Void)] {
         return [
+            ("test_locale", test_locale),
             ("test_copy", test_copy),
             ("test_stringFromItemsWithItemFormatter", test_stringFromItemsWithItemFormatter),
             ("test_stringFromDescriptionsWithLocale", test_stringFromDescriptionsWithLocale),

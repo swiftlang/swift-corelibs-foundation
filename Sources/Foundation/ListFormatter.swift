@@ -16,7 +16,11 @@ open class ListFormatter: Formatter {
 
     /* Specifies the locale to format the items. Defaults to autoupdatingCurrentLocale. Also resets to autoupdatingCurrentLocale on assignment of nil.
      */
-    open var locale: Locale! = .autoupdatingCurrent
+    private var _locale: Locale = .autoupdatingCurrent
+    open var locale: Locale! {
+        get { return _locale }
+        set { _locale = newValue ?? .autoupdatingCurrent }
+    }
 
     /* Specifies how each object should be formatted. If not set, the object is formatted using its instance method in the following order: -descriptionWithLocale:, -localizedDescription, and -description.
      */
@@ -79,6 +83,7 @@ open class ListFormatter: Formatter {
             return String(describing: item)
         }
 
+        _CFListFormatterSetLocale(cfFormatter, locale._cfObject)
         return _CFListFormatterCreateStringByJoiningStrings(kCFAllocatorSystemDefault, cfFormatter, strings._cfObject)?._swiftObject
     }
 
