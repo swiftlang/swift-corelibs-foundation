@@ -1213,7 +1213,6 @@
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		EA01AAEB1DA839C4008F4E07 /* TestProgress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestProgress.swift; sourceTree = "<group>"; };
 		EA0812681DA71C8A00651B70 /* ProgressFraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressFraction.swift; sourceTree = "<group>"; };
-		EA08126A1DA80C3600651B70 /* TestNSProgressFraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSProgressFraction.swift; path = ../../../TestFoundation/TestNSProgressFraction.swift; sourceTree = "<group>"; };
 		EA313DFC1BE7F2E90060A403 /* CFURLComponents_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents_Internal.h; sourceTree = "<group>"; };
 		EA313DFD1BE7F2E90060A403 /* CFURLComponents_URIParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents_URIParser.c; sourceTree = "<group>"; };
 		EA313DFE1BE7F2E90060A403 /* CFURLComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents.c; sourceTree = "<group>"; };
@@ -1918,7 +1917,6 @@
 				684C79001F62B611005BD73E /* TestNSNumberBridging.swift */,
 				D834F9931C31C4060023812A /* TestNSOrderedSet.swift */,
 				7900433A1CACD33E00ECCBF1 /* TestNSPredicate.swift */,
-				EA08126A1DA80C3600651B70 /* TestNSProgressFraction.swift */,
 				E876A73D1C1180E000F279EC /* TestNSRange.swift */,
 				5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */,
 				EA66F6411BF1619600136161 /* TestNSSet.swift */,
