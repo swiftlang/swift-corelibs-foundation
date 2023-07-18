@@ -1075,23 +1075,24 @@ extension FileManager.NSPathDirectoryEnumerator {
     internal func _nextObject() -> Any? {
         guard let url = innerEnumerator.nextObject() as? URL else { return nil }
 
-        var relativePath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(MAX_PATH))
+        let path: String? = try? baseURL.withUnsafeNTPath { pwszBasePath in
+            let dwBaseAttrs = GetFileAttributesW(pwszBasePath)
+            if dwBaseAttrs == INVALID_FILE_ATTRIBUTES { return nil }
 
-        guard baseURL._withUnsafeWideFileSystemRepresentation({ baseUrlFsr in
-            url._withUnsafeWideFileSystemRepresentation { urlFsr in
-                let fromAttrs = GetFileAttributesW(baseUrlFsr)
-                let toAttrs = GetFileAttributesW(urlFsr)
-                guard fromAttrs != INVALID_FILE_ATTRIBUTES, toAttrs != INVALID_FILE_ATTRIBUTES else {
-                    return false
+            return try? url.withUnsafeNTPath { pwszPath in
+                let dwAttrs = GetFileAttributesW(pwszPath)
+                if dwAttrs == INVALID_FILE_ATTRIBUTES { return nil }
+
+                return withUnsafeTemporaryAllocation(of: WCHAR.self, capacity: Int(MAX_PATH)) {
+                    guard PathRelativePathToW($0.baseAddress, pwszBasePath, dwBaseAttrs, pwszPath, dwAttrs) else { return nil }
+                    // Drop the leading ".\" from the path
+                    return String(decodingCString: $0.baseAddress!.advanced(by: 2), as: UTF16.self)
                 }
-                return PathRelativePathToW(&relativePath, baseUrlFsr, fromAttrs, urlFsr, toAttrs)
             }
-        }) else { return nil }
+        }
 
-        let path = String(decodingCString: &relativePath, as: UTF16.self)
-        // Drop the leading ".\" from the path
-        _currentItemPath = String(path.dropFirst(2))
-        return _currentItemPath
+        _currentItemPath = path ?? _currentItemPath
+        return path
     }
 
 }
