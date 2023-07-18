@@ -723,14 +723,6 @@ public struct URL : ReferenceConvertible, Equatable {
         return try block(fsRep)
     }
 
-#if os(Windows)
-    internal func _withUnsafeWideFileSystemRepresentation<ResultType>(_ block: (UnsafePointer<UInt16>?) throws -> ResultType) rethrows -> ResultType {
-      let fsr: UnsafePointer<UInt16> = _url._wideFileSystemRepresentation
-      defer { fsr.deallocate() }
-      return try block(fsr)
-    }
-#endif
-
     // MARK: -
     // MARK: Path manipulation
     
