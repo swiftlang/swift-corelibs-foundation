@@ -604,14 +604,44 @@ extension FileManager {
         }
 
         try withNTPathRepresentation(of: dstPath) { wszDestination in
-            var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
-            if GetFileAttributesExW(wszDestination, GetFileExInfoStandard, &faAttributes) {
+            var faDestinationnAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
+            if GetFileAttributesExW(wszDestination, GetFileExInfoStandard, &faDestinationnAttributes) {
                 throw CocoaError.error(.fileWriteFileExists, userInfo: [NSFilePathErrorKey:dstPath])
             }
 
             try withNTPathRepresentation(of: srcPath) { wszSource in
-                if !MoveFileExW(wszSource, wszDestination, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
-                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [srcPath, dstPath])
+                var faSourceAttributes: WIN32_FILE_ATTRIBUTE_DATA = .init()
+                guard GetFileAttributesExW(wszSource, GetFileExInfoStandard, &faSourceAttributes) else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [srcPath])
+                }
+
+                // MoveFileExW does not work if the source and destination are
+                // on different volumes and the source is a directory.  In that
+                // case, we need to do a recursive copy & remove.
+                if PathIsSameRootW(wszSource, wszDestination) ||
+                        faSourceAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == 0 {
+                    if !MoveFileExW(wszSource, wszDestination, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
+                        throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [srcPath, dstPath])
+                    }
+                } else {
+                    try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath, variant: "Move") { (src, dst, type) in
+                        do {
+                            switch type {
+                            case .typeRegular:
+                                try _copyRegularFile(atPath: src, toPath: dst, variant: "Move")
+                            case .typeSymbolicLink:
+                                try _copySymlink(atPath: src, toPath: dst, variant: "Move")
+                            default:
+                                break
+                            }
+                        } catch {
+                            if !shouldProceedAfterError(error, movingItemAtPath: src, toPath: dst, isURL: isURL) {
+                                throw error
+                            }
+                        }
+
+                        try _removeItem(atPath: src, isURL: isURL, alreadyConfirmed: true)
+                    }
                 }
             }
         }
