@@ -1801,7 +1801,7 @@ public func NSDecimalPower(_ result: UnsafeMutablePointer<Decimal>, _ number: Un
         return .overflow
     }
     NSDecimalCopy(result,number)
-    return result.pointee.power(UInt(power), roundingMode:roundingMode)
+    return result.pointee.power(power, roundingMode:roundingMode)
 }
 
 public func NSDecimalMultiplyByPowerOf10(_ result: UnsafeMutablePointer<Decimal>, _ number: UnsafePointer<Decimal>, _ power: Int16, _ roundingMode: NSDecimalNumber.RoundingMode) -> NSDecimalNumber.CalculationError {
@@ -2242,11 +2242,11 @@ extension Decimal {
         _exponent = newExponent
         return .noError
     }
-    fileprivate mutating func power(_ p:UInt, roundingMode:RoundingMode) -> CalculationError {
+    fileprivate mutating func power(_ p:Int, roundingMode:RoundingMode) -> CalculationError {
         if isNaN {
             return .overflow
         }
-        var power = p
+        var power = abs(p)
         if power == 0 {
             _exponent = 0
             _length = 1
@@ -2254,7 +2254,7 @@ extension Decimal {
             self[0] = 1
             _isCompact = 1
             return .noError
-        } else if power == 1 {
+        } else if power == 1 || isZero {
             return .noError
         }
 
@@ -2297,7 +2297,20 @@ extension Decimal {
         let previousError = error
         var rightOp = self
         error = NSDecimalMultiply(&self, &temporary, &rightOp, roundingMode)
-
+        
+        // if power is negative, use multiplicative inverse
+        if p < 0 {
+            var leftOp = Decimal(1)
+            var rightOp = self
+            
+            error = NSDecimalDivide(
+                &self,
+                &leftOp,
+                &rightOp,
+                roundingMode
+            )
+        }
+        
         if previousError != .noError { // FIXME is this the intent?
             error = previousError
         }

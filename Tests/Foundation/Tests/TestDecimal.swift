@@ -398,9 +398,14 @@ class TestDecimal: XCTestCase {
         a = Decimal(8)
         XCTAssertEqual(.noError, NSDecimalPower(&result, &a, 2, .plain))
         XCTAssertEqual(Decimal(64), result)
+        a = Decimal(8)
+        XCTAssertEqual(.noError, NSDecimalPower(&result, &a, -2, .plain))
+        XCTAssertEqual(Decimal(1/64), result)
         a = Decimal(-2)
         XCTAssertEqual(.noError, NSDecimalPower(&result, &a, 3, .plain))
         XCTAssertEqual(Decimal(-8), result)
+        XCTAssertEqual(.noError, NSDecimalPower(&result, &a, -3, .plain))
+        XCTAssertEqual(Decimal(-1/8), result)
         for i in -2...10 {
             for j in 0...5 {
                 var actual = Decimal(i)
