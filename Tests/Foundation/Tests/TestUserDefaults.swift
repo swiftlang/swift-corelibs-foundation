@@ -36,6 +36,9 @@ class TestUserDefaults : XCTestCase {
 			("test_setValue_FloatFromInt", test_setValue_FloatFromInt ),
 			("test_setValue_FloatFromDouble", test_setValue_FloatFromDouble ),
 			("test_setValue_FloatFromString", test_setValue_FloatFromString ),
+			("test_setValue_DoubleFromBool", test_setValue_DoubleFromBool ),
+			("test_setValue_DoubleFromInt", test_setValue_DoubleFromInt ),
+			("test_setValue_DoubleFromFloat", test_setValue_DoubleFromFloat ),
 			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
 			("test_setValue_StringFromBool", test_setValue_StringFromBool ),
 			("test_setValue_StringFromInt", test_setValue_StringFromInt ),
@@ -308,6 +311,33 @@ class TestUserDefaults : XCTestCase {
 		defaults.set("1234", forKey: "key1")
 
 		XCTAssertEqual(defaults.float(forKey: "key1"), 1234)
+	}
+
+	func test_setValue_DoubleFromBool() {
+		let defaults = UserDefaults.standard
+
+		// Register a boolean default value. UserDefaults.double(forKey:) is supposed to return the converted Double value
+		defaults.set(true, forKey: "key1")
+
+		XCTAssertEqual(defaults.double(forKey: "key1"), 1)
+	}
+
+	func test_setValue_DoubleFromInt() {
+		let defaults = UserDefaults.standard
+
+		// Register an integer default value. UserDefaults.double(forKey:) is supposed to return the converted Double value
+		defaults.set(42, forKey: "key1")
+
+		XCTAssertEqual(defaults.double(forKey: "key1"), 42)
+	}
+
+	func test_setValue_DoubleFromFloat() {
+		let defaults = UserDefaults.standard
+
+		// Register a float default value. UserDefaults.double(forKey:) is supposed to return the converted Double value
+		defaults.set(12.34 as Float, forKey: "key1")
+
+		XCTAssertEqual(defaults.double(forKey: "key1"), Double(12.34 as Float))
 	}
 
 	func test_setValue_DoubleFromString() {

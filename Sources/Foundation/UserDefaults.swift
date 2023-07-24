@@ -235,6 +235,15 @@ open class UserDefaults: NSObject {
         if let bVal = aVal as? Double {
             return bVal
         }
+        if let bVal = aVal as? Bool {
+            return NSNumber(value: bVal).doubleValue
+        }
+        if let bVal = aVal as? Int {
+            return NSNumber(value: bVal).doubleValue
+        }
+        if let bVal = aVal as? Float {
+            return NSNumber(value: bVal).doubleValue
+        }
         if let bVal = aVal as? String {
             return NSString(string: bVal).doubleValue
         }
