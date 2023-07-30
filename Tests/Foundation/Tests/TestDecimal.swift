@@ -398,14 +398,9 @@ class TestDecimal: XCTestCase {
         a = Decimal(8)
         XCTAssertEqual(.noError, NSDecimalPower(&result, &a, 2, .plain))
         XCTAssertEqual(Decimal(64), result)
-        a = Decimal(8)
-        XCTAssertEqual(.noError, NSDecimalPower(&result, &a, -2, .plain))
-        XCTAssertEqual(Decimal(1/64), result)
         a = Decimal(-2)
         XCTAssertEqual(.noError, NSDecimalPower(&result, &a, 3, .plain))
         XCTAssertEqual(Decimal(-8), result)
-        XCTAssertEqual(.noError, NSDecimalPower(&result, &a, -3, .plain))
-        XCTAssertEqual(Decimal(-1/8), result)
         for i in -2...10 {
             for j in 0...5 {
                 var actual = Decimal(i)
@@ -674,6 +669,32 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(-279936, negativeSix.raising(toPower:7).intValue)
         XCTAssertEqual(1679616, negativeSix.raising(toPower:8).intValue)
         XCTAssertEqual(-10077696, negativeSix.raising(toPower:9).intValue)
+    }
+    
+    func test_NegativePowers() {
+        let six = NSDecimalNumber(integerLiteral: 6)
+
+        XCTAssertEqual(1/6 as NSDecimalNumber, six.raising(toPower: -1))
+        XCTAssertEqual(1/36 as NSDecimalNumber, six.raising(toPower: -2))
+        XCTAssertEqual(1/216 as NSDecimalNumber, six.raising(toPower: -3))
+        XCTAssertEqual(1/1296 as NSDecimalNumber, six.raising(toPower: -4))
+        XCTAssertEqual(1/7776 as NSDecimalNumber, six.raising(toPower: -5))
+        XCTAssertEqual(1/46656 as NSDecimalNumber, six.raising(toPower: -6))
+        XCTAssertEqual(1/279936 as NSDecimalNumber, six.raising(toPower: -7))
+        XCTAssertEqual(1/1679616 as NSDecimalNumber, six.raising(toPower: -8))
+        XCTAssertEqual(1/10077696 as NSDecimalNumber, six.raising(toPower: -9))
+
+        let negativeSix = NSDecimalNumber(integerLiteral: -6)
+
+        XCTAssertEqual(-1/6 as NSDecimalNumber, negativeSix.raising(toPower: -1))
+        XCTAssertEqual(1/36 as NSDecimalNumber, negativeSix.raising(toPower: -2))
+        XCTAssertEqual(-1/216 as NSDecimalNumber, negativeSix.raising(toPower: -3))
+        XCTAssertEqual(1/1296 as NSDecimalNumber, negativeSix.raising(toPower: -4))
+        XCTAssertEqual(-1/7776 as NSDecimalNumber, negativeSix.raising(toPower: -5))
+        XCTAssertEqual(1/46656 as NSDecimalNumber, negativeSix.raising(toPower: -6))
+        XCTAssertEqual(-1/279936 as NSDecimalNumber, negativeSix.raising(toPower: -7))
+        XCTAssertEqual(1/1679616 as NSDecimalNumber, negativeSix.raising(toPower: -8))
+        XCTAssertEqual(-1/10077696 as NSDecimalNumber, negativeSix.raising(toPower: -9))
     }
 
     func test_RepeatingDivision()  {
@@ -1551,6 +1572,7 @@ class TestDecimal: XCTestCase {
             ("test_Normalise", test_Normalise),
             ("test_NSDecimal", test_NSDecimal),
             ("test_PositivePowers", test_PositivePowers),
+            ("test_NegativePowers", test_NegativePowers),
             ("test_RepeatingDivision", test_RepeatingDivision),
             ("test_Round", test_Round),
             ("test_ScanDecimal", test_ScanDecimal),

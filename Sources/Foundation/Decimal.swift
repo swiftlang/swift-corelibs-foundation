@@ -2246,23 +2246,23 @@ extension Decimal {
         if isNaN {
             return .overflow
         }
-        var power = abs(p)
-        if power == 0 {
+        if p == 0 {
             _exponent = 0
             _length = 1
             _isNegative = 0
             self[0] = 1
             _isCompact = 1
             return .noError
-        } else if power == 1 || isZero {
+        } else if p == 1 || isZero {
             return .noError
         }
 
+        var absPower = abs(p)
         var temporary = Decimal(1)
         var error:CalculationError = .noError
 
-        while power > 1 {
-            if power % 2 == 1 {
+        while absPower > 1 {
+            if absPower % 2 == 1 {
                 let previousError = error
                 var leftOp = temporary
                 error = NSDecimalMultiply(&temporary, &leftOp, &self, roundingMode)
@@ -2275,9 +2275,9 @@ extension Decimal {
                     setNaN()
                     return error
                 }
-                power -= 1
+                absPower -= 1
             }
-            if power != 0 {
+            if absPower != 0 {
                 let previousError = error
                 var leftOp = self
                 var rightOp = self
@@ -2291,7 +2291,7 @@ extension Decimal {
                     setNaN()
                     return error
                 }
-                power /= 2
+                absPower /= 2
             }
         }
         let previousError = error
