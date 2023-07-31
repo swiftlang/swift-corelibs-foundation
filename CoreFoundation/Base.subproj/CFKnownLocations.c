@@ -16,6 +16,10 @@
 
 #include <assert.h>
 
+#if TARGET_OS_WIN32
+#include <userenv.h>
+#endif
+
 CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user, CFStringRef _Nullable username) {
     CFURLRef location = NULL;
     
@@ -76,20 +80,48 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
 #elif TARGET_OS_WIN32
 
     switch (user) {
-        case _kCFKnownLocationUserAny:
-            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("\\Users\\All Users\\AppData\\Local"), kCFURLWindowsPathStyle, true);
+        case _kCFKnownLocationUserAny: {
+            DWORD size = 0;
+            GetAllUsersProfileDirectoryW(NULL, &size);
+
+            wchar_t* path = (wchar_t*)malloc(size * sizeof(wchar_t));
+            GetAllUsersProfileDirectoryW(path, &size);
+
+            CFStringRef allUsersPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, size - 1);
+            free(path);
+
+            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, allUsersPath, kCFURLWindowsPathStyle, true);
+            CFRelease(allUsersPath);
             break;
+        }
         case _kCFKnownLocationUserCurrent:
             username = CFGetUserName();
             // fallthrough
-        case _kCFKnownLocationUserByName:
-            const char *user = CFStringGetCStringPtr(username, kCFStringEncodingUTF8);
-            CFURLRef userdir = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (const unsigned char *)user, strlen(user), true);
-            CFURLRef homedir = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("\\Users"), kCFURLWindowsPathStyle, true, userdir);
-            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("\\AppData\\Local"),  kCFURLWindowsPathStyle, true, homedir);
-            CFRelease(homedir);
-            CFRelease(userdir);
+        case _kCFKnownLocationUserByName: {
+            DWORD size = 0;
+            GetProfilesDirectoryW(NULL, &size);
+
+            wchar_t* path = (wchar_t*)malloc(size * sizeof(wchar_t));
+            GetProfilesDirectoryW(path, &size);
+
+            CFStringRef pathRef = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, size - 1);
+            free(path);
+
+            CFURLRef profilesDir = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, pathRef, kCFURLWindowsPathStyle, true);
+            CFRelease(pathRef);
+
+            CFURLRef usernameDir = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, profilesDir, username, true);
+            CFURLRef appdataDir = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, usernameDir, CFSTR("AppData"), true);
+            location = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, appdataDir, CFSTR("Local"), true);
+            CFRelease(usernameDir);
+            CFRelease(appdataDir);
+
+            CFRelease(profilesDir);
+            if (user == _kCFKnownLocationUserCurrent) {
+                CFRelease(username);
+            }
             break;
+        }
     }
 
 #elif TARGET_OS_ANDROID
