@@ -474,6 +474,24 @@ class TestJSONEncoder : XCTestCase {
             XCTFail("Caught error during decoding empty super decoder: \(error)")
         }
     }
+    
+    func test_childTypeDecoder() {
+        class BaseTestType: Decodable { }
+        class ChildTestType: BaseTestType { }
+
+        func dynamicTestType() -> BaseTestType.Type {
+            return ChildTestType.self
+        }
+
+        let decoder = JSONDecoder()
+        do {
+            let testType = dynamicTestType()
+            let instance = try decoder.decode(testType, from: Data(#"{}"#.utf8))
+            XCTAssertTrue(instance is ChildTestType)
+        } catch {
+            XCTFail("Caught error during decoding empty super decoder: \(error)")
+        }
+    }
 
     // MARK: - Test encoding and decoding of built-in Codable types
     func test_codingOfBool() {
@@ -1562,6 +1580,7 @@ extension TestJSONEncoder {
             ("test_nestedContainerCodingPaths", test_nestedContainerCodingPaths),
             ("test_superEncoderCodingPaths", test_superEncoderCodingPaths),
             ("test_notFoundSuperDecoder", test_notFoundSuperDecoder),
+            ("test_childTypeDecoder", test_childTypeDecoder),
             ("test_codingOfBool", test_codingOfBool),
             ("test_codingOfNil", test_codingOfNil),
             ("test_codingOfInt8", test_codingOfInt8),
