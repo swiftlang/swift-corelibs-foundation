@@ -208,14 +208,23 @@ extension String {
   ///   - encoding: The encoding to use to interpret `bytes`.
   public init?<S: Sequence>(bytes: __shared S, encoding: Encoding)
   where S.Iterator.Element == UInt8 {
-    let byteArray = Array(bytes)
-    if encoding == .utf8,
-       let str = byteArray.withUnsafeBufferPointer({ String._tryFromUTF8($0) })
-    {
-      self = str
+    if encoding == .utf8 {
+      if let str = bytes.withContiguousStorageIfAvailable({ String._tryFromUTF8($0) }) {
+        guard let str else {
+          return nil
+        }
+        self = str
+      } else {
+        let byteArray = Array(bytes)
+        guard let str = byteArray.withUnsafeBufferPointer({ String._tryFromUTF8($0) }) else {
+          return nil
+        }
+        self = str
+      }
       return
     }
 
+    let byteArray = Array(bytes)
     if let ns = NSString(
       bytes: byteArray, length: byteArray.count, encoding: encoding.rawValue) {
       self = String._unconditionallyBridgeFromObjectiveC(ns)
