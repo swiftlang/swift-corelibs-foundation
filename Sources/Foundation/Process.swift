@@ -1134,14 +1134,17 @@ open class Process: NSObject {
     open func waitUntilExit() {
         let runInterval = 0.05
         let currentRunLoop = RunLoop.current
-        let checkRunLoop : () -> Bool = (currentRunLoop == self.runLoop)
-                ? { currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
-                : { currentRunLoop.run(until: Date(timeIntervalSinceNow: runInterval)); return true }
 
-        // update .runLoop to allow early wakeup.
+        let runRunLoop : () -> Void = (currentRunLoop == self.runLoop)
+                ? { currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
+                : { currentRunLoop.run(until: Date(timeIntervalSinceNow: runInterval)) }
+        // update .runLoop to allow early wakeup triggered by terminateRunLoop.
         self.runLoop = currentRunLoop
-        while self.isRunning && checkRunLoop() {}
-        
+
+        while self.isRunning {
+            runRunLoop()
+        } 
+
         self.runLoop = nil
         self.runLoopSource = nil
     }
