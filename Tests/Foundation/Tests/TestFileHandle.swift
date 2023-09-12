@@ -481,8 +481,7 @@ class TestFileHandle : XCTestCase {
     
     func test_readToEndOfFileAndNotify() {
         let handle = createFileHandle()
-        var readSomeData = false
-        
+        let readSomeData = XCTestExpectation(description: "At least some data must've been read")
         let done = expectation(forNotification: FileHandle.readCompletionNotification, object: handle, notificationCenter: .default) { (notification) -> Bool in
             guard let data = notification.userInfo?[NSFileHandleNotificationDataItem] as? Data else {
                 XCTFail("Couldn't find the data in the user info: \(notification)")
@@ -490,7 +489,7 @@ class TestFileHandle : XCTestCase {
             }
             
             if !data.isEmpty {
-                readSomeData = true
+                readSomeData.fulfill()
                 handle.readInBackgroundAndNotify()
                 return false
             } else {
@@ -500,8 +499,7 @@ class TestFileHandle : XCTestCase {
         
         handle.readInBackgroundAndNotify()
         
-        wait(for: [done], timeout: 10)
-        XCTAssertTrue(readSomeData, "At least some data must've been read")
+        wait(for: [readSomeData, done], timeout: 10)
     }
     
     func test_readToEndOfFileAndNotify_readError() {
