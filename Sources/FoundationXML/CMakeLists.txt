@@ -10,6 +10,7 @@ target_compile_definitions(FoundationXML PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
 target_compile_options(FoundationXML PUBLIC
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
+  "SHELL:-Xfrontend -disable-autolink-framework -Xfrontend CFXMLInterface"
   "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
 target_link_libraries(FoundationXML
   PRIVATE
