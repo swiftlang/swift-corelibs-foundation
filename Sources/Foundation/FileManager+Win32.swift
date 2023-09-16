@@ -476,7 +476,7 @@ extension FileManager {
 
     internal func _copyRegularFile(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
       try FileManager.default._fileSystemRepresentation(withPath: srcPath, andPath: dstPath) {
-        if !CopyFileW($0, $1, false) {
+        if !CopyFileW($0, $1, true) {
           throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [srcPath, dstPath])
         }
       }
