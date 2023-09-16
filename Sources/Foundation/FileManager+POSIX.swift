@@ -584,7 +584,7 @@ extension FileManager {
         }
         defer { close(srcfd) }
 
-        let dstfd = open(dstRep, O_WRONLY | O_CREAT | O_TRUNC, 0o666)
+        let dstfd = open(dstRep, O_WRONLY | O_CREAT | O_EXCL | O_TRUNC, 0o666)
         guard dstfd >= 0 else {
             throw _NSErrorWithErrno(errno, reading: false, path: dstPath,
                                     extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
