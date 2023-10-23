@@ -165,10 +165,16 @@ extension _EasyHandle {
     }
     /// URL to use in the request
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_URL.html
-    func set(url: URL) {
+    func set(url: URL) throws {
         _url = url
-        url.absoluteString.withCString {
-            try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionURL, UnsafeMutablePointer(mutating: $0)).asError()
+        try url.absoluteString.withCString { urlPtr in
+            try url.host?.withCString { hostPtr in
+                guard CFURLSessionCurlHostIsEqual(urlPtr, hostPtr) else {
+                    throw NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL,
+                                  userInfo: [NSLocalizedDescriptionKey: "URLSession and curl did not agree on URL host"])
+                }
+            }
+            try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionURL, UnsafeMutablePointer(mutating: urlPtr)).asError()
         }
     }
 

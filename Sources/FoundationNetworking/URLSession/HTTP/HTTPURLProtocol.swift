@@ -311,7 +311,21 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         guard let url = request.url else {
             fatalError("No URL in request.")
         }
-        easyHandle.set(url: url)
+        guard url.host != nil else {
+            self.internalState = .transferFailed
+            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL,
+                                userInfo: [NSLocalizedDescriptionKey: "HTTP URL must have a host"])
+            failWith(error: error, request: request)
+            return
+        }
+        do {
+            try easyHandle.set(url: url)
+        } catch {
+            self.internalState = .transferFailed
+            let nsError = error as? NSError ?? NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL)
+            failWith(error: nsError, request: request)
+            return
+        }
         let session = task?.session as! URLSession
         let _config = session._configuration
         easyHandle.set(sessionConfig: _config)

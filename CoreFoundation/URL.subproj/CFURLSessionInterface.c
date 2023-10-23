@@ -657,3 +657,22 @@ CFURLSessionSList *_Nullable CFURLSessionSListAppend(CFURLSessionSList *_Nullabl
 void CFURLSessionSListFreeAll(CFURLSessionSList *_Nullable list) {
     curl_slist_free_all((struct curl_slist *) list);
 }
+
+bool CFURLSessionCurlHostIsEqual(const char *_Nonnull url, const char *_Nonnull expectedHost) {
+#if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 62)
+    bool isEqual = false;
+    CURLU *h = curl_url();
+    if (0 == curl_url_set(h, CURLUPART_URL, url, 0)) {
+        char *curlHost = NULL;
+        if (0 == curl_url_get(h, CURLUPART_HOST, &curlHost, 0)) {
+            isEqual = (strlen(curlHost) == strlen(expectedHost) &&
+                       strncmp(curlHost, expectedHost, strlen(curlHost)) == 0);
+            curl_free(curlHost);
+        }
+        curl_free(h);
+    }
+    return isEqual;
+#else
+    return true;
+#endif
+}
