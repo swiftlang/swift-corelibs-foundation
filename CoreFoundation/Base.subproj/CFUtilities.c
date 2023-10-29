@@ -927,8 +927,13 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%lx] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
     asprintf(thread, "%lx", GetCurrentThreadId());
 #elif TARGET_OS_WASI
-    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%x] ", year, month, day, hour, minute, second, ms, (unsigned int)pthread_self());
-    asprintf(thread, "%lx", pthread_self());
+    _CFThreadRef tid = 0;
+    // When pthread API is available from wasi-libc, use it. Otherwise use the dummy value.
+# if _POSIX_THREADS
+    tid = pthread_self();
+# endif
+    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%x] ", year, month, day, hour, minute, second, ms, (unsigned int)tid);
+    asprintf(thread, "%lx", tid);
 #else
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());

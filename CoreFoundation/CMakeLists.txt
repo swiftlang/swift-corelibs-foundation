@@ -99,6 +99,10 @@ else()
   add_compile_definitions($<$<COMPILE_LANGUAGE:C>:DEPLOYMENT_RUNTIME_C>)
 endif()
 
+if(Threads_FOUND)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:SWIFT_CORELIBS_FOUNDATION_HAS_THREADS>)
+endif()
+
 # TODO(compnerd) ensure that the compiler supports the warning flag
 add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-shorten-64-to-32>)
 add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-deprecated-declarations>)

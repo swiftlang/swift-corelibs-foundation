@@ -150,6 +150,13 @@ add_library(Foundation
   WinSDK+Extensions.swift)
 target_compile_definitions(Foundation PRIVATE
   DEPLOYMENT_RUNTIME_SWIFT)
+if(Threads_FOUND)
+  target_compile_definitions(Foundation PRIVATE
+    SWIFT_CORELIBS_FOUNDATION_HAS_THREADS)
+  target_compile_options(Foundation PRIVATE
+    "SHELL:-Xcc -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS")
+endif()
+
 target_compile_options(Foundation PUBLIC
   $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
   "SHELL:-Xfrontend -disable-autolink-framework -Xfrontend CoreFoundation"
