@@ -1242,7 +1242,7 @@ CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef _Nullable b
             if (returnValue) CFRelease(returnValue);
             if ((bundleVersion == _CFBundleVersionOldStyleResources && realSubdirectory && CFEqual(realSubdirectory, CFSTR("Resources"))) || (bundleVersion == _CFBundleVersionContentsResources && realSubdirectory && CFEqual(realSubdirectory, CFSTR("Contents/Resources")))) {
                 if (realSubdirectory) CFRelease(realSubdirectory);
-                realSubdirectory = CFSTR("");
+                realSubdirectory = (CFStringRef)CFRetain(CFSTR(""));
             } else if (bundleVersion == _CFBundleVersionOldStyleResources && realSubdirectory && CFStringGetLength(realSubdirectory) > 10 && CFStringHasPrefix(realSubdirectory, CFSTR("Resources/"))) {
                 CFStringRef tmpRealSubdirectory = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, realSubdirectory, CFRangeMake(10, CFStringGetLength(realSubdirectory) - 10));
                 if (realSubdirectory) CFRelease(realSubdirectory);
