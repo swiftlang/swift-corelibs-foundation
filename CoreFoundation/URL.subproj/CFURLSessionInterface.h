@@ -642,6 +642,7 @@ typedef struct CFURLSessionSList CFURLSessionSList;
 CF_EXPORT CFURLSessionSList *_Nullable CFURLSessionSListAppend(CFURLSessionSList *_Nullable list, const char * _Nullable string);
 CF_EXPORT void CFURLSessionSListFreeAll(CFURLSessionSList *_Nullable list);
 
+CF_EXPORT bool CFURLSessionCurlHostIsEqual(const char *_Nonnull url, const char *_Nonnull expectedHost);
 
 
 CF_EXTERN_C_END
