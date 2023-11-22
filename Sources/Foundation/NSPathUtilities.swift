@@ -813,7 +813,8 @@ internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String)
 #if os(Windows)
     try withNTPathRepresentation(of: auxFilePath) { pwszSource in
         try withNTPathRepresentation(of: filePath) { pwszDestination in
-            guard CopyFileW(pwszSource, pwszDestination, false) else {
+            guard MoveFileExW(pwszSource, pwszDestination,
+                              MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) else {
                 let dwErrorCode = GetLastError()
                 try? FileManager.default.removeItem(atPath: auxFilePath)
                 throw _NSErrorWithWindowsError(dwErrorCode, reading: false)

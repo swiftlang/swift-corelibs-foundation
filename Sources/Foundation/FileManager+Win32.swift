@@ -620,7 +620,7 @@ extension FileManager {
                 // case, we need to do a recursive copy & remove.
                 if PathIsSameRootW(wszSource, wszDestination) ||
                         faSourceAttributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == 0 {
-                    if !MoveFileExW(wszSource, wszDestination, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
+                    if !MoveFileExW(wszSource, wszDestination, MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH) {
                         throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [srcPath, dstPath])
                     }
                 } else {
