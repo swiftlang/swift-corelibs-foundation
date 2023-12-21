@@ -209,10 +209,16 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
         if url.isFileURL {
+#if os(Windows)
+            return try url.withUnsafeNTPath {
+                return (try NSData.readBytesFromFileWithExtendedAttributes(String(decodingCString: $0, as: UTF16.self), options: readOptionsMask).toNSData(), nil)
+            }
+#else
             return try url.withUnsafeFileSystemRepresentation { (fsRep) -> (result: NSData, textEncodingNameIfAvailable: String?) in
               let data = try NSData.readBytesFromFileWithExtendedAttributes(String(cString: fsRep!), options: readOptionsMask)
               return (data.toNSData(), nil)
             }
+#endif
         } else {
             return try _NSNonfileURLContentLoader.current.contentsOf(url: url)
         }

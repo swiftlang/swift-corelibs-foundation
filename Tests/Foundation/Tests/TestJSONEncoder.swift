@@ -235,27 +235,73 @@ class TestJSONEncoder : XCTestCase {
 """)
     }
 
-    func test_encodingOutputFormattingSortedKeys() {
-        let expectedJSON = "{\"email\":\"appleseed@apple.com\",\"name\":\"Johnny Appleseed\"}".data(using: .utf8)!
-        let person = Person.testValue
+    func test_encodingOutputFormattingSortedKeys() throws {
+        let expectedJSON = try XCTUnwrap("""
+        {"2":"2","7":"7","25":"25","ａｌｉｃｅ":"ａｌｉｃｅ","bob":"bob","Charlie":"Charlie","中国":"中国","日本":"日本","韓国":"韓国"}
+        """.data(using: .utf8))
+        let testValue = [
+            "2": "2",
+            "25": "25",
+            "7": "7",
+            "ａｌｉｃｅ": "ａｌｉｃｅ",
+            "bob": "bob",
+            "Charlie": "Charlie",
+            "日本": "日本",
+            "中国": "中国",
+            "韓国": "韓国",
+        ]
 #if os(macOS) || DARWIN_COMPATIBILITY_TESTS
         if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
-            _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            let payload = try encoder.encode(testValue)
+            XCTAssertEqual(expectedJSON, payload)
         }
 #else
-        _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let payload = try encoder.encode(testValue)
+        XCTAssertEqual(expectedJSON, payload)
 #endif
     }
 
-    func test_encodingOutputFormattingPrettyPrintedSortedKeys() {
-        let expectedJSON = "{\n  \"email\" : \"appleseed@apple.com\",\n  \"name\" : \"Johnny Appleseed\"\n}".data(using: .utf8)!
-        let person = Person.testValue
+    func test_encodingOutputFormattingPrettyPrintedSortedKeys() throws {
+        let expectedJSON = try XCTUnwrap("""
+        {
+          "2" : "2",
+          "7" : "7",
+          "25" : "25",
+          "ａｌｉｃｅ" : "ａｌｉｃｅ",
+          "bob" : "bob",
+          "Charlie" : "Charlie",
+          "中国" : "中国",
+          "日本" : "日本",
+          "韓国" : "韓国"
+        }
+        """.data(using: .utf8))
+        let testValue = [
+            "2": "2",
+            "25": "25",
+            "7": "7",
+            "ａｌｉｃｅ": "ａｌｉｃｅ",
+            "bob": "bob",
+            "Charlie": "Charlie",
+            "日本": "日本",
+            "中国": "中国",
+            "韓国": "韓国",
+        ]
 #if os(macOS) || DARWIN_COMPATIBILITY_TESTS
         if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
-            _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let payload = try encoder.encode(testValue)
+            XCTAssertEqual(expectedJSON, payload)
         }
 #else
-        _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let payload = try encoder.encode(testValue)
+        XCTAssertEqual(expectedJSON, payload)
 #endif
     }
 
@@ -470,6 +516,24 @@ class TestJSONEncoder : XCTestCase {
         let decoder = JSONDecoder()
         do {
             let _ = try decoder.decode(NotFoundSuperDecoderTestType.self, from: Data(#"{}"#.utf8))
+        } catch {
+            XCTFail("Caught error during decoding empty super decoder: \(error)")
+        }
+    }
+    
+    func test_childTypeDecoder() {
+        class BaseTestType: Decodable { }
+        class ChildTestType: BaseTestType { }
+
+        func dynamicTestType() -> BaseTestType.Type {
+            return ChildTestType.self
+        }
+
+        let decoder = JSONDecoder()
+        do {
+            let testType = dynamicTestType()
+            let instance = try decoder.decode(testType, from: Data(#"{}"#.utf8))
+            XCTAssertTrue(instance is ChildTestType)
         } catch {
             XCTFail("Caught error during decoding empty super decoder: \(error)")
         }
@@ -1562,6 +1626,7 @@ extension TestJSONEncoder {
             ("test_nestedContainerCodingPaths", test_nestedContainerCodingPaths),
             ("test_superEncoderCodingPaths", test_superEncoderCodingPaths),
             ("test_notFoundSuperDecoder", test_notFoundSuperDecoder),
+            ("test_childTypeDecoder", test_childTypeDecoder),
             ("test_codingOfBool", test_codingOfBool),
             ("test_codingOfNil", test_codingOfNil),
             ("test_codingOfInt8", test_codingOfInt8),

@@ -507,7 +507,7 @@ void _CFDateIntervalFormatterSetBoundaryStyle(CFDateIntervalFormatterRef formatt
 CFStringRef CFDateIntervalFormatterCreateStringFromDateToDate(CFDateIntervalFormatterRef formatter, CFDateRef fromDate, CFDateRef toDate) {
     LOCK();
     
-    CFStringRef resultStr = CFSTR("");
+    CFStringRef resultStr = NULL;
     updateFormatter(formatter);
     
     if (formatter->_formatter) {
@@ -531,7 +531,7 @@ CFStringRef CFDateIntervalFormatterCreateStringFromDateToDate(CFDateIntervalForm
             resultStr = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, result, len);
         }
     } else {
-        resultStr = CFSTR("");
+        resultStr = (CFStringRef)CFRetain(CFSTR(""));
     }
     UNLOCK();
     

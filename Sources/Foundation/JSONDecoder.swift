@@ -197,7 +197,7 @@ open class JSONDecoder {
         do {
             var parser = JSONParser(bytes: Array(data))
             let json = try parser.parse()
-            return try JSONDecoderImpl(userInfo: self.userInfo, from: json, codingPath: [], options: self.options).unwrap(as: T.self)
+            return try JSONDecoderImpl(userInfo: self.userInfo, from: json, codingPath: [], options: self.options).unwrap(as: type)
         } catch let error as JSONError {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "The given data was not valid JSON.", underlyingError: error))
         } catch {
@@ -292,11 +292,11 @@ extension JSONDecoderImpl: Decoder {
         if type == Decimal.self {
             return try self.unwrapDecimal() as! T
         }
-        if T.self is _JSONStringDictionaryDecodableMarker.Type {
-            return try self.unwrapDictionary(as: T.self)
+        if type is _JSONStringDictionaryDecodableMarker.Type {
+            return try self.unwrapDictionary(as: type)
         }
 
-        return try T(from: self)
+        return try type.init(from: self)
     }
 
     private func unwrapDate() throws -> Date {
@@ -611,8 +611,8 @@ extension JSONDecoderImpl {
             try decodeFixedWidthInteger()
         }
 
-        func decode<T>(_: T.Type) throws -> T where T: Decodable {
-            try self.impl.unwrap(as: T.self)
+        func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
+            try self.impl.unwrap(as: type)
         }
 
         @inline(__always) private func decodeFixedWidthInteger<T: FixedWidthInteger>() throws -> T {
@@ -746,9 +746,9 @@ extension JSONDecoderImpl {
             try decodeFixedWidthInteger(key: key)
         }
 
-        func decode<T>(_: T.Type, forKey key: K) throws -> T where T: Decodable {
+        func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
             let newDecoder = try decoderForKey(key)
-            return try newDecoder.unwrap(as: T.self)
+            return try newDecoder.unwrap(as: type)
         }
 
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws
@@ -926,9 +926,9 @@ extension JSONDecoderImpl {
             try decodeFixedWidthInteger()
         }
 
-        mutating func decode<T>(_: T.Type) throws -> T where T: Decodable {
-            let newDecoder = try decoderForNextElement(ofType: T.self)
-            let result = try newDecoder.unwrap(as: T.self)
+        mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
+            let newDecoder = try decoderForNextElement(ofType: type)
+            let result = try newDecoder.unwrap(as: type)
 
             // Because of the requirement that the index not be incremented unless
             // decoding the desired result type succeeds, it can not be a tail call.

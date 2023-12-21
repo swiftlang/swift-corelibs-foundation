@@ -810,20 +810,25 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
-    try FileManager.default._fileSystemRepresentation(withPath: auxFilePath, andPath: filePath, {
 #if os(Windows)
-        let res = CopyFileW($0, $1, /*bFailIfExists=*/false)
-        try? FileManager.default.removeItem(atPath: auxFilePath)
-        if !res {
-          throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+    try withNTPathRepresentation(of: auxFilePath) { pwszSource in
+        try withNTPathRepresentation(of: filePath) { pwszDestination in
+            guard MoveFileExW(pwszSource, pwszDestination,
+                              MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) else {
+                let dwErrorCode = GetLastError()
+                try? FileManager.default.removeItem(atPath: auxFilePath)
+                throw _NSErrorWithWindowsError(dwErrorCode, reading: false)
+            }
         }
+    }
 #else
+    try FileManager.default._fileSystemRepresentation(withPath: auxFilePath, andPath: filePath, {
         if rename($0, $1) != 0 {
             let errorCode = errno
             try? FileManager.default.removeItem(atPath: auxFilePath)
             throw _NSErrorWithErrno(errorCode, reading: false, path: filePath)
         }
-#endif
     })
+#endif
 }
 #endif
