@@ -72,6 +72,7 @@ public var NSURLErrorNoPermissionsToReadFile: Int { return -1102 }
 public var NSURLErrorDataLengthExceedsMaximum: Int { return -1103 }
 
 // SSL errors
+public var NSURLErrorFileOutsideSafeArea: Int { return -1104 }
 public var NSURLErrorSecureConnectionFailed: Int { return -1200 }
 public var NSURLErrorServerCertificateHasBadDate: Int { return -1201 }
 public var NSURLErrorServerCertificateUntrusted: Int { return -1202 }
