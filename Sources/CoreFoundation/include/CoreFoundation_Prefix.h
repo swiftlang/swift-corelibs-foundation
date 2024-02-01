@@ -19,7 +19,11 @@
 
 #include "CFAvailability.h"
 
+#if TARGET_OS_WASI
 #define __HAS_DISPATCH__ 0
+#else
+#define __HAS_DISPATCH__ 1
+#endif
 
 // Darwin may or may not define these macros, but we rely on them for building in Swift; define them privately.
 #ifndef TARGET_OS_LINUX

@@ -18,14 +18,15 @@ let buildSettings: [CSetting] = [
     .unsafeFlags(["-Wno-int-conversion", "-fconstant-cfstrings", "-fexceptions"]),
     // .headerSearchPath("libxml2"),
     .unsafeFlags(["-I/usr/include/libxml2"]),
+    .unsafeFlags(["-I/usr/lib/swift"])
 ]
 
 let package = Package(
     name: "swift-corelibs-foundation",
     products: [
         .library(
-            name: "CoreFoundationP",
-            targets: ["CoreFoundationP"]),
+            name: "CoreFoundationPackage",
+            targets: ["CoreFoundationPackage"]),
     ],
     dependencies: [
         .package(
@@ -34,7 +35,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "CoreFoundationP",
+            name: "CoreFoundationPackage",
             dependencies: [
                 .product(name: "FoundationICU", package: "swift-foundation-icu")
             ],
