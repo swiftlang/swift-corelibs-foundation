@@ -104,7 +104,7 @@ CF_EXTERN_C_BEGIN
 #include "CFRuntime_Internal.h"
 #include <limits.h>
 #include <stdatomic.h>
-#include <Block.h>
+#include "Block.h"
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 

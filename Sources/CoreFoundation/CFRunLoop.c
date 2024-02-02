@@ -125,7 +125,7 @@ CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
 #endif
 
-#include <Block.h>
+#include "Block.h"
 #if __has_include(<Block_private.h>)
 #include <Block_private.h>
 #elif __has_include("Block_private.h")

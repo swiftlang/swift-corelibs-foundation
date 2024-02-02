@@ -72,6 +72,7 @@
 #include "CFUUID.h"
 #include "CFUtilities.h"
 #include "CFBundle.h"
+#include "CFLocaleInternal.h"
 
 #if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32
 #include "CFMessagePort.h"
@@ -91,10 +92,10 @@
 
 #include "CFUserNotification.h"
 
-#if !DEPLOYMENT_RUNTIME_SWIFT
-#include "CFXMLNode.h"
-#include "CFXMLParser.h"
-#endif
+// #if !DEPLOYMENT_RUNTIME_SWIFT
+// #include "CFXMLNode.h"
+// #include "CFXMLParser.h"
+// #endif
 
 #endif /* ! __COREFOUNDATION_COREFOUNDATION__ */
 

@@ -73,7 +73,7 @@
 #include <stdbool.h>
 
 #if __BLOCKS__ && (TARGET_OS_OSX || TARGET_OS_IPHONE)
-#include <Block.h>
+#include "Block.h"
 #endif
 
   #if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !DEPLOYMENT_RUNTIME_SWIFT
