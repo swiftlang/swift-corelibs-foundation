@@ -48,8 +48,7 @@ let package = Package(
         .package(
             // url: "https://github.com/apple/swift-foundation",
             // branch: "main"
-            url: "https://github.com/parkera/swift-foundation",
-            branch: "parkera/rename_uuid"
+            path: "../swift-foundation"
         )
     ],
     targets: [

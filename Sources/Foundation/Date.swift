@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@_exported import FoundationEssentials
+
 @_implementationOnly import CoreFoundation
 
 /**
