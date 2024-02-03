@@ -30,3 +30,4 @@ Build
 *.swp
 *.orig
 .arcconfig
+.swiftpm
