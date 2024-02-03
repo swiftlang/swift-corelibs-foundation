@@ -290,6 +290,20 @@ extension NSData {
     }
 }
 
+extension NSDate {
+    func display(_ indent: Int = 0, type: DisplayType = .primary) {
+        let indentation = String(repeating: " ", count: indent * 2)
+        switch type {
+        case .primary:
+            print("\(indentation)\"\(self)\"\n", terminator: "")
+        case .key:
+            print("\(indentation)\"\(self)\"", terminator: "")
+        case .value:
+            print("\"\(self)\"\n", terminator: "")
+        }
+    }
+}
+
 func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
     switch plist {
     case let val as [String : Any]:
@@ -303,6 +317,8 @@ func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
     case let val as NSNumber:
         val.display(indent, type: type)
     case let val as NSData:
+        val.display(indent, type: type)
+    case let val as NSDate:
         val.display(indent, type: type)
     default:
         fatalError("unhandled type \(Swift.type(of: plist))")

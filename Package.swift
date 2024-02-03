@@ -32,7 +32,7 @@ let buildSettings: [CSetting] = [
         "-fcf-runtime-abi=swift"
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift"])
+    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android]))
 ]
 
 let package = Package(
