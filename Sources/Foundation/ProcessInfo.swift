@@ -313,7 +313,8 @@ open class ProcessInfo: NSObject {
     private static let cpuSetPath = "/sys/fs/cgroup/cpuset/cpuset.cpus"
 
     private static func firstLineOfFile(path: String) throws -> Substring {
-        let data = try Data(contentsOf: URL(fileURLWithPath: path))
+        // TODO: Replace with URL version once that is available in FoundationEssentials
+        let data = try Data(contentsOf: path)
         if let string = String(data: data, encoding: .utf8), let line = string.split(separator: "\n").first {
             return line
         } else {

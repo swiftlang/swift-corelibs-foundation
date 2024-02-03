@@ -91,26 +91,14 @@ extension NSString {
 }
 
 extension NSString {
-    public struct CompareOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let caseInsensitive = CompareOptions(rawValue: 1)
-        public static let literal = CompareOptions(rawValue: 2)
-        public static let backwards = CompareOptions(rawValue: 4)
-        public static let anchored = CompareOptions(rawValue: 8)
-        public static let numeric = CompareOptions(rawValue: 64)
-        public static let diacriticInsensitive = CompareOptions(rawValue: 128)
-        public static let widthInsensitive = CompareOptions(rawValue: 256)
-        public static let forcedOrdering = CompareOptions(rawValue: 512)
-        public static let regularExpression = CompareOptions(rawValue: 1024)
-        
+    public typealias CompareOptions = String.CompareOptions
+}
+
+extension NSString.CompareOptions {
         internal func _cfValue(_ fixLiteral: Bool = false) -> CFStringCompareFlags {
             return contains(.literal) || !fixLiteral ? CFStringCompareFlags(rawValue: rawValue) : CFStringCompareFlags(rawValue: rawValue).union(.compareNonliteral)
         }
-    }
 }
-
 
 public struct StringTransform: Equatable, Hashable, RawRepresentable {
     typealias RawType = String
@@ -1275,7 +1263,8 @@ extension NSString {
     internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = Data()
         try _getExternalRepresentation(&data, url, enc)
-        try data.write(to: url, options: useAuxiliaryFile ? .atomic : [])
+        // TODO: Use URL version when that is ready
+        try data.write(to: url.path, options: useAuxiliaryFile ? .atomic : [])
     }
     
     open func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {

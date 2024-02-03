@@ -30,7 +30,8 @@ extension String.Encoding {
         guard let value = encoding?.rawValue else {
             return nil
         }
-        rawValue = value
+
+        self.init(rawValue: value)
     }
 }
 

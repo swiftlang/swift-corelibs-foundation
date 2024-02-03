@@ -579,7 +579,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return Data()
         }
         if range.location == 0 && range.length == self.length {
-            return Data(referencing: self)
+            return Data(self)
         }
         let p = self.bytes.advanced(by: range.location).bindMemory(to: UInt8.self, capacity: range.length)
         return Data(bytes: p, count: range.length)
@@ -944,7 +944,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 // MARK: -
 extension NSData : _SwiftBridgeable {
     typealias SwiftType = Data
-    internal var _swiftObject: SwiftType { return Data(referencing: self) }
+    internal var _swiftObject: SwiftType { return Data(self) }
 }
 
 extension Data : _NSBridgeable {
@@ -958,7 +958,7 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSData
     typealias SwiftType = Data
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
-    internal var _swiftObject: SwiftType { return Data(referencing: self._nsObject) }
+    internal var _swiftObject: SwiftType { return Data(self._nsObject) }
 }
 
 // MARK: -

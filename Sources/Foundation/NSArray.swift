@@ -458,7 +458,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     open func write(to url: URL, atomically: Bool) -> Bool {
         do {
             let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
-            try pListData.write(to: url, options: atomically ? .atomic : [])
+            try pListData.write(to: url.path, options: atomically ? .atomic : [])
             return true
         } catch {
             return false

@@ -976,11 +976,19 @@ extension URLError {
     public static var backgroundSessionWasDisconnected:         URLError.Code { return .backgroundSessionWasDisconnected }
 }
 
+extension POSIXErrorCode : _ErrorCodeProtocol {
+    public typealias _ErrorType = POSIXError
+}
+
 /// Describes an error in the POSIX error domain.
 extension POSIXError : _BridgedStoredNSError {
+    public var _nsError: NSError {
+        NSError(domain: NSPOSIXErrorDomain, code: Int(code.rawValue))
+    }
+
     public init(_nsError error: NSError) {
         precondition(error.domain == NSPOSIXErrorDomain)
-        self.code = error.code
+        self = POSIXError(POSIXErrorCode(rawValue: Int32(error.code))!)
     }
 
     public static var _nsErrorDomain: String { return NSPOSIXErrorDomain }

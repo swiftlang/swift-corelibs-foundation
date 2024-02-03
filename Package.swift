@@ -37,6 +37,7 @@ let buildSettings: [CSetting] = [
 
 let package = Package(
     name: "swift-corelibs-foundation",
+    platforms: [.macOS("13.3"), .iOS("16.4"), .tvOS("16.4"), .watchOS("9.4")],
     products: [
         .library(name: "Foundation", targets: ["Foundation"]),
         .executable(name: "plutil", targets: ["plutil"])
