@@ -52,7 +52,7 @@ __kCFRetainEvent = 28,
 __kCFReleaseEvent = 29
 };
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
@@ -1162,7 +1162,7 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static void __CFInitialize(void) __attribute__ ((constructor));
 #endif
 #if TARGET_OS_WIN32
