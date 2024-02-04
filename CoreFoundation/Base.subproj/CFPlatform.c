@@ -22,6 +22,10 @@
     #include <mach-o/dyld.h>
 #endif
 
+#if TARGET_OS_WASI
+#include <wasi/libc-environ.h>
+#endif
+
 #define _CFEmitInternalDiagnostics 0
 
 
@@ -1812,8 +1816,10 @@ CF_EXPORT char **_CFEnviron(void) {
     return *_NSGetEnviron();
 #elif TARGET_OS_WIN32
     return _environ;
+#elif TARGET_OS_WASI
+    return __wasilibc_get_environ();
 #else
-#if TARGET_OS_BSD || TARGET_OS_WASI
+#if TARGET_OS_BSD
     extern char **environ;
 #endif
     return environ;
