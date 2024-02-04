@@ -39,7 +39,7 @@ set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 option(HAS_LIBDISPATCH_API "has libdispatch API" ON)
-option(BUILD_NETWORKING "build FoundationNetworking module" ON)
+option(FOUNDATION_ENABLE_FOUNDATION_NETWORKING "build FoundationNetworking module" ON)
 option(FOUNDATION_BUILD_TOOLS "build tools" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
@@ -103,7 +103,7 @@ if(NOT BUILD_SHARED_LIBS)
   install(TARGETS CoreFoundation CFXMLInterface
     DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
 
-  if(BUILD_NETWORKING)
+  if(FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
       CFURLSessionInterface)
     install(TARGETS CFURLSessionInterface

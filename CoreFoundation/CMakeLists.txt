@@ -28,11 +28,14 @@ endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
-  find_package(CURL CONFIG)
-  if(CURL_FOUND)
-    set(CURL_VERSION_STRING ${CURL_VERSION})
-  else()
-    find_package(CURL REQUIRED)
+
+  if(FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
+    find_package(CURL CONFIG)
+    if(CURL_FOUND)
+      set(CURL_VERSION_STRING ${CURL_VERSION})
+    else()
+      find_package(CURL REQUIRED)
+    endif()
   endif()
 endif()
 
@@ -438,7 +441,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
   target_link_libraries(CFURLSessionInterface PRIVATE
     CURL::libcurl)
 endif()
@@ -540,10 +543,16 @@ endif()
 
 install(TARGETS
           CoreFoundation
-          CFURLSessionInterface
           CFXMLInterface
         DESTINATION
-          "${CMAKE_INSTALL_FULL_LIBDIR}")
+          "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+
+if(FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
+  install(TARGETS
+            CFURLSessionInterface
+          DESTINATION
+            "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+endif()
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
 # Double slash raise CMake error "file called with network path DESTINATION //System/Library/Frameworks".
