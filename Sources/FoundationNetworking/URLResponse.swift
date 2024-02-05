@@ -133,7 +133,7 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
     /// component of the URL. If no valid filename can be obtained using
     /// the last path component, this method uses the URL's host as the
     /// filename. If the URL's host can't be converted to a valid
-    /// filename, the filename "unknown" is used. In mose cases, this
+    /// filename, the filename "unknown" is used. In most cases, this
     /// method appends the proper file extension based on the MIME type.
     ///
     /// This method always returns a valid filename.

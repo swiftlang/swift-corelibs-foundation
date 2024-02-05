@@ -30,7 +30,7 @@ extension NotificationQueue {
 open class NotificationQueue: NSObject {
 
     internal typealias NotificationQueueList = NSMutableArray
-    internal typealias NSNotificationListEntry = (Notification, [RunLoop.Mode]) // Notification ans list of modes the notification may be posted in.
+    internal typealias NSNotificationListEntry = (Notification, [RunLoop.Mode]) // Notification and list of modes the notification may be posted in.
     internal typealias NSNotificationList = [NSNotificationListEntry] // The list of notifications to post
 
     internal let notificationCenter: NotificationCenter

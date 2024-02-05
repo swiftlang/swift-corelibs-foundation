@@ -589,7 +589,7 @@ class TestNSArray : XCTestCase {
         XCTAssertTrue(array1 == array2)
         XCTAssertTrue(array1.isEqual(array2))
         XCTAssertTrue(array1.isEqual(to: Array(array2)))
-        // if 2 arrays are equal, hashes should be equal as well. But not vise versa
+        // if 2 arrays are equal, hashes should be equal as well. But not vice versa
         XCTAssertEqual(array1.hash, array2.hash)
         XCTAssertEqual(array1.hashValue, array2.hashValue)
 

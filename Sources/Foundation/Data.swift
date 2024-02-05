@@ -1144,7 +1144,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
 
-    // A buffer of bytes whose range is too large to fit in a signle word. Used alongside a RangeReference to make it fit into _Representation's two-word size.
+    // A buffer of bytes whose range is too large to fit in a single word. Used alongside a RangeReference to make it fit into _Representation's two-word size.
     // Inlinability strategy: everything here should be easily inlinable as large _DataStorage methods should not inline into here.
     @usableFromInline
     @frozen

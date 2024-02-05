@@ -1090,7 +1090,7 @@ public struct AttributedString : AttributedStringProtocol {
             let thisRun = self[internal: thisRunIndex]
             var nextRunIndex = self.index(after: thisRunIndex)
             while nextRunIndex < self.endIndex {
-                let (nextRun, location) = self._guts.runAndLocation(at: nextRunIndex.rangeIndex) // Call to guts directly to avoid unneccesary range clamping
+                let (nextRun, location) = self._guts.runAndLocation(at: nextRunIndex.rangeIndex) // Call to guts directly to avoid unnecessary range clamping
                 if !Self.__equalAttributeSlices(lhs: thisRun.attributes, rhs: nextRun.attributes, attributes: attributeNames) {
                     return self._guts.index(_guts.startIndex, offsetByUTF8: location)
                 }

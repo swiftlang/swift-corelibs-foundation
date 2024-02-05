@@ -332,7 +332,7 @@ class TestURLSession: LoopbackServerTest {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         var urlRequest = URLRequest(url: URL(string: urlString)!)
         urlRequest.setValue("2.0", forHTTPHeaderField: "X-Pause")
-        let d = DataTask(with: expectation(description: "GET \(urlString): task cancelation"))
+        let d = DataTask(with: expectation(description: "GET \(urlString): task cancellation"))
         d.cancelExpectation = expectation(description: "GET \(urlString): task canceled")
         d.run(with: urlRequest)
         d.cancel()
@@ -449,7 +449,7 @@ class TestURLSession: LoopbackServerTest {
     }
     
     // Verify httpAdditionalHeaders from session configuration are added to the request
-    // and whether it is overriden by Request.allHTTPHeaderFields.
+    // and whether it is overridden by Request.allHTTPHeaderFields.
     
     func test_verifyHttpAdditionalHeaders() {
         let config = URLSessionConfiguration.default

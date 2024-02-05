@@ -40,7 +40,7 @@ internal func withNTPathRepresentation<Result>(of path: String, _ body: (UnsafeP
     var path = path
 
     // Strip the leading `/` on a RFC8089 path (`/[drive-letter]:/...` ).  A
-    // leading slash indicates a rooted path on the drive for teh current
+    // leading slash indicates a rooted path on the drive for the current
     // working directory.
     var iter = path.makeIterator()
     if iter.next() == "/", iter.next()?.isLetter ?? false, iter.next() == ":" {
@@ -487,7 +487,7 @@ extension FileManager {
 
         // Canonicalize the NT Object Manager Path to the DOS style path
         // instead.  Unfortunately, there is no nice API which can allow us to
-        // do this in a guranteed way.
+        // do this in a guaranteed way.
         let kObjectManagerPrefix = "\\??\\"
         if substitutePath.hasPrefix(kObjectManagerPrefix) {
           substitutePath = String(substitutePath.dropFirst(kObjectManagerPrefix.count))

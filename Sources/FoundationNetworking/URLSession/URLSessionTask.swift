@@ -422,7 +422,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// nestable.
     open func suspend() {
         // suspend / resume is implemented simply by adding / removing the task's
-        // easy handle fromt he session's multi-handle.
+        // easy handle from the session's multi-handle.
         //
         // This might result in slightly different behaviour than the Darwin Foundation
         // implementation, but it'll be difficult to get complete parity anyhow.

@@ -46,7 +46,7 @@ internal func splitData(dispatchData data: DispatchData, atPosition position: In
 
 /// A (non-blocking) source for body data.
 internal protocol _BodySource: AnyObject {
-    /// Get the next chunck of data.
+    /// Get the next chunk of data.
     ///
     /// - Returns: `.data` until the source is exhausted, at which point it will
     /// return `.done`. Since this is non-blocking, it will return `.retryLater`

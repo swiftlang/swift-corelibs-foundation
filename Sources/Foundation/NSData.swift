@@ -283,7 +283,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     open var bytes: UnsafeRawPointer {
         requireFunnelOverridden()
         guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
-            //This could occure on empty data being encoded.
+            //This could occur on empty data being encoded.
             //TODO: switch with nil when signature is fixed
             return UnsafeRawPointer(bitPattern: 0x7f00dead)! //would not result in 'nil unwrapped optional'
         }
@@ -488,7 +488,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
 
             // NOTE: Each flag such as `S_IRUSR` may be literal depends on the system.
-            // Without explicity type them as `Int`, type inference will not complete in reasonable time
+            // Without explicitly type them as `Int`, type inference will not complete in reasonable time
             // and the compiler will throw an error.
 #if os(Windows)
             let createMode = Int(ucrt.S_IREAD) | Int(ucrt.S_IWRITE)

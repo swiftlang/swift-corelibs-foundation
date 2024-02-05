@@ -159,7 +159,7 @@ class TestStream : XCTestCase {
         }
         
         XCTAssertEqual(((1 + str.count) * str.count)/2, sum) // Test on sum of arithmetic sequence :)
-        XCTAssertEqual(try testSubdata(UInt64(str.count))!.count, 0) // It shouldbe end
+        XCTAssertEqual(try testSubdata(UInt64(str.count))!.count, 0) // It should be end
         
         do {
             _ = try testSubdata(UInt64(str.count + 1)) // out of boundaries

@@ -694,7 +694,7 @@ extension FileManager {
 
         public static let userDomainMask = SearchPathDomainMask(rawValue: 1) // user's home directory --- place to install user's personal items (~)
         public static let localDomainMask = SearchPathDomainMask(rawValue: 2) // local to the current machine --- place to install items available to everyone on this machine (/Library)
-        public static let networkDomainMask = SearchPathDomainMask(rawValue: 4) // publically available location in the local area network --- place to install items available on the network (/Network)
+        public static let networkDomainMask = SearchPathDomainMask(rawValue: 4) // publicly available location in the local area network --- place to install items available on the network (/Network)
         public static let systemDomainMask = SearchPathDomainMask(rawValue: 8) // provided by Apple, unmodifiable (/System)
         public static let allDomainsMask = SearchPathDomainMask(rawValue: 0x0ffff) // all domains: all of the above and future items
     }

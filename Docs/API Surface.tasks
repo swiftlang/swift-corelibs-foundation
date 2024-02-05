@@ -16,7 +16,7 @@ Tag Documentation:
 The 'done' keyword indicates a symbol or type that is in the desired final state. For desirable symbols, it means it is present in swift-corelibs-foundation; for unsupported symbols, it means it is absent (for types) or present and marked unsupported (for members). What 'done' does _not_ mean is that that symbol or class fully implements the contract, or that it is bug-free; just that it is present or absent in the way it is appropriate for it to be.
 
 [unsupported]: —
-An unsupported symbol indicates some functionality that is outside the cross-platform subset we support in swift-corelibs-foundation. Unsupported symbols are accompained by a separate reason tag that indicates why precisely the symbol is not supported, if possible.
+An unsupported symbol indicates some functionality that is outside the cross-platform subset we support in swift-corelibs-foundation. Unsupported symbols are accompanied by a separate reason tag that indicates why precisely the symbol is not supported, if possible.
 
 [grandfathered]: —
 The default policy for symbols that are unsupported is as follows –

@@ -736,12 +736,12 @@ class TestNSCalendar: XCTestCase {
             try block(calendar, DateInterval(start: firstDate, end: secondDate))
         }
         
-        try yield(to: block, (.gregorian,             "en_US",   "America/Edmonton",    "1906-09-01 00:33:52 -0700",   "1906-09-03 00:00:00 -0700")) // suprise weekend 1
-        try yield(to: block, (.gregorian,             "en_US",   "Asia/Damascus",       "2006-04-01 01:00:00 +0300",   "2006-04-03 00:00:00 +0300")) // suprise weekend 2
-        try yield(to: block, (.gregorian,             "en_US",   "Asia/Tehran",         "2014-03-22 01:00:00 +0430",   "2014-03-24 00:00:00 +0430")) // suprise weekend 3
-        try yield(to: block, (.gregorian,             "en_US",   "Africa/Algiers",      "1971-04-24 00:00:00 +0000",   "1971-04-26 00:00:00 +0100")) // suprise weekday 1
-        try yield(to: block, (.gregorian,             "en_US",   "America/Toronto",     "1919-03-29 00:00:00 -0500",   "1919-03-31 00:30:00 -0400")) // suprise weekday 2
-        try yield(to: block, (.gregorian,             "en_US",   "Europe/Madrid",       "1978-04-01 00:00:00 +0100",   "1978-04-03 00:00:00 +0200")) // suprise weekday 3
+        try yield(to: block, (.gregorian,             "en_US",   "America/Edmonton",    "1906-09-01 00:33:52 -0700",   "1906-09-03 00:00:00 -0700")) // surprise weekend 1
+        try yield(to: block, (.gregorian,             "en_US",   "Asia/Damascus",       "2006-04-01 01:00:00 +0300",   "2006-04-03 00:00:00 +0300")) // surprise weekend 2
+        try yield(to: block, (.gregorian,             "en_US",   "Asia/Tehran",         "2014-03-22 01:00:00 +0430",   "2014-03-24 00:00:00 +0430")) // surprise weekend 3
+        try yield(to: block, (.gregorian,             "en_US",   "Africa/Algiers",      "1971-04-24 00:00:00 +0000",   "1971-04-26 00:00:00 +0100")) // surprise weekday 1
+        try yield(to: block, (.gregorian,             "en_US",   "America/Toronto",     "1919-03-29 00:00:00 -0500",   "1919-03-31 00:30:00 -0400")) // surprise weekday 2
+        try yield(to: block, (.gregorian,             "en_US",   "Europe/Madrid",       "1978-04-01 00:00:00 +0100",   "1978-04-03 00:00:00 +0200")) // surprise weekday 3
         try yield(to: block, (.hebrew,                "he_IL",   "Asia/Jerusalem",      "2018-03-23 00:00:00 +0200",   "2018-03-25 00:00:00 +0300")) // weekend with DST jump
         try yield(to: block, (.japanese,              "ja_JP",   "Asia/Tokyo",          "2015-08-22 00:00:00 +0900",   "2015-08-24 00:00:00 +0900")) // japanese
         try yield(to: block, (.persian,               "ps_AF",   "Asia/Kabul",          "2015-03-19 00:00:00 +0430",   "2015-03-21 00:00:00 +0430")) // persian

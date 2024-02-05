@@ -17,7 +17,7 @@ import Foundation
 
 
 // Iterate through a SubString validating that the input is ASCII and converting any %xx
-// percent endcoded hex sequences to a UInt8 byte.
+// percent encoded hex sequences to a UInt8 byte.
 private struct _PercentDecoder: IteratorProtocol {
 
     enum Element {
@@ -140,7 +140,7 @@ internal class _DataURLProtocol: URLProtocol {
              while let element = iterator.next() {
                 switch element {
                     case .asciiCharacter(let ch) where ch == Character(","):
-                        // ";base64 must be the last part just before the ',' that seperates the header from the data
+                        // ";base64 must be the last part just before the ',' that separates the header from the data
                         if foundCharsetKey {
                             charSet = part
                         } else {

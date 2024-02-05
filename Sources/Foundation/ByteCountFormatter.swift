@@ -290,7 +290,7 @@ open class ByteCountFormatter : Formatter {
         return divide(byteCount, by: byteSize, for: unitsToUse[counter])
     }
     
-    // Coverts the number of bytes to the correct value given a specified unit, then passes the value and unit to formattedValue
+    // Converts the number of bytes to the correct value given a specified unit, then passes the value and unit to formattedValue
     private func divide(_ bytes: Double, by byteSize: [Unit: Double], for unit: Unit) -> String {
         guard let byteSizeUnit = byteSize[unit] else {
             fatalError("Cannot find value \(unit)")

@@ -277,14 +277,14 @@ class TestXMLDocument : LoopbackServerTest {
             XCTAssertEqual(element.attribute(forName: "name")?.stringValue, "John", "name==John")
             XCTAssertEqual(element.attribute(forName: "ns1:name")?.stringValue, "Tom", "ns1:name==Tom")
             XCTAssertEqual(element.attribute(forName: "ns1:age")?.stringValue, "44", "ns1:age==44")
-            XCTAssertEqual(element.attribute(forName: "ns2:address")?.stringValue, "Foobar City", "ns2:addresss==Foobar City")
+            XCTAssertEqual(element.attribute(forName: "ns2:address")?.stringValue, "Foobar City", "ns2:address==Foobar City")
 
             // Retrieve attributes with URI
             XCTAssertEqual(element.attribute(forLocalName: "name", uri: nil)?.stringValue, "John", "name==John")
             XCTAssertEqual(element.attribute(forLocalName: "name", uri: uriNs1)?.stringValue, "Tom", "name==Tom")
             XCTAssertEqual(element.attribute(forLocalName: "age", uri: uriNs1)?.stringValue, "44", "age==44")
             XCTAssertNil(element.attribute(forLocalName: "address", uri: uriNs1), "address==nil")
-            XCTAssertEqual(element.attribute(forLocalName: "address", uri: uriNs2)?.stringValue, "Foobar City", "addresss==Foobar City")
+            XCTAssertEqual(element.attribute(forLocalName: "address", uri: uriNs2)?.stringValue, "Foobar City", "address==Foobar City")
 
             // Overwrite attributes
             element.addAttribute(XMLNode.attribute(withName: "ns1:age", stringValue: "33") as! XMLNode)

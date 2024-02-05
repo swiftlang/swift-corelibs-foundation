@@ -325,8 +325,8 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
     
     open func objects(options opts: NSEnumerationOptions = [], passingTest predicate: (Any, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Set<AnyHashable> {
         var result = Set<AnyHashable>()
-        enumerateObjects(options: opts) { obj, stopp in
-            if predicate(obj, stopp) {
+        enumerateObjects(options: opts) { obj, stop in
+            if predicate(obj, stop) {
                 result.insert(obj as! AnyHashable)
             }
         }

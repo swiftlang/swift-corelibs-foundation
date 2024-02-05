@@ -233,7 +233,7 @@ open class URLProtocol : NSObject {
         the given request.
         @discussion A concrete subclass should inspect the given request and
         determine whether or not the implementation can perform a load with
-        that request. This is an abstract method. Sublasses must provide an
+        that request. This is an abstract method. Subclasses must provide an
         implementation. The implementation in this class calls
         NSRequestConcreteImplementation.
         @param request A request to inspect.
@@ -255,7 +255,7 @@ open class URLProtocol : NSObject {
         used to look up objects in the URL cache, a process which performs
         equality checks between NSURLRequest objects.
         <p>
-        This is an abstract method; sublasses must provide an
+        This is an abstract method; subclasses must provide an
         implementation. The implementation in this class calls
         NSRequestConcreteImplementation.
         @param request A request to make canonical.

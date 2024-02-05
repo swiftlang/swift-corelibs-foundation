@@ -1052,7 +1052,7 @@ class TestFileManager : XCTestCase {
             try FileManager.default.removeItem(at: baseURL)
 
             #if !os(Windows)
-            // D) Check infinite recursion loops are stopped and the function returns the intial symlink
+            // D) Check infinite recursion loops are stopped and the function returns the initial symlink
             //
             // Note: This cannot be tested on platforms which only support creating symlinks pointing to existing targets.
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)

@@ -829,7 +829,7 @@ class TestProcess : XCTestCase {
 
         let parts = string.trimmingCharacters(in: .newlines).components(separatedBy: ": ")
         guard parts.count == 2, parts[0] == "pgrp", let childPgrp = Int(parts[1]) else {
-            XCTFail("Could not pgrp fron stdout")
+            XCTFail("Could not pgrp from stdout")
             return
         }
         let parentPgrp = Int(getpgrp())

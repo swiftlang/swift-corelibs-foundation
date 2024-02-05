@@ -834,13 +834,13 @@ class TestNSData: LoopbackServerTest {
         XCTAssertEqual(
             Data(repeating: 0, count: 48).base64EncodedString(options: .lineLength64Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "each 3 byte is converted into 4 characterss. 48 / 3 * 4 <= 64, therefore result should not have line separator."
+            "each 3 byte is converted into 4 characters. 48 / 3 * 4 <= 64, therefore result should not have line separator."
         )
         
         XCTAssertEqual(
             Data(repeating: 0, count: 57).base64EncodedString(options: .lineLength76Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "each 3 byte is converted into 4 characterss. 57 / 3 * 4 <= 76, therefore result should not have line separator."
+            "each 3 byte is converted into 4 characters. 57 / 3 * 4 <= 76, therefore result should not have line separator."
         )
     }
     
@@ -849,13 +849,13 @@ class TestNSData: LoopbackServerTest {
         XCTAssertEqual(
             Data(repeating: 0, count: 49).base64EncodedString(options: .lineLength64Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAA==",
-            "each 3 byte is converted into 4 characterss. 49 / 3 * 4 > 64, therefore result should have lines with separator."
+            "each 3 byte is converted into 4 characters. 49 / 3 * 4 > 64, therefore result should have lines with separator."
         )
         
         XCTAssertEqual(
             Data(repeating: 0, count: 58).base64EncodedString(options: .lineLength76Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAA==",
-            "each 3 byte is converted into 4 characterss. 58 / 3 * 4 > 76, therefore result should have lines with separator."
+            "each 3 byte is converted into 4 characters. 58 / 3 * 4 > 76, therefore result should have lines with separator."
         )
     }
     

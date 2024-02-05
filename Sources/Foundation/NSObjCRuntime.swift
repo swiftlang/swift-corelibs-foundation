@@ -190,7 +190,7 @@ public typealias Comparator = (Any, Any) -> ComparisonResult
 public let NSNotFound: Int = Int.max
 
 internal func NSRequiresConcreteImplementation(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
-    fatalError("\(fn) must be overriden in subclass implementations", file: file, line: line)
+    fatalError("\(fn) must be overridden in subclass implementations", file: file, line: line)
 }
 
 internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
