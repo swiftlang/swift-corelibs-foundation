@@ -14,6 +14,8 @@
     import Foundation
 #endif
 
+import XCTest
+
 // -----
 
 extension Calendar {

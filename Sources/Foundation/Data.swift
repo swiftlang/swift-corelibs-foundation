@@ -29,6 +29,12 @@ extension Data {
     }
 }
 
+extension Data {
+    public init(referencing d: NSData) {
+        self = Data(d)
+    }
+}
+
 // TODO: Allow bridging via protocol
 extension Data /*: _ObjectiveCBridgeable */ {
     @_semantics("convertToObjectiveC")

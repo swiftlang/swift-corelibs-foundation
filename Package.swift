@@ -50,6 +50,10 @@ let package = Package(
             // url: "https://github.com/apple/swift-foundation",
             // branch: "main"
             path: "../swift-foundation"
+        ),
+        .package(
+            url: "https://github.com/apple/swift-corelibs-xctest",
+            branch: "main"
         )
     ],
     targets: [
@@ -84,6 +88,17 @@ let package = Package(
         .executableTarget(
             name: "plutil",
             dependencies: ["Foundation"]
-        )
+        ),
+        .testTarget(
+            name: "TestFoundation",
+            dependencies: [
+                "Foundation",
+                .product(name: "XCTest", package: "swift-corelibs-xctest"),
+            ],
+            resources: [
+                .copy("Resources/Info.plist"),
+                .copy("Resources/NSStringTestData.txt")
+            ]
+        ),
     ]
 )
