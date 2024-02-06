@@ -66,10 +66,10 @@ let package = Package(
             name: "CoreFoundationPackage",
             dependencies: [
                 .product(name: "FoundationICU", package: "swift-foundation-icu"),
-                "Clibxml2"
+                "Clibxml2",
+                "Clibcurl"
             ],
             path: "Sources/CoreFoundation",
-            exclude: ["CFURLSessionInterface.c"], // TODO: Need curl
             cSettings: buildSettings
         ),
         .systemLibrary(
@@ -78,6 +78,14 @@ let package = Package(
             providers: [
                 .brew(["libxml2"]),
                 .apt(["libxml2-dev"])
+            ]
+        ),
+        .systemLibrary(
+            name: "Clibcurl",
+            pkgConfig: "libcurl",
+            providers: [
+                .brew(["libcurl"]),
+                .apt(["libcurl"])
             ]
         ),
         .executableTarget(
@@ -104,6 +112,9 @@ let package = Package(
             resources: [
                 .copy("Tests/Foundation/Resources/Info.plist"),
                 .copy("Tests/Foundation/Resources/NSStringTestData.txt")
+            ],
+            swiftSettings: [
+                .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT")
             ]
         ),
     ]
