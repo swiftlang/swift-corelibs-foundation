@@ -47,14 +47,9 @@ let package = Package(
             url: "https://github.com/apple/swift-foundation-icu",
             exact: "0.0.5"),
         .package(
-            // url: "https://github.com/apple/swift-foundation",
-            // branch: "main"
-            path: "../swift-foundation"
-        ),
-        .package(
-            url: "https://github.com/apple/swift-corelibs-xctest",
+            url: "https://github.com/apple/swift-foundation",
             branch: "main"
-        )
+        ),
     ],
     targets: [
         .target(
@@ -89,15 +84,26 @@ let package = Package(
             name: "plutil",
             dependencies: ["Foundation"]
         ),
+        .target(
+            // swift-corelibs-foundation has a copy of XCTest's sources so:
+            // (1) we do not depend on the toolchain's XCTest, which depends on toolchain's Foundation, which we cannot pull in at the same time as a Foundation package
+            // (2) we do not depend on a swift-corelibs-xctest Swift package, which depends on Foundation, which causes a circular dependency in swiftpm
+            // We believe Foundation is the only project that needs to take this rather drastic measure.
+            name: "XCTest", 
+            dependencies: [
+                "Foundation"
+            ], 
+            path: "Sources/XCTest"
+        ),
         .testTarget(
             name: "TestFoundation",
             dependencies: [
                 "Foundation",
-                .product(name: "XCTest", package: "swift-corelibs-xctest"),
+                "XCTest"
             ],
             resources: [
-                .copy("Resources/Info.plist"),
-                .copy("Resources/NSStringTestData.txt")
+                .copy("Tests/Foundation/Resources/Info.plist"),
+                .copy("Tests/Foundation/Resources/NSStringTestData.txt")
             ]
         ),
     ]
