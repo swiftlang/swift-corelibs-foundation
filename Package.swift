@@ -32,7 +32,36 @@ let buildSettings: [CSetting] = [
         "-fcf-runtime-abi=swift"
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android]))
+    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
+]
+
+let xmlInterfaceBuildSettings: [CSetting] = [
+    .headerSearchPath("../CoreFoundation/internalInclude"),
+    .headerSearchPath("../CoreFoundation/include"),
+    .define("DEBUG", .when(configuration: .debug)),
+    .define("CF_BUILDING_CF"),
+    .define("DEPLOYMENT_RUNTIME_SWIFT"),
+    .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
+    .define("HAVE_STRUCT_TIMESPEC"),
+    .define("__CONSTANT_CFSTRINGS__"),
+    .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
+    .unsafeFlags([
+        "-Wno-shorten-64-to-32",
+        "-Wno-deprecated-declarations",
+        "-Wno-unreachable-code",
+        "-Wno-conditional-uninitialized",
+        "-Wno-unused-variable",
+        "-Wno-int-conversion",
+        "-Wno-unused-function",
+        "-Wno-microsoft-enum-forward-reference",
+        "-fconstant-cfstrings", 
+        "-fexceptions", // TODO: not on OpenBSD
+        "-fdollars-in-identifiers",
+        "-fno-common",
+        "-fcf-runtime-abi=swift"
+        // /EHsc for Windows
+    ]),
+    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
 ]
 
 let package = Package(
@@ -63,14 +92,32 @@ let package = Package(
             swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
         ),
         .target(
+            name: "FoundationXML",
+            dependencies: [
+                .product(name: "FoundationEssentials", package: "swift-foundation"),
+                "CoreFoundationPackage",
+                "CFXMLInterface"
+            ],
+            path: "Sources/FoundationXML",
+            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
+        ),
+        .target(
             name: "CoreFoundationPackage",
             dependencies: [
                 .product(name: "FoundationICU", package: "swift-foundation-icu"),
-                "Clibxml2",
                 "Clibcurl"
             ],
             path: "Sources/CoreFoundation",
             cSettings: buildSettings
+        ),
+        .target(
+            name: "CFXMLInterface",
+            dependencies: [
+                "CoreFoundationPackage",
+                "Clibxml2",
+            ],
+            path: "Sources/CFXMLInterface",
+            cSettings: xmlInterfaceBuildSettings
         ),
         .systemLibrary(
             name: "Clibxml2",

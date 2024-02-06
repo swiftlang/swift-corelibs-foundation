@@ -14,7 +14,7 @@
 #if !defined(__COREFOUNDATION_CFXMLINTERFACE__)
 #define __COREFOUNDATION_CFXMLINTERFACE__ 1
 
-#include "CoreFoundation.h"
+#include <CoreFoundation/CoreFoundation.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdbool.h>
