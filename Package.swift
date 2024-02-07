@@ -70,6 +70,8 @@ let package = Package(
     platforms: [.macOS("13.3"), .iOS("16.4"), .tvOS("16.4"), .watchOS("9.4")],
     products: [
         .library(name: "Foundation", targets: ["Foundation"]),
+        .library(name: "FoundationXML", targets: ["FoundationXML"]),
+        .library(name: "FoundationNetworking", targets: ["FoundationNetworking"]),
         .executable(name: "plutil", targets: ["plutil"])
     ],
     dependencies: [
@@ -176,6 +178,8 @@ let package = Package(
             name: "TestFoundation",
             dependencies: [
                 "Foundation",
+                "FoundationXML",
+                "FoundationNetworking",
                 "XCTest"
             ],
             resources: [
