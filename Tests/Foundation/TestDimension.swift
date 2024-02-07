@@ -17,7 +17,7 @@ class TestDimension: XCTestCase {
         original.encode(with: archiver)
         archiver.finishEncoding()
 
-        let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData as Data)
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: Data(encodedData))
         let decoded = Dimension(coder: unarchiver)
 
         XCTAssertNotNil(decoded)
