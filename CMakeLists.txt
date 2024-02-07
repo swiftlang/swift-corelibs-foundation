@@ -40,7 +40,7 @@ set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 option(HAS_LIBDISPATCH_API "has libdispatch API" ON)
 option(BUILD_NETWORKING "build FoundationNetworking module" ON)
-option(BUILD_TOOLS "build tools" ON)
+option(FOUNDATION_BUILD_TOOLS "build tools" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
 if(HAS_LIBDISPATCH_API)
