@@ -10,10 +10,10 @@
 //import libxml2
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 import SwiftFoundation
-import CFXMLInterface
+import _CFXMLInterface
 #else
 import Foundation
-@_implementationOnly import CFXMLInterface
+@_implementationOnly import _CFXMLInterface
 #endif
 @_implementationOnly import CoreFoundation
 

@@ -14,7 +14,7 @@ import Foundation
 #endif
 
 @_implementationOnly import CoreFoundation
-@_implementationOnly import CFURLSessionInterface
+@_implementationOnly import _CFURLSessionInterface
 import Dispatch
 
 internal class _WebSocketURLProtocol: _HTTPURLProtocol {

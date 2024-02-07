@@ -85,7 +85,7 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
             switch statusCode {
                 // These are the only valid response codes that data will be returned for, all other codes will be treated as error.
                 case 101, 200...399, 401, 407:
-                    return (data as NSData, urlResponse?.textEncodingName)
+                    return (NSData(data: data), urlResponse?.textEncodingName)
 
                 default:
                     break

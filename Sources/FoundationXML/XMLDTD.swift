@@ -13,7 +13,7 @@ import SwiftFoundation
 import Foundation
 #endif
 @_implementationOnly import CoreFoundation
-@_implementationOnly import CFXMLInterface
+@_implementationOnly import _CFXMLInterface
 
 /*!
     @class XMLDTD
@@ -44,7 +44,7 @@ open class XMLDTD : XMLNode {
         setupXMLParsing()
         var unmanagedError: Unmanaged<CFError>? = nil
         
-        guard let node = _CFXMLParseDTDFromData(unsafeBitCast(NSData(data: data) /* data as NSData */, to: CFData.self), &unmanagedError) else {
+        guard let node = _CFXMLParseDTDFromData(unsafeBitCast(data._bridgeToObjectiveC(), to: CFData.self), &unmanagedError) else {
             if let error = unmanagedError?.takeRetainedValue() {
                 throw _CFErrorSPIForFoundationXMLUseOnly(unsafelyAssumingIsCFError: error)._nsObject
             }

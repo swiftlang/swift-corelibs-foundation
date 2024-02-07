@@ -35,7 +35,8 @@ let buildSettings: [CSetting] = [
     .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
 ]
 
-let xmlInterfaceBuildSettings: [CSetting] = [
+// For _CFURLSessionInterface, _CFXMLInterface
+let interfaceBuildSettings: [CSetting] = [
     .headerSearchPath("../CoreFoundation/internalInclude"),
     .headerSearchPath("../CoreFoundation/include"),
     .define("DEBUG", .when(configuration: .debug)),
@@ -95,10 +96,22 @@ let package = Package(
             name: "FoundationXML",
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
+                "Foundation",
                 "CoreFoundationPackage",
-                "CFXMLInterface"
+                "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
+            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
+        ),
+        .target(
+            name: "FoundationNetworking",
+            dependencies: [
+                .product(name: "FoundationEssentials", package: "swift-foundation"),
+                "Foundation",
+                "CoreFoundationPackage",
+                "_CFURLSessionInterface"
+            ],
+            path: "Sources/FoundationNetworking",
             swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
         ),
         .target(
@@ -111,13 +124,22 @@ let package = Package(
             cSettings: buildSettings
         ),
         .target(
-            name: "CFXMLInterface",
+            name: "_CFXMLInterface",
             dependencies: [
                 "CoreFoundationPackage",
                 "Clibxml2",
             ],
-            path: "Sources/CFXMLInterface",
-            cSettings: xmlInterfaceBuildSettings
+            path: "Sources/_CFXMLInterface",
+            cSettings: interfaceBuildSettings
+        ),
+        .target(
+            name: "_CFURLSessionInterface",
+            dependencies: [
+                "CoreFoundationPackage",
+                "Clibcurl",
+            ],
+            path: "Sources/_CFURLSessionInterface",
+            cSettings: interfaceBuildSettings
         ),
         .systemLibrary(
             name: "Clibxml2",
