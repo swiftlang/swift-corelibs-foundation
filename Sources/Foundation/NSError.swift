@@ -1038,7 +1038,7 @@ extension POSIXError {
     /// Bad address.
     public static var EFAULT: POSIXError.Code { return .EFAULT }
 
-    #if !os(Windows)
+    #if !os(Windows) && !os(WASI)
     /// Block device required.
     public static var ENOTBLK: POSIXError.Code { return .ENOTBLK }
     #endif
@@ -1141,8 +1141,10 @@ extension POSIXError {
     /// Protocol not supported.
     public static var EPROTONOSUPPORT: POSIXError.Code { return .EPROTONOSUPPORT }
 
+    #if !os(WASI)
     /// Socket type not supported.
     public static var ESOCKTNOSUPPORT: POSIXError.Code { return .ESOCKTNOSUPPORT }
+    #endif
     #endif
 
     #if canImport(Darwin)
@@ -1151,8 +1153,10 @@ extension POSIXError {
     #endif
 
     #if !os(Windows)
+    #if !os(WASI)
     /// Protocol family not supported.
     public static var EPFNOSUPPORT: POSIXError.Code { return .EPFNOSUPPORT }
+    #endif
 
     /// Address family not supported by protocol family.
     public static var EAFNOSUPPORT: POSIXError.Code { return .EAFNOSUPPORT }
@@ -1191,11 +1195,13 @@ extension POSIXError {
     /// Socket is not connected.
     public static var ENOTCONN: POSIXError.Code { return .ENOTCONN }
 
+    #if !os(WASI)
     /// Can't send after socket shutdown.
     public static var ESHUTDOWN: POSIXError.Code { return .ESHUTDOWN }
 
     /// Too many references: can't splice.
     public static var ETOOMANYREFS: POSIXError.Code { return .ETOOMANYREFS }
+    #endif
 
     /// Operation timed out.
     public static var ETIMEDOUT: POSIXError.Code { return .ETIMEDOUT }
@@ -1211,8 +1217,10 @@ extension POSIXError {
     public static var ENAMETOOLONG: POSIXError.Code { return .ENAMETOOLONG }
 
     #if !os(Windows)
+    #if !os(WASI)
     /// Host is down.
     public static var EHOSTDOWN: POSIXError.Code { return .EHOSTDOWN }
+    #endif
 
     /// No route to host.
     public static var EHOSTUNREACH: POSIXError.Code { return .EHOSTUNREACH }
@@ -1229,8 +1237,10 @@ extension POSIXError {
     #endif
     
     #if !os(Windows)
+    #if !os(WASI)
     /// Too many users.
     public static var EUSERS: POSIXError.Code { return .EUSERS }
+    #endif
 
     /// Disk quota exceeded.
     public static var EDQUOT: POSIXError.Code { return .EDQUOT }
@@ -1238,7 +1248,7 @@ extension POSIXError {
 
     /// Network File System
 
-    #if !os(Windows)
+    #if !os(Windows) && !os(WASI)
     /// Stale NFS file handle.
     public static var ESTALE: POSIXError.Code { return .ESTALE }
 
@@ -1346,23 +1356,27 @@ extension POSIXError {
     /// Reserved.
     public static var EMULTIHOP: POSIXError.Code { return .EMULTIHOP }
 
+    #if !os(WASI)
     /// No message available on STREAM.
     public static var ENODATA: POSIXError.Code { return .ENODATA }
+    #endif
 
     /// Reserved.
     public static var ENOLINK: POSIXError.Code { return .ENOLINK }
 
+    #if !os(WASI)
     /// No STREAM resources.
     public static var ENOSR: POSIXError.Code { return .ENOSR }
 
     /// Not a STREAM.
     public static var ENOSTR: POSIXError.Code { return .ENOSTR }
     #endif
+    #endif
 
     /// Protocol error.
     public static var EPROTO: POSIXError.Code { return .EPROTO }
 
-    #if !os(OpenBSD)
+    #if !os(OpenBSD) && !os(WASI)
     /// STREAM ioctl timeout.
     public static var ETIME: POSIXError.Code { return .ETIME }
     #endif
