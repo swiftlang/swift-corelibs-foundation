@@ -72,7 +72,8 @@
 #include "CFUUID.h"
 #include "CFUtilities.h"
 #include "CFBundle.h"
-#include "CFLocaleInternal.h"
+
+#include "ForSwiftFoundationOnly.h"
 
 #if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32
 #include "CFMessagePort.h"

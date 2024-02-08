@@ -142,7 +142,7 @@ CFURLSessionEasyCode CFURLSessionInit(void) {
 
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 86)
 
-Boolean CFURLSessionWebSocketsSupported(void) {
+bool CFURLSessionWebSocketsSupported(void) {
     curl_version_info_data *info = curl_version_info(CURLVERSION_NOW);
     for (int i = 0; ; i++) {
         const char * const protocol = info->protocols[i];
@@ -173,7 +173,7 @@ CFURLSessionWebSocketsFrame * _Nonnull CFURLSessionEasyHandleWebSocketsMetadata(
 
 #else
 
-Boolean CFURLSessionWebSocketsSupported(void) {
+bool CFURLSessionWebSocketsSupported(void) {
     return false;
 }
 

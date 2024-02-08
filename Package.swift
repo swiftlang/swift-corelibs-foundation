@@ -10,7 +10,6 @@ let buildSettings: [CSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
     .define("HAVE_STRUCT_TIMESPEC"),
-    .define("__CONSTANT_CFSTRINGS__"),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
     .define("CF_CHARACTERSET_UNICODE_DATA_L", to: "\"Sources/CoreFoundation/CFUnicodeData-L.mapping\""),
     .define("CF_CHARACTERSET_UNICODE_DATA_B", to: "\"Sources/CoreFoundation/CFUnicodeData-B.mapping\""),
@@ -25,7 +24,7 @@ let buildSettings: [CSetting] = [
         "-Wno-int-conversion",
         "-Wno-unused-function",
         "-Wno-microsoft-enum-forward-reference",
-        "-fconstant-cfstrings", 
+        "-fconstant-cfstrings",
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
         "-fno-common",
@@ -44,7 +43,6 @@ let interfaceBuildSettings: [CSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
     .define("HAVE_STRUCT_TIMESPEC"),
-    .define("__CONSTANT_CFSTRINGS__"),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
     .unsafeFlags([
         "-Wno-shorten-64-to-32",
@@ -55,7 +53,7 @@ let interfaceBuildSettings: [CSetting] = [
         "-Wno-int-conversion",
         "-Wno-unused-function",
         "-Wno-microsoft-enum-forward-reference",
-        "-fconstant-cfstrings", 
+        "-fconstant-cfstrings",
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
         "-fno-common",
@@ -89,7 +87,7 @@ let package = Package(
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
                 .product(name: "FoundationInternationalization", package: "swift-foundation"),
-                "CoreFoundationPackage"
+                "_CoreFoundation"
             ],
             path: "Sources/Foundation",
             swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
@@ -99,7 +97,7 @@ let package = Package(
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
                 "Foundation",
-                "CoreFoundationPackage",
+                "_CoreFoundation",
                 "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
@@ -110,17 +108,16 @@ let package = Package(
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
                 "Foundation",
-                "CoreFoundationPackage",
+                "_CoreFoundation",
                 "_CFURLSessionInterface"
             ],
             path: "Sources/FoundationNetworking",
             swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
         ),
         .target(
-            name: "CoreFoundationPackage",
+            name: "_CoreFoundation",
             dependencies: [
                 .product(name: "FoundationICU", package: "swift-foundation-icu"),
-                "Clibcurl"
             ],
             path: "Sources/CoreFoundation",
             cSettings: buildSettings
@@ -128,7 +125,7 @@ let package = Package(
         .target(
             name: "_CFXMLInterface",
             dependencies: [
-                "CoreFoundationPackage",
+                "_CoreFoundation",
                 "Clibxml2",
             ],
             path: "Sources/_CFXMLInterface",
@@ -137,7 +134,7 @@ let package = Package(
         .target(
             name: "_CFURLSessionInterface",
             dependencies: [
-                "CoreFoundationPackage",
+                "_CoreFoundation",
                 "Clibcurl",
             ],
             path: "Sources/_CFURLSessionInterface",

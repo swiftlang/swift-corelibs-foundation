@@ -13,7 +13,6 @@
 
 #include "CFRuntime.h"
 #include "CFInternal.h"
-#include "ForSwiftFoundationOnly.h"
 #include <libxml/globals.h>
 #include <libxml/xmlerror.h>
 #include <libxml/parser.h>
@@ -549,7 +548,7 @@ void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name) {
     xmlNodeSetName(node, (const xmlChar*)name);
 }
 
-Boolean _CFXMLNodeNameEqual(_CFXMLNodePtr node, const char* name) {
+bool _CFXMLNodeNameEqual(_CFXMLNodePtr node, const char* name) {
     return (xmlStrcmp(((xmlNodePtr)node)->name, (xmlChar*)name) == 0) ? true : false;
 }
 

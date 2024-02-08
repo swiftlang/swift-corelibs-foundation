@@ -33,7 +33,7 @@
 #ifndef _UUID_UUID_H
 #define _UUID_UUID_H
 
-#include <TargetConditionals.h>
+#include "CFTargetConditionals.h"
 #if TARGET_OS_MAC
 #include <sys/_types.h>
 #include <sys/_types/_uuid_t.h>

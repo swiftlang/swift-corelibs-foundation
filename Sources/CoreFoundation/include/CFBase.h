@@ -12,12 +12,7 @@
 #if !defined(__COREFOUNDATION_CFBASE__)
 #define __COREFOUNDATION_CFBASE__ 1
 
-#if __has_include(<CoreFoundation/TargetConditionals.h>)
-#include "TargetConditionals.h"
-#else
-#include <TargetConditionals.h>
-#endif
-
+#include "CFTargetConditionals.h"
 #include "CFAvailability.h"
 
 #if (defined(__CYGWIN32__) || defined(_WIN32)) && !defined(__WIN32__)

@@ -8,6 +8,7 @@
 */
 
 #include "CFCalendar.h"
+#include "CFCalendarPriv.h"
 #include "CFRuntime.h"
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
@@ -722,7 +723,7 @@ CFCalendarRef CFCalendarCreateWithIdentifier(CFAllocatorRef allocator, CFStringR
     return _CFCalendarCreate(allocator, identifier, NULL, NULL, kCFNotFound, kCFNotFound, NULL);
 }
 
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
+CF_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier) {
     return _CFCalendarInitialize(calendar, kCFAllocatorSystemDefault, identifier, NULL, NULL, kCFNotFound, kCFNotFound, NULL) ? true : false;
 }
 

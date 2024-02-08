@@ -14,7 +14,8 @@
 #if !defined(__COREFOUNDATION_CFXMLINTERFACE__)
 #define __COREFOUNDATION_CFXMLINTERFACE__ 1
 
-#include <CoreFoundation/CoreFoundation.h>
+#include "CFTargetConditionals.h"
+#include "CFBase.h"
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdbool.h>
@@ -142,7 +143,7 @@ typedef void* _CFXMLDTDPtr;
 typedef void* _CFXMLDTDNodePtr;
 
 _CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr _Nullable name_space, const char* name);
-_CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, Boolean recursive);
+_CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, bool recursive);
 
 _CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version);
 _CFXMLNodePtr _CFXMLNewProcessingInstruction(const unsigned char* name, const unsigned char* value);
@@ -160,7 +161,7 @@ CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLNodeCopyName(_CFXMLNodePtr node);
 void _CFXMLNodeForceSetName(_CFXMLNodePtr node, const char* _Nullable name);
 void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name);
-Boolean _CFXMLNodeNameEqual(_CFXMLNodePtr node, const char* name);
+bool _CFXMLNodeNameEqual(_CFXMLNodePtr node, const char* name);
 CFStringRef _Nullable _CFXMLNodeCopyContent(_CFXMLNodePtr node);
 void _CFXMLNodeSetContent(_CFXMLNodePtr node,  const unsigned char* _Nullable content);
 void _CFXMLUnlinkNode(_CFXMLNodePtr node);
@@ -178,8 +179,8 @@ void _CFXMLNodeReplaceNode(_CFXMLNodePtr node, _CFXMLNodePtr replacement);
 
 _CFXMLDocPtr _Nullable _CFXMLNodeGetDocument(_CFXMLNodePtr node);
 
-Boolean _CFXMLDocStandalone(_CFXMLDocPtr doc);
-void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, Boolean standalone);
+bool _CFXMLDocStandalone(_CFXMLDocPtr doc);
+void _CFXMLDocSetStandalone(_CFXMLDocPtr doc, bool standalone);
 _CFXMLNodePtr _Nullable _CFXMLDocRootElement(_CFXMLDocPtr doc);
 void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLDocCopyCharacterEncoding(_CFXMLDocPtr doc);
@@ -211,7 +212,7 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int option
 CFStringRef _Nullable _CFXMLNodeCopyLocalName(_CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLNodeCopyPrefix(_CFXMLNodePtr node);
 
-Boolean _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error);
+bool _CFXMLDocValidate(_CFXMLDocPtr doc, CFErrorRef _Nullable * error);
 
 _CFXMLDTDPtr _CFXMLNewDTD(_CFXMLDocPtr _Nullable doc, const unsigned char* name, const unsigned char* publicID, const unsigned char* systemID);
 _CFXMLDTDNodePtr _Nullable _CFXMLParseDTDNode(const unsigned char* xmlString);

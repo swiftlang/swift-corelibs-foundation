@@ -109,7 +109,6 @@ Boolean CFCalendarAddComponents(CFCalendarRef calendar, /* inout */ CFAbsoluteTi
 CF_EXPORT
 Boolean CFCalendarGetComponentDifference(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, ...);
 
-
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED
 

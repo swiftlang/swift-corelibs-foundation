@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#include "TargetConditionals.h"
+#include "CFTargetConditionals.h"
 
 #ifndef _Block_H_
 #define _Block_H_

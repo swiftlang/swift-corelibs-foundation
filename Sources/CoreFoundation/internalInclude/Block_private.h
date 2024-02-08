@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#include "TargetConditionals.h"
+#include "CFTargetConditionals.h"
 
 #ifndef _BLOCK_PRIVATE_H_
 #define _BLOCK_PRIVATE_H_

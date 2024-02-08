@@ -10,13 +10,7 @@
 #ifndef __COREFOUNDATION_PREFIX_H__
 #define __COREFOUNDATION_PREFIX_H__ 1
 
-#if __has_include(<CoreFoundation/TargetConditionals.h>)
-#include "TargetConditionals.h"
-#define __TARGETCONDITIONALS__ // Prevent loading the macOS TargetConditionals.h at all.
-#else
-#include <TargetConditionals.h>
-#endif
-
+#include "CFTargetConditionals.h"
 #include "CFAvailability.h"
 
 #if TARGET_OS_WASI

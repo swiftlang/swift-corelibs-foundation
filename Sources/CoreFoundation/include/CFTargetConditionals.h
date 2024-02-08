@@ -18,6 +18,10 @@
   
 */
 
+#if __has_include(<TargetConditionals.h>)
+#include <TargetConditionals.h>
+#else
+
 #ifndef __TARGETCONDITIONALS__
 #define __TARGETCONDITIONALS__
 /****************************************************************************************************
@@ -275,3 +279,6 @@
 #endif
 
 #endif  /* __TARGETCONDITIONALS__ */
+
+#endif // __has_include
+

@@ -18,8 +18,8 @@
 #include "CFBase.h"
 #include "CFNumber.h"
 #include "CFLocking.h"
-#include "CFLocaleInternal.h"
 #include "CFCalendar.h"
+#include "CFCalendarPriv.h"
 #include "CFPriv.h"
 #include "CFRegularExpression.h"
 #include "CFLogUtilities.h"
@@ -48,8 +48,6 @@
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <dirent.h>
 #endif
-
-#include "CFCalendar_Internal.h"
 
 #if __has_include(<execinfo.h>)
 #include <execinfo.h>

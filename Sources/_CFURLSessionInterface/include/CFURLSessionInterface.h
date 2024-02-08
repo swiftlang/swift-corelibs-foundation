@@ -27,7 +27,8 @@
 #if !defined(__COREFOUNDATION_URLSESSIONINTERFACE__)
 #define __COREFOUNDATION_URLSESSIONINTERFACE__ 1
 
-#include <CoreFoundation/CoreFoundation.h>
+#include "CFTargetConditionals.h"
+#include "CFBase.h"
 #include <stdio.h>
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -555,7 +556,7 @@ CF_EXPORT CFURLSessionWebSocketsMessageFlag const CFURLSessionWebSocketsPong; //
 CF_EXPORT CFURLSessionOption const CFURLSessionWebSocketsRawMode; // CURLWS_RAW_MODE
 
 // The following WebSockets functions are functional with libcurl 7.86.0 or later, when WebSockets support is enabled.  On libcurl versions without WebSockets support, they'll trap on use.  Consult CFURLSessionWebSocketsSupported() to get a runtime signal whether they're functional.
-CF_EXPORT Boolean CFURLSessionWebSocketsSupported(void);
+CF_EXPORT bool CFURLSessionWebSocketsSupported(void);
 
 typedef struct CFURLSessionWebSocketsFrame {
     int age; /* always zero */

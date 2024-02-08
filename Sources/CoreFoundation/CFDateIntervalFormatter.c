@@ -13,6 +13,7 @@
 #include "CFRuntime_Internal.h"
 
 #include "CFCalendar.h"
+#include "CFCalendar_Internal.h"
 #include "CFDate.h"
 #include "CFDateFormatter.h"
 #include "CFDateInterval.h"
