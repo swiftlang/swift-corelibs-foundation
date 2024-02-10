@@ -84,7 +84,7 @@ class TestSocketPort : XCTestCase {
 
         let received = expectation(description: "Message received")
         let delegate = TestPortDelegateWithBlock { message in
-            XCTAssertEqual(message.components as? [AnyHashable], [data._bridgeToObjectiveC()])
+            XCTAssertEqual(message.components as? [AnyHashable], [data as NSData])
             received.fulfill()
         }
         

@@ -35,8 +35,7 @@ extension Data {
     }
 }
 
-// TODO: Allow bridging via protocol
-extension Data /*: _ObjectiveCBridgeable */ {
+extension Data : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSData {
         return self.withUnsafeBytes {

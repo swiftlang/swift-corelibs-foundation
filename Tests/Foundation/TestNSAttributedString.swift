@@ -286,7 +286,7 @@ class TestNSAttributedString : XCTestCase {
         archiver.encode(string, forKey: NSKeyedArchiveRootObjectKey)
         archiver.finishEncoding()
         
-        let unarchiver = NSKeyedUnarchiver(forReadingWith: Data(data))
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: data as Data)
         unarchiver.requiresSecureCoding = true
         let unarchived = unarchiver.decodeObject(of: NSAttributedString.self, forKey: NSKeyedArchiveRootObjectKey)
         
@@ -621,7 +621,7 @@ class TestNSMutableAttributedString : XCTestCase {
         archiver.encode(string, forKey: NSKeyedArchiveRootObjectKey)
         archiver.finishEncoding()
         
-        let unarchiver = NSKeyedUnarchiver(forReadingWith: Data(data))
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: data as Data)
         unarchiver.requiresSecureCoding = true
         let unarchived = unarchiver.decodeObject(of: NSMutableAttributedString.self, forKey: NSKeyedArchiveRootObjectKey)
         
