@@ -33,31 +33,8 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     private var _autoupdating: Bool
     internal var _handle: _MutableHandle<NSCalendar>
     
-    /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.
-    public enum Identifier {
-        /// The common calendar in Europe, the Western Hemisphere, and elsewhere.
-        case gregorian
-        
-        case buddhist
-        case chinese
-        case coptic
-        case ethiopicAmeteMihret
-        case ethiopicAmeteAlem
-        case hebrew
-        case iso8601
-        case indian
-        case islamic
-        case islamicCivil
-        case japanese
-        case persian
-        case republicOfChina
-        
-        /// A simple tabular Islamic calendar using the astronomical/Thursday epoch of CE 622 July 15
-        case islamicTabular
-        
-        /// The Islamic Umm al-Qura calendar used in Saudi Arabia. This is based on astronomical calculation, instead of tabular behavior.
-        case islamicUmmAlQura
-    }
+    // Temporary until we replace this struct
+    public typealias Identifier = FoundationEssentials.Calendar.Identifier
     
     /// An enumeration for the various components of a calendar date.
     ///
