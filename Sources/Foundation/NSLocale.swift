@@ -26,9 +26,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         case .countryCode: return self.countryCode
         case .scriptCode: return self.scriptCode
         case .variantCode: return self.variantCode
-#if FOUNDATION_FRAMEWORK
-        case .exemplarCharacterSet: return self.exemplarCharacterSet
-#endif
+        //case .exemplarCharacterSet: return self.exemplarCharacterSet
         case .calendarIdentifier: return self.calendarIdentifier
         case .calendar: return _locale.calendar
         case .collationIdentifier: return self.collationIdentifier
@@ -412,6 +410,46 @@ extension NSLocale : _StructTypeBridgeable {
     
     public func _bridgeToSwift() -> Locale {
         return Locale._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+// MARK: - Deprecated Locale API
+
+extension Locale {
+    /// Returns a list of available `Locale` language codes.
+    @available(*, deprecated, message: "Use `Locale.LanguageCode.isoLanguageCodes` instead")
+    public static var isoLanguageCodes: [String] {
+        NSLocale.isoLanguageCodes
+    }
+
+    /// Returns a dictionary that splits an identifier into its component pieces.
+    @available(*, deprecated, message: "Use `Locale.Components(identifier:)` to access components")
+    public static func components(fromIdentifier string: String) -> [String : String] {
+        NSLocale.components(fromLocaleIdentifier: string)
+    }
+
+    /// Returns a list of available `Locale` region codes.
+    @available(*, deprecated, message: "Use `Locale.Region.isoRegions` instead")
+    public static var isoRegionCodes: [String] {
+        NSLocale.isoCountryCodes
+    }
+
+    /// Returns a list of available `Locale` currency codes.
+    @available(*, deprecated, message: "Use `Locale.Currency.isoCurrencies` instead")
+    public static var isoCurrencyCodes: [String] {
+        NSLocale.isoCurrencyCodes
+    }
+
+    /// Returns the character direction for a specified language code.
+    @available(*, deprecated, message: "Use `Locale.Language(identifier:).characterDirection`")
+    public static func characterDirection(forLanguage isoLangCode: String) -> Locale.LanguageDirection {
+        NSLocale.characterDirection(forLanguage: isoLangCode)
+    }
+
+    /// Returns the line direction for a specified language code.
+    @available(*, deprecated, message: "Use `Locale.Language(identifier:).lineLayoutDirection`")
+    public static func lineDirection(forLanguage isoLangCode: String) -> Locale.LanguageDirection {
+        NSLocale.lineDirection(forLanguage: isoLangCode)
     }
 }
 
