@@ -14,7 +14,7 @@
 #include "CFRuntime_Internal.h"
 #include "CFPriv.h"
 #include "CFCalendar_Internal.h"
-#include "CFLocaleInternal.h"
+#include "CFConstantKeys.h"
 #include "CFICULogging.h"
 #include "CFDateInterval.h"
 #include <assert.h>

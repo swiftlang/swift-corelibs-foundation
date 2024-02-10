@@ -4396,7 +4396,7 @@ CF_EXPORT CFURLRef CFURLCreateWithFileSystemPathRelativeToBase(CFAllocatorRef al
     return ( result );
 }
 
-void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef fileSystemPath, CFURLPathStyle pathStyle, Boolean isDirectory, _Nullable CFURLRef baseURL) {
+void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef fileSystemPath, CFURLPathStyle pathStyle, bool isDirectory, _Nullable CFURLRef baseURL) {
     CFAllocatorRef allocator = kCFAllocatorSystemDefault;
     struct __CFURL *result = (struct __CFURL *)CFURLCreateWithFileSystemPathRelativeToBase(allocator, fileSystemPath, pathStyle, isDirectory, baseURL);
     if (result == NULL) return;

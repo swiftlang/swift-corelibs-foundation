@@ -72,6 +72,7 @@
 #include "CFUUID.h"
 #include "CFUtilities.h"
 #include "CFBundle.h"
+#include "CFConstantKeys.h"
 
 #include "ForSwiftFoundationOnly.h"
 

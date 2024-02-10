@@ -1,4 +1,4 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -28,7 +28,7 @@ let buildSettings: [CSetting] = [
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
         "-fno-common",
-        "-fcf-runtime-abi=swift"
+        "-fcf-runtime-abi=swift",
         // /EHsc for Windows
     ]),
     .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch

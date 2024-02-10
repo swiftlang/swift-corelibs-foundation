@@ -14,7 +14,7 @@ import _CFXMLInterface
 import Foundation
 @_implementationOnly import _CFXMLInterface
 #endif
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 extension XMLParser {
     public enum ExternalEntityResolvingPolicy : UInt {

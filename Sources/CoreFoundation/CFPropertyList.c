@@ -28,7 +28,7 @@
 #include "CFStream.h"
 #endif
 #include "CFCalendar.h"
-#include "CFLocaleInternal.h"
+#include "CFConstantKeys.h"
 #include <limits.h>
 #include <float.h>
 #include <string.h>

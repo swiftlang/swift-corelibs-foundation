@@ -88,9 +88,6 @@ CF_PRIVATE void __CFCalendarZapCal(CFCalendarRef calendar);
 
 CF_PRIVATE CFCalendarRef _CFCalendarCreateCopy(CFAllocatorRef allocator, CFCalendarRef calendar);
 
-CF_PRIVATE Boolean _CFCalendarIsDateInWeekend(CFCalendarRef calendar, CFDateRef date);
-CF_PRIVATE Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
-
 CF_PRIVATE CFStringRef _CFDateComponentsCopyDescriptionInner(CFDateComponentsRef dc);
 CF_PRIVATE _Nullable CFDateRef _CFCalendarCreateDateByAddingDateComponentsToDate(CFAllocatorRef allocator, CFCalendarRef calendar, CFDateComponentsRef dateComp, CFDateRef date, CFOptionFlags opts);
 

@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <unicode/uchar.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
-#include "CFLocaleInternal.h"
+#include "CFConstantKeys.h"
 #include "CFStringLocalizedFormattingInternal.h"
 #endif
 #include <stdarg.h>
@@ -7932,4 +7932,3 @@ void CFShowStr(CFStringRef str) {
 #undef HANGUL_VCOUNT
 #undef HANGUL_TCOUNT
 #undef HANGUL_NCOUNT
-

@@ -9,7 +9,7 @@
 
 @_exported import FoundationEssentials
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 /**
  `Date` represents a single point in time.

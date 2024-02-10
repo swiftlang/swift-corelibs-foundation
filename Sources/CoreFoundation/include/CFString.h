@@ -10,6 +10,8 @@
 #if !defined(__COREFOUNDATION_CFSTRING__)
 #define __COREFOUNDATION_CFSTRING__ 1
 
+#include "CFTargetConditionals.h"
+
 #include "CFBase.h"
 #include "CFArray.h"
 #include "CFData.h"

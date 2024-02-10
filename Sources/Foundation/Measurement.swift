@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 #else
 @_exported import Foundation // Clang module
 import _SwiftCoreFoundationOverlayShims

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByArrayLiteral {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())

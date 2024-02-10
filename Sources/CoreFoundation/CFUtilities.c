@@ -17,7 +17,7 @@
 #include "CFBase.h"
 #include "CFPriv.h"
 #include "CFInternal.h"
-#include "CFLocaleInternal.h"
+#include "CFConstantKeys.h"
 #if !TARGET_OS_WASI
 #include "CFBundle_Internal.h"
 #endif

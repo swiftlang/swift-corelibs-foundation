@@ -141,7 +141,7 @@ static void _CFBundleEnsureBundlesExistForImagePaths(CFArrayRef imagePaths);
 // Functions and constants for FHS bundles:
 #define _CFBundleFHSDirectory_share CFSTR("share")
 
-static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
+static bool _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
     // Paths of this form are FHS installed bundles:
     // <anywhere>/share/<name>.resources
     
@@ -149,7 +149,7 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
     CFURLRef parentURL = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, bundleURL);
     CFStringRef containingDirectoryName = parentURL ? CFURLCopyLastPathComponent(parentURL) : NULL;
     
-    Boolean isFHSBundle =
+    bool isFHSBundle =
         extension &&
         containingDirectoryName &&
         CFEqual(extension, _CFBundleSiblingResourceDirectoryExtension) &&
@@ -163,7 +163,7 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
 }
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
 
-CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
+CF_CROSS_PLATFORM_EXPORT bool _CFBundleSupportsFHSBundles() {
 #if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
     return true;
 #else
@@ -171,7 +171,7 @@ CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
 #endif
 }
 
-CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFreestandingBundles() {
+CF_CROSS_PLATFORM_EXPORT bool _CFBundleSupportsFreestandingBundles() {
 #if !DEPLOYMENT_RUNTIME_OBJC
     return true;
 #else

@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     typealias CFType = CFLocale

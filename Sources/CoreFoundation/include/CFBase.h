@@ -77,11 +77,7 @@
 
 #if !defined(__MACTYPES__)
 #if !defined(_OS_OSTYPES_H)
-#if DEPLOYMENT_RUNTIME_SWIFT
     typedef bool                    Boolean;
-#else
-    typedef unsigned char           Boolean;
-#endif
     typedef unsigned char           UInt8;
     typedef signed char             SInt8;
     typedef unsigned short          UInt16;

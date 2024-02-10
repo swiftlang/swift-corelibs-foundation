@@ -10,7 +10,7 @@
 /* NSRegularExpression is a class used to represent and apply regular expressions.  An instance of this class is an immutable representation of a compiled regular expression pattern and various option flags.
 */
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 extension NSRegularExpression {
     public struct Options : OptionSet {

@@ -8,7 +8,6 @@
 //
 
 import XCTest
-//import CoreFoundation
 @testable import Foundation
 
 class TestNSData: XCTestCase {

@@ -15,7 +15,7 @@ fileprivate let UF_APPEND: Int32 = 1
 fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 #if os(Windows)
 import CRT
 import WinSDK

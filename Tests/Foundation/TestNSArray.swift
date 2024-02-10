@@ -7,8 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
-
 class TestNSArray : XCTestCase {
     
     static var allTests: [(String, (TestNSArray) -> () throws -> Void)] {
@@ -46,12 +44,6 @@ class TestNSArray : XCTestCase {
             ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
             ("test_customMirror", test_customMirror),
         ]
-
-#if os(iOS) || os(macOS) || os(tvOS) || os(watchOS) || os(Linux)
-        tests.append(contentsOf: [
-            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
-        ])
-#endif
 
         return tests
     }
@@ -828,18 +820,6 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array[5] as! String, arrayMirror.descendant(5) as! String)
         XCTAssertEqual(array[6] as! String, arrayMirror.descendant(6) as! String)
     }
-
-#if os(iOS) || os(macOS) || os(tvOS) || os(watchOS) || os(Linux)
-    func test_arrayUsedAsCFArrayInvokesArrayMethods() {
-        let number = 789 as NSNumber
-        let array = NSMutableArray(array: [123, 456])
-        withExtendedLifetime(number) {
-            CFArraySetValueAtIndex(unsafeBitCast(array, to: CFMutableArray.self), 1, UnsafeRawPointer(Unmanaged.passUnretained(number).toOpaque()))
-        }
-        XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
-        XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
-    }
-#endif
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"

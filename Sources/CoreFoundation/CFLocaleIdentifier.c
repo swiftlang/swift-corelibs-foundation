@@ -66,7 +66,7 @@
 #define ULOC_KEYWORD_AND_VALUES_CAPACITY 100
 #endif
 #include "CFInternal.h"
-#include "CFLocaleInternal.h"
+#include "CFConstantKeys.h"
 
 // Max byte length of locale identifier (ASCII) as C string, including terminating null byte
 enum {

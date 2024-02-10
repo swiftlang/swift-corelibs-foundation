@@ -25,7 +25,7 @@
 #else
 #include "CFBase.h"
 #endif
-#include "CFLocaleInternal.h"
+#include "CFConstantKeys.h"
 #include <stdatomic.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <unicode/uloc.h>           // ICU locales

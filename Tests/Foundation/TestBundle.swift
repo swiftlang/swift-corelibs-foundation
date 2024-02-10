@@ -7,8 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
-
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
         @testable import SwiftFoundation

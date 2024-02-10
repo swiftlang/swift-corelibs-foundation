@@ -13,7 +13,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 import Dispatch
 
 internal class _FTPURLProtocol: _NativeProtocol {
