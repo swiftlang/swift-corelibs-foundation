@@ -180,8 +180,7 @@ let package = Package(
                 "XCTest"
             ],
             resources: [
-                .copy("Tests/Foundation/Resources/Info.plist"),
-                .copy("Tests/Foundation/Resources/NSStringTestData.txt")
+                .copy("Foundation/Resources")
             ],
             swiftSettings: [
                 .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT")
