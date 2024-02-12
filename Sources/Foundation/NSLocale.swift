@@ -13,6 +13,7 @@
 @_exported import FoundationInternationalization
 
 open class NSLocale: NSObject, NSCopying, NSSecureCoding {
+    // Our own data
     var _locale: Locale
     
     internal init(locale: Locale) {
@@ -398,21 +399,6 @@ extension NSLocale {
 }
 #endif
 
-extension NSLocale : _SwiftBridgeable {
-    typealias SwiftType = Locale
-    internal var _swiftObject: Locale {
-        return self._locale
-    }
-}
-
-extension NSLocale : _StructTypeBridgeable {
-    public typealias _StructType = Locale
-    
-    public func _bridgeToSwift() -> Locale {
-        return Locale._unconditionallyBridgeFromObjectiveC(self)
-    }
-}
-
 // MARK: - Deprecated Locale API
 
 extension Locale {
@@ -455,24 +441,71 @@ extension Locale {
 
 // MARK: - CF Conversions
 
+extension CFLocale : _NSBridgeable, _SwiftBridgeable {
+    typealias NSType = NSLocale
+    typealias SwiftType = Locale
+    internal var _nsObject: NSLocale {
+        return NSLocale(localeIdentifier: CFLocaleGetIdentifier(self)._swiftObject)
+    }
+    internal var _swiftObject: Locale {
+        return _nsObject._swiftObject
+    }
+}
+
 extension Locale {
+    typealias CFType = CFLocale
     internal var _cfObject: CFLocale {
-        CFLocaleCreate(nil, identifier._cfObject)
+        return _bridgeToObjectiveC()._cfObject
     }
 }
 
 extension NSLocale {
     internal var _cfObject: CFLocale {
-        CFLocaleCreate(nil, _locale.identifier._cfObject)
+        CFLocaleCreate(nil, self.localeIdentifier._cfObject)
     }
 }
 
-extension CFLocale {
+// MARK: - Swift Conversions
+
+extension NSLocale : _SwiftBridgeable {
+    typealias SwiftType = Locale
     internal var _swiftObject: Locale {
-        Locale(identifier: CFLocaleGetIdentifier(self)._swiftObject)
+        return Locale(identifier: self.localeIdentifier)
+    }
+}
+
+extension NSLocale : _StructTypeBridgeable {
+    public typealias _StructType = Locale
+    
+    public func _bridgeToSwift() -> Locale {
+        return Locale._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension Locale : _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
     }
     
-    internal var _nsObject: NSLocale {
-        NSLocale(locale: _swiftObject)
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSLocale {
+        return NSLocale(locale: Locale.current)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ input: NSLocale, result: inout Locale?) {
+        if !_conditionallyBridgeFromObjectiveC(input, result: &result) {
+            fatalError("Unable to bridge \(NSLocale.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ input: NSLocale, result: inout Locale?) -> Bool {
+        result = input._locale
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSLocale?) -> Locale {
+        var result: Locale? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
     }
 }
