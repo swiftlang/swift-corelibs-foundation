@@ -779,6 +779,10 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     }
     // Don't close h, fd is transferred ownership
     let fd = _open_osfhandle(intptr_t(bitPattern: h), 0)
+    return (fd, pathResult)
+#elseif os(WASI)
+    // WASI does not have temp directories
+    throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
 #else
     var template = URL(fileURLWithPath: filePath)
     
@@ -814,8 +818,8 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
         close(fd)
         throw _NSErrorWithErrno(_errno, reading: false, path: pathResult)
     }
-#endif
     return (fd, pathResult)
+#endif
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
