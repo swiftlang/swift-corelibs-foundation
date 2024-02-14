@@ -1274,7 +1274,7 @@ static bool __CFLocaleCopyLocaleID(CFLocaleRef locale, bool user, CFTypeRef *cf,
 
 
 static bool __CFLocaleCopyCodes(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
-    static CFStringRef const kCFLocaleCodesKey = CFSTR("__kCFLocaleCodes");
+    CFStringRef const kCFLocaleCodesKey = CFSTR("__kCFLocaleCodes");
     
     bool codesWasAllocated = false;
     CFDictionaryRef codes = NULL;
