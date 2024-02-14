@@ -576,6 +576,10 @@ static inline int _direntNameLength(struct dirent *entry) {
 #endif
 }
 
+static inline char *_direntName(struct dirent *entry) {
+    return entry->d_name;
+}
+
 // major() and minor() might be implemented as macros or functions.
 static inline unsigned int _dev_major(dev_t rdev) {
     return major(rdev);
