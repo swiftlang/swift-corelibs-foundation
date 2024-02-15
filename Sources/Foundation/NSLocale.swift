@@ -9,7 +9,7 @@
 
 
 @_implementationOnly import _CoreFoundation
-@_exported import FoundationEssentials
+@_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 @_exported import FoundationInternationalization
 
 open class NSLocale: NSObject, NSCopying, NSSecureCoding {
