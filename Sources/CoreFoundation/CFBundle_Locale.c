@@ -148,8 +148,8 @@ const char * const __CFBundleLanguageAbbreviationsArray =
 static CFStringRef _CFBundleGetAlternateNameForLanguage(CFStringRef language) {
     // These are not necessarily common localizations per se, but localizations for which the full language name is still in common use.
     // These are used to provide a fast path for it (other localizations usually use the abbreviation, which is even faster).
-    static CFStringRef const __CFBundleCommonLanguageNamesArray[] = {CFSTR("English"), CFSTR("French"), CFSTR("German"), CFSTR("Italian"), CFSTR("Dutch"), CFSTR("Spanish"), CFSTR("Japanese")};
-    static CFStringRef const __CFBundleCommonLanguageAbbreviationsArray[] = {CFSTR("en"), CFSTR("fr"), CFSTR("de"), CFSTR("it"), CFSTR("nl"), CFSTR("es"), CFSTR("ja")};
+    CFStringRef const __CFBundleCommonLanguageNamesArray[] = {CFSTR("English"), CFSTR("French"), CFSTR("German"), CFSTR("Italian"), CFSTR("Dutch"), CFSTR("Spanish"), CFSTR("Japanese")};
+    CFStringRef const __CFBundleCommonLanguageAbbreviationsArray[] = {CFSTR("en"), CFSTR("fr"), CFSTR("de"), CFSTR("it"), CFSTR("nl"), CFSTR("es"), CFSTR("ja")};
     
     for (CFIndex idx = 0; idx < sizeof(__CFBundleCommonLanguageNamesArray) / sizeof(CFStringRef); idx++) {
         if (CFEqual(language, __CFBundleCommonLanguageAbbreviationsArray[idx])) {
