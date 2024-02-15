@@ -1296,7 +1296,11 @@ extension NSString {
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
         let str: CFString
         if let loc = locale {
-            if type(of: loc) === NSLocale.self || type(of: loc) === NSDictionary.self {
+            if type(of: loc) === NSLocale.self {
+                // Create a CFLocaleRef
+                let cf = (loc as! NSLocale)._cfObject
+                str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(cf, to: CFDictionary.self), format._cfObject, argList)
+            } else if type(of: loc) === NSDictionary.self {
                 str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
             } else {
                 fatalError("locale parameter must be a NSLocale or a NSDictionary")

@@ -470,7 +470,7 @@ extension NSLocale {
 extension NSLocale : _SwiftBridgeable {
     typealias SwiftType = Locale
     internal var _swiftObject: Locale {
-        return Locale(identifier: self.localeIdentifier)
+        return _locale
     }
 }
 
