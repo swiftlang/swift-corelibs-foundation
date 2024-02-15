@@ -11,6 +11,12 @@
 
 public typealias TimeInterval = Double
 
+internal let kCFDateFormatterNoStyle = CFDateFormatterStyle.noStyle
+internal let kCFDateFormatterShortStyle = CFDateFormatterStyle.shortStyle
+internal let kCFDateFormatterMediumStyle = CFDateFormatterStyle.mediumStyle
+internal let kCFDateFormatterLongStyle = CFDateFormatterStyle.longStyle
+internal let kCFDateFormatterFullStyle = CFDateFormatterStyle.fullStyle
+
 public var NSTimeIntervalSince1970: Double {
     return 978307200.0
 }

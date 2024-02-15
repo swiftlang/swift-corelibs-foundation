@@ -240,20 +240,6 @@ struct _NSDataBridge {
     void (*_Nonnull replaceBytes)(CFTypeRef obj, CFRange range, const void *_Nullable newBytes, CFIndex newLength);
 };
 
-struct _NSCalendarBridge {
-    _Nonnull CFTypeRef (*_Nonnull calendarIdentifier)(CFTypeRef obj);
-    _Nullable CFTypeRef (*_Nonnull copyLocale)(CFTypeRef obj);
-    void (*_Nonnull setLocale)(CFTypeRef obj, CFTypeRef _Nullable locale);
-    _Nonnull CFTypeRef (*_Nonnull copyTimeZone)(CFTypeRef obj);
-    void (*_Nonnull setTimeZone)(CFTypeRef obj, CFTypeRef _Nonnull timeZone);
-    CFIndex (*_Nonnull firstWeekday)(CFTypeRef obj);
-    void (*_Nonnull setFirstWeekday)(CFTypeRef obj, CFIndex firstWeekday);
-    CFIndex (*_Nonnull minimumDaysInFirstWeek)(CFTypeRef obj);
-    void (*_Nonnull setMinimumDaysInFirstWeek)(CFTypeRef obj, CFIndex minimumDays);
-    _Nullable CFTypeRef (*_Nonnull copyGregorianStartDate)(CFTypeRef obj);
-    void (*_Nonnull setGregorianStartDate)(CFTypeRef obj, CFTypeRef _Nullable date);
-};
-
 struct _NSURLBridge {
     Boolean (*_Nonnull copyResourcePropertyForKey)(CFTypeRef url, CFStringRef key, CFTypeRef _Nullable *_Nullable propertyValueTypeRefPtr, CFErrorRef *error);
     CFDictionaryRef _Nullable (*_Nonnull copyResourcePropertiesForKeys)(CFTypeRef url, CFArrayRef keys, CFErrorRef *error);
@@ -282,7 +268,6 @@ struct _CFSwiftBridge {
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
     struct _NSDataBridge NSData;
-    struct _NSCalendarBridge NSCalendar;
     struct _NSURLBridge NSURL;
 };
 

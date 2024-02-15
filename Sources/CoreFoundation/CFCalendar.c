@@ -750,14 +750,12 @@ CFCalendarRef _CFCalendarCreateCopy(CFAllocatorRef allocator, CFCalendarRef cale
 }
 
 CFStringRef CFCalendarGetIdentifier(CFCalendarRef calendar) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFStringRef, calendar, NSCalendar.calendarIdentifier);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFStringRef, (NSCalendar *)calendar, calendarIdentifier);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return calendar->_identifier;
 }
 
 CFLocaleRef CFCalendarCopyLocale(CFCalendarRef calendar) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFLocaleRef, calendar, NSCalendar.copyLocale);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFLocaleRef, (NSCalendar *)calendar, _copyLocale);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return CFLocaleCreateCopy(CFGetAllocator(calendar->_locale), calendar->_locale);
@@ -765,7 +763,6 @@ CFLocaleRef CFCalendarCopyLocale(CFCalendarRef calendar) {
 
 void CFCalendarSetLocale(CFCalendarRef calendar, CFLocaleRef locale) {
     ICU_LOG("                // CFCalendarSetLocale enter\n");
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, calendar, NSCalendar.setLocale, locale);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, (NSCalendar *)calendar, setLocale:(NSLocale *)locale);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     __CFGenericValidateType(locale, CFLocaleGetTypeID());
@@ -824,7 +821,6 @@ void CFCalendarSetLocale(CFCalendarRef calendar, CFLocaleRef locale) {
 }
 
 CFTimeZoneRef CFCalendarCopyTimeZone(CFCalendarRef calendar) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFTimeZoneRef, calendar, NSCalendar.copyTimeZone);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFTimeZoneRef, (NSCalendar *)calendar, _copyTimeZone);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return (CFTimeZoneRef)CFRetain(calendar->_tz);
@@ -832,7 +828,6 @@ CFTimeZoneRef CFCalendarCopyTimeZone(CFCalendarRef calendar) {
 
 void CFCalendarSetTimeZone(CFCalendarRef calendar, CFTimeZoneRef tz) {
     ICU_LOG("                // CFCalendarSetTimeZone enter\n");
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, calendar, NSCalendar.setTimeZone, tz);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, (NSCalendar *)calendar, setTimeZone:(NSTimeZone *)tz);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     if (tz) __CFGenericValidateType(tz, CFTimeZoneGetTypeID());
@@ -845,7 +840,6 @@ void CFCalendarSetTimeZone(CFCalendarRef calendar, CFTimeZoneRef tz) {
 }
 
 CFIndex CFCalendarGetFirstWeekday(CFCalendarRef calendar) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFIndex, calendar, NSCalendar.firstWeekday);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFIndex, (NSCalendar *)calendar, firstWeekday);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return calendar->_firstWeekday;
@@ -853,7 +847,6 @@ CFIndex CFCalendarGetFirstWeekday(CFCalendarRef calendar) {
 
 void CFCalendarSetFirstWeekday(CFCalendarRef calendar, CFIndex wkdy) {
     ICU_LOG("                // CFCalendarSetFirstWeekday enter\n");
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, calendar, NSCalendar.setFirstWeekday, wkdy);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, (NSCalendar *)calendar, setFirstWeekday:(NSUInteger)wkdy);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     calendar->_firstWeekday = wkdy;
@@ -866,7 +859,6 @@ void CFCalendarSetFirstWeekday(CFCalendarRef calendar, CFIndex wkdy) {
 }
 
 CFIndex CFCalendarGetMinimumDaysInFirstWeek(CFCalendarRef calendar) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFIndex, calendar, NSCalendar.minimumDaysInFirstWeek);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFIndex, (NSCalendar *)calendar, minimumDaysInFirstWeek);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return calendar->_minDaysInFirstWeek;
@@ -874,7 +866,6 @@ CFIndex CFCalendarGetMinimumDaysInFirstWeek(CFCalendarRef calendar) {
 
 void CFCalendarSetMinimumDaysInFirstWeek(CFCalendarRef calendar, CFIndex mwd) {
     ICU_LOG("                // CFCalendarSetMinimumDaysInFirstWeek enter\n");
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, calendar, NSCalendar.setMinimumDaysInFirstWeek, mwd);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, (NSCalendar *)calendar, setMinimumDaysInFirstWeek:(NSUInteger)mwd);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     calendar->_minDaysInFirstWeek = mwd;
@@ -887,7 +878,6 @@ void CFCalendarSetMinimumDaysInFirstWeek(CFCalendarRef calendar, CFIndex mwd) {
 }
 
 CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar) {
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFDateRef, calendar, NSCalendar.copyGregorianStartDate);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, CFDateRef, (NSCalendar *)calendar, _copyGregorianStartDate);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     return calendar->_gregorianStart ? (CFDateRef)CFRetain(calendar->_gregorianStart) : NULL;
@@ -895,7 +885,6 @@ CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar) {
 
 void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef _Nullable date) {
     ICU_LOG("                // CFCalendarSetGregorianStartDate enter\n");
-    CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, calendar, NSCalendar.setGregorianStartDate, date);
     CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCalendar, void, (NSCalendar *)calendar, _setGregorianStartDate:(NSDate *)date);
     __CFGenericValidateType(calendar, CFCalendarGetTypeID());
     if (date) __CFGenericValidateType(date, CFDateGetTypeID());

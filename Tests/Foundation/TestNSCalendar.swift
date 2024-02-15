@@ -526,9 +526,11 @@ class TestNSCalendar: XCTestCase {
             calendarWithoutTimeZone.locale = calendar.locale
             
             let timeZone = calendar.timeZone
+            var returned = calendarWithoutTimeZone.components(in: timeZone, from: date)
             
-            let returned = calendarWithoutTimeZone.components(in: timeZone, from: date) as NSDateComponents
-            XCTAssertEqual(components, returned)
+            // This test does not account for dayOfYear
+            returned.dayOfYear = nil
+            XCTAssertEqual(components, returned as NSDateComponents)
         }
     }
     
