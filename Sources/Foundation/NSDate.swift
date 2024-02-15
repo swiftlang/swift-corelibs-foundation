@@ -226,29 +226,14 @@ extension NSDate {
     }
 }
 
-extension NSDate: _SwiftBridgeable {
-    typealias SwiftType = Date
-    var _swiftObject: Date {
-        return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
+extension Date : CustomPlaygroundDisplayConvertible {
+    public var playgroundDescription: Any {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .short
+        return df.string(from: self)
     }
 }
-
-extension CFDate : _NSBridgeable, _SwiftBridgeable {
-    typealias NSType = NSDate
-    typealias SwiftType = Date
-    
-    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
-    internal var _swiftObject: Date { return _nsObject._swiftObject }
-}
-
-extension Date : _NSBridgeable {
-    typealias NSType = NSDate
-    typealias CFType = CFDate
-    
-    internal var _nsObject: NSType { return NSDate(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate) }
-    internal var _cfObject: CFType { return _nsObject._cfObject }
-}
-
 
 open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     
@@ -407,6 +392,8 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
+// MARK: - Bridging
+
 extension NSDate : _StructTypeBridgeable {
     public typealias _StructType = Date
     
@@ -429,3 +416,49 @@ extension NSDateInterval : _SwiftBridgeable {
     }
 }
 
+extension NSDate: _SwiftBridgeable {
+    typealias SwiftType = Date
+    var _swiftObject: Date {
+        return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
+    }
+}
+
+extension CFDate : _NSBridgeable, _SwiftBridgeable {
+    typealias NSType = NSDate
+    typealias SwiftType = Date
+    
+    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
+    internal var _swiftObject: Date { return _nsObject._swiftObject }
+}
+
+extension Date : _NSBridgeable {
+    typealias NSType = NSDate
+    typealias CFType = CFDate
+    
+    internal var _nsObject: NSType { return NSDate(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate) }
+    internal var _cfObject: CFType { return _nsObject._cfObject }
+}
+
+extension Date : _ObjectiveCBridgeable {
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSDate {
+        return NSDate(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSDate, result: inout Date?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(NSDate.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSDate, result: inout Date?) -> Bool {
+        result = Date(timeIntervalSinceReferenceDate: x.timeIntervalSinceReferenceDate)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDate?) -> Date {
+        var result: Date? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}
