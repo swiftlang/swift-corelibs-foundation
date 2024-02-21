@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public struct CGPoint {
+public struct CGPoint: Sendable {
     public var x: CGFloat
     public var y: CGFloat
     public init() {
@@ -100,7 +100,7 @@ extension CGPoint : Codable {
     }
 }
 
-public struct CGSize {
+public struct CGSize: Sendable {
     public var width: CGFloat
     public var height: CGFloat
     public init() {
@@ -193,7 +193,7 @@ extension CGSize : Codable {
     }
 }
 
-public struct CGRect {
+public struct CGRect: Sendable {
     public var origin: CGPoint
     public var size: CGSize
     public init() {
@@ -501,7 +501,7 @@ extension CGRect: NSSpecialValueCoding {
     }
 }
 
-public enum NSRectEdge : UInt {
+public enum NSRectEdge : UInt, Sendable {
     
     case minX
     case minY
@@ -509,7 +509,7 @@ public enum NSRectEdge : UInt {
     case maxY
 }
 
-public enum CGRectEdge : UInt32 {
+public enum CGRectEdge : UInt32, Sendable {
     
     case minXEdge
     case minYEdge
@@ -529,7 +529,7 @@ extension NSRectEdge {
 }
 
 
-public struct NSEdgeInsets {
+public struct NSEdgeInsets: Sendable {
     public var top: CGFloat
     public var left: CGFloat
     public var bottom: CGFloat
@@ -604,7 +604,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
 }
 
-public struct AlignmentOptions : OptionSet {
+public struct AlignmentOptions : OptionSet, Sendable {
     public var rawValue : UInt64
     public init(rawValue: UInt64) { self.rawValue = rawValue }
     
