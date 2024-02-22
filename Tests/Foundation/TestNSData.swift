@@ -550,7 +550,7 @@ class TestNSData: XCTestCase {
     }
     
     func test_writeToURLOptions() {
-        let saveData = try! Data(contentsOf: Bundle.main.url(forResource: "Test", withExtension: "plist")!)
+        let saveData = try! Data(contentsOf: Bundle.module.url(forResource: "Test", withExtension: "plist")!)
         let savePath = URL(fileURLWithPath: NSTemporaryDirectory() + "Test1.plist")
         do {
             try saveData.write(to: savePath, options: .atomic)
@@ -1092,7 +1092,7 @@ class TestNSData: XCTestCase {
     }
 
     func test_initNSMutableDataContentsOf() {
-        let testDir = Bundle.main.resourcePath
+        let testDir = Bundle.module.resourcePath
         let filename = testDir!.appending("/NSStringTestData.txt")
         let url = URL(fileURLWithPath: filename)
 
@@ -1695,7 +1695,7 @@ extension TestNSData {
     }
 
     func test_contentsOfFile() {
-        let testDir = Bundle.main.resourcePath
+        let testDir = Bundle.module.resourcePath
         let filename = testDir!.appending("/NSStringTestData.txt")
 
         let contents = NSData(contentsOfFile: filename)

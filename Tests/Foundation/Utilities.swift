@@ -215,7 +215,7 @@ func expectNoChanges<T: BinaryInteger>(_ check: @autoclosure () -> T, by differe
 
 extension Fixture where ValueType: NSObject & NSCoding {
     func loadEach(handler: (ValueType, FixtureVariant) throws -> Void) throws {
-        try self.loadEach(fixtureRepository: try XCTUnwrap(Bundle.main.url(forResource: "Fixtures", withExtension: nil)), handler: handler)
+        try self.loadEach(fixtureRepository: try XCTUnwrap(Bundle.module.url(forResource: "Fixtures", withExtension: nil)), handler: handler)
     }
     
     func assertLoadedValuesMatch(_ matchHandler: (ValueType, ValueType) -> Bool = { $0 == $1 }) throws {
@@ -679,7 +679,7 @@ public func withTemporaryDirectory<R>(functionName: String = #function, block: (
 
     // Create the temporary directory as one level so that it doesnt leave a directory hierarchy on the filesystem
     // eg tmp dir will be something like:  /tmp/TestFoundation-test_name-BE16B2FF-37FA-4F70-8A84-923D1CC2A860
-    let testBundleName = Bundle.main.infoDictionary!["CFBundleName"] as! String
+    let testBundleName = Bundle.module.infoDictionary!["CFBundleName"] as! String
     let fname = testBundleName + "-" + String(functionName[..<idx]) + "-" + NSUUID().uuidString
     let tmpDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent(fname)
     let fm = FileManager.default

@@ -883,31 +883,6 @@ extension NSNotification.Name {
 #endif
 
 
-extension NSCalendar: _SwiftBridgeable {
-    typealias SwiftType = Calendar
-    var _swiftObject: SwiftType { _calendar }
-}
-extension Calendar: _NSBridgeable {
-    typealias NSType = NSCalendar
-    typealias CFType = CFCalendar
-    var _nsObject: NSCalendar { return _bridgeToObjectiveC() }
-    var _cfObject: CFCalendar { return _nsObject._cfObject }
-}
-
-extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
-    typealias NSType = NSCalendar
-    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
-    internal var _swiftObject: Calendar { return _nsObject._swiftObject }
-}
-
-extension NSCalendar : _StructTypeBridgeable {
-    public typealias _StructType = Calendar
-    
-    public func _bridgeToSwift() -> Calendar {
-        return Calendar._unconditionallyBridgeFromObjectiveC(self)
-    }
-}
-
 private func _toNSRange(_ range: Range<Int>?) -> NSRange {
     if let r = range {
         return NSRange(location: r.lowerBound, length: r.upperBound - r.lowerBound)
@@ -955,6 +930,55 @@ private func _fromNSCalendarOptions(_ options: NSCalendar.Options) -> (matchingP
 
 // MARK: - Bridging
 
+extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
+    typealias NSType = NSCalendar
+    internal var _nsObject: NSType {
+        let id = CFCalendarGetIdentifier(self)!._swiftObject
+        let ns = NSCalendar(identifier: .init(string: id)!)!
+        ns.timeZone = CFCalendarCopyTimeZone(self)._swiftObject
+        ns.firstWeekday = CFCalendarGetFirstWeekday(self)
+        ns.minimumDaysInFirstWeek = CFCalendarGetMinimumDaysInFirstWeek(self)
+        return ns
+    }
+    internal var _swiftObject: Calendar {
+        return _nsObject._swiftObject
+    }
+}
+
+extension NSCalendar {
+    internal var _cfObject: CFCalendar {
+        let cf = CFCalendarCreateWithIdentifier(nil, calendarIdentifier._calendarIdentifier._cfCalendarIdentifier._cfObject)!
+        CFCalendarSetTimeZone(cf, timeZone._cfObject)
+        if let l = locale {
+            CFCalendarSetLocale(cf, l._cfObject)
+        }
+        CFCalendarSetFirstWeekday(cf, firstWeekday)
+        CFCalendarSetMinimumDaysInFirstWeek(cf, minimumDaysInFirstWeek)
+        return cf
+    }
+}
+
+extension NSCalendar: _SwiftBridgeable {
+    typealias SwiftType = Calendar
+    var _swiftObject: SwiftType { _calendar }
+}
+
+extension NSCalendar : _StructTypeBridgeable {
+    public typealias _StructType = Calendar
+    
+    public func _bridgeToSwift() -> Calendar {
+        return Calendar._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension Calendar: _NSBridgeable {
+    typealias NSType = NSCalendar
+    typealias CFType = CFCalendar
+    var _nsObject: NSCalendar { return _bridgeToObjectiveC() }
+    var _cfObject: CFCalendar { return _nsObject._cfObject }
+}
+
+
 extension Calendar : ReferenceConvertible {
     public typealias ReferenceType = NSCalendar
 }
@@ -983,18 +1007,5 @@ extension Calendar: _ObjectiveCBridgeable {
         var result: Calendar? = nil
         _forceBridgeFromObjectiveC(source!, result: &result)
         return result!
-    }
-}
-
-extension NSCalendar {
-    internal var _cfObject: CFCalendar {
-        let cf = CFCalendarCreateWithIdentifier(nil, calendarIdentifier._calendarIdentifier._cfCalendarIdentifier._cfObject)!
-        CFCalendarSetTimeZone(cf, timeZone._cfObject)
-        if let l = locale {
-            CFCalendarSetLocale(cf, l._cfObject)
-        }
-        CFCalendarSetFirstWeekday(cf, firstWeekday)
-        CFCalendarSetMinimumDaysInFirstWeek(cf, minimumDaysInFirstWeek)
-        return cf
     }
 }
