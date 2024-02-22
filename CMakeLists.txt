@@ -57,6 +57,12 @@ endif()
 
 find_package(ICU COMPONENTS uc i18n REQUIRED OPTIONAL_COMPONENTS data)
 
+# This is needed if we're statically linking, otherwise we can't pull in Dispatch
+# because we won't have RT::rt as a CMake target.
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Android)
+  find_package(LibRT)
+endif()
+
 include(SwiftSupport)
 include(GNUInstallDirs)
 include(XCTest)
