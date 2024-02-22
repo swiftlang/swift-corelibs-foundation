@@ -49,12 +49,7 @@ endfunction()
 # Sets ${result_var_name} with the converted OS name derived from
 # CMAKE_SYSTEM_NAME.
 function(get_swift_host_os result_var_name)
-  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    set(${result_var_name} macosx PARENT_SCOPE)
-  else()
-    string(TOLOWER ${CMAKE_SYSTEM_NAME} cmake_system_name_lc)
-    set(${result_var_name} ${cmake_system_name_lc} PARENT_SCOPE)
-  endif()
+  set(${result_var_name} ${SWIFT_SYSTEM_NAME} PARENT_SCOPE)
 endfunction()
 
 function(_install_target module)

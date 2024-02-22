@@ -13,6 +13,14 @@ project(Foundation
   LANGUAGES C Swift)
 enable_testing()
 
+if(NOT SWIFT_SYSTEM_NAME)
+  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(SWIFT_SYSTEM_NAME macosx)
+  else()
+    set(SWIFT_SYSTEM_NAME "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+  endif()
+endif()
+
 # NOTE(compnerd) default to /MD or /MDd by default based on the configuration.
 # Cache the variable to allow the user to alter the configuration.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE
@@ -99,13 +107,13 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
 
   install(TARGETS CoreFoundation CFXMLInterface
-    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+    DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME})
 
   if(BUILD_NETWORKING)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
       CFURLSessionInterface)
     install(TARGETS CFURLSessionInterface
-      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+      DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME})
   endif()
 endif()
 
