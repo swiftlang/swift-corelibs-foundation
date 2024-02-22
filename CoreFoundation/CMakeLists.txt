@@ -90,6 +90,21 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   endif()
 endif()
 
+# Look for some functions that may not be present on all platforms
+check_symbol_exists(strlcpy "string.h" HAVE_STRLCPY)
+check_symbol_exists(strlcat "string.h" HAVE_STRLCAT)
+check_symbol_exists(issetugid "unistd.h" HAVE_ISSETUGID)
+
+if(HAVE_STRLCPY)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCPY>)
+endif()
+if(HAVE_STRLCAT)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCAT>)
+endif()
+if(HAVE_ISSETUGID)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_ISSETUGID>)
+endif()
+
 add_compile_definitions($<$<COMPILE_LANGUAGE:C>:U_SHOW_DRAFT_API>)
 add_compile_definitions($<$<COMPILE_LANGUAGE:C>:CF_BUILDING_CF>)
 
