@@ -22,7 +22,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG OFF)
-find_package(Threads REQUIRED)
+if(HAS_LIBDISPATCH_API)
+  find_package(Threads REQUIRED)
+endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
@@ -385,10 +387,15 @@ target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR})
 target_link_libraries(CoreFoundation PRIVATE
-  Threads::Threads
   ${CMAKE_DL_LIBS}
-  BlocksRuntime
-  dispatch)
+  BlocksRuntime)
+
+if(HAS_LIBDISPATCH_API)
+  target_link_libraries(CoreFoundation PRIVATE
+    Threads::Threads
+    dispatch)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE
     log)
@@ -504,15 +511,18 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Dar
                         PRIVATE
                           m)
 endif()
-target_link_libraries(CoreFoundation
-                      PRIVATE
-                        dispatch)
-target_link_libraries(CFURLSessionInterface
-                      PRIVATE
-                        dispatch)
-target_link_libraries(CFXMLInterface
-                      PRIVATE
-                        dispatch)
+
+if(HAS_LIBDISPATCH_API)
+  target_link_libraries(CoreFoundation
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFXMLInterface
+                        PRIVATE
+                          dispatch)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
