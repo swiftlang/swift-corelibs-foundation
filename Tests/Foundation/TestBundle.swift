@@ -24,7 +24,7 @@ internal func testBundle() -> Bundle {
     }
     fatalError("Cant find test bundle")
     #else
-    return Bundle.main
+    return Bundle.module
     #endif
 }
 
