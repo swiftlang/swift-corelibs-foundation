@@ -1628,6 +1628,8 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 extern void swift_retain(void *);
 extern void swift_release(void *);
 
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+
 #if TARGET_OS_WIN32
 typedef struct _CFThreadSpecificData {
     CFTypeRef value;
@@ -1806,6 +1808,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 #endif
     return -1;
 }
+#endif // SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 
 CF_EXPORT char **_CFEnviron(void) {
 #if TARGET_OS_MAC
