@@ -69,6 +69,7 @@
 #include <features.h>
 #include <termios.h>
 
+#ifdef __GLIBC_PREREQ
 #if __GLIBC_PREREQ(2, 28) == 0
 // required for statx() system call, glibc >=2.28 wraps the kernel function
 #include <sys/syscall.h>
@@ -78,7 +79,7 @@
 #include <linux/fs.h>
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
 #endif //__GLIBC_PREREQ(2. 28)
-
+#endif // defined(__GLIBC_PREREQ)
 #ifndef __NR_statx
 #include <sys/stat.h>
 #endif // not __NR_statx
@@ -568,7 +569,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
-#elif TARGET_OS_ANDROID
+#elif TARGET_OS_LINUX || TARGET_OS_ANDROID
     return strlen(entry->d_name);
 #else
     return entry->d_namlen;

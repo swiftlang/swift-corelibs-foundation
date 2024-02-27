@@ -6,6 +6,9 @@ project(CoreFoundation
   VERSION 1338
   LANGUAGES ASM C)
 
+include(CheckSymbolExists)
+include(CheckIncludeFile)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 
@@ -75,8 +78,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   add_compile_definitions($<$<COMPILE_LANGUAGE:C>:_GNU_SOURCE>)
 
   if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    include(CheckSymbolExists)
-    include(CheckIncludeFile)
     list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
     check_include_file("sched.h" HAVE_SCHED_H)
     if(HAVE_SCHED_H)
@@ -93,6 +94,21 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   if(BUILD_SHARED_LIBS)
     add_compile_definitions($<$<COMPILE_LANGUAGE:C>:_WINDLL)
   endif()
+endif()
+
+# Look for some functions that may not be present on all platforms
+check_symbol_exists(strlcpy "string.h" HAVE_STRLCPY)
+check_symbol_exists(strlcat "string.h" HAVE_STRLCAT)
+check_symbol_exists(issetugid "unistd.h" HAVE_ISSETUGID)
+
+if(HAVE_STRLCPY)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCPY>)
+endif()
+if(HAVE_STRLCAT)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCAT>)
+endif()
+if(HAVE_ISSETUGID)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_ISSETUGID>)
 endif()
 
 add_compile_definitions($<$<COMPILE_LANGUAGE:C>:U_SHOW_DRAFT_API>)

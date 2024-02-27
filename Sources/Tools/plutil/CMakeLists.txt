@@ -28,7 +28,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
 endif()
 
 set_target_properties(plutil PROPERTIES
-  INSTALL_RPATH "$ORIGIN/../lib/swift/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+  INSTALL_RPATH "$ORIGIN/../lib/swift/${SWIFT_SYSTEM_NAME}")
 
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS plutil)

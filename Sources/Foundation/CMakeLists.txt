@@ -171,6 +171,11 @@ target_link_libraries(Foundation
     uuid
   PUBLIC
     swiftDispatch)
+if("${CMAKE_C_COMPILER_TARGET}" MATCHES ".*-musl[^-*]$")
+  target_link_libraries(Foundation
+    PUBLIC
+      fts)
+endif()
 set_target_properties(Foundation PROPERTIES
   INSTALL_RPATH "$ORIGIN"
   BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>"
