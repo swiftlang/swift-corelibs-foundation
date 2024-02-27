@@ -209,6 +209,7 @@ extension _EasyHandle {
         }
 #endif
 
+#if !NS_CURL_MISSING_CURLINFO_CAINFO
 #if !os(Windows) && !os(macOS) && !os(iOS) && !os(watchOS) && !os(tvOS)
         // Check if there is a default path; if there is, it will already
         // be set, so leave things alone
@@ -240,7 +241,8 @@ extension _EasyHandle {
               return
           }
         }
-#endif
+#endif // !os(Windows) && !os(macOS) && !os(iOS) && !os(watchOS) && !os(tvOS)
+#endif // !NS_CURL_MISSING_CURLINFO_CAINFO
     }
 
     /// Set allowed protocols
