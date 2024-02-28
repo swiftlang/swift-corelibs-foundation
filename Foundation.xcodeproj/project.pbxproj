@@ -3437,6 +3437,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3478,6 +3479,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3536,6 +3538,7 @@
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3551,7 +3554,7 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.XML;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3592,6 +3595,7 @@
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3607,7 +3611,7 @@
 					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.XML;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3649,6 +3653,7 @@
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3665,7 +3670,7 @@
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = "-twolevel_namespace";
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.Networking;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3709,6 +3714,7 @@
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3725,7 +3731,7 @@
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = "-twolevel_namespace";
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation.Networking;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3749,6 +3755,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3790,6 +3797,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -3967,6 +3975,7 @@
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -4002,7 +4011,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4044,6 +4053,7 @@
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
 					"-DHAVE_STRUCT_TIMESPEC",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -4080,7 +4090,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4110,6 +4120,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -4159,6 +4170,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
 					"-I$(SRCROOT)/bootstrap/common/usr/local/include",
@@ -4207,7 +4219,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4237,7 +4249,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
