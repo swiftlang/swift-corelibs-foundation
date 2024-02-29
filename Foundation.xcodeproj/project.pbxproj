@@ -3966,6 +3966,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
@@ -4002,7 +4003,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS -Xcc -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4043,6 +4044,7 @@
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_RUNTIME_SWIFT",
 					"-DDEPLOYMENT_ENABLE_LIBDISPATCH",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-I$(SRCROOT)/bootstrap/common/usr/include",
 					"-I$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/include",
@@ -4080,7 +4082,7 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS -Xcc -DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4129,6 +4131,7 @@
 					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
 					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
 					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-Wno-format-security",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
@@ -4178,6 +4181,7 @@
 					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
 					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
 					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
+					"-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS",
 					"-Wno-format-security",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
