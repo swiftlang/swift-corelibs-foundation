@@ -1627,7 +1627,7 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 #include <fcntl.h>
 
-extern void swift_retain(void *);
+extern void *swift_retain(void *);
 extern void swift_release(void *);
 
 #if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS

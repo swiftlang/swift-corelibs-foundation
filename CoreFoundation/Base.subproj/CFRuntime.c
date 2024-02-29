@@ -1411,7 +1411,7 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-extern void swift_retain(void *);
+extern void *swift_retain(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".
