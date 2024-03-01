@@ -195,7 +195,6 @@ extension String {
         return temp
     }
     
-#if !os(WASI)
     internal func _tryToRemovePathPrefix(_ prefix: String) -> String? {
         guard self != prefix else {
             return nil
@@ -208,7 +207,6 @@ extension String {
         
         return nil
     }
-#endif
 }
 
 extension NSString {
@@ -338,7 +336,6 @@ extension NSString {
         return result._stringByFixingSlashes()
     }
 
-#if !os(WASI)
     public var expandingTildeInPath: String {
         guard hasPrefix("~") else {
             return _swiftObject
@@ -359,7 +356,6 @@ extension NSString {
         
         return result
     }
-#endif
 
 #if os(Windows)
     public var unixPath: String {
@@ -374,7 +370,6 @@ extension NSString {
     }
 #endif
     
-#if !os(WASI)
     public var standardizingPath: String {
 #if os(Windows)
         let expanded = unixPath.expandingTildeInPath
@@ -422,8 +417,6 @@ extension NSString {
         
         return resolvedPath
     }
-#endif
-    
     public func stringsByAppendingPaths(_ paths: [String]) -> [String] {
         if self == "" {
             return paths
@@ -655,7 +648,6 @@ extension NSString {
 
 }
 
-#if !os(WASI)
 extension FileManager {
     public enum SearchPathDirectory: UInt {
         
@@ -731,6 +723,9 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(_ user: String?) -> String? {
+#if os(WASI) // WASI does not have user concept
+    return nil
+#else
     let userName = user?._cfObject
     guard let homeDir = CFCopyHomeDirectoryURLForUser(userName)?.takeRetainedValue() else {
         return nil
@@ -738,6 +733,7 @@ public func NSHomeDirectoryForUser(_ user: String?) -> String? {
     
     let url: URL = homeDir._swiftObject
     return url.path
+#endif
 }
 
 public func NSUserName() -> String {
@@ -831,4 +827,3 @@ internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String)
     })
 #endif
 }
-#endif
