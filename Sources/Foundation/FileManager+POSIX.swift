@@ -96,6 +96,32 @@ extension FileManager {
                 return nil
             }
             urls = mountPoints(statBuf, Int(fsCount))
+#elseif os(WASI)
+        // Skip the first three file descriptors, which are reserved for stdin, stdout, and stderr.
+        var fd: __wasi_fd_t = 3
+        let __WASI_PREOPENTYPE_DIR: UInt8 = 0
+        while true {
+            var prestat = __wasi_prestat_t()
+            guard __wasi_fd_prestat_get(fd, &prestat) == 0 else {
+                break
+            }
+
+            if prestat.tag == __WASI_PREOPENTYPE_DIR {
+                var buf = [UInt8](repeating: 0, count: Int(prestat.u.dir.pr_name_len))
+                guard __wasi_fd_prestat_dir_name(fd, &buf, prestat.u.dir.pr_name_len) == 0 else {
+                    break
+                }
+                let path = buf.withUnsafeBufferPointer { buf in
+                  guard let baseAddress = buf.baseAddress else {
+                    return ""
+                  }
+                  let base = UnsafeRawPointer(baseAddress).assumingMemoryBound(to: Int8.self)
+                  return string(withFileSystemRepresentation: base, length: buf.count)
+                }
+                urls.append(URL(fileURLWithPath: path, isDirectory: true))
+            }
+            fd += 1
+        }
 #else
 #error("Requires a platform-specific implementation")
 #endif
@@ -446,6 +472,10 @@ extension FileManager {
     }
     
     internal func _attributesOfFileSystemIncludingBlockSize(forPath path: String) throws -> (attributes: [FileAttributeKey : Any], blockSize: UInt64?) {
+    #if os(WASI)
+        // WASI doesn't have statvfs
+        throw _NSErrorWithErrno(ENOTSUP, reading: true, path: path)
+    #else
         var result: [FileAttributeKey:Any] = [:]
         var finalBlockSize: UInt64?
         
@@ -478,6 +508,7 @@ extension FileManager {
             finalBlockSize = blockSize
         }
         return (attributes: result, blockSize: finalBlockSize)
+    #endif // os(WASI)
     }
 
     internal func _createSymbolicLink(atPath path: String, withDestinationPath destPath: String) throws {
@@ -507,6 +538,11 @@ extension FileManager {
     }
         
     internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
+        #if os(WASI)
+        // TODO: Remove this guard when realpath implementation will be released
+        // See https://github.com/WebAssembly/wasi-libc/pull/473
+        throw _NSErrorWithErrno(ENOTSUP, reading: true, path: path)
+        #else
         // Throw error if path is not a symbolic link:
         let path = try _destinationOfSymbolicLink(atPath: path)
         
@@ -520,10 +556,16 @@ extension FileManager {
         }
 
         return String(cString: resolvedPath)
+        #endif
     }
 
     /* Returns a String with a canonicalized path for the element at the specified path. */
     internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
+        #if os(WASI)
+        // TODO: Remove this guard when realpath implementation will be released
+        // See https://github.com/WebAssembly/wasi-libc/pull/473
+        throw _NSErrorWithErrno(ENOTSUP, reading: true, path: path)
+        #else
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
         let done = try _fileSystemRepresentation(withPath: path) {
@@ -534,6 +576,7 @@ extension FileManager {
         }
         
         return self.string(withFileSystemRepresentation: buf, length: strlen(buf))
+        #endif
     }
 
     internal func _readFrom(fd: Int32, toBuffer buffer: UnsafeMutablePointer<UInt8>, length bytesToRead: Int, filename: String) throws -> Int {
@@ -591,12 +634,14 @@ extension FileManager {
         }
         defer { close(dstfd) }
 
+        #if !os(WASI) // WASI doesn't have ownership concept
         // Set the file permissions using fchmod() instead of when open()ing to avoid umask() issues
         let permissions = fileInfo.st_mode & ~S_IFMT
         guard fchmod(dstfd, permissions) == 0 else {
             throw _NSErrorWithErrno(errno, reading: false, path: dstPath,
                 extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
+        #endif
 
         if fileInfo.st_size == 0 {
             // no copying required
@@ -741,6 +786,10 @@ extension FileManager {
             if rmdir(fsRep) == 0 {
                 return
             } else if errno == ENOTEMPTY {
+                #if os(WASI)
+                // wasi-libc, which is based on musl, does not provide fts(3)
+                throw _NSErrorWithErrno(ENOTSUP, reading: false, path: path)
+                #else
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
@@ -783,6 +832,7 @@ extension FileManager {
                 } else {
                     let _ = _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
                 }
+                #endif
             } else if errno != ENOTDIR {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             } else if unlink(fsRep) != 0 {
@@ -885,6 +935,7 @@ extension FileManager {
                     return false
                 }
 
+                #if !os(WASI) // WASI doesn't have ownership concept
                 // Stat the parent directory, if that fails, return false.
                 let parentS = try _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep)
 
@@ -895,6 +946,7 @@ extension FileManager {
                     // If the current user owns the file, return true.
                     return s.st_uid == getuid()
                 }
+                #endif
 
                 // Return true as the best guess.
                 return true
@@ -1065,6 +1117,26 @@ extension FileManager {
         return temp._bridgeToObjectiveC().appendingPathComponent(dest)
     }
 
+    #if os(WASI)
+    // For platforms that don't support FTS, we just throw an error for now.
+    // TODO: Provide readdir(2) based implementation here or FTS in wasi-libc?
+    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
+        var _url : URL
+        var _errorHandler : ((URL, Error) -> Bool)?
+
+        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ((URL, Error) -> Bool)?) {
+            _url = url
+            _errorHandler = errorHandler
+        }
+
+        override func nextObject() -> Any? {
+            if let handler = _errorHandler {
+                _ = handler(_url, _NSErrorWithErrno(ENOTSUP, reading: true, url: _url))
+            }
+            return nil
+        }
+    }
+    #else
     internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
         var _url : URL
         var _options : FileManager.DirectoryEnumerationOptions
@@ -1198,6 +1270,7 @@ extension FileManager {
             return nil
         }
     }
+    #endif
 
     internal func _updateTimes(atPath path: String, withFileSystemRepresentation fsr: UnsafePointer<Int8>, creationTime: Date? = nil, accessTime: Date? = nil, modificationTime: Date? = nil) throws {
         let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsr)
