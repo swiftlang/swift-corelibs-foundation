@@ -479,6 +479,11 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
+if(NOT HAS_LIBDISPATCH_API)
+  # Explicitly link BlocksRuntime if we are not using libdispatch, which
+  # indirectly brings BlocksRuntime in.
+  target_link_libraries(CFXMLInterface PRIVATE BlocksRuntime)
+endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CFXMLInterface PRIVATE
     LibXml2::LibXml2)
@@ -559,6 +564,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set_target_properties(CoreFoundation
                         PROPERTIES LINK_FLAGS
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  # Enable emulated features
+  set(WASI_EMULATION_DEFS _WASI_EMULATED_MMAN _WASI_EMULATED_SIGNAL _WASI_EMULATED_PROCESS_CLOCKS)
+  target_compile_definitions(CoreFoundation PRIVATE ${WASI_EMULATION_DEFS})
+  target_compile_definitions(CFXMLInterface PRIVATE ${WASI_EMULATION_DEFS})
 endif()
 
 install(TARGETS
