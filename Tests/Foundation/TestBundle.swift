@@ -43,10 +43,7 @@ internal func testBundleName() -> String {
 }
 
 internal func xdgTestHelperURL() -> URL {
-    guard let url = testBundle().url(forAuxiliaryExecutable: "xdgTestHelper") else {
-        fatalError("Cant find xdgTestHelper")
-    }
-    return url
+    testBundle().bundleURL.deletingLastPathComponent().appendingPathComponent("xdgTestHelper")
 }
 
 

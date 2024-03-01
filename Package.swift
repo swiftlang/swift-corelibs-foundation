@@ -72,7 +72,7 @@ let package = Package(
         .library(name: "Foundation", targets: ["Foundation"]),
         .library(name: "FoundationXML", targets: ["FoundationXML"]),
         .library(name: "FoundationNetworking", targets: ["FoundationNetworking"]),
-        .executable(name: "plutil", targets: ["plutil"])
+        .executable(name: "plutil", targets: ["plutil"]),
     ],
     dependencies: [
         .package(
@@ -162,6 +162,13 @@ let package = Package(
             name: "plutil",
             dependencies: ["Foundation"]
         ),
+        .executableTarget(
+            name: "xdgTestHelper",
+            dependencies: [
+                "Foundation",
+                "FoundationNetworking"
+            ]
+        ),
         .target(
             // swift-corelibs-foundation has a copy of XCTest's sources so:
             // (1) we do not depend on the toolchain's XCTest, which depends on toolchain's Foundation, which we cannot pull in at the same time as a Foundation package
@@ -179,7 +186,8 @@ let package = Package(
                 "Foundation",
                 "FoundationXML",
                 "FoundationNetworking",
-                "XCTest"
+                "XCTest",
+                "xdgTestHelper"
             ],
             resources: [
                 .copy("Foundation/Resources")
