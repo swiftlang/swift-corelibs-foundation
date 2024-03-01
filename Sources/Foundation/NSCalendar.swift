@@ -101,7 +101,7 @@ extension NSCalendar {
         public static let islamicTabular = NSCalendar.Identifier("islamic-tbla")
         public static let islamicUmmAlQura = NSCalendar.Identifier("islamic-umalqura")
         
-        var _calendarIdentifier: Calendar.Identifier {
+        var _calendarIdentifier: Calendar.Identifier? {
             switch self {
             case .gregorian: .gregorian
             case .buddhist: .buddhist
@@ -119,8 +119,7 @@ extension NSCalendar {
             case .republicOfChina: .republicOfChina
             case .islamicTabular: .islamicTabular
             case .islamicUmmAlQura: .islamicUmmAlQura
-            default:
-                fatalError("Unknown Calendar identifier")
+            default: nil
             }
         }
     }
@@ -156,34 +155,23 @@ extension NSCalendar {
         
         internal var _calendarComponent: Calendar.Component {
             switch self {
-            case .era:
-                .era
-            case .year:
-                .year
-            case .month:
-                .month
-            case .day:
-                .day
-            case .hour:
-                .hour
-            case .minute:
-                .minute
-            case .second:
-                .second
-            case .weekday:
-                .weekday
-            case .weekdayOrdinal:
-                .weekdayOrdinal
-            case .quarter:
-                .quarter
-            case .weekOfMonth:
-                .weekOfMonth
-            case .weekOfYear:
-                .weekOfYear
-            case .yearForWeekOfYear:
-                .yearForWeekOfYear
-            default:
-                fatalError()
+            case .era: .era
+            case .year: .year
+            case .month: .month
+            case .day: .day
+            case .hour: .hour
+            case .minute: .minute
+            case .second: .second
+            case .weekday: .weekday
+            case .weekdayOrdinal: .weekdayOrdinal
+            case .quarter: .quarter
+            case .weekOfMonth: .weekOfMonth
+            case .weekOfYear: .weekOfYear
+            case .yearForWeekOfYear: .yearForWeekOfYear
+            case .calendar: .calendar
+            case .timeZone: .timeZone
+            case .nanosecond: .nanosecond
+            default: fatalError("Unknown component \(self)")
             }
         }
         
@@ -312,12 +300,18 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     public /*not inherited*/ init?(identifier calendarIdentifierConstant: Identifier) {
-        _calendar = Calendar(identifier: calendarIdentifierConstant._calendarIdentifier)
+        guard let id = calendarIdentifierConstant._calendarIdentifier else {
+            return nil
+        }
+        _calendar = Calendar(identifier: id)
         super.init()
     }
     
     public init?(calendarIdentifier ident: Identifier) {
-        _calendar = Calendar(identifier: ident._calendarIdentifier)
+        guard let id = ident._calendarIdentifier else {
+            return nil
+        }
+        _calendar = Calendar(identifier: id)
         super.init()
     }
     
@@ -947,7 +941,7 @@ extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
 
 extension NSCalendar {
     internal var _cfObject: CFCalendar {
-        let cf = CFCalendarCreateWithIdentifier(nil, calendarIdentifier._calendarIdentifier._cfCalendarIdentifier._cfObject)!
+        let cf = CFCalendarCreateWithIdentifier(nil, calendarIdentifier._calendarIdentifier!._cfCalendarIdentifier._cfObject)!
         CFCalendarSetTimeZone(cf, timeZone._cfObject)
         if let l = locale {
             CFCalendarSetLocale(cf, l._cfObject)

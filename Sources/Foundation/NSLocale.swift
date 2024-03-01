@@ -211,10 +211,10 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     }
 
     func localizedString(forCalendarIdentifier calendarIdentifier: String) -> String? {
-        guard let id = NSCalendar.Identifier(string: calendarIdentifier) else {
+        guard let id = NSCalendar.Identifier(string: calendarIdentifier), let id = id._calendarIdentifier else {
             return nil
         }
-        return _locale.localizedString(for: id._calendarIdentifier)
+        return _locale.localizedString(for: id)
     }
 
     func localizedString(forCollationIdentifier collationIdentifier: String) -> String? {
