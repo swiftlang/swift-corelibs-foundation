@@ -18,7 +18,7 @@
 #include "CFString_Internal.h"
 #include <limits.h>
 #include <stdlib.h>
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 #include <unicode/ucol.h>
 #include <unicode/ucoleitr.h>
 #endif
@@ -111,7 +111,7 @@ CFStringEncoding CFStringConvertIANACharSetNameToEncoding(CFStringRef charsetNam
 
     encoding = __CFStringEncodingGetFromCanonicalName(name);
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
     if (kCFStringEncodingInvalidId == encoding) encoding = __CFStringEncodingGetFromICUName(name);
 #endif
     
@@ -262,7 +262,7 @@ CFStringEncoding CFStringGetMostCompatibleMacStringEncoding(CFStringEncoding enc
 
 #define kCFStringCompareAllocationIncrement (128)
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 
 // -------------------------------------------------------------------------------------------------
 //	CompareSpecials - ignore case & diacritic differences
@@ -425,7 +425,7 @@ static UCollator *__CFStringCopyDefaultCollator(CFLocaleRef compareLocale) {
     return collator;
 }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 static void __collatorFinalize(UCollator *collator) {
     CFLocaleRef locale = _CFGetTSD(__CFTSDKeyCollatorLocale);
     _CFSetTSD(__CFTSDKeyCollatorUCollator, NULL, NULL);
@@ -578,7 +578,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
     CFRange range1 = str1Range;
     CFRange range2 = str2Range;
     SInt32 order;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
     Boolean isEqual;
     bool forcedOrdering = ((options & kCFCompareForcedOrdering) ? true : false);
 
@@ -611,7 +611,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	range2.location = __extendLocationBackward(range2.location - 1, str2, nonBaseBMP, punctBMP);
     }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
     // First we try to use the last one used on this thread, if the locale is the same,
     // otherwise we try to check out a default one, or then we create one.
     UCollator *threadCollator = _CFGetTSD(__CFTSDKeyCollatorUCollator);
@@ -633,7 +633,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	range1.length = (str1Range.location + str1Range.length) - range1.location;
 	range2.length = (str2Range.location + str2Range.length) - range2.location;
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
         if ((NULL != collator) && (__CompareTextDefault(collator, options, characters1, range1.length, characters2, range2.length, &isEqual, &order) == 0 /* noErr */)) {
             compResult = ((isEqual && !forcedOrdering) ? kCFCompareEqualTo : ((order < 0) ? kCFCompareLessThan : kCFCompareGreaterThan));
         } else
@@ -709,7 +709,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                 }
             }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
             if ((NULL != collator) && (__CompareTextDefault(collator, options, characters1, range1.length, characters2, range2.length, &isEqual, &order) ==  0 /* noErr */)) {
                 if (isEqual) {
                     if (forcedOrdering && (kCFCompareEqualTo == compResult) && (0 != order)) compResult = ((order < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
@@ -753,7 +753,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
         if (buffer2Len > 0) CFAllocatorDeallocate(kCFAllocatorSystemDefault, buffer2);
     }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
     if (collator == threadCollator) {
 	// do nothing, already cached
     } else {
