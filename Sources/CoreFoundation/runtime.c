@@ -16,7 +16,7 @@
 #if TARGET_OS_WIN32
 #include <Windows.h>
 #include <Psapi.h>
-#else
+#elif __has_include(<dlfcn.h>)
 #include <dlfcn.h>
 #endif
 #if __has_include(<os/assumes.h>)
@@ -269,7 +269,11 @@ void _Block_use_RR( void (*retain)(const void *),
         break;
     }
 #else
-//    _Block_destructInstance = dlsym(RTLD_DEFAULT, "objc_destructInstance");
+# if __has_include(<dlfcn.h>)
+    _Block_destructInstance = dlsym(RTLD_DEFAULT, "objc_destructInstance");
+# else
+    _Block_destructInstance = _Block_destructInstance_default;
+# endif
 #endif
 }
 

@@ -650,6 +650,37 @@ CF_INLINE int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
   LeaveCriticalSection(mutex);
   return 0;
 }
+#elif TARGET_OS_WASI
+// For wasi-libc without pthread support (_POSIX_THREADS), just assume that it's single-threaded.
+// wasi-libc with pthread support is handled by the _POSIX_THREADS case above.
+typedef void *_CFMutex;
+#define _CF_MUTEX_STATIC_INITIALIZER {}
+CF_INLINE int _CFMutexCreate(_CFMutex *lock) {
+  return 0;
+}
+CF_INLINE int _CFMutexDestroy(_CFMutex *lock) {
+  return 0;
+}
+CF_INLINE int _CFMutexLock(_CFMutex *lock) {
+  return 0;
+}
+CF_INLINE int _CFMutexUnlock(_CFMutex *lock) {
+  return 0;
+}
+
+typedef void *_CFRecursiveMutex;
+CF_INLINE int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+  return 0;
+}
+CF_INLINE int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+  return 0;
+}
+CF_INLINE int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+  return 0;
+}
+CF_INLINE int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+  return 0;
+}
 #else
 #error "do not know how to define mutex and recursive mutex for this OS"
 #endif
@@ -673,7 +704,7 @@ typedef uint32_t os_unfair_lock_options_t;
 static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
 static void os_unfair_lock_lock_with_options(os_unfair_lock_t lock, os_unfair_lock_options_t options) { pthread_mutex_lock(lock); }
 static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
-#elif defined(_WIN32)
+#elif defined(_WIN32) || TARGET_OS_WASI
 #define OS_UNFAIR_LOCK_INIT CFLockInit
 #define os_unfair_lock CFLock_t
 #define os_unfair_lock_lock __CFLock

@@ -776,7 +776,7 @@ open class Process: NSObject {
         }
 
         var taskSocketPair : [Int32] = [0, 0]
-#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD)
+#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD) || canImport(Musl)
         socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
 #else
         socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)

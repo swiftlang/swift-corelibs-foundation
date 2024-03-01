@@ -20,6 +20,8 @@ internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
+#elseif canImport(Musl)
+import Musl
 #endif
 
 // NOTE: this represents PLATFORM_PATH_STYLE

@@ -12,6 +12,9 @@ import SwiftFoundation
 #elseif canImport(Glibc)
 import Foundation
 import Glibc
+#elseif canImport(Musl)
+import Foundation
+import Musl
 #elseif canImport(CRT)
 import Foundation
 import CRT

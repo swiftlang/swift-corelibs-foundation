@@ -8,7 +8,7 @@
 //
 
 open class NSNotification: NSObject, NSCopying, NSCoding {
-    public struct Name : RawRepresentable, Equatable, Hashable {
+    public struct Name : RawRepresentable, Equatable, Hashable, Sendable {
         public private(set) var rawValue: String
 
         public init(_ rawValue: String) {
