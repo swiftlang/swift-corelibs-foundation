@@ -10,6 +10,7 @@ let buildSettings: [CSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
     .define("HAVE_STRUCT_TIMESPEC"),
+    .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
     .define("CF_CHARACTERSET_UNICODE_DATA_L", to: "\"\(Context.packageDirectory)/Sources/CoreFoundation/CFUnicodeData-L.mapping\""),
     .define("CF_CHARACTERSET_UNICODE_DATA_B", to: "\"\(Context.packageDirectory)/Sources/CoreFoundation/CFUnicodeData-B.mapping\""),
@@ -43,6 +44,7 @@ let interfaceBuildSettings: [CSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
     .define("HAVE_STRUCT_TIMESPEC"),
+    .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
     .unsafeFlags([
         "-Wno-shorten-64-to-32",
@@ -90,7 +92,7 @@ let package = Package(
                 "_CoreFoundation"
             ],
             path: "Sources/Foundation",
-            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
+            swiftSettings:  [.define("DEPLOYMENT_RUNTIME_SWIFT"), .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS")]
         ),
         .target(
             name: "FoundationXML",
@@ -101,7 +103,7 @@ let package = Package(
                 "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
-            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
+            swiftSettings:  [.define("DEPLOYMENT_RUNTIME_SWIFT"), .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS")]
         ),
         .target(
             name: "FoundationNetworking",
@@ -112,7 +114,7 @@ let package = Package(
                 "_CFURLSessionInterface"
             ],
             path: "Sources/FoundationNetworking",
-            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT")]
+            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT"), .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS")]
         ),
         .target(
             name: "_CoreFoundation",

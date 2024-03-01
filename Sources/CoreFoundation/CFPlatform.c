@@ -1664,8 +1664,6 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 extern void *swift_retain(void *);
 extern void swift_release(void *);
 
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
-
 #if TARGET_OS_WIN32
 typedef struct _CFThreadSpecificData {
     CFTypeRef value;
@@ -1677,6 +1675,7 @@ typedef struct _CFThreadSpecificData {
 __stdcall
 #endif
 static void _CFThreadSpecificDestructor(void *ctx) {
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     _CFThreadSpecificData *data = (_CFThreadSpecificData *)ctx;
     FlsSetValue(data->key, NULL);
@@ -1685,9 +1684,11 @@ static void _CFThreadSpecificDestructor(void *ctx) {
 #else
     swift_release(ctx);
 #endif
+#endif
 }
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
     _CFThreadSpecificKey key;
 #if TARGET_OS_WIN32
     key = FlsAlloc(_CFThreadSpecificDestructor);
@@ -1695,9 +1696,13 @@ _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
     pthread_key_create(&key, &_CFThreadSpecificDestructor);
 #endif
     return key;
+#else
+    return 0;
+#endif
 }
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     _CFThreadSpecificData *data = (_CFThreadSpecificData *)FlsGetValue(key);
     if (data == NULL) {
@@ -1707,12 +1712,16 @@ CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
 #else
     return (CFTypeRef)pthread_getspecific(key);
 #endif
+#else
+    return NULL;
+#endif
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
     // Intentionally not calling `swift_release` for previous value.
     // OperationQueue uses these API (through NSThreadSpecific), and balances
     // retain count manually.
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     free(FlsGetValue(key));
 
@@ -1737,9 +1746,12 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
         pthread_setspecific(key, NULL);
     }
 #endif
+#else
+#endif
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     DWORD dwCreationFlags = 0;
     DWORD dwStackSize = 0;
@@ -1760,9 +1772,13 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
     pthread_create(&thread, &attrs, startfn, context);
     return thread;
 #endif
+#else
+    return NULL;
+#endif
 }
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_MAC
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
@@ -1793,9 +1809,13 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
     pthread_set_name_np(thread, name);
     return 0;
 #endif
+#else
+    return -1;
+#endif
 }
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_MAC
     return pthread_getname_np(pthread_self(), buf, length);
 #elif TARGET_OS_ANDROID
@@ -1843,8 +1863,10 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
     return 0;
 #endif
     return -1;
+#else
+    return -1;
+#endif
 }
-#endif // SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 
 CF_EXPORT char **_CFEnviron(void) {
 #if TARGET_OS_MAC
