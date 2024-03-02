@@ -33,6 +33,7 @@
 #include "CFStringLocalizedFormattingInternal.h"
 #endif
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
@@ -2660,10 +2661,7 @@ static bool __CFStringFillCharacterSetInlineBuffer(CFCharacterSetInlineBuffer *b
 	if (NULL == nonAlnumChars) {
 	    CFMutableCharacterSetRef cset = CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetAlphaNumeric));
 	    CFCharacterSetInvert(cset);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-	    if (!OSAtomicCompareAndSwapPtrBarrier(NULL, cset, (void **)&nonAlnumChars)) CFRelease(cset);
-#pragma GCC diagnostic pop
+	    if (!atomic_compare_exchange_strong((volatile CFMutableCharacterSetRef *)&nonAlnumChars, NULL, cset)) CFRelease(cset);
 	}
 
 	CFCharacterSetInitInlineBuffer(nonAlnumChars, buffer);

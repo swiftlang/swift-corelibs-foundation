@@ -8,18 +8,19 @@
 	Responsibility: Michael LeHew
 */
 
-#include <CoreFoundation/CFRunLoop.h>
-#include <CoreFoundation/CFSet.h>
+#include "CFInternal.h"
+#include "CFMachPort_Internal.h"
+#include "CFPriv.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFBag.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
-#include "CFInternal.h"
-#include "CFPriv.h"
-#include "CFRuntime_Internal.h"
-#include "CFMachPort_Internal.h"
-#include <math.h>
-#include <stdio.h>
+#include <CoreFoundation/CFRunLoop.h>
+#include <CoreFoundation/CFSet.h>
 #include <limits.h>
+#include <math.h>
+#include <stdatomic.h>
+#include <stdio.h>
 
 #if __has_include(<unistd.h>)
 #include <unistd.h>
@@ -1697,10 +1698,7 @@ CF_PRIVATE CFRunLoopRef _CFRunLoopCacheLookup(_CFThreadRef t, const Boolean crea
         CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
         CFRunLoopRef mainLoop = __CFRunLoopCreate(pthread_main_thread_np());
         CFDictionarySetValue(dict, pthreadPointer(pthread_main_thread_np()), mainLoop);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-        if (!OSAtomicCompareAndSwapPtrBarrier(NULL, dict, (void * volatile *)&__CFRunLoops)) {
-#pragma GCC diagnostic pop
+        if (!atomic_compare_exchange_strong((volatile CFRunLoopRef*)&__CFRunLoops, NULL, dict)) {
             CFRelease(dict);
         }
         CFRelease(mainLoop);
@@ -1742,10 +1740,7 @@ CF_EXPORT CFRunLoopRef _CFRunLoopGet0(_CFThreadRef t) {
 	CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
 	CFRunLoopRef mainLoop = __CFRunLoopCreate(pthread_main_thread_np());
 	CFDictionarySetValue(dict, pthreadPointer(pthread_main_thread_np()), mainLoop);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-	if (!OSAtomicCompareAndSwapPtrBarrier(NULL, dict, (void * volatile *)&__CFRunLoops)) {
-#pragma GCC diagnostic pop
+	if (!atomic_compare_exchange_strong((volatile CFRunLoopRef*)&__CFRunLoops, NULL, dict)) {
 	    CFRelease(dict);
 	}
 	CFRelease(mainLoop);

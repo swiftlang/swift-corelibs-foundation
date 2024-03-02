@@ -9,12 +9,13 @@
 */
 
 #include "CFBasicHash.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFRuntime.h>
-#include "CFRuntime_Internal.h"
-#include <CoreFoundation/CFSet.h>
 #include <Block.h>
+#include <CoreFoundation/CFSet.h>
 #include <math.h>
+#include <stdatomic.h>
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
 #endif
@@ -1070,16 +1071,16 @@ CF_PRIVATE unsigned long __CFBasicHashFastEnumeration(CFConstBasicHashRef ht, st
 }
 
 #if ENABLE_MEMORY_COUNTERS
-static volatile int64_t __CFBasicHashTotalCount = 0ULL;
-static volatile int64_t __CFBasicHashTotalSize = 0ULL;
-static volatile int64_t __CFBasicHashPeakCount = 0ULL;
-static volatile int64_t __CFBasicHashPeakSize = 0ULL;
-static volatile int32_t __CFBasicHashSizes[64] = {0};
+static volatile uint64_t __CFBasicHashTotalCount = 0ULL;
+static volatile uint64_t __CFBasicHashTotalSize = 0ULL;
+static volatile uint64_t __CFBasicHashPeakCount = 0ULL;
+static volatile uint64_t __CFBasicHashPeakSize = 0ULL;
+static volatile uint32_t __CFBasicHashSizes[64] = {0};
 #endif
 
 static void __CFBasicHashDrain(CFBasicHashRef ht) {
 #if ENABLE_MEMORY_COUNTERS
-    OSAtomicAdd64Barrier(-1 * (int64_t) CFBasicHashGetSize(ht, true), & __CFBasicHashTotalSize);
+    atomic_fetch_sub(&__CFBasicHashTotalSize, CFBasicHashGetSize(ht, true));
 #endif
 
     CFIndex old_num_buckets = __CFBasicHashTableSizes[ht->bits.num_buckets_idx];
@@ -1132,15 +1133,15 @@ static void __CFBasicHashDrain(CFBasicHashRef ht) {
     CFAllocatorDeallocate(allocator, old_hashes);
 
 #if ENABLE_MEMORY_COUNTERS
-    int64_t size_now = OSAtomicAdd64Barrier((int64_t) CFBasicHashGetSize(ht, true), & __CFBasicHashTotalSize);
-    while (__CFBasicHashPeakSize < size_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakSize, size_now, & __CFBasicHashPeakSize));
+    uint64_t size_now = atomic_fetch_add(&__CFBasicHashTotalSize, (uint64_t) CFBasicHashGetSize(ht, true));
+    while (__CFBasicHashPeakSize < size_now && !atomic_compare_exchange_strong(& __CFBasicHashPeakSize, __CFBasicHashPeakSize, size_now));
 #endif
 }
 
 static void __CFBasicHashRehash(CFBasicHashRef ht, CFIndex newItemCount) {
 #if ENABLE_MEMORY_COUNTERS
-    OSAtomicAdd64Barrier(-1 * (int64_t) CFBasicHashGetSize(ht, true), & __CFBasicHashTotalSize);
-    OSAtomicAdd32Barrier(-1, &__CFBasicHashSizes[ht->bits.num_buckets_idx]);
+    atomic_fetch_sub(&__CFBasicHashTotalSize, CFBasicHashGetSize(ht, true));
+    atomic_fetch_sub(__CFBasicHashSizes[ht->bits.num_buckets_idx], 1);
 #endif
 
     if (COCOA_HASHTABLE_REHASH_START_ENABLED()) COCOA_HASHTABLE_REHASH_START(ht, CFBasicHashGetNumBuckets(ht), CFBasicHashGetSize(ht, true));
@@ -1246,9 +1247,9 @@ static void __CFBasicHashRehash(CFBasicHashRef ht, CFIndex newItemCount) {
     if (COCOA_HASHTABLE_REHASH_END_ENABLED()) COCOA_HASHTABLE_REHASH_END(ht, CFBasicHashGetNumBuckets(ht), CFBasicHashGetSize(ht, true));
 
 #if ENABLE_MEMORY_COUNTERS
-    int64_t size_now = OSAtomicAdd64Barrier((int64_t) CFBasicHashGetSize(ht, true), &__CFBasicHashTotalSize);
-    while (__CFBasicHashPeakSize < size_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakSize, size_now, & __CFBasicHashPeakSize));
-    OSAtomicAdd32Barrier(1, &__CFBasicHashSizes[ht->bits.num_buckets_idx]);
+    uint64_t size_now = atomic_fetch_add(&__CFBasicHashTotalSize, CFBasicHashGetSize(ht, true));
+    while (__CFBasicHashPeakSize < size_now && !atomic_compare_exchange_strong(& __CFBasicHashPeakSize, __CFBasicHashPeakSize, size_now));
+    atomic_fetch_add(&__CFBasicHashSizes[ht->bits.num_buckets_idx], 1);
 #endif
 }
 
@@ -1563,8 +1564,8 @@ CF_PRIVATE void __CFBasicHashDeallocate(CFTypeRef cf) {
     ht->bits.finalized = 1;
     __CFBasicHashDrain(ht);
 #if ENABLE_MEMORY_COUNTERS
-    OSAtomicAdd64Barrier(-1, &__CFBasicHashTotalCount);
-    OSAtomicAdd32Barrier(-1, &__CFBasicHashSizes[ht->bits.num_buckets_idx]);
+    atomic_fetch_sub(&__CFBasicHashTotalCount, 1);
+    atomic_fetch_sub(&__CFBasicHashSizes[ht->bits.num_buckets_idx], 1);
 #endif
 }
 
@@ -1653,11 +1654,11 @@ CF_PRIVATE CFBasicHashRef CFBasicHashCreate(CFAllocatorRef allocator, CFOptionFl
     ht->bits.__kget = CFBasicHashGetPtrIndex((void *)cb->getIndirectKey);
 
 #if ENABLE_MEMORY_COUNTERS
-    int64_t size_now = OSAtomicAdd64Barrier((int64_t) CFBasicHashGetSize(ht, true), & __CFBasicHashTotalSize);
-    while (__CFBasicHashPeakSize < size_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakSize, size_now, & __CFBasicHashPeakSize));
-    int64_t count_now = OSAtomicAdd64Barrier(1, & __CFBasicHashTotalCount);
-    while (__CFBasicHashPeakCount < count_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakCount, count_now, & __CFBasicHashPeakCount));
-    OSAtomicAdd32Barrier(1, &__CFBasicHashSizes[ht->bits.num_buckets_idx]);
+    uint64_t size_now = atomic_fetch_add(&__CFBasicHashTotalSize, (uint64_t) CFBasicHashGetSize(ht, true));
+    while (__CFBasicHashPeakSize < size_now && !atomic_compare_exchange_strong(&__CFBasicHashPeakSize, __CFBasicHashPeakSize, size_now));
+    uint64_t count_now = atomic_fetch_add(& __CFBasicHashTotalCount, 1);
+    while (__CFBasicHashPeakCount < count_now && !atomic_compare_exchange_strong(&__CFBasicHashPeakCount, __CFBasicHashPeakCount, count_now));
+    atomic_fetch_add(&__CFBasicHashSizes[ht->bits.num_buckets_idx], 1);
 #endif
 
     return ht;
@@ -1702,11 +1703,11 @@ CF_PRIVATE CFBasicHashRef CFBasicHashCreateCopy(CFAllocatorRef allocator, CFCons
 
     if (0 == new_num_buckets) {
 #if ENABLE_MEMORY_COUNTERS
-        int64_t size_now = OSAtomicAdd64Barrier((int64_t) CFBasicHashGetSize(ht, true), & __CFBasicHashTotalSize);
-        while (__CFBasicHashPeakSize < size_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakSize, size_now, & __CFBasicHashPeakSize));
-        int64_t count_now = OSAtomicAdd64Barrier(1, & __CFBasicHashTotalCount);
-        while (__CFBasicHashPeakCount < count_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakCount, count_now, & __CFBasicHashPeakCount));
-        OSAtomicAdd32Barrier(1, &__CFBasicHashSizes[ht->bits.num_buckets_idx]);
+        uint64_t size_now = atomic_fetch_add(& __CFBasicHashTotalSize, (uint64_t)CFBasicHashGetSize(ht, true));
+        while (__CFBasicHashPeakSize < size_now && !atomic_compare_exchange_strong(& __CFBasicHashPeakSize, __CFBasicHashPeakSize, size_now));
+        uint64_t count_now = atomic_fetch_add(& __CFBasicHashTotalCount, 1);
+        while (__CFBasicHashPeakCount < count_now && !atomic_compare_exchange_strong(& __CFBasicHashPeakCount, __CFBasicHashPeakCount, count_now));
+        atomic_fetch_add(&__CFBasicHashSizes[ht->bits.num_buckets_idx], 1);
 #endif
         return ht;
     }
@@ -1761,11 +1762,11 @@ CF_PRIVATE CFBasicHashRef CFBasicHashCreateCopy(CFAllocatorRef allocator, CFCons
     if (new_hashes && old_hashes) memmove(new_hashes, old_hashes, new_num_buckets * sizeof(uintptr_t));
 
 #if ENABLE_MEMORY_COUNTERS
-    int64_t size_now = OSAtomicAdd64Barrier((int64_t) CFBasicHashGetSize(ht, true), & __CFBasicHashTotalSize);
-    while (__CFBasicHashPeakSize < size_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakSize, size_now, & __CFBasicHashPeakSize));
-    int64_t count_now = OSAtomicAdd64Barrier(1, & __CFBasicHashTotalCount);
-    while (__CFBasicHashPeakCount < count_now && !OSAtomicCompareAndSwap64Barrier(__CFBasicHashPeakCount, count_now, & __CFBasicHashPeakCount));
-    OSAtomicAdd32Barrier(1, &__CFBasicHashSizes[ht->bits.num_buckets_idx]);
+    uint64_t size_now = atomic_fetch_add(&__CFBasicHashTotalSize, (uint64_t)CFBasicHashGetSize(ht, true));
+    while (__CFBasicHashPeakSize < size_now && !atomic_compare_exchange_strong(&__CFBasicHashPeakSize, __CFBasicHashPeakSize, size_now));
+    uint64_t count_now = atomic_fetch_add(&__CFBasicHashTotalCount, 1);
+    while (__CFBasicHashPeakCount < count_now && !atomic_compare_exchange_strong(&__CFBasicHashPeakCount, __CFBasicHashPeakCount, count_now));
+    atomic_fetch_add(&__CFBasicHashSizes[ht->bits.num_buckets_idx], 1);
 #endif
 
     return ht;

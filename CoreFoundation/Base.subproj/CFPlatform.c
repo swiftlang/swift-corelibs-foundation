@@ -11,6 +11,7 @@
 
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
+#include <stdatomic.h>
 #if TARGET_OS_MAC
     #include <stdlib.h>
     #include <sys/stat.h>
@@ -307,10 +308,8 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
             newStr  = CFStringCreateWithCString(kCFAllocatorSystemDefault, processName, kCFPlatformInterfaceStringEncoding);
         else
             newStr = CFSTR("");
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-        if (!OSAtomicCompareAndSwapPtrBarrier(NULL, (void *) newStr, (void * volatile *)& __CFProcessNameString)) {
-#pragma GCC diagnostic pop
+
+        if (!atomic_compare_exchange_strong((volatile CFStringRef*)& __CFProcessNameString, NULL, (void *) newStr)) {
             CFRelease(newStr);    // someone else made the assignment, so just release the extra string.
         }
     }
@@ -1445,70 +1444,6 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #endif // TARGET_OS_WIN32
 
 #pragma mark -
-#pragma mark Linux, BSD, and WASI OSAtomic
-
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
-
-bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
-{ 
-    return __sync_bool_compare_and_swap(dst, oldp, newp);
-}
-
-bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst) 
-{ 
-    return __sync_val_compare_and_swap(dst, oldl, newl);
-}
-
-bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst) 
-{ 
-    return __sync_bool_compare_and_swap(dst, oldp, newp);
-}
-
-int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue ) {
-    return __sync_fetch_and_add(theValue, theAmount) + theAmount;
-}
-
-int64_t OSAtomicAdd64( int64_t theAmount, volatile int64_t *theValue ) {
-    return __sync_fetch_and_add(theValue, theAmount) + theAmount;
-}
-
-bool OSAtomicCompareAndSwap32Barrier(int32_t oldValue, int32_t newValue, volatile int32_t *theValue) {
-    return __sync_bool_compare_and_swap(theValue, oldValue, newValue);
-}
-
-bool OSAtomicCompareAndSwap64Barrier(int64_t oldValue, int64_t newValue, volatile int64_t *theValue) {
-    return __sync_bool_compare_and_swap(theValue, oldValue, newValue);
-}
-
-int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst)
-{
-    return OSAtomicAdd32Barrier(-1, dst);
-}
-
-int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst)
-{
-    return OSAtomicAdd32Barrier(1, dst);
-}
-
-int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue ) {
-    return OSAtomicAdd32Barrier(theAmount, theValue);
-}
-
-int32_t OSAtomicIncrement32(volatile int32_t *theValue) {
-    return OSAtomicIncrement32Barrier(theValue);
-}
-
-int32_t OSAtomicDecrement32(volatile int32_t *theValue) {
-    return OSAtomicDecrement32Barrier(theValue);
-}
-
-void OSMemoryBarrier() {
-    __sync_synchronize();
-}
-
-#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
-
-#pragma mark -
 #pragma mark Dispatch Replacements
 
 #if !__HAS_DISPATCH__
@@ -1595,11 +1530,11 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
     struct _CF_dispatch_once_waiter_s dow = { NULL };
     _CF_dispatch_once_waiter_t tail = &dow, next, tmp;
     _CF_sema_t sema;
-    if (__sync_bool_compare_and_swap(vval, NULL, tail)) {
+    if (atomic_compare_exchange_strong(vval, NULL, tail)) {
         dow.dow_thread = pthread_self();
         block();
-        __sync_synchronize();
-        next = (_CF_dispatch_once_waiter_t)__sync_swap((vval), (CF_DISPATCH_ONCE_DONE));
+        atomic_thread_fence(memory_order_seq_cst);
+        next = (_CF_dispatch_once_waiter_t)atomic_exchange((vval), (CF_DISPATCH_ONCE_DONE));
         while (next != tail) {
             while (!(tmp = (_CF_dispatch_once_waiter_t)next->dow_next)) {
                 _CF_hardware_pause();
@@ -1612,7 +1547,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
         dow.dow_sema = _CF_get_thread_semaphore();
         next = *vval;
         while (next != CF_DISPATCH_ONCE_DONE) {
-            if (__sync_bool_compare_and_swap(vval, next, tail, &next)) {
+            if (atomic_compare_exchange_strong(vval, next, tail)) {
                 dow.dow_thread = next->dow_thread;
                 dow.dow_next = next;
                 _CF_sem_wait(dow.dow_sema);

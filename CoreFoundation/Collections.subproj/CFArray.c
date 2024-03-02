@@ -8,12 +8,13 @@
 	Responsibility: Michael LeHew
 */
 
-#include <CoreFoundation/CFArray.h>
-#include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
-#include <string.h>
+#include <CoreFoundation/CFArray.h>
+#include <CoreFoundation/CFPriv.h>
 #include <assert.h>
+#include <stdatomic.h>
+#include <string.h>
 
 #define CF_ARRAY_ALWAYS_BRIDGE 0
 
@@ -147,8 +148,8 @@ CF_INLINE bool __CFArrayCallBacksMatchCFType(const CFArrayCallBacks *c) {
 
 #if 0
 #define CHECK_FOR_MUTATION(A) do { if ((A)->_mutInProgress) CFLog(3, CFSTR("*** %s: function called while the array (%p) is being mutated in this or another thread"), __PRETTY_FUNCTION__, (A)); } while (0)
-#define BEGIN_MUTATION(A) do { OSAtomicAdd32Barrier(1, &((struct __CFArray *)(A))->_mutInProgress); } while (0)
-#define END_MUTATION(A) do { OSAtomicAdd32Barrier(-1, &((struct __CFArray *)(A))->_mutInProgress); } while (0)
+#define BEGIN_MUTATION(A) do { atomic_fetch_add(&((struct __CFArray *)(A))->_mutInProgress, 1); } while (0)
+#define END_MUTATION(A) do { atomic_fetch_sub(&((struct __CFArray *)(A))->_mutInProgress, 1); } while (0)
 #else
 #define CHECK_FOR_MUTATION(A) do { } while (0)
 #define BEGIN_MUTATION(A) do { } while (0)

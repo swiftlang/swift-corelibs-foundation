@@ -8,25 +8,25 @@
         Responsibility: Tony Parker
 */
 
-#include <CoreFoundation/CoreFoundation.h>
+#include "CFBundle_BinaryTypes.h"
 #include "CFBundle_Internal.h"
-#include <CoreFoundation/CFPropertyList.h>
-#include <CoreFoundation/CFNumber.h>
-#include <CoreFoundation/CFSet.h>
-#include <CoreFoundation/CFURLAccess.h>
-#include <CoreFoundation/CFError.h>
-#include <CoreFoundation/CFError_Private.h>
-#include <string.h>
-#include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFByteOrder.h>
-#include "CFBundle_BinaryTypes.h"
-#include <ctype.h>
-#include <sys/stat.h>
-#include <stdlib.h>
+#include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFError_Private.h>
+#include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFPriv.h>
+#include <CoreFoundation/CFPropertyList.h>
+#include <CoreFoundation/CFSet.h>
+#include <CoreFoundation/CFURLAccess.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include <assert.h>
-
+#include <ctype.h>
+#include <stdatomic.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #if defined(BINARY_SUPPORT_DYLD)
 #include <unistd.h>
@@ -852,10 +852,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     CFStringRef bundleID = CFBundleGetIdentifier(bundle);
 
     // Do this so that we can use the dispatch_once on the ivar of this bundle safely
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-    OSMemoryBarrier();
-#pragma GCC diagnostic pop
+    atomic_thread_fence(memory_order_seq_cst);
 
     // We cannot add to tables for unique bundles. Return unique bundle results here without heading into the section below where we take a lock.
     if (unique) {

@@ -33,8 +33,6 @@ typedef pthread_mutex_t CFLock_t;
 
 #define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
 
-#define __CFLockTry(LP) ({ pthread_mutex_trylock(LP) == 0; })
-
 // SPI to permit initialization of values in Swift
 static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 
@@ -61,15 +59,12 @@ CF_INLINE void __CFUnlock(volatile CFLock_t *lock) {
   *lock = 0;
 }
 
-CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
-  return (InterlockedCompareExchange((long volatile *)lock, ~0, 0) == 0);
-}
-
 // SPI to permit initialization of values in Swift
 static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
 
+#include <stdatomic.h>
 #include <stdint.h>
 #include <unistd.h>
 
@@ -78,18 +73,14 @@ typedef int32_t CFLock_t;
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
 CF_INLINE void __CFLock(volatile CFLock_t *lock) {
-  while (__sync_val_compare_and_swap(lock, 0, ~0) != 0) {
+  while (__sync_bool_compare_and_swap(lock, 0, ~0)) {
     sleep(0);
   }
 }
 
 CF_INLINE void __CFUnlock(volatile CFLock_t *lock) {
-  __sync_synchronize();
+  atomic_thread_fence(memory_order_seq_cst);
   *lock = 0;
-}
-
-CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
-  return (__sync_val_compare_and_swap(lock, 0, ~0) == 0);
 }
 
 // SPI to permit initialization of values in Swift

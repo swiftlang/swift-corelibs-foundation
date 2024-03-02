@@ -8,15 +8,16 @@
 	Responsibility: Foundation Team
 */
 
-#include "CFInternal.h"
-#include <CoreFoundation/CFArray.h>
-#include <CoreFoundation/CFDictionary.h>
 #include "CFICUConverters.h"
-#include <CoreFoundation/CFUniChar.h>
-#include <CoreFoundation/CFPriv.h>
-#include "CFUnicodeDecomposition.h"
+#include "CFInternal.h"
 #include "CFStringEncodingConverterExt.h"
 #include "CFStringEncodingConverterPriv.h"
+#include "CFUnicodeDecomposition.h"
+#include <CoreFoundation/CFArray.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFPriv.h>
+#include <CoreFoundation/CFUniChar.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 
 #if __has_include(<os/lock.h>)
@@ -1044,10 +1045,10 @@ CF_PRIVATE const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void
             CFQSortArray(list, numSlots, sizeof(CFStringEncoding), (CFComparatorFunction)__CFStringEncodingComparator, NULL);
             __CFStringEncodingFliterDupes(list, numSlots);
         }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-        if (!OSAtomicCompareAndSwapPtrBarrier(NULL, list, (void * volatile *)&encodings) && (list != __CFBuiltinEncodings)) CFAllocatorDeallocate(NULL, list);
-#pragma GCC diagnostic pop
+        if (!atomic_compare_exchange_strong((volatile CFStringEncoding**)&encodings, NULL,
+                                            list) &&
+            (list != __CFBuiltinEncodings))
+            CFAllocatorDeallocate(NULL, list);
     }
 
     return encodings;
