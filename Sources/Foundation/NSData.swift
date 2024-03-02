@@ -498,6 +498,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             let createMode = Int(Glibc.S_IRUSR) | Int(Glibc.S_IWUSR) | Int(Glibc.S_IRGRP) | Int(Glibc.S_IWGRP) | Int(Glibc.S_IROTH) | Int(Glibc.S_IWOTH)
 #elseif canImport(Musl)
             let createMode = Int(Musl.S_IRUSR) | Int(Musl.S_IWUSR) | Int(Musl.S_IRGRP) | Int(Musl.S_IWGRP) | Int(Musl.S_IROTH) | Int(Musl.S_IWOTH)
+#elseif canImport(WASILibc)
+            let createMode = Int(WASILibc.S_IRUSR) | Int(WASILibc.S_IWUSR) | Int(WASILibc.S_IRGRP) | Int(WASILibc.S_IWGRP) | Int(WASILibc.S_IROTH) | Int(WASILibc.S_IWOTH)
 #endif
             guard let fh = FileHandle(path: path, flags: flags, createMode: createMode) else {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)

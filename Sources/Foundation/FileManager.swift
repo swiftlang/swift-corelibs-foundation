@@ -21,6 +21,10 @@ import CRT
 import WinSDK
 #endif
 
+#if os(WASI)
+import WASILibc
+#endif
+
 #if os(Windows)
 internal typealias NativeFSRCharType = WCHAR
 internal let NativeFSREncoding = String.Encoding.utf16LittleEndian.rawValue
@@ -384,6 +388,10 @@ open class FileManager : NSObject {
                 
                 switch attribute {
                 case .posixPermissions:
+#if os(WASI)
+                    // WASI does not have permission concept
+                    throw _NSErrorWithErrno(ENOTSUP, reading: false, path: path)
+#else
                     guard let number = attributeValues[attribute] as? NSNumber else {
                         fatalError("Can't set file permissions to \(attributeValues[attribute] as Any?)")
                     }
@@ -400,6 +408,7 @@ open class FileManager : NSObject {
                     guard result == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
+#endif // os(WASI)
                 
                 case .modificationDate: fallthrough
                 case ._accessDate:
@@ -567,6 +576,8 @@ open class FileManager : NSObject {
         result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
         let attributes = try windowsFileAttributes(atPath: path)
         let type = FileAttributeType(attributes: attributes, atPath: path)
+#elseif os(WASI)
+        let type = FileAttributeType(statMode: mode_t(s.st_mode))
 #else
         if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
             let name = String(cString: pwd.pointee.pw_name)

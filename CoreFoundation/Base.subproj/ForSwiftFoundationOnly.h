@@ -45,7 +45,7 @@
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__)
 #include <dirent.h>
 #endif
 
@@ -565,11 +565,11 @@ CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mod
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__)
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
-#elif TARGET_OS_LINUX || TARGET_OS_ANDROID
+#elif TARGET_OS_LINUX || TARGET_OS_ANDROID || TARGET_OS_WASI
     return strlen(entry->d_name);
 #else
     return entry->d_namlen;
@@ -578,11 +578,21 @@ static inline int _direntNameLength(struct dirent *entry) {
 
 // major() and minor() might be implemented as macros or functions.
 static inline unsigned int _dev_major(dev_t rdev) {
+#if !TARGET_OS_WASI
     return major(rdev);
+#else
+    // WASI does not have device numbers
+    return 0;
+#endif
 }
 
 static inline unsigned int _dev_minor(dev_t rdev) {
+#if !TARGET_OS_WASI
     return minor(rdev);
+#else
+    // WASI does not have device numbers
+    return 0;
+#endif
 }
 
 #endif
