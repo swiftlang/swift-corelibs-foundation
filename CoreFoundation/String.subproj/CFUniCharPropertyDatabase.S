@@ -11,19 +11,30 @@
 
 #if defined(__ELF__)
 .section .rodata
+#elif defined(__wasm__)
+.section .data.unichar_property_database,"",@
 #endif
 
     .global _C_LABEL(__CFUniCharPropertyDatabase)
 _C_LABEL(__CFUniCharPropertyDatabase):
     .incbin CF_CHARACTERSET_UNICHAR_DB
+#if defined(__wasm__)
+    .size _C_LABEL(__CFUniCharPropertyDatabase), . - _C_LABEL(__CFUniCharPropertyDatabase)
+#endif
 
     .global _C_LABEL(__CFUniCharPropertyDatabaseEnd)
 _C_LABEL(__CFUniCharPropertyDatabaseEnd):
     .byte 0
+#if defined(__wasm__)
+    .size _C_LABEL(__CFUniCharPropertyDatabaseEnd), . - _C_LABEL(__CFUniCharPropertyDatabaseEnd)
+#endif
 
     .global _C_LABEL(__CFUniCharPropertyDatabaseSize)
 _C_LABEL(__CFUniCharPropertyDatabaseSize):
     .int _C_LABEL(__CFUniCharPropertyDatabaseEnd) - _C_LABEL(__CFUniCharPropertyDatabase)
+#if defined(__wasm__)
+    .size _C_LABEL(__CFUniCharPropertyDatabaseSize), . - _C_LABEL(__CFUniCharPropertyDatabaseSize)
+#endif
 
 NO_EXEC_STACK_DIRECTIVE
 SAFESEH_REGISTRATION_DIRECTIVE

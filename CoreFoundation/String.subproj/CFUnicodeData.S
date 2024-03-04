@@ -11,6 +11,8 @@
 
 #if defined(__ELF__)
 .section .rodata
+#elif defined(__wasm__)
+.section .data.unicode_data,"",@
 #endif
 
 #if defined(__BIG_ENDIAN__)
@@ -29,14 +31,23 @@ _C_LABEL(__CFUnicodeDataBSize):
     .global _C_LABEL(__CFUnicodeDataL)
 _C_LABEL(__CFUnicodeDataL):
     .incbin CF_CHARACTERSET_UNICODE_DATA_L
+#if defined(__wasm__)
+    .size _C_LABEL(__CFUnicodeDataL), . - _C_LABEL(__CFUnicodeDataL)
+#endif
 
     .global _C_LABEL(__CFUnicodeDataLEnd)
 _C_LABEL(__CFUnicodeDataLEnd):
     .byte 0
+#if defined(__wasm__)
+    .size _C_LABEL(__CFUnicodeDataLEnd), . - _C_LABEL(__CFUnicodeDataLEnd)
+#endif
 
     .global _C_LABEL(__CFUnicodeDataLSize)
 _C_LABEL(__CFUnicodeDataLSize):
     .int _C_LABEL(__CFUnicodeDataLEnd) - _C_LABEL(__CFUnicodeDataL)
+#if defined(__wasm__)
+    .size _C_LABEL(__CFUnicodeDataLSize), . - _C_LABEL(__CFUnicodeDataLSize)
+#endif
 #endif
 
 NO_EXEC_STACK_DIRECTIVE

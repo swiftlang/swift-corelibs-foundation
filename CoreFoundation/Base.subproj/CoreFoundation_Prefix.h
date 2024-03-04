@@ -340,7 +340,7 @@ CF_INLINE size_t malloc_size(void *memblock) {
 #endif
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <sys/param.h>
 #endif
 #if TARGET_OS_WIN32 || TARGET_OS_LINUX
