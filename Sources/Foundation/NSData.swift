@@ -1272,3 +1272,33 @@ extension NSData : _HasCustomAnyHashableRepresentation {
     }
 }
 
+// MARK: -
+// Temporary extension on Data until this implementation lands in swift-foundation
+extension Data {
+        /// Find the given `Data` in the content of this `Data`.
+    ///
+    /// - parameter dataToFind: The data to be searched for.
+    /// - parameter options: Options for the search. Default value is `[]`.
+    /// - parameter range: The range of this data in which to perform the search. Default value is `nil`, which means the entire content of this data.
+    /// - returns: A `Range` specifying the location of the found data, or nil if a match could not be found.
+    /// - precondition: `range` must be in the bounds of the Data.
+    public func range(of dataToFind: Data, options: Data.SearchOptions = [], in range: Range<Index>? = nil) -> Range<Index>? {
+        let nsRange : NSRange
+        if let r = range {
+            nsRange = NSRange(location: r.lowerBound - startIndex, length: r.upperBound - r.lowerBound)
+        } else {
+            nsRange = NSRange(location: 0, length: count)
+        }
+
+        let ns = self as NSData
+        var opts = NSData.SearchOptions()
+        if options.contains(.anchored) { opts.insert(.anchored) }
+        if options.contains(.backwards) { opts.insert(.backwards) }
+
+        let result = ns.range(of: dataToFind, options: opts, in: nsRange)
+        if result.location == NSNotFound {
+            return nil
+        }
+        return (result.location + startIndex)..<((result.location + startIndex) + result.length)
+    }
+}

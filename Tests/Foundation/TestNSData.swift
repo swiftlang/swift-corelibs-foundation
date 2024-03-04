@@ -4596,7 +4596,7 @@ extension TestNSData {
             if index < data.endIndex { found.append(data[index..<index]) }
             return found
         }
-        let data = "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n".data(using: .ascii)!
+        let data = "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n".data(using: .utf8)!
         let fields = split(data, on: "\r\n")
         let splitFields = fields.map { String(data:$0, encoding: .utf8)! }
         XCTAssertEqual([
@@ -4790,9 +4790,9 @@ extension TestNSData {
     }
 
     func test_rangeOfSlice() {
-        let data = "FooBar".data(using: .ascii)!
+        let data = "FooBar".data(using: .utf8)!
         let slice = data[3...] // Bar
-        let range = slice.range(of: "a".data(using: .ascii)!)
+        let range = slice.range(of: "a".data(using: .utf8)!)
         XCTAssertEqual(range, 4..<5)
     }
 

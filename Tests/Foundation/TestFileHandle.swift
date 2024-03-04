@@ -162,12 +162,10 @@ class TestFileHandle : XCTestCase {
     
     override func tearDown() {
         for handle in allHandles {
-            print("Closing \(handle)…")
             try? handle.close()
         }
         
         for url in allTemporaryFileURLs {
-            print("Deleting \(url)…")
             try? FileManager.default.removeItem(at: url)
         }
         
