@@ -28,6 +28,7 @@ CF_EXTERN_C_BEGIN
 #define BINARY_SUPPORT_DLL 1
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
 #define BINARY_SUPPORT_DLFCN 1
+#elif TARGET_OS_WASI
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
