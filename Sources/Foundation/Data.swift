@@ -36,7 +36,11 @@
 @usableFromInline let memcpy = Musl.memcpy
 @usableFromInline let memcmp = Musl.memcmp
 #elseif canImport(WASILibc)
+#if swift(>=6.0)
+private import wasi_emulated_mman
+#else
 import wasi_emulated_mman
+#endif
 @usableFromInline let calloc = WASILibc.calloc
 @usableFromInline let malloc = WASILibc.malloc
 @usableFromInline let free = WASILibc.free
