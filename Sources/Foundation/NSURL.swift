@@ -556,9 +556,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     // TODO: should be `checkResourceIsReachableAndReturnError` with autoreleased error parameter.
     // Currently Autoreleased pointers is not supported on Linux.
     open func checkResourceIsReachable() throws -> Bool {
-#if os(WASI)
-        return false
-#else
         guard isFileURL,
             let path = path else {
                 throw NSError(domain: NSCocoaErrorDomain,
@@ -574,7 +571,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
         
         return true
-#endif
     }
 
     /* Returns a file path URL that refers to the same resource as a specified URL. File path URLs use a file system style path. An error will occur if the url parameter is not a file URL. A file reference URL's resource must exist and be reachable to be converted to a file path URL. Symbol is present in iOS 4, but performs no operation.
@@ -918,12 +914,8 @@ extension NSURL {
         if selfPath.isAbsolutePath {
             absolutePath = selfPath
         } else {
-#if os(WASI)
-            return nil
-#else
             let workingDir = FileManager.default.currentDirectoryPath
             absolutePath = workingDir._bridgeToObjectiveC().appendingPathComponent(selfPath)
-#endif
         }
 
 #if os(Windows)
@@ -971,20 +963,16 @@ extension NSURL {
 
             default:
                 resolvedPath = resolvedPath._bridgeToObjectiveC().appendingPathComponent(component)
-#if !os(WASI)
                 if let destination = FileManager.default._tryToResolveTrailingSymlinkInPath(resolvedPath) {
                     resolvedPath = destination
                 }
-#endif
             }
         }
 
         // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
         var isExistingDirectory: ObjCBool = false
 
-#if !os(WASI)
         let _ = FileManager.default.fileExists(atPath: resolvedPath, isDirectory: &isExistingDirectory)
-#endif
 
         if excludeSystemDirs {
             resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath
@@ -1063,7 +1051,6 @@ extension NSURL : _StructTypeBridgeable {
 
 // -----
 
-#if !os(WASI)
 internal func _CFSwiftURLCopyResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ valuePointer: UnsafeMutablePointer<Unmanaged<CFTypeRef>?>?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
     do {
         let key = URLResourceKey(rawValue: key._swiftObject)
@@ -1597,7 +1584,6 @@ fileprivate extension URLResourceValuesStorage {
         }
     }
 }
-#endif
 
 // -----
 

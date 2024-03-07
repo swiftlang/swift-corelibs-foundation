@@ -36,6 +36,11 @@
 @usableFromInline let memcpy = Musl.memcpy
 @usableFromInline let memcmp = Musl.memcmp
 #elseif canImport(WASILibc)
+#if swift(>=6.0)
+private import wasi_emulated_mman
+#else
+import wasi_emulated_mman
+#endif
 @usableFromInline let calloc = WASILibc.calloc
 @usableFromInline let malloc = WASILibc.malloc
 @usableFromInline let free = WASILibc.free
@@ -2048,7 +2053,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
     
-#if !os(WASI)
     /// Initialize a `Data` with the contents of a `URL`.
     ///
     /// - parameter url: The `URL` to read.
@@ -2061,7 +2065,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             return Data(bytes: d.bytes, count: d.length)
         }
     }
-#endif
     
     /// Initialize a `Data` from a Base-64 encoded String using the given options.
     ///
@@ -2325,7 +2328,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     }
 #endif
     
-#if !os(WASI)
     /// Write the contents of the `Data` to a location.
     ///
     /// - parameter url: The location to write the data into.
@@ -2346,7 +2348,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 #endif
         }
     }
-#endif
     
     // MARK: -
     
