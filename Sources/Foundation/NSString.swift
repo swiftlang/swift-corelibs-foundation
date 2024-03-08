@@ -25,11 +25,7 @@ func NSLocalizedString(_ key: String,
                        bundle: Bundle = Bundle.main,
                        value: String = "",
                        comment: String) -> String {
-#if os(WASI)
-    return key
-#else
     return bundle.localizedString(forKey: key, value: value, table: tableName)
-#endif
 }
 
 internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
