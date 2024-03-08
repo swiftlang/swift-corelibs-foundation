@@ -225,6 +225,18 @@ elseif(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_options(Foundation PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  target_compile_options(Foundation PRIVATE
+    "SHELL:-Xcc -D_WASI_EMULATED_MMAN
+           -Xcc -D_WASI_EMULATED_SIGNAL
+           -Xcc -D_WASI_EMULATED_PROCESS_CLOCKS
+           -Xcc -D_WASI_EMULATED_GETPID")
+  # Link wasi-libc emulation libraries. Other emulation libs are also used in stdlib
+  target_compile_options(Foundation
+    PRIVATE
+      "SHELL:-Xfrontend -public-autolink-library -Xfrontend wasi-emulated-getpid")
+endif()
+
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
 _install_target(Foundation)
