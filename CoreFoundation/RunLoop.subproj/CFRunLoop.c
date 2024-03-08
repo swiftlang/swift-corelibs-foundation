@@ -8,6 +8,8 @@
 	Responsibility: Michael LeHew
 */
 
+#if __HAS_DISPATCH__
+
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFBag.h>
@@ -4756,3 +4758,4 @@ void CFRunLoopTimerSetTolerance(CFRunLoopTimerRef rlt, CFTimeInterval tolerance)
 #endif
 }
 
+#endif /* __HAS_DISPATCH__ */
