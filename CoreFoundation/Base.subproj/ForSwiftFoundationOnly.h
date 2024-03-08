@@ -64,6 +64,8 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <termios.h>
+#elif TARGET_OS_WASI
+#include <fcntl.h>
 #elif TARGET_OS_LINUX
 #include <errno.h>
 #include <features.h>
@@ -710,6 +712,15 @@ typedef struct _REPARSE_DATA_BUFFER {
         } GenericReparseBuffer;
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER;
+#endif
+
+#if TARGET_OS_WASI
+static inline uint8_t _getConst_DT_DIR(void) { return DT_DIR; }
+static inline int32_t _getConst_O_CREAT(void) { return O_CREAT; }
+static inline int32_t _getConst_O_DIRECTORY(void) { return O_DIRECTORY; }
+static inline int32_t _getConst_O_EXCL(void) { return O_EXCL; }
+static inline int32_t _getConst_O_TRUNC(void) { return O_TRUNC; }
+static inline int32_t _getConst_O_WRONLY(void) { return O_WRONLY; }
 #endif
 
 #if !TARGET_OS_WIN32
