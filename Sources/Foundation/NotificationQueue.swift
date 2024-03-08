@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if canImport(Dispatch)
 @_implementationOnly import CoreFoundation
 
 extension NotificationQueue {
@@ -176,3 +177,5 @@ open class NotificationQueue: NSObject {
     }
 
 }
+
+#endif

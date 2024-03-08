@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-
+#if canImport(Dispatch)
 import Dispatch
 
 extension DispatchData : DataProtocol {
@@ -54,3 +54,4 @@ extension DispatchData : DataProtocol {
         return regions
     }
 }
+#endif

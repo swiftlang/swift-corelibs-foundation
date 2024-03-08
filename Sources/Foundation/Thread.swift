@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if canImport(Dispatch)
 @_implementationOnly import CoreFoundation
 #if os(Windows)
 import WinSDK
@@ -448,3 +449,4 @@ extension NSNotification.Name {
     public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "NSDidBecomeSingleThreadedNotification")
     public static let NSThreadWillExit = NSNotification.Name(rawValue: "NSThreadWillExitNotification")
 }
+#endif
