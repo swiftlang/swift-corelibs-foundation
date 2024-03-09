@@ -239,12 +239,14 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
 
 
 
+#if !TARGET_OS_WASI
     [_kCFRuntimeIDCFRunLoopMode] = &__CFRunLoopModeClass,
     [_kCFRuntimeIDCFRunLoop] = &__CFRunLoopClass,
     [_kCFRuntimeIDCFRunLoopSource] = &__CFRunLoopSourceClass,
     [_kCFRuntimeIDCFRunLoopObserver] = &__CFRunLoopObserverClass,
     [_kCFRuntimeIDCFRunLoopTimer] = &__CFRunLoopTimerClass,
     [_kCFRuntimeIDCFSocket] = &__CFSocketClass,
+#endif
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
     [_kCFRuntimeIDCFAttributedString] = &__CFAttributedStringClass,

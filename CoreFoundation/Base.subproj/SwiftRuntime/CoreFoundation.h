@@ -86,13 +86,15 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFUtilities.h>
 
-#if !TARGET_OS_WASI
 #include <CoreFoundation/CFBundle.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFPlugIn.h>
 #include <CoreFoundation/CFMessagePort.h>
+#endif
 #include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFStream.h>
+#if !TARGET_OS_WASI
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFMachPort.h>
 #endif

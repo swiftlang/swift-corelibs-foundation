@@ -66,6 +66,7 @@
 #include <termios.h>
 #elif TARGET_OS_WASI
 #include <fcntl.h>
+#include <sys/stat.h>
 // Define _WASI_EMULATED_MMAN here to use the emulated mman functions in
 // Foundation-side without requiring transitive clients to define it.
 #undef _WASI_EMULATED_MMAN
@@ -387,9 +388,7 @@ CF_PRIVATE uint64_t __CFMemorySize(void);
 CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void);
 
-#if !TARGET_OS_WASI
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
-#endif
 
 #if !__COREFOUNDATION_FORFOUNDATIONONLY__
 typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
@@ -401,9 +400,7 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
 CF_CROSS_PLATFORM_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 
-#if !TARGET_OS_WASI
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
-#endif
 
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
@@ -451,7 +448,6 @@ CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCh
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses);
 
-#if !TARGET_OS_WASI
 CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspecified stream);
 
 CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef _Null_unspecified stream);
@@ -460,7 +456,6 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyExecutablePath(CFBun
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles(void);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFreestandingBundles(void);
 CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyLoadedImagePathForAddress(const void *p);
-#endif
 
 CF_CROSS_PLATFORM_EXPORT CFStringRef __CFTimeZoneCopyDataVersionString(void);
 
@@ -566,7 +561,7 @@ CF_CROSS_PLATFORM_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
 
 #if TARGET_OS_WIN32
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const unsigned short *path, int opts, mode_t mode);
-#elif !TARGET_OS_WASI
+#else
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
 #endif
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
