@@ -449,10 +449,8 @@ extension FileManager {
             errno = 0
             while let entry = readdir(dir) {
                 let length = Int(_direntNameLength(entry))
-                let entryName = withUnsafePointer(to: entry.pointee.d_name) { (ptr) -> String in
-                    let namePtr = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
-                    return string(withFileSystemRepresentation: namePtr, length: length)
-                }
+                let namePtr = UnsafeRawPointer(_direntName(entry)).assumingMemoryBound(to: CChar.self)
+                let entryName = string(withFileSystemRepresentation: namePtr, length: length)
                 if entryName != "." && entryName != ".." {
                     let entryType = Int32(entry.pointee.d_type)
                     try closure(entryName, entryType)
