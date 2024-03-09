@@ -1385,6 +1385,7 @@ CF_EXPORT void *_CFWriteStreamGetClient(CFWriteStreamRef writeStream) {
 CF_PRIVATE void _CFStreamScheduleWithRunLoop(struct _CFStream *stream, CFRunLoopRef runLoop, CFStringRef runLoopMode) {
     const struct _CFStreamCallBacks *cb = _CFStreamGetCallBackPtr(stream);
     
+#if __HAS_DISPATCH__
     if (! stream->client) {
         _initializeClient(stream);
         if (!stream->client) return; // we don't support asynch.
@@ -1530,7 +1531,6 @@ CF_PRIVATE void _CFStreamScheduleWithRunLoop(struct _CFStream *stream, CFRunLoop
         __CFBitClear(stream->flags, CALLING_CLIENT);
     }
     
-#if __HAS_DISPATCH__
     /*
      * If we've got events pending, we need to wake up and signal
      */
