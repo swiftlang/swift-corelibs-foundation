@@ -82,6 +82,8 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
     }
 }
 
+#if canImport(Dispatch)
+
 private class NSNotificationReceiver : NSObject {
     fileprivate var name: Notification.Name?
     fileprivate var block: ((Notification) -> Void)?
@@ -191,3 +193,5 @@ open class NotificationCenter: NSObject {
     }
 
 }
+
+#endif // canImport(Dispatch)
