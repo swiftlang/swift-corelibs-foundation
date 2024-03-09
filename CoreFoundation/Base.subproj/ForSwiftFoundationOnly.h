@@ -66,6 +66,11 @@
 #include <termios.h>
 #elif TARGET_OS_WASI
 #include <fcntl.h>
+// Define _WASI_EMULATED_MMAN here to use the emulated mman functions in
+// Foundation-side without requiring transitive clients to define it.
+#undef _WASI_EMULATED_MMAN
+#define _WASI_EMULATED_MMAN
+#include <sys/mman.h>
 #elif TARGET_OS_LINUX
 #include <errno.h>
 #include <features.h>
