@@ -75,11 +75,9 @@ public func NSTemporaryDirectory() -> String {
       }
     }
 #endif
-#if !os(WASI)
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         return normalizedPath(with: tmpdir)
     }
-#endif
 #if os(Android)
     // Bionic uses /data/local/tmp/ as temporary directory. TMPDIR is rarely
     // defined.
@@ -433,7 +431,6 @@ extension NSString {
         return paths.map(appendingPathComponent)
     }
     
-#if !os(WASI)
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePath(into outputName: inout String?, caseSensitive flag: Bool, matchesInto outputArray: inout [String], filterTypes: [String]?) -> Int {
@@ -536,7 +533,6 @@ extension NSString {
             return { $0.lowercased().hasPrefix(prefix) }
         }
     }
-#endif
     
     internal func _longestCommonPrefix(_ strings: [String], caseSensitive: Bool) -> String? {
         guard !strings.isEmpty else {
@@ -584,11 +580,9 @@ extension NSString {
         return path + "/"
     }
     
-#if !os(WASI)
     public var fileSystemRepresentation: UnsafePointer<Int8> {
         return FileManager.default.fileSystemRepresentation(withPath: self._swiftObject)
     }
-#endif
 
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {
 #if os(Windows)
