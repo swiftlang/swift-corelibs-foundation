@@ -273,17 +273,16 @@ static Boolean __CFWriteBytesToFileWithAtomicity(CFURLRef url, const void *bytes
     close(fd);
     
     if (atomic) {
+        // If the file was renamed successfully and we wrote it as root we need to reset the owner & group as they were.
+        if (writingFileAsRoot) {
+            chown(auxPath, owner, group);
+        }
         // preserve the mode as passed in originally
         chmod(auxPath, mode);
                 
         if (0 != rename(auxPath, cpath)) {
             unlink(auxPath);
             return false;
-        }
-        
-        // If the file was renamed successfully and we wrote it as root we need to reset the owner & group as they were.
-        if (writingFileAsRoot) {
-            chown(cpath, owner, group);
         }
     }
     return true;
