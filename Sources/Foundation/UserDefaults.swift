@@ -406,7 +406,9 @@ open class UserDefaults: NSObject {
             
             _ = defaults.synchronize()
             
+#if canImport(Dispatch)
             NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+#endif
         }
     }
     
@@ -418,7 +420,9 @@ open class UserDefaults: NSObject {
             
             _ = defaults.synchronize()
             
+#if canImport(Dispatch)
             NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+#endif
         }
     }
     

@@ -32,7 +32,7 @@ CF_EXTERN_C_BEGIN
 // FHS bundles are supported on the Swift and C runtimes, except on Windows.
 #if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID || TARGET_OS_WASI
 #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
 #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
 #elif TARGET_OS_MAC
@@ -390,6 +390,7 @@ extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
 #define _CFBundleSolarisPlatformName CFSTR("solaris")
 #define _CFBundleLinuxPlatformName CFSTR("linux")
 #define _CFBundleFreeBSDPlatformName CFSTR("freebsd")
+#define _CFBundleWASIPlatformName CFSTR("wasi")
 #define _CFBundleMacOSXPlatformNameSuffix CFSTR("-macos")
 #define _CFBundleAlternateMacOSXPlatformNameSuffix CFSTR("-macosx")
 #define _CFBundleiPhoneOSPlatformNameSuffix CFSTR("-iphoneos")
@@ -400,6 +401,7 @@ extern void _CFPlugInWillUnload(CFPlugInRef plugIn);
 #define _CFBundleSolarisPlatformNameSuffix CFSTR("-solaris")
 #define _CFBundleLinuxPlatformNameSuffix CFSTR("-linux")
 #define _CFBundleFreeBSDPlatformNameSuffix CFSTR("-freebsd")
+#define _CFBundleWASIPlatformNameSuffix CFSTR("-wasi")
 
 STATIC_CONST_STRING_DECL(_CFBundleMacDeviceName, "mac");
 STATIC_CONST_STRING_DECL(_CFBundleiPhoneDeviceName, "iphone");

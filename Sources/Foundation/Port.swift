@@ -83,6 +83,13 @@ public protocol PortDelegate: AnyObject {
     func handle(_ message: PortMessage)
 }
 
+#if os(WASI)
+
+@available(*, unavailable, message: "SocketPort is not available on this platform.")
+open class SocketPort: Port {}
+
+#else
+
 #if canImport(Glibc) && !os(Android) && !os(OpenBSD)
 import Glibc
 fileprivate let SOCK_STREAM = Int32(Glibc.SOCK_STREAM.rawValue)
@@ -1106,3 +1113,5 @@ fileprivate extension Data {
         return self[...self.index(self.startIndex, offsetBy: range.upperBound)]
     }
 }
+
+#endif

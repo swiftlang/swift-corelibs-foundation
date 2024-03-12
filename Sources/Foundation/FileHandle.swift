@@ -8,7 +8,9 @@
 //
 
 @_implementationOnly import _CoreFoundation
+#if canImport(Dispatch)
 import Dispatch
+#endif
 
 // FileHandle has a .read(upToCount:) method. Just invoking read() will cause an ambiguity warning. Use _read instead.
 // Same with close()/.close().
@@ -27,6 +29,11 @@ import Musl
 fileprivate let _read = Musl.read(_:_:_:)
 fileprivate let _write = Musl.write(_:_:_:)
 fileprivate let _close = Musl.close(_:)
+#elseif canImport(WASILibc)
+import WASILibc
+fileprivate let _read = WASILibc.read(_:_:_:)
+fileprivate let _write = WASILibc.write(_:_:_:)
+fileprivate let _close = WASILibc.close(_:)
 #endif
 
 #if canImport(WinSDK)
@@ -84,6 +91,7 @@ open class FileHandle : NSObject {
 
     private var _closeOnDealloc: Bool
 
+#if canImport(Dispatch)
     private var currentBackgroundActivityOwner: AnyObject? // Guarded by privateAsyncVariablesLock
     
     private var readabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
@@ -207,6 +215,7 @@ open class FileHandle : NSObject {
             }
         }
     }
+#endif // canImport(Dispatch)
 
     open var availableData: Data {
         _checkFileHandle()
@@ -620,6 +629,7 @@ open class FileHandle : NSObject {
     }
     
     private func performOnQueueIfExists(_ block: () throws -> Void) throws {
+#if canImport(Dispatch)
         if let queue = queueIfExists {
             var theError: Swift.Error?
             queue.sync {
@@ -631,6 +641,9 @@ open class FileHandle : NSObject {
         } else {
             try block()
         }
+#else
+        try block()
+#endif
     }
     
     @available(swift 5.0)
@@ -645,6 +658,7 @@ open class FileHandle : NSObject {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         guard _isPlatformHandleValid else { return }
         
+        #if canImport(Dispatch)
         privateAsyncVariablesLock.lock()
         writabilitySource?.cancel()
         readabilitySource?.cancel()
@@ -653,6 +667,7 @@ open class FileHandle : NSObject {
         writabilitySource = nil
         readabilitySource = nil
         privateAsyncVariablesLock.unlock()
+        #endif
 
 #if os(Windows)
             // SR-13822 - Not Closing the file descriptor on Windows causes a Stack Overflow
@@ -855,6 +870,9 @@ extension FileHandle {
     }
 
     open func readInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+#if !canImport(Dispatch)
+        NSUnsupported()
+#else
         _checkFileHandle()
         
         privateAsyncVariablesLock.lock()
@@ -909,6 +927,7 @@ extension FileHandle {
           operation(data, error)
         }
 #endif
+#endif // canImport(Dispatch)
     }
     
     open func readToEndOfFileInBackgroundAndNotify() {
@@ -916,6 +935,9 @@ extension FileHandle {
     }
     
     open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+#if !canImport(Dispatch) || !canImport(Dispatch)
+        NSUnsupported()
+#else
         privateAsyncVariablesLock.lock()
         guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
         
@@ -957,11 +979,12 @@ extension FileHandle {
                 NotificationQueue.default.enqueue(Notification(name: .NSFileHandleReadToEndOfFileCompletion, object: self, userInfo: userInfo), postingStyle: .asap, coalesceMask: .none, forModes: modes)
             }
         }
+#endif
     }
     
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
     open func acceptConnectionInBackgroundAndNotify() {
-#if os(Windows)
+#if os(Windows) || !canImport(Dispatch)
         NSUnsupported()
 #else
         acceptConnectionInBackgroundAndNotify(forModes: [.default])
@@ -970,7 +993,7 @@ extension FileHandle {
 
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
     open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
-#if os(Windows)
+#if os(Windows) || !canImport(Dispatch)
         NSUnsupported()
 #else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
@@ -1008,6 +1031,9 @@ extension FileHandle {
     }
     
     open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+#if !canImport(Dispatch)
+        NSUnsupported()
+#else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
             source.cancel()
             DispatchQueue.main.async {
@@ -1025,6 +1051,7 @@ extension FileHandle {
         privateAsyncVariablesLock.unlock()
         
         owner.resume()
+#endif
     }
 }
 
@@ -1046,6 +1073,8 @@ open class Pipe: NSObject {
                                                closeOnDealloc: true)
         self.fileHandleForWriting = FileHandle(handle: hWritePipe!,
                                                closeOnDealloc: true)
+#elseif os(WASI)
+        NSUnsupported()
 #else
         /// the `pipe` system call creates two `fd` in a malloc'ed area
         let fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
@@ -1072,4 +1101,3 @@ open class Pipe: NSObject {
         super.init()
     }
 }
-

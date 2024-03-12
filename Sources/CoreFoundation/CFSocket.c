@@ -8,6 +8,10 @@
 	Responsibility: Michael LeHew
 */
 
+#include "CFBase.h"
+
+#if __HAS_DISPATCH__
+
 #include "CFSocket.h"
 #include <sys/types.h>
 #include <math.h>
@@ -2639,3 +2643,4 @@ CF_EXPORT uint16_t CFSocketGetDefaultNameRegistryPortNumber(void) {
     return __CFSocketDefaultNameRegistryPortNumber;
 }
 
+#endif /* __HAS_DISPATCH__ */

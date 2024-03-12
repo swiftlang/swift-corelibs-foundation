@@ -19,15 +19,11 @@
 #include "CFNumber.h"
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
-#if !TARGET_OS_WASI
 #include "CFPreferences.h"
 #include "CFBundle_Internal.h"
-#else
-#include "CFBase.h"
-#endif
-#include "CFConstantKeys.h"
+#include "CFLocaleInternal.h"
 #include <stdatomic.h>
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <unicode/uloc.h>           // ICU locales
 #include <unicode/ulocdata.h>       // ICU locale data
 #include <unicode/ucal.h>

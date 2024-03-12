@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if canImport(Dispatch)
 @_implementationOnly import _CoreFoundation
 #if os(Windows)
 import WinSDK
@@ -1174,3 +1175,5 @@ extension Process {
     
     public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
 }
+
+#endif

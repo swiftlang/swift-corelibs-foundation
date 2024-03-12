@@ -31,9 +31,7 @@
 #include "CFRuntime_Internal.h"
 #include "CFPropertyList_Internal.h"
 
-#if !TARGET_OS_WASI
 #include "CFStream.h"
-#endif
 
 enum {
 	CF_NO_ERROR = 0,
@@ -135,7 +133,6 @@ uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid) {
 
 CF_PRIVATE CFErrorRef __CFPropertyListCreateError(CFIndex code, CFStringRef debugString, ...);
 
-#if !TARGET_OS_WASI
 typedef struct {
     CFTypeRef stream;
     void *databytes;
@@ -696,7 +693,6 @@ CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPro
     }
     return result;
 }
-#endif
 
 #pragma mark -
 #pragma mark Reading

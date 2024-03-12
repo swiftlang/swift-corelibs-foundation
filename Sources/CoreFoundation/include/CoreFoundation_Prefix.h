@@ -258,7 +258,7 @@ CF_INLINE uint64_t mach_absolute_time() {
     ULONGLONG ullTime;
 	QueryUnbiasedInterruptTimePrecise(&ullTime);
     return ullTime;
-#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_MAC
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_MAC || TARGET_OS_WASI
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
@@ -338,7 +338,7 @@ CF_INLINE size_t malloc_size(void *memblock) {
 #endif
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <sys/param.h>
 #endif
 #if TARGET_OS_WIN32 || TARGET_OS_LINUX

@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #if __has_include(<sys/syslog.h>)
 #include <sys/syslog.h>
-#else
+#elif __has_include(<syslog.h>)
 #include <syslog.h>
 #endif
 #include "CFURLPriv.h"

@@ -46,10 +46,8 @@
 #include "CFMessagePort.h"
 #endif
 
-#if !TARGET_OS_WASI
 #include "CFRunLoop.h"
 #include "CFSocket.h"
-#endif
 #include "CFBundlePriv.h"
 
 

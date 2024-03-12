@@ -24,11 +24,9 @@
 #include "CFRuntime_Internal.h"
 #include "CFBurstTrie.h"
 #include "CFString.h"
-#if !TARGET_OS_WASI
 #include "CFStream.h"
-#endif
 #include "CFCalendar.h"
-#include "CFConstantKeys.h"
+#include "CFLocaleInternal.h"
 #include <limits.h>
 #include <float.h>
 #include <string.h>
@@ -2325,7 +2323,7 @@ static CFStringEncoding encodingForXMLData(CFDataRef data, CFErrorRef *error, CF
         if (len == 5 && (*base == 'u' || *base == 'U') && (base[1] == 't' || base[1] == 'T') && (base[2] == 'f' || base[2] == 'F') && (base[3] == '-') && (base[4] == '8'))
             return kCFStringEncodingUTF8;
         encodingName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, base, len, kCFStringEncodingISOLatin1, false);
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
         CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(encodingName);
         if (enc != kCFStringEncodingInvalidId) {
             if (encodingName) {CFRelease(encodingName); }
@@ -2898,7 +2896,6 @@ CFPropertyListRef CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDa
     return result;
 }
 
-#if !TARGET_OS_WASI
 CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) {
     CFAssert1(format != kCFPropertyListOpenStepFormat, __kCFLogAssertion, "%s(): kCFPropertyListOpenStepFormat not supported for writing", __PRETTY_FUNCTION__);
     CFAssert2(format == kCFPropertyListXMLFormat_v1_0 || format == kCFPropertyListBinaryFormat_v1_0, __kCFLogAssertion, "%s(): Unrecognized option %ld", __PRETTY_FUNCTION__, format);
@@ -3152,7 +3149,6 @@ bool _CFPropertyListValidateData(CFDataRef data, CFTypeID *outTopLevelTypeID) {
     return result;
 }
 
-#endif
 
 #pragma mark -
 #pragma mark Property List Copies
