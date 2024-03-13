@@ -12,6 +12,8 @@ import SwiftFoundation
 import Foundation
 #endif
 
+@_spi(SwiftCorelibsFoundation) import FoundationEssentials
+
 internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
     #if os(Android)
     NSLog("\(fn) is not yet implemented. \(file):\(line)")
@@ -39,14 +41,17 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
     required init() {}
     
     @usableFromInline
-    func contentsOf(url: URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
+    func contentsOf(url: Foundation.URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
 
         func cocoaError(with error: Error? = nil) -> Error {
-            var userInfo: [String: Any] = [:]
-            if let error = error {
+            var userInfo: [String: AnyHashable] = [:]
+            if let error = error as? AnyHashable {
                 userInfo[NSUnderlyingErrorKey] = error
             }
-            return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: url)
+            // Temporary workaround for lack of URL in swift-foundation
+            // TODO: Replace with argument
+            let feURL = FoundationEssentials.URL(path: url.path)
+            return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: feURL)
         }
 
         var urlResponse: URLResponse?
