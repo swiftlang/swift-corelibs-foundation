@@ -121,9 +121,9 @@ class TestNSLocale : XCTestCase {
         XCTAssertTrue(galicianLocaleIdentifier == "\(galicianLanguageCode)_\(spainRegionCode)")
         
         let components = Locale.components(fromIdentifier: galicianLocaleIdentifier)
-
-        XCTAssertTrue(components[NSLocale.Key.languageCode.rawValue] == galicianLanguageCode)
-        XCTAssertTrue(components[NSLocale.Key.countryCode.rawValue] == spainRegionCode)
+        
+        XCTAssertEqual(components[NSLocale.Key.languageCode.rawValue], galicianLanguageCode)
+        XCTAssertEqual(components[NSLocale.Key.countryCode.rawValue], spainRegionCode)
 
         XCTAssertTrue(Locale.availableIdentifiers.contains(galicianLocaleIdentifier))
         XCTAssertTrue(Locale.commonISOCurrencyCodes.contains(euroCurrencyCode))
@@ -131,7 +131,11 @@ class TestNSLocale : XCTestCase {
         XCTAssertTrue(Locale.isoRegionCodes.contains(spainRegionCode))
         XCTAssertTrue(Locale.isoLanguageCodes.contains(galicianLanguageCode))
         
-        XCTAssertTrue(Locale.preferredLanguages.count == UserDefaults.standard.array(forKey: "AppleLanguages")?.count ?? 0)
+        
+        let preferredLanguages = UserDefaults.standard.array(forKey: "AppleLanguages")
+        // If there are no preferred languages, we provide a backstop value of English
+        let preferredLanguagesCount = preferredLanguages?.count ?? 1
+        XCTAssertEqual(Locale.preferredLanguages.count, preferredLanguagesCount)
     }
     
     func test_localeProperties(){

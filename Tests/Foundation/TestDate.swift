@@ -157,9 +157,9 @@ class TestDate : XCTestCase {
         XCTAssertEqual(recreatedComponents.weekOfMonth, 2)
         XCTAssertEqual(recreatedComponents.weekOfYear, 45)
         XCTAssertEqual(recreatedComponents.yearForWeekOfYear, 2017)
-
-        // Quarter is currently not supported by UCalendar C API, returns 0
-        XCTAssertEqual(recreatedComponents.quarter, 0)
+        
+        // Quarter is now supported by Calendar
+        XCTAssertEqual(recreatedComponents.quarter, 4)
     }
 
     func test_Hashing() {

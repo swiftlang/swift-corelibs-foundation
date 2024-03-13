@@ -248,16 +248,16 @@ class TestCalendar: XCTestCase {
 
         let calendarCopy = calendar
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
+        XCTAssertEqual(calendarCopy.timeZone.secondsFromGMT(), 0)
 
         let dc = try calendarCopy.dateComponents(in: XCTUnwrap(TimeZone(identifier: "America/New_York")), from: XCTUnwrap(df.date(from: "2019-01-01")))
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
+        XCTAssertEqual(calendarCopy.timeZone.secondsFromGMT(), 0)
 
         let dt = try XCTUnwrap(calendarCopy.date(from: dc))
         XCTAssertEqual(dt.description, "2019-01-01 00:00:00 +0000")
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
+        XCTAssertEqual(calendarCopy.timeZone.secondsFromGMT(), 0)
         XCTAssertEqual(calendarCopy.timeZone, calendar.timeZone)
         XCTAssertEqual(calendarCopy, calendar)
     }
