@@ -556,41 +556,7 @@ extension _BridgedStoredNSError {
 }
 
 extension CocoaError.Code {
-    public static var fileNoSuchFile:                           CocoaError.Code { return CocoaError.Code(rawValue:    4) }
-    public static var fileLocking:                              CocoaError.Code { return CocoaError.Code(rawValue:  255) }
-    public static var fileReadUnknown:                          CocoaError.Code { return CocoaError.Code(rawValue:  256) }
-    public static var fileReadNoPermission:                     CocoaError.Code { return CocoaError.Code(rawValue:  257) }
-    public static var fileReadInvalidFileName:                  CocoaError.Code { return CocoaError.Code(rawValue:  258) }
-    public static var fileReadCorruptFile:                      CocoaError.Code { return CocoaError.Code(rawValue:  259) }
-    public static var fileReadNoSuchFile:                       CocoaError.Code { return CocoaError.Code(rawValue:  260) }
-    public static var fileReadInapplicableStringEncoding:       CocoaError.Code { return CocoaError.Code(rawValue:  261) }
-    public static var fileReadUnsupportedScheme:                CocoaError.Code { return CocoaError.Code(rawValue:  262) }
-    public static var fileReadTooLarge:                         CocoaError.Code { return CocoaError.Code(rawValue:  263) }
-    public static var fileReadUnknownStringEncoding:            CocoaError.Code { return CocoaError.Code(rawValue:  264) }
-    public static var fileWriteUnknown:                         CocoaError.Code { return CocoaError.Code(rawValue:  512) }
-    public static var fileWriteNoPermission:                    CocoaError.Code { return CocoaError.Code(rawValue:  513) }
-    public static var fileWriteInvalidFileName:                 CocoaError.Code { return CocoaError.Code(rawValue:  514) }
-    public static var fileWriteFileExists:                      CocoaError.Code { return CocoaError.Code(rawValue:  516) }
-    public static var fileWriteInapplicableStringEncoding:      CocoaError.Code { return CocoaError.Code(rawValue:  517) }
-    public static var fileWriteUnsupportedScheme:               CocoaError.Code { return CocoaError.Code(rawValue:  518) }
-    public static var fileWriteOutOfSpace:                      CocoaError.Code { return CocoaError.Code(rawValue:  640) }
-    public static var fileWriteVolumeReadOnly:                  CocoaError.Code { return CocoaError.Code(rawValue:  642) }
-    public static var fileManagerUnmountUnknown:                CocoaError.Code { return CocoaError.Code(rawValue:  768) }
-    public static var fileManagerUnmountBusy:                   CocoaError.Code { return CocoaError.Code(rawValue:  769) }
-    public static var keyValueValidation:                       CocoaError.Code { return CocoaError.Code(rawValue: 1024) }
-    public static var formatting:                               CocoaError.Code { return CocoaError.Code(rawValue: 2048) }
-    public static var userCancelled:                            CocoaError.Code { return CocoaError.Code(rawValue: 3072) }
-    public static var featureUnsupported:                       CocoaError.Code { return CocoaError.Code(rawValue: 3328) }
-    public static var executableNotLoadable:                    CocoaError.Code { return CocoaError.Code(rawValue: 3584) }
-    public static var executableArchitectureMismatch:           CocoaError.Code { return CocoaError.Code(rawValue: 3585) }
-    public static var executableRuntimeMismatch:                CocoaError.Code { return CocoaError.Code(rawValue: 3586) }
-    public static var executableLoad:                           CocoaError.Code { return CocoaError.Code(rawValue: 3587) }
-    public static var executableLink:                           CocoaError.Code { return CocoaError.Code(rawValue: 3588) }
-    public static var propertyListReadCorrupt:                  CocoaError.Code { return CocoaError.Code(rawValue: 3840) }
-    public static var propertyListReadUnknownVersion:           CocoaError.Code { return CocoaError.Code(rawValue: 3841) }
-    public static var propertyListReadStream:                   CocoaError.Code { return CocoaError.Code(rawValue: 3842) }
-    public static var propertyListWriteStream:                  CocoaError.Code { return CocoaError.Code(rawValue: 3851) }
-    public static var propertyListWriteInvalid:                 CocoaError.Code { return CocoaError.Code(rawValue: 3852) }
+    // These extend the errors available in FoundationEssentials
     public static var xpcConnectionInterrupted:                 CocoaError.Code { return CocoaError.Code(rawValue: 4097) }
     public static var xpcConnectionInvalid:                     CocoaError.Code { return CocoaError.Code(rawValue: 4099) }
     public static var xpcConnectionReplyInvalid:                CocoaError.Code { return CocoaError.Code(rawValue: 4101) }
