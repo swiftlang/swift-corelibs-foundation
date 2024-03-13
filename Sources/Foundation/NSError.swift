@@ -276,6 +276,36 @@ public extension RecoverableError {
     }
 }
 
+/// Describes an error type that specifically provides a domain, code,
+/// and user-info dictionary.
+public protocol CustomNSError : Error {
+    /// The domain of the error.
+    static var errorDomain: String { get }
+
+    /// The error code within the given domain.
+    var errorCode: Int { get }
+
+    /// The user-info dictionary.
+    var errorUserInfo: [String : Any] { get }
+}
+
+public extension CustomNSError {
+    /// Default domain of the error.
+    static var errorDomain: String {
+        return String(reflecting: self)
+    }
+
+    /// The error code within the given domain.
+    var errorCode: Int {
+        return _getDefaultErrorCode(self)
+    }
+
+    /// The default user-info dictionary.
+    var errorUserInfo: [String : Any] {
+        return [:]
+    }
+}
+
 /// Convert an arbitrary fixed-width integer to an Int, reinterpreting
 /// signed -> unsigned if needed but trapping if the result is otherwise
 /// not expressible.
@@ -555,6 +585,41 @@ extension _BridgedStoredNSError {
     }
 }
 
+extension CocoaError : _BridgedStoredNSError {
+    public init(_nsError: NSError) {
+        var info = _nsError.userInfo
+        info["_NSError"] = _nsError
+        self.init(CocoaError.Code(rawValue: _nsError.code), userInfo: info)
+    }
+
+    public var _nsError: NSError {
+        if let originalNSError = userInfo["_NSError"] as? NSError {
+            return originalNSError
+        } else {
+            return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: userInfo)
+        }
+    }
+    
+    public static var _nsErrorDomain: String {
+        NSCocoaErrorDomain
+    }
+}
+
+extension CocoaError {
+    // Temporary extension to take Foundation.URL, until FoundationEssentials.URL is fully ported
+    public static func error(_ code: CocoaError.Code, userInfo: [String : AnyHashable]? = nil, url: Foundation.URL? = nil) -> Error {
+        var info: [String : AnyHashable] = userInfo ?? [:]
+        if let url = url {
+            info["NSURLErrorKey"] = url
+        }
+        return CocoaError(code, userInfo: info)
+    }    
+}
+
+extension CocoaError.Code : _ErrorCodeProtocol {
+    public typealias _ErrorType = CocoaError
+}
+
 extension CocoaError.Code {
     // These extend the errors available in FoundationEssentials
     public static var xpcConnectionInterrupted:                 CocoaError.Code { return CocoaError.Code(rawValue: 4097) }
@@ -607,6 +672,12 @@ internal extension CocoaError {
         Code(rawValue: 4865): "The data is missing.",
         Code(rawValue: 4866): "The data isn’t in the correct format."
     ]
+}
+
+public extension CocoaError {
+    private var _nsUserInfo: [String: Any] {
+        return _nsError.userInfo
+    }
 }
 
 extension CocoaError {
