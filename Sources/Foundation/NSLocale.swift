@@ -318,12 +318,7 @@ extension NSLocale {
     }
     
     open class func components(fromLocaleIdentifier string: String) -> [String : String] {
-        let comps = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)
-        if let result = comps as? [String: String] {
-            return result
-        } else {
-            return [:]
-        }
+        __SwiftValue.fetch(CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)) as? [String : String] ?? [:] 
     }
     
     open class func localeIdentifier(fromComponents dict: [String : String]) -> String {
