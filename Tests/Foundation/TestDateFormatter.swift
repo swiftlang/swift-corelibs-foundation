@@ -96,16 +96,16 @@ class TestDateFormatter: XCTestCase {
     // ShortStyle
     // locale  stringFromDate  example
     // ------  --------------  --------
-    // en_US   M/d/yy h:mm a   12/25/15 12:00 AM
+    // en_US   M/d/yy h:mm a   12/25/15 12:00 AM
     func test_dateStyleShort() {
         
         let timestamps = [
-            -31536000 : "1/1/69, 12:00 AM" , 0.0 : "1/1/70, 12:00 AM", 31536000 : "1/1/71, 12:00 AM",
-            2145916800 : "1/1/38, 12:00 AM", 1456272000 : "2/24/16, 12:00 AM", 1456358399 : "2/24/16, 11:59 PM",
-            1452574638 : "1/12/16, 4:57 AM", 1455685038 : "2/17/16, 4:57 AM", 1458622638 : "3/22/16, 4:57 AM",
-            1459745838 : "4/4/16, 4:57 AM", 1462597038 : "5/7/16, 4:57 AM", 1465534638 : "6/10/16, 4:57 AM",
-            1469854638 : "7/30/16, 4:57 AM", 1470718638 : "8/9/16, 4:57 AM", 1473915438 : "9/15/16, 4:57 AM",
-            1477285038 : "10/24/16, 4:57 AM", 1478062638 : "11/2/16, 4:57 AM", 1482641838 : "12/25/16, 4:57 AM"
+            -31536000 : "1/1/69, 12:00 AM" , 0.0 : "1/1/70, 12:00 AM", 31536000 : "1/1/71, 12:00 AM",
+            2145916800 : "1/1/38, 12:00 AM", 1456272000 : "2/24/16, 12:00 AM", 1456358399 : "2/24/16, 11:59 PM",
+            1452574638 : "1/12/16, 4:57 AM", 1455685038 : "2/17/16, 4:57 AM", 1458622638 : "3/22/16, 4:57 AM",
+            1459745838 : "4/4/16, 4:57 AM", 1462597038 : "5/7/16, 4:57 AM", 1465534638 : "6/10/16, 4:57 AM",
+            1469854638 : "7/30/16, 4:57 AM", 1470718638 : "8/9/16, 4:57 AM", 1473915438 : "9/15/16, 4:57 AM",
+            1477285038 : "10/24/16, 4:57 AM", 1478062638 : "11/2/16, 4:57 AM", 1482641838 : "12/25/16, 4:57 AM"
         ]
         
         let f = DateFormatter()
@@ -129,16 +129,16 @@ class TestDateFormatter: XCTestCase {
     // MediumStyle
     // locale  stringFromDate        example
     // ------  --------------        ------------
-    // en_US   MMM d, y, h:mm:ss a   Dec 25, 2015, 12:00:00 AM
+    // en_US   MMM d, y, h:mm:ss a   Dec 25, 2015, 12:00:00 AM
     func test_dateStyleMedium() {
         
         let timestamps = [
-            -31536000 : "Jan 1, 1969, 12:00:00 AM" , 0.0 : "Jan 1, 1970, 12:00:00 AM", 31536000 : "Jan 1, 1971, 12:00:00 AM",
-            2145916800 : "Jan 1, 2038, 12:00:00 AM", 1456272000 : "Feb 24, 2016, 12:00:00 AM", 1456358399 : "Feb 24, 2016, 11:59:59 PM",
-            1452574638 : "Jan 12, 2016, 4:57:18 AM", 1455685038 : "Feb 17, 2016, 4:57:18 AM", 1458622638 : "Mar 22, 2016, 4:57:18 AM",
-            1459745838 : "Apr 4, 2016, 4:57:18 AM", 1462597038 : "May 7, 2016, 4:57:18 AM", 1465534638 : "Jun 10, 2016, 4:57:18 AM",
-            1469854638 : "Jul 30, 2016, 4:57:18 AM", 1470718638 : "Aug 9, 2016, 4:57:18 AM", 1473915438 : "Sep 15, 2016, 4:57:18 AM",
-            1477285038 : "Oct 24, 2016, 4:57:18 AM", 1478062638 : "Nov 2, 2016, 4:57:18 AM", 1482641838 : "Dec 25, 2016, 4:57:18 AM"
+            -31536000 : "Jan 1, 1969 at 12:00:00 AM" , 0.0 : "Jan 1, 1970 at 12:00:00 AM", 31536000 : "Jan 1, 1971 at 12:00:00 AM",
+            2145916800 : "Jan 1, 2038 at 12:00:00 AM", 1456272000 : "Feb 24, 2016 at 12:00:00 AM", 1456358399 : "Feb 24, 2016 at 11:59:59 PM",
+            1452574638 : "Jan 12, 2016 at 4:57:18 AM", 1455685038 : "Feb 17, 2016 at 4:57:18 AM", 1458622638 : "Mar 22, 2016 at 4:57:18 AM",
+            1459745838 : "Apr 4, 2016 at 4:57:18 AM", 1462597038 : "May 7, 2016 at 4:57:18 AM", 1465534638 : "Jun 10, 2016 at 4:57:18 AM",
+            1469854638 : "Jul 30, 2016 at 4:57:18 AM", 1470718638 : "Aug 9, 2016 at 4:57:18 AM", 1473915438 : "Sep 15, 2016 at 4:57:18 AM",
+            1477285038 : "Oct 24, 2016 at 4:57:18 AM", 1478062638 : "Nov 2, 2016 at 4:57:18 AM", 1482641838 : "Dec 25, 2016 at 4:57:18 AM"
         ]
         
         let f = DateFormatter()
@@ -161,16 +161,16 @@ class TestDateFormatter: XCTestCase {
     // LongStyle
     // locale  stringFromDate                 example
     // ------  --------------                 -----------------
-    // en_US   MMMM d, y 'at' h:mm:ss a zzz   December 25, 2015 at 12:00:00 AM GMT
+    // en_US   MMMM d, y 'at' h:mm:ss a zzz   December 25, 2015 at 12:00:00 AM GMT
     func test_dateStyleLong() {
         
         let timestamps = [
-            -31536000 : "January 1, 1969 at 12:00:00 AM GMT" , 0.0 : "January 1, 1970 at 12:00:00 AM GMT", 31536000 : "January 1, 1971 at 12:00:00 AM GMT",
-            2145916800 : "January 1, 2038 at 12:00:00 AM GMT", 1456272000 : "February 24, 2016 at 12:00:00 AM GMT", 1456358399 : "February 24, 2016 at 11:59:59 PM GMT",
-            1452574638 : "January 12, 2016 at 4:57:18 AM GMT", 1455685038 : "February 17, 2016 at 4:57:18 AM GMT", 1458622638 : "March 22, 2016 at 4:57:18 AM GMT",
-            1459745838 : "April 4, 2016 at 4:57:18 AM GMT", 1462597038 : "May 7, 2016 at 4:57:18 AM GMT", 1465534638 : "June 10, 2016 at 4:57:18 AM GMT",
-            1469854638 : "July 30, 2016 at 4:57:18 AM GMT", 1470718638 : "August 9, 2016 at 4:57:18 AM GMT", 1473915438 : "September 15, 2016 at 4:57:18 AM GMT",
-            1477285038 : "October 24, 2016 at 4:57:18 AM GMT", 1478062638 : "November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "December 25, 2016 at 4:57:18 AM GMT"
+            -31536000 : "January 1, 1969 at 12:00:00 AM GMT" , 0.0 : "January 1, 1970 at 12:00:00 AM GMT", 31536000 : "January 1, 1971 at 12:00:00 AM GMT",
+            2145916800 : "January 1, 2038 at 12:00:00 AM GMT", 1456272000 : "February 24, 2016 at 12:00:00 AM GMT", 1456358399 : "February 24, 2016 at 11:59:59 PM GMT",
+            1452574638 : "January 12, 2016 at 4:57:18 AM GMT", 1455685038 : "February 17, 2016 at 4:57:18 AM GMT", 1458622638 : "March 22, 2016 at 4:57:18 AM GMT",
+            1459745838 : "April 4, 2016 at 4:57:18 AM GMT", 1462597038 : "May 7, 2016 at 4:57:18 AM GMT", 1465534638 : "June 10, 2016 at 4:57:18 AM GMT",
+            1469854638 : "July 30, 2016 at 4:57:18 AM GMT", 1470718638 : "August 9, 2016 at 4:57:18 AM GMT", 1473915438 : "September 15, 2016 at 4:57:18 AM GMT",
+            1477285038 : "October 24, 2016 at 4:57:18 AM GMT", 1478062638 : "November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "December 25, 2016 at 4:57:18 AM GMT"
         ]
         
         let f = DateFormatter()
@@ -192,7 +192,7 @@ class TestDateFormatter: XCTestCase {
     // FullStyle
     // locale  stringFromDate                       example
     // ------  --------------                       -------------------------
-    // en_US   EEEE, MMMM d, y 'at' h:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM Greenwich Mean Time
+    // en_US   EEEE, MMMM d, y 'at' h:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM Greenwich Mean Time
     func test_dateStyleFull() {
 
 #if os(macOS) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
@@ -228,7 +228,7 @@ class TestDateFormatter: XCTestCase {
     // Custom Style
     // locale  stringFromDate                        example
     // ------  --------------                        -------------------------
-    // en_US   EEEE, MMMM d, y 'at' hh:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM Greenwich Mean Time
+    // en_US   EEEE, MMMM d, y 'at' hh:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM Greenwich Mean Time
     func test_customDateFormat() {
         let timestamps = [
              // Negative time offsets are still buggy on macOS
@@ -275,7 +275,7 @@ class TestDateFormatter: XCTestCase {
         // Fails on High Sierra
         //f.dateStyle = .medium
         //f.timeStyle = .medium
-        //XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
+        //XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
         //XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
         
         f.dateFormat = "dd-MM-yyyy"
@@ -300,40 +300,39 @@ class TestDateFormatter: XCTestCase {
         f.locale = Locale(identifier: DEFAULT_LOCALE)
         f.timeZone = TimeZone(abbreviation: DEFAULT_TIMEZONE)
         
-        // .medium cases fail for the date part on Linux and so have been commented out.
         let formats: [String: (DateFormatter.Style, DateFormatter.Style)] = [
             "": (.none, .none),
-            "h:mm a": (.none, .short),
-            "h:mm:ss a": (.none, .medium),
-            "h:mm:ss a z": (.none, .long),
-            "h:mm:ss a zzzz": (.none, .full),
+            "h:mm a": (.none, .short),
+            "h:mm:ss a": (.none, .medium),
+            "h:mm:ss a z": (.none, .long),
+            "h:mm:ss a zzzz": (.none, .full),
             "M/d/yy": (.short, .none),
-            "M/d/yy, h:mm a": (.short, .short),
-            "M/d/yy, h:mm:ss a": (.short, .medium),
-            "M/d/yy, h:mm:ss a z": (.short, .long),
-            "M/d/yy, h:mm:ss a zzzz": (.short, .full),
+            "M/d/yy, h:mm a": (.short, .short),
+            "M/d/yy, h:mm:ss a": (.short, .medium),
+            "M/d/yy, h:mm:ss a z": (.short, .long),
+            "M/d/yy, h:mm:ss a zzzz": (.short, .full),
             "MMM d, y": (.medium, .none),
-            //"MMM d, y 'at' h:mm a": (.medium, .short),
-            //"MMM d, y 'at' h:mm:ss a": (.medium, .medium),
-            //"MMM d, y 'at' h:mm:ss a z": (.medium, .long),
-            //"MMM d, y 'at' h:mm:ss a zzzz": (.medium, .full),
+            "MMM d, y 'at' h:mm a": (.medium, .short),
+            "MMM d, y 'at' h:mm:ss a": (.medium, .medium),
+            "MMM d, y 'at' h:mm:ss a z": (.medium, .long),
+            "MMM d, y 'at' h:mm:ss a zzzz": (.medium, .full),
             "MMMM d, y": (.long, .none),
-            "MMMM d, y 'at' h:mm a": (.long, .short),
-            "MMMM d, y 'at' h:mm:ss a": (.long, .medium),
-            "MMMM d, y 'at' h:mm:ss a z": (.long, .long),
-            "MMMM d, y 'at' h:mm:ss a zzzz": (.long, .full),
+            "MMMM d, y 'at' h:mm a": (.long, .short),
+            "MMMM d, y 'at' h:mm:ss a": (.long, .medium),
+            "MMMM d, y 'at' h:mm:ss a z": (.long, .long),
+            "MMMM d, y 'at' h:mm:ss a zzzz": (.long, .full),
             "EEEE, MMMM d, y": (.full, .none),
-            "EEEE, MMMM d, y 'at' h:mm a": (.full, .short),
-            "EEEE, MMMM d, y 'at' h:mm:ss a": (.full, .medium),
-            "EEEE, MMMM d, y 'at' h:mm:ss a z": (.full, .long),
-            "EEEE, MMMM d, y 'at' h:mm:ss a zzzz": (.full, .full),
+            "EEEE, MMMM d, y 'at' h:mm a": (.full, .short),
+            "EEEE, MMMM d, y 'at' h:mm:ss a": (.full, .medium),
+            "EEEE, MMMM d, y 'at' h:mm:ss a z": (.full, .long),
+            "EEEE, MMMM d, y 'at' h:mm:ss a zzzz": (.full, .full),
         ]
         
         for (dateFormat, styles) in formats {
             f.dateStyle = styles.0
             f.timeStyle = styles.1
             
-            XCTAssertEqual(f.dateFormat, dateFormat)
+            XCTAssertEqual(f.dateFormat!, dateFormat)
         }
     }
 
@@ -446,10 +445,10 @@ class TestDateFormatter: XCTestCase {
         do {
             // Parse test
             let parsed = formatter.date(from: "平成31年4月30日 23:10")
-            XCTAssertEqual(parsed?.timeIntervalSince1970, 1556633400) // April 30, 2019, 11:10 PM (JST)
+            XCTAssertEqual(parsed?.timeIntervalSince1970, 1556633400) // April 30, 2019, 11:10 PM (JST)
             
             // Format test
-            let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556633400)) // April 30, 2019, 11:10 PM (JST)
+            let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556633400)) // April 30, 2019, 11:10 PM (JST)
             XCTAssertEqual(dateString, "平成31年4月30日 23:10")
         }
         
@@ -457,14 +456,14 @@ class TestDateFormatter: XCTestCase {
         do {
             // Parse test
             let parsed = formatter.date(from: "令和1年5月1日 23:10")
-            XCTAssertEqual(parsed?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
+            XCTAssertEqual(parsed?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
             
             // Test for 元年(Gannen) representation of 1st year
             let parsedAlt = formatter.date(from: "令和元年5月1日 23:10")
-            XCTAssertEqual(parsedAlt?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
+            XCTAssertEqual(parsedAlt?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
 
             // Format test
-            let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556719800)) // May 1st, 2019, 11:10 PM (JST)
+            let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556719800)) // May 1st, 2019, 11:10 PM (JST)
             XCTAssertEqual(dateString, "令和元年5月1日 23:10")
         }
     }
