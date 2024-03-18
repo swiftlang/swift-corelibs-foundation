@@ -486,7 +486,7 @@ extension Locale : _ObjectiveCBridgeable {
     
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSLocale {
-        return NSLocale(locale: Locale.current)
+        return NSLocale(locale: self)
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSLocale, result: inout Locale?) {
