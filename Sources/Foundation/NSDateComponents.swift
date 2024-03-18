@@ -141,7 +141,15 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
             _components.calendar = newValue
         }
     }
-    /*@NSCopying*/ open var timeZone: TimeZone?
+    
+    /*@NSCopying*/ open var timeZone: TimeZone? {
+        get {
+            _components.timeZone
+        }
+        set {
+            _components.timeZone = newValue
+        }
+    }
 
     open var era: Int {
         get {
