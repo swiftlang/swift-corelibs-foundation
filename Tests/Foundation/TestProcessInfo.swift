@@ -45,28 +45,25 @@ class TestProcessInfo : XCTestCase {
     }
     
     func test_processName() {
-        // Assert that the original process name is "TestFoundation". This test
-        // will fail if the test target ever gets renamed, so maybe it should
-        // just test that the initial name is not empty or something?
 #if DARWIN_COMPATIBILITY_TESTS
         let targetName = "xctest"
 #elseif os(Windows)
-        let targetName = "TestFoundation.exe"
+        let targetName = "swift-corelibs-foundationPackageTests.exe"
 #else
-        let targetName = "TestFoundation"
+        let targetName = "swift-corelibs-foundationPackageTests.xctest"
 #endif
         let processInfo = ProcessInfo.processInfo
         let originalProcessName = processInfo.processName
-        XCTAssertEqual(originalProcessName, targetName, "\"\(originalProcessName)\" not equal to \"TestFoundation\"")
+        XCTAssertEqual(originalProcessName, targetName)
         
         // Try assigning a new process name.
         let newProcessName = "TestProcessName"
         processInfo.processName = newProcessName
-        XCTAssertEqual(processInfo.processName, newProcessName, "\"\(processInfo.processName)\" not equal to \"\(newProcessName)\"")
+        XCTAssertEqual(processInfo.processName, newProcessName)
         
         // Assign back to the original process name.
         processInfo.processName = originalProcessName
-        XCTAssertEqual(processInfo.processName, originalProcessName, "\"\(processInfo.processName)\" not equal to \"\(originalProcessName)\"")
+        XCTAssertEqual(processInfo.processName, originalProcessName)
     }
     
     func test_globallyUniqueString() {
