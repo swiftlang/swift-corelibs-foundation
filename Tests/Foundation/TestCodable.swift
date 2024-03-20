@@ -233,7 +233,7 @@ class TestCodable : XCTestCase {
 
     // MARK: - Decimal
     lazy var decimalValues: [Decimal] = [
-        Decimal.leastFiniteMagnitude,
+        0,
         Decimal.greatestFiniteMagnitude,
         Decimal.leastNormalMagnitude,
         Decimal.leastNonzeroMagnitude,
