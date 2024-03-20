@@ -13,6 +13,14 @@ project(Foundation
   LANGUAGES C Swift)
 enable_testing()
 
+if(NOT SWIFT_SYSTEM_NAME)
+  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(SWIFT_SYSTEM_NAME macosx)
+  else()
+    set(SWIFT_SYSTEM_NAME "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+  endif()
+endif()
+
 # NOTE(compnerd) default to /MD or /MDd by default based on the configuration.
 # Cache the variable to allow the user to alter the configuration.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE
@@ -38,9 +46,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
+option(BUILD_FULLY_STATIC "build fully static" NO)
 option(HAS_LIBDISPATCH_API "has libdispatch API" ON)
-option(BUILD_NETWORKING "build FoundationNetworking module" ON)
-option(BUILD_TOOLS "build tools" ON)
+option(FOUNDATION_ENABLE_FOUNDATION_NETWORKING "build FoundationNetworking module" ON)
+option(FOUNDATION_BUILD_TOOLS "build tools" ON)
 option(NS_CURL_ASSUME_FEATURES_MISSING "Assume that optional libcurl features are missing rather than test the library's version, for build debugging" NO)
 
 if(HAS_LIBDISPATCH_API)
@@ -48,6 +57,12 @@ if(HAS_LIBDISPATCH_API)
 endif()
 
 find_package(ICU COMPONENTS uc i18n REQUIRED OPTIONAL_COMPONENTS data)
+
+# This is needed if we're statically linking, otherwise we can't pull in Dispatch
+# because we won't have RT::rt as a CMake target.
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Android)
+  find_package(LibRT)
+endif()
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -57,7 +72,9 @@ set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG OFF)
-find_package(Threads REQUIRED)
+if(HAS_LIBDISPATCH_API)
+  find_package(Threads REQUIRED)
+endif()
 
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
@@ -99,13 +116,13 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
 
   install(TARGETS CoreFoundation CFXMLInterface
-    DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+    DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME})
 
-  if(BUILD_NETWORKING)
+  if(FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
       CFURLSessionInterface)
     install(TARGETS CFURLSessionInterface
-      DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>)
+      DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME})
   endif()
 endif()
 

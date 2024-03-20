@@ -28,6 +28,13 @@
 @usableFromInline let memset = Glibc.memset
 @usableFromInline let memcpy = Glibc.memcpy
 @usableFromInline let memcmp = Glibc.memcmp
+#elseif canImport(Musl)
+@usableFromInline let calloc = Musl.calloc
+@usableFromInline let malloc = Musl.malloc
+@usableFromInline let free = Musl.free
+@usableFromInline let memset = Musl.memset
+@usableFromInline let memcpy = Musl.memcpy
+@usableFromInline let memcmp = Musl.memcmp
 #elseif canImport(WASILibc)
 @usableFromInline let calloc = WASILibc.calloc
 @usableFromInline let malloc = WASILibc.malloc
@@ -48,6 +55,8 @@ internal func malloc_good_size(_ size: Int) -> Int {
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(Musl)
+import Musl
 #elseif canImport(WASILibc)
 import WASILibc
 #endif
@@ -2039,7 +2048,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
     
-#if !os(WASI)
     /// Initialize a `Data` with the contents of a `URL`.
     ///
     /// - parameter url: The `URL` to read.
@@ -2052,7 +2060,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             return Data(bytes: d.bytes, count: d.length)
         }
     }
-#endif
     
     /// Initialize a `Data` from a Base-64 encoded String using the given options.
     ///
@@ -2316,7 +2323,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     }
 #endif
     
-#if !os(WASI)
     /// Write the contents of the `Data` to a location.
     ///
     /// - parameter url: The location to write the data into.
@@ -2337,7 +2343,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 #endif
         }
     }
-#endif
     
     // MARK: -
     

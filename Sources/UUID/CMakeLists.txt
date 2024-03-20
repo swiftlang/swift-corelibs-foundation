@@ -28,7 +28,7 @@ if(NOT BUILD_SHARED_LIBS)
   # TODO(drexin): should be installed in architecture specific folder, once
   # the layout is fixed for non-Darwin platforms
   install(TARGETS uuid
-    ARCHIVE DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
-    LIBRARY DESTINATION lib/swift_static/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>
+    ARCHIVE DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+    LIBRARY DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

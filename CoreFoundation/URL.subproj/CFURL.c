@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #if TARGET_OS_OSX
 #include <CoreFoundation/CFNumberFormatter.h>
 #endif
@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #if __has_include(<sys/syslog.h>)
 #include <sys/syslog.h>
-#else
+#elif __has_include(<syslog.h>)
 #include <syslog.h>
 #endif
 #include <CoreFoundation/CFURLPriv.h>
@@ -53,9 +53,7 @@ static CFStringRef WindowsPathToURLPath(CFStringRef path, CFAllocatorRef alloc, 
 static CFStringRef POSIXPathToURLPath(CFStringRef path, CFAllocatorRef alloc, Boolean isDirectory, Boolean isAbsolute, Boolean *posixAndUrlPathsMatch) CF_RETURNS_RETAINED;
 static CFStringRef CreateStringFromFileSystemRepresentationByAddingPercentEscapes(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, Boolean isDirectory, Boolean isAbsolute, Boolean windowsPath, Boolean *addedPercentEncoding) CF_RETURNS_RETAINED;
 CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLRef anURL, CFURLPathStyle fsType, Boolean resolveAgainstBase) CF_RETURNS_RETAINED;
-#if !TARGET_OS_WASI
 CF_EXPORT CFURLRef _CFURLCreateCurrentDirectoryURL(CFAllocatorRef allocator) CF_RETURNS_RETAINED;
-#endif
 #if TARGET_OS_MAC
 static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme);
 #endif
@@ -2189,13 +2187,11 @@ static CFURLRef _CFURLCreateWithFileSystemPath(CFAllocatorRef allocator, CFStrin
                 // if fileSystemPath is an absolute path, ignore baseURL (if provided)
                 baseURL = NULL;
             }
-#if !TARGET_OS_WASI
             else if ( baseURL == NULL ) {
                 // if fileSystemPath is a relative path and no baseURL is provided, use the current working directory
                 baseURL = _CFURLCreateCurrentDirectoryURL(allocator);
                 releaseBaseURL = true;
             }
-#endif
             
             // override isDirectory if the path is to root
             if ( !isDirectory && (len == 1) && (CFStringGetCharacterAtIndex(urlString, 0) == '/') ) {
@@ -2282,7 +2278,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
 #endif
     struct __CFURL *result = NULL;
     if (bufLen > 0) {
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
         Boolean isAbsolute = bufLen && (*buffer == '/');
         Boolean addedPercentEncoding;
         Boolean releaseBaseURL = false;
@@ -2292,14 +2288,12 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
             // if buffer contains an absolute path, ignore baseURL (if provided)
             baseURL = NULL;
             isFileReferencePath = _fileSystemRepresentationHasFileIDPrefix(buffer, bufLen);
-        }
-#if !TARGET_OS_WASI
-        else if ( baseURL == NULL ) {
+        } else if ( baseURL == NULL ) {
             // if buffer contains a relative path and no baseURL is provided, use the current working directory
             baseURL = _CFURLCreateCurrentDirectoryURL(allocator);
             releaseBaseURL = true;
         }
-#endif
+
         CFStringRef urlString = CreateStringFromFileSystemRepresentationByAddingPercentEscapes(allocator, buffer, bufLen, isDirectory, isAbsolute, false /*windowsPath*/, &addedPercentEncoding);
         if ( urlString ) {
             // allocate the URL object with the appropriate number of ranges
@@ -4367,7 +4361,6 @@ static CFStringRef _resolveFileSystemPaths(CFStringRef relativePath, CFStringRef
     return _resolvedPath(buf, buf + baseLen + relLen, pathDelimiter, false, true, alloc);
 }
 
-#if !TARGET_OS_WASI
 CFURLRef _CFURLCreateCurrentDirectoryURL(CFAllocatorRef allocator) {
     CFURLRef url = NULL;
     // CFMaxPathSize is OK here since we're getting the path from the file system
@@ -4377,7 +4370,6 @@ CFURLRef _CFURLCreateCurrentDirectoryURL(CFAllocatorRef allocator) {
     }
     return url;
 }
-#endif
 
 CFURLRef CFURLCreateWithFileSystemPath(CFAllocatorRef allocator, CFStringRef filePath, CFURLPathStyle fsType, Boolean isDirectory) {
     CFURLRef result;

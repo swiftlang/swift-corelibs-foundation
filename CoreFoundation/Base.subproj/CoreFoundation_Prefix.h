@@ -189,7 +189,8 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #define CF_RETAIN_BALANCED_ELSEWHERE(obj, identified_location) do { } while (0)
 #endif
 
-#if (TARGET_OS_LINUX && !TARGET_OS_ANDROID && !TARGET_OS_CYGWIN) || TARGET_OS_WIN32
+#if !TARGET_OS_MAC
+#if !HAVE_STRLCPY
 CF_INLINE size_t
 strlcpy(char * dst, const char * src, size_t maxlen) {
     const size_t srclen = strlen(src);
@@ -201,7 +202,9 @@ strlcpy(char * dst, const char * src, size_t maxlen) {
     }
     return srclen;
 }
+#endif
 
+#if !HAVE_STRLCAT
 CF_INLINE size_t
 strlcat(char * dst, const char * src, size_t maxlen) {
     const size_t srclen = strlen(src);
@@ -216,6 +219,7 @@ strlcat(char * dst, const char * src, size_t maxlen) {
     return dstlen + srclen;
 }
 #endif
+#endif // !TARGET_OS_MAC
 
 #if TARGET_OS_WIN32
 // Compatibility with boolean.h
@@ -256,7 +260,7 @@ CF_INLINE uint64_t mach_absolute_time() {
     ULONGLONG ullTime;
 	QueryUnbiasedInterruptTimePrecise(&ullTime);
     return ullTime;
-#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_MAC
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_MAC || TARGET_OS_WASI
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
@@ -300,7 +304,7 @@ typedef unsigned long fd_mask;
 #endif
     
 
-#if !TARGET_OS_CYGWIN && !TARGET_OS_BSD
+#if !TARGET_OS_MAC && !HAVE_ISSETUGID
 #define issetugid() 0
 #endif
 
@@ -336,7 +340,7 @@ CF_INLINE size_t malloc_size(void *memblock) {
 #endif
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <sys/param.h>
 #endif
 #if TARGET_OS_WIN32 || TARGET_OS_LINUX

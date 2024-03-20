@@ -11,19 +11,30 @@
 
 #if defined(__ELF__)
 .section .rodata
+#elif defined(__wasm__)
+.section .data.characterset_bitmap_data,"",@
 #endif
 
     .global _C_LABEL(__CFCharacterSetBitmapData)
 _C_LABEL(__CFCharacterSetBitmapData):
     .incbin CF_CHARACTERSET_BITMAP
+#if defined(__wasm__)
+    .size _C_LABEL(__CFCharacterSetBitmapData), . - _C_LABEL(__CFCharacterSetBitmapData)
+#endif
 
     .global _C_LABEL(__CFCharacterSetBitmapDataEnd)
 _C_LABEL(__CFCharacterSetBitmapDataEnd):
     .byte 0
+#if defined(__wasm__)
+    .size _C_LABEL(__CFCharacterSetBitmapDataEnd), . - _C_LABEL(__CFCharacterSetBitmapDataEnd)
+#endif
 
     .global _C_LABEL(__CFCharacterSetBitmapDataSize)
 _C_LABEL(__CFCharacterSetBitmapDataSize):
     .int _C_LABEL(__CFCharacterSetBitmapDataEnd) - _C_LABEL(__CFCharacterSetBitmapData)
+#if defined(__wasm__)
+    .size _C_LABEL(__CFCharacterSetBitmapDataSize), . - _C_LABEL(__CFCharacterSetBitmapDataSize)
+#endif
 
 NO_EXEC_STACK_DIRECTIVE
 SAFESEH_REGISTRATION_DIRECTIVE

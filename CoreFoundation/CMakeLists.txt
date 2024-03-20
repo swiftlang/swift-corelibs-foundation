@@ -6,6 +6,9 @@ project(CoreFoundation
   VERSION 1338
   LANGUAGES ASM C)
 
+include(CheckSymbolExists)
+include(CheckIncludeFile)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 
@@ -22,15 +25,20 @@ set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG OFF)
-find_package(Threads REQUIRED)
+if(HAS_LIBDISPATCH_API)
+  find_package(Threads REQUIRED)
+endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
-  find_package(CURL CONFIG)
-  if(CURL_FOUND)
-    set(CURL_VERSION_STRING ${CURL_VERSION})
-  else()
-    find_package(CURL REQUIRED)
+
+  if(FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
+    find_package(CURL CONFIG)
+    if(CURL_FOUND)
+      set(CURL_VERSION_STRING ${CURL_VERSION})
+    else()
+      find_package(CURL REQUIRED)
+    endif()
   endif()
 endif()
 
@@ -70,8 +78,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   add_compile_definitions($<$<COMPILE_LANGUAGE:C>:_GNU_SOURCE>)
 
   if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    include(CheckSymbolExists)
-    include(CheckIncludeFile)
     list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
     check_include_file("sched.h" HAVE_SCHED_H)
     if(HAVE_SCHED_H)
@@ -90,6 +96,21 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   endif()
 endif()
 
+# Look for some functions that may not be present on all platforms
+check_symbol_exists(strlcpy "string.h" HAVE_STRLCPY)
+check_symbol_exists(strlcat "string.h" HAVE_STRLCAT)
+check_symbol_exists(issetugid "unistd.h" HAVE_ISSETUGID)
+
+if(HAVE_STRLCPY)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCPY>)
+endif()
+if(HAVE_STRLCAT)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCAT>)
+endif()
+if(HAVE_ISSETUGID)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_ISSETUGID>)
+endif()
+
 add_compile_definitions($<$<COMPILE_LANGUAGE:C>:U_SHOW_DRAFT_API>)
 add_compile_definitions($<$<COMPILE_LANGUAGE:C>:CF_BUILDING_CF>)
 
@@ -97,6 +118,10 @@ if(CF_DEPLOYMENT_SWIFT)
   add_compile_definitions($<$<COMPILE_LANGUAGE:C>:DEPLOYMENT_RUNTIME_SWIFT>)
 else()
   add_compile_definitions($<$<COMPILE_LANGUAGE:C>:DEPLOYMENT_RUNTIME_C>)
+endif()
+
+if(Threads_FOUND)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:SWIFT_CORELIBS_FOUNDATION_HAS_THREADS>)
 endif()
 
 # TODO(compnerd) ensure that the compiler supports the warning flag
@@ -385,10 +410,15 @@ target_include_directories(CoreFoundation
                            PRIVATE
                              ${PROJECT_SOURCE_DIR})
 target_link_libraries(CoreFoundation PRIVATE
-  Threads::Threads
   ${CMAKE_DL_LIBS}
-  BlocksRuntime
-  dispatch)
+  BlocksRuntime)
+
+if(HAS_LIBDISPATCH_API)
+  target_link_libraries(CoreFoundation PRIVATE
+    Threads::Threads
+    dispatch)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation PRIVATE
     log)
@@ -431,7 +461,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                              PRIVATE
                                CURL_STATICLIB)
 endif()
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin AND FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
   target_link_libraries(CFURLSessionInterface PRIVATE
     CURL::libcurl)
 endif()
@@ -449,6 +479,11 @@ add_framework(CFXMLInterface
               SOURCES
                 Parsing.subproj/CFXMLInterface.c)
 add_dependencies(CFXMLInterface CoreFoundation)
+if(NOT HAS_LIBDISPATCH_API)
+  # Explicitly link BlocksRuntime if we are not using libdispatch, which
+  # indirectly brings BlocksRuntime in.
+  target_link_libraries(CFXMLInterface PRIVATE BlocksRuntime)
+endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CFXMLInterface PRIVATE
     LibXml2::LibXml2)
@@ -504,15 +539,18 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Dar
                         PRIVATE
                           m)
 endif()
-target_link_libraries(CoreFoundation
-                      PRIVATE
-                        dispatch)
-target_link_libraries(CFURLSessionInterface
-                      PRIVATE
-                        dispatch)
-target_link_libraries(CFXMLInterface
-                      PRIVATE
-                        dispatch)
+
+if(HAS_LIBDISPATCH_API)
+  target_link_libraries(CoreFoundation
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          dispatch)
+  target_link_libraries(CFXMLInterface
+                        PRIVATE
+                          dispatch)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
@@ -528,12 +566,25 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  # Enable emulated features
+  set(WASI_EMULATION_DEFS _WASI_EMULATED_MMAN _WASI_EMULATED_SIGNAL _WASI_EMULATED_PROCESS_CLOCKS)
+  target_compile_definitions(CoreFoundation PRIVATE ${WASI_EMULATION_DEFS})
+  target_compile_definitions(CFXMLInterface PRIVATE ${WASI_EMULATION_DEFS})
+endif()
+
 install(TARGETS
           CoreFoundation
-          CFURLSessionInterface
           CFXMLInterface
         DESTINATION
-          "${CMAKE_INSTALL_FULL_LIBDIR}")
+          "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+
+if(FOUNDATION_ENABLE_FOUNDATION_NETWORKING)
+  install(TARGETS
+            CFURLSessionInterface
+          DESTINATION
+            "${CMAKE_INSTALL_FULL_LIBDIR}/$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+endif()
 
 # Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
 # Double slash raise CMake error "file called with network path DESTINATION //System/Library/Frameworks".

@@ -52,7 +52,7 @@ __kCFRetainEvent = 28,
 __kCFReleaseEvent = 29
 };
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
@@ -239,12 +239,14 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
 
 
 
+#if !TARGET_OS_WASI
     [_kCFRuntimeIDCFRunLoopMode] = &__CFRunLoopModeClass,
     [_kCFRuntimeIDCFRunLoop] = &__CFRunLoopClass,
     [_kCFRuntimeIDCFRunLoopSource] = &__CFRunLoopSourceClass,
     [_kCFRuntimeIDCFRunLoopObserver] = &__CFRunLoopObserverClass,
     [_kCFRuntimeIDCFRunLoopTimer] = &__CFRunLoopTimerClass,
     [_kCFRuntimeIDCFSocket] = &__CFSocketClass,
+#endif
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
     [_kCFRuntimeIDCFAttributedString] = &__CFAttributedStringClass,
@@ -1162,7 +1164,7 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static void __CFInitialize(void) __attribute__ ((constructor));
 #endif
 #if TARGET_OS_WIN32
@@ -1194,9 +1196,13 @@ void __CFInitialize(void) {
         DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
                         GetCurrentProcess(), &_CFMainPThread, 0, FALSE,
                         DUPLICATE_SAME_ACCESS);
-#else
+#elif _POSIX_THREADS
         // move this next line up into the #if above after Foundation gets off this symbol. Also: <rdar://problem/39622745> Stop using _CFMainPThread
         _CFMainPThread = pthread_self();
+#elif TARGET_OS_WASI
+        _CFMainPThread = kNilPthreadT;
+#else
+#error Dont know how to get the main thread on this platform
 #endif
 
 #if TARGET_OS_WIN32
@@ -1407,7 +1413,7 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-extern void swift_retain(void *);
+extern void *swift_retain(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".

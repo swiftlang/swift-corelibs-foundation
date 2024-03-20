@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if canImport(Dispatch)
 @_implementationOnly import CoreFoundation
 #if os(Windows)
 import WinSDK
@@ -14,6 +15,8 @@ import WinSDK
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(Musl)
+import Musl
 #endif
 
 // WORKAROUND_SR9811
@@ -356,13 +359,15 @@ open class Thread : NSObject {
         _cancelled = true
     }
 
+    // ###TODO: Switch these over to using the Swift runtime's backtracer
+    //          once we have Windows support there.
 
     private class func backtraceAddresses<T>(_ body: (UnsafeMutablePointer<UnsafeMutableRawPointer?>, Int) -> [T]) -> [T] {
         // Same as swift/stdlib/public/runtime/Errors.cpp backtrace
         let maxSupportedStackDepth = 128;
         let addrs = UnsafeMutablePointer<UnsafeMutableRawPointer?>.allocate(capacity: maxSupportedStackDepth)
         defer { addrs.deallocate() }
-#if os(Android) || os(OpenBSD)
+#if os(Android) || os(OpenBSD) || canImport(Musl)
         let count = 0
 #elseif os(Windows)
         let count = RtlCaptureStackBackTrace(0, DWORD(maxSupportedStackDepth),
@@ -383,7 +388,7 @@ open class Thread : NSObject {
     }
 
     open class var callStackSymbols: [String] {
-#if os(Android) || os(OpenBSD)
+#if os(Android) || os(OpenBSD) || canImport(Musl)
         return []
 #elseif os(Windows)
         let hProcess: HANDLE = GetCurrentProcess()
@@ -444,3 +449,4 @@ extension NSNotification.Name {
     public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "NSDidBecomeSingleThreadedNotification")
     public static let NSThreadWillExit = NSNotification.Name(rawValue: "NSThreadWillExitNotification")
 }
+#endif

@@ -51,6 +51,24 @@ extension RunLoop.Mode {
     }
 }
 
+#if !canImport(Dispatch)
+
+open class RunLoop: NSObject {
+    @available(*, unavailable, message: "RunLoop is not available on WASI")
+    open class var current: RunLoop {
+        fatalError("RunLoop is not available on WASI")
+    }
+
+    @available(*, unavailable, message: "RunLoop is not available on WASI")
+    open class var main: RunLoop {
+        fatalError("RunLoop is not available on WASI")
+    }
+
+    internal final var currentCFRunLoop: CFRunLoop { NSUnsupported() }
+}
+
+#else
+
 internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
     let rl = Unmanaged<RunLoop>.passRetained(RunLoop(cfObject: cf))
     return unsafeBitCast(rl, to: Unmanaged<AnyObject>.self) // this retain is balanced on the other side of the CF fence
@@ -421,3 +439,5 @@ extension RunLoop._Source {
       unsafeBitCast(_cfSourceStorage, to: CFRunLoopSource.self)
     }
 }
+
+#endif // canImport(Dispatch)

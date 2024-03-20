@@ -22,6 +22,10 @@
     #include <mach-o/dyld.h>
 #endif
 
+#if TARGET_OS_WASI
+#include <wasi/libc-environ.h>
+#endif
+
 #define _CFEmitInternalDiagnostics 0
 
 
@@ -62,11 +66,9 @@ int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
 
 
-#if !TARGET_OS_WASI
 CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
-#endif
 
 #if TARGET_OS_WIN32
 // Returns the path to the CF DLL, which we can then use to find resources like char sets
@@ -103,7 +105,6 @@ CF_PRIVATE const wchar_t *_CFDLLPath(void) {
 }
 #endif // TARGET_OS_WIN32
 
-#if !TARGET_OS_WASI
 static const char *__CFProcessPath = NULL;
 static const char *__CFprogname = NULL;
 
@@ -186,6 +187,31 @@ const char *_CFProcessPath(void) {
         __CFprogname = __CFProcessPath;
     }
     return __CFProcessPath;
+#elif TARGET_OS_WASI
+    __wasi_errno_t err;
+    size_t argc;
+    size_t argv_buf_size;
+    err = __wasi_args_sizes_get(&argc, &argv_buf_size);
+    if (err != 0) {
+        __CFProcessPath = "";
+        __CFprogname = __CFProcessPath;
+        return __CFProcessPath;
+    }
+    char *argv_buf = malloc(argv_buf_size);
+    char **argv = calloc(argc, sizeof(char *));
+    err = __wasi_args_get((uint8_t **)argv, (uint8_t *)argv_buf);
+    if (err != 0) {
+        __CFProcessPath = "";
+        __CFprogname = __CFProcessPath;
+        free(argv_buf);
+        free(argv);
+        return __CFProcessPath;
+    }
+    _CFSetProgramNameFromPath(argv[0]);
+    free(argv_buf);
+    free(argv);
+    return __CFProcessPath;
+
 #else // TARGET_OS_BSD
     char *argv0 = NULL;
 
@@ -248,7 +274,6 @@ const char *_CFProcessPath(void) {
     return __CFProcessPath;
 #endif
 }
-#endif // TARGET_OS_WASI
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
@@ -273,7 +298,6 @@ Boolean _CFIsMainThread(void) {
 }
 #endif // TARGET_OS_LINUX
 
-#if !TARGET_OS_WASI
 CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     static CFStringRef __CFProcessNameString = NULL;
     if (!__CFProcessNameString) {
@@ -292,7 +316,6 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
     }
     return __CFProcessNameString;
 }
-#endif // !TARGET_OS_WASI
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
@@ -387,16 +410,20 @@ static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHo
 
 #endif
 
-#if !TARGET_OS_WASI
 #define CFMaxHostNameLength	256
 #define CFMaxHostNameSize	(CFMaxHostNameLength+1)
 
 CF_PRIVATE CFStringRef _CFStringCreateHostName(void) {
+#if TARGET_OS_WASI
+    // WASI doesn't have a concept of a hostname
+    return CFSTR("");
+#else
     char myName[CFMaxHostNameSize];
 
     // return @"" instead of nil a la CFUserName() and Ali Ozer
     if (0 != gethostname(myName, CFMaxHostNameSize)) return CFSTR("");
     return CFStringCreateWithCString(kCFAllocatorSystemDefault, myName, kCFPlatformInterfaceStringEncoding);
+#endif
 }
 
 /* These are sanitized versions of the above functions. We might want to eliminate the above ones someday.
@@ -433,6 +460,8 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
                 result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cname, kCFPlatformInterfaceStringEncoding);
             }
 	}
+#elif TARGET_OS_WASI
+    // WASI does not have user concept
 #else
 #error "Please add an implementation for CFCopyUserName() that copies the account username"
 #endif
@@ -462,6 +491,8 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     GetUserNameExW(NameDisplay, (LPWSTR)wszBuffer, &ulLength);
 
     result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar *)wszBuffer, ulLength);
+#elif TARGET_OS_WASI
+    // WASI does not have user concept
 #else
 #error "Please add an implementation for CFCopyFullUserName() that copies the full (display) user name"
 #endif
@@ -528,6 +559,9 @@ CFURLRef CFCopyHomeDirectoryURL(void) {
     if (testPath) CFRelease(testPath);
 
     return retVal;
+#elif TARGET_OS_WASI
+    // WASI does not have user concept
+    return NULL;
 #else
 #error Dont know how to compute users home directories on this platform
 #endif
@@ -659,6 +693,9 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
     CFAllocatorDeallocate(kCFAllocatorSystemDefault, pwszUserName);
 
     return url;
+#elif TARGET_OS_WASI
+    // WASI does not have user concept
+    return NULL;
 #else
 #error Dont know how to compute users home directories on this platform
 #endif
@@ -667,7 +704,6 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 
 #undef CFMaxHostNameLength
 #undef CFMaxHostNameSize
-#endif // !TARGET_OS_WASI
 
 #if TARGET_OS_WIN32
 CF_INLINE CFIndex strlen_UniChar(const UniChar* p) {
@@ -1625,8 +1661,10 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 #include <fcntl.h>
 
-extern void swift_retain(void *);
+extern void *swift_retain(void *);
 extern void swift_release(void *);
+
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 
 #if TARGET_OS_WIN32
 typedef struct _CFThreadSpecificData {
@@ -1806,14 +1844,17 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 #endif
     return -1;
 }
+#endif // SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 
 CF_EXPORT char **_CFEnviron(void) {
 #if TARGET_OS_MAC
     return *_NSGetEnviron();
 #elif TARGET_OS_WIN32
     return _environ;
+#elif TARGET_OS_WASI
+    return __wasilibc_get_environ();
 #else
-#if TARGET_OS_BSD || TARGET_OS_WASI
+#if TARGET_OS_BSD
     extern char **environ;
 #endif
     return environ;

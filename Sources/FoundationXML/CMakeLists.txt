@@ -23,6 +23,12 @@ if(NOT BUILD_SHARED_LIBS)
     PRIVATE
       "SHELL:-Xfrontend -public-autolink-library -Xfrontend xml2")
 
+  if(BUILD_FULLY_STATIC)
+    target_compile_options(FoundationXML
+      PRIVATE
+        "SHELL:-Xfrontend -public-autolink-library -Xfrontend z")
+  endif()
+
   # Merge private dependencies into single static objects archive
   set_property(TARGET FoundationXML PROPERTY STATIC_LIBRARY_OPTIONS
     $<TARGET_OBJECTS:CFXMLInterface>)
@@ -37,6 +43,12 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
   target_link_options(FoundationXML PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+  target_compile_options(FoundationXML PRIVATE
+    "SHELL:-Xcc -D_WASI_EMULATED_SIGNAL
+           -Xcc -D_WASI_EMULATED_PROCESS_CLOCKS
+           -Xcc -D_WASI_EMULATED_MMAN")
+endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
 _install_target(FoundationXML)

@@ -45,7 +45,7 @@
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__)
 #include <dirent.h>
 #endif
 
@@ -64,11 +64,20 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <termios.h>
+#elif TARGET_OS_WASI
+#include <fcntl.h>
+#include <sys/stat.h>
+// Define _WASI_EMULATED_MMAN here to use the emulated mman functions in
+// Foundation-side without requiring transitive clients to define it.
+#undef _WASI_EMULATED_MMAN
+#define _WASI_EMULATED_MMAN
+#include <sys/mman.h>
 #elif TARGET_OS_LINUX
 #include <errno.h>
 #include <features.h>
 #include <termios.h>
 
+#ifdef __GLIBC_PREREQ
 #if __GLIBC_PREREQ(2, 28) == 0
 // required for statx() system call, glibc >=2.28 wraps the kernel function
 #include <sys/syscall.h>
@@ -78,7 +87,7 @@
 #include <linux/fs.h>
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
 #endif //__GLIBC_PREREQ(2. 28)
-
+#endif // defined(__GLIBC_PREREQ)
 #ifndef __NR_statx
 #include <sys/stat.h>
 #endif // not __NR_statx
@@ -379,9 +388,7 @@ CF_PRIVATE uint64_t __CFMemorySize(void);
 CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void);
 
-#if !TARGET_OS_WASI
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
-#endif
 
 #if !__COREFOUNDATION_FORFOUNDATIONONLY__
 typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
@@ -393,9 +400,7 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
 CF_CROSS_PLATFORM_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 
-#if !TARGET_OS_WASI
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
-#endif
 
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
@@ -412,6 +417,10 @@ typedef unsigned long _CFThreadSpecificKey;
 typedef pthread_t _CFThreadRef;
 typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_key_t _CFThreadSpecificKey;
+#elif TARGET_OS_WASI // WASI without pthreads
+typedef void *_CFThreadRef;
+typedef void *_CFThreadAttributes;
+typedef void *_CFThreadSpecificKey;
 #endif
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
@@ -423,6 +432,7 @@ CF_EXPORT CFHashCode __CFHashDouble(double d);
 CF_CROSS_PLATFORM_EXPORT void CFSortIndexes(CFIndex *indexBuffer, CFIndex count, CFOptionFlags opts, CFComparisonResult (^cmp)(CFIndex, CFIndex));
 #endif
 
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
 CF_EXPORT void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
 CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
@@ -431,13 +441,13 @@ CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_N
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name);
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
+#endif
 
 CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
 CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses);
 
-#if !TARGET_OS_WASI
 CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspecified stream);
 
 CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef _Null_unspecified stream);
@@ -446,7 +456,6 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyExecutablePath(CFBun
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles(void);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFreestandingBundles(void);
 CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyLoadedImagePathForAddress(const void *p);
-#endif
 
 CF_CROSS_PLATFORM_EXPORT CFStringRef __CFTimeZoneCopyDataVersionString(void);
 
@@ -552,30 +561,44 @@ CF_CROSS_PLATFORM_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
 
 #if TARGET_OS_WIN32
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const unsigned short *path, int opts, mode_t mode);
-#elif !TARGET_OS_WASI
+#else
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
 #endif
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__)
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
-#elif TARGET_OS_ANDROID
+#elif TARGET_OS_LINUX || TARGET_OS_ANDROID || TARGET_OS_WASI
     return strlen(entry->d_name);
 #else
     return entry->d_namlen;
 #endif
 }
 
+static inline char *_direntName(struct dirent *entry) {
+    return entry->d_name;
+}
+
 // major() and minor() might be implemented as macros or functions.
 static inline unsigned int _dev_major(dev_t rdev) {
+#if !TARGET_OS_WASI
     return major(rdev);
+#else
+    // WASI does not have device numbers
+    return 0;
+#endif
 }
 
 static inline unsigned int _dev_minor(dev_t rdev) {
+#if !TARGET_OS_WASI
     return minor(rdev);
+#else
+    // WASI does not have device numbers
+    return 0;
+#endif
 }
 
 #endif
@@ -693,6 +716,15 @@ typedef struct _REPARSE_DATA_BUFFER {
         } GenericReparseBuffer;
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER;
+#endif
+
+#if TARGET_OS_WASI
+static inline uint8_t _getConst_DT_DIR(void) { return DT_DIR; }
+static inline int32_t _getConst_O_CREAT(void) { return O_CREAT; }
+static inline int32_t _getConst_O_DIRECTORY(void) { return O_DIRECTORY; }
+static inline int32_t _getConst_O_EXCL(void) { return O_EXCL; }
+static inline int32_t _getConst_O_TRUNC(void) { return O_TRUNC; }
+static inline int32_t _getConst_O_WRONLY(void) { return O_WRONLY; }
 #endif
 
 #if !TARGET_OS_WIN32

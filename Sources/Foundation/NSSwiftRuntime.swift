@@ -14,8 +14,10 @@
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 @_exported import Darwin
-#elseif os(Linux) || os(Android) || CYGWIN || os(OpenBSD)
+#elseif canImport(Glibc)
 @_exported import Glibc
+#elseif canImport(Musl)
+@_exported import Musl
 #elseif os(WASI)
 @_exported import WASILibc
 #elseif os(Windows)

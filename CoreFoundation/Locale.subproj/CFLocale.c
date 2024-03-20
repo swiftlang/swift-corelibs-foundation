@@ -19,15 +19,11 @@
 #include <CoreFoundation/CFNumber.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
-#if !TARGET_OS_WASI
 #include <CoreFoundation/CFPreferences.h>
 #include "CFBundle_Internal.h"
-#else
-#include "CFBase.h"
-#endif
 #include "CFLocaleInternal.h"
 #include <stdatomic.h>
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <unicode/uloc.h>           // ICU locales
 #include <unicode/ulocdata.h>       // ICU locale data
 #include <unicode/ucal.h>
@@ -1274,7 +1270,7 @@ static bool __CFLocaleCopyLocaleID(CFLocaleRef locale, bool user, CFTypeRef *cf,
 
 
 static bool __CFLocaleCopyCodes(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
-    static CFStringRef const kCFLocaleCodesKey = CFSTR("__kCFLocaleCodes");
+    CFStringRef const kCFLocaleCodesKey = CFSTR("__kCFLocaleCodes");
     
     bool codesWasAllocated = false;
     CFDictionaryRef codes = NULL;

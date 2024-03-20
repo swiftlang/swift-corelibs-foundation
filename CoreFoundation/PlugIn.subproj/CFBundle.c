@@ -42,7 +42,7 @@
 #endif
 #endif /* BINARY_SUPPORT_DLFCN */
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC || TARGET_OS_WASI
 #include <fcntl.h>
 #elif TARGET_OS_WIN32
 #include <fcntl.h>
