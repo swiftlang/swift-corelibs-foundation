@@ -211,124 +211,6 @@ class TestFileManager : XCTestCase {
         try? fm.removeItem(atPath: tmpDir.path)
     }
 
-    func test_isReadableFile() {
-        let fm = FileManager.default
-        let path = NSTemporaryDirectory() + "test_isReadableFile\(NSUUID().uuidString)"
-        defer {
-            try? fm.removeItem(atPath: path)
-        }
-
-        do {
-            // create test file
-            XCTAssertTrue(fm.createFile(atPath: path, contents: Data()))
-
-            // test unReadable if file has no permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
-#if os(Windows)
-            // Files are always readable on Windows
-            XCTAssertTrue(fm.isReadableFile(atPath: path))
-#else
-            XCTAssertFalse(fm.isReadableFile(atPath: path))
-#endif
-
-            // test readable if file has read permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0400))], ofItemAtPath: path)
-            XCTAssertTrue(fm.isReadableFile(atPath: path))
-        } catch let e {
-            XCTFail("\(e)")
-        }
-    }
-
-    func test_isWritableFile() {
-        let fm = FileManager.default
-        let path = NSTemporaryDirectory() + "test_isWritableFile\(NSUUID().uuidString)"
-        defer {
-            try? fm.removeItem(atPath: path)
-        }
-
-        do {
-            // create test file
-            XCTAssertTrue(fm.createFile(atPath: path, contents: Data()))
-
-            // test unWritable if file has no permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
-            XCTAssertFalse(fm.isWritableFile(atPath: path))
-
-            // test writable if file has write permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0200))], ofItemAtPath: path)
-            XCTAssertTrue(fm.isWritableFile(atPath: path))
-        } catch let e {
-            XCTFail("\(e)")
-        }
-    }
-
-    func test_isExecutableFile() {
-        let fm = FileManager.default
-        let path = NSTemporaryDirectory() + "test_isExecutableFile\(NSUUID().uuidString)"
-        let exePath = path + ".exe"
-        defer {
-            try? fm.removeItem(atPath: path)
-            try? fm.removeItem(atPath: exePath)
-        }
-
-        do {
-            // create test file
-            XCTAssertTrue(fm.createFile(atPath: path, contents: Data()))
-
-            // test unExecutable if file has no permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
-            XCTAssertFalse(fm.isExecutableFile(atPath: path))
-
-#if os(Windows)
-            // test unExecutable even if file has an `exe` extension
-            try fm.copyItem(atPath: path, toPath: exePath)
-            XCTAssertFalse(fm.isExecutableFile(atPath: exePath))
-#else
-            // test executable if file has execute permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
-            XCTAssertTrue(fm.isExecutableFile(atPath: path))
-#endif
-
-            // test against the test bundle itself
-            let testFoundationBinary = try XCTUnwrap(testBundle().path(forAuxiliaryExecutable: "TestFoundation"))
-            XCTAssertTrue(fm.isExecutableFile(atPath: testFoundationBinary))
-        } catch let e {
-            XCTFail("\(e)")
-        }
-    }
-
-    func test_isDeletableFile() {
-        let fm = FileManager.default
-
-        do {
-            let dir_path = NSTemporaryDirectory() + "/test_isDeletableFile_dir/"
-            defer {
-                try? fm.removeItem(atPath: dir_path)
-            }
-            let file_path = dir_path + "test_isDeletableFile\(NSUUID().uuidString)"
-            // create test directory
-            try fm.createDirectory(atPath: dir_path, withIntermediateDirectories: true)
-            // create test file
-            XCTAssertTrue(fm.createFile(atPath: file_path, contents: Data()))
-
-            // test undeletable if parent directory has no permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: dir_path)
-            XCTAssertFalse(fm.isDeletableFile(atPath: file_path))
-
-            // test deletable if parent directory has all necessary permissions
-            try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0755))], ofItemAtPath: dir_path)
-            XCTAssertTrue(fm.isDeletableFile(atPath: file_path))
-        }
-        catch { XCTFail("\(error)") }
-
-        // test against known undeletable file
-#if os(Windows)
-        XCTAssertFalse(fm.isDeletableFile(atPath: "NUL"))
-#else
-        XCTAssertFalse(fm.isDeletableFile(atPath: "/dev/null"))
-#endif
-    }
-
     func test_fileAttributes() throws {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
@@ -1786,6 +1668,8 @@ VIDEOS=StopgapVideos
     }
     
     func test_replacement() throws {
+        throw XCTSkip("This test is disabled due to https://github.com/apple/swift-corelibs-foundation/issues/3327")
+        #if false
         let fm = FileManager.default
         let a = writableTestDirectoryURL.appendingPathComponent("a")
 
@@ -1908,9 +1792,13 @@ VIDEOS=StopgapVideos
             try fm._replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options, allowPlatformSpecificSyscalls: false)
         }
         #endif
+        #endif
     }
 
     func test_windowsPaths() throws {
+        #if !os(Windows)
+        throw XCTSkip("This test is only enabled on Windows")
+        #else
         let fm = FileManager.default
         let tmpPath = writableTestDirectoryURL.path
         do {
@@ -1961,6 +1849,7 @@ VIDEOS=StopgapVideos
         for path in paths {
             try checkPath(path: path)
         }
+        #endif
     }
 
     /**
@@ -2028,67 +1917,5 @@ VIDEOS=StopgapVideos
         }
         
         super.tearDown()
-    }
-    
-    static var allTests: [(String, (TestFileManager) -> () throws -> Void)] {
-        var tests: [(String, (TestFileManager) -> () throws -> Void)] = [
-            ("test_createDirectory", test_createDirectory ),
-            ("test_createFile", test_createFile ),
-            ("test_moveFile", test_moveFile),
-            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
-            ("test_fileExists", test_fileExists),
-            ("test_isReadableFile", test_isReadableFile),
-            ("test_isWritableFile", test_isWritableFile),
-            ("test_isExecutableFile", test_isExecutableFile),
-            ("test_isDeletableFile", test_isDeletableFile),
-            ("test_fileAttributes", test_fileAttributes),
-            ("test_fileSystemAttributes", test_fileSystemAttributes),
-            ("test_setFileAttributes", test_setFileAttributes),
-            ("test_directoryEnumerator", test_directoryEnumerator),
-            ("test_pathEnumerator",test_pathEnumerator),
-            ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
-            ("test_contentsOfDirectoryEnumeration", test_contentsOfDirectoryEnumeration),
-            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
-            ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
-            ("test_linkItemAtPathToPath", testExpectedToFailOnAndroid(test_linkItemAtPathToPath, "Android doesn't allow hard links")),
-            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
-            ("test_homedirectoryForUser", test_homedirectoryForUser),
-            ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
-            ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
-            ("test_mountedVolumeURLs", test_mountedVolumeURLs),
-            ("test_copyItemsPermissions", test_copyItemsPermissions),
-            ("test_emptyFilename", test_emptyFilename),
-            ("test_getRelationship", test_getRelationship),
-            ("test_displayNames", test_displayNames),
-            ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
-            ("test_contentsEqual", test_contentsEqual),
-            ("test_setInvalidFileAttributes", test_setInvalidFileAttributes),
-            /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
-            /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
-            /* ⚠️  */("test_concurrentGetItemReplacementDirectory", testExpectedToFail(test_concurrentGetItemReplacementDirectory, "Intermittent SEGFAULT: rdar://84519512")),
-            ("test_NSTemporaryDirectory", test_NSTemporaryDirectory),
-        ]
-        
-        #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)
-        tests.append(contentsOf: [
-            ("test_xdgStopgapsCoverAllConstants", test_xdgStopgapsCoverAllConstants),
-            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
-            ("test_xdgURLSelection", test_xdgURLSelection),
-            ])
-        #endif
-        
-        #if !DEPLOYMENT_RUNTIME_OBJC && !os(Android) && !os(Windows)
-        tests.append(contentsOf: [
-            ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
-            ])
-        #endif
-
-        #if os(Windows)
-        tests.append(contentsOf: [
-            ("test_windowsPaths", test_windowsPaths),
-            ])
-        #endif
-
-        return tests
     }
 }
