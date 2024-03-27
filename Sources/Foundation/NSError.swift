@@ -45,7 +45,7 @@ public let NSDebugDescriptionErrorKey = "NSDebugDescription"
 // Other standard keys in userInfo, for various error codes
 public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
 public let NSURLErrorKey: String = "NSURL"
-public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
+public let NSFilePathErrorKey: String = "NSFilePath"
 
 open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFError
