@@ -1724,7 +1724,7 @@ extension TestNSData {
                 var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
                 if zeroIdx == NSNotFound { zeroIdx = contents.length }
                 if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
-                    XCTAssertTrue(str.hasSuffix("TestFoundation"))
+                    XCTAssertTrue(str.hasSuffix(".xctest"))
                 } else {
                     XCTFail("Cant create String")
                 }
@@ -1740,8 +1740,11 @@ extension TestNSData {
 #endif
     }
 
-    func test_wrongSizedFile() {
+    func test_wrongSizedFile() throws {
 #if os(Linux)
+        guard FileManager.default.fileExists(atPath: "/sys/kernel/profiling") else {
+            throw XCTSkip("/sys/kernel/profiling doesn't exist")
+        }
         // Some files in /sys report a non-zero st_size often bigger than the contents
         guard let data = NSData.init(contentsOfFile: "/sys/kernel/profiling") else {
             XCTFail("Cant read /sys/kernel/profiling")
