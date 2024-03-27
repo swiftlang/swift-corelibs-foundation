@@ -15,7 +15,7 @@
     #endif
 #endif
 
-internal func testBundle() -> Bundle {
+internal func testBundle(executable: Bool = false) -> Bundle {
     #if DARWIN_COMPATIBILITY_TESTS
     for bundle in Bundle.allBundles {
         if let bundleId = bundle.bundleIdentifier, bundleId == "org.swift.DarwinCompatibilityTests", bundle.resourcePath != nil {
@@ -24,7 +24,7 @@ internal func testBundle() -> Bundle {
     }
     fatalError("Cant find test bundle")
     #else
-    return Bundle.module
+    return executable ? Bundle.main : Bundle.module
     #endif
 }
 
@@ -474,13 +474,13 @@ class TestBundle : XCTestCase {
     }
     
     func test_bundleLoad() {
-        let bundle = testBundle()
+        let bundle = testBundle(executable: true)
         let _ = bundle.load()
         XCTAssertTrue(bundle.isLoaded)
     }
     
     func test_bundleLoadWithError() {
-        let bundleValid = testBundle()
+        let bundleValid = testBundle(executable: true)
         
         // Test valid load using loadAndReturnError
         do {
@@ -503,7 +503,7 @@ class TestBundle : XCTestCase {
     }
     
     func test_bundlePreflight() {
-        XCTAssertNoThrow(try testBundle().preflight())
+        XCTAssertNoThrow(try testBundle(executable: true).preflight())
         
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
@@ -514,7 +514,7 @@ class TestBundle : XCTestCase {
     }
     
     func test_bundleFindExecutable() {
-        XCTAssertNotNil(testBundle().executableURL)
+        XCTAssertNotNil(testBundle(executable: true).executableURL)
         
         _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
@@ -564,32 +564,6 @@ class TestBundle : XCTestCase {
 #endif
     
     func test_bundleForClass() {
-        XCTAssertEqual(testBundle(), Bundle(for: type(of: self)))
-    }
-    
-    static var allTests: [(String, (TestBundle) -> () throws -> Void)] {
-        var tests: [(String, (TestBundle) -> () throws -> Void)] = [
-            ("test_paths", test_paths),
-            ("test_resources", test_resources),
-            ("test_infoPlist", test_infoPlist),
-            ("test_localizations", test_localizations),
-            ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
-            ("test_bundleLoad", test_bundleLoad),
-            ("test_bundleLoadWithError", test_bundleLoadWithError),
-            ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
-            ("test_bundlePreflight", testExpectedToFailOnWindows(test_bundlePreflight, "Preflight checks aren't supported for DLLs")),
-            ("test_bundleFindExecutable", test_bundleFindExecutable),
-            ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
-            ("test_bundleForClass", testExpectedToFailOnWindows(test_bundleForClass, "Functionality not yet implemented on Windows. SR-XXXX")),
-        ]
-        
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
-            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
-            ])
-        #endif
-        
-        return tests
+        XCTAssertEqual(testBundle(executable: true), Bundle(for: type(of: self)))
     }
 }
