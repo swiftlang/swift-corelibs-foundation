@@ -7,7 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
+@_spi(SwiftCorelibsFoundation) import FoundationEssentials
 
 open class DateFormatter : Formatter {
     typealias CFType = CFDateFormatter
@@ -151,7 +152,7 @@ open class DateFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: isLenient._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: _timeZone?._cfObject)
         if let ident = _calendar?.identifier {
-            _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: Calendar._toNSCalendarIdentifier(ident).rawValue._cfObject)
+            _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: ident._cfCalendarIdentifier._cfObject)
         } else {
             _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: nil)
         }
@@ -229,7 +230,10 @@ open class DateFormatter : Formatter {
     open var timeZone: TimeZone! {
         get {
             guard let tz = _timeZone else {
-                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTimeZone) as! NSTimeZone)._swiftObject
+                // The returned value is a CFTimeZone
+                let property = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTimeZone)
+                let propertyTZ = unsafeBitCast(property, to: CFTimeZone.self)
+                return propertyTZ._swiftObject
             }
             return tz
         }
@@ -242,7 +246,10 @@ open class DateFormatter : Formatter {
     open var calendar: Calendar! {
         get {
             guard let calendar = _calendar else {
-                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar) as! NSCalendar)._swiftObject
+                // The returned value is a CFCalendar
+                let property = CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterCalendar)
+                let propertyCalendar = unsafeBitCast(property, to: CFCalendar.self)
+                return propertyCalendar._swiftObject
             }
             return calendar
         }

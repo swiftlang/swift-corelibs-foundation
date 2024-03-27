@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 #if canImport(Glibc)
 import Glibc
@@ -57,7 +57,9 @@ open class NSLock: NSObject, NSLocking {
 #endif
 
     public override init() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         InitializeSRWLock(mutex)
         InitializeConditionVariable(timeoutCond)
         InitializeSRWLock(timeoutMutex)
@@ -71,7 +73,9 @@ open class NSLock: NSObject, NSLocking {
     }
     
     deinit {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         // SRWLocks do not need to be explicitly destroyed
 #else
         pthread_mutex_destroy(mutex)
@@ -84,7 +88,9 @@ open class NSLock: NSObject, NSLocking {
     }
     
     open func lock() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         AcquireSRWLockExclusive(mutex)
 #else
         pthread_mutex_lock(mutex)
@@ -92,7 +98,9 @@ open class NSLock: NSObject, NSLocking {
     }
 
     open func unlock() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         ReleaseSRWLockExclusive(mutex)
         AcquireSRWLockExclusive(timeoutMutex)
         WakeAllConditionVariable(timeoutCond)
@@ -109,7 +117,10 @@ open class NSLock: NSObject, NSLocking {
     }
 
     open func `try`() -> Bool {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+        return true
+#elseif os(Windows)
         return TryAcquireSRWLockExclusive(mutex) != 0
 #else
         return pthread_mutex_trylock(mutex) == 0
@@ -117,7 +128,9 @@ open class NSLock: NSObject, NSLocking {
     }
     
     open func lock(before limit: Date) -> Bool {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         if TryAcquireSRWLockExclusive(mutex) != 0 {
           return true
         }
@@ -127,17 +140,16 @@ open class NSLock: NSObject, NSLocking {
         }
 #endif
 
-#if os(macOS) || os(iOS) || os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+        return true
+#elseif os(macOS) || os(iOS) || os(Windows)
         return timedLock(mutex: mutex, endTime: limit, using: timeoutCond, with: timeoutMutex)
 #else
         guard var endTime = timeSpecFrom(date: limit) else {
             return false
         }
-#if os(WASI)
-        return true
-#else
         return pthread_mutex_timedlock(mutex, &endTime) == 0
-#endif
 #endif
     }
 
@@ -152,7 +164,7 @@ extension NSLock {
     }
 }
 
-#if !os(WASI)
+#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 open class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
@@ -256,7 +268,9 @@ open class NSRecursiveLock: NSObject, NSLocking {
 
     public override init() {
         super.init()
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         InitializeCriticalSection(mutex)
         InitializeConditionVariable(timeoutCond)
         InitializeSRWLock(timeoutMutex)
@@ -284,7 +298,9 @@ open class NSRecursiveLock: NSObject, NSLocking {
     }
     
     deinit {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         DeleteCriticalSection(mutex)
 #else
         pthread_mutex_destroy(mutex)
@@ -297,7 +313,9 @@ open class NSRecursiveLock: NSObject, NSLocking {
     }
     
     open func lock() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         EnterCriticalSection(mutex)
 #else
         pthread_mutex_lock(mutex)
@@ -305,7 +323,9 @@ open class NSRecursiveLock: NSObject, NSLocking {
     }
     
     open func unlock() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         LeaveCriticalSection(mutex)
         AcquireSRWLockExclusive(timeoutMutex)
         WakeAllConditionVariable(timeoutCond)
@@ -322,7 +342,10 @@ open class NSRecursiveLock: NSObject, NSLocking {
     }
     
     open func `try`() -> Bool {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+        return true
+#elseif os(Windows)
         return TryEnterCriticalSection(mutex)
 #else
         return pthread_mutex_trylock(mutex) == 0
@@ -330,7 +353,9 @@ open class NSRecursiveLock: NSObject, NSLocking {
     }
     
     open func lock(before limit: Date) -> Bool {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         if TryEnterCriticalSection(mutex) {
             return true
         }
@@ -340,17 +365,16 @@ open class NSRecursiveLock: NSObject, NSLocking {
         }
 #endif
 
-#if os(macOS) || os(iOS) || os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+        return true
+#elseif os(macOS) || os(iOS) || os(Windows)
         return timedLock(mutex: mutex, endTime: limit, using: timeoutCond, with: timeoutMutex)
 #else
         guard var endTime = timeSpecFrom(date: limit) else {
             return false
         }
-#if os(WASI)
-        return true
-#else
         return pthread_mutex_timedlock(mutex, &endTime) == 0
-#endif
 #endif
     }
 
@@ -362,7 +386,9 @@ open class NSCondition: NSObject, NSLocking {
     internal var cond = _ConditionVariablePointer.allocate(capacity: 1)
 
     public override init() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         InitializeSRWLock(mutex)
         InitializeConditionVariable(cond)
 #else
@@ -372,7 +398,9 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     deinit {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         // SRWLock do not need to be explicitly destroyed
 #else
         pthread_mutex_destroy(mutex)
@@ -385,7 +413,9 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     open func lock() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         AcquireSRWLockExclusive(mutex)
 #else
         pthread_mutex_lock(mutex)
@@ -393,7 +423,9 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     open func unlock() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         ReleaseSRWLockExclusive(mutex)
 #else
         pthread_mutex_unlock(mutex)
@@ -401,7 +433,9 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     open func wait() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         SleepConditionVariableSRW(cond, mutex, WinSDK.INFINITE, 0)
 #else
         pthread_cond_wait(cond, mutex)
@@ -409,7 +443,10 @@ open class NSCondition: NSObject, NSLocking {
     }
 
     open func wait(until limit: Date) -> Bool {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+        return true
+#elseif os(Windows)
         return SleepConditionVariableSRW(cond, mutex, timeoutFrom(date: limit), 0)
 #else
         guard var timeout = timeSpecFrom(date: limit) else {
@@ -420,7 +457,9 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     open func signal() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         WakeConditionVariable(cond)
 #else
         pthread_cond_signal(cond)
@@ -428,7 +467,9 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     open func broadcast() {
-#if os(Windows)
+#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+        // noop on no thread platforms
+#elseif os(Windows)
         WakeAllConditionVariable(cond)
 #else
         pthread_cond_broadcast(cond)

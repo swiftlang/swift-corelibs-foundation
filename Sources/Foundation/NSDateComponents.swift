@@ -7,7 +7,8 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_exported import FoundationEssentials
+@_implementationOnly import _CoreFoundation
 
 
 // This is a just used as an extensible struct, basically;
@@ -31,118 +32,24 @@
 public var NSDateComponentUndefined: Int = Int.max
 
 open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
-    internal var _calendar: Calendar?
-    internal var _timeZone: TimeZone?
-    internal var _values = [Int](repeating: NSDateComponentUndefined, count: 19)
+    internal var _components: DateComponents
+
+    internal init(components: DateComponents) {
+        _components = components
+    }
+    
     public override init() {
+        _components = DateComponents()
         super.init()
     }
 
     open override var hash: Int {
-        var hasher = Hasher()
-        var mask = 0
-        // The list of fields fed to the hasher here must be exactly
-        // the same as the ones compared in isEqual(_:) (modulo
-        // ordering).
-        //
-        // Given that NSDateComponents instances usually only have a
-        // few fields present, it makes sense to only hash those, as
-        // an optimization. We keep track of the fields hashed in the
-        // mask value, which we also feed to the hasher to make sure
-        // any two unequal values produce different hash encodings.
-        //
-        // FIXME: Why not just feed _values, calendar & timeZone to
-        // the hasher?
-        if let calendar = calendar {
-            hasher.combine(calendar)
-            mask |= 1 << 0
-        }
-        if let timeZone = timeZone {
-            hasher.combine(timeZone)
-            mask |= 1 << 1
-        }
-        if era != NSDateComponentUndefined {
-            hasher.combine(era)
-            mask |= 1 << 2
-        }
-        if year != NSDateComponentUndefined {
-            hasher.combine(year)
-            mask |= 1 << 3
-        }
-        if quarter != NSDateComponentUndefined {
-            hasher.combine(quarter)
-            mask |= 1 << 4
-        }
-        if month != NSDateComponentUndefined {
-            hasher.combine(month)
-            mask |= 1 << 5
-        }
-        if day != NSDateComponentUndefined {
-            hasher.combine(day)
-            mask |= 1 << 6
-        }
-        if hour != NSDateComponentUndefined {
-            hasher.combine(hour)
-            mask |= 1 << 7
-        }
-        if minute != NSDateComponentUndefined {
-            hasher.combine(minute)
-            mask |= 1 << 8
-        }
-        if second != NSDateComponentUndefined {
-            hasher.combine(second)
-            mask |= 1 << 9
-        }
-        if nanosecond != NSDateComponentUndefined {
-            hasher.combine(nanosecond)
-            mask |= 1 << 10
-        }
-        if weekOfYear != NSDateComponentUndefined {
-            hasher.combine(weekOfYear)
-            mask |= 1 << 11
-        }
-        if weekOfMonth != NSDateComponentUndefined {
-            hasher.combine(weekOfMonth)
-            mask |= 1 << 12
-        }
-        if yearForWeekOfYear != NSDateComponentUndefined {
-            hasher.combine(yearForWeekOfYear)
-            mask |= 1 << 13
-        }
-        if weekday != NSDateComponentUndefined {
-            hasher.combine(weekday)
-            mask |= 1 << 14
-        }
-        if weekdayOrdinal != NSDateComponentUndefined {
-            hasher.combine(weekdayOrdinal)
-            mask |= 1 << 15
-        }
-        hasher.combine(isLeapMonth)
-        hasher.combine(mask)
-        return hasher.finalize()
+        _components.hashValue
     }
 
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? NSDateComponents else { return false }
-        // FIXME: Why not just compare _values, calendar & timeZone?
-        return self === other
-            || (era == other.era
-                && year == other.year
-                && quarter == other.quarter
-                && month == other.month
-                && day == other.day
-                && hour == other.hour
-                && minute == other.minute
-                && second == other.second
-                && nanosecond == other.nanosecond
-                && weekOfYear == other.weekOfYear
-                && weekOfMonth == other.weekOfMonth
-                && yearForWeekOfYear == other.yearForWeekOfYear
-                && weekday == other.weekday
-                && weekdayOrdinal == other.weekdayOrdinal
-                && isLeapMonth == other.isLeapMonth
-                && calendar == other.calendar
-                && timeZone == other.timeZone)
+        return _components == other._components
     }
 
     public convenience required init?(coder aDecoder: NSCoder) {
@@ -220,7 +127,7 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
         newObj.weekday = weekday
         newObj.weekdayOrdinal = weekdayOrdinal
         newObj.quarter = quarter
-        if leapMonthSet {
+        if let isLeapMonth = _components.isLeapMonth {
             newObj.isLeapMonth = isLeapMonth
         }
         return newObj
@@ -228,162 +135,159 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
 
     /*@NSCopying*/ open var calendar: Calendar? {
         get {
-            return _calendar
+            _components.calendar
         }
         set {
-            if let val = newValue {
-                _calendar = val
-            } else {
-                _calendar = nil
-            }
+            _components.calendar = newValue
         }
     }
-    /*@NSCopying*/ open var timeZone: TimeZone?
+    
+    /*@NSCopying*/ open var timeZone: TimeZone? {
+        get {
+            _components.timeZone
+        }
+        set {
+            _components.timeZone = newValue
+        }
+    }
 
     open var era: Int {
         get {
-            return _values[0]
+            _components.era ?? NSDateComponentUndefined
         }
         set {
-            _values[0] = newValue
+            _components.era = newValue
         }
     }
 
     open var year: Int {
         get {
-            return _values[1]
+            _components.year ?? NSDateComponentUndefined
         }
         set {
-            _values[1] = newValue
+            _components.year = newValue
         }
     }
 
     open var month: Int {
         get {
-            return _values[2]
+            _components.month ?? NSDateComponentUndefined
         }
         set {
-            _values[2] = newValue
+            _components.month = newValue
         }
     }
 
     open var day: Int {
         get {
-            return _values[3]
+            _components.day ?? NSDateComponentUndefined
         }
         set {
-            _values[3] = newValue
+            _components.day = newValue
         }
     }
 
     open var hour: Int {
         get {
-            return _values[4]
+            _components.hour ?? NSDateComponentUndefined
         }
         set {
-            _values[4] = newValue
+            _components.hour = newValue
         }
     }
 
     open var minute: Int {
         get {
-            return _values[5]
+            _components.minute ?? NSDateComponentUndefined
         }
         set {
-            _values[5] = newValue
+            _components.minute = newValue
         }
     }
 
     open var second: Int {
         get {
-            return _values[6]
+            _components.second ?? NSDateComponentUndefined
         }
         set {
-            _values[6] = newValue
+            _components.second = newValue
         }
     }
 
     open var weekday: Int {
         get {
-            return _values[8]
+            _components.weekday ?? NSDateComponentUndefined
         }
         set {
-            _values[8] = newValue
+            _components.weekday = newValue
         }
     }
 
     open var weekdayOrdinal: Int {
         get {
-            return _values[9]
+            _components.weekdayOrdinal ?? NSDateComponentUndefined
         }
         set {
-            _values[9] = newValue
+            _components.weekdayOrdinal = newValue
         }
     }
 
     open var quarter: Int {
         get {
-            return _values[10]
+            _components.quarter ?? NSDateComponentUndefined
         }
         set {
-            _values[10] = newValue
+            _components.quarter = newValue
         }
     }
 
     open var nanosecond: Int {
         get {
-            return _values[11]
+            _components.nanosecond ?? NSDateComponentUndefined
         }
         set {
-            _values[11] = newValue
+            _components.nanosecond = newValue
         }
     }
 
     open var weekOfYear: Int {
         get {
-            return _values[12]
+            _components.weekOfYear ?? NSDateComponentUndefined
         }
         set {
-            _values[12] = newValue
+            _components.weekOfYear = newValue
         }
     }
 
     open var weekOfMonth: Int {
         get {
-            return _values[13]
+            _components.weekOfMonth ?? NSDateComponentUndefined
         }
         set {
-            _values[13] = newValue
+            _components.weekOfMonth = newValue
         }
     }
 
     open var yearForWeekOfYear: Int {
         get {
-            return _values[14]
+            _components.yearForWeekOfYear ?? NSDateComponentUndefined
         }
         set {
-            _values[14] = newValue
+            _components.yearForWeekOfYear = newValue
         }
     }
 
     open var isLeapMonth: Bool {
         get {
-            return _values[15] == 1
+            _components.isLeapMonth ?? false
         }
         set {
-            _values[15] = newValue ? 1 : 0
+            _components.isLeapMonth = newValue
         }
-    }
-
-    internal var leapMonthSet: Bool {
-        return _values[15] != NSDateComponentUndefined
     }
 
     /*@NSCopying*/ open var date: Date? {
-        if let tz = timeZone {
-            calendar?.timeZone = tz
-        }
-        return calendar?.date(from: self._swiftObject)
+        _components.date
     }
 
     /*
@@ -391,42 +295,7 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
     The calendar and timeZone and isLeapMonth properties cannot be set by this method.
     */
     open func setValue(_ value: Int, forComponent unit: NSCalendar.Unit) {
-        switch unit {
-            case .era:
-                era = value
-            case .year:
-                year = value
-            case .month:
-                month = value
-            case .day:
-                day = value
-            case .hour:
-                hour = value
-            case .minute:
-                minute = value
-            case .second:
-                second = value
-            case .nanosecond:
-                nanosecond = value
-            case .weekday:
-                weekday = value
-            case .weekdayOrdinal:
-                weekdayOrdinal = value
-            case .quarter:
-                quarter = value
-            case .weekOfMonth:
-                weekOfMonth = value
-            case .weekOfYear:
-                weekOfYear = value
-            case .yearForWeekOfYear:
-                yearForWeekOfYear = value
-            case .calendar:
-                print(".Calendar cannot be set via \(#function)")
-            case .timeZone:
-                print(".TimeZone cannot be set via \(#function)")
-            default:
-                break
-        }
+        _components.setValue(value, for: unit._calendarComponent)
     }
 
     /*
@@ -434,39 +303,7 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
     The calendar and timeZone and isLeapMonth property values cannot be gotten by this method.
     */
     open func value(forComponent unit: NSCalendar.Unit) -> Int {
-        switch unit {
-            case .era:
-                return era
-            case .year:
-                return year
-            case .month:
-                return month
-            case .day:
-                return day
-            case .hour:
-                return hour
-            case .minute:
-                return minute
-            case .second:
-                return second
-            case .nanosecond:
-                return nanosecond
-            case .weekday:
-                return weekday
-            case .weekdayOrdinal:
-                return weekdayOrdinal
-            case .quarter:
-                return quarter
-            case .weekOfMonth:
-                return weekOfMonth
-            case .weekOfYear:
-                return weekOfYear
-            case .yearForWeekOfYear:
-                return yearForWeekOfYear
-            default:
-                break
-        }
-        return NSDateComponentUndefined
+        _components.value(for: unit._calendarComponent) ?? NSDateComponentUndefined
     }
 
     /*
@@ -477,10 +314,7 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
     The calendar property must be set, or NO is returned.
     */
     open var isValidDate: Bool {
-        if let cal = calendar {
-            return isValidDate(in: cal)
-        }
-        return false
+        _components.isValidDate
     }
 
     /*
@@ -490,113 +324,11 @@ open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
     If the time zone property is set in the NSDateComponents object, it is used.
     */
     open func isValidDate(in calendar: Calendar) -> Bool {
-        var cal = calendar
-        if let tz = timeZone {
-            cal.timeZone = tz
-        }
-        let ns = nanosecond
-        if ns != NSDateComponentUndefined && 1000 * 1000 * 1000 <= ns {
-            return false
-        }
-        if ns != NSDateComponentUndefined && 0 < ns {
-            nanosecond = 0
-        }
-        let d = calendar.date(from: self._swiftObject)
-        if ns != NSDateComponentUndefined && 0 < ns {
-            nanosecond = ns
-        }
-        if let date = d {
-            let all: NSCalendar.Unit = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear]
-            let comps = cal._bridgeToObjectiveC().components(all, from: date)
-            var val = era
-            if val != NSDateComponentUndefined {
-                if comps.era != val {
-                    return false
-                }
-            }
-            val = year
-            if val != NSDateComponentUndefined {
-                if comps.year != val {
-                    return false
-                }
-            }
-            val = month
-            if val != NSDateComponentUndefined {
-                if comps.month != val {
-                    return false
-                }
-            }
-            if leapMonthSet {
-                if comps.isLeapMonth != isLeapMonth {
-                    return false
-                }
-            }
-            val = day
-            if val != NSDateComponentUndefined {
-                if comps.day != val {
-                    return false
-                }
-            }
-            val = hour
-            if val != NSDateComponentUndefined {
-                if comps.hour != val {
-                    return false
-                }
-            }
-            val = minute
-            if val != NSDateComponentUndefined {
-                if comps.minute != val {
-                    return false
-                }
-            }
-            val = second
-            if val != NSDateComponentUndefined {
-                if comps.second != val {
-                    return false
-                }
-            }
-            val = weekday
-            if val != NSDateComponentUndefined {
-                if comps.weekday != val {
-                    return false
-                }
-            }
-            val = weekdayOrdinal
-            if val != NSDateComponentUndefined {
-                if comps.weekdayOrdinal != val {
-                    return false
-                }
-            }
-            val = quarter
-            if val != NSDateComponentUndefined {
-                if comps.quarter != val {
-                    return false
-                }
-            }
-            val = weekOfMonth
-            if val != NSDateComponentUndefined {
-                if comps.weekOfMonth != val {
-                    return false
-                }
-            }
-            val = weekOfYear
-            if val != NSDateComponentUndefined {
-                if comps.weekOfYear != val {
-                    return false
-                }
-            }
-            val = yearForWeekOfYear
-            if val != NSDateComponentUndefined {
-                if comps.yearForWeekOfYear != val {
-                    return false
-                }
-            }
-
-            return true
-        }
-        return false
+        _components.isValidDate(in: calendar)
     }
 }
+
+// MARK: - Bridging
 
 extension NSDateComponents: _SwiftBridgeable {
     typealias SwiftType = DateComponents

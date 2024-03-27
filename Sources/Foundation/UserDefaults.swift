@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 private var registeredDefaults = [String: Any]()
 private var sharedDefaults = UserDefaults()
@@ -406,7 +406,9 @@ open class UserDefaults: NSObject {
             
             _ = defaults.synchronize()
             
+#if canImport(Dispatch)
             NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+#endif
         }
     }
     
@@ -418,7 +420,9 @@ open class UserDefaults: NSObject {
             
             _ = defaults.synchronize()
             
+#if canImport(Dispatch)
             NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+#endif
         }
     }
     

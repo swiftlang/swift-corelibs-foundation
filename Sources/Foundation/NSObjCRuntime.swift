@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 internal let kCFCompareLessThan = CFComparisonResult.compareLessThan
 internal let kCFCompareEqualTo = CFComparisonResult.compareEqualTo
@@ -133,12 +133,7 @@ public func NSGetSizeAndAlignment(_ typePtr: UnsafePointer<Int8>,
     return typePtr.advanced(by: 1)
 }
 
-public enum ComparisonResult : Int {
-    
-    case orderedAscending = -1
-    case orderedSame
-    case orderedDescending
-    
+extension ComparisonResult {
     internal static func _fromCF(_ val: CFComparisonResult) -> ComparisonResult {
         if val == kCFCompareLessThan {
             return .orderedAscending
@@ -264,7 +259,6 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (ProcessInfo.self, "NSProcessInfo"),
         (Port.self, "NSPort"),
         (PortMessage.self, "NSPortMessage"),
-        (SocketPort.self, "NSSocketPort"),
         (Bundle.self, "NSBundle"),
         (ByteCountFormatter.self, "NSByteCountFormatter"),
         (Host.self, "NSHost"),
@@ -279,20 +273,13 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (JSONSerialization.self, "NSJSONSerialization"),
         (LengthFormatter.self, "NSLengthFormatter"),
         (MassFormatter.self, "NSMassFormatter"),
-        (NotificationQueue.self, "NSNotificationQueue"),
         (NumberFormatter.self, "NSNumberFormatter"),
-        (Operation.self, "NSOperation"),
-        (OperationQueue.self, "NSOperationQueue"),
         (OutputStream.self, "NSOutputStream"),
         (PersonNameComponentsFormatter.self, "NSPersonNameComponentsFormatter"),
         (Pipe.self, "NSPipe"),
-        (Progress.self, "NSProgress"),
         (PropertyListSerialization.self, "NSPropertyListSerialization"),
-        (RunLoop.self, "NSRunLoop"),
         (Scanner.self, "NSScanner"),
         (Stream.self, "NSStream"),
-        (Thread.self, "NSThread"),
-        (Timer.self, "NSTimer"),
         (UserDefaults.self, "NSUserDefaults"),
         (FileManager.DirectoryEnumerator.self, "NSDirectoryEnumerator"),
         (Dimension.self, "NSDimension"),
@@ -322,8 +309,20 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (UnitVolume.self, "NSUnitVolume"),
         (UnitTemperature.self, "NSUnitTemperature"),
     ]
-#if !(os(iOS) || os(Android))
+#if !(os(iOS) || os(Android) || os(WASI))
     map.append((Process.self, "NSTask"))
+#endif
+#if !os(WASI)
+    map += [
+        (NotificationQueue.self, "NSNotificationQueue"),
+        (Operation.self, "NSOperation"),
+        (OperationQueue.self, "NSOperationQueue"),
+        (SocketPort.self, "NSSocketPort"),
+        (Progress.self, "NSProgress"),
+        (RunLoop.self, "NSRunLoop"),
+        (Thread.self, "NSThread"),
+        (Timer.self, "NSTimer"),
+    ]
 #endif
     return map
 }()

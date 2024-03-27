@@ -7,9 +7,18 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 #if os(Windows)
 import WinSDK
+#elseif os(WASI)
+import WASILibc
+// CoreFoundation brings <errno.h> but it conflicts with WASILibc.errno
+// definition, so we need to explicitly select the one from WASILibc.
+// This is defined as "internal" since this workaround also used in other files.
+internal var errno: Int32 {
+    get { WASILibc.errno }
+    set { WASILibc.errno = newValue }
+}
 #endif
 
 #if os(Windows)
@@ -66,11 +75,9 @@ public func NSTemporaryDirectory() -> String {
       }
     }
 #endif
-#if !os(WASI)
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         return normalizedPath(with: tmpdir)
     }
-#endif
 #if os(Android)
     // Bionic uses /data/local/tmp/ as temporary directory. TMPDIR is rarely
     // defined.
@@ -195,7 +202,6 @@ extension String {
         return temp
     }
     
-#if !os(WASI)
     internal func _tryToRemovePathPrefix(_ prefix: String) -> String? {
         guard self != prefix else {
             return nil
@@ -208,7 +214,6 @@ extension String {
         
         return nil
     }
-#endif
 }
 
 extension NSString {
@@ -338,7 +343,6 @@ extension NSString {
         return result._stringByFixingSlashes()
     }
 
-#if !os(WASI)
     public var expandingTildeInPath: String {
         guard hasPrefix("~") else {
             return _swiftObject
@@ -359,7 +363,6 @@ extension NSString {
         
         return result
     }
-#endif
 
 #if os(Windows)
     public var unixPath: String {
@@ -374,7 +377,6 @@ extension NSString {
     }
 #endif
     
-#if !os(WASI)
     public var standardizingPath: String {
 #if os(Windows)
         let expanded = unixPath.expandingTildeInPath
@@ -422,8 +424,6 @@ extension NSString {
         
         return resolvedPath
     }
-#endif
-    
     public func stringsByAppendingPaths(_ paths: [String]) -> [String] {
         if self == "" {
             return paths
@@ -431,7 +431,6 @@ extension NSString {
         return paths.map(appendingPathComponent)
     }
     
-#if !os(WASI)
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public func completePath(into outputName: inout String?, caseSensitive flag: Bool, matchesInto outputArray: inout [String], filterTypes: [String]?) -> Int {
@@ -534,7 +533,6 @@ extension NSString {
             return { $0.lowercased().hasPrefix(prefix) }
         }
     }
-#endif
     
     internal func _longestCommonPrefix(_ strings: [String], caseSensitive: Bool) -> String? {
         guard !strings.isEmpty else {
@@ -582,11 +580,9 @@ extension NSString {
         return path + "/"
     }
     
-#if !os(WASI)
     public var fileSystemRepresentation: UnsafePointer<Int8> {
         return FileManager.default.fileSystemRepresentation(withPath: self._swiftObject)
     }
-#endif
 
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {
 #if os(Windows)
@@ -655,7 +651,6 @@ extension NSString {
 
 }
 
-#if !os(WASI)
 extension FileManager {
     public enum SearchPathDirectory: UInt {
         
@@ -731,6 +726,9 @@ public func NSHomeDirectory() -> String {
 }
 
 public func NSHomeDirectoryForUser(_ user: String?) -> String? {
+#if os(WASI) // WASI does not have user concept
+    return nil
+#else
     let userName = user?._cfObject
     guard let homeDir = CFCopyHomeDirectoryURLForUser(userName)?.takeRetainedValue() else {
         return nil
@@ -738,6 +736,7 @@ public func NSHomeDirectoryForUser(_ user: String?) -> String? {
     
     let url: URL = homeDir._swiftObject
     return url.path
+#endif
 }
 
 public func NSUserName() -> String {
@@ -770,6 +769,10 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     }
     // Don't close h, fd is transferred ownership
     let fd = _open_osfhandle(intptr_t(bitPattern: h), 0)
+    return (fd, pathResult)
+#elseif os(WASI)
+    // WASI does not have temp directories
+    throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
 #else
     var template = URL(fileURLWithPath: filePath)
     
@@ -805,8 +808,8 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
         close(fd)
         throw _NSErrorWithErrno(_errno, reading: false, path: pathResult)
     }
-#endif
     return (fd, pathResult)
+#endif
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
@@ -831,4 +834,3 @@ internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String)
     })
 #endif
 }
-#endif

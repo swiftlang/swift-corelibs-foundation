@@ -10,10 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-
+#if canImport(Dispatch)
 import Dispatch
 
 extension DispatchData : DataProtocol {
+    public typealias Regions = [Region]
+    
     public struct Region : DataProtocol, ContiguousBytes {
         internal let bytes: UnsafeBufferPointer<UInt8>
         internal let index: DispatchData.Index
@@ -54,3 +56,4 @@ extension DispatchData : DataProtocol {
         return regions
     }
 }
+#endif

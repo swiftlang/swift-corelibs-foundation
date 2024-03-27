@@ -15,10 +15,14 @@ fileprivate let UF_APPEND: Int32 = 1
 fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 #if os(Windows)
 import CRT
 import WinSDK
+#endif
+
+#if os(WASI)
+import WASILibc
 #endif
 
 #if os(Windows)
@@ -384,6 +388,10 @@ open class FileManager : NSObject {
                 
                 switch attribute {
                 case .posixPermissions:
+#if os(WASI)
+                    // WASI does not have permission concept
+                    throw _NSErrorWithErrno(ENOTSUP, reading: false, path: path)
+#else
                     guard let number = attributeValues[attribute] as? NSNumber else {
                         fatalError("Can't set file permissions to \(attributeValues[attribute] as Any?)")
                     }
@@ -400,6 +408,7 @@ open class FileManager : NSObject {
                     guard result == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
+#endif // os(WASI)
                 
                 case .modificationDate: fallthrough
                 case ._accessDate:
@@ -567,6 +576,8 @@ open class FileManager : NSObject {
         result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
         let attributes = try windowsFileAttributes(atPath: path)
         let type = FileAttributeType(attributes: attributes, atPath: path)
+#elseif os(WASI)
+        let type = FileAttributeType(statMode: mode_t(s.st_mode))
 #else
         if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
             let name = String(cString: pwd.pointee.pw_name)
@@ -961,7 +972,7 @@ open class FileManager : NSObject {
                 isDirectory.boolValue {
                 for language in _preferredLanguages {
                     let stringsFile = dotLocalized.appendingPathComponent(language).appendingPathExtension("strings")
-                    if let data = try? Data(contentsOf: stringsFile),
+                    if let data = try? Data(contentsOf: stringsFile.path),
                        let plist = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? NSDictionary {
                             
                         let localizedName = (plist[nameWithoutExtension] as? NSString)?._swiftObject
@@ -1023,13 +1034,13 @@ open class FileManager : NSObject {
     /* These methods are provided here for compatibility. The corresponding methods on NSData which return NSErrors should be regarded as the primary method of creating a file from an NSData or retrieving the contents of a file as an NSData.
      */
     open func contents(atPath path: String) -> Data? {
-        return try? Data(contentsOf: URL(fileURLWithPath: path))
+        return try? Data(contentsOf: path)
     }
 
     @discardableResult
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
         do {
-            try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .atomic)
+            try (data ?? Data()).write(to: path, options: .atomic)
             if let attr = attr {
                 try self.setAttributes(attr, ofItemAtPath: path)
             }

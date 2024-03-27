@@ -1,82 +1,39 @@
 
-extension String {
-    public struct Encoding : RawRepresentable {
-        public var rawValue: UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let ascii = Encoding(rawValue: 1)
-        public static let nextstep = Encoding(rawValue: 2)
-        public static let japaneseEUC = Encoding(rawValue: 3)
-        public static let utf8 = Encoding(rawValue: 4)
-        public static let isoLatin1 = Encoding(rawValue: 5)
-        public static let symbol = Encoding(rawValue: 6)
-        public static let nonLossyASCII = Encoding(rawValue: 7)
-        public static let shiftJIS = Encoding(rawValue: 8)
-        public static let isoLatin2 = Encoding(rawValue: 9)
-        public static let unicode = Encoding(rawValue: 10)
-        public static let windowsCP1251 = Encoding(rawValue: 11)
-        public static let windowsCP1252 = Encoding(rawValue: 12)
-        public static let windowsCP1253 = Encoding(rawValue: 13)
-        public static let windowsCP1254 = Encoding(rawValue: 14)
-        public static let windowsCP1250 = Encoding(rawValue: 15)
-        public static let iso2022JP = Encoding(rawValue: 21)
-        public static let macOSRoman = Encoding(rawValue: 30)
-        public static let utf16 = Encoding.unicode
-        public static let utf16BigEndian = Encoding(rawValue: 0x90000100)
-        public static let utf16LittleEndian = Encoding(rawValue: 0x94000100)
-        public static let utf32 = Encoding(rawValue: 0x8c000100)
-        public static let utf32BigEndian = Encoding(rawValue: 0x98000100)
-        public static let utf32LittleEndian = Encoding(rawValue: 0x9c000100)
+extension String.Encoding {
+    // Map selected IANA character set names to encodings, see
+    // https://www.iana.org/assignments/character-sets/character-sets.xhtml
+    internal init?(charSet: String) {
+        let encoding: String.Encoding?
 
-        // Map selected IANA character set names to encodings, see
-        // https://www.iana.org/assignments/character-sets/character-sets.xhtml
-        internal init?(charSet: String) {
-            let encoding: Encoding?
-
-            switch charSet.lowercased() {
-            case "us-ascii":        encoding = .ascii
-            case "utf-8":           encoding = .utf8
-            case "utf-16":          encoding = .utf16
-            case "utf-16be":        encoding = .utf16BigEndian
-            case "utf-16le":        encoding = .utf16LittleEndian
-            case "utf-32":          encoding = .utf32
-            case "utf-32be":        encoding = .utf32BigEndian
-            case "utf-32le":        encoding = .utf32LittleEndian
-            case "iso-8859-1":      encoding = .isoLatin1
-            case "iso-8859-2":      encoding = .isoLatin2
-            case "iso-2022-jp":     encoding = .iso2022JP
-            case "windows-1250":    encoding = .windowsCP1250
-            case "windows-1251":    encoding = .windowsCP1251
-            case "windows-1252":    encoding = .windowsCP1252
-            case "windows-1253":    encoding = .windowsCP1253
-            case "windows-1254":    encoding = .windowsCP1254
-            case "shift_jis":       encoding = .shiftJIS
-            case "euc-jp":          encoding = .japaneseEUC
-            case "macintosh":       encoding = .macOSRoman
-            default:                encoding = nil
-            }
-            guard let value = encoding?.rawValue else {
-                return nil
-            }
-            rawValue = value
+        switch charSet.lowercased() {
+        case "us-ascii":        encoding = .ascii
+        case "utf-8":           encoding = .utf8
+        case "utf-16":          encoding = .utf16
+        case "utf-16be":        encoding = .utf16BigEndian
+        case "utf-16le":        encoding = .utf16LittleEndian
+        case "utf-32":          encoding = .utf32
+        case "utf-32be":        encoding = .utf32BigEndian
+        case "utf-32le":        encoding = .utf32LittleEndian
+        case "iso-8859-1":      encoding = .isoLatin1
+        case "iso-8859-2":      encoding = .isoLatin2
+        case "iso-2022-jp":     encoding = .iso2022JP
+        case "windows-1250":    encoding = .windowsCP1250
+        case "windows-1251":    encoding = .windowsCP1251
+        case "windows-1252":    encoding = .windowsCP1252
+        case "windows-1253":    encoding = .windowsCP1253
+        case "windows-1254":    encoding = .windowsCP1254
+        case "shift_jis":       encoding = .shiftJIS
+        case "euc-jp":          encoding = .japaneseEUC
+        case "macintosh":       encoding = .macOSRoman
+        default:                encoding = nil
         }
-    }
-    
-    public typealias EncodingConversionOptions = NSString.EncodingConversionOptions
-    public typealias EnumerationOptions = NSString.EnumerationOptions
-    public typealias CompareOptions = NSString.CompareOptions
-}
+        guard let value = encoding?.rawValue else {
+            return nil
+        }
 
-extension String.Encoding : Hashable {
-  // ==, hash(into:) supplied by RawRepresentable
-}
-
-extension String.Encoding : CustomStringConvertible {
-    public var description: String {
-        return String.localizedName(of: self)
+        self.init(rawValue: value)
     }
 }
-
 
 @available(*, unavailable, renamed: "String.Encoding")
 public typealias NSStringEncoding = UInt

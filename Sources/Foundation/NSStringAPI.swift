@@ -82,6 +82,11 @@ internal func _persistCString(_ p: UnsafePointer<CChar>?) -> [CChar]? {
 }
 
 extension String {
+    public typealias EncodingConversionOptions = NSString.EncodingConversionOptions
+    public typealias EnumerationOptions = NSString.EnumerationOptions
+}
+
+extension String {
     //===--- Class Methods --------------------------------------------------===//
     //===--------------------------------------------------------------------===//
 
@@ -904,28 +909,6 @@ extension StringProtocol {
         return withExtendedLifetime(_ns) {
             (s: NSString) -> [CChar]? in
             _persistCString(s.cString(using: encoding.rawValue))
-        }
-    }
-
-    // - (NSData *)dataUsingEncoding:(NSStringEncoding)encoding
-    //
-    // - (NSData *)
-    //     dataUsingEncoding:(NSStringEncoding)encoding
-    //     allowLossyConversion:(BOOL)flag
-
-    /// Returns a `Data` containing a representation of
-    /// the `String` encoded using a given encoding.
-    public func data(
-        using encoding: String.Encoding,
-        allowLossyConversion: Bool = false
-        ) -> Data? {
-        switch encoding {
-        case .utf8:
-            return Data(self.utf8)
-        default:
-            return _ns.data(
-                using: encoding.rawValue,
-                allowLossyConversion: allowLossyConversion)
         }
     }
 

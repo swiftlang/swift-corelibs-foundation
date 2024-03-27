@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
 let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
@@ -184,10 +184,9 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, data._cfObject)
     }
     
-#if !os(WASI)
     public convenience init?(contentsOfFile fName: String) {
         do {
-           let data = try Data(contentsOf: URL(fileURLWithPath: fName))
+           let data = try Data(contentsOf: fName)
             self.init(bitmapRepresentation: data)
         } catch {
             return nil
@@ -330,7 +329,6 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             aCoder.encode(true, forKey: .characterSetIsInvertedKey)
         }
     }
-#endif
     
     open func characterIsMember(_ aCharacter: unichar) -> Bool {
         return longCharacterIsMember(UInt32(aCharacter))

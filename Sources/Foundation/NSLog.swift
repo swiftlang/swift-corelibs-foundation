@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 /* Output from NSLogv is serialized, in that only one thread in a process can be doing 
  * the writing/logging described above at a time. All attempts at writing/logging a 

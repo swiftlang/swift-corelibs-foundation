@@ -52,7 +52,7 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
     
     func encode(with aCoder: NSCoder) {
         aCoder.encode(cachedURLResponse.response, forKey: "response")
-        aCoder.encode(cachedURLResponse.data as NSData, forKey: "data")
+        aCoder.encode(cachedURLResponse.data._bridgeToObjectiveC(), forKey: "data")
         aCoder.encode(Int(bitPattern: cachedURLResponse.storagePolicy.rawValue), forKey: "storagePolicy")
         aCoder.encode(cachedURLResponse.userInfo as NSDictionary?, forKey: "userInfo")
         aCoder.encode(cachedURLResponse.date as NSDate, forKey: "date")
@@ -68,7 +68,7 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
         
         let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "userInfo") as? [AnyHashable: Any]
         
-        cachedURLResponse = CachedURLResponse(response: response, data: data as Data, userInfo: userInfo, storagePolicy: storagePolicy)
+        cachedURLResponse = CachedURLResponse(response: response, data: Data(data), userInfo: userInfo, storagePolicy: storagePolicy)
         cachedURLResponse.date = date as Date
     }
     

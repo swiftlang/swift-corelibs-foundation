@@ -18,7 +18,7 @@ import Glibc
 import CRT
 #endif
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 public typealias NSErrorDomain = NSString
 
@@ -228,29 +228,6 @@ public struct _CFErrorSPIForFoundationXMLUseOnly {
     public var _nsObject: NSError {
         return unsafeBitCast(error, to: CFError.self)._nsObject
     }
-}
-
-/// Describes an error that provides localized messages describing why
-/// an error occurred and provides more information about the error.
-public protocol LocalizedError : Error {
-    /// A localized message describing what error occurred.
-    var errorDescription: String? { get }
-
-    /// A localized message describing the reason for the failure.
-    var failureReason: String? { get }
-
-    /// A localized message describing how one might recover from the failure.
-    var recoverySuggestion: String? { get }
-
-    /// A localized message providing "help" text if the user requests help.
-    var helpAnchor: String? { get }
-}
-
-public extension LocalizedError {
-    var errorDescription: String? { return nil }
-    var failureReason: String? { return nil }
-    var recoverySuggestion: String? { return nil }
-    var helpAnchor: String? { return nil }
 }
 
 /// Class that implements the informal protocol
@@ -608,76 +585,56 @@ extension _BridgedStoredNSError {
     }
 }
 
-/// Describes errors within the Cocoa error domain.
-public struct CocoaError : _BridgedStoredNSError {
-    public let _nsError: NSError
-
-    public init(_nsError error: NSError) {
-        precondition(error.domain == NSCocoaErrorDomain)
-        self._nsError = error
+extension CocoaError : _BridgedStoredNSError {
+    public init(_nsError: NSError) {
+        var info = _nsError.userInfo
+        info["_NSError"] = _nsError
+        self.init(CocoaError.Code(rawValue: _nsError.code), userInfo: info)
     }
 
-    public static var _nsErrorDomain: String { return NSCocoaErrorDomain }
-
-    /// The error code itself.
-    public struct Code : RawRepresentable, Hashable, _ErrorCodeProtocol {
-        public typealias _ErrorType = CocoaError
-
-        public let rawValue: Int
-
-        public init(rawValue: Int) {
-            self.rawValue = rawValue
+    public var _nsError: NSError {
+        if let originalNSError = userInfo["_NSError"] as? NSError {
+            return originalNSError
+        } else {
+            return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: userInfo)
         }
-
-        public static var fileNoSuchFile:                           CocoaError.Code { return CocoaError.Code(rawValue:    4) }
-        public static var fileLocking:                              CocoaError.Code { return CocoaError.Code(rawValue:  255) }
-        public static var fileReadUnknown:                          CocoaError.Code { return CocoaError.Code(rawValue:  256) }
-        public static var fileReadNoPermission:                     CocoaError.Code { return CocoaError.Code(rawValue:  257) }
-        public static var fileReadInvalidFileName:                  CocoaError.Code { return CocoaError.Code(rawValue:  258) }
-        public static var fileReadCorruptFile:                      CocoaError.Code { return CocoaError.Code(rawValue:  259) }
-        public static var fileReadNoSuchFile:                       CocoaError.Code { return CocoaError.Code(rawValue:  260) }
-        public static var fileReadInapplicableStringEncoding:       CocoaError.Code { return CocoaError.Code(rawValue:  261) }
-        public static var fileReadUnsupportedScheme:                CocoaError.Code { return CocoaError.Code(rawValue:  262) }
-        public static var fileReadTooLarge:                         CocoaError.Code { return CocoaError.Code(rawValue:  263) }
-        public static var fileReadUnknownStringEncoding:            CocoaError.Code { return CocoaError.Code(rawValue:  264) }
-        public static var fileWriteUnknown:                         CocoaError.Code { return CocoaError.Code(rawValue:  512) }
-        public static var fileWriteNoPermission:                    CocoaError.Code { return CocoaError.Code(rawValue:  513) }
-        public static var fileWriteInvalidFileName:                 CocoaError.Code { return CocoaError.Code(rawValue:  514) }
-        public static var fileWriteFileExists:                      CocoaError.Code { return CocoaError.Code(rawValue:  516) }
-        public static var fileWriteInapplicableStringEncoding:      CocoaError.Code { return CocoaError.Code(rawValue:  517) }
-        public static var fileWriteUnsupportedScheme:               CocoaError.Code { return CocoaError.Code(rawValue:  518) }
-        public static var fileWriteOutOfSpace:                      CocoaError.Code { return CocoaError.Code(rawValue:  640) }
-        public static var fileWriteVolumeReadOnly:                  CocoaError.Code { return CocoaError.Code(rawValue:  642) }
-        public static var fileManagerUnmountUnknown:                CocoaError.Code { return CocoaError.Code(rawValue:  768) }
-        public static var fileManagerUnmountBusy:                   CocoaError.Code { return CocoaError.Code(rawValue:  769) }
-        public static var keyValueValidation:                       CocoaError.Code { return CocoaError.Code(rawValue: 1024) }
-        public static var formatting:                               CocoaError.Code { return CocoaError.Code(rawValue: 2048) }
-        public static var userCancelled:                            CocoaError.Code { return CocoaError.Code(rawValue: 3072) }
-        public static var featureUnsupported:                       CocoaError.Code { return CocoaError.Code(rawValue: 3328) }
-        public static var executableNotLoadable:                    CocoaError.Code { return CocoaError.Code(rawValue: 3584) }
-        public static var executableArchitectureMismatch:           CocoaError.Code { return CocoaError.Code(rawValue: 3585) }
-        public static var executableRuntimeMismatch:                CocoaError.Code { return CocoaError.Code(rawValue: 3586) }
-        public static var executableLoad:                           CocoaError.Code { return CocoaError.Code(rawValue: 3587) }
-        public static var executableLink:                           CocoaError.Code { return CocoaError.Code(rawValue: 3588) }
-        public static var propertyListReadCorrupt:                  CocoaError.Code { return CocoaError.Code(rawValue: 3840) }
-        public static var propertyListReadUnknownVersion:           CocoaError.Code { return CocoaError.Code(rawValue: 3841) }
-        public static var propertyListReadStream:                   CocoaError.Code { return CocoaError.Code(rawValue: 3842) }
-        public static var propertyListWriteStream:                  CocoaError.Code { return CocoaError.Code(rawValue: 3851) }
-        public static var propertyListWriteInvalid:                 CocoaError.Code { return CocoaError.Code(rawValue: 3852) }
-        public static var xpcConnectionInterrupted:                 CocoaError.Code { return CocoaError.Code(rawValue: 4097) }
-        public static var xpcConnectionInvalid:                     CocoaError.Code { return CocoaError.Code(rawValue: 4099) }
-        public static var xpcConnectionReplyInvalid:                CocoaError.Code { return CocoaError.Code(rawValue: 4101) }
-        public static var ubiquitousFileUnavailable:                CocoaError.Code { return CocoaError.Code(rawValue: 4353) }
-        public static var ubiquitousFileNotUploadedDueToQuota:      CocoaError.Code { return CocoaError.Code(rawValue: 4354) }
-        public static var ubiquitousFileUbiquityServerNotAvailable: CocoaError.Code { return CocoaError.Code(rawValue: 4355) }
-        public static var userActivityHandoffFailed:                CocoaError.Code { return CocoaError.Code(rawValue: 4608) }
-        public static var userActivityConnectionUnavailable:        CocoaError.Code { return CocoaError.Code(rawValue: 4609) }
-        public static var userActivityRemoteApplicationTimedOut:    CocoaError.Code { return CocoaError.Code(rawValue: 4610) }
-        public static var userActivityHandoffUserInfoTooLarge:      CocoaError.Code { return CocoaError.Code(rawValue: 4611) }
-        public static var coderReadCorrupt:                         CocoaError.Code { return CocoaError.Code(rawValue: 4864) }
-        public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code(rawValue: 4865) }
-        public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code(rawValue: 4866) }
     }
+    
+    public static var _nsErrorDomain: String {
+        NSCocoaErrorDomain
+    }
+}
+
+extension CocoaError {
+    // Temporary extension to take Foundation.URL, until FoundationEssentials.URL is fully ported
+    public static func error(_ code: CocoaError.Code, userInfo: [String : AnyHashable]? = nil, url: Foundation.URL? = nil) -> Error {
+        var info: [String : AnyHashable] = userInfo ?? [:]
+        if let url = url {
+            info["NSURLErrorKey"] = url
+        }
+        return CocoaError(code, userInfo: info)
+    }    
+}
+
+extension CocoaError.Code : _ErrorCodeProtocol {
+    public typealias _ErrorType = CocoaError
+}
+
+extension CocoaError.Code {
+    // These extend the errors available in FoundationEssentials
+    public static var xpcConnectionInterrupted:                 CocoaError.Code { return CocoaError.Code(rawValue: 4097) }
+    public static var xpcConnectionInvalid:                     CocoaError.Code { return CocoaError.Code(rawValue: 4099) }
+    public static var xpcConnectionReplyInvalid:                CocoaError.Code { return CocoaError.Code(rawValue: 4101) }
+    public static var ubiquitousFileUnavailable:                CocoaError.Code { return CocoaError.Code(rawValue: 4353) }
+    public static var ubiquitousFileNotUploadedDueToQuota:      CocoaError.Code { return CocoaError.Code(rawValue: 4354) }
+    public static var ubiquitousFileUbiquityServerNotAvailable: CocoaError.Code { return CocoaError.Code(rawValue: 4355) }
+    public static var userActivityHandoffFailed:                CocoaError.Code { return CocoaError.Code(rawValue: 4608) }
+    public static var userActivityConnectionUnavailable:        CocoaError.Code { return CocoaError.Code(rawValue: 4609) }
+    public static var userActivityRemoteApplicationTimedOut:    CocoaError.Code { return CocoaError.Code(rawValue: 4610) }
+    public static var userActivityHandoffUserInfoTooLarge:      CocoaError.Code { return CocoaError.Code(rawValue: 4611) }
+    public static var coderReadCorrupt:                         CocoaError.Code { return CocoaError.Code(rawValue: 4864) }
+    public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code(rawValue: 4865) }
+    public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code(rawValue: 4866) }
 }
 
 internal extension CocoaError {
@@ -721,40 +678,6 @@ public extension CocoaError {
     private var _nsUserInfo: [String: Any] {
         return _nsError.userInfo
     }
-
-    /// The file path associated with the error, if any.
-    var filePath: String? {
-        return _nsUserInfo[NSFilePathErrorKey] as? String
-    }
-
-    /// The string encoding associated with this error, if any.
-    var stringEncoding: String.Encoding? {
-        return (_nsUserInfo[NSStringEncodingErrorKey] as? NSNumber)
-        .map { String.Encoding(rawValue: $0.uintValue) }
-    }
-
-    /// The underlying error behind this error, if any.
-    var underlying: Error? {
-        return _nsUserInfo[NSUnderlyingErrorKey] as? Error
-    }
-
-    /// The URL associated with this error, if any.
-    var url: URL? {
-        return _nsUserInfo[NSURLErrorKey] as? URL
-    }
-}
-
-extension CocoaError {
-    public static func error(_ code: CocoaError.Code, userInfo: [AnyHashable: Any]? = nil, url: URL? = nil) -> Error {
-        var info: [String: Any] = userInfo as? [String: Any] ?? [:]
-        if let url = url {
-            info[NSURLErrorKey] = url
-        }
-        return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: info)
-    }
-}
-
-extension CocoaError.Code {
 }
 
 extension CocoaError {
@@ -976,415 +899,24 @@ extension URLError {
     public static var backgroundSessionWasDisconnected:         URLError.Code { return .backgroundSessionWasDisconnected }
 }
 
+extension POSIXErrorCode : _ErrorCodeProtocol {
+    public typealias _ErrorType = POSIXError
+}
+
 /// Describes an error in the POSIX error domain.
-public struct POSIXError : _BridgedStoredNSError {
-    
-    public let _nsError: NSError
+extension POSIXError : _BridgedStoredNSError {
+    public var _nsError: NSError {
+        NSError(domain: NSPOSIXErrorDomain, code: Int(code.rawValue))
+    }
 
     public init(_nsError error: NSError) {
         precondition(error.domain == NSPOSIXErrorDomain)
-        self._nsError = error
+        self = POSIXError(POSIXErrorCode(rawValue: Int32(error.code))!)
     }
 
     public static var _nsErrorDomain: String { return NSPOSIXErrorDomain }
     
     public typealias Code = POSIXErrorCode
-}
-
-extension POSIXErrorCode: _ErrorCodeProtocol {
-    public typealias _ErrorType = POSIXError
-}
-
-extension POSIXError {
-    /// Operation not permitted.
-    public static var EPERM: POSIXError.Code { return .EPERM }
-
-    /// No such file or directory.
-    public static var ENOENT: POSIXError.Code { return .ENOENT }
-
-    /// No such process.
-    public static var ESRCH: POSIXError.Code { return .ESRCH }
-
-    /// Interrupted system call.
-    public static var EINTR: POSIXError.Code { return .EINTR }
-
-    /// Input/output error.
-    public static var EIO: POSIXError.Code { return .EIO }
-
-    /// Device not configured.
-    public static var ENXIO: POSIXError.Code { return .ENXIO }
-
-    /// Argument list too long.
-    public static var E2BIG: POSIXError.Code { return .E2BIG }
-
-    /// Exec format error.
-    public static var ENOEXEC: POSIXError.Code { return .ENOEXEC }
-
-    /// Bad file descriptor.
-    public static var EBADF: POSIXError.Code { return .EBADF }
-
-    /// No child processes.
-    public static var ECHILD: POSIXError.Code { return .ECHILD }
-
-    /// Resource deadlock avoided.
-    public static var EDEADLK: POSIXError.Code { return .EDEADLK }
-
-    /// Cannot allocate memory.
-    public static var ENOMEM: POSIXError.Code { return .ENOMEM }
-
-    /// Permission denied.
-    public static var EACCES: POSIXError.Code { return .EACCES }
-
-    /// Bad address.
-    public static var EFAULT: POSIXError.Code { return .EFAULT }
-
-    #if !os(Windows)
-    /// Block device required.
-    public static var ENOTBLK: POSIXError.Code { return .ENOTBLK }
-    #endif
-
-    /// Device / Resource busy.
-    public static var EBUSY: POSIXError.Code { return .EBUSY }
-
-    /// File exists.
-    public static var EEXIST: POSIXError.Code { return .EEXIST }
-
-    /// Cross-device link.
-    public static var EXDEV: POSIXError.Code { return .EXDEV }
-
-    /// Operation not supported by device.
-    public static var ENODEV: POSIXError.Code { return .ENODEV }
-
-    /// Not a directory.
-    public static var ENOTDIR: POSIXError.Code { return .ENOTDIR }
-
-    /// Is a directory.
-    public static var EISDIR: POSIXError.Code { return .EISDIR }
-
-    /// Invalid argument.
-    public static var EINVAL: POSIXError.Code { return .EINVAL }
-
-    /// Too many open files in system.
-    public static var ENFILE: POSIXError.Code { return .ENFILE }
-
-    /// Too many open files.
-    public static var EMFILE: POSIXError.Code { return .EMFILE }
-
-    /// Inappropriate ioctl for device.
-    public static var ENOTTY: POSIXError.Code { return .ENOTTY }
-
-    #if !os(Windows)
-    /// Text file busy.
-    public static var ETXTBSY: POSIXError.Code { return .ETXTBSY }
-    #endif
-
-    /// File too large.
-    public static var EFBIG: POSIXError.Code { return .EFBIG }
-
-    /// No space left on device.
-    public static var ENOSPC: POSIXError.Code { return .ENOSPC }
-
-    /// Illegal seek.
-    public static var ESPIPE: POSIXError.Code { return .ESPIPE }
-
-    /// Read-only file system.
-    public static var EROFS: POSIXError.Code { return .EROFS }
-
-    /// Too many links.
-    public static var EMLINK: POSIXError.Code { return .EMLINK }
-
-    /// Broken pipe.
-    public static var EPIPE: POSIXError.Code { return .EPIPE }
-
-    /// Math Software
-
-    /// Numerical argument out of domain.
-    public static var EDOM: POSIXError.Code { return .EDOM }
-
-    /// Result too large.
-    public static var ERANGE: POSIXError.Code { return .ERANGE }
-
-    /// Non-blocking and interrupt I/O.
-
-    /// Resource temporarily unavailable.
-    public static var EAGAIN: POSIXError.Code { return .EAGAIN }
-
-    #if !os(Windows)
-    /// Operation would block.
-    public static var EWOULDBLOCK: POSIXError.Code { return .EWOULDBLOCK }
-
-    /// Operation now in progress.
-    public static var EINPROGRESS: POSIXError.Code { return .EINPROGRESS }
-
-    /// Operation already in progress.
-    public static var EALREADY: POSIXError.Code { return .EALREADY }
-    #endif
-
-    /// IPC/Network software -- argument errors.
-
-    #if !os(Windows)
-    /// Socket operation on non-socket.
-    public static var ENOTSOCK: POSIXError.Code { return .ENOTSOCK }
-
-    /// Destination address required.
-    public static var EDESTADDRREQ: POSIXError.Code { return .EDESTADDRREQ }
-
-    /// Message too long.
-    public static var EMSGSIZE: POSIXError.Code { return .EMSGSIZE }
-
-    /// Protocol wrong type for socket.
-    public static var EPROTOTYPE: POSIXError.Code { return .EPROTOTYPE }
-
-    /// Protocol not available.
-    public static var ENOPROTOOPT: POSIXError.Code { return .ENOPROTOOPT }
-
-    /// Protocol not supported.
-    public static var EPROTONOSUPPORT: POSIXError.Code { return .EPROTONOSUPPORT }
-
-    /// Socket type not supported.
-    public static var ESOCKTNOSUPPORT: POSIXError.Code { return .ESOCKTNOSUPPORT }
-    #endif
-
-    #if canImport(Darwin)
-    /// Operation not supported.
-    public static var ENOTSUP: POSIXError.Code { return .ENOTSUP }
-    #endif
-
-    #if !os(Windows)
-    /// Protocol family not supported.
-    public static var EPFNOSUPPORT: POSIXError.Code { return .EPFNOSUPPORT }
-
-    /// Address family not supported by protocol family.
-    public static var EAFNOSUPPORT: POSIXError.Code { return .EAFNOSUPPORT }
-
-    /// Address already in use.
-    public static var EADDRINUSE: POSIXError.Code { return .EADDRINUSE }
-
-    /// Can't assign requested address.
-    public static var EADDRNOTAVAIL: POSIXError.Code { return .EADDRNOTAVAIL }
-    #endif
-
-    /// IPC/Network software -- operational errors
-
-    #if !os(Windows)
-    /// Network is down.
-    public static var ENETDOWN: POSIXError.Code { return .ENETDOWN }
-
-    /// Network is unreachable.
-    public static var ENETUNREACH: POSIXError.Code { return .ENETUNREACH }
-
-    /// Network dropped connection on reset.
-    public static var ENETRESET: POSIXError.Code { return .ENETRESET }
-
-    /// Software caused connection abort.
-    public static var ECONNABORTED: POSIXError.Code { return .ECONNABORTED }
-
-    /// Connection reset by peer.
-    public static var ECONNRESET: POSIXError.Code { return .ECONNRESET }
-
-    /// No buffer space available.
-    public static var ENOBUFS: POSIXError.Code { return .ENOBUFS }
-
-    /// Socket is already connected.
-    public static var EISCONN: POSIXError.Code { return .EISCONN }
-
-    /// Socket is not connected.
-    public static var ENOTCONN: POSIXError.Code { return .ENOTCONN }
-
-    /// Can't send after socket shutdown.
-    public static var ESHUTDOWN: POSIXError.Code { return .ESHUTDOWN }
-
-    /// Too many references: can't splice.
-    public static var ETOOMANYREFS: POSIXError.Code { return .ETOOMANYREFS }
-
-    /// Operation timed out.
-    public static var ETIMEDOUT: POSIXError.Code { return .ETIMEDOUT }
-
-    /// Connection refused.
-    public static var ECONNREFUSED: POSIXError.Code { return .ECONNREFUSED }
-
-    /// Too many levels of symbolic links.
-    public static var ELOOP: POSIXError.Code { return .ELOOP }
-    #endif
-
-    /// File name too long.
-    public static var ENAMETOOLONG: POSIXError.Code { return .ENAMETOOLONG }
-
-    #if !os(Windows)
-    /// Host is down.
-    public static var EHOSTDOWN: POSIXError.Code { return .EHOSTDOWN }
-
-    /// No route to host.
-    public static var EHOSTUNREACH: POSIXError.Code { return .EHOSTUNREACH }
-    #endif
-
-    /// Directory not empty.
-    public static var ENOTEMPTY: POSIXError.Code { return .ENOTEMPTY }
-
-    /// Quotas
-
-    #if canImport(Darwin)
-    /// Too many processes.
-    public static var EPROCLIM: POSIXError.Code { return .EPROCLIM }
-    #endif
-    
-    #if !os(Windows)
-    /// Too many users.
-    public static var EUSERS: POSIXError.Code { return .EUSERS }
-
-    /// Disk quota exceeded.
-    public static var EDQUOT: POSIXError.Code { return .EDQUOT }
-    #endif
-
-    /// Network File System
-
-    #if !os(Windows)
-    /// Stale NFS file handle.
-    public static var ESTALE: POSIXError.Code { return .ESTALE }
-
-    /// Too many levels of remote in path.
-    public static var EREMOTE: POSIXError.Code { return .EREMOTE }
-    #endif
-
-    #if canImport(Darwin)
-    /// RPC struct is bad.
-    public static var EBADRPC: POSIXError.Code { return .EBADRPC }
-
-    /// RPC version wrong.
-    public static var ERPCMISMATCH: POSIXError.Code { return .ERPCMISMATCH }
-
-    /// RPC prog. not avail.
-    public static var EPROGUNAVAIL: POSIXError.Code { return .EPROGUNAVAIL }
-
-    /// Program version wrong.
-    public static var EPROGMISMATCH: POSIXError.Code { return .EPROGMISMATCH }
-
-    /// Bad procedure for program.
-    public static var EPROCUNAVAIL: POSIXError.Code { return .EPROCUNAVAIL }
-    #endif
-    
-    /// No locks available.
-    public static var ENOLCK: POSIXError.Code { return .ENOLCK }
-
-    /// Function not implemented.
-    public static var ENOSYS: POSIXError.Code { return .ENOSYS }
-    
-    #if canImport(Darwin)
-    /// Inappropriate file type or format.
-    public static var EFTYPE: POSIXError.Code { return .EFTYPE }
-
-    /// Authentication error.
-    public static var EAUTH: POSIXError.Code { return .EAUTH }
-
-    /// Need authenticator.
-    public static var ENEEDAUTH: POSIXError.Code { return .ENEEDAUTH }
-    #endif
-    
-    /// Intelligent device errors.
-
-    #if canImport(Darwin)
-    /// Device power is off.
-    public static var EPWROFF: POSIXError.Code { return .EPWROFF }
-
-    /// Device error, e.g. paper out.
-    public static var EDEVERR: POSIXError.Code { return .EDEVERR }
-    #endif
-
-    #if !os(Windows)
-    /// Value too large to be stored in data type.
-    public static var EOVERFLOW: POSIXError.Code { return .EOVERFLOW }
-    #endif
-
-    /// Program loading errors.
-
-    #if canImport(Darwin)
-    /// Bad executable.
-    public static var EBADEXEC: POSIXError.Code { return .EBADEXEC }
-    #endif
-    
-    #if canImport(Darwin)
-    /// Bad CPU type in executable.
-    public static var EBADARCH: POSIXError.Code { return .EBADARCH }
-    
-    /// Shared library version mismatch.
-    public static var ESHLIBVERS: POSIXError.Code { return .ESHLIBVERS }
-
-    /// Malformed Macho file.
-    public static var EBADMACHO: POSIXError.Code { return .EBADMACHO }
-    #endif
-
-    /// Operation canceled.
-    public static var ECANCELED: POSIXError.Code {
-#if os(Windows)
-        return POSIXError.Code(rawValue: Int32(ERROR_CANCELLED))!
-#else
-        return .ECANCELED
-#endif
-    }
-
-    #if !os(Windows)
-    /// Identifier removed.
-    public static var EIDRM: POSIXError.Code { return .EIDRM }
-
-    /// No message of desired type.
-    public static var ENOMSG: POSIXError.Code { return .ENOMSG }
-    #endif
-
-    /// Illegal byte sequence.
-    public static var EILSEQ: POSIXError.Code { return .EILSEQ }
-
-    #if canImport(Darwin)
-    /// Attribute not found.
-    public static var ENOATTR: POSIXError.Code { return .ENOATTR }
-    #endif
-
-    #if !os(Windows)
-    /// Bad message.
-    public static var EBADMSG: POSIXError.Code { return .EBADMSG }
-
-    #if !os(OpenBSD)
-    /// Reserved.
-    public static var EMULTIHOP: POSIXError.Code { return .EMULTIHOP }
-
-    /// No message available on STREAM.
-    public static var ENODATA: POSIXError.Code { return .ENODATA }
-
-    /// Reserved.
-    public static var ENOLINK: POSIXError.Code { return .ENOLINK }
-
-    /// No STREAM resources.
-    public static var ENOSR: POSIXError.Code { return .ENOSR }
-
-    /// Not a STREAM.
-    public static var ENOSTR: POSIXError.Code { return .ENOSTR }
-    #endif
-
-    /// Protocol error.
-    public static var EPROTO: POSIXError.Code { return .EPROTO }
-
-    #if !os(OpenBSD)
-    /// STREAM ioctl timeout.
-    public static var ETIME: POSIXError.Code { return .ETIME }
-    #endif
-    #endif
-
-    #if canImport(Darwin)
-    /// No such policy registered.
-    public static var ENOPOLICY: POSIXError.Code { return .ENOPOLICY }
-    #endif
-
-    #if !os(Windows)
-    /// State not recoverable.
-    public static var ENOTRECOVERABLE: POSIXError.Code { return .ENOTRECOVERABLE }
-
-    /// Previous owner died.
-    public static var EOWNERDEAD: POSIXError.Code { return .EOWNERDEAD }
-    #endif
-
-    #if canImport(Darwin)
-    /// Interface output queue is full.
-    public static var EQFULL: POSIXError.Code { return .EQFULL }
-    #endif
 }
 
 enum UnknownNSError: Error {

@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 #if !os(WASI)
 import Dispatch
@@ -82,7 +82,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     @available(*, deprecated)
     public convenience init?(contentsOf url: URL) {
         do {
-            guard let plistDoc = try? Data(contentsOf: url) else { return nil }
+            guard let plistDoc = try? Data(contentsOf: url.path) else { return nil }
             let plistDict = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Dictionary<AnyHashable,Any>
             guard let plistDictionary = plistDict else { return nil }
             self.init(dictionary: plistDictionary)
@@ -509,7 +509,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func write(to url: URL, atomically: Bool) -> Bool {
         do {
             let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
-            try pListData.write(to: url, options: atomically ? .atomic : [])
+            try pListData.write(to: url.path, options: atomically ? .atomic : [])
             return true
         } catch {
             return false

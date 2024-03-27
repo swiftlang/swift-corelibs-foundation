@@ -8,7 +8,7 @@
 //
 
 open class NSNotification: NSObject, NSCopying, NSCoding {
-    public struct Name : RawRepresentable, Equatable, Hashable {
+    public struct Name : RawRepresentable, Equatable, Hashable, Sendable {
         public private(set) var rawValue: String
 
         public init(_ rawValue: String) {
@@ -81,6 +81,8 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         return str
     }
 }
+
+#if canImport(Dispatch)
 
 private class NSNotificationReceiver : NSObject {
     fileprivate var name: Notification.Name?
@@ -191,3 +193,5 @@ open class NotificationCenter: NSObject {
     }
 
 }
+
+#endif // canImport(Dispatch)

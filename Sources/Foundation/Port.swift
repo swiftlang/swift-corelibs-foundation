@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 // MARK: Port and related types
 
@@ -82,6 +82,13 @@ extension PortDelegate {
 public protocol PortDelegate: AnyObject {
     func handle(_ message: PortMessage)
 }
+
+#if os(WASI)
+
+@available(*, unavailable, message: "SocketPort is not available on this platform.")
+open class SocketPort: Port {}
+
+#else
 
 #if canImport(Glibc) && !os(Android) && !os(OpenBSD)
 import Glibc
@@ -1106,3 +1113,5 @@ fileprivate extension Data {
         return self[...self.index(self.startIndex, offsetBy: range.upperBound)]
     }
 }
+
+#endif

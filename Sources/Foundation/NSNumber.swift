@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+@_implementationOnly import _CoreFoundation
 
 internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
 internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
