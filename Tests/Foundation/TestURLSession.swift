@@ -94,6 +94,8 @@ class TestURLSession: LoopbackServerTest {
     }
     
     func test_dataTaskWithHttpInputStream() throws {
+        throw XCTSkip("This test is disabled (Flaky test)")
+        #if false
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/jsonBody"
         let url = try XCTUnwrap(URL(string: urlString))
 
@@ -181,6 +183,7 @@ class TestURLSession: LoopbackServerTest {
                 XCTAssertEqual(delegate.callbacks, callBacks)
             }
         }
+        #endif
     }
     
     func test_dataTaskWithHTTPBodyRedirect() {
@@ -388,6 +391,8 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_suspendResumeTask() throws {
+        throw XCTSkip("This test is disabled (occasionally breaks)")
+        #if false
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/get"
         let url = try XCTUnwrap(URL(string: urlString))
 
@@ -422,6 +427,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(task.state, .running)
 
         waitForExpectations(timeout: 3)
+        #endif
     }
 
     
@@ -858,6 +864,8 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_httpRedirectionChainInheritsTimeoutInterval() throws {
+        throw XCTSkip("This test is disabled (https://bugs.swift.org/browse/SR-14433)")
+        #if false
         let redirectCount = 4
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/\(redirectCount)"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -882,9 +890,12 @@ class TestURLSession: LoopbackServerTest {
             let httpResponse = delegate.response as? HTTPURLResponse
             XCTAssertEqual(httpResponse?.statusCode, 200, ".statusCode for \(method)")
         }
+        #endif
     }
 
     func test_httpRedirectionExceededMaxRedirects() throws {
+        throw XCTSkip("This test is disabled (https://bugs.swift.org/browse/SR-14433)")
+        #if false
         let expectedMaxRedirects = 20
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/99"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -924,6 +935,7 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertEqual(lastResponse?.statusCode, 302)
             XCTAssertEqual(lastRequest?.url, exceededCountUrl)
         }
+        #endif
     }
 
     func test_willPerformRedirect() throws {
@@ -980,7 +992,9 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_http0_9SimpleResponses() {
+    func test_http0_9SimpleResponses() throws {
+        throw XCTSkip("This test is disabled (breaks on Ubuntu 20.04)")
+        #if false
         for brokenCity in ["Pompeii", "Sodom"] {
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
             let url = URL(string: urlString)!
@@ -1005,6 +1019,7 @@ class TestURLSession: LoopbackServerTest {
             task.resume()
             waitForExpectations(timeout: 12)
         }
+        #endif
     }
 
     func test_outOfRangeButCorrectlyFormattedHTTPCode() {
@@ -1168,6 +1183,8 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_requestWithNonEmptyBody() throws {
+        throw XCTSkip("This test is disabled (started failing for no readily available reason)")
+        #if false
         let bodyData = try XCTUnwrap("This is a request body".data(using: .utf8))
         for method in httpMethods {
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/" + method.lowercased()
@@ -1244,10 +1261,13 @@ class TestURLSession: LoopbackServerTest {
                 XCTAssertEqual(delegate.callbacks, callBacks)
             }
         }
+        #endif
     }
 
 
     func test_concurrentRequests() throws {
+        throw XCTSkip("This test is disabled (Intermittent SEGFAULT: rdar://84519512)")
+        #if false
         let tasks = 10
         let syncQ = dispatchQueueMake("test_dataTaskWithURL.syncQ")
         var dataTasks: [DataTask] = []
@@ -1276,6 +1296,7 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertFalse(task.error)
             XCTAssertEqual(task.capital, "Kathmandu", "test_dataTaskWithURLRequest returned an unexpected result")
         }
+        #endif
     }
 
     func emptyCookieStorage(storage: HTTPCookieStorage?) {
@@ -1612,6 +1633,8 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_getAllTasks() throws {
+        throw XCTSkip("This test is disabled (this causes later ones to crash)")
+        #if false
         let expect = expectation(description: "Tasks URLSession.getAllTasks")
 
         let session = URLSession(configuration: .default)
@@ -1657,9 +1680,12 @@ class TestURLSession: LoopbackServerTest {
         }
 
         waitForExpectations(timeout: 20)
+        #endif
     }
 
     func test_getTasksWithCompletion() throws {
+        throw XCTSkip("This test is disabled (Flaky tests)")
+        #if false
         let expect = expectation(description: "Test URLSession.getTasksWithCompletion")
 
         let session = URLSession(configuration: .default)
@@ -1705,9 +1731,12 @@ class TestURLSession: LoopbackServerTest {
         }
 
         waitForExpectations(timeout: 20)
+        #endif
     }
 
     func test_noDoubleCallbackWhenCancellingAndProtocolFailsFast() throws {
+        throw XCTSkip("This test is disabled (Crashes nondeterministically: https://bugs.swift.org/browse/SR-11310)")
+        #if false
         let urlString = "failfast://bogus"
         var callbackCount = 0
         let callback1 = expectation(description: "Callback call #1")
@@ -1734,9 +1763,12 @@ class TestURLSession: LoopbackServerTest {
         task.resume()
         session.invalidateAndCancel()
         waitForExpectations(timeout: 1)
+        #endif
     }
 
     func test_cancelledTasksCannotBeResumed() throws {
+        throw XCTSkip("This test is disabled (breaks on Ubuntu 18.04)")
+        #if false
         let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"))
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
         let task = session.dataTask(with: url)
@@ -1751,8 +1783,11 @@ class TestURLSession: LoopbackServerTest {
         }
 
         waitForExpectations(timeout: 1)
+        #endif
     }
-    func test_invalidResumeDataForDownloadTask() {
+    func test_invalidResumeDataForDownloadTask() throws {
+        throw XCTSkip("This test is disabled (Crashes nondeterministically: https://bugs.swift.org/browse/SR-11353)")
+        #if false
         let done = expectation(description: "Invalid resume data for download task (with completion block)")
         URLSession.shared.downloadTask(withResumeData: Data()) { (url, response, error) in
             XCTAssertNil(url)
@@ -1774,10 +1809,12 @@ class TestURLSession: LoopbackServerTest {
             })
         }
         waitForExpectations(timeout: 20)
+        #endif
     }
     
     func test_simpleUploadWithDelegateProvidingInputStream() throws {
-
+        throw XCTSkip("This test is disabled (Times out frequently: https://bugs.swift.org/browse/SR-11343)")
+        #if false
         let fileData = Data(count: 16 * 1024)
         for method in httpMethods {
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/" + method.lowercased()
@@ -1855,11 +1892,12 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertEqual(delegate.callbacks.count, callBacks.count, "Callback count for \(method)")
             XCTAssertEqual(delegate.callbacks, callBacks, "Callbacks for \(method)")
         }
+        #endif
     }
     
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_webSocket() async throws {
-        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
             print("libcurl lacks WebSockets support, skipping \(#function)")
             return
@@ -1913,7 +1951,7 @@ class TestURLSession: LoopbackServerTest {
     }
     
     func test_webSocketSpecificProtocol() async throws {
-        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
             print("libcurl lacks WebSockets support, skipping \(#function)")
             return
@@ -1943,7 +1981,7 @@ class TestURLSession: LoopbackServerTest {
     }
     
     func test_webSocketAbruptClose() async throws {
-        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
             print("libcurl lacks WebSockets support, skipping \(#function)")
             return
@@ -1983,7 +2021,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_webSocketSemiAbruptClose() async throws {
-        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
             print("libcurl lacks WebSockets support, skipping \(#function)")
             return
@@ -2024,91 +2062,6 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(task.closeReason, nil)
     }
 #endif
-  
-    static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
-        var retVal = [
-            ("test_dataTaskWithURL", test_dataTaskWithURL),
-            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
-            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
-            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-            /* ⚠️ */ ("test_dataTaskWithHttpInputStream", testExpectedToFail(test_dataTaskWithHttpInputStream, "Flaky test")),
-            ("test_dataTaskWithHTTPBodyRedirect", test_dataTaskWithHTTPBodyRedirect),
-            ("test_gzippedDataTask", test_gzippedDataTask),
-            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
-            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
-            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-            ("test_gzippedDownloadTask", test_gzippedDownloadTask),
-            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
-            ("test_taskError", test_taskError),
-            ("test_taskCopy", test_taskCopy),
-            ("test_cancelTask", test_cancelTask),
-            ("test_unhandledURLProtocol", test_unhandledURLProtocol),
-            ("test_requestToNilURL", test_requestToNilURL),
-            /* ⚠️ */ ("test_suspendResumeTask", testExpectedToFail(test_suspendResumeTask, "Occasionally breaks")),
-            ("test_taskTimeout", test_taskTimeout),
-            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
-            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
-            ("test_timeoutInterval", test_timeoutInterval),
-            ("test_httpRedirectionWithCode300", test_httpRedirectionWithCode300),
-            ("test_httpRedirectionWithCode301_302", test_httpRedirectionWithCode301_302),
-            ("test_httpRedirectionWithCode303", test_httpRedirectionWithCode303),
-            ("test_httpRedirectionWithCode304", test_httpRedirectionWithCode304),
-            ("test_httpRedirectionWithCode305_308", test_httpRedirectionWithCode305_308),
-            ("test_httpRedirectDontFollowUsingNil", test_httpRedirectDontFollowUsingNil),
-            ("test_httpRedirectDontFollowIgnoringHandler", test_httpRedirectDontFollowIgnoringHandler),
-            ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
-            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
-            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
-            ("test_httpRedirectionWithEncodedQuery", test_httpRedirectionWithEncodedQuery),
-            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
-            /* ⚠️ */ ("test_httpRedirectionChainInheritsTimeoutInterval", testExpectedToFail(test_httpRedirectionChainInheritsTimeoutInterval, "Flaky on Linux CI: https://bugs.swift.org/browse/SR-14433")),
-            /* ⚠️ */ ("test_httpRedirectionExceededMaxRedirects", testExpectedToFail(test_httpRedirectionExceededMaxRedirects, "Flaky on Linux CI: https://bugs.swift.org/browse/SR-14433")),
-            ("test_willPerformRedirect", test_willPerformRedirect),
-            ("test_httpNotFound", test_httpNotFound),
-            /* ⚠️ */ ("test_http0_9SimpleResponses", testExpectedToFail(test_http0_9SimpleResponses, "Breaks on Ubunut20.04")),
-            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
-            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
-            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
-            ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
-            ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
-            ("test_requestWithEmptyBody", test_requestWithEmptyBody),
-            /* ⚠️ */ ("test_requestWithNonEmptyBody", testExpectedToFail(test_requestWithNonEmptyBody, "Started failing for no readily available reason.")),
-            /* ⚠️ */ ("test_concurrentRequests", testExpectedToFail(test_concurrentRequests, "Intermittent SEGFAULT: rdar://84519512")),
-            ("test_disableCookiesStorage", test_disableCookiesStorage),
-            ("test_cookiesStorage", test_cookiesStorage),
-            ("test_cookieStorageForEphemeralConfiguration", test_cookieStorageForEphemeralConfiguration),
-            ("test_previouslySetCookiesAreSentInLaterRequests", test_previouslySetCookiesAreSentInLaterRequests),
-            ("test_setCookieHeadersCanBeIgnored", test_setCookieHeadersCanBeIgnored),
-            ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
-            ("test_basicAuthRequest", test_basicAuthRequest),
-            ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
-            ("test_postWithEmptyBody", test_postWithEmptyBody),
-            ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
-            ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
-            ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
-            ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
-            /* ⚠️ */ ("test_getAllTasks", testExpectedToFail(test_getAllTasks, "This test causes later ones to crash")),
-            /* ⚠️ */ ("test_getTasksWithCompletion", testExpectedToFail(test_getTasksWithCompletion, "Flaky tests")),
-            /* ⚠️ */ ("test_invalidResumeDataForDownloadTask",
-            /* ⚠️ */   testExpectedToFail(test_invalidResumeDataForDownloadTask, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11353")),
-            /* ⚠️ */ ("test_simpleUploadWithDelegateProvidingInputStream",
-            /* ⚠️ */   testExpectedToFail(test_simpleUploadWithDelegateProvidingInputStream, "This test times out frequently: https://bugs.swift.org/browse/SR-11343")),
-            /* ⚠️ */ ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast",
-            /* ⚠️ */      testExpectedToFail(test_noDoubleCallbackWhenCancellingAndProtocolFailsFast, "This test crashes nondeterministically: https://bugs.swift.org/browse/SR-11310")),
-            /* ⚠️ */ ("test_cancelledTasksCannotBeResumed", testExpectedToFail(test_cancelledTasksCannotBeResumed, "Breaks on Ubuntu 18.04")),
-        ]
-        if #available(macOS 12.0, *) {
-            retVal.append(contentsOf: [
-                ("test_webSocket", asyncTest(test_webSocket)),
-                ("test_webSocketSpecificProtocol", asyncTest(test_webSocketSpecificProtocol)),
-                ("test_webSocketAbruptClose", asyncTest(test_webSocketAbruptClose)),
-                ("test_webSocketSemiAbruptClose", asyncTest(test_webSocketSemiAbruptClose)),
-            ])
-        }
-        return retVal
-    }
-    
 }
 
 class SharedDelegate: NSObject {
