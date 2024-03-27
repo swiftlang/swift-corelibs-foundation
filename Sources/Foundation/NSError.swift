@@ -610,7 +610,7 @@ extension CocoaError {
     public static func error(_ code: CocoaError.Code, userInfo: [String : AnyHashable]? = nil, url: Foundation.URL? = nil) -> Error {
         var info: [String : AnyHashable] = userInfo ?? [:]
         if let url = url {
-            info["NSURLErrorKey"] = url
+            info[NSURLErrorKey] = url
         }
         return CocoaError(code, userInfo: info)
     }    
