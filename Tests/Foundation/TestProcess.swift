@@ -389,7 +389,10 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.terminationStatus, SIGTERM)
     }
 
-    func test_interrupt() {
+    func test_interrupt() throws {
+        #if os(Windows)
+        throw XCTSkip("Windows does not have signals")
+        #else
         let helper = _SignalHelperRunner()
         do {
             try helper.start()
@@ -426,6 +429,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(terminationReason, Process.TerminationReason.exit)
         let status = helper.process.terminationStatus
         XCTAssertEqual(status, 99)
+        #endif
     }
 
     func test_terminate() {
@@ -442,7 +446,10 @@ class TestProcess : XCTestCase {
     }
 
 
-    func test_suspend_resume() {
+    func test_suspend_resume() throws {
+        #if os(Windows)
+        throw XCTSkip("Windows does not have signals")
+        #else
         let helper = _SignalHelperRunner()
         do {
             try helper.start()
@@ -494,6 +501,7 @@ class TestProcess : XCTestCase {
         XCTAssertFalse(helper.process.suspend())
         XCTAssertTrue(helper.process.resume())
         XCTAssertTrue(helper.process.resume())
+        #endif
     }
 
 
@@ -563,7 +571,7 @@ class TestProcess : XCTestCase {
     func test_plutil() throws {
         let task = Process()
 
-        guard let url = testBundle().url(forAuxiliaryExecutable: "plutil") else {
+        guard let url = testBundle(executable: true).url(forAuxiliaryExecutable: "plutil") else {
             throw Error.ExternalBinaryNotFound("plutil")
         }
 
@@ -836,49 +844,6 @@ class TestProcess : XCTestCase {
         XCTAssertNotEqual(parentPgrp, childPgrp, "Child process group \(parentPgrp) should not equal parent process group \(childPgrp)")
     }
 #endif
-
-    static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
-        var tests = [
-            ("test_exit0" , test_exit0),
-            ("test_exit1" , test_exit1),
-            ("test_exit100" , test_exit100),
-            ("test_sleep2", test_sleep2),
-            ("test_terminationReason_uncaughtSignal", test_terminationReason_uncaughtSignal),
-            ("test_pipe_stdin", test_pipe_stdin),
-            ("test_pipe_stdout", test_pipe_stdout),
-            ("test_pipe_stderr", test_pipe_stderr),
-            ("test_current_working_directory", test_current_working_directory),
-            ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
-            ("test_file_stdout", test_file_stdout),
-            ("test_passthrough_environment", test_passthrough_environment),
-            ("test_no_environment", test_no_environment),
-            ("test_custom_environment", test_custom_environment),
-            ("test_run", test_run),
-            ("test_preStartEndState", test_preStartEndState),
-            ("test_terminate", test_terminate),
-            ("test_redirect_stdin_using_null", test_redirect_stdin_using_null),
-            ("test_redirect_stdout_using_null", test_redirect_stdout_using_null),
-            ("test_redirect_stdin_stdout_using_null", test_redirect_stdin_stdout_using_null),
-            ("test_redirect_stderr_using_null", test_redirect_stderr_using_null),
-            ("test_redirect_all_using_null", test_redirect_all_using_null),
-            ("test_redirect_all_using_nil", test_redirect_all_using_nil),
-            ("test_plutil", test_plutil),
-            ("test_currentDirectory", test_currentDirectory),
-            ("test_pipeCloseBeforeLaunch", test_pipeCloseBeforeLaunch),
-            ("test_multiProcesses", test_multiProcesses),
-        ]
-
-#if !os(Windows)
-        // Windows doesn't have signals
-        tests += [
-            ("test_interrupt", test_interrupt),
-            ("test_suspend_resume", test_suspend_resume),
-            ("test_fileDescriptorsAreNotInherited", test_fileDescriptorsAreNotInherited),
-            ("test_processGroup", test_processGroup),
-        ]
-#endif
-        return tests
-    }
 }
 
 private enum Error: Swift.Error {
