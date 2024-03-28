@@ -88,10 +88,4 @@ class TestMeasurement: XCTestCase {
             try fixture.assertLoadedValuesMatch()
         }
     }
-    
-    static let allTests = [
-        ("testHashing", testHashing),
-        ("testCodingRoundtrip", testCodingRoundtrip),
-        ("testLoadedValuesMatch", testLoadedValuesMatch),
-    ]
 }

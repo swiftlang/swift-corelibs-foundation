@@ -8,27 +8,6 @@
 //
 
 class TestNSURLRequest : XCTestCase {
-    
-    static var allTests: [(String, (TestNSURLRequest) -> () throws -> Void)] {
-        return [
-            ("test_construction", test_construction),
-            ("test_mutableConstruction", test_mutableConstruction),
-            ("test_headerFields", test_headerFields),
-            ("test_copy", test_copy),
-            ("test_mutableCopy_1", test_mutableCopy_1),
-            ("test_mutableCopy_2", test_mutableCopy_2),
-            ("test_mutableCopy_3", test_mutableCopy_3),
-            ("test_hash", test_hash),
-            ("test_NSCoding_1", test_NSCoding_1),
-            ("test_NSCoding_2", test_NSCoding_2),
-            ("test_NSCoding_3", test_NSCoding_3),
-            ("test_methodNormalization", test_methodNormalization),
-            ("test_description", test_description),
-            ("test_invalidHeaderValues", test_invalidHeaderValues),
-            ("test_validLineFoldedHeaderValues", test_validLineFoldedHeaderValues),
-        ]
-    }
-    
     let url = URL(string: "http://swift.org")!
     
     func test_construction() {

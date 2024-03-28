@@ -23,10 +23,4 @@ class TestDimension: XCTestCase {
         XCTAssertNotNil(decoded)
         XCTAssertEqual(original, decoded)
     }
-
-    static var allTests: [(String, (TestDimension) -> () throws -> Void)] {
-        return [
-            ("test_encodeDecode", test_encodeDecode),
-        ]
-    }
 }

@@ -8,34 +8,6 @@
 //
 
 class TestHTTPCookie: XCTestCase {
-
-    static var allTests: [(String, (TestHTTPCookie) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_cookieDomainCanonicalization", test_cookieDomainCanonicalization),
-            ("test_RequestHeaderFields", test_RequestHeaderFields),
-            ("test_cookiesWithResponseHeader1cookie", test_cookiesWithResponseHeader1cookie),
-            ("test_cookiesWithResponseHeader0cookies", test_cookiesWithResponseHeader0cookies),
-            ("test_cookiesWithResponseHeader2cookies", test_cookiesWithResponseHeader2cookies),
-            ("test_cookiesWithResponseHeaderNoDomain", test_cookiesWithResponseHeaderNoDomain),
-            ("test_cookiesWithResponseHeaderNoPathNoDomain", test_cookiesWithResponseHeaderNoPathNoDomain),
-            ("test_cookiesWithResponseHeaderNoNameValue", test_cookiesWithResponseHeaderNoNameValue),
-            ("test_cookiesWithResponseHeaderNoName", test_cookiesWithResponseHeaderNoName),
-            ("test_cookiesWithResponseHeaderEmptyName", test_cookiesWithResponseHeaderEmptyName),
-            ("test_cookiesWithResponseHeaderNoValue", test_cookiesWithResponseHeaderNoValue),
-            ("test_cookiesWithResponseHeaderAttributeWithoutNameIsIgnored", test_cookiesWithResponseHeaderAttributeWithoutNameIsIgnored),
-            ("test_cookiesWithResponseHeaderValuelessAttributes", test_cookiesWithResponseHeaderValuelessAttributes),
-            ("test_cookiesWithResponseHeaderValuedAttributes", test_cookiesWithResponseHeaderValuedAttributes),
-            ("test_cookiesWithResponseHeaderInvalidPath", test_cookiesWithResponseHeaderInvalidPath),
-            ("test_cookiesWithResponseHeaderWithEqualsInValue", test_cookiesWithResponseHeaderWithEqualsInValue),
-            ("test_cookiesWithResponseHeaderSecondCookieInvalidToken", test_cookiesWithResponseHeaderSecondCookieInvalidToken),
-            ("test_cookieExpiresDateFormats", test_cookieExpiresDateFormats),
-            ("test_cookiesWithExpiresAsLastAttribute", test_cookiesWithExpiresAsLastAttribute),
-            ("test_cookiesWithResponseHeaderTrimsNames", test_cookiesWithResponseHeaderTrimsNames),
-            ("test_httpCookieWithSubstring", test_httpCookieWithSubstring),
-        ]
-    }
-
     func test_BasicConstruction() {
         let invalidVersionZeroCookie = HTTPCookie(properties: [
             .name: "TestCookie",

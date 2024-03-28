@@ -8,15 +8,6 @@
 //
 
 class TestURLCredential : XCTestCase {
-    
-    static var allTests: [(String, (TestURLCredential) -> () throws -> Void)] {
-        return [
-                   ("test_construction", test_construction),
-                   ("test_copy", test_copy),
-                   ("test_NSCoding", test_NSCoding)
-        ]
-    }
-    
     func test_construction() {
         let credential = URLCredential(user: "swiftUser", password: "swiftPassword", persistence: .forSession)
         XCTAssertEqual(credential.user, "swiftUser")

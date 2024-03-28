@@ -8,15 +8,6 @@
 //
 
 class TestTimer : XCTestCase {
-    static var allTests : [(String, (TestTimer) -> () throws -> Void)] {
-        return [
-            ("test_timerInit", test_timerInit),
-            ("test_timerTickOnce", test_timerTickOnce),
-            ("test_timerRepeats", test_timerRepeats),
-            ("test_timerInvalidate", test_timerInvalidate),
-        ]
-    }
-    
     func test_timerInit() {
         let fireDate = Date()
         let timeInterval: TimeInterval = 0.3

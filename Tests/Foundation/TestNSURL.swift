@@ -69,16 +69,4 @@ class TestNSURL: XCTestCase {
         XCTAssertEqual(NSURL(fileURLWithPath: "/path/../file", isDirectory: false).resolvingSymlinksInPath?.absoluteString, "file:///file")
         XCTAssertEqual(NSURL(fileURLWithPath: "/path/to/./file/..", isDirectory: false).resolvingSymlinksInPath?.absoluteString, "file:///path/to")
     }
-
-    static var allTests: [(String, (TestNSURL) -> () throws -> Void)] {
-        let tests: [(String, (TestNSURL) -> () throws -> Void)] = [
-            ("test_absoluteString", test_absoluteString),
-            ("test_pathComponents", test_pathComponents),
-            ("test_standardized", test_standardized),
-            ("test_standardizingPath", test_standardizingPath),
-            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
-        ]
-
-        return tests
-    }
 }

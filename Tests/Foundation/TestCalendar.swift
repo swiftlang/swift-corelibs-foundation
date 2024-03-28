@@ -287,27 +287,4 @@ class TestCalendar: XCTestCase {
             XCTAssertNil(next)
         }
     }
-
-    static var allTests: [(String, (TestCalendar) -> () throws -> Void)] {
-        return [
-            ("test_allCalendars", test_allCalendars),
-            ("test_gettingDatesOnGregorianCalendar", test_gettingDatesOnGregorianCalendar ),
-            ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
-            ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
-            ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
-            ("test_gettingDatesOnPersianCalendar", test_gettingDatesOnPersianCalendar),
-            ("test_gettingDatesOnJapaneseCalendar", test_gettingDatesOnJapaneseCalendar),
-            ("test_copy",test_copy),
-            ("test_addingDates", test_addingDates),
-            ("test_datesNotOnWeekend", test_datesNotOnWeekend),
-            ("test_datesOnWeekend", test_datesOnWeekend),
-            ("test_customMirror", test_customMirror),
-            ("test_ampmSymbols", test_ampmSymbols),
-            ("test_currentCalendarRRstability", test_currentCalendarRRstability),
-            ("test_hashing", test_hashing),
-            ("test_dateFromDoesntMutate", test_dateFromDoesntMutate),
-            ("test_sr10638", test_sr10638),
-            ("test_nextDate", test_nextDate),
-        ]
-    }
 }

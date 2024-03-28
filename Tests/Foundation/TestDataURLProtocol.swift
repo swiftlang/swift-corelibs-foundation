@@ -147,12 +147,4 @@ class TestDataURLProtocol: XCTestCase {
             XCTAssertNil(delegate.response, "Unexpected URLResponse for \(urlString)")
         }
     }
-
-    static var allTests: [(String, (TestDataURLProtocol) -> () throws -> Void)] {
-        let tests = [
-            ("test_validURIs", test_validURIs),
-            ("test_invalidURIs", test_invalidURIs),
-        ]
-        return tests
-    }
 }

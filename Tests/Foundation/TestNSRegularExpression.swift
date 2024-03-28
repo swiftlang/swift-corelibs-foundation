@@ -8,21 +8,6 @@
 //
 
 class TestNSRegularExpression : XCTestCase {
-    
-    static var allTests : [(String, (TestNSRegularExpression) -> () throws -> Void)] {
-        return [
-            ("test_simpleRegularExpressions", test_simpleRegularExpressions),
-            ("test_regularExpressionReplacement", test_regularExpressionReplacement),
-            ("test_complexRegularExpressions", test_complexRegularExpressions),
-            ("test_Equal", test_Equal),
-            ("test_NSCoding", test_NSCoding),
-            ("test_defaultOptions", test_defaultOptions),
-            ("test_badPattern", test_badPattern),
-            ("test_unicodeNamedGroup", test_unicodeNamedGroup),
-            ("test_conflictingNamedGroups", test_conflictingNamedGroups),
-        ]
-    }
-
     func simpleRegularExpressionTestWithPattern(_ patternString: String, target searchString: String, looking: Bool, match: Bool, file: StaticString = #file, line: UInt = #line) {
         do {
             let str = NSString(string: searchString)

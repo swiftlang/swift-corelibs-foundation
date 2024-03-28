@@ -223,15 +223,5 @@ class TestNSSortDescriptor: XCTestCase {
             
         }
     }
-    
-    static var allTests: [(String, (TestNSSortDescriptor) -> () throws -> Void)] {
-        return [
-            ("testComparable", testComparable),
-            ("testBuiltinComparableObject", testBuiltinComparableObject),
-            ("testBuiltinComparableBridgeable", testBuiltinComparableBridgeable),
-            ("testComparatorSorting", testComparatorSorting),
-            ("testSortingContainers", testSortingContainers),
-        ]
-    }
 }
 #endif

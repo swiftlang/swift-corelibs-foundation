@@ -10,26 +10,6 @@
 import Dispatch
 
 class TestProgress : XCTestCase {
-    static var allTests: [(String, (TestProgress) -> () throws -> Void)] {
-        return [
-            ("test_totalCompletedChangeAffectsFractionCompleted", test_totalCompletedChangeAffectsFractionCompleted),
-            ("test_multipleChildren", test_multipleChildren),
-            ("test_indeterminateChildrenAffectFractionCompleted", test_indeterminateChildrenAffectFractionCompleted),
-            ("test_indeterminateChildrenAffectFractionCompleted2", test_indeterminateChildrenAffectFractionCompleted2),
-            ("test_childCompletionFinishesGroups", test_childCompletionFinishesGroups),
-            ("test_childrenAffectFractionCompleted_explicit", test_childrenAffectFractionCompleted_explicit),
-            ("test_childrenAffectFractionCompleted_explicit_partial", test_childrenAffectFractionCompleted_explicit_partial),
-            ("test_childrenAffectFractionCompleted_explicit_child_already_complete", test_childrenAffectFractionCompleted_explicit_child_already_complete),
-            ("test_grandchildrenAffectFractionCompleted", test_grandchildrenAffectFractionCompleted),
-            ("test_grandchildrenAffectFractionCompleted_explicit", test_grandchildrenAffectFractionCompleted_explicit),
-            ("test_mixedExplicitAndImplicitChildren", test_mixedExplicitAndImplicitChildren),
-            ("test_notReturningNaN", test_notReturningNaN),
-            ("test_handlers", test_handlers),
-            ("test_alreadyCancelled", test_alreadyCancelled),
-            ("test_userInfo", test_userInfo),
-        ]
-    }
-    
     func test_totalCompletedChangeAffectsFractionCompleted() {
         let parent = Progress(parent: nil)
         parent.totalUnitCount = 100

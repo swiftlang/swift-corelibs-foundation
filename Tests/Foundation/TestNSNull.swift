@@ -8,14 +8,6 @@
 //
 
 class TestNSNull : XCTestCase {
-    
-    static var allTests: [(String, (TestNSNull) -> () throws -> Void)] {
-        return [
-            ("test_alwaysEqual", test_alwaysEqual),
-            ("test_description", test_description),
-        ]
-    }
-    
     func test_alwaysEqual() {
         let null_1 = NSNull()
         let null_2 = NSNull()

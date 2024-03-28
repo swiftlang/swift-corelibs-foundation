@@ -8,18 +8,6 @@
 //
 
 class TestURLProtocol : LoopbackServerTest {
-    
-    static var allTests: [(String, (TestURLProtocol) -> () throws -> Void)] {
-        return [
-            ("test_interceptResponse", test_interceptResponse),
-            ("test_interceptRequest", test_interceptRequest),
-            ("test_multipleCustomProtocols", test_multipleCustomProtocols),
-            ("test_customProtocolResponseWithDelegate", test_customProtocolResponseWithDelegate),
-            ("test_customProtocolSetDataInResponseWithDelegate", test_customProtocolSetDataInResponseWithDelegate),
-            ("test_finishLoadingWithNoResponse", test_finishLoadingWithNoResponse),
-        ]
-    }
-    
     func test_interceptResponse() {
         let urlString = "http://127.0.0.1:\(TestURLProtocol.serverPort)/USA"
         let url = URL(string: urlString)!

@@ -8,46 +8,6 @@
 //
 
 class TestUserDefaults : XCTestCase {
-	static var allTests : [(String, (TestUserDefaults) -> () throws -> ())] {
-		return [
-			("test_createUserDefaults", test_createUserDefaults ),
-			("test_getRegisteredDefaultItem", test_getRegisteredDefaultItem ),
-			("test_getRegisteredDefaultItem_NSString", test_getRegisteredDefaultItem_NSString ),
-			("test_getRegisteredDefaultItem_String", test_getRegisteredDefaultItem_String ),
-			("test_getRegisteredDefaultItem_NSURL", test_getRegisteredDefaultItem_NSURL ),
-			("test_getRegisteredDefaultItem_URL", test_getRegisteredDefaultItem_URL ),
-			("test_getRegisteredDefaultItem_NSData", test_getRegisteredDefaultItem_NSData ),
-			("test_getRegisteredDefaultItem_Data)", test_getRegisteredDefaultItem_Data ),
-			("test_getRegisteredDefaultItem_BoolFromString", test_getRegisteredDefaultItem_BoolFromString ),
-			("test_getRegisteredDefaultItem_IntFromString", test_getRegisteredDefaultItem_IntFromString ),
-			("test_getRegisteredDefaultItem_DoubleFromString", test_getRegisteredDefaultItem_DoubleFromString ),
-			("test_setValue_NSString", test_setValue_NSString ),
-			("test_setValue_String", test_setValue_String ),
-			("test_setValue_NSURL", test_setValue_NSURL ),
-			("test_setValue_URL", test_setValue_URL ),
-			("test_setValue_NSData", test_setValue_NSData ),
-			("test_setValue_Data", test_setValue_Data ),
-			("test_setValue_BoolFromString", test_setValue_BoolFromString ),
-			("test_setValue_IntFromBool", test_setValue_IntFromBool ),
-			("test_setValue_IntFromFloat", test_setValue_IntFromFloat ),
-			("test_setValue_IntFromDouble", test_setValue_IntFromDouble ),
-			("test_setValue_IntFromString", test_setValue_IntFromString ),
-			("test_setValue_FloatFromBool", test_setValue_FloatFromBool ),
-			("test_setValue_FloatFromInt", test_setValue_FloatFromInt ),
-			("test_setValue_FloatFromDouble", test_setValue_FloatFromDouble ),
-			("test_setValue_FloatFromString", test_setValue_FloatFromString ),
-			("test_setValue_DoubleFromBool", test_setValue_DoubleFromBool ),
-			("test_setValue_DoubleFromInt", test_setValue_DoubleFromInt ),
-			("test_setValue_DoubleFromFloat", test_setValue_DoubleFromFloat ),
-			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
-			("test_setValue_StringFromBool", test_setValue_StringFromBool ),
-			("test_setValue_StringFromInt", test_setValue_StringFromInt ),
-			("test_setValue_StringFromFloat", test_setValue_StringFromFloat ),
-			("test_setValue_StringFromDouble", test_setValue_StringFromDouble ),
-			("test_volatileDomains", test_volatileDomains),
-			("test_persistentDomain", test_persistentDomain ),
-		]
-	}
 
 	func test_createUserDefaults() {
 		let defaults = UserDefaults.standard

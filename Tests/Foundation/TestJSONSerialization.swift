@@ -14,26 +14,10 @@ class TestJSONSerialization : XCTestCase {
         .utf16, .utf16BigEndian,
         .utf32LittleEndian, .utf32BigEndian
     ]
-
-    static var allTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
-        return JSONObjectWithDataTests
-            + deserializationTests
-            + isValidJSONObjectTests
-            + serializationTests
-    }
-    
 }
 
 //MARK: - JSONObjectWithData
 extension TestJSONSerialization {
-
-    class var JSONObjectWithDataTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
-        return [
-            ("test_JSONObjectWithData_emptyObject", test_JSONObjectWithData_emptyObject),
-            ("test_JSONObjectWithData_encodingDetection", test_JSONObjectWithData_encodingDetection),
-        ]
-    }
-    
     func test_JSONObjectWithData_emptyObject() {
         var bytes: [UInt8] = [0x7B, 0x7D]
         let subject = bytes.withUnsafeMutableBufferPointer {
@@ -84,87 +68,6 @@ extension TestJSONSerialization {
         case stream
     }
     static var objectType = ObjectType.data
-
-    class var deserializationTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
-        return [
-            //Deserialization with Data
-            ("test_deserialize_emptyObject_withData", test_deserialize_emptyObject_withData),
-            ("test_deserialize_multiStringObject_withData", test_deserialize_multiStringObject_withData),
-            ("test_deserialize_stringWithSpacesAtStart_withData", test_deserialize_stringWithSpacesAtStart_withData),
-            ("test_deserialize_highlyNestedArray_withData", test_deserialize_highlyNestedObject_withData),
-
-            ("test_deserialize_emptyArray_withData", test_deserialize_emptyArray_withData),
-            ("test_deserialize_multiStringArray_withData", test_deserialize_multiStringArray_withData),
-            ("test_deserialize_unicodeString_withData", test_deserialize_unicodeString_withData),
-            ("test_deserialize_highlyNestedArray_withData", test_deserialize_highlyNestedArray_withData),
-            
-            ("test_deserialize_values_withData", test_deserialize_values_withData),
-            ("test_deserialize_values_as_reference_types_withData", test_deserialize_values_as_reference_types_withData),
-            ("test_deserialize_numbers_withData", test_deserialize_numbers_withData),
-            ("test_deserialize_numberWithLeadingZero_withData", test_deserialize_numberWithLeadingZero_withData),
-            ("test_deserialize_numberThatIsntRepresentableInSwift_withData", test_deserialize_numberThatIsntRepresentableInSwift_withData),
-            ("test_deserialize_numbers_as_reference_types_withData", test_deserialize_numbers_as_reference_types_withData),
-
-            ("test_deserialize_simpleEscapeSequences_withData", test_deserialize_simpleEscapeSequences_withData),
-            ("test_deserialize_unicodeEscapeSequence_withData", test_deserialize_unicodeEscapeSequence_withData),
-            ("test_deserialize_unicodeSurrogatePairEscapeSequence_withData", test_deserialize_unicodeSurrogatePairEscapeSequence_withData),
-            ("test_deserialize_allowFragments_withData", test_deserialize_allowFragments_withData),
-            ("test_deserialize_unescapedControlCharactersWithData", test_deserialize_unescapedControlCharactersWithData),
-            ("test_deserialize_unescapedReversedSolidusWithData", test_deserialize_unescapedReversedSolidusWithData),
-
-            ("test_deserialize_unterminatedObjectString_withData", test_deserialize_unterminatedObjectString_withData),
-            ("test_deserialize_missingObjectKey_withData", test_deserialize_missingObjectKey_withData),
-            ("test_deserialize_unexpectedEndOfFile_withData", test_deserialize_unexpectedEndOfFile_withData),
-            ("test_deserialize_invalidValueInObject_withData", test_deserialize_invalidValueInObject_withData),
-            ("test_deserialize_invalidValueIncorrectSeparatorInObject_withData", test_deserialize_invalidValueIncorrectSeparatorInObject_withData),
-            ("test_deserialize_invalidValueInArray_withData", test_deserialize_invalidValueInArray_withData),
-            ("test_deserialize_badlyFormedArray_withData", test_deserialize_badlyFormedArray_withData),
-            ("test_deserialize_invalidEscapeSequence_withData", test_deserialize_invalidEscapeSequence_withData),
-            ("test_deserialize_unicodeMissingLeadingSurrogate_withData", test_deserialize_unicodeMissingLeadingSurrogate_withData),
-            ("test_deserialize_unicodeMissingTrailingSurrogate_withData", test_deserialize_unicodeMissingTrailingSurrogate_withData),
-
-            //Deserialization with Stream
-            ("test_deserialize_emptyObject_withStream", test_deserialize_emptyObject_withStream),
-            ("test_deserialize_multiStringObject_withStream", test_deserialize_multiStringObject_withStream),
-            ("test_deserialize_stringWithSpacesAtStart_withStream", test_deserialize_stringWithSpacesAtStart_withStream),
-            ("test_deserialize_highlyNestedObject_withStream", test_deserialize_highlyNestedObject_withStream),
-
-            ("test_deserialize_emptyArray_withStream", test_deserialize_emptyArray_withStream),
-            ("test_deserialize_multiStringArray_withStream", test_deserialize_multiStringArray_withStream),
-            ("test_deserialize_unicodeString_withStream", test_deserialize_unicodeString_withStream),
-            ("test_deserialize_highlyNestedArray_withStream", test_deserialize_highlyNestedArray_withStream),
-            
-            ("test_deserialize_values_withStream", test_deserialize_values_withStream),
-            ("test_deserialize_values_as_reference_types_withStream", test_deserialize_values_as_reference_types_withStream),
-            ("test_deserialize_numbers_withStream", test_deserialize_numbers_withStream),
-            ("test_deserialize_numberWithLeadingZero_withStream", test_deserialize_numberWithLeadingZero_withStream),
-            ("test_deserialize_numberThatIsntRepresentableInSwift_withStream", test_deserialize_numberThatIsntRepresentableInSwift_withStream),
-            ("test_deserialize_numbers_as_reference_types_withStream", test_deserialize_numbers_as_reference_types_withStream),
-
-            ("test_deserialize_simpleEscapeSequences_withStream", test_deserialize_simpleEscapeSequences_withStream),
-            ("test_deserialize_unicodeEscapeSequence_withStream", test_deserialize_unicodeEscapeSequence_withStream),
-            ("test_deserialize_unicodeSurrogatePairEscapeSequence_withStream", test_deserialize_unicodeSurrogatePairEscapeSequence_withStream),
-            ("test_deserialize_allowFragments_withStream", test_deserialize_allowFragments_withStream),
-            ("test_deserialize_unescapedControlCharactersWithStream", test_deserialize_unescapedControlCharactersWithStream),
-            ("test_deserialize_unescapedReversedSolidusWithStream", test_deserialize_unescapedReversedSolidusWithStream),
-
-            ("test_deserialize_unterminatedObjectString_withStream", test_deserialize_unterminatedObjectString_withStream),
-            ("test_deserialize_missingObjectKey_withStream", test_deserialize_missingObjectKey_withStream),
-            ("test_deserialize_unexpectedEndOfFile_withStream", test_deserialize_unexpectedEndOfFile_withStream),
-            ("test_deserialize_invalidValueInObject_withStream", test_deserialize_invalidValueInObject_withStream),
-            ("test_deserialize_invalidValueIncorrectSeparatorInObject_withStream", test_deserialize_invalidValueIncorrectSeparatorInObject_withStream),
-            ("test_deserialize_invalidValueInArray_withStream", test_deserialize_invalidValueInArray_withStream),
-            ("test_deserialize_badlyFormedArray_withStream", test_deserialize_badlyFormedArray_withStream),
-            ("test_deserialize_invalidEscapeSequence_withStream", test_deserialize_invalidEscapeSequence_withStream),
-            ("test_deserialize_unicodeMissingLeadingSurrogate_withStream", test_deserialize_unicodeMissingLeadingSurrogate_withStream),
-            ("test_deserialize_unicodeMissingTrailingSurrogate_withStream", test_deserialize_unicodeMissingTrailingSurrogate_withStream),
-            ("test_JSONObjectWithStream_withFile", test_JSONObjectWithStream_withFile),
-            ("test_JSONObjectWithStream_withURL", test_JSONObjectWithStream_withURL),
-            
-            ("test_bailOnDeepValidStructure", test_bailOnDeepValidStructure),
-            ("test_bailOnDeepInvalidStructure", test_bailOnDeepInvalidStructure),
-        ]
-    }
 
     func test_deserialize_emptyObject_withData() {
         deserialize_emptyObject(objectType: .data)
@@ -968,15 +871,6 @@ extension TestJSONSerialization {
 
 // MARK: - isValidJSONObjectTests
 extension TestJSONSerialization {
-
-    class var isValidJSONObjectTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
-        return [
-            ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
-            ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),
-            ("test_validNumericJSONObjects", test_validNumericJSONObjects)
-        ]
-    }
-
     func test_isValidJSONObjectTrue() {
         let trueJSON: [Any] = [
             // []
@@ -1104,42 +998,6 @@ extension TestJSONSerialization {
 
 // MARK: - serializationTests
 extension TestJSONSerialization {
-
-    class var serializationTests: [(String, (TestJSONSerialization) -> () throws -> Void)] {
-        return [
-            ("test_serialize_emptyObject", test_serialize_emptyObject),
-            ("test_serialize_null", test_serialize_null),
-            ("test_serialize_complexObject", test_serialize_complexObject),
-            ("test_nested_array", test_nested_array),
-            ("test_nested_dictionary", test_nested_dictionary),
-            ("test_serialize_number", test_serialize_number),
-            ("test_serialize_IntMax", test_serialize_IntMax),
-            ("test_serialize_IntMin", test_serialize_IntMin),
-            ("test_serialize_UIntMax", test_serialize_UIntMax),
-            ("test_serialize_UIntMin", test_serialize_UIntMin),
-            ("test_serialize_8BitSizes", test_serialize_8BitSizes),
-            ("test_serialize_16BitSizes", test_serialize_16BitSizes),
-            ("test_serialize_32BitSizes", test_serialize_32BitSizes),
-            ("test_serialize_64BitSizes", test_serialize_64BitSizes),
-            ("test_serialize_Float", test_serialize_Float),
-            ("test_serialize_Double", test_serialize_Double),
-            ("test_serialize_Decimal", test_serialize_Decimal),
-            ("test_serialize_NSDecimalNumber", test_serialize_NSDecimalNumber),
-            ("test_serialize_stringEscaping", test_serialize_stringEscaping),
-            ("test_serialize_fragments", test_serialize_fragments),
-            ("test_serialize_withoutEscapingSlashes", test_serialize_withoutEscapingSlashes),
-            ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
-            ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
-            ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
-            ("test_jsonObjectToOutputStreamInsufficientBuffer", test_jsonObjectToOutputStreamInsufficientBuffer),
-            ("test_booleanJSONObject", test_booleanJSONObject),
-            ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
-            ("test_serializeDecimalNumberJSONObject", test_serializeDecimalNumberJSONObject),
-            ("test_serializeSortedKeys", test_serializeSortedKeys),
-            ("test_serializePrettyPrinted", test_serializePrettyPrinted),
-        ]
-    }
-
     func trySerialize(_ obj: Any, options: JSONSerialization.WritingOptions = []) throws -> String {
         let data = try JSONSerialization.data(withJSONObject: obj, options: options)
         guard let string = String(data: data, encoding: .utf8) else {

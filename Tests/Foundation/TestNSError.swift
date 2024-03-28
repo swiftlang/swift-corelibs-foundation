@@ -150,15 +150,6 @@ class TestNSError : XCTestCase {
 }
 
 class TestURLError: XCTestCase {
-
-    static var allTests: [(String, (TestURLError) -> () throws -> Void)] {
-        return [
-          ("test_errorCode", TestURLError.test_errorCode),
-          ("test_failingURL", TestURLError.test_failingURL),
-          ("test_failingURLString", TestURLError.test_failingURLString),
-        ]
-    }
-
     static let testURL = URL(string: "https://swift.org")!
     let userInfo: [String: Any] =  [
         NSURLErrorFailingURLErrorKey: TestURLError.testURL,

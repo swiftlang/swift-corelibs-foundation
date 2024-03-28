@@ -116,11 +116,4 @@ class TestDateComponents: XCTestCase {
         dc.nanosecond = 6
         XCTAssertTrue(dc.isValidDate)
     }
-
-    static var allTests: [(String, (TestDateComponents) -> () throws -> Void)] {
-        return [
-            ("test_hash", test_hash),
-            ("test_isValidDate", test_isValidDate),
-        ]
-    }
 }

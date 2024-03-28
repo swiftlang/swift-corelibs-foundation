@@ -8,21 +8,6 @@
 //
 
 class TestNSValue : XCTestCase {
-    static var allTests: [(String, (TestNSValue) -> () throws -> Void)] {
-        return [
-            ( "test_valueWithLong", test_valueWithLong ),
-            ( "test_valueWithCGPoint", test_valueWithCGPoint ),
-            ( "test_valueWithCGSize", test_valueWithCGSize ),
-            ( "test_valueWithCGRect", test_valueWithCGRect ),
-            ( "test_valueWithNSEdgeInsets", test_valueWithNSEdgeInsets ),
-            ( "test_valueWithNSRange", test_valueWithNSRange ),
-            ( "test_valueWithShortArray", test_valueWithShortArray ),
-            ( "test_valueWithULongLongArray", test_valueWithULongLongArray ),
-            ( "test_valueWithCharPtr", test_valueWithULongLongArray ),
-            ( "test_isEqual", test_isEqual ),
-        ]
-    }
-    
     func test_valueWithCGPoint() {
         let point = CGPoint(x: CGFloat(1.0), y: CGFloat(2.0234))
         let value = NSValue(point: point)

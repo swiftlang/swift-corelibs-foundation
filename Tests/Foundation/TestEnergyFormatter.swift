@@ -10,17 +10,6 @@
 class TestEnergyFormatter: XCTestCase {
     let formatter: EnergyFormatter = EnergyFormatter()
     
-    static var allTests: [(String, (TestEnergyFormatter) -> () throws -> Void)] {
-        return [
-            ("test_stringFromJoulesJoulesRegion", test_stringFromJoulesJoulesRegion),
-            ("test_stringFromJoulesCaloriesRegion", test_stringFromJoulesCaloriesRegion),
-            ("test_stringFromJoulesCaloriesRegionFoodEnergyUse", test_stringFromJoulesCaloriesRegionFoodEnergyUse),
-            ("test_stringFromValue", test_stringFromValue),
-            ("test_unitStringFromValue", test_unitStringFromValue),
-            ("test_unitStringFromJoules", test_unitStringFromJoules)
-        ]
-    }
-    
     override func setUp() {
         formatter.numberFormatter.locale = Locale(identifier: "en_US")
         formatter.isForFoodEnergyUse = false

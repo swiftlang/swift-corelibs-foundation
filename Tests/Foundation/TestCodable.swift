@@ -547,28 +547,3 @@ class TestCodable : XCTestCase {
         }
     }
 }
-
-extension TestCodable {
-    static var allTests: [(String, (TestCodable) -> () throws -> Void)] {
-        return [
-            ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
-            ("test_UUID_JSON", test_UUID_JSON),
-            ("test_URL_JSON", test_URL_JSON),
-            ("test_NSRange_JSON", test_NSRange_JSON),
-            ("test_Locale_JSON", test_Locale_JSON),
-            ("test_IndexSet_JSON", test_IndexSet_JSON),
-            ("test_IndexPath_JSON", test_IndexPath_JSON),
-            ("test_AffineTransform_JSON", test_AffineTransform_JSON),
-            ("test_Decimal_JSON", test_Decimal_JSON),
-            ("test_CGPoint_JSON", test_CGPoint_JSON),
-            ("test_CGSize_JSON", test_CGSize_JSON),
-            ("test_CGRect_JSON", test_CGRect_JSON),
-            ("test_CharacterSet_JSON", test_CharacterSet_JSON),
-            ("test_TimeZone_JSON", test_TimeZone_JSON),
-            ("test_Calendar_JSON", test_Calendar_JSON),
-            ("test_DateComponents_JSON", test_DateComponents_JSON),
-            ("test_Measurement_JSON", test_Measurement_JSON),
-            ("test_URLComponents_JSON", test_URLComponents_JSON),
-        ]
-    }
-}

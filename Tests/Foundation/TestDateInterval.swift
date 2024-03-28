@@ -8,24 +8,6 @@
 //
 
 class TestDateInterval: XCTestCase {
-    static var allTests: [(String, (TestDateInterval) -> () throws -> Void)] {
-        return [
-            ("test_defaultInitializer", test_defaultInitializer),
-            ("test_startEndInitializer", test_startEndInitializer),
-            ("test_startDurationInitializer", test_startDurationInitializer),
-            ("test_compareDifferentStarts", test_compareDifferentStarts),
-            ("test_compareDifferentDurations", test_compareDifferentDurations),
-            ("test_compareSame", test_compareSame),
-            ("test_comparisonOperators", test_comparisonOperators),
-            ("test_intersects", test_intersects),
-            ("test_intersection", test_intersection),
-            ("test_intersectionZeroDuration", test_intersectionZeroDuration),
-            ("test_intersectionNil", test_intersectionNil),
-            ("test_contains", test_contains),
-            ("test_hashing", test_hashing),
-        ]
-    }
-
     func test_defaultInitializer() {
         let dateInterval = DateInterval()
         XCTAssertEqual(dateInterval.duration, 0)

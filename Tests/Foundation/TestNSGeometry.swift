@@ -31,60 +31,6 @@ private func assertEqual(_ rect: CGRect,
 }
 
 class TestNSGeometry : XCTestCase {
-
-    static var allTests: [(String, (TestNSGeometry) -> () throws -> Void)] {
-        return [
-            ("test_CGFloat_BasicConstruction", test_CGFloat_BasicConstruction),
-            ("test_CGFloat_Equality", test_CGFloat_Equality),
-            ("test_CGFloat_LessThanOrEqual", test_CGFloat_LessThanOrEqual),
-            ("test_CGFloat_GreaterThanOrEqual", test_CGFloat_GreaterThanOrEqual),
-            ("test_CGPoint_BasicConstruction", test_CGPoint_BasicConstruction),
-            ("test_CGPoint_ExtendedConstruction", test_CGPoint_ExtendedConstruction),
-            ("test_CGSize_BasicConstruction", test_CGSize_BasicConstruction),
-            ("test_CGSize_ExtendedConstruction", test_CGSize_ExtendedConstruction),
-            ("test_CGRect_BasicConstruction", test_CGRect_BasicConstruction),
-            ("test_CGRect_ExtendedConstruction", test_CGRect_ExtendedConstruction),
-            ("test_CGRect_SpecialValues", test_CGRect_SpecialValues),
-            ("test_CGRect_IsNull", test_CGRect_IsNull),
-            ("test_CGRect_IsInfinite", test_CGRect_IsInfinite),
-            ("test_CGRect_IsEmpty", test_CGRect_IsEmpty),
-            ("test_CGRect_Equatable", test_CGRect_Equatable),
-            ("test_CGRect_CalculatedGeometricProperties", test_CGRect_CalculatedGeometricProperties),
-            ("test_CGRect_Standardized", test_CGRect_Standardized),
-            ("test_CGRect_Integral", test_CGRect_Integral),
-            ("test_CGRect_ContainsPoint", test_CGRect_ContainsPoint),
-            ("test_CGRect_ContainsRect", test_CGRect_ContainsRect),
-            ("test_CGRect_Union", test_CGRect_Union),
-            ("test_CGRect_Intersection", test_CGRect_Intersection),
-            ("test_CGRect_Intersects", test_CGRect_Intersects),
-            ("test_CGRect_OffsetBy", test_CGRect_OffsetBy),
-            ("test_CGRect_Divide", test_CGRect_Divide),
-            ("test_CGRect_InsetBy", test_CGRect_InsetBy),
-            ("test_NSEdgeInsets_BasicConstruction", test_NSEdgeInsets_BasicConstruction),
-            ("test_NSEdgeInsetsEqual", test_NSEdgeInsetsEqual),
-            ("test_NSMakePoint", test_NSMakePoint),
-            ("test_NSMakeSize", test_NSMakeSize),
-            ("test_NSMakeRect", test_NSMakeRect),
-            ("test_NSEdgeInsetsMake", test_NSEdgeInsetsMake),
-            ("test_NSUnionRect", test_NSUnionRect),
-            ("test_NSIntersectionRect", test_NSIntersectionRect),
-            ("test_NSOffsetRect", test_NSOffsetRect),
-            ("test_NSPointInRect", test_NSPointInRect),
-            ("test_NSMouseInRect", test_NSMouseInRect),
-            ("test_NSContainsRect", test_NSContainsRect),
-            ("test_NSIntersectsRect", test_NSIntersectsRect),
-            ("test_NSIntegralRect", test_NSIntegralRect),
-            ("test_NSIntegralRectWithOptions", test_NSIntegralRectWithOptions),
-            ("test_NSDivideRect", test_NSDivideRect),
-            ("test_EncodeToNSString", test_EncodeToNSString),
-            ("test_EncodeNegativeToNSString", test_EncodeNegativeToNSString),
-            ("test_DecodeFromNSString", test_DecodeFromNSString),
-            ("test_DecodeEmptyStrings", test_DecodeEmptyStrings),
-            ("test_DecodeNegativeFromNSString", test_DecodeNegativeFromNSString),
-            ("test_DecodeGarbageFromNSString", test_DecodeGarbageFromNSString),
-        ]
-    }
-
     func test_CGFloat_BasicConstruction() {
         XCTAssertEqual(CGFloat().native, 0.0)
         XCTAssertEqual(CGFloat(Double(3.0)).native, 3.0)

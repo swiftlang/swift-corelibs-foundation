@@ -9,17 +9,6 @@
 
 class TestUUID : XCTestCase {
     
-    static var allTests: [(String, (TestUUID) -> () throws -> Void)] {
-        return [
-            ("test_UUIDEquality", test_UUIDEquality),
-            ("test_UUIDInvalid", test_UUIDInvalid),
-            ("test_UUIDuuidString", test_UUIDuuidString),
-            ("test_UUIDdescription", test_UUIDdescription),
-            ("test_UUIDNSCoding", test_UUIDNSCoding),
-            ("test_hash", test_hash),
-        ]
-    }
-    
     func test_UUIDEquality() {
         let uuidA = UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")
         let uuidB = UUID(uuidString: "e621e1f8-c36c-495a-93fc-0c247a3e6e5f")

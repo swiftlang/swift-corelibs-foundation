@@ -8,15 +8,6 @@
 //
 
 class TestPropertyListEncoder : XCTestCase {
-    static var allTests: [(String, (TestPropertyListEncoder) -> () throws -> Void)] {
-        return [
-            ("test_basicEncodeDecode", test_basicEncodeDecode),
-            ("test_xmlDecoder", test_xmlDecoder),
-        ]
-    }
-}
-
-extension TestPropertyListEncoder {
     class TestBaseClass: Codable {
         enum IntEnum: Int, Codable, Equatable {
             case one = 1

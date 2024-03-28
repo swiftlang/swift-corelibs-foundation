@@ -877,37 +877,4 @@ class TestNSCalendar: XCTestCase {
             }
         }
     }
-    
-    static var allTests: [(String, (TestNSCalendar) -> () throws -> Void)] {
-        return [
-            ("test_initWithCalendarIdentifier", test_initWithCalendarIdentifier),
-            ("test_calendarWithIdentifier", test_calendarWithIdentifier),
-            ("test_calendarOptions", test_calendarOptions),
-            ("test_isEqualWithDifferentWaysToCreateCalendar", test_isEqualWithDifferentWaysToCreateCalendar),
-            ("test_isEqual", test_isEqual),
-            ("test_isEqualCurrentCalendar", test_isEqualCurrentCalendar),
-            ("test_isEqualAutoUpdatingCurrentCalendar", test_isEqualAutoUpdatingCurrentCalendar),
-            ("test_copy", test_copy),
-            ("test_copyCurrentCalendar", test_copyCurrentCalendar),
-            ("test_next50MonthsFromDate", test_next50MonthsFromDate),
-            ("test_dateByAddingUnit_withWrapOption", test_dateByAddingUnit_withWrapOption),
-            ("test_getEra_year_month_day_fromDate", test_getEra_year_month_day_fromDate),
-            ("test_getEra_yearForWeekOfYear_weekOfYear_weekday_fromDate", test_getEra_yearForWeekOfYear_weekOfYear_weekday_fromDate),
-            ("test_getHour_minute_second_nanoseconds_fromDate", test_getHour_minute_second_nanoseconds_fromDate),
-            ("test_component_fromDate", test_component_fromDate),
-            ("test_dateWithYear_month_day_hour_minute_second_nanosecond", test_dateWithYear_month_day_hour_minute_second_nanosecond),
-            ("test_dateWithYearForWeekOfYear_weekOfYear_weekday_hour_minute_second_nanosecond", test_dateWithYearForWeekOfYear_weekOfYear_weekday_hour_minute_second_nanosecond),
-            ("test_startOfDayForDate", test_startOfDayForDate),
-            ("test_componentsInTimeZone_fromDate", test_componentsInTimeZone_fromDate),
-            ("test_compareDate_toDate_toUnitGranularity", test_compareDate_toDate_toUnitGranularity),
-            ("test_isDate_equalToDate_toUnitGranularity", test_isDate_equalToDate_toUnitGranularity),
-            ("test_isDateInToday", test_isDateInToday),
-            ("test_isDateInYesterday", test_isDateInYesterday),
-            ("test_isDateInTomorrow", test_isDateInTomorrow),
-            ("test_isDateInWeekend", test_isDateInWeekend),
-            ("test_rangeOfWeekendStartDate_interval_containingDate", test_rangeOfWeekendStartDate_interval_containingDate),
-            ("test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne", test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne),
-            ("test_enumerateDatesStartingAfterDate_ensureStrictlyIncreasingResults_minuteSecondClearing", test_enumerateDatesStartingAfterDate_ensureStrictlyIncreasingResults_minuteSecondClearing),
-        ]
-    }
 }

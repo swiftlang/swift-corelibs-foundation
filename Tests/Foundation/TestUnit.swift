@@ -86,10 +86,4 @@ class TestUnit: XCTestCase {
         testEquality(ofDimensionSubclass: UnitTemperature.self)
         testEquality(ofDimensionSubclass: UnitVolume.self)
     }
-
-    static var allTests: [(String, (TestUnit) -> () throws -> Void)] {
-        return [
-            ("test_equality", test_equality),
-        ]
-    }
 }

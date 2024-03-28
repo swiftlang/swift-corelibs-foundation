@@ -188,19 +188,4 @@ class TestCachedURLResponse : XCTestCase {
         XCTAssertNotEqual(cachedResponse1.hash, cachedResponse3.hash)
         XCTAssertNotEqual(cachedResponse2.hash, cachedResponse3.hash)
     }
-
-    static var allTests: [(String, (TestCachedURLResponse) -> () throws -> Void)] {
-        return [
-            ("test_copy", test_copy),
-            ("test_initDefaultUserInfoAndStoragePolicy", test_initDefaultUserInfoAndStoragePolicy),
-            ("test_initDefaultUserInfo", test_initDefaultUserInfo),
-            ("test_initWithoutDefaults", test_initWithoutDefaults),
-            ("test_equalWithTheSameInstance", test_equalWithTheSameInstance),
-            ("test_equalWithUnrelatedObject", test_equalWithUnrelatedObject),
-            ("test_equalCheckingResponse", test_equalCheckingResponse),
-            ("test_equalCheckingData", test_equalCheckingData),
-            ("test_equalCheckingStoragePolicy", test_equalCheckingStoragePolicy),
-            ("test_hash", test_hash),
-        ]
-    }
 }

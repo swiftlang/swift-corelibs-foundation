@@ -293,28 +293,4 @@ class TestNSSet : XCTestCase {
             try fixture.assertLoadedValuesMatch()
         }
     }
-    
-    static var allTests: [(String, (TestNSSet) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("testInitWithSet", testInitWithSet),
-            ("test_enumeration", test_enumeration),
-            ("test_sequenceType", test_sequenceType),
-            ("test_setOperations", test_setOperations),
-            ("test_equality", test_equality),
-            ("test_copying", test_copying),
-            ("test_mutableCopying", test_mutableCopying),
-            ("test_CountedSetBasicConstruction", test_CountedSetBasicConstruction),
-            ("test_CountedSetObjectCount", test_CountedSetObjectCount),
-            ("test_CountedSetAddObject", test_CountedSetAddObject),
-            ("test_CountedSetRemoveObject", test_CountedSetRemoveObject),
-            ("test_CountedSetCopying", test_CountedSetCopying),
-            ("test_mutablesetWithDictionary", test_mutablesetWithDictionary),
-            ("test_Subsets", test_Subsets),
-            ("test_description", test_description),
-            ("test_codingRoundtrip", test_codingRoundtrip),
-            ("test_loadedValuesMatch", test_loadedValuesMatch),
-        ]
-    }
-    
 }

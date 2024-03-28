@@ -8,21 +8,6 @@
 //
 
 class TestNSCompoundPredicate: XCTestCase {
-    
-    static var allTests: [(String, (TestNSCompoundPredicate) -> () throws -> Void)] {
-        return [
-            ("test_NotPredicate", test_NotPredicate),
-            ("test_AndPredicateWithNoSubpredicates", test_AndPredicateWithNoSubpredicates),
-            ("test_AndPredicateWithOneSubpredicate", test_AndPredicateWithOneSubpredicate),
-            ("test_AndPredicateWithMultipleSubpredicates", test_AndPredicateWithMultipleSubpredicates),
-            ("test_OrPredicateWithNoSubpredicates", test_OrPredicateWithNoSubpredicates),
-            ("test_OrPredicateWithOneSubpredicate", test_OrPredicateWithOneSubpredicate),
-            ("test_OrPredicateWithMultipleSubpredicates", test_OrPredicateWithMultipleSubpredicates),
-            ("test_OrPredicateShortCircuits", test_OrPredicateShortCircuits),
-            ("test_AndPredicateShortCircuits", test_AndPredicateShortCircuits),
-        ]
-    }
-
     private func eval(_ predicate: NSPredicate, object: NSObject = NSObject()) -> Bool {
         return predicate.evaluate(with: object, substitutionVariables: nil)
     }
