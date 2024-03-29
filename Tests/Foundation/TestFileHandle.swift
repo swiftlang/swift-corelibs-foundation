@@ -536,7 +536,9 @@ class TestFileHandle : XCTestCase {
         wait(for: [done], timeout: 10)
     }
     
-    func test_readWriteHandlers() {
+    func test_readWriteHandlers() throws {
+        throw XCTSkip("<rdar://problem/50860781> sporadically times out")
+        #if false
         for _ in 0..<100 {
             let pipe = Pipe()
             let write = pipe.fileHandleForWriting
@@ -574,9 +576,11 @@ class TestFileHandle : XCTestCase {
             XCTAssertEqual(result, .success, "Waiting on the semaphore should not have had time to time out")
             XCTAssertTrue(notificationReceived, "Notification should be sent")
         }
+        #endif
     }
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows)
+    // SR-13822 - closeOnDealloc doesnt work on Windows and so this test is disabled there.
     func test_closeOnDealloc() throws {
         try withTemporaryDirectory() { (url, path) in
             let data = try XCTUnwrap("hello".data(using: .utf8))
@@ -617,46 +621,5 @@ class TestFileHandle : XCTestCase {
         let fh = try XCTUnwrap(FileHandle(forWritingAtPath: "/dev/stdout"))
 #endif
         XCTAssertNoThrow(try fh.synchronize())
-    }
-
-    static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
-        var tests: [(String, (TestFileHandle) -> () throws -> ())] = [
-            ("testReadUpToCount", testReadUpToCount),
-            ("testReadToEnd", testReadToEnd),
-            ("testWritingWithData", testWritingWithData),
-            ("testWritingWithBuffer", testWritingWithBuffer),
-            ("testWritingWithMultiregionData", testWritingWithMultiregionData),
-            ("test_constants", test_constants),
-            ("test_truncateFile", test_truncateFile),
-            ("test_truncate", test_truncate),
-            ("test_readabilityHandlerCloseFileRace", test_readabilityHandlerCloseFileRace),
-            ("test_readabilityHandlerCloseFileRaceWithError", test_readabilityHandlerCloseFileRaceWithError),
-            ("test_availableData", test_availableData),
-            ("test_readToEndOfFileInBackgroundAndNotify", test_readToEndOfFileInBackgroundAndNotify),
-            ("test_readToEndOfFileAndNotify", test_readToEndOfFileAndNotify),
-            ("test_readToEndOfFileAndNotify_readError", test_readToEndOfFileAndNotify_readError),
-            ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
-            /* ⚠️ */ ("test_readWriteHandlers", testExpectedToFail(test_readWriteHandlers,
-            /* ⚠️ */     "<rdar://problem/50860781> sporadically times out")),
-            ("testSynchronizeOnSpecialFile", testSynchronizeOnSpecialFile),
-        ]
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_fileDescriptor", test_fileDescriptor),
-            ("test_nullDevice", test_nullDevice),
-            ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
-            ("testOffset", testOffset),
-        ])
-
-    #if !os(Windows)
-        tests.append(contentsOf: [
-            /* ⚠️  SR-13822 - closeOnDealloc doesnt work on Windows and so this test is disabled there. */
-            ("test_closeOnDealloc", test_closeOnDealloc),
-        ])
-    #endif
-#endif
-
-        return tests
     }
 }

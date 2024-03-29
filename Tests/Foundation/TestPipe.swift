@@ -18,20 +18,6 @@
 
 
 class TestPipe: XCTestCase {
-    
-    static var allTests: [(String, (TestPipe) -> () throws -> Void)] {
-        var tests: [(String, (TestPipe) -> () throws -> Void)] = [
-            ("test_Pipe", test_Pipe),
-        ]
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_MaxPipes", test_MaxPipes),
-        ])
-#endif
-        return tests
-    }
-
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_MaxPipes() {
         // Try and create enough pipes to exhaust the process's limits. 1024 is a reasonable

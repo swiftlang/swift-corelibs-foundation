@@ -10,16 +10,6 @@
 #if !os(Windows)
 
 class TestURLSessionFTP : LoopbackFTPServerTest {
-
-    static var allTests: [(String, (TestURLSessionFTP) -> () throws -> Void)] {
-        return [
-            /* ⚠️ */ ("test_ftpDataTask", testExpectedToFail(test_ftpDataTask,
-            /* ⚠️ */     "<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")),
-            /* ⚠️ */ ("test_ftpDataTaskDelegate", testExpectedToFail(test_ftpDataTaskDelegate,
-            /* ⚠️ */     "<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")),
-        ]
-    }
-
     let saveString = """
                      FTP implementation to test FTP
                      upload, download and data tasks. Instead of sending a file,
@@ -29,7 +19,9 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
                      as part of the header.\r\n
                      """
 
-    func test_ftpDataTask() {
+    func test_ftpDataTask() throws {
+        throw XCTSkip("<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")
+        #if false
 #if !DARWIN_COMPATIBILITY_TESTS
             let ftpURL = "ftp://127.0.0.1:\(TestURLSessionFTP.serverPort)/test.txt"
             let req = URLRequest(url: URL(string: ftpURL)!)
@@ -45,9 +37,12 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
             dataTask1.resume()
             waitForExpectations(timeout: 60)
 #endif
+        #endif
     }
    
-    func test_ftpDataTaskDelegate() {
+    func test_ftpDataTaskDelegate() throws {
+        throw XCTSkip("<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")
+        #if false
         let urlString = "ftp://127.0.0.1:\(TestURLSessionFTP.serverPort)/test.txt"
         let url = URL(string: urlString)!
         let dataTask = FTPDataTask(with: expectation(description: "data task"))
@@ -56,6 +51,7 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
         if !dataTask.error {
             XCTAssertNotNil(dataTask.fileData)
         }
+        #endif
     }
 }
 

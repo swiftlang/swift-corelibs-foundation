@@ -18,22 +18,6 @@
 #endif
 
 class TestURLProtectionSpace : XCTestCase {
-
-    static var allTests: [(String, (TestURLProtectionSpace) -> () throws -> Void)] {
-        var tests: [(String, (TestURLProtectionSpace) -> () throws -> ())] = [
-            ("test_description", test_description),
-        ]
-        
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_createWithHTTPURLresponse", test_createWithHTTPURLresponse),
-            ("test_challenge", test_challenge),
-        ])
-        #endif
-        
-        return tests
-    }
-
     func test_description() {
         var space = URLProtectionSpace(
             host: "apple.com",

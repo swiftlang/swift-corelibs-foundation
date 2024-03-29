@@ -161,20 +161,4 @@ class TestProcessInfo : XCTestCase {
         }
     }
 #endif
-
-
-    static var allTests: [(String, (TestProcessInfo) -> () throws -> Void)] {
-        var tests: [(String, (TestProcessInfo) -> () throws -> ())] = [
-            ("test_operatingSystemVersion", test_operatingSystemVersion ),
-            ("test_processName", test_processName ),
-            ("test_globallyUniqueString", test_globallyUniqueString ),
-            ("test_environment", test_environment),
-        ]
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && os(Linux)
-        tests.append(contentsOf: [ ("test_cfquota_parsing", test_cfquota_parsing) ])
-#endif
-
-        return tests
-    }
 }

@@ -67,6 +67,8 @@ class TestXMLDocument : LoopbackServerTest {
     }
 
     func test_xpath() throws {
+        throw XCTSkip("https://bugs.swift.org/browse/SR-10098")
+        #if false
         let doc = XMLDocument(rootElement: nil)
         let foo = XMLElement(name: "foo")
         let bar1 = XMLElement(name: "bar")
@@ -116,6 +118,7 @@ class TestXMLDocument : LoopbackServerTest {
         } else {
             XCTAssert(false, "propNode should have existed, but was nil")            
         }
+        #endif
     }
 
     func test_elementCreation() {
@@ -396,6 +399,8 @@ class TestXMLDocument : LoopbackServerTest {
     }
 
     func test_validation_success() throws {
+        throw XCTSkip(#"<https://bugs.swift.org/browse/SR-10643> Could not build URI for external subset "http://127.0.0.1:-2/DTDs/PropertyList-1.0.dtd""#)
+        #if false
         let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
         do {
             let doc = try XMLDocument(xmlString: validString, options: [])
@@ -415,9 +420,12 @@ class TestXMLDocument : LoopbackServerTest {
         } catch let nsError as NSError {
             XCTFail("\(nsError.userInfo)")
         }
+        #endif
     }
 
     func test_validation_failure() throws {
+        throw XCTSkip("<https://bugs.swift.org/browse/SR-10643> XCTAssert in last catch block fails")
+        #if false
         let xmlString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT img EMPTY> ]><foo><img>not empty</img></foo>"
         do {
             let doc = try XMLDocument(xmlString: xmlString, options: [])
@@ -438,6 +446,7 @@ class TestXMLDocument : LoopbackServerTest {
         } catch let error as NSError {
             XCTAssert((error.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element true was declared EMPTY this one has content"))
         }
+        #endif
     }
 
     func test_dtd() throws {
@@ -722,44 +731,6 @@ class TestXMLDocument : LoopbackServerTest {
             XCTAssertEqual(children[1].stringValue, "Some verbatim content! <br> Yep, it's HTML, what are you going to do")
             XCTAssertEqual(children[2].stringValue, " some more text")
         }
-    }
-    
-    static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
-        return [
-            ("test_basicCreation", test_basicCreation),
-            ("test_nextPreviousNode", test_nextPreviousNode),
-            // Disabled because of https://bugs.swift.org/browse/SR-10098
-            // ("test_xpath", test_xpath),
-            ("test_elementCreation", test_elementCreation),
-            ("test_elementChildren", test_elementChildren),
-            ("test_stringValue", test_stringValue),
-            ("test_objectValue", test_objectValue),
-            ("test_attributes", test_attributes),
-            ("test_attributesWithNamespace", test_attributesWithNamespace),
-            ("test_comments", test_comments),
-            ("test_processingInstruction", test_processingInstruction),
-            ("test_parseXMLString", test_parseXMLString),
-            ("test_prefixes", test_prefixes),
-            /* ⚠️ */ ("test_validation_success", testExpectedToFail(test_validation_success,
-            /* ⚠️ */     #"<https://bugs.swift.org/browse/SR-10643> Could not build URI for external subset "http://127.0.0.1:-2/DTDs/PropertyList-1.0.dtd""#)),
-            /* ⚠️ */ ("test_validation_failure", testExpectedToFail(test_validation_failure,
-            /* ⚠️ */     "<https://bugs.swift.org/browse/SR-10643> XCTAssert in last catch block fails")),
-            ("test_dtd", test_dtd),
-            ("test_documentWithDTD", test_documentWithDTD),
-            ("test_dtd_attributes", test_dtd_attributes),
-            ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
-            ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
-            ("test_createElement", test_createElement),
-            ("test_addNamespace", test_addNamespace),
-            ("test_removeNamespace", test_removeNamespace),
-            ("test_optionPreserveAll", test_optionPreserveAll),
-            ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
-            ("test_nodeKinds", test_nodeKinds),
-            ("test_nodeNames", test_nodeNames),
-            ("test_creatingAnEmptyDocumentAndNode", test_creatingAnEmptyDocumentAndNode),
-            ("test_creatingAnEmptyDTD", test_creatingAnEmptyDTD),
-            ("test_parsingCDataSections", test_parsingCDataSections),
-        ]
     }
 }
 
