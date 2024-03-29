@@ -3449,7 +3449,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
@@ -3490,7 +3489,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
@@ -3548,7 +3546,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
@@ -3604,7 +3601,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
@@ -3661,7 +3657,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = "-twolevel_namespace";
@@ -3721,7 +3716,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = "-twolevel_namespace";
@@ -3761,7 +3755,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
@@ -3802,7 +3795,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
@@ -3980,7 +3972,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = (
@@ -4058,7 +4049,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 				);
 				OTHER_LDFLAGS = (
@@ -4124,7 +4114,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",
@@ -4174,7 +4163,6 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 					"-Wno-unused-variable",
-					"-Wno-int-conversion",
 					"-Wno-unused-function",
 					"-DHAVE_STRUCT_TIMESPEC",
 					"-DCF_CHARACTERSET_UNICODE_DATA_L=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-L.mapping\\\\\"",

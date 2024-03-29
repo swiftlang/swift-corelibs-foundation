@@ -1169,7 +1169,7 @@ static Boolean __nameStringOK(CFStringRef name) {
     return true;
 }
 
-static CFTimeZoneRef __CFTimeZoneInitFixed(CFTimeZoneRef result, int32_t seconds, CFStringRef name, int isDST) {
+static Boolean __CFTimeZoneInitFixed(CFTimeZoneRef result, int32_t seconds, CFStringRef name, int isDST) {
     CFDataRef data;
     int32_t nameLen = CFStringGetLength(name);
     unsigned char dataBytes[52 + nameLen + 1];
@@ -1189,9 +1189,9 @@ static CFTimeZoneRef __CFTimeZoneInitFixed(CFTimeZoneRef result, int32_t seconds
     dataBytes[48] = isDST ? 1 : 0;
     CFStringGetCString(name, (char *)dataBytes + 50, nameLen + 1, kCFStringEncodingASCII);
     data = CFDataCreate(kCFAllocatorSystemDefault, dataBytes, 52 + nameLen + 1);
-    result = _CFTimeZoneInit(result, name, data);
+    Boolean success = _CFTimeZoneInit(result, name, data);
     CFRelease(data);
-    return result;
+    return success;
 }
 
 Boolean _CFTimeZoneInitWithTimeIntervalFromGMT(CFTimeZoneRef result, CFTimeInterval ti) {
@@ -1209,9 +1209,9 @@ Boolean _CFTimeZoneInitWithTimeIntervalFromGMT(CFTimeZoneRef result, CFTimeInter
     } else {
         name = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("GMT%c%02d%02d"), (ti < 0.0 ? '-' : '+'), hour, minute);
     }
-    result = __CFTimeZoneInitFixed(result, (int32_t)ti, name, 0);
+    Boolean success = __CFTimeZoneInitFixed(result, (int32_t)ti, name, 0);
     CFRelease(name);
-    return true;
+    return success;
 }
 
 Boolean _CFTimeZoneInitInternal(CFTimeZoneRef timezone, CFStringRef name, CFDataRef data) {
@@ -1319,8 +1319,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     __CFTimeZoneGetOffset(name, &offset);
     if (offset) {
         // TODO: handle DST
-        __CFTimeZoneInitFixed(timeZone, offset, name, 0);
-        return TRUE;
+        return __CFTimeZoneInitFixed(timeZone, offset, name, 0);
     }
 
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
@@ -1337,8 +1336,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     if (tzName) {
         __CFTimeZoneGetOffset(tzName, &offset);
         // TODO: handle DST
-        __CFTimeZoneInitFixed(timeZone, offset, name, 0);
-        return TRUE;
+        return __CFTimeZoneInitFixed(timeZone, offset, name, 0);
     }
 
     return FALSE;

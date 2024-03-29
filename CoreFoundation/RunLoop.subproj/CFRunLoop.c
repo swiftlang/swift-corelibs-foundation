@@ -718,6 +718,22 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet set, __CFPort port,
 #error "CFPort* stubs for this platform must be implemented
 #endif
 
+typedef struct {
+    CFIndex    version;
+    void *    info;
+    const void *(*retain)(const void *info);
+    void    (*release)(const void *info);
+    CFStringRef    (*copyDescription)(const void *info);
+    Boolean    (*equal)(const void *info1, const void *info2);
+    CFHashCode    (*hash)(const void *info);
+    __CFPort    (*getPort)(void *info);
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
+    void *    (*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info);
+#else
+    void    (*perform)(void *info);
+#endif
+} CFRunLoopSourceContext1;
+
 #if !defined(__MACTYPES__) && !defined(_OS_OSTYPES_H)
 #if defined(__BIG_ENDIAN__)
 typedef	struct UnsignedWide {
