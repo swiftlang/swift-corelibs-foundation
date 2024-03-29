@@ -79,8 +79,8 @@ let package = Package(
             url: "https://github.com/apple/swift-foundation-icu",
             exact: "0.0.5"),
         .package(
-           url: "https://github.com/parkera/swift-foundation",
-           branch: "scf-package"
+           url: "https://github.com/apple/swift-foundation",
+           branch: "main"
         ),
     ],
     targets: [
