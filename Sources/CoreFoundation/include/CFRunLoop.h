@@ -101,23 +101,6 @@ typedef struct {
     void	(*perform)(void *info);
 } CFRunLoopSourceContext;
 
-typedef struct {
-    CFIndex	version;
-    void *	info;
-    const void *(*retain)(const void *info);
-    void	(*release)(const void *info);
-    CFStringRef	(*copyDescription)(const void *info);
-    Boolean	(*equal)(const void *info1, const void *info2);
-    CFHashCode	(*hash)(const void *info);
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
-    mach_port_t	(*getPort)(void *info);
-    void *	(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info);
-#else
-    void *	(*getPort)(void *info);
-    void	(*perform)(void *info);
-#endif
-} CFRunLoopSourceContext1;
-
 CF_EXPORT CFTypeID CFRunLoopSourceGetTypeID(void);
 
 CF_EXPORT CFRunLoopSourceRef CFRunLoopSourceCreate(CFAllocatorRef allocator, CFIndex order, CFRunLoopSourceContext *context);
