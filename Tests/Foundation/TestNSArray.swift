@@ -8,46 +8,6 @@
 //
 
 class TestNSArray : XCTestCase {
-    
-    static var allTests: [(String, (TestNSArray) -> () throws -> Void)] {
-        var tests: [(String, (TestNSArray) -> () throws -> Void)] = [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_constructors", test_constructors),
-            ("test_constructorWithCopyItems", test_constructorWithCopyItems),
-            ("test_enumeration", test_enumeration),
-            ("test_enumerationUsingBlock", test_enumerationUsingBlock),
-            ("test_sequenceType", test_sequenceType),
-            ("test_objectAtIndex", test_objectAtIndex),
-            ("test_binarySearch", test_binarySearch),
-            ("test_binarySearchFringeCases", test_binarySearchFringeCases),
-            ("test_replaceObjectsInRange_withObjectsFrom", test_replaceObjectsInRange_withObjectsFrom),
-            ("test_replaceObjectsInRange_withObjectsFrom_range", test_replaceObjectsInRange_withObjectsFrom_range),
-            ("test_replaceObjectAtIndex", test_replaceObjectAtIndex),
-            ("test_removeObjectsInArray", test_removeObjectsInArray),
-            ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
-            ("test_sortedArrayWithOptionsUsingComparator", test_sortedArrayWithOptionsUsingComparator),
-            ("test_arrayReplacement", test_arrayReplacement),
-            ("test_arrayReplaceObjectsInRangeFromRange", test_arrayReplaceObjectsInRangeFromRange),
-            ("test_sortUsingFunction", test_sortUsingFunction),
-            ("test_sortUsingComparator", test_sortUsingComparator),
-            ("test_equality", test_equality),
-            ("test_copying", test_copying),
-            ("test_mutableCopying", test_mutableCopying),
-            ("test_writeToFile", test_writeToFile),
-            ("test_initWithContentsOfFile", test_initWithContentsOfFile),
-            ("test_initMutableWithContentsOfFile", test_initMutableWithContentsOfFile),
-            ("test_initMutableWithContentsOfURL", test_initMutableWithContentsOfURL),
-            ("test_readWriteURL", test_readWriteURL),
-            ("test_insertObjectAtIndex", test_insertObjectAtIndex),
-            ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
-            ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
-            ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
-            ("test_customMirror", test_customMirror),
-        ]
-
-        return tests
-    }
-    
     func test_BasicConstruction() {
         let array = NSArray()
         let array2 : NSArray = ["foo", "bar"]

@@ -8,21 +8,6 @@
 //
 
 class TestNSKeyedUnarchiver : XCTestCase {
-    static var allTests: [(String, (TestNSKeyedUnarchiver) -> () throws -> Void)] {
-        return [
-            ("test_unarchive_array", test_unarchive_array),
-            ("test_unarchive_complex", test_unarchive_complex),
-            ("test_unarchive_concrete_value", test_unarchive_concrete_value),
-            // ("test_unarchive_notification", test_unarchive_notification), // does not yet support isEqual()
-            ("test_unarchive_nsedgeinsets_value", test_unarchive_nsedgeinsets_value),
-            ("test_unarchive_nsrange_value", test_unarchive_nsrange_value),
-            ("test_unarchive_nsrect", test_unarchive_nsrect_value),
-            ("test_unarchive_ordered_set", test_unarchive_ordered_set),
-            ("test_unarchive_url", test_unarchive_url),
-            ("test_unarchive_uuid", test_unarchive_uuid),
-        ]
-    }
-    
     private enum SecureTest {
         case skip
         case performWithDefaultClass
@@ -99,6 +84,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
         }
     }
 
+// does not yet support isEqual()
 //    func test_unarchive_notification() throws {
 //        let notification = Notification(name: Notification.Name(rawValue:"notification-name"), object: "notification-object".bridge(),
 //                                          userInfo: ["notification-key": "notification-val"])

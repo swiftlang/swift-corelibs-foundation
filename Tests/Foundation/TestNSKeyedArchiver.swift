@@ -78,33 +78,6 @@ public class UserClass : NSObject, NSSecureCoding {
 }
 
 class TestNSKeyedArchiver : XCTestCase {
-    static var allTests: [(String, (TestNSKeyedArchiver) -> () throws -> Void)] {
-        return [
-            ("test_archive_array", test_archive_array),
-            ("test_archive_charptr", test_archive_charptr),
-            ("test_archive_concrete_value", test_archive_concrete_value),
-            ("test_archive_dictionary", test_archive_dictionary),
-            ("test_archive_generic_objc", test_archive_generic_objc),
-            ("test_archive_locale", test_archive_locale),
-            ("test_archive_string", test_archive_string),
-            ("test_archive_mutable_array", test_archive_mutable_array),
-            ("test_archive_mutable_dictionary", test_archive_mutable_dictionary),
-            ("test_archive_ns_user_class", test_archive_ns_user_class),
-            ("test_archive_nspoint", test_archive_nspoint),
-            ("test_archive_nsrange", test_archive_nsrange),
-            ("test_archive_nsrect", test_archive_nsrect),
-            ("test_archive_null", test_archive_null),
-            ("test_archive_set", test_archive_set),
-            ("test_archive_url", test_archive_url),
-            ("test_archive_user_class", test_archive_user_class),
-            ("test_archive_uuid_bvref", test_archive_uuid_byref),
-            ("test_archive_uuid_byvalue", test_archive_uuid_byvalue),
-            ("test_archive_unhashable", test_archive_unhashable),
-            ("test_archiveRootObject_String", test_archiveRootObject_String),
-            ("test_archiveRootObject_URLRequest()", test_archiveRootObject_URLRequest),
-        ]
-    }
-
     private func test_archive(_ encode: (NSKeyedArchiver) -> Bool,
                               decode: (NSKeyedUnarchiver) -> Bool) {
         // Archiving using custom NSMutableData instance

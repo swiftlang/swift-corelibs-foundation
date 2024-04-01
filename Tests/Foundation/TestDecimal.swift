@@ -1529,42 +1529,4 @@ class TestDecimal: XCTestCase {
             XCTAssertEqual(NSDecimalNumber(decimal:d).intValue, intValue)
         }
     }
-
-    static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
-        return [
-            ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
-            ("test_AdditionWithNormalization", test_AdditionWithNormalization),
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_Constants", test_Constants),
-            ("test_Description", test_Description),
-            ("test_ExplicitConstruction", test_ExplicitConstruction),
-            ("test_Maths", test_Maths),
-            ("test_Misc", test_Misc),
-            ("test_MultiplicationOverflow", test_MultiplicationOverflow),
-            ("test_NaNInput", test_NaNInput),
-            ("test_NegativeAndZeroMultiplication", test_NegativeAndZeroMultiplication),
-            ("test_Normalise", test_Normalise),
-            ("test_NSDecimal", test_NSDecimal),
-            ("test_PositivePowers", test_PositivePowers),
-            ("test_RepeatingDivision", test_RepeatingDivision),
-            ("test_Round", test_Round),
-            ("test_ScanDecimal", test_ScanDecimal),
-            ("test_Significand", test_Significand),
-            ("test_SimpleMultiplication", test_SimpleMultiplication),
-            ("test_SmallerNumbers", test_SmallerNumbers),
-            ("test_Strideable", test_Strideable),
-            ("test_ULP", test_ULP),
-            ("test_ZeroPower", test_ZeroPower),
-            ("test_parseDouble", test_parseDouble),
-            ("test_doubleValue", test_doubleValue),
-            ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
-            ("test_bridging", test_bridging),
-            ("test_stringWithLocale", test_stringWithLocale),
-            ("test_NSDecimalString", test_NSDecimalString),
-            ("test_multiplyingByPowerOf10", test_multiplyingByPowerOf10),
-            ("test_initExactly", test_initExactly),
-            ("test_NSNumberEquality", test_NSNumberEquality),
-            ("test_intValue", test_intValue),
-        ]
-    }
 }

@@ -527,46 +527,4 @@ class TestURLCredentialStorage : XCTestCase {
 
         storage.remove(credential, for: space)
     }
-    
-    
-    static var allTests: [(String, (TestURLCredentialStorage) -> () throws -> Void)] {
-        var tests: [(String, (TestURLCredentialStorage) -> () throws -> Void)] = [
-            ("test_storageStartsEmpty", test_storageStartsEmpty),
-            ("test_sessionCredentialGetsReturnedForTheRightProtectionSpace", test_sessionCredentialGetsReturnedForTheRightProtectionSpace),
-            ("test_sessionCredentialDoesNotGetReturnedForTheWrongProtectionSpace", test_sessionCredentialDoesNotGetReturnedForTheWrongProtectionSpace),
-            ("test_sessionCredentialBecomesDefaultForProtectionSpace", test_sessionCredentialBecomesDefaultForProtectionSpace),
-            ("test_sessionCredentialGetsReturnedAsDefaultIfSetAsDefaultForSpace", test_sessionCredentialGetsReturnedAsDefaultIfSetAsDefaultForSpace),
-            ("test_sessionCredentialGetsReturnedIfSetAsDefaultForSpace", test_sessionCredentialGetsReturnedIfSetAsDefaultForSpace),
-            ("test_sessionCredentialDoesNotGetReturnedIfSetAsDefaultForOtherSpace", test_sessionCredentialDoesNotGetReturnedIfSetAsDefaultForOtherSpace),
-            ("test_sessionCredentialDoesNotGetReturnedWhenNotAddedAsDefault", test_sessionCredentialDoesNotGetReturnedWhenNotAddedAsDefault),
-            ("test_sessionCredentialCanBeRemovedFromSpace", test_sessionCredentialCanBeRemovedFromSpace),
-            ("test_sessionDefaultCredentialCanBeRemovedFromSpace", test_sessionDefaultCredentialCanBeRemovedFromSpace),
-            ("test_storageCanRemoveArbitraryCredentialWithoutFailing", test_storageCanRemoveArbitraryCredentialWithoutFailing),
-            ("test_storageWillNotSaveCredentialsWithoutPersistence", test_storageWillNotSaveCredentialsWithoutPersistence),
-            ("test_storageWillSendNotificationWhenAddingNewCredential", test_storageWillSendNotificationWhenAddingNewCredential),
-            ("test_storageWillSendNotificationWhenAddingExistingCredentialToDifferentSpace", test_storageWillSendNotificationWhenAddingExistingCredentialToDifferentSpace),
-            ("test_storageWillNotSendNotificationWhenAddingExistingCredential", test_storageWillNotSendNotificationWhenAddingExistingCredential),
-            ("test_storageWillSendNotificationWhenAddingNewDefaultCredential", test_storageWillSendNotificationWhenAddingNewDefaultCredential),
-            ("test_storageWillNotSendNotificationWhenAddingExistingDefaultCredential", test_storageWillNotSendNotificationWhenAddingExistingDefaultCredential),
-            ("test_storageWillSendNotificationWhenAddingDifferentDefaultCredential", test_storageWillSendNotificationWhenAddingDifferentDefaultCredential),
-            ("test_storageWillSendNotificationWhenRemovingExistingCredential", test_storageWillSendNotificationWhenRemovingExistingCredential),
-            ("test_storageWillNotSendNotificationWhenRemovingExistingCredentialInOtherSpace", test_storageWillNotSendNotificationWhenRemovingExistingCredentialInOtherSpace),
-            ("test_storageWillSendNotificationWhenRemovingDefaultNotification", test_storageWillSendNotificationWhenRemovingDefaultNotification),
-            ("test_taskBasedGetCredentialsReturnsCredentialsForSpace", test_taskBasedGetCredentialsReturnsCredentialsForSpace),
-            ("test_taskBasedSetCredentialStoresGivenCredentials", test_taskBasedSetCredentialStoresGivenCredentials),
-            ("test_taskBasedRemoveCredentialDeletesCredentialsFromSpace", test_taskBasedRemoveCredentialDeletesCredentialsFromSpace),
-            ("test_taskBasedGetDefaultCredentialReturnsTheDefaultCredential", test_taskBasedGetDefaultCredentialReturnsTheDefaultCredential),
-            ("test_taskBasedSetDefaultCredentialStoresTheDefaultCredential", test_taskBasedSetDefaultCredentialStoresTheDefaultCredential),
-        ]
-        
-        #if NS_FOUNDATION_NETWORKING_URLCREDENTIALSTORAGE_SYNCHRONIZABLE_ALLOWED
-        // See these test methods for why they aren't added by default.
-        tests.append(contentsOf: [
-            ("test_synchronizableCredentialCanBeRemovedWithRightOptions", test_synchronizableCredentialCanBeRemovedWithRightOptions),
-            ("test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions", test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions),
-        ])
-        #endif
-        
-        return tests
-    }
 }

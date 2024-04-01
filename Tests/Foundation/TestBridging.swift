@@ -23,14 +23,6 @@ struct StructWithDescriptionAndDebugDescription:
 }
 
 class TestBridging : XCTestCase {
-    static var allTests: [(String, (TestBridging) -> () throws -> Void)] {
-        return [
-            ("testBridgedDescription", testBridgedDescription),
-            ("testDynamicCast", testDynamicCast),
-            ("testConstantsImmortal", testConstantsImmortal),
-        ]
-    }
-
     func testBridgedDescription() throws {
         #if canImport(Foundation) && canImport(SwiftFoundation)
         /*

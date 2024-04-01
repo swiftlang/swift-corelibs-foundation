@@ -31,7 +31,9 @@ class TestTimeZone: XCTestCase {
         XCTAssertEqual(abbreviation1, abbreviation2, "\(abbreviation1 as Optional) should be equal to \(abbreviation2 as Optional)")
     }
 
-    func test_abbreviationDictionary() {
+    func test_abbreviationDictionary() throws {
+        throw XCTSkip("Disabled because `CFTimeZoneSetAbbreviationDictionary()` attempts to release non-CF objects while removing values from `__CFTimeZoneCache`")
+        #if false
         let oldDictionary = TimeZone.abbreviationDictionary
         let newDictionary = [
             "UTC": "UTC",
@@ -44,6 +46,7 @@ class TestTimeZone: XCTestCase {
         XCTAssertEqual(TimeZone.abbreviationDictionary, newDictionary)
         TimeZone.abbreviationDictionary = oldDictionary
         XCTAssertEqual(TimeZone.abbreviationDictionary, oldDictionary)
+        #endif
     }
 
     func test_changingDefaultTimeZone() {
@@ -263,36 +266,5 @@ class TestTimeZone: XCTestCase {
         
         XCTAssertFalse(eukv.isDaylightSavingTime(for: dateNoDST))
         XCTAssertTrue(eukv.isDaylightSavingTime(for: dateDST))
-    }
-
-    static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
-        var tests: [(String, (TestTimeZone) -> () throws -> Void)] = [
-            ("test_abbreviation", test_abbreviation),
-            
-            // Disabled because `CFTimeZoneSetAbbreviationDictionary()` attempts
-            // to release non-CF objects while removing values from
-            // `__CFTimeZoneCache`
-            // ("test_abbreviationDictionary", test_abbreviationDictionary),
-            
-            ("test_changingDefaultTimeZone", test_changingDefaultTimeZone),
-            ("test_computedPropertiesMatchMethodReturnValues", test_computedPropertiesMatchMethodReturnValues),
-            ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
-            ("test_initializingTimeZoneWithAbbreviation", test_initializingTimeZoneWithAbbreviation),
-            ("test_localizedName", test_localizedName),
-            ("test_customMirror", test_tz_customMirror),
-            ("test_knownTimeZones", test_knownTimeZones),
-            ("test_systemTimeZoneName", test_systemTimeZoneName),
-            ("test_autoupdatingTimeZone", test_autoupdatingTimeZone),
-            ("test_nextDaylightSavingTimeTransition", test_nextDaylightSavingTimeTransition),
-            ("test_isDaylightSavingTime", test_isDaylightSavingTime),
-        ]
-        
-        #if !os(Windows)
-        tests.append(contentsOf: [
-            ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
-            ])
-        #endif
-        
-        return tests
     }
 }

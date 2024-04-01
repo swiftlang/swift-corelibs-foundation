@@ -67,10 +67,4 @@ class TestUnitVolume: XCTestCase {
         let teaspoons = Measurement(value: 1, unit: UnitVolume.teaspoons)
         XCTAssertEqual(teaspoons.converted(to: .cubicInches).value, 0.3, accuracy: 0.001, "Conversion from teaspoons to cubicInches")
     }
-
-    static let allTests = [
-        ("testMetricVolumeConversions", testMetricVolumeConversions),
-        ("testMetricToImperialVolumeConversion", testMetricToImperialVolumeConversion),
-        ("testImperialVolumeConversions", testImperialVolumeConversions),
-    ]
 }

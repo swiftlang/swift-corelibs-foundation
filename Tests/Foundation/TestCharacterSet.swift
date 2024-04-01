@@ -370,34 +370,4 @@ class TestCharacterSet : XCTestCase {
             try fixture.assertValueRoundtripsInCoder()
         }
     }
-
-    static var allTests: [(String, (TestCharacterSet) -> () throws -> Void)] {
-        return [
-            ("testBasicConstruction", testBasicConstruction),
-            ("testMutability_copyOnWrite", testMutability_copyOnWrite),
-            ("testRanges", testRanges),
-            ("testInsertAndRemove", testInsertAndRemove),
-            ("testBasics", testBasics),
-            ("testClosedRanges_SR_2988", testClosedRanges_SR_2988),
-            ("test_Predefines", test_Predefines),
-            ("test_Range", test_Range),
-            ("test_String", test_String),
-            ("test_Bitmap", test_Bitmap),
-            ("test_AnnexPlanes", test_AnnexPlanes),
-            ("test_Planes", test_Planes),
-            ("test_InlineBuffer", test_InlineBuffer),
-            ("test_Equatable", test_Equatable),
-            ("test_Subtracting", test_Subtracting),
-            ("test_SubtractEmptySet", test_SubtractEmptySet),
-            ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
-            ("test_SymmetricDifference", test_SymmetricDifference),
-            ("test_formUnion", test_formUnion),
-            ("test_union", test_union),
-            ("test_SR5971", test_SR5971),
-            ("test_hashing", test_hashing),
-            ("test_codingRoundtrip", test_codingRoundtrip),
-        ]
-    }
-    
-    
 }

@@ -17,20 +17,7 @@
 
 class TestProgressFraction : XCTestCase {
 
-#if !NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT    // _ProgressFraction is an internal type
-    static let allTests: [(String, (TestProgressFraction) -> () throws -> Void)] = []
-#else
-    static let allTests: [(String, (TestProgressFraction) -> () throws -> Void)] = [
-            ("test_equal", test_equal ),
-            ("test_subtract", test_subtract),
-            ("test_multiply", test_multiply),
-            ("test_simplify", test_simplify),
-            ("test_overflow", test_overflow),
-            ("test_addOverflow", test_addOverflow),
-            ("test_andAndSubtractOverflow", test_andAndSubtractOverflow),
-            ("test_fractionFromDouble", test_fractionFromDouble),
-            ("test_unnecessaryOverflow", test_unnecessaryOverflow),
-        ]
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT    // _ProgressFraction is an internal type
 
     func test_equal() {
         let f1 = _ProgressFraction(completed: 5, total: 10)

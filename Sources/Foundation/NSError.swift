@@ -45,7 +45,7 @@ public let NSDebugDescriptionErrorKey = "NSDebugDescription"
 // Other standard keys in userInfo, for various error codes
 public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
 public let NSURLErrorKey: String = "NSURL"
-public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
+public let NSFilePathErrorKey: String = "NSFilePath"
 
 open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFError
@@ -610,7 +610,7 @@ extension CocoaError {
     public static func error(_ code: CocoaError.Code, userInfo: [String : AnyHashable]? = nil, url: Foundation.URL? = nil) -> Error {
         var info: [String : AnyHashable] = userInfo ?? [:]
         if let url = url {
-            info["NSURLErrorKey"] = url
+            info[NSURLErrorKey] = url
         }
         return CocoaError(code, userInfo: info)
     }    

@@ -283,30 +283,4 @@ class TestDateIntervalFormatter: XCTestCase {
             }
         }
     }
-    
-    static var allTests: [(String, (TestDateIntervalFormatter) -> () throws -> Void)] {
-        var tests: [(String, (TestDateIntervalFormatter) -> () throws -> Void)] = [
-            ("testStringFromDateToDateAcrossThreeBillionSeconds", testStringFromDateToDateAcrossThreeBillionSeconds),
-            ("testStringFromDateToDateAcrossThreeMillionSeconds", testStringFromDateToDateAcrossThreeMillionSeconds),
-            ("testStringFromDateToDateAcrossThreeBillionSecondsReversed", testStringFromDateToDateAcrossThreeBillionSecondsReversed),
-            ("testStringFromDateToDateAcrossThreeMillionSecondsReversed", testStringFromDateToDateAcrossThreeMillionSecondsReversed),
-            ("testStringFromDateToSameDate", testStringFromDateToSameDate),
-            ("testStringFromDateIntervalAcrossThreeMillionSeconds", testStringFromDateIntervalAcrossThreeMillionSeconds),
-            ("testStringFromDateToDateAcrossOneWeek", testStringFromDateToDateAcrossOneWeek),
-            ("testStringFromDateToDateAcrossSixtyDays", testStringFromDateToDateAcrossSixtyDays),
-            ("testStringFromDateToDateAcrossFiveHours", testStringFromDateToDateAcrossFiveHours),
-            ("testStringFromDateToDateAcrossEighteenHours", testStringFromDateToDateAcrossEighteenHours),
-            ("testCodingRoundtrip", testCodingRoundtrip),
-            ("testDecodingFixtures", testDecodingFixtures),
-        ]
-        
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && (os(macOS) || os(iOS) || os(tvOS) || os(watchOS))
-        tests.append(contentsOf: [
-            ("testStringFromDateToDateAcrossOneWeekWithMonthMinimization", testStringFromDateToDateAcrossOneWeekWithMonthMinimization),
-            ("testStringFromDateToDateAcrossSixtyDaysWithMonthMinimization", testStringFromDateToDateAcrossSixtyDaysWithMonthMinimization),
-        ])
-        #endif
-        
-        return tests
-    }
 }

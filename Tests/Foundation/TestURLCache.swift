@@ -237,23 +237,6 @@ class TestURLCache : XCTestCase {
     
     // -----
     
-    static var allTests: [(String, (TestURLCache) -> () throws -> Void)] {
-        return [
-            ("testStorageRoundtrip", testStorageRoundtrip),
-            ("testStoragePolicy", testStoragePolicy),
-            ("testNoDiskUsageIfDisabled", testNoDiskUsageIfDisabled),
-            ("testShrinkingDiskCapacityEvictsItems", testShrinkingDiskCapacityEvictsItems),
-            ("testNoMemoryUsageIfDisabled", testNoMemoryUsageIfDisabled),
-            ("testShrinkingMemoryCapacityEvictsItems", testShrinkingMemoryCapacityEvictsItems),
-            ("testRemovingOne", testRemovingOne),
-            ("testRemovingAll", testRemovingAll),
-            ("testRemovingSince", testRemovingSince),
-            ("testStoringTwiceOnlyHasOneEntry", testStoringTwiceOnlyHasOneEntry),
-        ]
-    }
-    
-    // -----
-    
     func cache(memoryCapacity: Int = 0, diskCapacity: Int = 0) throws -> URLCache {
         try FileManager.default.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
         return URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: writableTestDirectoryURL.path)

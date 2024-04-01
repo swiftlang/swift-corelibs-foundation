@@ -300,24 +300,6 @@ class TestNSAttributedString : XCTestCase {
             XCTAssertEqual(string, unarchived, "Object loaded from \(variant) didn't match fixture.")
         }
     }
-    
-    static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
-        return [
-            ("test_initWithString", test_initWithString),
-            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
-            ("test_initWithAttributedString", test_initWithAttributedString),
-            ("test_attributedSubstring", test_attributedSubstring),
-            ("test_longestEffectiveRange", test_longestEffectiveRange),
-            ("test_enumerateAttributeWithName", test_enumerateAttributeWithName),
-            ("test_enumerateAttributes", test_enumerateAttributes),
-            ("test_copy", test_copy),
-            ("test_mutableCopy", test_mutableCopy),
-            ("test_isEqual", test_isEqual),
-            ("test_archivingRoundtrip", test_archivingRoundtrip),
-            ("test_unarchivingFixtures", test_unarchivingFixtures),
-        ]
-    }
-    
 }
 
 fileprivate extension TestNSAttributedString {
@@ -953,40 +935,5 @@ class TestNSMutableAttributedString : XCTestCase {
         }0{
         }
         """)
-    }
-
-    static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
-        return [
-            ("test_initWithString", test_initWithString),
-            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
-            ("test_initWithAttributedString", test_initWithAttributedString),
-            ("test_addAttribute", test_addAttribute),
-            ("test_addAttributes", test_addAttributes),
-            ("test_setAttributes", test_setAttributes),
-            ("test_replaceCharactersWithString", test_replaceCharactersWithString),
-            ("test_replaceCharactersWithAttributedString", test_replaceCharactersWithAttributedString),
-            ("test_insert", test_insert),
-            ("test_append", test_append),
-            ("test_deleteCharacters", test_deleteCharacters),
-            ("test_setAttributedString", test_setAttributedString),
-            ("test_archivingRoundtrip", test_archivingRoundtrip),
-            ("test_unarchivingFixtures", test_unarchivingFixtures),
-            ("test_direct_attribute_enumeration_with_extend_attributed_replace", test_direct_attribute_enumeration_with_extend_attributed_replace),
-            ("test_reverse_attribute_enumeration_with_extend_attributed_replace", test_reverse_attribute_enumeration_with_extend_attributed_replace),
-            ("test_direct_attributes_enumeration_with_extend_attributed_replace", test_direct_attributes_enumeration_with_extend_attributed_replace),
-            ("test_reverse_attributes_enumeration_with_extend_attributed_replace", test_reverse_attributes_enumeration_with_extend_attributed_replace),
-            ("test_direct_attribute_enumeration_with_reduct_attributed_replace", test_direct_attribute_enumeration_with_reduct_attributed_replace),
-            ("test_reverse_attribute_enumeration_with_reduct_attributed_replace", test_reverse_attribute_enumeration_with_reduct_attributed_replace),
-            ("test_direct_attributes_enumeration_with_reduct_attributed_replace", test_direct_attributes_enumeration_with_reduct_attributed_replace),
-            ("test_reverse_attributes_enumeration_with_reduct_attributed_replace", test_reverse_attributes_enumeration_with_reduct_attributed_replace),
-            ("test_direct_attribute_enumeration_with_extend_replace", test_direct_attribute_enumeration_with_extend_replace),
-            ("test_reverse_attribute_enumeration_with_extend_replace", test_reverse_attribute_enumeration_with_extend_replace),
-            ("test_direct_attributes_enumeration_with_extend_replace", test_direct_attributes_enumeration_with_extend_replace),
-            ("test_reverse_attributes_enumeration_with_extend_replace", test_reverse_attributes_enumeration_with_extend_replace),
-            ("test_direct_attribute_enumeration_with_reduct_replace", test_direct_attribute_enumeration_with_reduct_replace),
-            ("test_reverse_attribute_enumeration_with_reduct_replace", test_reverse_attribute_enumeration_with_reduct_replace),
-            ("test_direct_attributes_enumeration_with_reduct_replace", test_direct_attributes_enumeration_with_reduct_replace),
-            ("test_reverse_attributes_enumeration_with_reduct_replace", test_reverse_attributes_enumeration_with_reduct_replace)
-        ]
     }
 }

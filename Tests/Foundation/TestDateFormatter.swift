@@ -12,27 +12,6 @@ class TestDateFormatter: XCTestCase {
     let DEFAULT_LOCALE = "en_US_POSIX"
     let DEFAULT_TIMEZONE = "GMT"
     
-    static var allTests : [(String, (TestDateFormatter) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_dateStyleShort",    test_dateStyleShort),
-            //("test_dateStyleMedium",   test_dateStyleMedium),
-            ("test_dateStyleLong",     test_dateStyleLong),
-            ("test_dateStyleFull",     test_dateStyleFull),
-            ("test_customDateFormat", test_customDateFormat),
-            ("test_setLocalizedDateFormatFromTemplate", test_setLocalizedDateFormatFromTemplate),
-            ("test_dateFormatString", test_dateFormatString),
-            ("test_setLocaleToNil", test_setLocaleToNil),
-            ("test_setTimeZoneToNil", test_setTimeZoneToNil),
-            ("test_setTimeZone", test_setTimeZone),
-            ("test_expectedTimeZone", test_expectedTimeZone),
-            ("test_dateFrom", test_dateFrom),
-            ("test_dateParseAndFormatWithJapaneseCalendar", test_dateParseAndFormatWithJapaneseCalendar),
-            ("test_orderOfPropertySetters", test_orderOfPropertySetters),
-            ("test_copy_sr14108", test_copy_sr14108),
-        ]
-    }
-    
     func test_BasicConstruction() {
         
         let symbolDictionaryOne = ["eraSymbols" : ["BC", "AD"],
@@ -130,8 +109,9 @@ class TestDateFormatter: XCTestCase {
     // locale  stringFromDate        example
     // ------  --------------        ------------
     // en_US   MMM d, y, h:mm:ss a   Dec 25, 2015, 12:00:00 AM
-    func test_dateStyleMedium() {
-        
+    func test_dateStyleMedium() throws {
+        throw XCTSkip()
+        #if false
         let timestamps = [
             -31536000 : "Jan 1, 1969 at 12:00:00 AM" , 0.0 : "Jan 1, 1970 at 12:00:00 AM", 31536000 : "Jan 1, 1971 at 12:00:00 AM",
             2145916800 : "Jan 1, 2038 at 12:00:00 AM", 1456272000 : "Feb 24, 2016 at 12:00:00 AM", 1456358399 : "Feb 24, 2016 at 11:59:59 PM",
@@ -154,7 +134,7 @@ class TestDateFormatter: XCTestCase {
             
             XCTAssertEqual(sf, stringResult)
         }
-        
+        #endif
     }
     
     
@@ -397,17 +377,22 @@ class TestDateFormatter: XCTestCase {
         // it would benefit from a more specific test that fails when
         // TimeZone.current is GMT as well.
         // (ex. TestTimeZone.test_systemTimeZoneName)
+        
+        func abbreviation(for tz: TimeZone) -> String? {
+            let isDST = tz.daylightSavingTimeOffset(for: now) != 0.0
+            return tz.localizedName(for: isDST ? .shortDaylightSaving : .shortStandard , locale: f.locale)
+        }
 
         f.timeZone = TimeZone.current
-        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
+        XCTAssertEqual(f.string(from: now), abbreviation(for: TimeZone.current))
 
         // Case 2: New York
         f.timeZone = newYork
-        XCTAssertEqual(f.string(from: now), newYork.abbreviation())
+        XCTAssertEqual(f.string(from: now), abbreviation(for: newYork))
 
         // Case 3: Los Angeles
         f.timeZone = losAngeles
-        XCTAssertEqual(f.string(from: now), losAngeles.abbreviation())
+        XCTAssertEqual(f.string(from: now), abbreviation(for: losAngeles))
     }
 
     func test_dateFrom() throws {

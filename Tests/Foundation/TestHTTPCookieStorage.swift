@@ -320,7 +320,7 @@ class TestHTTPCookieStorage: XCTestCase {
         storage.setCookie(testCookie)
         XCTAssertEqual(storage.cookies!.count, 1)
         let destPath: String
-        let bundleName = "/" + testBundleName()
+        let bundleName = "/" + Bundle.main.bundlePath.split(separator: "/").last!.prefix(while: { $0 != "." })
         if let xdg_data_home = getenv("XDG_DATA_HOME") {
             destPath = String(utf8String: xdg_data_home)! + bundleName + "/.cookies.shared"
         } else {
@@ -385,20 +385,4 @@ class TestHTTPCookieStorage: XCTestCase {
         
         XCTAssertEqual(result, [cookie, cookie3, cookie2])
     }
-    
-    static var allTests: [(String, (TestHTTPCookieStorage) -> () throws -> Void)] {
-        return [
-            ("test_sharedCookieStorageAccessedFromMultipleThreads", test_sharedCookieStorageAccessedFromMultipleThreads),
-            ("test_BasicStorageAndRetrieval", test_BasicStorageAndRetrieval),
-            ("test_deleteCookie", test_deleteCookie),
-            ("test_removeCookies", test_removeCookies),
-            ("test_cookiesForURL", test_cookiesForURL),
-            ("test_cookiesForURLWithMainDocumentURL", test_cookiesForURLWithMainDocumentURL),
-            ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
-            ("test_descriptionCookie", test_descriptionCookie),
-            ("test_cookieDomainMatching", test_cookieDomainMatching),
-            ("test_sorting", test_sorting),
-        ]
-    }
-
 }

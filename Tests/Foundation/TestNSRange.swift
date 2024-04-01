@@ -8,23 +8,6 @@
 //
 
 class TestNSRange : XCTestCase {
-    
-    static var allTests: [(String, (TestNSRange) -> () throws -> Void)] {
-        return [
-            ("test_NSRangeFromString", test_NSRangeFromString ),
-            ("test_NSRangeBridging", test_NSRangeBridging),
-            ("test_NSMaxRange", test_NSMaxRange),
-            ("test_NSLocationInRange", test_NSLocationInRange),
-            ("test_NSEqualRanges", test_NSEqualRanges),
-            ("test_NSUnionRange", test_NSUnionRange),
-            ("test_NSIntersectionRange", test_NSIntersectionRange),
-            ("test_NSStringFromRange", test_NSStringFromRange),
-            ("test_init_region_in_ascii_string", test_init_region_in_ascii_string),
-            ("test_init_region_in_unicode_string", test_init_region_in_unicode_string),
-            ("test_hashing", test_hashing),
-        ]
-    }
-
     func test_NSRangeFromString() {
         let emptyRangeStrings = [
             "",

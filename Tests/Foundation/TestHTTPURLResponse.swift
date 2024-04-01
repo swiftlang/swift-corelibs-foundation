@@ -247,42 +247,4 @@ class TestHTTPURLResponse: XCTestCase {
         XCTAssertEqual(responseA.textEncodingName, responseB.textEncodingName, "Archived then unarchived http url response must be equal.")
         XCTAssertEqual(responseA.suggestedFilename, responseB.suggestedFilename, "Archived then unarchived http url response must be equal.")
     }
-
-    static var allTests: [(String, (TestHTTPURLResponse) -> () throws -> Void)] {
-        return [
-            ("test_URL_and_status_1", test_URL_and_status_1),
-            ("test_URL_and_status_2", test_URL_and_status_2),
-
-            ("test_headerFields_1", test_headerFields_1),
-            ("test_headerFields_2", test_headerFields_2),
-            ("test_headerFields_3", test_headerFields_3),
-
-            ("test_contentLength_available_1", test_contentLength_available_1),
-            ("test_contentLength_available_2", test_contentLength_available_2),
-            ("test_contentLength_available_3", test_contentLength_available_3),
-            ("test_contentLength_available_4", test_contentLength_available_4),
-            ("test_contentLength_notAvailable", test_contentLength_notAvailable),
-            ("test_contentLength_withTransferEncoding", test_contentLength_withTransferEncoding),
-            ("test_contentLength_withContentEncoding", test_contentLength_withContentEncoding),
-            ("test_contentLength_withContentEncodingAndTransferEncoding", test_contentLength_withContentEncodingAndTransferEncoding),
-            ("test_contentLength_withContentEncodingAndTransferEncoding_2", test_contentLength_withContentEncodingAndTransferEncoding_2),
-
-            ("test_suggestedFilename_notAvailable_1", test_suggestedFilename_notAvailable_1),
-            ("test_suggestedFilename_notAvailable_2", test_suggestedFilename_notAvailable_2),
-
-            ("test_suggestedFilename_1", test_suggestedFilename_1),
-            ("test_suggestedFilename_2", test_suggestedFilename_2),
-            ("test_suggestedFilename_3", test_suggestedFilename_3),
-            ("test_suggestedFilename_4", test_suggestedFilename_4),
-            ("test_suggestedFilename_removeSlashes_1", test_suggestedFilename_removeSlashes_1),
-            ("test_suggestedFilename_removeSlashes_2", test_suggestedFilename_removeSlashes_2),
-
-            ("test_MIMETypeAndCharacterEncoding_1", test_MIMETypeAndCharacterEncoding_1),
-            ("test_MIMETypeAndCharacterEncoding_2", test_MIMETypeAndCharacterEncoding_2),
-            ("test_MIMETypeAndCharacterEncoding_3", test_MIMETypeAndCharacterEncoding_3),
-
-            ("test_fieldCapitalisation", test_fieldCapitalisation),
-            ("test_NSCoding", test_NSCoding),
-        ]
-    }
 }

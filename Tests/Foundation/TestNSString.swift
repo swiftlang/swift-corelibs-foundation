@@ -316,7 +316,9 @@ class TestNSString: LoopbackServerTest {
         XCTAssertNil(string)
     }
 
-    func test_FromContentsOfURL() {
+    func test_FromContentsOfURL() throws {
+        throw XCTSkip("Test is flaky in CI: https://bugs.swift.org/browse/SR-10514")
+        #if false
         guard let testFileURL = testBundle().url(forResource: "NSStringTestData", withExtension: "txt") else {
             XCTFail("URL for NSStringTestData.txt is nil")
             return
@@ -354,6 +356,7 @@ class TestNSString: LoopbackServerTest {
             return
         }
         XCTAssertEqual(zeroString, "Some\u{00}text\u{00}with\u{00}NUL\u{00}bytes\u{00}instead\u{00}of\u{00}spaces.\u{00}\n")
+        #endif
     }
 
     func test_FromContentOfFileUsedEncodingIgnored() {
@@ -585,7 +588,9 @@ class TestNSString: LoopbackServerTest {
     }
     
     func test_completePathIntoString() throws {
-
+        #if os(Windows)
+        throw XCTSkip("This test is not supported on Windows")
+        #else
         // Check all strings start with a common prefix
         func startWith(_ prefix: String, strings: [String]) -> Bool {
             return strings.contains { !$0.hasPrefix(prefix) } == false
@@ -784,6 +789,7 @@ class TestNSString: LoopbackServerTest {
             }
             #endif
         }
+        #endif
     }
 
 
@@ -1420,66 +1426,6 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(str4.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\rworld.")
     }
 
-    func test_replacingOccurrencesInSubclass() {
-        // NSMutableString doesnt subclasss correctly
-#if !DARWIN_COMPATIBILITY_TESTS
-        class TestMutableString: NSMutableString {
-            private var wrapped: NSMutableString
-            var replaceCharactersCount: Int = 0
-
-            override var length: Int {
-                return wrapped.length
-            }
-
-            override func character(at index: Int) -> unichar {
-                return wrapped.character(at: index)
-            }
-
-            override func replaceCharacters(in range: NSRange, with aString: String) {
-                defer { replaceCharactersCount += 1 }
-                wrapped.replaceCharacters(in: range, with: aString)
-            }
-
-            override func mutableCopy(with zone: NSZone? = nil) -> Any {
-                return wrapped.mutableCopy()
-            }
-
-            required init(stringLiteral value: StaticString) {
-                wrapped = .init(stringLiteral: value)
-                super.init(stringLiteral: value)
-            }
-
-            required init(capacity: Int) {
-                fatalError("init(capacity:) has not been implemented")
-            }
-
-            required init(string aString: String) {
-                fatalError("init(string:) has not been implemented")
-            }
-
-            required convenience init?(coder aDecoder: NSCoder) {
-                fatalError("init(coder:) has not been implemented")
-            }
-
-            required init(characters: UnsafePointer<unichar>, length: Int) {
-                fatalError("init(characters:length:) has not been implemented")
-            }
-
-            required convenience init(extendedGraphemeClusterLiteral value: StaticString) {
-                fatalError("init(extendedGraphemeClusterLiteral:) has not been implemented")
-            }
-
-            required convenience init(unicodeScalarLiteral value: StaticString) {
-                fatalError("init(unicodeScalarLiteral:) has not been implemented")
-            }
-        }
-
-        let testString = TestMutableString(stringLiteral: "ababab")
-        XCTAssertEqual(testString.replacingOccurrences(of: "ab", with: "xx"), "xxxxxx")
-        XCTAssertEqual(testString.replaceCharactersCount, 3)
-#endif
-    }
-
 
     func test_fileSystemRepresentation() {
         let name = "☃" as NSString
@@ -1778,97 +1724,5 @@ class TestNSString: LoopbackServerTest {
         // Any other value of `c` would violate the null-terminated precondition
         XCTAssertNotNil(str)
         XCTAssertEqual(str?.isEmpty, true)
-    }
-
-    static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
-        var tests = [
-            ("test_initData", test_initData),
-            ("test_boolValue", test_boolValue ),
-            ("test_BridgeConstruction", test_BridgeConstruction),
-            ("test_bridging", test_bridging),
-            ("test_integerValue", test_integerValue ),
-            ("test_intValue", test_intValue ),
-            ("test_doubleValue", test_doubleValue),
-            ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
-            ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
-            ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
-            ("test_FromASCIIData", test_FromASCIIData ),
-            ("test_FromUTF8Data", test_FromUTF8Data ),
-            ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
-            ("test_FromASCIINSData", test_FromASCIINSData ),
-            ("test_FromUTF8NSData", test_FromUTF8NSData ),
-            ("test_FromMalformedUTF8NSData", test_FromMalformedUTF8NSData ),
-            ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
-            ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
-            ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
-            ("test_uppercaseString", test_uppercaseString ),
-            ("test_lowercaseString", test_lowercaseString ),
-            ("test_capitalizedString", test_capitalizedString ),
-            ("test_longLongValue", test_longLongValue ),
-            ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
-            ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
-            
-            /* ⚠️ */ ("test_FromContentsOfURL", testExpectedToFail(test_FromContentsOfURL,
-            /* ⚠️ */     "test_FromContentsOfURL is flaky on CI, with unclear causes. https://bugs.swift.org/browse/SR-10514")),
-
-            ("test_FromContentOfFileUsedEncodingIgnored", test_FromContentOfFileUsedEncodingIgnored),
-            ("test_FromContentOfFileUsedEncodingUTF8", test_FromContentOfFileUsedEncodingUTF8),
-            ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
-            ("test_FromContentsOfURLUsedEncodingUTF16LE", test_FromContentsOfURLUsedEncodingUTF16LE),
-            ("test_FromContentsOfURLUsedEncodingUTF32BE", test_FromContentsOfURLUsedEncodingUTF32BE),
-            ("test_FromContentsOfURLUsedEncodingUTF32LE", test_FromContentsOfURLUsedEncodingUTF32LE),
-            ("test_FromContentOfFile",test_FromContentOfFile),
-            ("test_writeToURLHasBOM_UTF32", test_writeToURLHasBOM_UTF32),
-            ("test_swiftStringUTF16", test_swiftStringUTF16),
-            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
-            ("test_initializeWithFormat", test_initializeWithFormat),
-            ("test_initializeWithFormat2", test_initializeWithFormat2),
-            ("test_initializeWithFormat3", test_initializeWithFormat3),
-            ("test_initializeWithFormat4", test_initializeWithFormat4),
-            ("test_appendingPathComponent", test_appendingPathComponent),
-            ("test_deletingLastPathComponent", test_deletingLastPathComponent),
-            ("test_getCString_simple", test_getCString_simple),
-            ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
-            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
-            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
-            ("test_expandingTildeInPath", test_expandingTildeInPath),
-            ("test_standardizingPath", test_standardizingPath),
-            ("test_addingPercentEncoding", test_addingPercentEncoding),
-            ("test_removingPercentEncodingInLatin", test_removingPercentEncodingInLatin),
-            ("test_removingPercentEncodingInNonLatin", test_removingPercentEncodingInNonLatin),
-            ("test_removingPersentEncodingWithoutEncoding", test_removingPersentEncodingWithoutEncoding),
-            ("test_addingPercentEncodingAndBack", test_addingPercentEncodingAndBack),
-            ("test_stringByAppendingPathExtension", test_stringByAppendingPathExtension),
-            ("test_deletingPathExtension", test_deletingPathExtension),
-            ("test_ExternalRepresentation", test_ExternalRepresentation),
-            ("test_mutableStringConstructor", test_mutableStringConstructor),
-            ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
-            ("test_reflection", test_reflection),
-            ("test_replacingOccurrences", test_replacingOccurrences),
-            ("test_getLineStart", test_getLineStart),
-            ("test_substringWithRange", test_substringWithRange),
-            ("test_substringFromCFString", test_substringFromCFString),
-            ("test_createCopy", test_createCopy),
-            ("test_commonPrefix", test_commonPrefix),
-            ("test_lineRangeFor", test_lineRangeFor),
-            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
-            ("test_enumerateSubstrings", test_enumerateSubstrings),
-            ("test_paragraphRange", test_paragraphRange),
-            ("test_initStringWithNSString", test_initStringWithNSString),
-            ("test_initString_utf8StringWithArrayInput", test_initString_utf8StringWithArrayInput),
-            ("test_initString_utf8StringWithStringInput", test_initString_utf8StringWithStringInput),
-            ("test_initString_utf8StringWithInoutConversion", test_initString_utf8StringWithInoutConversion),
-            ("test_initString_cStringWithArrayInput", test_initString_cStringWithArrayInput),
-            ("test_initString_cStringWithStringInput", test_initString_cStringWithStringInput),
-            ("test_initString_cStringWithInoutConversion", test_initString_cStringWithInoutConversion),
-        ]
-
-#if !os(Windows)
-        // Tests that dont currently work on windows
-        tests += [
-            ("test_completePathIntoString", test_completePathIntoString),
-        ]
-#endif
-        return tests
     }
 }

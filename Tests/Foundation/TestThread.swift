@@ -101,19 +101,29 @@ class TestThread : XCTestCase {
         XCTAssertTrue(ok, "NSCondition wait timed out")
     }
 
-    func test_callStackSymbols() {
+    func test_callStackSymbols() throws {
+        #if os(Android) || os(OpenBSD)
+        throw XCTSkip("Android/OpenBSD doesn't support backtraces at the moment.")
+        #else
         let symbols = Thread.callStackSymbols
         XCTAssertTrue(symbols.count > 0)
         XCTAssertTrue(symbols.count <= 128)
+        #endif
     }
 
-    func test_callStackReturnAddresses() {
+    func test_callStackReturnAddresses() throws {
+        #if os(Android) || os(OpenBSD)
+        throw XCTSkip("Android/OpenBSD doesn't support backtraces at the moment.")
+        #else
         let addresses = Thread.callStackReturnAddresses
         XCTAssertTrue(addresses.count > 0)
         XCTAssertTrue(addresses.count <= 128)
+        #endif
     }
     
-    func test_sleepForTimeInterval() {
+    func test_sleepForTimeInterval() throws {
+        throw XCTSkip("https://bugs.swift.org/browse/SR-15817")
+        #if false
         let measureOversleep = { (timeInterval: TimeInterval) -> TimeInterval in
             let start = Date()
             Thread.sleep(forTimeInterval: timeInterval)
@@ -134,9 +144,12 @@ class TestThread : XCTestCase {
 
         let oversleep3 = measureOversleep(TimeInterval(1.0))
         XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
+        #endif
     }
 
-    func test_sleepUntilDate() {
+    func test_sleepUntilDate() throws {
+        throw XCTSkip("https://bugs.swift.org/browse/SR-15489")
+        #if false
         let measureOversleep = { (date: Date) -> TimeInterval in
             Thread.sleep(until: date)
             return -date.timeIntervalSinceNow
@@ -152,30 +165,6 @@ class TestThread : XCTestCase {
 
         let oversleep3 = measureOversleep(Date(timeIntervalSinceNow: 1.0))
         XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
-    }
-
-    static var allTests: [(String, (TestThread) -> () throws -> Void)] {
-        let tests: [(String, (TestThread) -> () throws -> Void)] = [
-            ("test_currentThread", test_currentThread),
-            ("test_threadStart", test_threadStart),
-            ("test_mainThread", test_mainThread),
-            ("test_callStackSymbols", testExpectedToFailOnOpenBSD(
-		    testExpectedToFailOnAndroid(
-		        test_callStackSymbols,
-		    "Android doesn't support backtraces at the moment."),
-		"And not currently on OpenBSD.")),
-            ("test_callStackReturnAddresses", testExpectedToFailOnOpenBSD(
-                    testExpectedToFailOnAndroid(
-			test_callStackReturnAddresses,
-                    "Android doesn't support backtraces at the moment."),
-		"And not currently on OpenBSD.")),
-            ("test_sleepForTimeInterval",
-                testExpectedToFail(test_sleepForTimeInterval, "https://bugs.swift.org/browse/SR-15817")),
-            ("test_sleepUntilDate",
-                testExpectedToFail(test_sleepUntilDate, "https://bugs.swift.org/browse/SR-15489")),
-            ("test_threadName", test_threadName),
-        ]
-
-        return tests
+        #endif
     }
 }

@@ -26,19 +26,6 @@ struct SwiftStruct {}
 enum SwiftEnum {}
 
 class TestObjCRuntime: XCTestCase {
-    static var allTests: [(String, (TestObjCRuntime) -> () throws -> Void)] {
-        var tests: [(String, (TestObjCRuntime) -> () throws -> Void)] = [
-            ("testStringFromClass", testStringFromClass),
-            ("testClassFromString", testClassFromString),
-        ]
-        
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(("testClassesRenamedByAPINotes", testClassesRenamedByAPINotes))
-        #endif
-        
-        return tests
-    }
-
     func testStringFromClass() {
         let name = testBundleName()
         XCTAssertEqual(NSStringFromClass(NSObject.self), "NSObject")

@@ -264,27 +264,6 @@ class TestStream : XCTestCase {
         XCTAssertEqual(.error, outputStream!.streamStatus)
     }
     
-    static var allTests: [(String, (TestStream) -> () throws -> Void)] {
-        var tests: [(String, (TestStream) -> () throws -> Void)] = [
-            ("test_InputStreamWithData", test_InputStreamWithData),
-            ("test_InputStreamWithUrl", test_InputStreamWithUrl),
-            ("test_InputStreamWithFile", test_InputStreamWithFile),
-            ("test_InputStreamHasBytesAvailable", test_InputStreamHasBytesAvailable),
-            ("test_InputStreamInvalidPath", test_InputStreamInvalidPath),
-            ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
-            ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
-            ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
-            ("test_outputStreamCreationToMemory", test_outputStreamCreationToMemory),
-            ("test_outputStreamHasSpaceAvailable", test_outputStreamHasSpaceAvailable),
-            ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
-        ]
-        
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(("test_InputStreamSeekToPosition", test_InputStreamSeekToPosition))
-        #endif
-        return tests
-    }
-    
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {

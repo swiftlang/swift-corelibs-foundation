@@ -105,12 +105,4 @@ class TestSocketPort : XCTestCase {
             waitForExpectations(timeout: 5.5)
         }
     }
-    
-    static var allTests: [(String, (TestSocketPort) -> () throws -> Void)] {
-        return [
-            ("testRemoteSocketPortsAreUniqued", testRemoteSocketPortsAreUniqued),
-            ("testInitPicksATCPPort", testInitPicksATCPPort),
-            ("testSendingOneMessageRemoteToLocal", testSendingOneMessageRemoteToLocal),
-        ]
-    }
 }

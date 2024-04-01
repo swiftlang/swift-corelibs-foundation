@@ -8,38 +8,6 @@
 //
 
 class TestNSNumber : XCTestCase {
-    static var allTests: [(String, (TestNSNumber) -> () throws -> Void)] {
-        return [
-            ("test_NumberWithBool", test_NumberWithBool ),
-            ("test_CFBoolean", test_CFBoolean ),
-            ("test_numberWithChar", test_numberWithChar ),
-            ("test_numberWithUnsignedChar", test_numberWithUnsignedChar ),
-            ("test_numberWithShort", test_numberWithShort ),
-            ("test_numberWithUnsignedShort", test_numberWithUnsignedShort ),
-            ("test_numberWithLong", test_numberWithLong ),
-            ("test_numberWithUnsignedLong", test_numberWithUnsignedLong ),
-            ("test_numberWithLongLong", test_numberWithLongLong ),
-            ("test_numberWithUnsignedLongLong", test_numberWithUnsignedLongLong ),
-            ("test_numberWithInt", test_numberWithInt ),
-            ("test_numberWithUInt", test_numberWithUInt ),
-            ("test_numberWithFloat", test_numberWithFloat ),
-            ("test_numberWithDouble", test_numberWithDouble ),
-            ("test_compareNumberWithBool", test_compareNumberWithBool ),
-            ("test_compareNumberWithChar", test_compareNumberWithChar ),
-            ("test_compareNumberWithUnsignedChar", test_compareNumberWithUnsignedChar ),
-            ("test_compareNumberWithShort", test_compareNumberWithShort ),
-            ("test_compareNumberWithFloat", test_compareNumberWithFloat ),
-            ("test_compareNumberWithDouble", test_compareNumberWithDouble ),
-            ("test_description", test_description ),
-            ("test_descriptionWithLocale", test_descriptionWithLocale ),
-            ("test_objCType", test_objCType ),
-            ("test_stringValue", test_stringValue),
-            ("test_Equals", test_Equals),
-            ("test_boolValue", test_boolValue),
-            ("test_hash", test_hash),
-        ]
-    }
-    
     func test_NumberWithBool() {
         XCTAssertEqual(NSNumber(value: true).boolValue, true)
         XCTAssertEqual(NSNumber(value: true).int8Value, Int8(1))

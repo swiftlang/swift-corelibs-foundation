@@ -10,18 +10,6 @@
 class TestLengthFormatter: XCTestCase {
     let formatter: LengthFormatter = LengthFormatter()
     
-    static var allTests: [(String, (TestLengthFormatter) -> () throws -> Void)] {
-        return [
-            ("test_stringFromMetersUS", test_stringFromMetersUS),
-            ("test_stringFromMetersUSPersonHeight", test_stringFromMetersUSPersonHeight),
-            ("test_stringFromMetersMetric", test_stringFromMetersMetric),
-            ("test_stringFromMetersMetricPersonHeight", test_stringFromMetersMetricPersonHeight),
-            ("test_stringFromValue", test_stringFromValue),
-            ("test_unitStringFromMeters", test_unitStringFromMeters),
-            ("test_unitStringFromValue", test_unitStringFromValue)
-        ]
-    }
-
     override func setUp() {
         formatter.numberFormatter.locale = Locale(identifier: "en_US")
         formatter.isForPersonHeightUse = false

@@ -504,42 +504,4 @@ class TestNSOrderedSet : XCTestCase {
             try fixture.assertLoadedValuesMatch()
         }
     }
-    
-    static var allTests: [(String, (TestNSOrderedSet) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_Enumeration", test_Enumeration),
-            ("test_Uniqueness", test_Uniqueness),
-            ("test_reversedEnumeration", test_reversedEnumeration),
-            ("test_reversedOrderedSet", test_reversedOrderedSet),
-            ("test_reversedEmpty", test_reversedEmpty),
-            ("test_ObjectAtIndex", test_ObjectAtIndex),
-            ("test_ObjectsAtIndexes", test_ObjectsAtIndexes),
-            ("test_FirstAndLastObjects", test_FirstAndLastObjects),
-            ("test_AddObject", test_AddObject),
-            ("test_AddObjects", test_AddObjects),
-            ("test_RemoveAllObjects", test_RemoveAllObjects),
-            ("test_RemoveObject", test_RemoveObject),
-            ("test_RemoveObjectAtIndex", test_RemoveObjectAtIndex),
-            ("test_IsEqualToOrderedSet", test_IsEqualToOrderedSet),
-            ("test_Subsets", test_Subsets),
-            ("test_ReplaceObject", test_ReplaceObject),
-            ("test_ExchangeObjects", test_ExchangeObjects),
-            ("test_MoveObjects", test_MoveObjects),
-            ("test_InsertObjects", test_InsertObjects),
-            ("test_Insert", test_Insert),
-            ("test_SetObjectAtIndex", test_SetObjectAtIndex),
-            ("test_RemoveObjectsInRange", test_RemoveObjectsInRange),
-            ("test_ReplaceObjectsAtIndexes", test_ReplaceObjectsAtIndexes),
-            ("test_Intersection", test_Intersection),
-            ("test_Subtraction", test_Subtraction),
-            ("test_Union", test_Union),
-            ("test_Initializers", test_Initializers),
-            ("test_Sorting", test_Sorting),
-            ("test_reversedEnumerationMutable", test_reversedEnumerationMutable),
-            ("test_reversedOrderedSetMutable", test_reversedOrderedSetMutable),
-            ("test_codingRoundtrip", test_codingRoundtrip),
-            ("test_loadedValuesMatch", test_loadedValuesMatch),
-        ]
-    }
 }

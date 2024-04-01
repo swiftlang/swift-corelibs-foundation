@@ -176,25 +176,4 @@ class TestURLResponse : XCTestCase {
         XCTAssertNotEqual(response1.hash, response3.hash)
         XCTAssertNotEqual(response2.hash, response3.hash)
     }
-
-    static var allTests: [(String, (TestURLResponse) -> () throws -> Void)] {
-        return [
-            ("test_URL", test_URL),
-            ("test_MIMEType", test_MIMEType),
-            ("test_ExpectedContentLength", test_ExpectedContentLength),
-            ("test_TextEncodingName", test_TextEncodingName),
-            ("test_suggestedFilename_1", test_suggestedFilename_1),
-            ("test_suggestedFilename_2", test_suggestedFilename_2),
-            ("test_suggestedFilename_3", test_suggestedFilename_3),
-            ("test_copywithzone", test_copyWithZone),
-            ("test_NSCoding", test_NSCoding),
-            ("test_equalWithTheSameInstance", test_equalWithTheSameInstance),
-            ("test_equalWithUnrelatedObject", test_equalWithUnrelatedObject),
-            ("test_equalCheckingURL", test_equalCheckingURL),
-            ("test_equalCheckingMimeType", test_equalCheckingMimeType),
-            ("test_equalCheckingExpectedContentLength", test_equalCheckingExpectedContentLength),
-            ("test_equalCheckingTextEncodingName", test_equalCheckingTextEncodingName),
-            ("test_hash", test_hash),
-        ]
-    }
 }

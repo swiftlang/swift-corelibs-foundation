@@ -33,8 +33,4 @@ class TestUnitInformationStorage: XCTestCase {
             "Conversion from bits to gibibits"
         )
     }
-
-    static let allTests = [
-        ("testUnitInformationStorage", testUnitInformationStorage),
-    ]
 }

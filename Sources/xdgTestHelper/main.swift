@@ -49,9 +49,7 @@ class XDGCheck {
         storage.setCookie(simpleCookie)
         let fm = FileManager.default
 
-        guard let bundleName = Bundle.main.infoDictionary?["CFBundleName"] as? String else {
-            exit(HelperCheckStatus.fail.rawValue)
-        }
+        let bundleName = Bundle.main.bundlePath.split(separator: "/").last!.prefix(while: { $0 != "." })
         let destPath = xdg_data_home + "/" + bundleName + "/.cookies.shared"
         var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir)

@@ -8,17 +8,6 @@
 //
 
 class TestNSLocale : XCTestCase {
-    static var allTests: [(String, (TestNSLocale) -> () throws -> Void)] {
-        return [
-            ("test_constants", test_constants),
-            ("test_Identifier", test_Identifier),
-            ("test_copy", test_copy),
-            ("test_hash", test_hash),
-            ("test_staticProperties", test_staticProperties),
-            ("test_localeProperties", test_localeProperties),
-        ]
-    }
-
     func test_Identifier() {
         // Current locale identifier should not be empty
         // Or things like NumberFormatter spellOut style won't work

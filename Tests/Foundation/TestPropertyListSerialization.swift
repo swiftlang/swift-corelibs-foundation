@@ -8,15 +8,6 @@
 //
 
 class TestPropertyListSerialization : XCTestCase {
-    static var allTests: [(String, (TestPropertyListSerialization) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_decodeData", test_decodeData),
-            ("test_decodeStream", test_decodeStream),
-	    ("test_decodeEmptyData", test_decodeEmptyData),
-        ]
-    }
-    
     func test_BasicConstruction() {
         let dict = NSMutableDictionary(capacity: 0)
 //        dict["foo"] = "bar"

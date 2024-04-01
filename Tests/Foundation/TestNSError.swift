@@ -12,32 +12,6 @@ struct SwiftCustomNSError: Error, CustomNSError {
 
 class TestNSError : XCTestCase {
     
-    static var allTests: [(String, (TestNSError) -> () throws -> Void)] {
-        var tests: [(String, (TestNSError) -> () throws -> Void)] = [
-            ("test_LocalizedError_errorDescription", test_LocalizedError_errorDescription),
-            ("test_NSErrorAsError_localizedDescription", test_NSErrorAsError_localizedDescription),
-            ("test_NSError_inDictionary", test_NSError_inDictionary),
-            ("test_CustomNSError_domain", test_CustomNSError_domain),
-            ("test_CustomNSError_userInfo", test_CustomNSError_userInfo),
-            ("test_CustomNSError_errorCode", test_CustomNSError_errorCode),
-            ("test_CustomNSError_errorCodeRawInt", test_CustomNSError_errorCodeRawInt),
-            ("test_CustomNSError_errorCodeRawUInt", test_CustomNSError_errorCodeRawUInt),
-            ("test_errorConvenience", test_errorConvenience),
-        ]
-        
-        #if !canImport(ObjectiveC) || DARWIN_COMPATIBILITY_TESTS
-        tests.append(contentsOf: [
-            ("test_ConvertErrorToNSError_domain", test_ConvertErrorToNSError_domain),
-            ("test_ConvertErrorToNSError_errorCode", test_ConvertErrorToNSError_errorCode),
-            ("test_ConvertErrorToNSError_errorCodeRawInt", test_ConvertErrorToNSError_errorCodeRawInt),
-            ("test_ConvertErrorToNSError_errorCodeRawUInt", test_ConvertErrorToNSError_errorCodeRawUInt),
-            ("test_ConvertErrorToNSError_errorCodeWithAssosiatedValue", test_ConvertErrorToNSError_errorCodeWithAssosiatedValue),
-        ])
-        #endif
-        
-        return tests
-    }
-    
     func test_LocalizedError_errorDescription() {
         struct Error : LocalizedError {
             var errorDescription: String? { return "error description" }
@@ -106,14 +80,11 @@ class TestNSError : XCTestCase {
     func test_errorConvenience() {
         let error = CocoaError.error(.fileReadNoSuchFile, url: URL(fileURLWithPath: #file))
 
-        if let nsError = error as? NSError {
-            XCTAssertEqual(nsError._domain, NSCocoaErrorDomain)
-            XCTAssertEqual(nsError._code, CocoaError.fileReadNoSuchFile.rawValue)
-            if let filePath = nsError.userInfo[NSURLErrorKey] as? URL {
-                XCTAssertEqual(filePath, URL(fileURLWithPath: #file))
-            } else {
-                XCTFail()
-            }
+        let nsError = error as NSError
+        XCTAssertEqual(nsError._domain, NSCocoaErrorDomain)
+        XCTAssertEqual(nsError._code, CocoaError.fileReadNoSuchFile.rawValue)
+        if let filePath = nsError.userInfo[NSURLErrorKey] as? URL {
+            XCTAssertEqual(filePath, URL(fileURLWithPath: #file))
         } else {
             XCTFail()
         }
@@ -179,15 +150,6 @@ class TestNSError : XCTestCase {
 }
 
 class TestURLError: XCTestCase {
-
-    static var allTests: [(String, (TestURLError) -> () throws -> Void)] {
-        return [
-          ("test_errorCode", TestURLError.test_errorCode),
-          ("test_failingURL", TestURLError.test_failingURL),
-          ("test_failingURLString", TestURLError.test_failingURLString),
-        ]
-    }
-
     static let testURL = URL(string: "https://swift.org")!
     let userInfo: [String: Any] =  [
         NSURLErrorFailingURLErrorKey: TestURLError.testURL,
@@ -214,22 +176,12 @@ class TestURLError: XCTestCase {
 
 class TestCocoaError: XCTestCase {
 
-    static var allTests: [(String, (TestCocoaError) -> () throws -> Void)] {
-        return [
-            ("test_errorCode", TestCocoaError.test_errorCode),
-            ("test_filePath", TestCocoaError.test_filePath),
-            ("test_url", TestCocoaError.test_url),
-            ("test_stringEncoding", TestCocoaError.test_stringEncoding),
-            ("test_underlying", TestCocoaError.test_underlying),
-        ]
-    }
-
     static let testURL = URL(string: "file:///")!
     let userInfo: [String: Any] =  [
         NSURLErrorKey: TestCocoaError.testURL,
         NSFilePathErrorKey: TestCocoaError.testURL.path,
         NSUnderlyingErrorKey: POSIXError(.EACCES),
-        NSStringEncodingErrorKey: String.Encoding.utf16.rawValue,
+        NSStringEncodingErrorKey: Int(String.Encoding.utf16.rawValue),
     ]
 
     func test_errorCode() {
@@ -253,9 +205,9 @@ class TestCocoaError: XCTestCase {
     }
 
     func test_url() {
-        let e = CocoaError(.fileReadNoSuchFile, userInfo: userInfo)
-        XCTAssertNotNil(e.url)
         // TODO: Re-enable once Foundation.URL is ported from FoundationEssentials
+        // let e = CocoaError(.fileReadNoSuchFile, userInfo: userInfo)
+        // XCTAssertNotNil(e.url)
         // XCTAssertEqual(e.url, TestCocoaError.testURL)
     }
 

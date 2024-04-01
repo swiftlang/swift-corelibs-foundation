@@ -512,21 +512,4 @@ class TestScanner : XCTestCase {
         // Check a normal scanner has no locale set
         XCTAssertNil(Scanner(string: "foo").locale)
     }
-
-    static var allTests: [(String, (TestScanner) -> () throws -> Void)] {
-        return [
-            ("testScanFloatingPoint", testScanFloatingPoint),
-            ("testHexRepresentation", testHexRepresentation),
-            ("testHexFloatingPoint", testHexFloatingPoint),
-            ("testUInt64", testUInt64),
-            ("testInt64", testInt64),
-            ("testInt32", testInt32),
-            ("testScanCharacter", testScanCharacter),
-            ("testScanString", testScanString),
-            ("testScanUpToString", testScanUpToString),
-            ("testScanCharactersFromSet", testScanCharactersFromSet),
-            ("testScanUpToCharactersFromSet", testScanUpToCharactersFromSet),
-            ("testLocalizedScanner", testLocalizedScanner),
-        ]
-    }
 }

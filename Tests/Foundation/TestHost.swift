@@ -8,15 +8,6 @@
 //
 
 class TestHost: XCTestCase {
-    
-    static var allTests: [(String, (TestHost) -> () throws -> Void)] {
-        return [
-            ("test_addressesDoNotGrow", test_addressesDoNotGrow),
-            ("test_isEqual", test_isEqual),
-            ("test_localNamesNonEmpty", test_localNamesNonEmpty),
-        ]
-    }
-    
     // SR-6391
     func test_addressesDoNotGrow() {
         let local = Host.current()

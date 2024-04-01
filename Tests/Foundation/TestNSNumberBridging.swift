@@ -8,26 +8,6 @@
 //
 
 class TestNSNumberBridging : XCTestCase {
-    static var allTests: [(String, (TestNSNumberBridging) -> () throws -> Void)] {
-        return [
-            ("testNSNumberBridgeFromInt8", testNSNumberBridgeFromInt8),
-            ("testNSNumberBridgeFromUInt8", testNSNumberBridgeFromUInt8),
-            ("testNSNumberBridgeFromInt16", testNSNumberBridgeFromInt16),
-            ("testNSNumberBridgeFromUInt16", testNSNumberBridgeFromUInt16),
-            ("testNSNumberBridgeFromInt32", testNSNumberBridgeFromInt32),
-            ("testNSNumberBridgeFromUInt32", testNSNumberBridgeFromUInt32),
-            ("testNSNumberBridgeFromInt64", testNSNumberBridgeFromInt64),
-            ("testNSNumberBridgeFromUInt64", testNSNumberBridgeFromUInt64),
-            ("testNSNumberBridgeFromInt", testNSNumberBridgeFromInt),
-            ("testNSNumberBridgeFromUInt", testNSNumberBridgeFromUInt),
-            ("testNSNumberBridgeFromFloat", testNSNumberBridgeFromFloat),
-            ("testNSNumberBridgeFromDouble", testNSNumberBridgeFromDouble),
-            ("test_numericBitPatterns_to_floatingPointTypes", test_numericBitPatterns_to_floatingPointTypes),
-            ("testNSNumberBridgeAnyHashable", testNSNumberBridgeAnyHashable),
-            ("testNSNumberToBool", testNSNumberToBool),
-        ]
-    }
-
     func testFloat(_ lhs: Float?, _ rhs: Float?, file: String = #file, line: UInt = #line) {
         let message = "\(file):\(line) \(String(describing: lhs)) != \(String(describing: rhs)) Float"
         if let lhsValue = lhs {

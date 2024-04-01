@@ -8,18 +8,6 @@
 //
 
 class TestNSLock: XCTestCase {
-    static var allTests: [(String, (TestNSLock) -> () throws -> Void)] {
-        return [
-
-            ("test_lockWait", test_lockWait),
-            ("test_threadsAndLocks", test_threadsAndLocks),
-            ("test_recursiveLock", test_recursiveLock),
-            ("test_withLock", test_withLock),
-            
-        ]
-    }
-
-
     func test_lockWait() {
         let condition = NSCondition()
         let lock = NSLock()

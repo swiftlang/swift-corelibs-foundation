@@ -38,14 +38,6 @@ private func assert(equal: Bool,
 }
 
 class TestPersonNameComponents : XCTestCase {
-    
-    static var allTests: [(String, (TestPersonNameComponents) -> () throws -> Void)] {
-        return [
-            ("testCopy", testCopy),
-            ("testEquality", testEquality),
-        ]
-    }
-    
     func testCopy() {
         let original = NSPersonNameComponents()
         original.givenName = "Maria"

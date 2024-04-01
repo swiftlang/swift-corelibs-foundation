@@ -278,20 +278,4 @@ class TestURLComponents: XCTestCase {
         let c6 = URLComponents(string: "http://swift.org:80/foo/b%20r")
         XCTAssertEqual(c6?.percentEncodedPath, "/foo/b%20r")
     }
-
-    static var allTests: [(String, (TestURLComponents) -> () throws -> Void)] {
-        return [
-            ("test_queryItems", test_queryItems),
-            ("test_percentEncodedQueryItems", test_percentEncodedQueryItems),
-            ("test_string", test_string),
-            ("test_port", test_portSetter),
-            ("test_url", test_url),
-            ("test_copy", test_copy),
-            ("test_hash", test_hash),
-            ("test_createURLWithComponents", test_createURLWithComponents),
-            ("test_createURLWithComponentsPercentEncoded", test_createURLWithComponentsPercentEncoded),
-            ("test_path", test_path),
-            ("test_percentEncodedPath", test_percentEncodedPath),
-        ]
-    }
 }

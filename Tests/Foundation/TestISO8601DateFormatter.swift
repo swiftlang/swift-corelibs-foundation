@@ -348,16 +348,4 @@ class TestISO8601DateFormatter: XCTestCase {
         XCTAssertFalse(original.formatOptions.contains(.withFractionalSeconds))
         XCTAssertTrue(copied.formatOptions.contains(.withFractionalSeconds))
     }
-    
-    static var allTests : [(String, (TestISO8601DateFormatter) -> () throws -> Void)] {
-        
-        return [
-            ("test_stringFromDate", test_stringFromDate),
-            ("test_dateFromString", test_dateFromString),
-            ("test_stringFromDateClass", test_stringFromDateClass),
-            ("test_codingRoundtrip", test_codingRoundtrip),
-            ("test_loadingFixtures", test_loadingFixtures),
-            ("test_copy", test_copy),
-        ]
-    }
 }
