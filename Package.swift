@@ -75,10 +75,10 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/apple/swift-foundation-icu",
-            exact: "0.0.5"),
+            from: "0.0.5"),
         .package(
            url: "https://github.com/apple/swift-foundation",
-           revision: "543bd69d7dc6a077e1fae856002cf0d169bb9652"
+           revision: "30fcfba9548682c3574e7b55f569233fd996bf40"
         ),
     ],
     targets: [
