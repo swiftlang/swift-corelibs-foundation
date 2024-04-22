@@ -40,8 +40,12 @@ extension URLCredential {
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
 open class URLCredential : NSObject, NSSecureCoding, NSCopying {
-    private var _user : String
-    private var _password : String
+    private var _user : String?
+    private var _password : String?
+    // _privateClientKey contains the private client key in DER format
+    private var _privateClientKey: Data?
+    // _privateClientCertificate contains the private client certificate in DER format
+    private var _privateClientCertificate: Data?
     private var _persistence : Persistence
     
     /*!
@@ -55,6 +59,25 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     public init(user: String, password: String, persistence: Persistence) {
         _user = user
         _password = password
+        _privateClientKey = nil
+        _privateClientCertificate = nil
+        _persistence = persistence
+        super.init()
+    }
+
+    /*!
+        @method initWithUser:password:persistence:
+        @abstract Initialize a URLCredential with a user and password
+        @param user the username
+        @param password the password
+        @param persistence enum that says to store per session, permanently or not at all
+        @result The initialized URLCredential
+     */
+    public init(clientKey: Data, clientCertificate: Data, persistence: Persistence) {
+        _user = nil
+        _password = nil
+        _privateClientKey = clientKey
+        _privateClientCertificate = clientCertificate
         _persistence = persistence
         super.init()
     }
@@ -76,24 +99,34 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
         func bridgeString(_ value: NSString) -> String? {
             return String._unconditionallyBridgeFromObjectiveC(value)
         }
-        
-        let encodedUser = aDecoder.decodeObject(forKey: "NS._user") as! NSString
-        self._user = bridgeString(encodedUser)!
-        
-        let encodedPassword = aDecoder.decodeObject(forKey: "NS._password") as! NSString
-        self._password = bridgeString(encodedPassword)!
-        
-        let encodedPersistence = aDecoder.decodeObject(forKey: "NS._persistence") as! NSNumber
-        self._persistence = Persistence(rawValue: encodedPersistence.uintValue)!
+
+        if let encodedUser = aDecoder.decodeObject(forKey: "NS._user") as? NSString {
+            self._user = bridgeString(encodedUser)!
+        }
+
+        if let encodedPassword = aDecoder.decodeObject(forKey: "NS._password") as? NSString {
+            self._password = bridgeString(encodedPassword)!
+        }
+
+        if let encodedPersistence = aDecoder.decodeObject(forKey: "NS._persistence") as? NSNumber {
+            self._persistence = Persistence(rawValue: encodedPersistence.uintValue)!
+        } else {
+            self._persistence = Persistence.none
+        }
     }
     
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        
-        aCoder.encode(self._user._bridgeToObjectiveC(), forKey: "NS._user")
-        aCoder.encode(self._password._bridgeToObjectiveC(), forKey: "NS._password")
+
+        if let user = self._user {
+            aCoder.encode(user._bridgeToObjectiveC(), forKey: "NS._user")
+        }
+        if let password = self._password {
+            aCoder.encode(password._bridgeToObjectiveC(), forKey: "NS._password")
+        }
+
         aCoder.encode(self._persistence.rawValue._bridgeToObjectiveC(), forKey: "NS._persistence")
     }
     
@@ -142,6 +175,20 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
     open var password: String? { return _password }
 
     /*!
+        @method privateClientKey
+        @abstract Get the private client key
+        @result The private key binary blob
+     */
+    open var privateClientKey: Data? { return _privateClientKey }
+
+    /*!
+        @method privateClientCertificate
+        @abstract Get the private client key
+        @result The private key binary blob
+     */
+    open var privateClientCertificate: Data? { return _privateClientCertificate }
+
+    /*!
         @method hasPassword
         @abstract Find out if this credential has a password, without trying to get it
         @result YES if this credential has a password, otherwise NO
@@ -152,6 +199,6 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
      */
     open var hasPassword: Bool {
         // Currently no support for SecTrust/SecIdentity, always return true
-        return true
+        return _password != nil
     }
 }
