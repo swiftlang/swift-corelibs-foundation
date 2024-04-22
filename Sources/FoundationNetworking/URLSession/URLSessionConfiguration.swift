@@ -75,9 +75,10 @@ open class URLSessionConfiguration : NSObject, NSCopying {
                   urlCredentialStorage: .shared,
                   urlCache: .shared,
                   shouldUseExtendedBackgroundIdleMode: false,
-                  protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self, _WebSocketURLProtocol.self])
+                  protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self, _WebSocketURLProtocol.self],
+                  clientCredential: nil)
     }
-    
+
     private init(identifier: String?,
                  requestCachePolicy: URLRequest.CachePolicy,
                  timeoutIntervalForRequest: TimeInterval,
@@ -95,7 +96,8 @@ open class URLSessionConfiguration : NSObject, NSCopying {
                  urlCredentialStorage: URLCredentialStorage?,
                  urlCache: URLCache?,
                  shouldUseExtendedBackgroundIdleMode: Bool,
-                 protocolClasses: [AnyClass]?)
+                 protocolClasses: [AnyClass]?,
+                 clientCredential: URLCredential?)
     {
         self.identifier = identifier
         self.requestCachePolicy = requestCachePolicy
@@ -115,6 +117,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         self.urlCache = urlCache
         self.shouldUseExtendedBackgroundIdleMode = shouldUseExtendedBackgroundIdleMode
         self.protocolClasses = protocolClasses
+        self.clientCredential = clientCredential
     }
     
     open override func copy() -> Any {
@@ -140,7 +143,8 @@ open class URLSessionConfiguration : NSObject, NSCopying {
             urlCredentialStorage: urlCredentialStorage,
             urlCache: urlCache,
             shouldUseExtendedBackgroundIdleMode: shouldUseExtendedBackgroundIdleMode,
-            protocolClasses: protocolClasses)
+            protocolClasses: protocolClasses,
+            clientCredential: clientCredential)
     }
     
     open class var `default`: URLSessionConfiguration {
@@ -258,6 +262,8 @@ open class URLSessionConfiguration : NSObject, NSCopying {
      @available(*, unavailable, message: "Not available on non-Darwin platforms")
      open var multipathServiceType: URLSessionConfiguration.MultipathServiceType { NSUnsupported() }
 
+    /* Optional client credential to be used when connecting to servers */
+    open var clientCredential: URLCredential?
 }
 
 @available(*, unavailable, message: "Not available on non-Darwin platforms")

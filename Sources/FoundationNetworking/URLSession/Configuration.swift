@@ -78,6 +78,9 @@ internal extension URLSession {
         let shouldUseExtendedBackgroundIdleMode: Bool
         
         let protocolClasses: [AnyClass]?
+
+        /// The credentials to use for connecting to servers
+        let clientCredential: URLCredential?
     }
 }
 internal extension URLSession._Configuration {
@@ -100,6 +103,7 @@ internal extension URLSession._Configuration {
         urlCache = config.urlCache
         shouldUseExtendedBackgroundIdleMode = config.shouldUseExtendedBackgroundIdleMode
         protocolClasses = config.protocolClasses
+        clientCredential = config.clientCredential
     }
 }
 
