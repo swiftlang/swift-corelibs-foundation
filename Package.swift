@@ -78,7 +78,7 @@ let package = Package(
             from: "0.0.5"),
         .package(
            url: "https://github.com/apple/swift-foundation",
-           revision: "30fcfba9548682c3574e7b55f569233fd996bf40"
+           revision: "512befd01fc17c2c9cfe2ecdfec568f342c19d36"
         ),
     ],
     targets: [
