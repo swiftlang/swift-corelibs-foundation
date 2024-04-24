@@ -24,7 +24,7 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    private init(indexes: [Int]) {
+    internal init(indexes: [Int]) {
         _indexes = indexes
     }
     
