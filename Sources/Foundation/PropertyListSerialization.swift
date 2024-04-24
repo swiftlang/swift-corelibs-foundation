@@ -23,12 +23,7 @@ extension PropertyListSerialization {
         public static let mutableContainersAndLeaves = MutabilityOptions(rawValue: 2)
     }
 
-    public enum PropertyListFormat : UInt {
-        
-        case openStep = 1
-        case xml = 100
-        case binary = 200
-    }
+    public typealias PropertyListFormat = PropertyListDecoder.PropertyListFormat
 
     public typealias ReadOptions = MutabilityOptions
     public typealias WriteOptions = Int
