@@ -364,6 +364,7 @@ open class Process: NSObject {
     fileprivate weak var runLoop : RunLoop? = nil
     
     private var processLaunchedCondition = NSCondition()
+    private var processTerminatedCondition = NSCondition()
     
     // Actions
     
@@ -615,42 +616,20 @@ open class Process: NSObject {
             }
             process.processLaunchedCondition.unlock()
 
-            WaitForSingleObject(process.processHandle, WinSDK.INFINITE)
-
-            // On Windows, the top nibble of an NTSTATUS indicates severity, with
-            // the top two bits both being set (0b11) indicating an error. In
-            // addition, in a well formed NTSTATUS, the 4th bit must be 0.
-            // The third bit indicates if the error is a Microsoft defined error
-            // and may or may not be set.
-            //
-            // If we receive such an error, we'll indicate that the process
-            // exited abnormally (confusingly indicating "signalled" so we match
-            // POSIX behaviour for abnormal exits).
-            //
-            // However, we don't want user programs which normally exit -1, -2,
-            // etc to count as exited abnormally, so we specifically check for a
-            // top nibble of 0b11_0 so that e.g. 0xFFFFFFFF, won't trigger an
-            // abnormal exit.
-            //
-            // Additionally, on Windows, an uncaught signal terminates the
-            // program with the magic exit code 3, regardless of the signal (I'd
-            // personally love to know the reason for this). So we also consider
-            // 3 to be an abnormal exit.
-            var dwExitCode: DWORD = 0
-            GetExitCodeProcess(process.processHandle, &dwExitCode)
-            if (dwExitCode & 0xF0000000) == 0x80000000      // HRESULT
-            || (dwExitCode & 0xF0000000) == 0xC0000000      // NTSTATUS
-            || (dwExitCode & 0xF0000000) == 0xE0000000      // NTSTATUS (Customer)
-            || dwExitCode == 3 {
-                process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
-                process._terminationReason = .uncaughtSignal
-            } else {
-                process._terminationStatus = Int32(bitPattern: UInt32(dwExitCode))
-                process._terminationReason = .exit
+            // Handle the child process termination if this callback
+            // gets invoked and reaches here first against the other
+            // threads that call waitUntilExit
+            var handleTermination = false
+            process.processTerminatedCondition.lock()
+            if !process.isTerminated  {
+                process.isTerminated = true
+                handleTermination = true
             }
-
-            // Signal waitUntilExit() and optionally invoke termination handler.
-            process.terminateRunLoop()
+            process.processTerminatedCondition.unlock()
+            if !handleTermination {
+                return
+            }
+            process.waitForTermination()
 
             CFSocketInvalidate(socket)
         }, &context)
@@ -1014,6 +993,45 @@ open class Process: NSObject {
 #endif
     }
 
+    private func waitForTermination() {
+        WaitForSingleObject(self.processHandle, WinSDK.INFINITE)
+
+        // On Windows, the top nibble of an NTSTATUS indicates severity, with
+        // the top two bits both being set (0b11) indicating an error. In
+        // addition, in a well formed NTSTATUS, the 4th bit must be 0.
+        // The third bit indicates if the error is a Microsoft defined error
+        // and may or may not be set.
+        //
+        // If we receive such an error, we'll indicate that the process
+        // exited abnormally (confusingly indicating "signalled" so we match
+        // POSIX behaviour for abnormal exits).
+        //
+        // However, we don't want user programs which normally exit -1, -2,
+        // etc to count as exited abnormally, so we specifically check for a
+        // top nibble of 0b11_0 so that e.g. 0xFFFFFFFF, won't trigger an
+        // abnormal exit.
+        //
+        // Additionally, on Windows, an uncaught signal terminates the
+        // program with the magic exit code 3, regardless of the signal (I'd
+        // personally love to know the reason for this). So we also consider
+        // 3 to be an abnormal exit.
+        var dwExitCode: DWORD = 0
+        GetExitCodeProcess(self.processHandle, &dwExitCode)
+        if (dwExitCode & 0xF0000000) == 0x80000000      // HRESULT
+        || (dwExitCode & 0xF0000000) == 0xC0000000      // NTSTATUS
+        || (dwExitCode & 0xF0000000) == 0xE0000000      // NTSTATUS (Customer)
+        || dwExitCode == 3 {
+            self._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
+            self._terminationReason = .uncaughtSignal
+        } else {
+            self._terminationStatus = Int32(bitPattern: UInt32(dwExitCode))
+            self._terminationReason = .exit
+        }
+
+        // Signal waitUntilExit() and optionally invoke termination handler.
+        self.terminateRunLoop()
+    }
+
     // Every suspend() has to be balanced with a resume() so keep a count of both.
     private var suspendCount = 0
 
@@ -1065,7 +1083,9 @@ open class Process: NSObject {
         }
         return success
     }
-    
+
+    open private(set) var isTerminated: Bool = false
+
     // status
 #if os(Windows)
     open private(set) var processHandle: HANDLE = INVALID_HANDLE_VALUE
@@ -1143,8 +1163,23 @@ open class Process: NSObject {
         self.runLoop = currentRunLoop
 
         while self.isRunning {
+            // Handle the process termination if this thread reaches
+            // here first against the other threads that call
+            // waitUntilExit and the CFSocket callback.
+            var handleTermination = false
+            self.processTerminatedCondition.lock()
+            if !self.isTerminated {
+                self.isTerminated = true
+                handleTermination = true
+            }
+            self.processTerminatedCondition.unlock()
+            if handleTermination {
+                self.waitForTermination()
+                break
+            }
+
             runRunLoop()
-        } 
+        }
 
         self.runLoop = nil
         self.runLoopSource = nil
