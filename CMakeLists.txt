@@ -76,6 +76,14 @@ if(HAS_LIBDISPATCH_API)
   find_package(Threads REQUIRED)
 endif()
 
+# CMake's Threads adds '-pthread' flag to the interface link
+# libraries, which isn't supported by Swift. This is not enabled
+# when building with MSVC, but it trips up the Android build, so
+# we need to clear out the threads INTERFACE_LINK_LIBRARIES.
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+  set_property(TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "")
+endif()
+
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
 add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)

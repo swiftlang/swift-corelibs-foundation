@@ -34,6 +34,11 @@ import WASILibc
 fileprivate let _read = WASILibc.read(_:_:_:)
 fileprivate let _write = WASILibc.write(_:_:_:)
 fileprivate let _close = WASILibc.close(_:)
+#elseif canImport(Android)
+import Android
+fileprivate let _read = Android.read(_:_:_:)
+fileprivate let _write = Android.write(_:_:_:)
+fileprivate let _close = Android.close(_:)
 #endif
 
 #if canImport(WinSDK)
