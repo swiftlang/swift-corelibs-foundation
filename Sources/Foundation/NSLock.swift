@@ -50,7 +50,7 @@ private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_
 #endif
 
 // fix for: https://github.com/apple/swift-corelibs-foundation/issues/4941
-open class NSLock: NSObject, NSLocking, Sendable {
+open class NSLock: NSObject, NSLocking, @unchecked Sendable {
     internal var mutex = _MutexPointer.allocate(capacity: 1)
 #if os(macOS) || os(iOS) || os(Windows)
     private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
