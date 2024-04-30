@@ -49,7 +49,8 @@ private typealias _RecursiveMutexPointer = UnsafeMutablePointer<pthread_mutex_t>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t>
 #endif
 
-open class NSLock: NSObject, NSLocking {
+// fix for: https://github.com/apple/swift-corelibs-foundation/issues/4941
+open class NSLock: NSObject, NSLocking, Sendable {
     internal var mutex = _MutexPointer.allocate(capacity: 1)
 #if os(macOS) || os(iOS) || os(Windows)
     private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
