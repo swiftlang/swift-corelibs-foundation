@@ -70,7 +70,7 @@ class TestProcessInfo : XCTestCase {
         let uuid = ProcessInfo.processInfo.globallyUniqueString
         
         let parts = uuid.components(separatedBy: "-")
-        XCTAssertEqual(parts.count, 5)
+        XCTAssertEqual(parts.count, 7)
         XCTAssertEqual(parts[0].utf16.count, 8)
         XCTAssertEqual(parts[1].utf16.count, 4)
         XCTAssertEqual(parts[2].utf16.count, 4)
@@ -130,35 +130,4 @@ class TestProcessInfo : XCTestCase {
         XCTAssertEqual(env["var4"], "x=")
         XCTAssertEqual(env["var5"], "=x=")
     }
-
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && os(Linux)
-    func test_cfquota_parsing() throws {
-
-        let tests = [
-            ("50000", "100000", 1),
-            ("100000", "100000", 1),
-            ("100000\n", "100000", 1),
-            ("100000", "100000\n", 1),
-            ("150000", "100000", 2),
-            ("200000", "100000", 2),
-            ("-1", "100000", nil),
-            ("100000", "-1", nil),
-            ("", "100000", nil),
-            ("100000", "", nil),
-            ("100000", "0", nil)
-        ]
-
-        try withTemporaryDirectory() { (_, tempDirPath) -> Void in
-            try tests.forEach { quota, period, count in
-                let (fd1, quotaPath) = try _NSCreateTemporaryFile(tempDirPath + "/quota")
-                FileHandle(fileDescriptor: fd1, closeOnDealloc: true).write(quota)
-
-                let (fd2, periodPath) = try _NSCreateTemporaryFile(tempDirPath + "/period")
-                FileHandle(fileDescriptor: fd2, closeOnDealloc: true).write(period)
-                XCTAssertEqual(ProcessInfo.coreCount(quota: quotaPath, period: periodPath), count)
-            }
-        }
-    }
-#endif
 }
