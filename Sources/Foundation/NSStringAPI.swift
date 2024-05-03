@@ -669,47 +669,6 @@ extension StringProtocol {
         return _ns.canBeConverted(to: encoding.rawValue)
     }
 
-    // @property NSString* capitalizedString
-
-    /// A copy of the string with each word changed to its corresponding
-    /// capitalized spelling.
-    ///
-    /// This property performs the canonical (non-localized) mapping. It is
-    /// suitable for programming operations that require stable results not
-    /// depending on the current locale.
-    ///
-    /// A capitalized string is a string with the first character in each word
-    /// changed to its corresponding uppercase value, and all remaining
-    /// characters set to their corresponding lowercase values. A "word" is any
-    /// sequence of characters delimited by spaces, tabs, or line terminators.
-    /// Some common word delimiting punctuation isn't considered, so this
-    /// property may not generally produce the desired results for multiword
-    /// strings. See the `getLineStart(_:end:contentsEnd:for:)` method for
-    /// additional information.
-    ///
-    /// Case transformations aren’t guaranteed to be symmetrical or to produce
-    /// strings of the same lengths as the originals.
-    public var capitalized: String {
-        return _ns.capitalized as String
-    }
-
-    // @property (readonly, copy) NSString *localizedCapitalizedString NS_AVAILABLE(10_11, 9_0);
-
-    /// A capitalized representation of the string that is produced
-    /// using the current locale.
-    @available(macOS 10.11, iOS 9.0, *)
-    public var localizedCapitalized: String {
-        return _ns.localizedCapitalized
-    }
-
-    // - (NSString *)capitalizedStringWithLocale:(Locale *)locale
-
-    /// Returns a capitalized representation of the string
-    /// using the specified locale.
-    public func capitalized(with locale: Locale?) -> String {
-        return _ns.capitalized(with: locale) as String
-    }
-
     // - (NSComparisonResult)caseInsensitiveCompare:(NSString *)aString
 
     /// Returns the result of invoking `compare:options:` with
@@ -863,44 +822,6 @@ extension StringProtocol {
         return _ns.components(separatedBy: separator)
     }
 
-    // - (NSArray *)componentsSeparatedByString:(NSString *)separator
-
-    /// Returns an array containing substrings from the string that have been
-    /// divided by the given separator.
-    ///
-    /// The substrings in the resulting array appear in the same order as the
-    /// original string. Adjacent occurrences of the separator string produce
-    /// empty strings in the result. Similarly, if the string begins or ends
-    /// with the separator, the first or last substring, respectively, is empty.
-    /// The following example shows this behavior:
-    ///
-    ///     let list1 = "Karin, Carrie, David"
-    ///     let items1 = list1.components(separatedBy: ", ")
-    ///     // ["Karin", "Carrie", "David"]
-    ///
-    ///     // Beginning with the separator:
-    ///     let list2 = ", Norman, Stanley, Fletcher"
-    ///     let items2 = list2.components(separatedBy: ", ")
-    ///     // ["", "Norman", "Stanley", "Fletcher"
-    ///
-    /// If the list has no separators, the array contains only the original
-    /// string itself.
-    ///
-    ///     let name = "Karin"
-    ///     let list = name.components(separatedBy: ", ")
-    ///     // ["Karin"]
-    ///
-    /// - Parameter separator: The separator string.
-    /// - Returns: An array containing substrings that have been divided from the
-    ///   string using `separator`.
-    // FIXME(strings): now when String conforms to Collection, this can be
-    //   replaced by split(separator:maxSplits:omittingEmptySubsequences:)
-    public func components<
-        T : StringProtocol
-        >(separatedBy separator: T) -> [String] {
-        return _ns.components(separatedBy: separator._ephemeralString)
-    }
-
     // - (const char *)cStringUsingEncoding:(NSStringEncoding)encoding
 
     /// Returns a representation of the string as a C string
@@ -1021,24 +942,6 @@ extension StringProtocol {
 
     //===--- Omitted for consistency with API review results 5/20/2014 ------===//
     // @property long long longLongValue
-
-    // @property (readonly, copy) NSString *localizedLowercase NS_AVAILABLE(10_11, 9_0);
-
-    /// A lowercase version of the string that is produced using the current
-    /// locale.
-    @available(macOS 10.11, iOS 9.0, *)
-    public var localizedLowercase: String {
-        return _ns.localizedLowercase
-    }
-
-    // - (NSString *)lowercaseStringWithLocale:(Locale *)locale
-
-    /// Returns a version of the string with all letters
-    /// converted to lowercase, taking into account the specified
-    /// locale.
-    public func lowercased(with locale: Locale?) -> String {
-        return _ns.lowercased(with: locale)
-    }
 
     // - (NSUInteger)maximumLengthOfBytesUsingEncoding:(NSStringEncoding)enc
 
@@ -1260,24 +1163,6 @@ extension StringProtocol {
     /// the `String` characters contained in a given character set.
     public func trimmingCharacters(in set: CharacterSet) -> String {
         return _ns.trimmingCharacters(in: set)
-    }
-
-    // @property (readonly, copy) NSString *localizedUppercaseString NS_AVAILABLE(10_11, 9_0);
-
-    /// An uppercase version of the string that is produced using the current
-    /// locale.
-    @available(macOS 10.11, iOS 9.0, *)
-    public var localizedUppercase: String {
-        return _ns.localizedUppercase as String
-    }
-
-    // - (NSString *)uppercaseStringWithLocale:(Locale *)locale
-
-    /// Returns a version of the string with all letters
-    /// converted to uppercase, taking into account the specified
-    /// locale.
-    public func uppercased(with locale: Locale?) -> String {
-        return _ns.uppercased(with: locale)
     }
 
     //===--- Omitted due to redundancy with "utf8" property -----------------===//
@@ -1569,17 +1454,6 @@ extension StringProtocol {
     // @property BOOL absolutePath;
     // - (BOOL)isEqualToString:(NSString *)aString
 
-    // - (NSRange)lineRangeForRange:(NSRange)aRange
-
-    /// Returns the range of characters representing the line or lines
-    /// containing a given range.
-    public func lineRange<
-        R : RangeExpression
-        >(for aRange: R) -> Range<Index> where R.Bound == Index {
-        return _toRange(_ns.lineRange(
-            for: _toRelativeNSRange(aRange.relative(to: self))))
-    }
-
     #if !DEPLOYMENT_RUNTIME_SWIFT
     // - (NSArray *)
     //     linguisticTagsInRange:(NSRange)range
@@ -1616,17 +1490,6 @@ extension StringProtocol {
         }
 
         return result as! [String]
-    }
-
-    // - (NSRange)paragraphRangeForRange:(NSRange)aRange
-
-    /// Returns the range of characters representing the
-    /// paragraph or paragraphs containing a given range.
-    public func paragraphRange<
-        R : RangeExpression
-        >(for aRange: R) -> Range<Index> where R.Bound == Index {
-        return _toRange(
-            _ns.paragraphRange(for: _toRelativeNSRange(aRange.relative(to: self))))
     }
     #endif
 
