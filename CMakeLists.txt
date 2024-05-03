@@ -58,6 +58,11 @@ endif()
 
 find_package(ICU COMPONENTS uc i18n REQUIRED OPTIONAL_COMPONENTS data)
 
+include(FetchContent)
+FetchContent_Declare(SwiftFoundationICU
+        SOURCE_DIR "${CMAKE_SOURCE_DIR}/../swift-foundation-icu")
+FetchContent_MakeAvailable(SwiftFoundationICU)
+
 # This is needed if we're statically linking, otherwise we can't pull in Dispatch
 # because we won't have RT::rt as a CMake target.
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Android)
