@@ -169,7 +169,7 @@ target_link_libraries(Foundation
     $<$<PLATFORM_ID:Windows>:pathcch>
     CoreFoundation
     uuid
-    SwiftFoundationICU
+    FoundationICU
   PUBLIC
     swiftDispatch)
 if("${CMAKE_C_COMPILER_TARGET}" MATCHES ".*-musl[^-*]$")
