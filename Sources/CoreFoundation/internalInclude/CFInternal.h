@@ -10,7 +10,6 @@
 /*
         NOT TO BE USED OUTSIDE CF!
 */
-#include "CoreFoundation_Prefix.h"
 
 #if !CF_BUILDING_CF
     #error The header file CFInternal.h is for the exclusive use of CoreFoundation. No other project should include it.
@@ -19,6 +18,7 @@
 #if !defined(__COREFOUNDATION_CFINTERNAL__)
 #define __COREFOUNDATION_CFINTERNAL__ 1
 
+#include "CFBase.h"
 #include "CFTargetConditionals.h"
 
 #define __CF_COMPILE_YEAR__	(__DATE__[7] * 1000 + __DATE__[8] * 100 + __DATE__[9] * 10 + __DATE__[10] - 53328)
@@ -434,9 +434,6 @@ extern uint64_t __CFTimeIntervalToTSR(CFTimeInterval ti);
 extern CFTimeInterval __CFTSRToTimeInterval(uint64_t tsr);
 // use this instead of attempting to subtract mach_absolute_time() directly, because that can underflow and give an unexpected answer
 CF_PRIVATE CFTimeInterval __CFTimeIntervalUntilTSR(uint64_t tsr);
-#if __HAS_DISPATCH__
-CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr);
-#endif
 CF_PRIVATE uint64_t __CFTSRToNanoseconds(uint64_t tsr);
 
 extern CFStringRef __CFCopyFormattingDescription(CFTypeRef cf, CFDictionaryRef formatOptions);
@@ -1246,13 +1243,6 @@ CF_PRIVATE Boolean __CFInitialized;
 CF_PRIVATE _Atomic(bool) __CFMainThreadHasExited;
 CF_PRIVATE const CFStringRef __kCFLocaleCollatorID;
 
-#if __OBJC__
-#import <Foundation/NSArray.h>
-@interface NSArray (CFBufferAdoption)
-- (instancetype)_initByAdoptingBuffer:(id *)buffer count:(NSUInteger)count size:(size_t)size;
-@end
-#endif
-
 CF_EXTERN_C_END
 
 
@@ -1328,6 +1318,27 @@ CF_INLINE uint64_t _CFUnalignedLoad64BE(const void *ptr) {
 
     return result;
 }
+
+// MARK: - Atomics
+
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
+// Implemented in CFPlatform.c
+CF_EXPORT bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
+CF_EXPORT bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
+CF_EXPORT bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
+CF_EXPORT bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
+
+CF_EXPORT int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
+CF_EXPORT int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
+CF_EXPORT int32_t OSAtomicIncrement32(volatile int32_t *theValue);
+CF_EXPORT int32_t OSAtomicDecrement32(volatile int32_t *theValue);
+
+CF_EXPORT int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
+CF_EXPORT int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
+CF_EXPORT bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
+
+CF_EXPORT void OSMemoryBarrier();
+#endif
 
 #endif /* ! __COREFOUNDATION_CFINTERNAL__ */
 

@@ -1344,7 +1344,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 #if !TARGET_OS_ANDROID && !TARGET_OS_WASI
 
     if (!__tzZoneInfo) __InitTZStrings();
-    if (!__tzZoneInfo) return NULL;
+    if (!__tzZoneInfo) return false;
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
 #endif
 

@@ -2,7 +2,6 @@
 	CFUnicodeDecomposition.h
 	CoreFoundation
 
-	Created by aki on Wed Oct 03 2001.
 	Copyright (c) 2001-2019, Apple Inc. and the Swift project authors
  
 	Portions Copyright (c) 2014-2019, Apple Inc. and the Swift project authors
@@ -19,13 +18,12 @@
 CF_EXTERN_C_BEGIN
 
 CF_INLINE bool CFUniCharIsDecomposableCharacter(UTF32Char character, bool isHFSPlusCanonical) {
-    if (isHFSPlusCanonical && !isHFSPlusCanonical) return false;	// hack to get rid of "unused" warning
+    if (isHFSPlusCanonical && !isHFSPlusCanonical) return false;    // hack to get rid of "unused" warning
     if (character < 0x80) return false;
     return CFUniCharIsMemberOf(character, kCFUniCharHFSPlusDecomposableCharacterSet);
 }
 
 CF_EXPORT CFIndex CFUniCharDecomposeCharacter(UTF32Char character, UTF32Char *convertedChars, CFIndex maxBufferLength);
-
 CF_EXPORT bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus);
 CF_EXPORT bool CFUniCharDecomposeWithErrorLocation(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus, CFIndex *charIndex);
 

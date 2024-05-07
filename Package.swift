@@ -3,19 +3,15 @@
 
 import PackageDescription
 
-let buildSettings: [CSetting] = [
+let coreFoundationBuildSettings: [CSetting] = [
     .headerSearchPath("internalInclude"),
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
-    .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
+    .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("HAVE_STRUCT_TIMESPEC"),
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
-    .define("CF_CHARACTERSET_UNICODE_DATA_L", to: "\"\(Context.packageDirectory)/Sources/CoreFoundation/CFUnicodeData-L.mapping\""),
-    .define("CF_CHARACTERSET_UNICODE_DATA_B", to: "\"\(Context.packageDirectory)/Sources/CoreFoundation/CFUnicodeData-B.mapping\""),
-    .define("CF_CHARACTERSET_UNICHAR_DB", to: "\"\(Context.packageDirectory)/Sources/CoreFoundation/CFUniCharPropertyDatabase.data\""),
-    .define("CF_CHARACTERSET_BITMAP", to: "\"\(Context.packageDirectory)/Sources/CoreFoundation/CFCharacterSetBitmaps.bitmap\""),
     .unsafeFlags([
         "-Wno-shorten-64-to-32",
         "-Wno-deprecated-declarations",
@@ -29,6 +25,8 @@ let buildSettings: [CSetting] = [
         "-fdollars-in-identifiers",
         "-fno-common",
         "-fcf-runtime-abi=swift",
+        "-include",
+        "\(Context.packageDirectory)/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h",
         // /EHsc for Windows
     ]),
     .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
@@ -40,7 +38,6 @@ let interfaceBuildSettings: [CSetting] = [
     .headerSearchPath("../CoreFoundation/include"),
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
-    .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
     .define("HAVE_STRUCT_TIMESPEC"),
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
@@ -63,9 +60,15 @@ let interfaceBuildSettings: [CSetting] = [
     .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
 ]
 
+let swiftBuildSettings: [SwiftSetting] = [
+    .define("DEPLOYMENT_RUNTIME_SWIFT"),
+    .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
+]
+
 let package = Package(
     name: "swift-corelibs-foundation",
-    platforms: [.macOS("13.3"), .iOS("16.4"), .tvOS("16.4"), .watchOS("9.4")],
+    // Deployment target note: This package only builds for non-Darwin targets.
+    platforms: [.macOS("99.9")],
     products: [
         .library(name: "Foundation", targets: ["Foundation"]),
         .library(name: "FoundationXML", targets: ["FoundationXML"]),
@@ -75,7 +78,8 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/apple/swift-foundation-icu",
-            from: "0.0.5"),
+            from: "0.0.5"
+        ),
         .package(
            url: "https://github.com/apple/swift-foundation",
            revision: "e991656bd02af48530811f1871b3351961b75d29"
@@ -90,29 +94,29 @@ let package = Package(
                 "_CoreFoundation"
             ],
             path: "Sources/Foundation",
-            swiftSettings:  [.define("DEPLOYMENT_RUNTIME_SWIFT"), .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS")]
+            swiftSettings: swiftBuildSettings
         ),
         .target(
             name: "FoundationXML",
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
-                "Foundation",
+                .targetItem(name: "Foundation", condition: nil),
                 "_CoreFoundation",
                 "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
-            swiftSettings:  [.define("DEPLOYMENT_RUNTIME_SWIFT"), .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS")]
+            swiftSettings: swiftBuildSettings
         ),
         .target(
             name: "FoundationNetworking",
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
-                "Foundation",
+                .targetItem(name: "Foundation", condition: nil),
                 "_CoreFoundation",
                 "_CFURLSessionInterface"
             ],
             path: "Sources/FoundationNetworking",
-            swiftSettings: [.define("DEPLOYMENT_RUNTIME_SWIFT"), .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS")]
+            swiftSettings:swiftBuildSettings
         ),
         .target(
             name: "_CoreFoundation",
@@ -120,7 +124,7 @@ let package = Package(
                 .product(name: "FoundationICU", package: "swift-foundation-icu"),
             ],
             path: "Sources/CoreFoundation",
-            cSettings: buildSettings
+            cSettings: coreFoundationBuildSettings
         ),
         .target(
             name: "_CFXMLInterface",
@@ -158,13 +162,16 @@ let package = Package(
         ),
         .executableTarget(
             name: "plutil",
-            dependencies: ["Foundation"]
+            dependencies: [
+                .targetItem(name: "Foundation", condition: nil)
+            ]
         ),
         .executableTarget(
             name: "xdgTestHelper",
             dependencies: [
-                "Foundation",
-                "FoundationNetworking"
+                .targetItem(name: "Foundation", condition: nil),
+                .targetItem(name: "FoundationXML", condition: nil),
+                .targetItem(name: "FoundationNetworking", condition: nil)
             ]
         ),
         .target(
@@ -172,19 +179,19 @@ let package = Package(
             // (1) we do not depend on the toolchain's XCTest, which depends on toolchain's Foundation, which we cannot pull in at the same time as a Foundation package
             // (2) we do not depend on a swift-corelibs-xctest Swift package, which depends on Foundation, which causes a circular dependency in swiftpm
             // We believe Foundation is the only project that needs to take this rather drastic measure.
-            name: "XCTest", 
+            name: "XCTest",
             dependencies: [
-                "Foundation"
-            ], 
+                .targetItem(name: "Foundation", condition: nil)
+            ],
             path: "Sources/XCTest"
         ),
         .testTarget(
             name: "TestFoundation",
             dependencies: [
-                "Foundation",
-                "FoundationXML",
-                "FoundationNetworking",
-                "XCTest",
+                .targetItem(name: "Foundation", condition: nil),
+                .targetItem(name: "FoundationXML", condition: nil),
+                .targetItem(name: "FoundationNetworking", condition: nil),
+                .targetItem(name: "XCTest", condition: .when(platforms: [.linux])),
                 "xdgTestHelper"
             ],
             resources: [

@@ -57,10 +57,6 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <mach/mach_time.h>
 #endif
 
-#if (INCLUDE_OBJC || TARGET_OS_MAC || TARGET_OS_WIN32) && !DEPLOYMENT_RUNTIME_SWIFT
-#include <objc/message.h>
-#endif
-
 #if __BLOCKS__
 /* These functions implement standard error handling for reallocation. Their parameters match their unsafe variants (realloc/CFAllocatorReallocate). They differ from reallocf as they provide a chance for you to clean up a buffers contents (in addition to freeing the buffer, etc.)
  
@@ -77,28 +73,7 @@ typedef CF_ENUM(CFOptionFlags, _CFAllocatorHint) {
     _CFAllocatorHintZeroWhenAllocating = 1
 };
 
-// Arguments to these are id, but this header is non-Objc
-#ifdef __OBJC__
-#define NSISARGTYPE id _Nullable
-#else
 #define NSISARGTYPE void * _Nullable
-#define BOOL bool
-#endif
-
-CF_EXPORT BOOL _NSIsNSArray(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSData(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSDate(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSDictionary(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSObject(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSOrderedSet(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSNumber(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSSet(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSString(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSTimeZone(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSValue(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSCFConstantString(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSIndexSet(NSISARGTYPE arg);
-CF_EXPORT BOOL _NSIsNSAttributedString(NSISARGTYPE arg);
 
 #pragma mark - CFBundle
 
@@ -813,44 +788,6 @@ CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t
 
 
 _CF_EXPORT_SCOPE_END
-
-#if __OBJC__
-
-#define _scoped_id_array(N, C, Z, S) \
-    size_t N ## _count__ = (C); \
-    if (N ## _count__ > LONG_MAX / sizeof(id)) { \
-        CFStringRef reason = CFStringCreateWithFormat(NULL, NULL, CFSTR("*** attempt to create a temporary id buffer which is too large or with a negative count (%lu) -- possibly data is corrupt"), N ## _count__); \
-        NSException *e = [NSException exceptionWithName:NSGenericException reason:(NSString *)reason userInfo:nil]; \
-        CFRelease(reason); \
-        @throw e; \
-    } \
-    Boolean N ## _is_stack__ = (N ## _count__ <= 256) && (S); \
-    if (N ## _count__ == 0) { \
-        N ## _count__ = 1; \
-    } \
-    id N ## _scopedbuffer__ [N ## _is_stack__ ? N ## _count__ : 1]; \
-    if (N ## _is_stack__ && (Z)) { \
-        memset(N ## _scopedbuffer__, 0, N ## _count__ * sizeof(id)); \
-    } \
-    size_t N ## _unused__; \
-    id * __attribute__((cleanup(_scoped_id_array_cleanup))) N ## _mallocbuffer__ = N ## _is_stack__ ? NULL : (id *)_CFCreateArrayStorage(N ## _count__, (Z), & N ## _unused__); \
-    id * N = N ## _is_stack__ ? N ## _scopedbuffer__ : N ## _mallocbuffer__; \
-    do {} while (0)
-
-// These macros create an array that is 1) either stack or buffer allocated, depending on size, and 2) automatically cleaned up at the end of the lexical scope it is declared in.
-#define scoped_id_array(N, C) _scoped_id_array(N, C, false, true)
-#define scoped_and_zeroed_id_array(N, C) _scoped_id_array(N, C, true, true)
-
-#define scoped_heap_id_array(N, C) _scoped_id_array(N, C, false, false)
-
-// This macro either returns the buffer while simultaneously passing responsibility for freeing it to the caller, or it returns NULL if the buffer exists on the stack, and therefore can't pass ownership.
-#define try_adopt_scoped_id_array(N) (N ## _mallocbuffer__ ? ({id *tmp = N ## _mallocbuffer__; N ## _mallocbuffer__ = NULL; tmp;}) : NULL)
-
-CF_INLINE void _scoped_id_array_cleanup(id _Nonnull * _Nullable * _Nonnull mallocedbuffer) {
-    // Maybe be NULL, but free(NULL) is well defined as a no-op.
-    free(*mallocedbuffer);
-}
-#endif
 
 // Define NS_DIRECT / NS_DIRECT_MEMBERS Internally for CoreFoundation.
 

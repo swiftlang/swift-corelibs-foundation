@@ -182,13 +182,6 @@ static const CFRuntimeClass __CFTypeClass = {
 };
 #endif //__cplusplus
 
-#if !__OBJC2__
-//<rdar://problem/26305326> __attribute__((__cleanup__())) fails to link on 32 bit Mac
-CF_PRIVATE void objc_terminate(void) {
-    abort();
-}
-#endif
-
 // the lock does not protect most reading of these; we just leak the old table to allow read-only accesses to continue to work
 static os_unfair_lock __CFBigRuntimeFunnel = OS_UNFAIR_LOCK_INIT;
 
@@ -839,8 +832,7 @@ CF_PRIVATE void __CFTypeCollectionRelease(CFAllocatorRef allocator, const void *
 static CFLock_t __CFRuntimeExternRefCountTableLock = CFLockInit;
 #endif
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-// using CFGetRetainCount is very dangerous; there is no real reason to use it in the swift version of CF.
+#if DEPLOYMENT_RUNTIME_SWIFT && !TARGET_OS_MAC
 #else
 static uint64_t __CFGetFullRetainCount(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** __CFGetFullRetainCount() called with NULL ***"); HALT; }

@@ -16,8 +16,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#define kCFUniCharBitShiftForByte	(3)
-#define kCFUniCharBitShiftForMask	(7)
+#define kCFUniCharBitShiftForByte    (3)
+#define kCFUniCharBitShiftForMask    (7)
 
 CF_INLINE bool CFUniCharIsSurrogateHighCharacter(UniChar character) {
     return ((character >= 0xD800UL) && (character <= 0xDBFFUL) ? true : false);
@@ -92,12 +92,12 @@ enum {
     kCFUniCharBitmapAll = (uint8_t)1
 };
 
-enum {
+typedef enum {
     kCFUniCharToLowercase = 0,
     kCFUniCharToUppercase,
     kCFUniCharToTitlecase,
     kCFUniCharCaseFold
-};
+} _CFUniCharCasemapType;
 
 enum {
     kCFUniCharCaseMapFinalSigma = (1UL << 0),
@@ -107,7 +107,7 @@ enum {
     kCFUniCharCaseMapGreekTonos = (1UL << 4)
 };
 
-CF_EXPORT CFIndex CFUniCharMapCaseTo(UTF32Char theChar, UTF16Char *convertedChar, CFIndex maxLength, uint32_t ctype, uint32_t flags, const uint8_t *langCode);
+CF_EXPORT CFIndex CFUniCharMapCaseTo(UTF32Char theChar, UTF16Char *convertedChar, CFIndex maxLength, _CFUniCharCasemapType ctype, uint32_t flags, const uint8_t *langCode);
 
 enum {
     kCFUniCharBiDiPropertyON = 0,

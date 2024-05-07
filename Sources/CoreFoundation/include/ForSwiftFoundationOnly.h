@@ -339,8 +339,8 @@ CF_EXPORT struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped;
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
 
-CF_PRIVATE void *_Nullable _CFSwiftRetain(void *_Nullable t);
-CF_PRIVATE void _CFSwiftRelease(void *_Nullable t);
+CF_EXPORT void *_Nullable _CFSwiftRetain(void *_Nullable t);
+CF_EXPORT void _CFSwiftRelease(void *_Nullable t);
 
 CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 

@@ -7,8 +7,6 @@
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
-#include "CoreFoundation_Prefix.h"
-
 #if !defined(__COREFOUNDATION_CFBASE__)
 #define __COREFOUNDATION_CFBASE__ 1
 
@@ -67,13 +65,13 @@
 
 #include <stdbool.h>
 
-#if __BLOCKS__ && (TARGET_OS_OSX || TARGET_OS_IPHONE)
-#include "Block.h"
-#endif
-
   #if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !DEPLOYMENT_RUNTIME_SWIFT
     #include <libkern/OSTypes.h>
   #endif
+
+#if TARGET_OS_MAC
+#include <MacTypes.h>
+#endif
 
 #if !defined(__MACTYPES__)
 #if !defined(_OS_OSTYPES_H)
@@ -161,20 +159,6 @@ CF_EXTERN_C_BEGIN
     #define FALSE	0
 #endif
 
-#if !defined(CF_INLINE)
-    #if defined(__GNUC__) && (__GNUC__ == 4) && !defined(DEBUG)
-        #define CF_INLINE static __inline__ __attribute__((always_inline))
-    #elif defined(__GNUC__)
-        #define CF_INLINE static __inline__
-    #elif defined(__cplusplus)
-	#define CF_INLINE static inline
-    #elif defined(_MSC_VER)
-        #define CF_INLINE static __inline
-    #elif TARGET_OS_WIN32
-	#define CF_INLINE static __inline__
-    #endif
-#endif
-
 // Marks functions which return a CF type that needs to be released by the caller but whose names are not consistent with CoreFoundation naming rules. The recommended fix to this is to rename the functions, but this macro can be used to let the clang static analyzer know of any exceptions that cannot be fixed.
 // This macro is ONLY to be used in exceptional circumstances, not to annotate functions which conform to the CoreFoundation naming rules.
 #ifndef CF_RETURNS_RETAINED
@@ -237,23 +221,6 @@ CF_EXTERN_C_BEGIN
 #endif
 
 #if __has_attribute(objc_bridge) && __has_feature(objc_bridge_id) && __has_feature(objc_bridge_id_on_typedefs)
-
-#ifdef __OBJC__
-@class NSArray;
-@class NSAttributedString;
-@class NSString;
-@class NSNull;
-@class NSCharacterSet;
-@class NSData;
-@class NSDate;
-@class NSTimeZone;
-@class NSDictionary;
-@class NSError;
-@class NSLocale;
-@class NSNumber;
-@class NSSet;
-@class NSURL;
-#endif
 
 #define CF_BRIDGED_TYPE(T)		__attribute__((objc_bridge(T)))
 #define CF_BRIDGED_MUTABLE_TYPE(T)	__attribute__((objc_bridge_mutable(T)))
@@ -318,6 +285,12 @@ CF_EXTERN_C_BEGIN
 #define CF_WARN_UNUSED_RESULT
 #endif
 
+#if __has_attribute(fallthrough)
+#define CF_FALLTHROUGH __attribute__((fallthrough))
+#else
+#define CF_FALLTHROUGH
+#endif
+
 #if !__has_feature(objc_generics_variance)
 #ifndef __covariant
 #define __covariant
@@ -327,6 +300,19 @@ CF_EXTERN_C_BEGIN
 #endif
 #endif
 
+#if !defined(CF_INLINE)
+    #if defined(__GNUC__) && (__GNUC__ == 4) && !defined(DEBUG)
+        #define CF_INLINE static __inline__ __attribute__((always_inline))
+    #elif defined(__GNUC__)
+        #define CF_INLINE static __inline__
+    #elif defined(__cplusplus)
+    #define CF_INLINE static inline
+    #elif defined(_MSC_VER)
+        #define CF_INLINE static __inline
+    #elif TARGET_OS_WIN32
+    #define CF_INLINE static __inline__
+    #endif
+#endif
 
 CF_EXPORT double kCFCoreFoundationVersionNumber;
 
