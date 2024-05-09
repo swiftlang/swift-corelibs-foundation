@@ -561,6 +561,14 @@ static void __CFSocketInitializeSockets(void) {
     __CFReadSockets = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, NULL);
     __CFWriteSocketsFds = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
     __CFReadSocketsFds = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
+#if TARGET_OS_WIN32
+    // A workraround for a compiler hang issue on windows:
+    // https://github.com/apple/swift/issues/73532
+    // Use a larger initial size so that the bit vector resize code is
+    // less likely used as Windows socket FD numbers are usually
+    // within 4 digits.
+    CFDataIncreaseLength(__CFReadSocketsFds, 16348 / NBBY);
+#endif
     zeroLengthData = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
 #if TARGET_OS_WIN32
     __CFSocketInitializeWinSock_Guts();
