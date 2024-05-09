@@ -1024,7 +1024,7 @@ extension NSURL {
 
 extension NSURL: _SwiftBridgeable {
     typealias SwiftType = URL
-    internal var _swiftObject: SwiftType { return URL(reference: self) }
+    internal var _swiftObject: SwiftType { return self as URL }
 }
 
 extension CFURL : _NSBridgeable, _SwiftBridgeable {
@@ -1037,7 +1037,7 @@ extension CFURL : _NSBridgeable, _SwiftBridgeable {
 extension URL : _NSBridgeable {
     typealias NSType = NSURL
     typealias CFType = CFURL
-    internal var _nsObject: NSType { return self.reference }
+    internal var _nsObject: NSType { return self as NSURL }
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }
 

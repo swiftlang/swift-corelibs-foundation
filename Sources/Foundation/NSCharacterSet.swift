@@ -186,7 +186,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     public convenience init?(contentsOfFile fName: String) {
         do {
-           let data = try Data(contentsOf: fName)
+           let data = try Data(contentsOf: URL(fileURLWithPath: fName))
             self.init(bitmapRepresentation: data)
         } catch {
             return nil

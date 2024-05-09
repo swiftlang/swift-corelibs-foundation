@@ -1259,8 +1259,7 @@ extension NSString {
     internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
         var data = Data()
         try _getExternalRepresentation(&data, url, enc)
-        // TODO: Use URL version when that is ready
-        try data.write(to: url.path, options: useAuxiliaryFile ? .atomic : [])
+        try data.write(to: url, options: useAuxiliaryFile ? .atomic : [])
     }
     
     open func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {

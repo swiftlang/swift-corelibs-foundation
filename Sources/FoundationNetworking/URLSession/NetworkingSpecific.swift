@@ -41,17 +41,14 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
     required init() {}
     
     @usableFromInline
-    func contentsOf(url: Foundation.URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
+    func contentsOf(url: URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
 
         func cocoaError(with error: Error? = nil) -> Error {
             var userInfo: [String: AnyHashable] = [:]
             if let error = error as? AnyHashable {
                 userInfo[NSUnderlyingErrorKey] = error
             }
-            // Temporary workaround for lack of URL in swift-foundation
-            // TODO: Replace with argument
-            let feURL = FoundationEssentials.URL(path: url.path)
-            return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: feURL)
+            return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: url)
         }
 
         var urlResponse: URLResponse?

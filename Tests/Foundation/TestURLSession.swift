@@ -297,7 +297,7 @@ class TestURLSession: LoopbackServerTest {
     }
     
     func test_taskError() {
-        let urlString = "http://127.0.0.1:-1/Nepal"
+        let urlString = "http://127.0.0.0:999999/Nepal"
         let url = URL(string: urlString)!
         let session = URLSession(configuration: URLSessionConfiguration.default,
                                  delegate: nil,
@@ -504,10 +504,10 @@ class TestURLSession: LoopbackServerTest {
     func test_timeoutInterval() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
-        let urlString = "http://127.0.0.1:-1/Peru"
+        let urlString = "http://127.0.0.1:999999/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let expect = expectation(description: "GET \(urlString): will timeout")
-        var req = URLRequest(url: URL(string: "http://127.0.0.1:-1/Peru")!)
+        var req = URLRequest(url: URL(string: "http://127.0.0.1:999999/Peru")!)
         req.timeoutInterval = 1
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }

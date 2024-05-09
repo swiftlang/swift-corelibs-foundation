@@ -605,17 +605,6 @@ extension CocoaError : _BridgedStoredNSError {
     }
 }
 
-extension CocoaError {
-    // Temporary extension to take Foundation.URL, until FoundationEssentials.URL is fully ported
-    public static func error(_ code: CocoaError.Code, userInfo: [String : AnyHashable]? = nil, url: Foundation.URL? = nil) -> Error {
-        var info: [String : AnyHashable] = userInfo ?? [:]
-        if let url = url {
-            info[NSURLErrorKey] = url
-        }
-        return CocoaError(code, userInfo: info)
-    }    
-}
-
 extension CocoaError.Code : _ErrorCodeProtocol {
     public typealias _ErrorType = CocoaError
 }
@@ -766,6 +755,27 @@ extension CocoaError {
 
     public var isXPCConnectionError: Bool {
         return code.rawValue >= 4096 && code.rawValue <= 4224
+    }
+}
+
+extension CocoaError: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSError {
+        return self._nsError
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ x: NSError, result: inout CocoaError?) {
+        result = _unconditionallyBridgeFromObjectiveC(x)
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSError, result: inout CocoaError?) -> Bool {
+        result = CocoaError(_nsError: x)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSError?) -> CocoaError {
+        var result: CocoaError?
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
     }
 }
 

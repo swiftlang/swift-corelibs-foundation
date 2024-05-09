@@ -52,7 +52,7 @@ class BundlePlayground {
         case library
         case executable
         
-        var pathExtension: String {
+        var pathExtension: String? {
             switch self {
             case .library:
                 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
@@ -66,16 +66,16 @@ class BundlePlayground {
                 #if os(Windows)
                 return "exe"
                 #else
-                return ""
+                return nil
                 #endif
             }
         }
         
-        var flatPathExtension: String {
+        var flatPathExtension: String? {
             #if os(Windows)
             return self.pathExtension
             #else
-            return ""
+            return nil
             #endif
         }
         
@@ -209,15 +209,22 @@ class BundlePlayground {
                 // Make a main and an auxiliary executable:
                 self.mainExecutableURL = bundleURL
                     .appendingPathComponent(bundleName)
-                    .appendingPathExtension(executableType.flatPathExtension)
+                
+                if let ext = executableType.flatPathExtension {
+                    self.mainExecutableURL.appendPathExtension(ext)
+                }
                 
                 guard FileManager.default.createFile(atPath: mainExecutableURL.path, contents: nil) else {
                     return false
                 }
                 
-                let auxiliaryExecutableURL = bundleURL
+                var auxiliaryExecutableURL = bundleURL
                     .appendingPathComponent(auxiliaryExecutableName)
-                    .appendingPathExtension(executableType.flatPathExtension)
+                
+                if let ext = executableType.flatPathExtension {
+                    auxiliaryExecutableURL.appendPathExtension(ext)
+                }
+                
                 guard FileManager.default.createFile(atPath: auxiliaryExecutableURL.path, contents: nil) else {
                     return false
                 }
@@ -256,14 +263,20 @@ class BundlePlayground {
                 self.mainExecutableURL = temporaryDirectory
                     .appendingPathComponent(executableType.fhsPrefix)
                     .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName)
-                    .appendingPathExtension(executableType.pathExtension)
+                
+                if let ext = executableType.pathExtension {
+                    self.mainExecutableURL.appendPathExtension(ext)
+                }
                 guard FileManager.default.createFile(atPath: mainExecutableURL.path, contents: nil) else { return false }
                 
                 let executablesDirectory = temporaryDirectory.appendingPathComponent("libexec").appendingPathComponent("\(bundleName).executables")
                 try FileManager.default.createDirectory(atPath: executablesDirectory.path, withIntermediateDirectories: true, attributes: nil)
-                let auxiliaryExecutableURL = executablesDirectory
+                var auxiliaryExecutableURL = executablesDirectory
                     .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName)
-                    .appendingPathExtension(executableType.pathExtension)
+                
+                if let ext = executableType.pathExtension {
+                    auxiliaryExecutableURL.appendPathExtension(ext)
+                }
                 guard FileManager.default.createFile(atPath: auxiliaryExecutableURL.path, contents: nil) else { return false }
                 
                 // Make a .resources directory in …/share:
@@ -297,7 +310,10 @@ class BundlePlayground {
                 // Make a main executable:
                 self.mainExecutableURL = temporaryDirectory
                     .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName)
-                    .appendingPathExtension(executableType.pathExtension)
+                
+                if let ext = executableType.pathExtension {
+                    self.mainExecutableURL.appendPathExtension(ext)
+                }
                 guard FileManager.default.createFile(atPath: mainExecutableURL.path, contents: nil) else { return false }
                 
                 // Make a .resources directory:
@@ -305,9 +321,11 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: resourcesDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make an auxiliary executable:
-                let auxiliaryExecutableURL = resourcesDirectory
+                var auxiliaryExecutableURL = resourcesDirectory
                     .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName)
-                    .appendingPathExtension(executableType.pathExtension)
+                if let ext = executableType.pathExtension {
+                    auxiliaryExecutableURL.appendPathExtension(ext)
+                }
                 guard FileManager.default.createFile(atPath: auxiliaryExecutableURL.path, contents: nil) else { return false }
                 
                 // Put some resources in the bundle

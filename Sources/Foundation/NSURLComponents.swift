@@ -82,7 +82,7 @@ open class NSURLComponents: NSObject, NSCopying {
     // Returns a URL created from the NSURLComponents. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
     open var url: URL? {
         guard let result = _CFURLComponentsCopyURL(_components) else { return nil }
-        return unsafeBitCast(result, to: URL.self)
+        return result._swiftObject
     }
 
     // Returns a URL created from the NSURLComponents relative to a base URL. If the NSURLComponents has an authority component (user, password, host or port) and a path component, then the path must either begin with "/" or be an empty string. If the NSURLComponents does not have an authority component (user, password, host or port) and has a path component, the path component must not start with "//". If those requirements are not met, nil is returned.
