@@ -18,6 +18,8 @@
 @_exported import Glibc
 #elseif canImport(Musl)
 @_exported import Musl
+#elseif canImport(Android)
+@_exported import Android
 #elseif os(WASI)
 @_exported import WASILibc
 #elseif os(Windows)

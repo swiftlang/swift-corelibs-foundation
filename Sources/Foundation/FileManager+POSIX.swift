@@ -11,6 +11,10 @@
 internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
 }
+#elseif os(Android)
+internal func &(left: mode_t, right: Int32) -> mode_t {
+    return left & mode_t(right)
+}
 #endif
 
 #if os(WASI)
@@ -409,7 +413,7 @@ extension FileManager {
                     if !parent.isEmpty && !fileExists(atPath: parent, isDirectory: &isDir) {
                         try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                     }
-                    if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
+                    if mkdir(pathFsRep, mode_t(S_IRWXU) | mode_t(S_IRWXG) | mode_t(S_IRWXO)) != 0 {
                         let posixError = errno
                         if posixError == EEXIST && fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue {
                             // Continue; if there is an existing file and it is a directory, that is still a success.
@@ -428,7 +432,7 @@ extension FileManager {
                     throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
                 }
             } else {
-                if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
+                if mkdir(pathFsRep, mode_t(S_IRWXU) | mode_t(S_IRWXG) | mode_t(S_IRWXO)) != 0 {
                     throw _NSErrorWithErrno(errno, reading: false, path: path)
                 } else if let attr = attributes {
                     try self.setAttributes(attr, ofItemAtPath: path)
@@ -803,17 +807,19 @@ extension FileManager {
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
-                let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                let stream = ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) {
+                    fts_open($0, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                }
                 ps.deinitialize(count: 2)
                 ps.deallocate()
 
-                if stream != nil {
+                if let stream {
                     defer {
                         fts_close(stream)
                     }
 
-                    while let current = fts_read(stream)?.pointee {
-                        let itemPath = string(withFileSystemRepresentation: current.fts_path, length: Int(current.fts_pathlen))
+                    while let current = fts_read(stream)?.pointee, let fts_path = current.fts_path {
+                        let itemPath = string(withFileSystemRepresentation: fts_path, length: Int(current.fts_pathlen))
                         guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
                             continue
                         }
@@ -821,11 +827,11 @@ extension FileManager {
                         do {
                             switch Int32(current.fts_info) {
                             case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                                if unlink(current.fts_path) == -1 {
+                                if unlink(fts_path) == -1 {
                                     throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
                                 }
                             case FTS_DP:
-                                if rmdir(current.fts_path) == -1 {
+                                if rmdir(fts_path) == -1 {
                                     throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
                                 }
                             case FTS_DNR, FTS_ERR, FTS_NS:
@@ -1171,7 +1177,9 @@ extension FileManager {
                     defer { ps.deallocate() }
                     ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
-                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                    return ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) {
+                        fts_open($0, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                    }
                 }
                 if _stream == nil {
                     throw _NSErrorWithErrno(errno, reading: true, url: url)
@@ -1218,13 +1226,13 @@ extension FileManager {
 
                 _current = fts_read(stream)
                 while let current = _current {
-                    let filename = FileManager.default.string(withFileSystemRepresentation: current.pointee.fts_path, length: Int(current.pointee.fts_pathlen))
+                    let filename = FileManager.default.string(withFileSystemRepresentation: current.pointee.fts_path!, length: Int(current.pointee.fts_pathlen))
 
                     switch Int32(current.pointee.fts_info) {
                         case FTS_D:
                             let (showFile, skipDescendants) = match(filename: filename, to: _options, isDir: true)
                             if skipDescendants {
-                                fts_set(_stream, _current, FTS_SKIP)
+                                fts_set(stream, _current!, FTS_SKIP)
                             }
                             if showFile {
                                  return URL(fileURLWithPath: filename, isDirectory: true)
@@ -1398,7 +1406,7 @@ extension FileManager {
             let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
                 return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                     // This is an atomic operation in many OSes, but is not guaranteed to be atomic by the standard.
-                    if rename(newItemFS, originalFS) == 0 {
+                    if rename(newItemFS!, originalFS!) == 0 {
                         return nil
                     } else {
                         return errno

@@ -111,7 +111,14 @@ class TestFileHandle : XCTestCase {
 #else
         var fds: [Int32] = [-1, -1]
         fds.withUnsafeMutableBufferPointer { (pointer) -> Void in
-            pipe(pointer.baseAddress)
+            let baseAddress = pointer.baseAddress
+#if canImport(Android)
+            // pipe takes in a non-nullable pointer in the Android NDK only.
+            guard let baseAddress else {
+                return
+            }
+#endif
+            pipe(baseAddress)
         }
         
         close(fds[1])
