@@ -681,41 +681,6 @@ public extension CocoaError {
 }
 
 extension CocoaError {
-    public static var fileNoSuchFile:                           CocoaError.Code { return .fileNoSuchFile }
-    public static var fileLocking:                              CocoaError.Code { return .fileLocking }
-    public static var fileReadUnknown:                          CocoaError.Code { return .fileReadUnknown }
-    public static var fileReadNoPermission:                     CocoaError.Code { return .fileReadNoPermission }
-    public static var fileReadInvalidFileName:                  CocoaError.Code { return .fileReadInvalidFileName }
-    public static var fileReadCorruptFile:                      CocoaError.Code { return .fileReadCorruptFile }
-    public static var fileReadNoSuchFile:                       CocoaError.Code { return .fileReadNoSuchFile }
-    public static var fileReadInapplicableStringEncoding:       CocoaError.Code { return .fileReadInapplicableStringEncoding }
-    public static var fileReadUnsupportedScheme:                CocoaError.Code { return .fileReadUnsupportedScheme }
-    public static var fileReadTooLarge:                         CocoaError.Code { return .fileReadTooLarge }
-    public static var fileReadUnknownStringEncoding:            CocoaError.Code { return .fileReadUnknownStringEncoding }
-    public static var fileWriteUnknown:                         CocoaError.Code { return .fileWriteUnknown }
-    public static var fileWriteNoPermission:                    CocoaError.Code { return .fileWriteNoPermission }
-    public static var fileWriteInvalidFileName:                 CocoaError.Code { return .fileWriteInvalidFileName }
-    public static var fileWriteFileExists:                      CocoaError.Code { return .fileWriteFileExists }
-    public static var fileWriteInapplicableStringEncoding:      CocoaError.Code { return .fileWriteInapplicableStringEncoding }
-    public static var fileWriteUnsupportedScheme:               CocoaError.Code { return .fileWriteUnsupportedScheme }
-    public static var fileWriteOutOfSpace:                      CocoaError.Code { return .fileWriteOutOfSpace }
-    public static var fileWriteVolumeReadOnly:                  CocoaError.Code { return .fileWriteVolumeReadOnly }
-    public static var fileManagerUnmountUnknown:                CocoaError.Code { return .fileManagerUnmountUnknown }
-    public static var fileManagerUnmountBusy:                   CocoaError.Code { return .fileManagerUnmountBusy }
-    public static var keyValueValidation:                       CocoaError.Code { return .keyValueValidation }
-    public static var formatting:                               CocoaError.Code { return .formatting }
-    public static var userCancelled:                            CocoaError.Code { return .userCancelled }
-    public static var featureUnsupported:                       CocoaError.Code { return .featureUnsupported }
-    public static var executableNotLoadable:                    CocoaError.Code { return .executableNotLoadable }
-    public static var executableArchitectureMismatch:           CocoaError.Code { return .executableArchitectureMismatch }
-    public static var executableRuntimeMismatch:                CocoaError.Code { return .executableRuntimeMismatch }
-    public static var executableLoad:                           CocoaError.Code { return .executableLoad }
-    public static var executableLink:                           CocoaError.Code { return .executableLink }
-    public static var propertyListReadCorrupt:                  CocoaError.Code { return .propertyListReadCorrupt }
-    public static var propertyListReadUnknownVersion:           CocoaError.Code { return .propertyListReadUnknownVersion }
-    public static var propertyListReadStream:                   CocoaError.Code { return .propertyListReadStream }
-    public static var propertyListWriteStream:                  CocoaError.Code { return .propertyListWriteStream }
-    public static var propertyListWriteInvalid:                 CocoaError.Code { return .propertyListWriteInvalid }
     public static var xpcConnectionInterrupted:                 CocoaError.Code { return .xpcConnectionInterrupted }
     public static var xpcConnectionInvalid:                     CocoaError.Code { return .xpcConnectionInvalid }
     public static var xpcConnectionReplyInvalid:                CocoaError.Code { return .xpcConnectionReplyInvalid }
@@ -732,36 +697,12 @@ extension CocoaError {
 }
 
 extension CocoaError {
-    public var isCoderError: Bool {
-        return code.rawValue >= 4864 && code.rawValue <= 4991
-    }
-
-    public var isExecutableError: Bool {
-        return code.rawValue >= 3584 && code.rawValue <= 3839
-    }
-
-    public var isFileError: Bool {
-        return code.rawValue >= 0 && code.rawValue <= 1023
-    }
-
-    public var isFormattingError: Bool {
-        return code.rawValue >= 2048 && code.rawValue <= 2559
-    }
-
-    public var isPropertyListError: Bool {
-        return code.rawValue >= 3840 && code.rawValue <= 4095
-    }
-
     public var isUbiquitousFileError: Bool {
         return code.rawValue >= 4352 && code.rawValue <= 4607
     }
 
     public var isUserActivityError: Bool {
         return code.rawValue >= 4608 && code.rawValue <= 4863
-    }
-
-    public var isValidationError: Bool {
-        return code.rawValue >= 1024 && code.rawValue <= 2047
     }
 
     public var isXPCConnectionError: Bool {
