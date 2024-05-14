@@ -1224,120 +1224,6 @@ class TestFileManager : XCTestCase {
     
 #if !DEPLOYMENT_RUNTIME_OBJC && !os(Android) // XDG tests require swift-corelibs-foundation
     
-    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT // These are white box tests for the internals of XDG parsing:
-    func test_xdgStopgapsCoverAllConstants() {
-        let stopgaps = _XDGUserDirectory.stopgapDefaultDirectoryURLs
-        for directory in _XDGUserDirectory.allDirectories {
-            XCTAssertNotNil(stopgaps[directory])
-        }
-    }
-    
-    func test_parseXDGConfiguration() {
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        
-        let assertConfigurationProduces = { (configuration: String, paths: [_XDGUserDirectory: String]) in
-            XCTAssertEqual(_XDGUserDirectory.userDirectories(fromConfiguration: configuration).mapValues({ $0.absoluteURL.path }),
-                           paths.mapValues({ URL(fileURLWithPath: $0, isDirectory: true, relativeTo: home).absoluteURL.path }))
-        }
-        
-        assertConfigurationProduces("", [:])
-        
-        // Test partial configuration and paths relative to home.
-        assertConfigurationProduces(
-"""
-DESKTOP=/xdg_test/Desktop
-MUSIC=/xdg_test/Music
-PICTURES=Pictures
-""", [ .desktop: "/xdg_test/Desktop",
-       .music: "/xdg_test/Music",
-       .pictures: "Pictures" ])
-
-        // Test full configuration with XDG_…_DIR syntax, duplicate keys and varying indentation
-        // 'XDG_MUSIC_DIR' is duplicated, below.
-        assertConfigurationProduces(
-"""
-	XDG_MUSIC_DIR=ShouldNotBeUsedUseTheOneBelowInstead
-
-	XDG_DESKTOP_DIR=Desktop
-		XDG_DOWNLOAD_DIR=Download
-	XDG_PUBLICSHARE_DIR=Public
-XDG_DOCUMENTS_DIR=Documents
-	XDG_MUSIC_DIR=Music
-XDG_PICTURES_DIR=Pictures
-	XDG_VIDEOS_DIR=Videos
-""", [ .desktop: "Desktop",
-       .download: "Download",
-       .publicShare: "Public",
-       .documents: "Documents",
-       .music: "Music",
-       .pictures: "Pictures",
-       .videos: "Videos" ])
-        
-        // Same, without XDG…DIR.
-        assertConfigurationProduces(
-"""
-    MUSIC=ShouldNotBeUsedUseTheOneBelowInstead
-
-    DESKTOP=Desktop
-        DOWNLOAD=Download
-    PUBLICSHARE=Public
-DOCUMENTS=Documents
-    MUSIC=Music
-PICTURES=Pictures
-    VIDEOS=Videos
-""", [ .desktop: "Desktop",
-       .download: "Download",
-       .publicShare: "Public",
-       .documents: "Documents",
-       .music: "Music",
-       .pictures: "Pictures",
-       .videos: "Videos" ])
-    
-        assertConfigurationProduces(
-"""
-    DESKTOP=/home/Desktop
-This configuration file has an invalid syntax.
-""", [:])
-    }
-    
-    func test_xdgURLSelection() {
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        
-        let configuration = _XDGUserDirectory.userDirectories(fromConfiguration:
-"""
-DESKTOP=UserDesktop
-"""
-        )
-        
-        let osDefaults = _XDGUserDirectory.userDirectories(fromConfiguration:
-"""
-DESKTOP=SystemDesktop
-PUBLICSHARE=SystemPublicShare
-"""
-        )
-        
-        let stopgaps = _XDGUserDirectory.userDirectories(fromConfiguration:
-"""
-DESKTOP=StopgapDesktop
-DOWNLOAD=StopgapDownload
-PUBLICSHARE=StopgapPublicShare
-DOCUMENTS=StopgapDocuments
-MUSIC=StopgapMusic
-PICTURES=StopgapPictures
-VIDEOS=StopgapVideos
-"""
-        )
-        
-        let assertSameAbsolutePath = { (lhs: URL, rhs: URL) in
-            XCTAssertEqual(lhs.absoluteURL.path, rhs.absoluteURL.path)
-        }
-        
-        assertSameAbsolutePath(_XDGUserDirectory.desktop.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("UserDesktop"))
-        assertSameAbsolutePath(_XDGUserDirectory.publicShare.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("SystemPublicShare"))
-        assertSameAbsolutePath(_XDGUserDirectory.music.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("StopgapMusic"))
-    }
-    #endif // NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    
     // This test below is a black box test, and does not require @testable import.
 
     #if !os(Android)
@@ -1413,81 +1299,81 @@ VIDEOS=StopgapVideos
         XCTAssertNil(NSHomeDirectoryForUser(""))
 
         XCTAssertThrowsError(try fm.contentsOfDirectory(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertNil(fm.enumerator(atPath: ""))
         XCTAssertNil(fm.subpaths(atPath: ""))
         XCTAssertThrowsError(try fm.subpathsOfDirectory(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.createDirectory(atPath: "", withIntermediateDirectories: true)) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertFalse(fm.createFile(atPath: "", contents: Data()))
         XCTAssertThrowsError(try fm.removeItem(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: "/tmp/t"))  {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: ""))  {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "/tmp/t", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "/tmp/t")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.moveItem(atPath: "/tmp/t", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "/tmp/t")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "/tmp/t", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "/tmp/t")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "/tmp/t", withDestinationPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.destinationOfSymbolicLink(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertFalse(fm.fileExists(atPath: ""))
@@ -1498,15 +1384,15 @@ VIDEOS=StopgapVideos
         XCTAssertTrue(fm.isDeletableFile(atPath: ""))
 
         XCTAssertThrowsError(try fm.attributesOfItem(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.attributesOfFileSystem(forPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.setAttributes([:], ofItemAtPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 

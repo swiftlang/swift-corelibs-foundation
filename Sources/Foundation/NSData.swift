@@ -1202,19 +1202,6 @@ extension NSData {
     }
 }
 
-// MARK: - Temporary URL support
-
-extension Data {
-    // Temporary until SwiftFoundation supports this
-    public init(contentsOf url: URL, options: ReadingOptions = []) throws {
-        self = try .init(contentsOf: url.path, options: options)
-    }
-
-    public func write(to url: URL, options: WritingOptions = []) throws {
-        try write(to: url.path, options: options)
-    }
-}
-
 // MARK: - Bridging
 
 extension Data {
