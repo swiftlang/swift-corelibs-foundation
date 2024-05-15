@@ -6,6 +6,8 @@ project(CoreFoundation
   VERSION 1338
   LANGUAGES ASM C)
 
+include(CheckSymbolExists)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 
@@ -60,6 +62,16 @@ if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-fdollars-in-identifiers>)
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-fno-common>)
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-Werror=implicit-function-declaration>)
+endif()
+
+check_symbol_exists("strlcat" "string.h" HAVE_STRLCAT)
+check_symbol_exists("strlcpy" "string.h" HAVE_STRLCPY)
+
+if(HAVE_STRLCAT)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCAT>)
+endif()
+if(HAVE_STRLCPY)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_STRLCPY>)
 endif()
 
 if(CF_DEPLOYMENT_SWIFT)
