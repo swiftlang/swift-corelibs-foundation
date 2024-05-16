@@ -321,7 +321,7 @@ open class FileHandle : NSObject {
         }
 
         let readBlockSize: Int
-        if statbuf.st_mode & S_IFMT == S_IFREG {
+        if Int(statbuf.st_mode) & Int(S_IFMT) == Int(S_IFREG) {
             // TODO: Should files over a certain size always be mmap()'d?
             if options.contains(.alwaysMapped) {
                 // Filesizes are often 64bit even on 32bit systems

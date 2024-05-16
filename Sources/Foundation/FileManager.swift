@@ -886,6 +886,8 @@ open class FileManager : NSObject {
         return Int(mode & ~UInt32(ucrt.S_IFMT))
 #elseif canImport(Darwin)
         return Int(mode & ~UInt32(S_IFMT))
+#elseif canImport(Android)
+        return Int(mode & ~UInt32(S_IFMT))
 #else
         return Int(mode & ~S_IFMT)
 #endif
@@ -1345,7 +1347,7 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
     }
 #else
     internal init(statMode: mode_t) {
-        switch statMode & S_IFMT {
+        switch statMode & mode_t(S_IFMT) {
         case mode_t(S_IFCHR): self = .typeCharacterSpecial
         case mode_t(S_IFDIR): self = .typeDirectory
         case mode_t(S_IFBLK): self = .typeBlockSpecial
