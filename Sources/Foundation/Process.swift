@@ -726,7 +726,7 @@ open class Process: NSObject {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
 
-            let isRegularFile: Bool = statInfo.st_mode & S_IFMT == S_IFREG
+            let isRegularFile: Bool = statInfo.st_mode & mode_t(S_IFMT) == S_IFREG
             guard isRegularFile == true else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
             }

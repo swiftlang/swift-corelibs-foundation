@@ -650,7 +650,7 @@ extension FileManager {
 
         #if !os(WASI) // WASI doesn't have ownership concept
         // Set the file permissions using fchmod() instead of when open()ing to avoid umask() issues
-        let permissions = fileInfo.st_mode & ~S_IFMT
+        let permissions = fileInfo.st_mode & ~mode_t(S_IFMT)
         guard fchmod(dstfd, permissions) == 0 else {
             throw _NSErrorWithErrno(errno, reading: false, path: dstPath,
                 extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
@@ -879,10 +879,10 @@ extension FileManager {
         do {
             return try _fileSystemRepresentation(withPath: path, { fsRep in
                 var s = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
-                if (s.st_mode & S_IFMT) == S_IFLNK {
+                if (s.st_mode & mode_t(S_IFMT)) == mode_t(S_IFLNK) {
                     // don't chase the link for this magic case -- we might be /Net/foo
                     // which is a symlink to /private/Net/foo which is not yet mounted...
-                    if isDirectory == nil && (s.st_mode & S_ISVTX) == S_ISVTX {
+                    if isDirectory == nil && (s.st_mode & mode_t(S_ISVTX)) == mode_t(S_ISVTX) {
                         return true
                     }
                     // chase the link; too bad if it is a slink to /Net/foo
@@ -892,7 +892,7 @@ extension FileManager {
                 }
 
                 if let isDirectory = isDirectory {
-                    isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
+                    isDirectory.pointee = ObjCBool((s.st_mode & mode_t(S_IFMT)) == S_IFDIR)
                 }
 
                 return true
@@ -956,7 +956,7 @@ extension FileManager {
                 let parentS = try _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep)
 
                 // Check if the parent is 'sticky' if it exists.
-                if (parentS.st_mode & S_ISVTX) == S_ISVTX {
+                if (parentS.st_mode & mode_t(S_ISVTX)) == S_ISVTX {
                     let s = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
 
                     // If the current user owns the file, return true.
@@ -1070,7 +1070,7 @@ extension FileManager {
             defer { fsRep1.deallocate() }
 
             let file1 = try _lstatFile(atPath: path1, withFileSystemRepresentation: fsRep1)
-            let file1Type = file1.st_mode & S_IFMT
+            let file1Type = file1.st_mode & mode_t(S_IFMT)
 
             // Don't use access() for symlinks as only the contents should be checked even
             // if the symlink doesnt point to an actual file, but access() will always try
@@ -1082,7 +1082,7 @@ extension FileManager {
             let fsRep2 = try __fileSystemRepresentation(withPath: path2)
             defer { fsRep2.deallocate() }
             let file2 = try _lstatFile(atPath: path2, withFileSystemRepresentation: fsRep2)
-            let file2Type = file2.st_mode & S_IFMT
+            let file2Type = file2.st_mode & mode_t(S_IFMT)
 
             // Are paths the same type: file, directory, symbolic link etc.
             guard file1Type == file2Type else {
