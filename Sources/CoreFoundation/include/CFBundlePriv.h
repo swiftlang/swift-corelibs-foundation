@@ -261,15 +261,6 @@ CFURLRef /* Nullable */ _CFBundleCopyWrappedBundleURL(CFBundleRef bundle) API_AV
 CF_EXPORT
 CFURLRef /* Nullable */ _CFBundleCopyWrapperContainerURL(CFBundleRef bundle) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
-#include <xpc/xpc.h>
-CF_EXPORT
-void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
-
-CF_EXPORT
-void _CFBundleSetupXPCBootstrapWithLanguages(xpc_object_t bootstrap, CFArrayRef appleLanguages) API_AVAILABLE(macos(10.16), ios(14.0), watchos(7.0), tvos(14.0));
-#endif
-
 #if TARGET_OS_MAC
 CF_EXPORT
 cpu_type_t _CFBundleGetPreferredExecutableArchitecture(CFBundleRef bundle) API_AVAILABLE(macos(10.16)) API_UNAVAILABLE(ios, watchos, tvos);

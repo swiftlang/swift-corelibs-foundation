@@ -58,8 +58,6 @@
 #define TARGET_OS_WATCH 0
 #endif
 
-#include "CFBase.h"
-
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -84,7 +82,7 @@ extern "C" {
 
 #define SystemIntegrityCheck(A, B)	do {} while (0)
 
-    
+
 #if INCLUDE_OBJC
 #include <objc/objc.h>
 #else
@@ -136,7 +134,6 @@ typedef char * Class;
 
 #endif
 
-    
 /* This macro creates some helper functions which are useful in dealing with libdispatch:
  *  __ PREFIX Queue -- manages and returns a singleton serial queue
  *
@@ -187,6 +184,20 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #define CF_RETAIN_BALANCED_ELSEWHERE(obj, identified_location) do { } while (0)
 #endif
 
+#if !defined(CF_INLINE)
+    #if defined(__GNUC__) && (__GNUC__ == 4) && !defined(DEBUG)
+        #define CF_INLINE static __inline__ __attribute__((always_inline))
+    #elif defined(__GNUC__)
+        #define CF_INLINE static __inline__
+    #elif defined(__cplusplus)
+    #define CF_INLINE static inline
+    #elif defined(_MSC_VER)
+        #define CF_INLINE static __inline
+    #elif TARGET_OS_WIN32
+    #define CF_INLINE static __inline__
+    #endif
+#endif
+
 #if !TARGET_OS_MAC
 #if !HAVE_STRLCPY
 CF_INLINE size_t
@@ -234,22 +245,6 @@ typedef int		boolean_t;
 #endif
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
-// Implemented in CFPlatform.c
-CF_EXPORT bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst);
-CF_EXPORT bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst);
-CF_EXPORT bool OSAtomicCompareAndSwapPtrBarrier(void *oldp, void *newp, void *volatile *dst);
-CF_EXPORT bool OSAtomicCompareAndSwap64Barrier( int64_t __oldValue, int64_t __newValue, volatile int64_t *__theValue );
-
-CF_EXPORT int32_t OSAtomicDecrement32Barrier(volatile int32_t *dst);
-CF_EXPORT int32_t OSAtomicIncrement32Barrier(volatile int32_t *dst);
-CF_EXPORT int32_t OSAtomicIncrement32(volatile int32_t *theValue);
-CF_EXPORT int32_t OSAtomicDecrement32(volatile int32_t *theValue);
-
-CF_EXPORT int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
-CF_EXPORT int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
-CF_EXPORT bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
-
-CF_EXPORT void OSMemoryBarrier();
 
 #include <time.h>
 

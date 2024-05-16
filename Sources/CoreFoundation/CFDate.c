@@ -73,18 +73,6 @@ CF_PRIVATE uint64_t __CFTSRToNanoseconds(uint64_t tsr) {
     return ns;
 }
 
-#if __HAS_DISPATCH__
-CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr) {
-    uint64_t tsrInNanoseconds = __CFTSRToNanoseconds(tsr);
-    
-    // It's important to clamp this value to INT64_MAX or it will become interpreted by dispatch_time as a relative value instead of absolute time
-    if (tsrInNanoseconds > INT64_MAX - 1) tsrInNanoseconds = INT64_MAX - 1;
-    
-    // 2nd argument of dispatch_time is a value in nanoseconds, but tsr does not equal nanoseconds on all platforms.
-    return dispatch_time(1, (int64_t)tsrInNanoseconds);
-}
-#endif
-
 #if TARGET_OS_WIN32
 CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     SYSTEMTIME stTime;

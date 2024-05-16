@@ -9,28 +9,23 @@
 
 #ifndef CFOverflow_h
 #define CFOverflow_h
-#include "CoreFoundation_Prefix.h"
 
 #include "CFBase.h"
 
-#if __has_include(<os/overflow.h>)
-#include <os/overflow.h>
+static bool __os_warn_unused(bool x) __attribute__((__warn_unused_result__));
+static bool __os_warn_unused(bool x) { return x; }
+
+#if __has_builtin(__builtin_add_overflow) && \
+__has_builtin(__builtin_sub_overflow) && \
+__has_builtin(__builtin_mul_overflow)
+
+    #define os_add_overflow(a, b, res) __os_warn_unused(__builtin_add_overflow((a), (b), (res)))
+    #define os_sub_overflow(a, b, res) __os_warn_unused(__builtin_sub_overflow((a), (b), (res)))
+    #define os_mul_overflow(a, b, res) __os_warn_unused(__builtin_mul_overflow((a), (b), (res)))
+
 #else
-    static bool __os_warn_unused(bool x) __attribute__((__warn_unused_result__));
-    static bool __os_warn_unused(bool x) { return x; }
-
-    #if __has_builtin(__builtin_add_overflow) && \
-    __has_builtin(__builtin_sub_overflow) && \
-    __has_builtin(__builtin_mul_overflow)
-
-        #define os_add_overflow(a, b, res) __os_warn_unused(__builtin_add_overflow((a), (b), (res)))
-        #define os_sub_overflow(a, b, res) __os_warn_unused(__builtin_sub_overflow((a), (b), (res)))
-        #define os_mul_overflow(a, b, res) __os_warn_unused(__builtin_mul_overflow((a), (b), (res)))
-
-    #else
-        #error Missing compiler support for overflow checking
-    #endif
-#endif // __has_include(<os/overflow.h>)
+    #error Missing compiler support for overflow checking
+#endif
 
 typedef CF_ENUM(uint8_t, _CFOverflowResult) {
     _CFOverflowResultOK = 0,

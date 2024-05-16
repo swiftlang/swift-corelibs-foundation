@@ -234,7 +234,6 @@ typedef int kern_return_t;
 // In order to reuse most of the code across Mach and Windows v1 RunLoopSources, we define a
 // simple abstraction layer spanning Mach ports and Windows HANDLES
 #if TARGET_OS_MAC
-typedef mach_port_t __CFPort;
 #define CFPORT_NULL MACH_PORT_NULL
 typedef mach_port_t __CFPortSet;
 
@@ -322,7 +321,6 @@ CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
 
 #elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
 
-typedef HANDLE __CFPort;
 #define CFPORT_NULL NULL
 
 // A simple dynamic array of HANDLEs, which grows to a high-water mark
@@ -412,8 +410,6 @@ static kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
 }
 
 #elif TARGET_OS_LINUX
-// eventfd/timerfd descriptor
-typedef int __CFPort;
 #define CFPORT_NULL -1
 #define MACH_PORT_NULL CFPORT_NULL
 
@@ -462,7 +458,6 @@ CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
 #include <sys/time.h>
 #include <poll.h>
 
-typedef uint64_t __CFPort;
 #define CFPORT_NULL ((__CFPort)-1)
 
 // _dispatch_get_main_queue_port_4CF is a uint64_t, i.e., a __CFPort.
@@ -719,22 +714,6 @@ static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet set, __CFPort port,
 #else
 #error "CFPort* stubs for this platform must be implemented
 #endif
-
-typedef struct {
-    CFIndex    version;
-    void *    info;
-    const void *(*retain)(const void *info);
-    void    (*release)(const void *info);
-    CFStringRef    (*copyDescription)(const void *info);
-    Boolean    (*equal)(const void *info1, const void *info2);
-    CFHashCode    (*hash)(const void *info);
-    __CFPort    (*getPort)(void *info);
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
-    void *    (*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info);
-#else
-    void    (*perform)(void *info);
-#endif
-} CFRunLoopSourceContext1;
 
 #if !defined(__MACTYPES__) && !defined(_OS_OSTYPES_H)
 #if defined(__BIG_ENDIAN__)
@@ -2300,6 +2279,18 @@ static Boolean __CFRunLoopDoSources0(CFRunLoopRef rl, CFRunLoopModeRef rlm, Bool
 
 CF_INLINE void __CFRunLoopDebugInfoForRunLoopSource(CFRunLoopSourceRef rls) {
 }
+
+#if __HAS_DISPATCH__
+CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr) {
+    uint64_t tsrInNanoseconds = __CFTSRToNanoseconds(tsr);
+    
+    // It's important to clamp this value to INT64_MAX or it will become interpreted by dispatch_time as a relative value instead of absolute time
+    if (tsrInNanoseconds > INT64_MAX - 1) tsrInNanoseconds = INT64_MAX - 1;
+    
+    // 2nd argument of dispatch_time is a value in nanoseconds, but tsr does not equal nanoseconds on all platforms.
+    return dispatch_time(1, (int64_t)tsrInNanoseconds);
+}
+#endif
 
 // msg, size and reply are unused on Windows
 #if TARGET_OS_MAC

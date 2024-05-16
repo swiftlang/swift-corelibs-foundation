@@ -10,9 +10,10 @@
 #if !defined(__COREFOUNDATION_CFBIGNUMBER__)
 #define __COREFOUNDATION_CFBIGNUMBER__ 1
 
+#include <stddef.h>
+
 #include "CFBase.h"
 #include "CFNumber.h"
-
 
 // Base 1 billion number: each digit represents 0 to 999999999
 typedef struct {
