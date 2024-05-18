@@ -76,7 +76,7 @@
 
 #include "ForSwiftFoundationOnly.h"
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include "CFMessagePort.h"
 #include "CFPlugIn.h"
 #include "CFRunLoop.h"

@@ -13,7 +13,7 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
 }
 #endif
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 #if os(WASI)
 import WASILibc
@@ -27,7 +27,7 @@ internal var O_TRUNC: Int32 { _getConst_O_TRUNC() }
 internal var O_WRONLY: Int32 { _getConst_O_WRONLY() }
 #endif
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension FileManager {
     internal func _mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {

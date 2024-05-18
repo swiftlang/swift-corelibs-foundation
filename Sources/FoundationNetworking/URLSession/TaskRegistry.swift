@@ -22,7 +22,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 import Dispatch
 
 extension URLSession {

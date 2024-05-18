@@ -24,18 +24,18 @@
 #include "CFLocaleInternal.h"
 #include <stdatomic.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
-#include <unicode/uloc.h>           // ICU locales
-#include <unicode/ulocdata.h>       // ICU locale data
-#include <unicode/ucal.h>
-#include <unicode/ucurr.h>          // ICU currency functions
-#include <unicode/uset.h>           // ICU Unicode sets
-#include <unicode/putil.h>          // ICU low-level utilities
-#include <unicode/umsg.h>           // ICU message formatting
-#include <unicode/ucol.h>
-#include <unicode/unumsys.h>        // ICU numbering systems
-#include <unicode/uvernum.h>
-#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
-#include <unicode/uameasureformat.h>
+#include <_foundation_unicode/uloc.h>           // ICU locales
+#include <_foundation_unicode/ulocdata.h>       // ICU locale data
+#include <_foundation_unicode/ucal.h>
+#include <_foundation_unicode/ucurr.h>          // ICU currency functions
+#include <_foundation_unicode/uset.h>           // ICU Unicode sets
+#include <_foundation_unicode/putil.h>          // ICU low-level utilities
+#include <_foundation_unicode/umsg.h>           // ICU message formatting
+#include <_foundation_unicode/ucol.h>
+#include <_foundation_unicode/unumsys.h>        // ICU numbering systems
+#include <_foundation_unicode/uvernum.h>
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<_foundation_unicode/uameasureformat.h>)
+#include <_foundation_unicode/uameasureformat.h>
 
 extern int32_t
 uameasfmt_getUnitsForUsage( const char*     locale,
@@ -1745,7 +1745,7 @@ static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeR
     if (!done) {
         char localeID[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
         if (CFStringGetCString(locale->_identifier, localeID, sizeof(localeID)/sizeof(char), kCFStringEncodingASCII)) {
-#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<_foundation_unicode/uameasureformat.h>)
             UErrorCode icuStatus = U_ZERO_ERROR;
             UAMeasureUnit unit;
             int32_t unitCount = uameasfmt_getUnitsForUsage(localeID, "temperature", "weather", &unit, 1, &icuStatus);

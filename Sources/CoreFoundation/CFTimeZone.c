@@ -21,9 +21,9 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unicode/ucal.h>
-#include <unicode/udat.h>
-#include <unicode/ustring.h>
+#include <_foundation_unicode/ucal.h>
+#include <_foundation_unicode/udat.h>
+#include <_foundation_unicode/ustring.h>
 #include "CFDateFormatter.h"
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <dirent.h>
