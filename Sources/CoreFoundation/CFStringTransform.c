@@ -19,7 +19,7 @@
 #include "CFUniChar.h"
 #include "CFPriv.h"
 #include "CFInternal.h"
-#include <unicode/utrans.h>
+#include <_foundation_unicode/utrans.h>
 
 static const char *__CFStringTransformGetICUIdentifier(CFStringRef identifier);
 

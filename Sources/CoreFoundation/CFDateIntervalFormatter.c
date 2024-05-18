@@ -20,7 +20,7 @@
 #include "CFLocale.h"
 #include "CFTimeZone.h"
 
-#include <unicode/udateintervalformat.h>
+#include <_foundation_unicode/udateintervalformat.h>
 
 #if TARGET_OS_WASI
 #define LOCK() do {} while (0)

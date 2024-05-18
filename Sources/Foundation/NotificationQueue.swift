@@ -8,7 +8,7 @@
 //
 
 #if canImport(Dispatch)
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension NotificationQueue {
 

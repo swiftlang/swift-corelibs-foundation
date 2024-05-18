@@ -15,15 +15,15 @@
 #if !defined(__COREFOUNDATION_CFICULOGGING__)
 #define __COREFOUNDATION_CFICULOGGING__ 1
 
-#include <unicode/ucal.h>
-#include <unicode/udatpg.h>
-#include <unicode/udat.h>
-#include <unicode/unum.h>
-#include <unicode/ulistformatter.h>
-#include <unicode/ucurr.h>
-#include <unicode/ustring.h>
-#if __has_include(<unicode/ureldatefmt.h>)
-#include <unicode/ureldatefmt.h>
+#include <_foundation_unicode/ucal.h>
+#include <_foundation_unicode/udatpg.h>
+#include <_foundation_unicode/udat.h>
+#include <_foundation_unicode/unum.h>
+#include <_foundation_unicode/ulistformatter.h>
+#include <_foundation_unicode/ucurr.h>
+#include <_foundation_unicode/ustring.h>
+#if __has_include(<_foundation_unicode/ureldatefmt.h>)
+#include <_foundation_unicode/ureldatefmt.h>
 #endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)

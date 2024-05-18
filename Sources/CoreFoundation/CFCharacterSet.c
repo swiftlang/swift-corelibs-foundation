@@ -20,8 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "CFPriv.h"
-#include <unicode/uchar.h>
-#include <unicode/uset.h>
+#include <_foundation_unicode/uchar.h>
+#include <_foundation_unicode/uset.h>
 
 #define BITSPERBYTE	8	/* (CHAR_BIT * sizeof(unsigned char)) */
 #define LOG_BPB		3

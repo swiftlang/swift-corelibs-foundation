@@ -13,8 +13,8 @@
 #include "CFICUConverters.h"
 #include "CFStringEncodingExt.h"
 #include "CFUniChar.h"
-#include <unicode/ucnv.h>
-#include <unicode/uversion.h>
+#include <_foundation_unicode/ucnv.h>
+#include <_foundation_unicode/uversion.h>
 #include "CFInternal.h"
 #include <stdio.h>
 

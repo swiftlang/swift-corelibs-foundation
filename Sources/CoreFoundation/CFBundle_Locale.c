@@ -15,9 +15,9 @@
 #include "CFPreferences.h"
 
 #if __HAS_APPLE_ICU__
-#include <unicode/ualoc.h>
+#include <_foundation_unicode/ualoc.h>
 #endif
-#include <unicode/uloc.h>
+#include <_foundation_unicode/uloc.h>
 #include <ctype.h>
 
 static CFStringRef _CFBundleCopyLanguageFoundInLocalizations(CFArrayRef localizations, CFStringRef language);

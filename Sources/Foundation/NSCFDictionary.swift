@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal final class _NSCFDictionary : NSMutableDictionary {
     deinit {

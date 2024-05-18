@@ -78,7 +78,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/apple/swift-foundation-icu",
-            from: "0.0.5"
+            from: "0.0.7"
         ),
         .package(
            url: "https://github.com/apple/swift-foundation",
@@ -121,7 +121,7 @@ let package = Package(
         .target(
             name: "_CoreFoundation",
             dependencies: [
-                .product(name: "FoundationICU", package: "swift-foundation-icu"),
+                .product(name: "_FoundationICU", package: "swift-foundation-icu"),
             ],
             path: "Sources/CoreFoundation",
             cSettings: coreFoundationBuildSettings

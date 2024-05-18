@@ -1,4 +1,4 @@
-framework module _CFXMLInterface [extern_c] [system] {
+module _CFXMLInterface {
     umbrella header "CFXMLInterface.h"
 
     export *

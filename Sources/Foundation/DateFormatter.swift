@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 @_spi(SwiftCorelibsFoundation) import FoundationEssentials
 
 open class DateFormatter : Formatter {
