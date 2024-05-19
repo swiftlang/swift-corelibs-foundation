@@ -270,7 +270,7 @@ class TestCalendar: XCTestCase {
 
     func test_nextDate() throws {
         var calendar = Calendar.current
-        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "US/Pacific"))
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
         let date_20200101 = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 01, day: 1)))
 
         do {

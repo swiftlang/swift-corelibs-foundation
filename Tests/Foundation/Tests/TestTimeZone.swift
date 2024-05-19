@@ -257,13 +257,13 @@ class TestTimeZone: XCTestCase {
     }
 
     func test_isDaylightSavingTime() throws {
-        let eukv = try XCTUnwrap(TimeZone(identifier: "Europe/Kiev"))
-        
+        let eulon = try XCTUnwrap(TimeZone(identifier: "Europe/London"))
+
         let dateNoDST = Date(timeIntervalSince1970: 1585432800.0) // March 29, 2020
         let dateDST = Date(timeIntervalSince1970: 1585515600.0) // March 30, 2020
-        
-        XCTAssertFalse(eukv.isDaylightSavingTime(for: dateNoDST))
-        XCTAssertTrue(eukv.isDaylightSavingTime(for: dateDST))
+
+        XCTAssertFalse(eulon.isDaylightSavingTime(for: dateNoDST))
+        XCTAssertTrue(eulon.isDaylightSavingTime(for: dateDST))
     }
 
     static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {

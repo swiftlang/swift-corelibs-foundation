@@ -52,8 +52,8 @@ class TestTimeZone : XCTestCase {
     func test_AnyHashableContainingTimeZone() {
         let values: [TimeZone] = [
             TimeZone(identifier: "America/Los_Angeles")!,
-            TimeZone(identifier: "Europe/Kiev")!,
-            TimeZone(identifier: "Europe/Kiev")!,
+            TimeZone(identifier: "Europe/Kyiv")!,
+            TimeZone(identifier: "Europe/Kyiv")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
         expectEqual(TimeZone.self, type(of: anyHashables[0].base))
@@ -66,8 +66,8 @@ class TestTimeZone : XCTestCase {
     func test_AnyHashableCreatedFromNSTimeZone() {
         let values: [NSTimeZone] = [
             NSTimeZone(name: "America/Los_Angeles")!,
-            NSTimeZone(name: "Europe/Kiev")!,
-            NSTimeZone(name: "Europe/Kiev")!,
+            NSTimeZone(name: "Europe/Kyiv")!,
+            NSTimeZone(name: "Europe/Kyiv")!,
         ]
         let anyHashables = values.map(AnyHashable.init)
         expectEqual(TimeZone.self, type(of: anyHashables[0].base))
