@@ -49,7 +49,7 @@ private typealias _RecursiveMutexPointer = UnsafeMutablePointer<pthread_mutex_t>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t>
 #endif
 
-open class NSLock: NSObject, NSLocking {
+open class NSLock: NSObject, NSLocking, @unchecked Sendable {
     internal var mutex = _MutexPointer.allocate(capacity: 1)
 #if os(macOS) || os(iOS) || os(Windows)
     private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
@@ -165,7 +165,7 @@ extension NSLock {
 }
 
 #if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
-open class NSConditionLock : NSObject, NSLocking {
+open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
     internal var _cond = NSCondition()
     internal var _value: Int
     internal var _thread: _swift_CFThreadRef?
@@ -259,7 +259,7 @@ open class NSConditionLock : NSObject, NSLocking {
 }
 #endif
 
-open class NSRecursiveLock: NSObject, NSLocking {
+open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
     internal var mutex = _RecursiveMutexPointer.allocate(capacity: 1)
 #if os(macOS) || os(iOS) || os(Windows)
     private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
@@ -381,7 +381,7 @@ open class NSRecursiveLock: NSObject, NSLocking {
     open var name: String?
 }
 
-open class NSCondition: NSObject, NSLocking {
+open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     internal var mutex = _MutexPointer.allocate(capacity: 1)
     internal var cond = _ConditionVariablePointer.allocate(capacity: 1)
 

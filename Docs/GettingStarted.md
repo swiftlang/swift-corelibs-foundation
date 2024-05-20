@@ -24,7 +24,7 @@ swift-corelibs-foundation swift-corelibs-xctest
 
 Build and test steps:
 
-0. Run Xcode with the latest toolchain. Follow [the instructions here](https://swift.org/download/#installation) to start Xcode with the correct toolchain.
+0. Run Xcode with the latest toolchain. Follow [the instructions here](https://www.swift.org/install/macos/#installation-via-swiftorg-package-installer) to start Xcode with the correct toolchain.
 0. Open `Foundation.xcworkspace`.
 0. Build the _SwiftFoundation_ target. This builds CoreFoundation and Foundation.
 0. Run (Cmd-R) the _TestFoundation_ target. This builds CoreFoundation, Foundation, XCTest, and TestFoundation, then runs the tests.
