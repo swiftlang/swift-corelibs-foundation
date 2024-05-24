@@ -12,11 +12,10 @@
 @_silgen_name("swift_getTypeContextDescriptor")
 private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
 
-open class Bundle: NSObject {
-    private var _bundleStorage: AnyObject!
-    private final var _bundle: CFBundle! {
-        get { unsafeBitCast(_bundleStorage, to: CFBundle?.self) }
-        set { _bundleStorage = newValue }
+open class Bundle: NSObject, @unchecked Sendable {
+    private let _bundleStorage: AnyObject!
+    private var _bundle: CFBundle! {
+        unsafeBitCast(_bundleStorage, to: CFBundle?.self)
     }
     
     public static var _supportsFHSBundles: Bool {
@@ -82,13 +81,11 @@ open class Bundle: NSObject {
     }
     
     internal init(cfBundle: CFBundle) {
+        _bundleStorage = cfBundle
         super.init()
-        _bundle = cfBundle
     }
     
     public init?(path: String) {
-        super.init()
-        
         // TODO: We do not yet resolve symlinks, but we must for compatibility
         // let resolvedPath = path._nsObject.stringByResolvingSymlinksInPath
         let resolvedPath = path
@@ -101,6 +98,8 @@ open class Bundle: NSObject {
         if (_bundleStorage == nil) {
             return nil
         }
+
+        super.init()
     }
     
     public convenience init?(url: URL) {
@@ -134,13 +133,12 @@ open class Bundle: NSObject {
     }
 
     public init?(identifier: String) {
-        super.init()
-        
         guard let result = CFBundleGetBundleWithIdentifier(identifier._cfObject) else {
             return nil
         }
         
-        _bundle = result
+        _bundleStorage = result
+        super.init()        
     }
     
     public convenience init?(_executableURL: URL) {
