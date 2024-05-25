@@ -111,6 +111,14 @@ CFURLSessionEasyCode CFURLSession_easy_setopt_tc(CFURLSessionEasyHandle _Nonnull
     return MakeEasyCode(curl_easy_setopt(curl,  option.value, a));
 }
 
+CFURLSessionEasyCode CFURLSession_easy_setopt_blob(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, void *_Nonnull data, size_t len) {
+    struct curl_blob stblob;
+    stblob.data = data;
+    stblob.len = len;
+    stblob.flags = CURL_BLOB_COPY;
+    return MakeEasyCode(curl_easy_setopt(curl,  option.value, &stblob));
+}
+
 CFURLSessionEasyCode CFURLSession_easy_getinfo_long(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionInfo info, long *_Nonnull a) {
     return MakeEasyCode(curl_easy_getinfo(curl, info.value, a));
 }
@@ -366,6 +374,9 @@ CFURLSessionOption const CFURLSessionOptionCOOKIE = { CURLOPT_COOKIE };
 CFURLSessionOption const CFURLSessionOptionHTTPHEADER = { CURLOPT_HTTPHEADER };
 CFURLSessionOption const CFURLSessionOptionHTTPPOST = { CURLOPT_HTTPPOST };
 CFURLSessionOption const CFURLSessionOptionSSLCERT = { CURLOPT_SSLCERT };
+#if !NS_CURL_MISSING_CURLINFO_SSLCERT_BLOB
+CFURLSessionOption const CFURLSessionOptionSSLCERT_BLOB = { CURLOPT_SSLCERT_BLOB };
+#endif
 CFURLSessionOption const CFURLSessionOptionKEYPASSWD = { CURLOPT_KEYPASSWD };
 CFURLSessionOption const CFURLSessionOptionCRLF = { CURLOPT_CRLF };
 CFURLSessionOption const CFURLSessionOptionQUOTE = { CURLOPT_QUOTE };
@@ -419,6 +430,9 @@ CFURLSessionOption const CFURLSessionOptionHTTP_VERSION = { CURLOPT_HTTP_VERSION
 CFURLSessionOption const CFURLSessionOptionFTP_USE_EPSV = { CURLOPT_FTP_USE_EPSV };
 CFURLSessionOption const CFURLSessionOptionSSLCERTTYPE = { CURLOPT_SSLCERTTYPE };
 CFURLSessionOption const CFURLSessionOptionSSLKEY = { CURLOPT_SSLKEY };
+#if !NS_CURL_MISSING_CURLINFO_SSLKEY_BLOB
+CFURLSessionOption const CFURLSessionOptionSSLKEY_BLOB = { CURLOPT_SSLKEY_BLOB };
+#endif
 CFURLSessionOption const CFURLSessionOptionSSLKEYTYPE = { CURLOPT_SSLKEYTYPE };
 CFURLSessionOption const CFURLSessionOptionSSLENGINE = { CURLOPT_SSLENGINE };
 CFURLSessionOption const CFURLSessionOptionSSLENGINE_DEFAULT = { CURLOPT_SSLENGINE_DEFAULT };

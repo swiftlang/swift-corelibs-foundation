@@ -178,8 +178,55 @@ extension _EasyHandle {
         }
     }
 
-    func set(sessionConfig config: URLSession._Configuration) {
+    func set(sessionConfig config: URLSession._Configuration) throws {
         _config = config
+        if let c = _config, let clientCredential = c.clientCredential {
+            // For TLS client certificate authentication
+            if var privateClientKey = clientCredential.privateClientKey,
+               var privateClientCertificate = clientCredential.privateClientCertificate {
+                // Key and certificate are expected to be in DER format
+                "DER".withCString {
+                    let mutablePointer = UnsafeMutablePointer(mutating: $0)
+                    try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSSLKEYTYPE, mutablePointer).asError()
+                    try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSSLCERTTYPE, mutablePointer).asError()
+                }
+
+#if !NS_CURL_MISSING_CURLINFO_SSLKEY_BLOB
+                privateClientKey.withUnsafeMutableBytes {
+                    if let baseAddress = $0.baseAddress {
+                        try! CFURLSession_easy_setopt_blob(rawHandle, CFURLSessionOptionSSLKEY_BLOB,
+                            baseAddress, $0.count).asError()
+                    }
+                }
+#endif // !NS_CURL_MISSING_CURLINFO_SSLKEY_BLOB
+
+#if !NS_CURL_MISSING_CURLINFO_SSLCERT_BLOB
+                privateClientCertificate.withUnsafeMutableBytes {
+                    if let baseAddress = $0.baseAddress {
+                        try! CFURLSession_easy_setopt_blob(rawHandle, CFURLSessionOptionSSLCERT_BLOB,
+                            baseAddress, $0.count).asError()
+                    }
+                }
+#endif // !NS_CURL_MISSING_CURLINFO_SSLCERT_BLOB
+            } else if let tlsAuthUsername = clientCredential.user,
+                      let tlsAuthPassword = clientCredential.password {
+                "SRP".withCString {
+                    let mutablePointer = UnsafeMutablePointer(mutating: $0)
+                    try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionTLSAUTH_TYPE, mutablePointer).asError()
+                }
+                tlsAuthUsername.withCString {
+                    let mutablePointer = UnsafeMutablePointer(mutating: $0)
+                    try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionTLSAUTH_USERNAME, mutablePointer).asError()
+                }
+                tlsAuthPassword.withCString {
+                    let mutablePointer = UnsafeMutablePointer(mutating: $0)
+                    try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionTLSAUTH_PASSWORD, mutablePointer).asError()
+                }
+            } else {
+                throw NSError(domain: NSURLErrorDomain, code: NSURLErrorUserAuthenticationRequired,
+                              userInfo: [NSLocalizedDescriptionKey: "Client credentials from URLSessionConfiguration is incomplete."])
+            }
+        }
     }
 
     /// Set the CA bundle path automatically if it isn't set

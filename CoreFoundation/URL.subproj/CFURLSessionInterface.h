@@ -199,6 +199,7 @@ CF_EXPORT CFURLSessionOption const CFURLSessionOptionCOOKIE; // CURLOPT_COOKIE
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionHTTPHEADER; // CURLOPT_HTTPHEADER
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionHTTPPOST; // CURLOPT_HTTPPOST
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLCERT; // CURLOPT_SSLCERT
+CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLCERT_BLOB; // CURLOPT_SSLCERT_BLOB
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionKEYPASSWD; // CURLOPT_KEYPASSWD
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionCRLF; // CURLOPT_CRLF
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionQUOTE; // CURLOPT_QUOTE
@@ -253,6 +254,7 @@ CF_EXPORT CFURLSessionOption const CFURLSessionOptionHTTP_VERSION; // CURLOPT_HT
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionFTP_USE_EPSV; // CURLOPT_FTP_USE_EPSV
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLCERTTYPE; // CURLOPT_SSLCERTTYPE
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLKEY; // CURLOPT_SSLKEY
+CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLKEY_BLOB; // CURLOPT_SSLKEY_BLOB
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLKEYTYPE; // CURLOPT_SSLKEYTYPE
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLENGINE; // CURLOPT_SSLENGINE
 CF_EXPORT CFURLSessionOption const CFURLSessionOptionSSLENGINE_DEFAULT; // CURLOPT_SSLENGINE_DEFAULT
@@ -626,6 +628,7 @@ typedef int (CFURLSessionSeekCallback)(void *_Nullable userp, long long offset, 
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_seek(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, CFURLSessionSeekCallback * _Nullable a);
 typedef int (CFURLSessionTransferInfoCallback)(void *_Nullable userp, long long dltotal, long long dlnow, long long ultotal, long long ulnow);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_tc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, CFURLSessionTransferInfoCallback * _Nullable a);
+CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_blob(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, void *_Nonnull data, size_t len);
 
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_getinfo_long(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionInfo info, long *_Nonnull a);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_getinfo_double(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionInfo info, double *_Nonnull a);

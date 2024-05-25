@@ -328,7 +328,14 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
         let session = task?.session as! URLSession
         let _config = session._configuration
-        easyHandle.set(sessionConfig: _config)
+        do {
+            try easyHandle.set(sessionConfig: _config)
+        } catch {
+            self.internalState = .transferFailed
+            let nsError = error as? NSError ?? NSError(domain: NSURLErrorDomain, code: NSURLErrorUserAuthenticationRequired)
+            failWith(error: nsError, request: request)
+            return
+        }
         easyHandle.setAllowedProtocolsToHTTPAndHTTPS()
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
