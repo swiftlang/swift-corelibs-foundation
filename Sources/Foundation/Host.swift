@@ -12,9 +12,9 @@
 import WinSDK
 #endif
 
-#if os(Android)
+#if canImport(Android)
     import Android
-    // Android Glibc differs a little with respect to the Linux Glibc.
+    // Android Bionic differs a little with respect to the Linux Glibc.
 
     // IFF_LOOPBACK is part of the enumeration net_device_flags, which needs to
     // convert to UInt32.

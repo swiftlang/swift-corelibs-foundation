@@ -11,10 +11,6 @@
 internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
 }
-#elseif os(Android)
-internal func &(left: mode_t, right: Int32) -> mode_t {
-    return left & mode_t(right)
-}
 #endif
 
 #if os(WASI)
@@ -413,7 +409,7 @@ extension FileManager {
                     if !parent.isEmpty && !fileExists(atPath: parent, isDirectory: &isDir) {
                         try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                     }
-                    if mkdir(pathFsRep, mode_t(S_IRWXU) | mode_t(S_IRWXG) | mode_t(S_IRWXO)) != 0 {
+                    if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
                         let posixError = errno
                         if posixError == EEXIST && fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue {
                             // Continue; if there is an existing file and it is a directory, that is still a success.
@@ -432,7 +428,7 @@ extension FileManager {
                     throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
                 }
             } else {
-                if mkdir(pathFsRep, mode_t(S_IRWXU) | mode_t(S_IRWXG) | mode_t(S_IRWXO)) != 0 {
+                if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
                     throw _NSErrorWithErrno(errno, reading: false, path: path)
                 } else if let attr = attributes {
                     try self.setAttributes(attr, ofItemAtPath: path)

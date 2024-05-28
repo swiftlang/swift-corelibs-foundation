@@ -25,7 +25,7 @@ import WinSDK
 import WASILibc
 #endif
 
-#if os(Android)
+#if canImport(Android)
 import Android
 #endif
 
@@ -1346,12 +1346,12 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
 #else
     internal init(statMode: mode_t) {
         switch statMode & S_IFMT {
-        case mode_t(S_IFCHR): self = .typeCharacterSpecial
-        case mode_t(S_IFDIR): self = .typeDirectory
-        case mode_t(S_IFBLK): self = .typeBlockSpecial
-        case mode_t(S_IFREG): self = .typeRegular
-        case mode_t(S_IFLNK): self = .typeSymbolicLink
-        case mode_t(S_IFSOCK): self = .typeSocket
+        case S_IFCHR: self = .typeCharacterSpecial
+        case S_IFDIR: self = .typeDirectory
+        case S_IFBLK: self = .typeBlockSpecial
+        case S_IFREG: self = .typeRegular
+        case S_IFLNK: self = .typeSymbolicLink
+        case S_IFSOCK: self = .typeSocket
         default: self = .typeUnknown
         }
     }
