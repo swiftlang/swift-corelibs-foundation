@@ -803,8 +803,13 @@ extension FileManager {
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
-                let stream = ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) {
-                    fts_open($0, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                let stream = ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) { rebound_ps in
+#if canImport(Android)
+                    let arg = rebound_ps
+#else
+                    let arg = ps
+#endif
+                    return fts_open(arg, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 }
                 ps.deinitialize(count: 2)
                 ps.deallocate()
@@ -1173,8 +1178,13 @@ extension FileManager {
                     defer { ps.deallocate() }
                     ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
-                    return ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) {
-                        fts_open($0, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                    return ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) { rebound_ps in
+#if canImport(Android)
+                        let arg = rebound_ps
+#else
+                        let arg = ps
+#endif
+                        return fts_open(arg, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                     }
                 }
                 if _stream == nil {
