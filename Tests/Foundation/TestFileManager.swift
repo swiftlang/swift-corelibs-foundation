@@ -1785,6 +1785,17 @@ class TestFileManager : XCTestCase {
         }
     }
     
+    func testNSNumberUpcall() throws {
+        let url = writableTestDirectoryURL.appending(component: "foo", directoryHint: .notDirectory)
+        try FileManager.default.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
+        XCTAssertTrue(FileManager.default.createFile(atPath: url.path, contents: Data("foo".utf8)))
+        let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
+        let size = attrs[.size]
+        XCTAssertNotNil(size as? NSNumber)
+        XCTAssertNotNil(size as? UInt64)
+        XCTAssertNotNil(size as? Double) // Ensure implicit conversion to unexpected types works
+    }
+    
     // -----
     
     var writableTestDirectoryURL: URL!
