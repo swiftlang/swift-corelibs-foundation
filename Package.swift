@@ -82,7 +82,7 @@ let package = Package(
         ),
         .package(
            url: "https://github.com/apple/swift-foundation",
-           revision: "db63ab39bb4f07eeb3ccf19fa7a9f928a7ca3972"
+           revision: "3297fb33b49ba2d1161ba12757891c7b91c73a3e"
         ),
     ],
     targets: [
