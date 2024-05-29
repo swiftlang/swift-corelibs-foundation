@@ -7,7 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
+@_exported import FoundationEssentials
 // NSURLQueryItem encapsulates a single query name-value pair. The name and value strings of a query name-value pair are not percent encoded. For use with the NSURLComponents queryItems property.
 open class NSURLQueryItem: NSObject, NSSecureCoding, NSCopying {
 
@@ -64,6 +64,6 @@ extension NSURLQueryItem: _StructTypeBridgeable {
     public typealias _StructType = URLQueryItem
 
     public func _bridgeToSwift() -> _StructType {
-        return _StructType._unconditionallyBridgeFromObjectiveC(self)
+        return _StructType(name: self.name, value: self.value)
     }
 }
