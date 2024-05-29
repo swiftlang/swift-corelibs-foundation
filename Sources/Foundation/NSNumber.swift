@@ -9,6 +9,7 @@
 
 
 @_implementationOnly import _CoreFoundation
+@_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 
 internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
 internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
@@ -1172,3 +1173,18 @@ protocol _NSNumberCastingWithoutBridging {
 }
 
 extension NSNumber: _NSNumberCastingWithoutBridging {}
+
+// Called by FoundationEssentials
+internal final class _FoundationNSNumberInitializer : _NSNumberInitializer {
+    public static func initialize(value: some BinaryInteger) -> Any {
+        if let int64 = Int64(exactly: value) {
+            return NSNumber(value: int64)
+        } else {
+            return NSNumber(value: UInt64(value))
+        }
+    }
+    
+    public static func initialize(value: Bool) -> Any {
+        NSNumber(value: value)
+    }
+}
