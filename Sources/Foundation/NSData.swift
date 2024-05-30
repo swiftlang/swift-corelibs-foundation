@@ -13,47 +13,11 @@ import Dispatch
 #endif
 
 extension NSData {
-    public struct ReadingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let mappedIfSafe = ReadingOptions(rawValue: UInt(1 << 0))
-        public static let uncached = ReadingOptions(rawValue: UInt(1 << 1))
-        public static let alwaysMapped = ReadingOptions(rawValue: UInt(1 << 2))
-    }
-
-    public struct WritingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let atomic = WritingOptions(rawValue: UInt(1 << 0))
-        public static let withoutOverwriting = WritingOptions(rawValue: UInt(1 << 1))
-    }
-
-    public struct SearchOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let backwards = SearchOptions(rawValue: UInt(1 << 0))
-        public static let anchored = SearchOptions(rawValue: UInt(1 << 1))
-    }
-
-    public struct Base64EncodingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let lineLength64Characters = Base64EncodingOptions(rawValue: UInt(1 << 0))
-        public static let lineLength76Characters = Base64EncodingOptions(rawValue: UInt(1 << 1))
-        public static let endLineWithCarriageReturn = Base64EncodingOptions(rawValue: UInt(1 << 4))
-        public static let endLineWithLineFeed = Base64EncodingOptions(rawValue: UInt(1 << 5))
-    }
-
-    public struct Base64DecodingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: UInt(1 << 0))
-    }
+    public typealias ReadingOptions = Data.ReadingOptions
+    public typealias WritingOptions = Data.WritingOptions
+    public typealias SearchOptions = Data.SearchOptions
+    public typealias Base64EncodingOptions = Data.Base64EncodingOptions
+    public typealias Base64DecodingOptions = Data.Base64DecodingOptions
 }
 
 private final class _NSDataDeallocator {
