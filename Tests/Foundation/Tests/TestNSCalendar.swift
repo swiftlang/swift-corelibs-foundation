@@ -393,9 +393,11 @@ class TestNSCalendar: XCTestCase {
         try yield(to: block, (.chinese,             "zh_CN",   "Asia/Hong_Kong",      "2015-04-02 07:13:22 +0800"))
         try yield(to: block, (.chinese,             "zh_CN",   "Asia/Hong_Kong",      "2014-10-16 06:12:10 +0800"))
 
-#if !os(Windows)
+#if !os(Windows) && !os(Linux)
         // TODO: these are deprecated aliases which are unavailable on Windows,
         // it is unclear if the support for the old names need to be validated.
+        // TODO: these aliases have been removed from recent versions of Linux
+        // as well
         try yield(to: block, (.hebrew,              "he_IL",   "Israel",              "2018-12-24 05:40:43 +0200"))
         try yield(to: block, (.hebrew,              "he_IL",   "Israel",              "2019-03-22 09:23:26 +0200"))
 #endif
@@ -505,8 +507,9 @@ class TestNSCalendar: XCTestCase {
         try yield(to: block, (.gregorian, "en_US", "America/Los_Angeles", "2013-03-26 10:04:16 -0700", "2013-03-26 00:00:00 -0700"))
         try yield(to: block, (.gregorian, "pt_BR", "America/Sao_Paulo", "2013-10-20 13:10:20 -0200", "2013-10-20 01:00:00 -0200")) // DST jump forward at midnight
         try yield(to: block, (.gregorian, "pt_BR", "America/Sao_Paulo", "2014-02-15 23:59:59 -0300", "2014-02-15 00:00:00 -0200")) // DST jump backward
-#if !os(Windows)
-        // TODO: these are deprecated aliases which are unavailable on Windows,
+#if !os(Windows) && !os(Linux)
+        // TODO: these are deprecated aliases which are unavailable on Windows
+        // and updated Linux distributions,
         // it is unclear if the support for the old names need to be validated.
         try yield(to: block, (.gregorian, "pt_BR", "Brazil/East", "2013-10-20 13:10:20 -0200", "2013-10-20 01:00:00 -0200")) // DST jump forward at midnight
         try yield(to: block, (.gregorian, "pt_BR", "Brazil/East", "2014-02-15 23:59:59 -0300", "2014-02-15 00:00:00 -0200")) // DST jump backward
@@ -751,7 +754,7 @@ class TestNSCalendar: XCTestCase {
         try yield(to: block, (.islamic,               "ar_SA",   "Asia/Riyadh",         "2015-05-29 00:00:00 +0300",   "2015-05-31 00:00:00 +0300")) // islamic
         try yield(to: block, (.islamicCivil,          "ar_SA",   "Asia/Riyadh",         "2015-05-29 00:00:00 +0300",   "2015-05-31 00:00:00 +0300")) // islamic-civil
         try yield(to: block, (.chinese,               "zh_CN",   "Asia/Hong_Kong",      "2015-01-03 00:00:00 +0800",   "2015-01-05 00:00:00 +0800")) // chinese
-#if !os(Windows)
+#if !os(Windows) && !os(Linux)
         // TODO: these are deprecated aliases which are unavailable on Windows,
         // it is unclear if the support for the old names need to be validated.
         try yield(to: block, (.hebrew,                "he_IL",   "Israel",              "2018-03-23 00:00:00 +0200",   "2018-03-25 00:00:00 +0300")) // weekend with DST jump
