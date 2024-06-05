@@ -1335,7 +1335,7 @@ class TestFileManager : XCTestCase {
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "/tmp/t", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileNoSuchFile)
+            XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
         #if false
@@ -1364,7 +1364,7 @@ class TestFileManager : XCTestCase {
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "/tmp/t", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileNoSuchFile)
+            XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "")) {

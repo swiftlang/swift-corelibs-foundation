@@ -210,7 +210,7 @@ class TestNSData: XCTestCase {
                 let url = URL(fileURLWithPath: NSTemporaryDirectory() + "meow")
                 try data.write(to: url)
                 let fileManager = FileManager.default
-                let permission = try fileManager._permissionsOfItem(atPath: url.path)
+                let permission = try fileManager.attributesOfItem(atPath: url.path)[.posixPermissions] as? Int
 #if canImport(Darwin)
                 let expected = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
 #else
@@ -233,7 +233,7 @@ class TestNSData: XCTestCase {
                 let url = URL(fileURLWithPath: NSTemporaryDirectory() + "meow")
                 try data.write(to: url, options: .atomic)
                 let fileManager = FileManager.default
-                let permission = try fileManager._permissionsOfItem(atPath: url.path)
+                let permission = try fileManager.attributesOfItem(atPath: url.path)[.posixPermissions] as? Int
 #if canImport(Darwin)
                 let expected = Int(S_IRUSR) | Int(S_IWUSR) | Int(S_IRGRP) | Int(S_IWGRP) | Int(S_IROTH) | Int(S_IWOTH)
 #else

@@ -181,24 +181,6 @@ extension FileManager {
         return (attributes: result, blockSize: finalBlockSize)
     #endif // os(WASI)
     }
-
-    /* destinationOfSymbolicLinkAtPath:error: returns a String containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be thrown.
-
-        This method replaces pathContentOfSymbolicLinkAtPath:
-     */
-    internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
-        let bufferSize = Int(PATH_MAX + 1)
-        let buffer = try [Int8](unsafeUninitializedCapacity: bufferSize) { buffer, initializedCount in
-            let len = try _fileSystemRepresentation(withPath: path) { (path) -> Int in
-                return readlink(path, buffer.baseAddress!, bufferSize)
-            }
-            guard len >= 0 else {
-                throw _NSErrorWithErrno(errno, reading: true, path: path)
-            }
-            initializedCount = len
-        }
-        return self.string(withFileSystemRepresentation: buffer, length: buffer.count)
-    }
         
     internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
         #if os(WASI)
@@ -207,7 +189,7 @@ extension FileManager {
         throw _NSErrorWithErrno(ENOTSUP, reading: true, path: path)
         #else
         // Throw error if path is not a symbolic link:
-        let path = try _destinationOfSymbolicLink(atPath: path)
+        let path = try destinationOfSymbolicLink(atPath: path)
         
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)

@@ -9,9 +9,7 @@
 
 #if !canImport(Darwin) && !os(FreeBSD)
 // The values do not matter as long as they are nonzero.
-fileprivate let UF_IMMUTABLE: Int32 = 1
 fileprivate let SF_IMMUTABLE: Int32 = 1
-fileprivate let UF_APPEND: Int32 = 1
 fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
@@ -271,212 +269,87 @@ extension FileManager {
         try getRelationship(outRelationship, ofDirectoryAt: try self.url(for: directory, in: actualMask, appropriateFor: url, create: false), toItemAt: url)
     }
     
-    internal func _setAttributes(_ attributeValues: [FileAttributeKey : Any], ofItemAtPath path: String, includingPrivateAttributes: Bool = false) throws {
-        var attributes = Set(attributeValues.keys)
-        if !includingPrivateAttributes {
-            attributes.formIntersection(FileAttributeKey.allPublicKeys)
+    internal func _setAttributesIncludingPrivate(_ values: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
+        // Call through to FoundationEssentials to handle all public attributes
+        try self.setAttributes(values, ofItemAtPath: path)
+        
+        // Handle private attributes
+        var flagsToSet: UInt32 = 0
+        var flagsToUnset: UInt32 = 0
+        
+        if let isHidden = values[._hidden] as? Bool {
+#if os(Windows)
+            let attrs = try windowsFileAttributes(atPath: path).dwFileAttributes
+            let hiddenAttrs = isHidden
+                ? attrs | FILE_ATTRIBUTE_HIDDEN
+                : attrs & ~FILE_ATTRIBUTE_HIDDEN
+            guard SetFileAttributesW(fsRep, hiddenAttrs) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+            }
+#else
+            if isHidden {
+                flagsToSet |= UInt32(UF_HIDDEN)
+            } else {
+                flagsToUnset |= UInt32(UF_HIDDEN)
+            }
+#endif
         }
         
-        try _fileSystemRepresentation(withPath: path) { fsRep in
-            var flagsToSet: UInt32 = 0
-            var flagsToUnset: UInt32 = 0
-            
-            var newModificationDate: Date?
-            var newAccessDate: Date?
-            
-            for attribute in attributes {
-                
-                func prepareToSetOrUnsetFlag(_ flag: Int32) {
-                    guard let shouldSet = attributeValues[attribute] as? Bool else {
-                        fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                    }
-                    
-                    if shouldSet {
-                        flagsToSet |= UInt32(flag)
-                    } else {
-                        flagsToUnset |= UInt32(flag)
-                    }
-                }
-                
-                switch attribute {
-                case .posixPermissions:
-#if os(WASI)
-                    // WASI does not have permission concept
-                    throw _NSErrorWithErrno(ENOTSUP, reading: false, path: path)
-#else
-                    guard let number = attributeValues[attribute] as? NSNumber else {
-                        fatalError("Can't set file permissions to \(attributeValues[attribute] as Any?)")
-                    }
-                    #if os(macOS) || os(iOS)
-                        let modeT = number.uint16Value
-                    #elseif os(Linux) || os(Android) || os(Windows) || os(OpenBSD)
-                        let modeT = number.uint32Value
-                    #endif
-#if os(Windows)
-                    let result = _wchmod(fsRep, mode_t(modeT))
-#else
-                    let result = chmod(fsRep, mode_t(modeT))
-#endif
-                    guard result == 0 else {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
-                    }
-#endif // os(WASI)
-                
-                case .modificationDate: fallthrough
-                case ._accessDate:
-                    guard let providedDate = attributeValues[attribute] as? Date else {
-                        fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                    }
-
-                    if attribute == .modificationDate {
-                        newModificationDate = providedDate
-                    } else if attribute == ._accessDate {
-                        newAccessDate = providedDate
-                    }
-
-                case .immutable: fallthrough
-                case ._userImmutable:
-                    prepareToSetOrUnsetFlag(UF_IMMUTABLE)
-                    
-                case ._systemImmutable:
-                    prepareToSetOrUnsetFlag(SF_IMMUTABLE)
-                    
-                case .appendOnly:
-                    prepareToSetOrUnsetFlag(UF_APPEND)
-                    
-                case ._hidden:
-#if os(Windows)
-                    let attrs = try windowsFileAttributes(atPath: path).dwFileAttributes
-                    guard let isHidden = attributeValues[attribute] as? Bool else {
-                      fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                    }
-
-                    let hiddenAttrs = isHidden
-                        ? attrs | FILE_ATTRIBUTE_HIDDEN
-                        : attrs & ~FILE_ATTRIBUTE_HIDDEN
-                    guard SetFileAttributesW(fsRep, hiddenAttrs) else {
-                      throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
-                    }
-#else
-                    prepareToSetOrUnsetFlag(UF_HIDDEN)
-#endif
-                    
-                // FIXME: On Darwin, these can be set with setattrlist(); and of course chown/chgrp on other OSes.
-                case .ownerAccountID: fallthrough
-                case .ownerAccountName: fallthrough
-                case .groupOwnerAccountID: fallthrough
-                case .groupOwnerAccountName: fallthrough
-                case .creationDate: fallthrough
-                case .extensionHidden:
-                    // Setting these attributes is unsupported (for now) in swift-corelibs-foundation
-                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
-                    
-                default:
-                    break
-                }
+        if let isSystemImmutable = values[._systemImmutable] as? Bool {
+            if isSystemImmutable {
+                flagsToSet |= UInt32(SF_IMMUTABLE)
+            } else {
+                flagsToUnset |= UInt32(SF_IMMUTABLE)
             }
-
-            if flagsToSet != 0 || flagsToUnset != 0 {
-                #if !canImport(Darwin) && !os(FreeBSD)
-                    // Setting these attributes is unsupported on these platforms.
-                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
-                #else
-                    let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
-                    var flags = stat.st_flags
-                    flags |= flagsToSet
-                    flags &= ~flagsToUnset
-                
-                    guard chflags(fsRep, flags) == 0 else {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
-                    }
-                #endif
+        }
+        
+        if flagsToSet != 0 || flagsToUnset != 0 {
+#if !canImport(Darwin) && !os(FreeBSD)
+            // Setting these attributes is unsupported on these platforms.
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+#else
+            let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+            var flags = stat.st_flags
+            flags |= flagsToSet
+            flags &= ~flagsToUnset
+            
+            guard chflags(fsRep, flags) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-
-            if newModificationDate != nil || newAccessDate != nil {
-              // Set dates as the very last step, to avoid other operations overwriting these values:
-              try _updateTimes(atPath: path, withFileSystemRepresentation: fsRep, accessTime: newAccessDate, modificationTime: newModificationDate)
+#endif
+        }
+        
+        let accessDate = values[._accessDate] as? Date
+        let modificationDate = values[.modificationDate] as? Date
+        
+        if accessDate != nil || modificationDate != nil {
+            // Set dates as the very last step, to avoid other operations overwriting these values
+            // Also re-set modification date here in case setting flags above changed it
+            try _fileSystemRepresentation(withPath: path) {
+                try _updateTimes(atPath: path, withFileSystemRepresentation: $0, accessTime: accessDate, modificationTime: modificationDate)
             }
         }
     }
     
-    internal func _attributesOfItem(atPath path: String, includingPrivateAttributes: Bool = false) throws -> [FileAttributeKey: Any] {
-        var result: [FileAttributeKey:Any] = [:]
-
+    internal func _attributesOfItemIncludingPrivate(atPath path: String) throws -> [FileAttributeKey: Any] {
+        // Call to FoundationEssentials to get all public attributes
+        var result = try self.attributesOfItem(atPath: path)
+        
 #if os(Linux)
-        let (s, creationDate) = try _statxFile(atPath: path)
-        result[.creationDate] = creationDate
+        let (s, _) = try _statxFile(atPath: path)
 #elseif os(Windows)
-        let (s, ino) = try _statxFile(atPath: path)
-        result[.creationDate] = s.creationDate
+        let (s, _) = try _statxFile(atPath: path)
 #else
         let s = try _lstatFile(atPath: path)
-        result[.creationDate] = s.creationDate
 #endif
-
-        result[.size] = NSNumber(value: UInt64(s.st_size))
-
-        result[.modificationDate] = s.lastModificationDate
-        if includingPrivateAttributes {
-            result[._accessDate] = s.lastAccessDate
-        }
-
-        result[.posixPermissions] = NSNumber(value: _filePermissionsMask(mode: UInt32(s.st_mode)))
-        result[.referenceCount] = NSNumber(value: UInt64(s.st_nlink))
-        result[.systemNumber] = NSNumber(value: UInt64(s.st_dev))
-#if os(Windows)
-        result[.systemFileNumber] = NSNumber(value: UInt64(ino))
-#else
-        result[.systemFileNumber] = NSNumber(value: UInt64(s.st_ino))
-#endif
-
-#if os(Windows)
-        result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
-        let attributes = try windowsFileAttributes(atPath: path)
-        let type = FileAttributeType(attributes: attributes, atPath: path)
-#elseif os(WASI)
-        let type = FileAttributeType(statMode: mode_t(s.st_mode))
-#else
-        if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
-            let name = String(cString: pwd.pointee.pw_name)
-            result[.ownerAccountName] = name
-        }
-
-        if let grd = getgrgid(s.st_gid), grd.pointee.gr_name != nil {
-            let name = String(cString: grd.pointee.gr_name)
-            result[.groupOwnerAccountName] = name
-        }
-
-        let type = FileAttributeType(statMode: mode_t(s.st_mode))
-#endif
-        result[.type] = type
-
-        if type == .typeBlockSpecial || type == .typeCharacterSpecial {
-            result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
-        }
-
+        result[._accessDate] = s.lastAccessDate
+        
 #if canImport(Darwin)
-        if (s.st_flags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE)) != 0 {
-            result[.immutable] = NSNumber(value: true)
-        }
-        
-        if includingPrivateAttributes {
-            result[._userImmutable] = (s.st_flags & UInt32(UF_IMMUTABLE)) != 0
-            result[._systemImmutable] = (s.st_flags & UInt32(SF_IMMUTABLE)) != 0
-            result[._hidden] = (s.st_flags & UInt32(UF_HIDDEN)) != 0
-        }
-        
-        if (s.st_flags & UInt32(UF_APPEND | SF_APPEND)) != 0 {
-            result[.appendOnly] = NSNumber(value: true)
-        }
+        result[._systemImmutable] = (s.st_flags & UInt32(SF_IMMUTABLE)) != 0
+        result[._hidden] = (s.st_flags & UInt32(UF_HIDDEN)) != 0
+#elseif os(Windows)
+        result[._hidden] = try windowsFileAttributes(atPath: path).dwFileAttributes & FILE_ATTRIBUTE_HIDDEN != 0
 #endif
-
-#if os(Windows)
-        let attrs = attributes.dwFileAttributes
-        result[._hidden] = attrs & FILE_ATTRIBUTE_HIDDEN != 0
-#endif
-        result[.ownerAccountID] = NSNumber(value: UInt64(s.st_uid))
-        result[.groupOwnerAccountID] = NSNumber(value: UInt64(s.st_gid))
-
         return result
     }
     
@@ -492,21 +365,6 @@ extension FileManager {
             }
         }
         return self.fileExists(atPath: path, isDirectory: &isDir)
-    }
-
-    internal func _filePermissionsMask(mode : UInt32) -> Int {
-#if os(Windows)
-        return Int(mode & ~UInt32(ucrt.S_IFMT))
-#elseif canImport(Darwin)
-        return Int(mode & ~UInt32(S_IFMT))
-#else
-        return Int(mode & ~S_IFMT)
-#endif
-    }
-
-    internal func _permissionsOfItem(atPath path: String) throws -> Int {
-        let fileInfo = try _lstatFile(atPath: path)
-        return _filePermissionsMask(mode: UInt32(fileInfo.st_mode))
     }
     
     internal func _overridingDisplayNameLanguages<T>(with languages: [String], within body: () throws -> T) rethrows -> T {
@@ -742,60 +600,8 @@ extension FileAttributeKey {
     // They are intended for use by NSURL's resource keys.
     
     internal static let _systemImmutable = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._systemImmutable")
-    internal static let _userImmutable = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._userImmutable")
     internal static let _hidden = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._hidden")
     internal static let _accessDate = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._accessDate")
-}
-
-extension FileAttributeType {
-#if os(Windows)
-    internal init(attributes: WIN32_FILE_ATTRIBUTE_DATA, atPath path: String) {
-        if attributes.dwFileAttributes & FILE_ATTRIBUTE_DEVICE == FILE_ATTRIBUTE_DEVICE {
-            self = .typeCharacterSpecial
-        } else if attributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
-            // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
-            let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
-              CreateFileW($0, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nil,
-                          OPEN_EXISTING,
-                          FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-                          nil)
-            }) ?? INVALID_HANDLE_VALUE
-            if handle == INVALID_HANDLE_VALUE {
-                self = .typeUnknown
-                return
-            }
-            defer { CloseHandle(handle) }
-            var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
-            if !GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tagInfo,
-                                             DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) {
-                self = .typeUnknown
-                return
-            }
-            self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
-        } else if attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
-            // Note: Since Windows marks directory symlinks as both
-            // directories and reparse points, having this after the
-            // reparse point check implicitly encodes Windows
-            // directory symlinks as not directories, which matches
-            // POSIX behavior.
-            self = .typeDirectory
-        } else {
-            self = .typeRegular
-        }
-    }
-#else
-    internal init(statMode: mode_t) {
-        switch statMode & S_IFMT {
-        case S_IFCHR: self = .typeCharacterSpecial
-        case S_IFDIR: self = .typeDirectory
-        case S_IFBLK: self = .typeBlockSpecial
-        case S_IFREG: self = .typeRegular
-        case S_IFLNK: self = .typeSymbolicLink
-        case S_IFSOCK: self = .typeSocket
-        default: self = .typeUnknown
-        }
-    }
-#endif
 }
 
 extension FileManager {
