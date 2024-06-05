@@ -102,21 +102,6 @@ private func walk(directory path: URL, _ body: (String, DWORD) throws -> Void) r
     }
 }
 
-internal func joinPath(prefix: String, suffix: String) -> String {
-    var pszPath: PWSTR?
-
-    guard !prefix.isEmpty else { return suffix }
-    guard !suffix.isEmpty else { return prefix }
-
-    _ = try! FileManager.default._fileSystemRepresentation(withPath: prefix, andPath: suffix) {
-      PathAllocCombine($0, $1, ULONG(PATHCCH_ALLOW_LONG_PATHS.rawValue), &pszPath)
-    }
-
-    let path: String = String(decodingCString: pszPath!, as: UTF16.self)
-    LocalFree(pszPath)
-    return path
-}
-
 extension FileManager {
     internal func _mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
         var urls: [URL] = []
@@ -168,145 +153,11 @@ extension FileManager {
     }
 
     internal func _attributesOfFileSystemIncludingBlockSize(forPath path: String) throws -> (attributes: [FileAttributeKey : Any], blockSize: UInt64?) {
-        return (attributes: try _attributesOfFileSystem(forPath: path), blockSize: nil)
-    }
-
-    internal func _attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        var result: [FileAttributeKey:Any] = [:]
-
-        try FileManager.default._fileSystemRepresentation(withPath: path) {
-            let dwLength: DWORD = GetFullPathNameW($0, 0, nil, nil)
-            guard dwLength > 0 else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
-            }
-
-            var szVolumePath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
-            guard GetVolumePathNameW($0, &szVolumePath, dwLength) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
-            }
-
-            var liTotal: ULARGE_INTEGER = ULARGE_INTEGER()
-            var liFree: ULARGE_INTEGER = ULARGE_INTEGER()
-            guard GetDiskFreeSpaceExW(&szVolumePath, nil, &liTotal, &liFree) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
-            }
-
-            let hr: HRESULT = PathCchStripToRoot(&szVolumePath, szVolumePath.count)
-            guard hr == S_OK || hr == S_FALSE else {
-                throw _NSErrorWithWindowsError(DWORD(hr & 0xffff), reading: true, paths: [path])
-            }
-
-            var volumeSerialNumber: DWORD = 0
-            guard GetVolumeInformationW(&szVolumePath, nil, 0, &volumeSerialNumber, nil, nil, nil, 0) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path])
-            }
-
-            result[.systemSize] = NSNumber(value: liTotal.QuadPart)
-            result[.systemFreeSize] = NSNumber(value: liFree.QuadPart)
-            result[.systemNumber] = NSNumber(value: volumeSerialNumber)
-            // FIXME(compnerd): what about .systemNodes, .systemFreeNodes?
-        }
-        return result
-    }
-
-    internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
-        let faAttributes = try windowsFileAttributes(atPath: path)
-        guard faAttributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_BAD_ARGUMENTS), reading: false)
-        }
-
-        let handle: HANDLE = try FileManager.default._fileSystemRepresentation(withPath: path) {
-          CreateFileW($0, GENERIC_READ,
-                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                      nil, OPEN_EXISTING,
-                      FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-                      nil)
-        }
-        if handle == INVALID_HANDLE_VALUE {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
-        }
-        defer { CloseHandle(handle) }
-
-        // Since REPARSE_DATA_BUFFER ends with an arbitrarily long buffer, we
-        // have to manually get the path buffer out of it since binding it to a
-        // type will truncate the path buffer.
-        //
-        // 20 is the sum of the offsets of:
-        // ULONG ReparseTag
-        // USHORT ReparseDataLength
-        // USHORT Reserved
-        // USHORT SubstituteNameOffset
-        // USHORT SubstituteNameLength
-        // USHORT PrintNameOffset
-        // USHORT PrintNameLength
-        // ULONG Flags (Symlink only)
-        let symLinkPathBufferOffset = 20 // 4 + 2 + 2 + 2 + 2 + 2 + 2 + 4
-        let mountPointPathBufferOffset = 16 // 4 + 2 + 2 + 2 + 2 + 2 + 2
-        let buff = UnsafeMutableRawBufferPointer.allocate(byteCount: Int(MAXIMUM_REPARSE_DATA_BUFFER_SIZE),
-                                                          alignment: 8)
-
-        guard let buffBase = buff.baseAddress else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_INVALID_DATA), reading: false)
-        }
-
-        var bytesWritten: DWORD = 0
-        guard DeviceIoControl(handle, FSCTL_GET_REPARSE_POINT, nil, 0,
-                              buffBase, DWORD(MAXIMUM_REPARSE_DATA_BUFFER_SIZE),
-                              &bytesWritten, nil) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
-        }
-
-        guard bytesWritten >= MemoryLayout<REPARSE_DATA_BUFFER>.size else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_INVALID_DATA), reading: false)
-        }
-
-        let bound = buff.bindMemory(to: REPARSE_DATA_BUFFER.self)
-        guard let reparseDataBuffer = bound.first else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_INVALID_DATA), reading: false)
-        }
-
-        guard reparseDataBuffer.ReparseTag == IO_REPARSE_TAG_SYMLINK
-                || reparseDataBuffer.ReparseTag == IO_REPARSE_TAG_MOUNT_POINT else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_BAD_ARGUMENTS), reading: false)
-        }
-
-        let pathBufferPtr: UnsafeMutableRawPointer
-        let substituteNameBytes: Int
-        let substituteNameOffset: Int
-        switch reparseDataBuffer.ReparseTag {
-            case IO_REPARSE_TAG_SYMLINK:
-                pathBufferPtr = buffBase + symLinkPathBufferOffset
-                substituteNameBytes = Int(reparseDataBuffer.SymbolicLinkReparseBuffer.SubstituteNameLength)
-                substituteNameOffset = Int(reparseDataBuffer.SymbolicLinkReparseBuffer.SubstituteNameOffset)
-            case IO_REPARSE_TAG_MOUNT_POINT:
-                pathBufferPtr = buffBase + mountPointPathBufferOffset
-                substituteNameBytes = Int(reparseDataBuffer.MountPointReparseBuffer.SubstituteNameLength)
-                substituteNameOffset = Int(reparseDataBuffer.MountPointReparseBuffer.SubstituteNameOffset)
-            default:
-                throw _NSErrorWithWindowsError(DWORD(ERROR_BAD_ARGUMENTS), reading: false)
-        }
-
-        guard substituteNameBytes + substituteNameOffset <= bytesWritten else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_INVALID_DATA), reading: false)
-        }
-
-        let substituteNameBuff = Data(bytes: pathBufferPtr + substituteNameOffset, count: substituteNameBytes)
-        guard var substitutePath = String(data: substituteNameBuff, encoding: .utf16LittleEndian) else {
-            throw _NSErrorWithWindowsError(DWORD(ERROR_INVALID_DATA), reading: false)
-        }
-
-        // Canonicalize the NT Object Manager Path to the DOS style path
-        // instead.  Unfortunately, there is no nice API which can allow us to
-        // do this in a guranteed way.
-        let kObjectManagerPrefix = "\\??\\"
-        if substitutePath.hasPrefix(kObjectManagerPrefix) {
-          substitutePath = String(substitutePath.dropFirst(kObjectManagerPrefix.count))
-        }
-        return substitutePath
+        return (attributes: try attributesOfFileSystem(forPath: path), blockSize: nil)
     }
     
     private func _realpath(_ path: String) -> String {
-        return (try? _destinationOfSymbolicLink(atPath: path)) ?? path
+        return (try? destinationOfSymbolicLink(atPath: path)) ?? path
     }
     
     internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
