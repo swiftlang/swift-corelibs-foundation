@@ -92,7 +92,42 @@ class TestURLSession: LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-    
+
+    func test_asyncDataFromURL() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UK"
+        let (data, response) = try await URLSession.shared.data(from: URL(string: urlString)!, delegate: nil)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        let result = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertEqual("London", result, "Did not receive expected value")
+    }
+
+    func test_asyncDataFromURLWithDelegate() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        class CapitalDataTaskDelegate: NSObject, URLSessionDataDelegate {
+            var capital: String = "unknown"
+            public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+                capital = String(data: data, encoding: .utf8)!
+            }
+        }
+        let delegate = CapitalDataTaskDelegate()
+
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UK"
+        let (data, response) = try await URLSession.shared.data(from: URL(string: urlString)!, delegate: delegate)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        let result = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertEqual("London", result, "Did not receive expected value")
+        XCTAssertEqual("London", delegate.capital)
+    }
+
     func test_dataTaskWithHttpInputStream() throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/jsonBody"
         let url = try XCTUnwrap(URL(string: urlString))
@@ -264,6 +299,44 @@ class TestURLSession: LoopbackServerTest {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+    }
+
+    func test_asyncDownloadFromURL() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let (location, response) = try await URLSession.shared.download(from: URL(string: urlString)!)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        XCTAssertNotNil(location, "Download location was nil")
+    }
+
+    func test_asyncDownloadFromURLWithDelegate() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        class AsyncDownloadDelegate : NSObject, URLSessionDownloadDelegate {
+            func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+                XCTFail("Should not be called for async downloads")
+            }
+
+            var totalBytesWritten = Int64(0)
+            public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
+                                   totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) -> Void {
+                self.totalBytesWritten = totalBytesWritten
+            }
+        }
+        let delegate = AsyncDownloadDelegate()
+
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let (location, response) = try await URLSession.shared.download(from: URL(string: urlString)!, delegate: delegate)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        XCTAssertNotNil(location, "Download location was nil")
+        XCTAssertTrue(delegate.totalBytesWritten > 0)
     }
 
     func test_gzippedDownloadTask() {
@@ -1611,6 +1684,21 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertNil(session.delegate)
     }
 
+    func test_sessionDelegateCalledIfTaskDelegateDoesNotImplement() throws {
+        let expectation = XCTestExpectation(description: "task finished")
+        let delegate = SessionDelegate(with: expectation)
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        
+        class EmptyTaskDelegate: NSObject, URLSessionTaskDelegate { }
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")!
+        let request = URLRequest(url: url)
+        let task = session.dataTask(with: request)
+        task.delegate = EmptyTaskDelegate()
+        task.resume()
+
+        wait(for: [expectation], timeout: 5)
+    }
+
     func test_getAllTasks() throws {
         let expect = expectation(description: "Tasks URLSession.getAllTasks")
 
@@ -2088,6 +2176,7 @@ class TestURLSession: LoopbackServerTest {
             ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
             ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
             ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
+            ("test_sessionDelegateCalledIfTaskDelegateDoesNotImplement", test_sessionDelegateCalledIfTaskDelegateDoesNotImplement),
             /* ⚠️ */ ("test_getAllTasks", testExpectedToFail(test_getAllTasks, "This test causes later ones to crash")),
             /* ⚠️ */ ("test_getTasksWithCompletion", testExpectedToFail(test_getTasksWithCompletion, "Flaky tests")),
             /* ⚠️ */ ("test_invalidResumeDataForDownloadTask",
@@ -2100,6 +2189,10 @@ class TestURLSession: LoopbackServerTest {
         ]
         if #available(macOS 12.0, *) {
             retVal.append(contentsOf: [
+                ("test_asyncDataFromURL", asyncTest(test_asyncDataFromURL)),
+                ("test_asyncDataFromURLWithDelegate", asyncTest(test_asyncDataFromURLWithDelegate)),
+                ("test_asyncDownloadFromURL", asyncTest(test_asyncDownloadFromURL)),
+                ("test_asyncDownloadFromURLWithDelegate", asyncTest(test_asyncDownloadFromURLWithDelegate)),
                 ("test_webSocket", asyncTest(test_webSocket)),
                 ("test_webSocketSpecificProtocol", asyncTest(test_webSocketSpecificProtocol)),
                 ("test_webSocketAbruptClose", asyncTest(test_webSocketAbruptClose)),
@@ -2295,7 +2388,6 @@ extension SessionDelegate: URLSessionDataDelegate {
         completionHandler(.allow)
     }
 }
-
 
 class DataTask : NSObject {
     let syncQ = dispatchQueueMake("org.swift.TestFoundation.TestURLSession.DataTask.syncQ")

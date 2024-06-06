@@ -134,24 +134,54 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
 
 extension URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
-        completionHandler(request)
+        // If the task's delegate does not implement this function, check if the session's delegate does
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request, completionHandler: completionHandler)
+        } else {
+            // Default handling
+            completionHandler(request)
+        }
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        completionHandler(.performDefaultHandling, nil)
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, didReceive: challenge, completionHandler: completionHandler)
+        } else {
+            completionHandler(.performDefaultHandling, nil)
+        }
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
-        completionHandler(nil)
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, needNewBodyStream: completionHandler)
+        } else {
+            completionHandler(nil)
+        }
     }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) { }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, didSendBodyData: bytesSent, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend)
+        }
+    }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) { }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, didCompleteWithError: error)
+        }
+    }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) { }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, willBeginDelayedRequest: request, completionHandler: completionHandler)
+        }
+    }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) { }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
+            sessionDelegate.urlSession(session, task: task, didFinishCollecting: metrics)
+        }
+    }
 }
 
 /*
