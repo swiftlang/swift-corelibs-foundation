@@ -475,7 +475,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
 
         guard let session = task?.session as? URLSession else { fatalError() }
 
-        if let delegate = session.delegate as? URLSessionTaskDelegate {
+        if let delegate = task?.delegate {
             // At this point we need to change the internal state to note
             // that we're waiting for the delegate to call the completion
             // handler. Then we'll call the delegate callback
@@ -524,7 +524,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
             break
-        case .taskDelegate:
+        case .taskDelegate,
+             .dataCompletionHandlerWithTaskDelegate,
+             .downloadCompletionHandlerWithTaskDelegate:
             //TODO: There's a problem with libcurl / with how we're using it.
             // We're currently unable to pause the transfer / the easy handle:
             // https://curl.haxx.se/mail/lib-2016-03/0222.html
