@@ -2064,8 +2064,15 @@ class TestURLSession: LoopbackServerTest {
             XCTFail("Unexpected Data Message")
         }
         
-        try await task.sendPing()
-        
+        do {
+            try await task.sendPing()
+            // Server hasn't closed the connection yet
+        } catch {
+            // Server closed the connection before we could process the pong
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+        }
+
         wait(for: [delegate.expectation], timeout: 50)
         
         do {
