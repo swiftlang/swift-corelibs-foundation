@@ -865,6 +865,12 @@ open class URLSessionWebSocketTask : URLSessionTask {
                     }
                 }
                 self.receiveCompletionHandlers.removeAll()
+                for handler in self.pongCompletionHandlers {
+                    session.delegateQueue.addOperation {
+                        handler(taskError)
+                    }
+                }
+                self.pongCompletionHandlers.removeAll()
                 self._getProtocol { urlProtocol in
                     self.workQueue.async {
                         if self.handshakeCompleted && self.state != .completed {
