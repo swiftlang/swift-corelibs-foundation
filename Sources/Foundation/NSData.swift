@@ -457,7 +457,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         let fm = FileManager.default
+#if os(WASI)
+        // WASI does not have permission concept
+        let permissions: Int? = nil
+#else
         let permissions = try? fm._permissionsOfItem(atPath: path)
+#endif
 
         if writeOptionsMask.contains(.atomic) {
             let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
