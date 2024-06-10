@@ -105,4 +105,47 @@ class TestSocketPort : XCTestCase {
             waitForExpectations(timeout: 5.5)
         }
     }
+    
+    func testSendingMultipleMessagesRemoteToLocal() throws {
+        var localPorts = [SocketPort]()
+        var remotePorts = [SocketPort]()
+        var delegates = [TestPortDelegateWithBlock]()
+
+        let data = Data("I cannot weave".utf8)
+
+        for _ in 0..<128 {
+            let local = try XCTUnwrap(SocketPort(tcpPort: 0))
+            let tcpPort = try UInt16(XCTUnwrap(tcpOrUdpPort(of: local)))
+            let remote = try XCTUnwrap(SocketPort(remoteWithTCPPort: tcpPort, host: "localhost"))
+            
+            let received = expectation(description: "Message received")
+
+            let localDelegate = TestPortDelegateWithBlock { message in
+                XCTAssertEqual(message.components as? [AnyHashable], [data as NSData])
+                received.fulfill()
+            }
+
+            localPorts.append(local)
+            remotePorts.append(remote)
+            delegates.append(localDelegate)
+
+            local.setDelegate(localDelegate)
+            local.schedule(in: .main, forMode: .default)
+            remote.schedule(in: .main, forMode: .default)
+        }
+
+        withExtendedLifetime(delegates) {
+            for remote in remotePorts {
+                let sent = remote.send(before: Date(timeIntervalSinceNow: 5), components: NSMutableArray(array: [data]), from: nil, reserved: 0)
+                XCTAssertTrue(sent)
+            }
+            waitForExpectations(timeout: 5.0)
+        }
+
+        for port in localPorts + remotePorts {
+            port.setDelegate(nil)
+            port.remove(from: .main, forMode: .default)
+            port.invalidate()
+        }
+    }
 }

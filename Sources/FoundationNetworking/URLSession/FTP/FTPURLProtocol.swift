@@ -119,7 +119,7 @@ internal extension _FTPURLProtocol {
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
             break
-        case .taskDelegate:
+        case .taskDelegate, .dataCompletionHandlerWithTaskDelegate, .downloadCompletionHandlerWithTaskDelegate:
             self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         case .dataCompletionHandler:
             break

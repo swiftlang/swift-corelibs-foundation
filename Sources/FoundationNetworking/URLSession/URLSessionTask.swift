@@ -100,6 +100,22 @@ open class URLSessionTask : NSObject, NSCopying {
     internal var actualSession: URLSession? { return session as? URLSession }
     internal var session: URLSessionProtocol! //change to nil when task completes
 
+    private var _taskDelegate: URLSessionTaskDelegate?
+    open var delegate: URLSessionTaskDelegate? {
+        get {
+            if let _taskDelegate { return _taskDelegate }
+            return self.actualSession?.delegate as? URLSessionTaskDelegate
+        }
+        set {
+            guard !self.hasTriggeredResume else {
+                fatalError("Cannot set task delegate after resumption")
+            }
+            _taskDelegate = newValue
+        }
+    }
+    
+    internal var _callCompletionHandlerInline = false
+
     fileprivate enum ProtocolState {
         case toBeCreated
         case awaitingCacheReply(Bag<(URLProtocol?) -> Void>)
@@ -207,7 +223,7 @@ open class URLSessionTask : NSObject, NSCopying {
             return
         }
         
-        if let session = actualSession, let delegate = session.delegate as? URLSessionTaskDelegate {
+        if let session = actualSession, let delegate = self.delegate {
             delegate.urlSession(session, task: self) { (stream) in
                 if let stream = stream {
                     completion(.stream(stream))
@@ -845,6 +861,12 @@ open class URLSessionWebSocketTask : URLSessionTask {
                     }
                 }
                 self.receiveCompletionHandlers.removeAll()
+                for handler in self.pongCompletionHandlers {
+                    session.delegateQueue.addOperation {
+                        handler(taskError)
+                    }
+                }
+                self.pongCompletionHandlers.removeAll()
                 self._getProtocol { urlProtocol in
                     self.workQueue.async {
                         if self.handshakeCompleted && self.state != .completed {
@@ -1040,7 +1062,9 @@ extension _ProtocolClient : URLProtocolClient {
         }
         
         switch session.behaviour(for: task) {
-        case .taskDelegate(let delegate):
+        case .taskDelegate(let delegate),
+                .dataCompletionHandlerWithTaskDelegate(_, let delegate),
+                .downloadCompletionHandlerWithTaskDelegate(_, let delegate):
             if let dataDelegate = delegate as? URLSessionDataDelegate,
                let dataTask = task as? URLSessionDataTask {
                 session.delegateQueue.addOperation {
@@ -1115,7 +1139,7 @@ extension _ProtocolClient : URLProtocolClient {
             let cacheable = CachedURLResponse(response: response, data: Data(data.joined()), storagePolicy: cachePolicy)
             let protocolAllows = (urlProtocol as? _NativeProtocol)?.canCache(cacheable) ?? false
             if protocolAllows {
-                if let delegate = task.session.delegate as? URLSessionDataDelegate {
+                if let delegate = task.delegate as? URLSessionDataDelegate {
                     delegate.urlSession(task.session as! URLSession, dataTask: task, willCacheResponse: cacheable) { (actualCacheable) in
                         if let actualCacheable = actualCacheable {
                             cache.storeCachedResponse(actualCacheable, for: task)
@@ -1153,8 +1177,9 @@ extension _ProtocolClient : URLProtocolClient {
             session.workQueue.async {
                 session.taskRegistry.remove(task)
             }
-        case .dataCompletionHandler(let completion):
-            session.delegateQueue.addOperation {
+        case .dataCompletionHandler(let completion),
+             .dataCompletionHandlerWithTaskDelegate(let completion, _):
+            let dataCompletion = {
                 guard task.state != .completed else { return }
                 completion(urlProtocol.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
                 task.state = .completed
@@ -1162,13 +1187,28 @@ extension _ProtocolClient : URLProtocolClient {
                     session.taskRegistry.remove(task)
                 }
             }
-        case .downloadCompletionHandler(let completion):
-            session.delegateQueue.addOperation {
+            if task._callCompletionHandlerInline {
+                dataCompletion()
+            } else {
+                session.delegateQueue.addOperation {
+                    dataCompletion()
+                }
+            }
+        case .downloadCompletionHandler(let completion),
+             .downloadCompletionHandlerWithTaskDelegate(let completion, _):
+            let downloadCompletion = {
                 guard task.state != .completed else { return }
                 completion(urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
+                }
+            }
+            if task._callCompletionHandlerInline {
+                downloadCompletion()
+            } else {
+                session.delegateQueue.addOperation {
+                    downloadCompletion()
                 }
             }
         }
@@ -1220,7 +1260,7 @@ extension _ProtocolClient : URLProtocolClient {
             }
         }
         
-        if let delegate = session.delegate as? URLSessionTaskDelegate {
+        if let delegate = task.delegate {
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didReceive: challenge) { disposition, credential in
                     
@@ -1293,8 +1333,9 @@ extension _ProtocolClient : URLProtocolClient {
             session.workQueue.async {
                 session.taskRegistry.remove(task)
             }
-        case .dataCompletionHandler(let completion):
-            session.delegateQueue.addOperation {
+        case .dataCompletionHandler(let completion),
+             .dataCompletionHandlerWithTaskDelegate(let completion, _):
+            let dataCompletion = {
                 guard task.state != .completed else { return }
                 completion(nil, nil, error)
                 task.state = .completed
@@ -1302,13 +1343,28 @@ extension _ProtocolClient : URLProtocolClient {
                     session.taskRegistry.remove(task)
                 }
             }
-        case .downloadCompletionHandler(let completion):
-            session.delegateQueue.addOperation {
+            if task._callCompletionHandlerInline {
+                dataCompletion()
+            } else {
+                session.delegateQueue.addOperation {
+                    dataCompletion()
+                }
+            }
+        case .downloadCompletionHandler(let completion),
+             .downloadCompletionHandlerWithTaskDelegate(let completion, _):
+            let downloadCompletion = {
                 guard task.state != .completed else { return }
                 completion(nil, nil, error)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
+                }
+            }
+            if task._callCompletionHandlerInline {
+                downloadCompletion()
+            } else {
+                session.delegateQueue.addOperation {
+                    downloadCompletion()
                 }
             }
         }
