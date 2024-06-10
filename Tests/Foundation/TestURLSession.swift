@@ -92,7 +92,42 @@ class TestURLSession: LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-    
+
+    func test_asyncDataFromURL() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UK"
+        let (data, response) = try await URLSession.shared.data(from: URL(string: urlString)!, delegate: nil)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        let result = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertEqual("London", result, "Did not receive expected value")
+    }
+
+    func test_asyncDataFromURLWithDelegate() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        class CapitalDataTaskDelegate: NSObject, URLSessionDataDelegate {
+            var capital: String = "unknown"
+            public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+                capital = String(data: data, encoding: .utf8)!
+            }
+        }
+        let delegate = CapitalDataTaskDelegate()
+
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UK"
+        let (data, response) = try await URLSession.shared.data(from: URL(string: urlString)!, delegate: delegate)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        let result = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertEqual("London", result, "Did not receive expected value")
+        XCTAssertEqual("London", delegate.capital)
+    }
+
     func test_dataTaskWithHttpInputStream() throws {
         throw XCTSkip("This test is disabled (Flaky test)")
         #if false
@@ -267,6 +302,44 @@ class TestURLSession: LoopbackServerTest {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+    }
+
+    func test_asyncDownloadFromURL() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let (location, response) = try await URLSession.shared.download(from: URL(string: urlString)!)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        XCTAssertNotNil(location, "Download location was nil")
+    }
+
+    func test_asyncDownloadFromURLWithDelegate() async throws {
+        guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
+        class AsyncDownloadDelegate : NSObject, URLSessionDownloadDelegate {
+            func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+                XCTFail("Should not be called for async downloads")
+            }
+
+            var totalBytesWritten = Int64(0)
+            public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
+                                   totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) -> Void {
+                self.totalBytesWritten = totalBytesWritten
+            }
+        }
+        let delegate = AsyncDownloadDelegate()
+
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let (location, response) = try await URLSession.shared.download(from: URL(string: urlString)!, delegate: delegate)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            XCTFail("Did not get response")
+            return
+        }
+        XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        XCTAssertNotNil(location, "Download location was nil")
+        XCTAssertTrue(delegate.totalBytesWritten > 0)
     }
 
     func test_gzippedDownloadTask() {
@@ -501,20 +574,103 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
     
-    func test_timeoutInterval() {
+    func test_httpTimeout() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
-        let urlString = "http://127.0.0.1:999999/Peru"
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let expect = expectation(description: "GET \(urlString): will timeout")
-        var req = URLRequest(url: URL(string: "http://127.0.0.1:999999/Peru")!)
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.setValue("3", forHTTPHeaderField: "x-pause")
         req.timeoutInterval = 1
         let task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
-            XCTAssertNotNil(error)
+            XCTAssertEqual((error as? URLError)?.code, .timedOut, "Task should fail with URLError.timedOut error")
         }
         task.resume()
+        waitForExpectations(timeout: 30)
+    }
+
+    func test_connectTimeout() {
+        // Reconfigure http server for this specific scenario:
+        // a slow request keeps web server busy, while other
+        // request times out on connection attempt.
+        Self.stopServer()
+        Self.options = Options(serverBacklog: 1, isAsynchronous: false)
+        Self.startServer()
         
+        let config = URLSessionConfiguration.default
+        let slowUrlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
+        let fastUrlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Italy"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let slowReqExpect = expectation(description: "GET \(slowUrlString): will complete")
+        let fastReqExpect = expectation(description: "GET \(fastUrlString): will timeout")
+        
+        var slowReq = URLRequest(url: URL(string: slowUrlString)!)
+        slowReq.setValue("3", forHTTPHeaderField: "x-pause")
+        
+        var fastReq = URLRequest(url: URL(string: fastUrlString)!)
+        fastReq.timeoutInterval = 1
+        
+        let slowTask = session.dataTask(with: slowReq) { (data, _, error) -> Void in
+            slowReqExpect.fulfill()
+        }
+        let fastTask = session.dataTask(with: fastReq) { (data, _, error) -> Void in
+            defer { fastReqExpect.fulfill() }
+            XCTAssertEqual((error as? URLError)?.code, .timedOut, "Task should fail with URLError.timedOut error")
+        }
+        slowTask.resume()
+        Thread.sleep(forTimeInterval: 0.1) // Give slow task some time to start
+        fastTask.resume()
+        
+        waitForExpectations(timeout: 30)
+
+        // Reconfigure http server back to default settings
+        Self.stopServer()
+        Self.options = .default
+        Self.startServer()
+    }
+    
+    func test_repeatedRequestsStress() throws {
+        // TODO: try disabling curl connection cache to force socket close early. Or create several url sessions (they have cleanup in deinit)
+        
+        let config = URLSessionConfiguration.default
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let req = URLRequest(url: URL(string: urlString)!)
+        
+        var requestsLeft = 3000
+        let expect = expectation(description: "\(requestsLeft) x GET \(urlString)")
+        
+        func doRequests(completion: @escaping () -> Void) {
+            // We only care about completion of one of the tasks,
+            // so we could move to next cycle.
+            // Some overlapping would happen and that's what we
+            // want actually to provoke issue with socket reuse
+            // on Windows.
+            let task = session.dataTask(with: req) { (_, _, _) -> Void in
+            }
+            task.resume()
+            let task2 = session.dataTask(with: req) { (_, _, _) -> Void in
+            }
+            task2.resume()
+            let task3 = session.dataTask(with: req) { (_, _, _) -> Void in
+                completion()
+            }
+            task3.resume()
+        }
+
+        func checkCountAndRunNext() {
+            guard requestsLeft > 0 else {
+                expect.fulfill()
+                return
+            }
+            requestsLeft -= 1
+            doRequests(completion: checkCountAndRunNext)
+        }
+        
+        checkCountAndRunNext()
+
         waitForExpectations(timeout: 30)
     }
 
@@ -1632,6 +1788,21 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertNil(session.delegate)
     }
 
+    func test_sessionDelegateCalledIfTaskDelegateDoesNotImplement() throws {
+        let expectation = XCTestExpectation(description: "task finished")
+        let delegate = SessionDelegate(with: expectation)
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        
+        class EmptyTaskDelegate: NSObject, URLSessionTaskDelegate { }
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")!
+        let request = URLRequest(url: url)
+        let task = session.dataTask(with: request)
+        task.delegate = EmptyTaskDelegate()
+        task.resume()
+
+        wait(for: [expectation], timeout: 5)
+    }
+
     func test_getAllTasks() throws {
         throw XCTSkip("This test is disabled (this causes later ones to crash)")
         #if false
@@ -1931,8 +2102,15 @@ class TestURLSession: LoopbackServerTest {
             XCTFail("Unexpected Data Message")
         }
         
-        try await task.sendPing()
-        
+        do {
+            try await task.sendPing()
+            // Server hasn't closed the connection yet
+        } catch {
+            // Server closed the connection before we could process the pong
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+        }
+
         wait(for: [delegate.expectation], timeout: 50)
         
         do {
@@ -2248,7 +2426,6 @@ extension SessionDelegate: URLSessionDataDelegate {
         completionHandler(.allow)
     }
 }
-
 
 class DataTask : NSObject {
     let syncQ = dispatchQueueMake("org.swift.TestFoundation.TestURLSession.DataTask.syncQ")
