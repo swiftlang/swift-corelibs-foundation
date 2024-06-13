@@ -56,7 +56,8 @@ if(HAS_LIBDISPATCH_API)
   find_package(dispatch CONFIG REQUIRED)
 endif()
 
-find_package(ICU COMPONENTS uc i18n REQUIRED OPTIONAL_COMPONENTS data)
+find_package(ICU COMPONENTS uc i18n REQUIRED)
+find_package(ICU OPTIONAL_COMPONENTS data)
 
 # This is needed if we're statically linking, otherwise we can't pull in Dispatch
 # because we won't have RT::rt as a CMake target.
