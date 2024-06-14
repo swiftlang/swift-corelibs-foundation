@@ -58,6 +58,7 @@
 #define TARGET_OS_WATCH 0
 #endif
 
+#include "CFBase.h"
 
 #include <stdlib.h>
 #include <stdint.h>
