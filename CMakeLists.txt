@@ -70,18 +70,14 @@ include(XCTest)
 
 set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG OFF)
 if(HAS_LIBDISPATCH_API)
+  set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+  set(THREADS_PREFER_PTHREAD_FLAG OFF)
+  if(ANDROID)
+    set(CMAKE_THREAD_LIBS_INIT "-lc")
+    set(THREADS_HAVE_PTHREAD_ARG FALSE)
+  endif()
   find_package(Threads REQUIRED)
-endif()
-
-# CMake's Threads adds '-pthread' flag to the interface link
-# libraries, which isn't supported by Swift. This is not enabled
-# when building with MSVC, but it trips up the Android build, so
-# we need to clear out the threads INTERFACE_LINK_LIBRARIES.
-if (CMAKE_SYSTEM_NAME STREQUAL "Android")
-  set_property(TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "")
 endif()
 
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
