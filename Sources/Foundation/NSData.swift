@@ -11,6 +11,9 @@
 #if !os(WASI)
 import Dispatch
 #endif
+#if canImport(Android)
+import Android
+#endif
 
 extension NSData {
     public struct ReadingOptions : OptionSet {

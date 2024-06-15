@@ -18,6 +18,8 @@ import struct WinSDK.HANDLE
 
 #if canImport(Darwin)
 import Darwin
+#elseif canImport(Android)
+import Android
 #endif
 
 extension Process {

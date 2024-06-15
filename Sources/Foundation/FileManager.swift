@@ -23,9 +23,7 @@ import WinSDK
 
 #if os(WASI)
 import WASILibc
-#endif
-
-#if canImport(Android)
+#elseif canImport(Android)
 import Android
 #endif
 
