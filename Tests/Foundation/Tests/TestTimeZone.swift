@@ -160,12 +160,7 @@ class TestTimeZone: XCTestCase {
         var lt = tm()
         localtime_r(&t, &lt)
         let zoneName = NSTimeZone.system.abbreviation() ?? "Invalid Abbreviation"
-        // tm_zone is nullable in the Android NDK only.
-        let tm_zone: UnsafePointer<CChar>? = lt.tm_zone
-        guard let tm_zone else {
-            return
-        }
-        let expectedName = String(cString: tm_zone, encoding: .ascii) ?? "Invalid Zone"
+        let expectedName = String(cString: lt.tm_zone!, encoding: .ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
     }
 #endif
