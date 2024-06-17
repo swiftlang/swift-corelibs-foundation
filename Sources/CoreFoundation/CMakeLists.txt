@@ -97,8 +97,6 @@ add_library(CoreFoundation STATIC
     CFUUID.c
     CFWindowsUtilities.c
     CFXMLPreferencesDomain.c
-    data.c
-    runtime.c
     uuid.c)
 
 target_include_directories(CoreFoundation
