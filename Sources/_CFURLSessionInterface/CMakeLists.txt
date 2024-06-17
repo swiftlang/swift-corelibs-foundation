@@ -18,8 +18,7 @@ target_include_directories(_CFURLSessionInterface
     PUBLIC
         include
     PRIVATE
-        ../CoreFoundation/internalInclude
-        ../CoreFoundation/include)
+        ../CoreFoundation/internalInclude)
 
 target_precompile_headers(_CFURLSessionInterface PRIVATE ${CMAKE_SOURCE_DIR}/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h)
 

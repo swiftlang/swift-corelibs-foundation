@@ -19,7 +19,6 @@ target_include_directories(_CFXMLInterface
         include
     PRIVATE
         ../CoreFoundation/internalInclude
-        ../CoreFoundation/include
         /usr/include/libxml2/)
 
 target_compile_options(_CFXMLInterface PRIVATE

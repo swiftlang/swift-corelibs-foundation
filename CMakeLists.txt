@@ -53,20 +53,19 @@ if (_SwiftFoundationICU_SourceDIR)
         SOURCE_DIR ${_SwiftFoundationICU_SourceDIR})
 else()
     FetchContent_Declare(SwiftFoundationICU
-        GIT_REPOSITORY https://github.com/iCharlesHu/swift-foundation-icu.git
-        GIT_TAG charles/cmake-support)
+        GIT_REPOSITORY https://github.com/apple/swift-foundation-icu.git
+        GIT_TAG 0.0.8)
 endif()
-FetchContent_MakeAvailable(SwiftFoundationICU)
 
 if (_SwiftFoundation_SourceDIR)
     FetchContent_Declare(SwiftFoundation
         SOURCE_DIR ${_SwiftFoundation_SourceDIR})
 else()
     FetchContent_Declare(SwiftFoundation
-        GIT_REPOSITORY https://github.com/iCharlesHu/swift-foundation.git
-        GIT_TAG charles/cmake-support)
+        GIT_REPOSITORY https://github.com/apple/swift-foundation.git
+        GIT_TAG main)
 endif()
-FetchContent_MakeAvailable(SwiftFoundation)
+FetchContent_MakeAvailable(SwiftFoundationICU SwiftFoundation)
 
 # System dependencies (fail fast if dependencies are missing)
 find_package(LibXml2 REQUIRED)
@@ -74,7 +73,6 @@ find_package(CURL REQUIRED)
 find_package(dispatch CONFIG REQUIRED)
 
 # Common build flags (_CFURLSessionInterface, _CFXMLInterface, CoreFoundation)
-set(_Foundation_common_build_flags)
 list(APPEND _Foundation_common_build_flags
     "-DDEPLOYMENT_RUNTIME_SWIFT"
     "-DCF_BUILDING_CF"
@@ -112,7 +110,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
         "-I/usr/lib/swift") # dispatch
 endif()
 
-include(SwiftSupport)
+include(FoundationSwiftSupport)
 
 add_subdirectory(Sources)
 add_subdirectory(cmake/modules)

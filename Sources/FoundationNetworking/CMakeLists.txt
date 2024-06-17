@@ -51,14 +51,13 @@ target_compile_options(FoundationNetworking PRIVATE
 
 target_link_libraries(FoundationNetworking
     PRIVATE
-        Foundation
         CoreFoundation
         _CFURLSessionInterface
     PUBLIC
-        FoundationEssentials)
+        Foundation)
 
 set_target_properties(FoundationNetworking PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationNetworking)
-_install_target(FoundationNetworking)
+_foundation_install_target(FoundationNetworking)

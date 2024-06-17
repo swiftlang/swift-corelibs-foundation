@@ -165,4 +165,4 @@ target_link_libraries(Foundation PUBLIC
     swiftDispatch)
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
-_install_target(Foundation)
+_foundation_install_target(Foundation)

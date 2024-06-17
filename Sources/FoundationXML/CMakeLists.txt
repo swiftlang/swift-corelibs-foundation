@@ -26,14 +26,13 @@ target_compile_options(FoundationXML PRIVATE
 
 target_link_libraries(FoundationXML
     PRIVATE
-        Foundation
         CoreFoundation
         _CFXMLInterface
     PUBLIC
-        FoundationEssentials)
+        Foundation)
 
 set_target_properties(FoundationXML PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
-_install_target(FoundationXML)
+_foundation_install_target(FoundationXML)
