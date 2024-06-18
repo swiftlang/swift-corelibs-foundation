@@ -1,17 +1,19 @@
-# Returns the os name in a variable
-#
-# Usage:
-#   get_swift_host_os(result_var_name)
-#
-#
-# Sets ${result_var_name} with the converted OS name derived from
-# CMAKE_SYSTEM_NAME.
-function(get_swift_host_os result_var_name)
-  set(${result_var_name} ${SWIFT_SYSTEM_NAME} PARENT_SCOPE)
-endfunction()
+##===----------------------------------------------------------------------===##
+##
+## This source file is part of the Swift open source project
+##
+## Copyright (c) 2024 Apple Inc. and the Swift project authors
+## Licensed under Apache License v2.0
+##
+## See LICENSE.txt for license information
+## See CONTRIBUTORS.md for the list of Swift project authors
+##
+## SPDX-License-Identifier: Apache-2.0
+##
+##===----------------------------------------------------------------------===##
 
 function(_foundation_install_target module)
-  get_swift_host_os(swift_os)
+  set(swift_os ${SWIFT_SYSTEM_NAME})
   get_target_property(type ${module} TYPE)
 
   if(type STREQUAL STATIC_LIBRARY)

@@ -117,23 +117,9 @@ target_link_libraries(CoreFoundation
         _FoundationICU
         dispatch)
 
-file(COPY
-        "include/module.map"
-    DESTINATION
-        ${CMAKE_BINARY_DIR}/CoreFoundationHeaders
-    NO_SOURCE_PERMISSIONS)
-
-
-file(GLOB_RECURSE _CoreFoundationPublicHeaders "include/*.h")
-file(COPY
-        ${_CoreFoundationPublicHeaders}
-    DESTINATION
-        ${CMAKE_BINARY_DIR}/CoreFoundationHeaders
-    NO_SOURCE_PERMISSIONS)
-
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation)
 
 install(DIRECTORY
-            ${CMAKE_BINARY_DIR}/CoreFoundationHeaders/
+            include/
         DESTINATION
             lib/swift/CoreFoundation)

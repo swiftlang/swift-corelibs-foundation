@@ -157,9 +157,7 @@ target_link_libraries(Foundation
 
 set_target_properties(Foundation PROPERTIES
     INSTALL_RPATH "$ORIGIN"
-    BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>"
-    Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
+    BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>")
 
 target_link_libraries(Foundation PUBLIC
     swiftDispatch)
