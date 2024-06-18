@@ -31,4 +31,8 @@ target_link_libraries(_CFXMLInterface PRIVATE
 
 if(NOT BUILD_SHARED_LIBS)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS _CFXMLInterface)
+    install(TARGETS _CFXMLInterface
+        ARCHIVE DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        LIBRARY DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        RUNTIME DESTINATION bin)
 endif()
