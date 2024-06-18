@@ -31,6 +31,9 @@ target_link_libraries(FoundationXML
     PUBLIC
         Foundation)
 
+target_link_options(FoundationXML PRIVATE
+    "SHELL:-no-toolchain-stdlib-rpath")
+
 set_target_properties(FoundationXML PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 
