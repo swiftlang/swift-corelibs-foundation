@@ -56,6 +56,9 @@ target_link_libraries(FoundationNetworking
     PUBLIC
         Foundation)
 
+target_link_options(FoundationNetworking PRIVATE
+    "SHELL:-no-toolchain-stdlib-rpath")
+
 set_target_properties(FoundationNetworking PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 

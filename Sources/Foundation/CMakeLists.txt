@@ -155,6 +155,9 @@ target_link_libraries(Foundation
         FoundationEssentials
         FoundationInternationalization)
 
+target_link_options(Foundation PRIVATE
+    "SHELL:-no-toolchain-stdlib-rpath")
+
 set_target_properties(Foundation PROPERTIES
     INSTALL_RPATH "$ORIGIN"
     BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>")
