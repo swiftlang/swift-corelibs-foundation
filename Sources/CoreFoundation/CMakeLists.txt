@@ -121,3 +121,10 @@ install(DIRECTORY
             include/
         DESTINATION
             lib/swift/CoreFoundation)
+
+if(NOT BUILD_SHARED_LIBS)
+    install(TARGETS CoreFoundation
+        ARCHIVE DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        LIBRARY DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        RUNTIME DESTINATION bin)
+endif()
