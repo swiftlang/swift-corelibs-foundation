@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 internal class __NSCFBoolean : NSNumber {
     override var hash: Int {

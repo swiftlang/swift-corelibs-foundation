@@ -16,6 +16,7 @@
 
 #include "CFTargetConditionals.h"
 #include "CFBase.h"
+#include "CFError.h"
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdbool.h>

@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())

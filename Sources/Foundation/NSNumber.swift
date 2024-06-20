@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 
 internal let kCFNumberSInt8Type = CFNumberType.sInt8Type

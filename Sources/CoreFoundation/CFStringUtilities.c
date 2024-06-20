@@ -19,8 +19,8 @@
 #include <limits.h>
 #include <stdlib.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
-#include <unicode/ucol.h>
-#include <unicode/ucoleitr.h>
+#include <_foundation_unicode/ucol.h>
+#include <_foundation_unicode/ucoleitr.h>
 #endif
 #include <string.h>
 

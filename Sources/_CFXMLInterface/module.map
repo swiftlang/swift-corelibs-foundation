@@ -1,3 +1,0 @@
-module _CFXMLInterface [extern_c] [system] {
-    umbrella header "CFXMLInterface.h"
-}

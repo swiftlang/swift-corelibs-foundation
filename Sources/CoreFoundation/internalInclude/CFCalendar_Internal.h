@@ -21,8 +21,8 @@
 #include "CFDateComponents.h"
 #include "CFDateInterval.h"
 
-#if __has_include(<unicode/ucal.h>) && !defined(__cplusplus)
-#include <unicode/ucal.h>
+#if __has_include(<_foundation_unicode/ucal.h>) && !defined(__cplusplus)
+#include <_foundation_unicode/ucal.h>
 #else
 typedef void *UCalendar;
 #endif

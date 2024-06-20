@@ -15,7 +15,7 @@
 #include "CFInternal.h"
 #define U_SHOW_DRAFT_API 1
 #define U_SHOW_INTERNAL_API 1
-#include <unicode/uregex.h>
+#include <_foundation_unicode/uregex.h>
 
 #define STACK_BUFFER_SIZE 256
 

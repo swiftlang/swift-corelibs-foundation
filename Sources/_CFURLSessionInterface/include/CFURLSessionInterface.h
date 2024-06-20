@@ -30,6 +30,7 @@
 #include "CFTargetConditionals.h"
 #include "CFBase.h"
 #include <stdio.h>
+#include <stdbool.h>
 #if defined(_WIN32)
 #include <winsock2.h>
 #endif

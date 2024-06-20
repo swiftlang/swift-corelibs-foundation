@@ -1,4 +1,4 @@
-framework module _CFURLSessionInterface [extern_c] [system] {
+module _CFURLSessionInterface {
     umbrella header "CFURLSessionInterface.h"
 
     export *

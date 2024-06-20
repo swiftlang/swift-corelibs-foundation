@@ -7,7 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 
 open class NSURLComponents: NSObject, NSCopying {

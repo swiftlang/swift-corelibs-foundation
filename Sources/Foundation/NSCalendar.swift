@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 
 internal let kCFCalendarUnitEra = CFCalendarUnit.era
@@ -23,7 +23,7 @@ internal let kCFCalendarUnitQuarter = CFCalendarUnit.quarter
 internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit.weekOfMonth
 internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit.weekOfYear
 internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit.yearForWeekOfYear
-internal let kCFCalendarUnitNanosecond = CFCalendarUnit(rawValue: CFOptionFlags(_CoreFoundation.kCFCalendarUnitNanosecond))
+internal let kCFCalendarUnitNanosecond = CFCalendarUnit(rawValue: CFOptionFlags(CoreFoundation.kCFCalendarUnitNanosecond))
 
 internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
     return unit.rawValue

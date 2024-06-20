@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import _CoreFoundation
+@_implementationOnly import CoreFoundation
 
 extension String: _ObjectiveCBridgeable {
     

@@ -27,7 +27,7 @@
 #include "CFString_Internal.h"
 #include "CFRuntime_Internal.h"
 #include <assert.h>
-#include <unicode/uchar.h>
+#include <_foundation_unicode/uchar.h>
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 #include "CFConstantKeys.h"
 #include "CFStringLocalizedFormattingInternal.h"
