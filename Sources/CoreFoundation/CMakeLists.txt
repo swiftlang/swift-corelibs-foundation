@@ -97,8 +97,6 @@ add_library(CoreFoundation STATIC
     CFUUID.c
     CFWindowsUtilities.c
     CFXMLPreferencesDomain.c
-    data.c
-    runtime.c
     uuid.c)
 
 target_include_directories(CoreFoundation
@@ -123,3 +121,10 @@ install(DIRECTORY
             include/
         DESTINATION
             lib/swift/CoreFoundation)
+
+if(NOT BUILD_SHARED_LIBS)
+    install(TARGETS CoreFoundation
+        ARCHIVE DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        LIBRARY DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        RUNTIME DESTINATION bin)
+endif()

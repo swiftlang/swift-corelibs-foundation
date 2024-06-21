@@ -56,6 +56,18 @@ target_link_libraries(FoundationNetworking
     PUBLIC
         Foundation)
 
+if(NOT BUILD_SHARED_LIBS)
+    target_compile_options(FoundationNetworking PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFURLSessionInterface>")
+    target_compile_options(FoundationNetworking PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend CoreFoundation>")
+    target_compile_options(FoundationNetworking PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend curl>")
+endif()
+
+target_link_options(FoundationNetworking PRIVATE
+    "SHELL:-no-toolchain-stdlib-rpath")
+
 set_target_properties(FoundationNetworking PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 

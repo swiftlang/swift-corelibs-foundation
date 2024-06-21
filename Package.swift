@@ -20,6 +20,7 @@ let coreFoundationBuildSettings: [CSetting] = [
         "-Wno-unused-variable",
         "-Wno-unused-function",
         "-Wno-microsoft-enum-forward-reference",
+        "-Wno-int-conversion",
         "-fconstant-cfstrings",
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
@@ -29,13 +30,12 @@ let coreFoundationBuildSettings: [CSetting] = [
         "\(Context.packageDirectory)/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h",
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
+    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // dispatch
 ]
 
 // For _CFURLSessionInterface, _CFXMLInterface
 let interfaceBuildSettings: [CSetting] = [
     .headerSearchPath("../CoreFoundation/internalInclude"),
-    .headerSearchPath("../CoreFoundation/include"),
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
@@ -50,6 +50,7 @@ let interfaceBuildSettings: [CSetting] = [
         "-Wno-unused-variable",
         "-Wno-unused-function",
         "-Wno-microsoft-enum-forward-reference",
+        "-Wno-int-conversion",
         "-fconstant-cfstrings",
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
@@ -57,7 +58,7 @@ let interfaceBuildSettings: [CSetting] = [
         "-fcf-runtime-abi=swift"
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])) // dispatch
+    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // dispatch
 ]
 
 let swiftBuildSettings: [SwiftSetting] = [
@@ -78,11 +79,11 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/apple/swift-foundation-icu",
-            from: "0.0.7"
+            from: "0.0.8"
         ),
         .package(
            url: "https://github.com/apple/swift-foundation",
-           revision: "3297fb33b49ba2d1161ba12757891c7b91c73a3e"
+           revision: "ef8a7787c355edae3c142e4dff8767d05a32c51f"
         ),
     ],
     targets: [
@@ -91,7 +92,7 @@ let package = Package(
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
                 .product(name: "FoundationInternationalization", package: "swift-foundation"),
-                "_CoreFoundation"
+                "CoreFoundation"
             ],
             path: "Sources/Foundation",
             swiftSettings: swiftBuildSettings
@@ -100,8 +101,8 @@ let package = Package(
             name: "FoundationXML",
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
-                .targetItem(name: "Foundation", condition: nil),
-                "_CoreFoundation",
+                "Foundation",
+                "CoreFoundation",
                 "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
@@ -111,25 +112,26 @@ let package = Package(
             name: "FoundationNetworking",
             dependencies: [
                 .product(name: "FoundationEssentials", package: "swift-foundation"),
-                .targetItem(name: "Foundation", condition: nil),
-                "_CoreFoundation",
+                "Foundation",
+                "CoreFoundation",
                 "_CFURLSessionInterface"
             ],
             path: "Sources/FoundationNetworking",
             swiftSettings:swiftBuildSettings
         ),
         .target(
-            name: "_CoreFoundation",
+            name: "CoreFoundation",
             dependencies: [
                 .product(name: "_FoundationICU", package: "swift-foundation-icu"),
             ],
             path: "Sources/CoreFoundation",
+            exclude: ["BlockRuntime"],
             cSettings: coreFoundationBuildSettings
         ),
         .target(
             name: "_CFXMLInterface",
             dependencies: [
-                "_CoreFoundation",
+                "CoreFoundation",
                 "Clibxml2",
             ],
             path: "Sources/_CFXMLInterface",
@@ -138,7 +140,7 @@ let package = Package(
         .target(
             name: "_CFURLSessionInterface",
             dependencies: [
-                "_CoreFoundation",
+                "CoreFoundation",
                 "Clibcurl",
             ],
             path: "Sources/_CFURLSessionInterface",
@@ -163,15 +165,15 @@ let package = Package(
         .executableTarget(
             name: "plutil",
             dependencies: [
-                .targetItem(name: "Foundation", condition: nil)
+                "Foundation"
             ]
         ),
         .executableTarget(
             name: "xdgTestHelper",
             dependencies: [
-                .targetItem(name: "Foundation", condition: nil),
-                .targetItem(name: "FoundationXML", condition: nil),
-                .targetItem(name: "FoundationNetworking", condition: nil)
+                "Foundation",
+                "FoundationXML",
+                "FoundationNetworking"
             ]
         ),
         .target(
@@ -181,16 +183,16 @@ let package = Package(
             // We believe Foundation is the only project that needs to take this rather drastic measure.
             name: "XCTest",
             dependencies: [
-                .targetItem(name: "Foundation", condition: nil)
+                "Foundation"
             ],
             path: "Sources/XCTest"
         ),
         .testTarget(
             name: "TestFoundation",
             dependencies: [
-                .targetItem(name: "Foundation", condition: nil),
-                .targetItem(name: "FoundationXML", condition: nil),
-                .targetItem(name: "FoundationNetworking", condition: nil),
+                "Foundation",
+                "FoundationXML",
+                "FoundationNetworking",
                 .targetItem(name: "XCTest", condition: .when(platforms: [.linux])),
                 "xdgTestHelper"
             ],

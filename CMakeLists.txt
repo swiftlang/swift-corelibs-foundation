@@ -46,6 +46,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE YES)
+
 # Fetchable dependcies
 include(FetchContent)
 if (_SwiftFoundationICU_SourceDIR)
@@ -98,6 +100,7 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-unused-variable"
     "-Wno-unused-function"
     "-Wno-microsoft-enum-forward-reference"
+    "-Wno-int-conversion"
     "-fconstant-cfstrings"
     "-fexceptions" # TODO: not on OpenBSD
     "-fdollars-in-identifiers"
