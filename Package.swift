@@ -66,6 +66,28 @@ let swiftBuildSettings: [SwiftSetting] = [
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
 ]
 
+var dependencies: [Package.Dependency] {
+    if Context.environment["SWIFTCI_USE_LOCAL_DEPS"] != nil {
+        [
+            .package(
+                name: "swift-foundation-icu",
+                path: "../swift-foundation-icu"),
+            .package(
+                name: "swift-foundation",
+                path: "../swift-foundation")
+        ]
+    } else {
+        [
+            .package(
+                url: "https://github.com/apple/swift-foundation-icu",
+                from: "0.0.8"),
+            .package(
+                url: "https://github.com/apple/swift-foundation",
+                revision: "ef8a7787c355edae3c142e4dff8767d05a32c51f")
+        ]
+    }
+}
+
 let package = Package(
     name: "swift-corelibs-foundation",
     // Deployment target note: This package only builds for non-Darwin targets.
@@ -76,16 +98,7 @@ let package = Package(
         .library(name: "FoundationNetworking", targets: ["FoundationNetworking"]),
         .executable(name: "plutil", targets: ["plutil"]),
     ],
-    dependencies: [
-        .package(
-            url: "https://github.com/apple/swift-foundation-icu",
-            from: "0.0.8"
-        ),
-        .package(
-           url: "https://github.com/apple/swift-foundation",
-           revision: "ef8a7787c355edae3c142e4dff8767d05a32c51f"
-        ),
-    ],
+    dependencies: dependencies,
     targets: [
         .target(
             name: "Foundation",
