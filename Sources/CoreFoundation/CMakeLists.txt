@@ -117,6 +117,12 @@ target_link_libraries(CoreFoundation
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation)
 
+# Copy Headers to known directory for direct client (XCTest) test builds
+file(COPY
+        include/
+    DESTINATION
+        ${CMAKE_BINARY_DIR}/_CModulesForClients/CoreFoundation)
+
 install(DIRECTORY
             include/
         DESTINATION
