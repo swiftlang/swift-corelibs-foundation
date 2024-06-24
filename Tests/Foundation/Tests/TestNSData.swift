@@ -17,6 +17,10 @@ import CoreFoundation
     #endif
 #endif
 
+#if canImport(Android)
+import Android
+#endif
+
 class TestNSData: LoopbackServerTest {
     
     class AllOnesImmutableData : NSData {

@@ -7,13 +7,13 @@
 //
 #if !os(Windows)
 
+#if canImport(Android)
+import Android
+#endif
+
 #if os(Android) && (arch(i386) || arch(arm)) // struct stat.st_mode is UInt32
 internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
-}
-#elseif os(Android)
-internal func &(left: mode_t, right: Int32) -> mode_t {
-    return left & mode_t(right)
 }
 #endif
 
@@ -413,7 +413,7 @@ extension FileManager {
                     if !parent.isEmpty && !fileExists(atPath: parent, isDirectory: &isDir) {
                         try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                     }
-                    if mkdir(pathFsRep, mode_t(S_IRWXU) | mode_t(S_IRWXG) | mode_t(S_IRWXO)) != 0 {
+                    if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
                         let posixError = errno
                         if posixError == EEXIST && fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue {
                             // Continue; if there is an existing file and it is a directory, that is still a success.
@@ -432,7 +432,7 @@ extension FileManager {
                     throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
                 }
             } else {
-                if mkdir(pathFsRep, mode_t(S_IRWXU) | mode_t(S_IRWXG) | mode_t(S_IRWXO)) != 0 {
+                if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
                     throw _NSErrorWithErrno(errno, reading: false, path: path)
                 } else if let attr = attributes {
                     try self.setAttributes(attr, ofItemAtPath: path)
@@ -807,8 +807,13 @@ extension FileManager {
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
-                let stream = ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) {
-                    fts_open($0, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                let stream = ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) { rebound_ps in
+#if canImport(Android)
+                    let arg = rebound_ps
+#else
+                    let arg = ps
+#endif
+                    return fts_open(arg, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 }
                 ps.deinitialize(count: 2)
                 ps.deallocate()
@@ -1177,8 +1182,13 @@ extension FileManager {
                     defer { ps.deallocate() }
                     ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
-                    return ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) {
-                        fts_open($0, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
+                    return ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) { rebound_ps in
+#if canImport(Android)
+                        let arg = rebound_ps
+#else
+                        let arg = ps
+#endif
+                        return fts_open(arg, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                     }
                 }
                 if _stream == nil {
