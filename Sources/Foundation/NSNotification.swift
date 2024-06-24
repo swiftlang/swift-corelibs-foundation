@@ -7,6 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSNotification : Sendable { }
+
 open class NSNotification: NSObject, NSCopying, NSCoding {
     public struct Name : RawRepresentable, Equatable, Hashable, Sendable {
         public private(set) var rawValue: String
@@ -93,7 +96,7 @@ private class NSNotificationReceiver : NSObject {
 
 private let _defaultCenter: NotificationCenter = NotificationCenter()
 
-open class NotificationCenter: NSObject {
+open class NotificationCenter: NSObject, @unchecked Sendable {
     private lazy var _nilIdentifier: ObjectIdentifier = ObjectIdentifier(_observersLock)
     private lazy var _nilHashable: AnyHashable = AnyHashable(_nilIdentifier)
     
@@ -130,7 +133,9 @@ open class NotificationCenter: NSObject {
                 }
                 
                 if let queue = observer.queue, queue != OperationQueue.current {
-                    queue.addOperation { block(notification) }
+                    // Not entirely safe, but maintained for compatibility
+                    nonisolated(unsafe) let unsafeNotification = notification
+                    queue.addOperation { block(unsafeNotification) }
                     queue.waitUntilAllOperationsAreFinished()
                 } else {
                     block(notification)

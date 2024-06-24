@@ -8,9 +8,10 @@
 //
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 extension NumberFormatter {
-    public enum Style : UInt {
+    public enum Style : UInt, Sendable {
         case none               = 0
         case decimal            = 1
         case currency           = 2
@@ -23,14 +24,14 @@ extension NumberFormatter {
         case currencyAccounting = 10
     }
 
-    public enum PadPosition : UInt {
+    public enum PadPosition : UInt, Sendable {
         case beforePrefix
         case afterPrefix
         case beforeSuffix
         case afterSuffix
     }
 
-    public enum RoundingMode : UInt {
+    public enum RoundingMode : UInt, Sendable {
         case ceiling
         case floor
         case down
@@ -41,28 +42,30 @@ extension NumberFormatter {
     }
 }
 
-open class NumberFormatter : Formatter {
-
+open class NumberFormatter : Formatter, @unchecked Sendable {
     typealias CFType = CFNumberFormatter
-    private final var _currentCfFormatter: CFType?
-    private final var _cfFormatter: CFType {
-        if let obj = _currentCfFormatter {
-            return obj
-        } else {
-            let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(self.numberStyle.rawValue))!
+    private let _formatter: Mutex<CFType?> = .init(nil)
 
-            let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
-            _setFormatterAttributes(obj)
-            if _positiveFormat != nil  || _negativeFormat != nil {
-                var format = _positiveFormat ?? "#"
-                if let negative = _negativeFormat {
-                    format.append(";")
-                    format.append(negative)
+    private final var _cfFormatter: CFType {
+        _formatter.withLock { _currentCfFormatter in
+            if let obj = _currentCfFormatter {
+                return obj
+            } else {
+                let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(self.numberStyle.rawValue))!
+                
+                let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
+                _setFormatterAttributes(obj)
+                if _positiveFormat != nil  || _negativeFormat != nil {
+                    var format = _positiveFormat ?? "#"
+                    if let negative = _negativeFormat {
+                        format.append(";")
+                        format.append(negative)
+                    }
+                    CFNumberFormatterSetFormat(obj, format._cfObject)
                 }
-                CFNumberFormatterSetFormat(obj, format._cfObject)
+                _currentCfFormatter = obj
+                return obj
             }
-            _currentCfFormatter = obj
-            return obj
         }
     }
 
@@ -189,7 +192,9 @@ open class NumberFormatter : Formatter {
     }
 
     private func _reset() {
-        _currentCfFormatter = nil
+        _formatter.withLock {
+            $0 = nil
+        }
     }
 
     private final func _setFormatterAttributes(_ formatter: CFNumberFormatter) {

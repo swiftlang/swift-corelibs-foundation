@@ -17,8 +17,11 @@ extension Port {
     public static let didBecomeInvalidNotification  = NSNotification.Name(rawValue: "NSPortDidBecomeInvalidNotification")
 }
 
+@available(*, unavailable)
+extension Port : Sendable { }
+
 open class Port : NSObject, NSCopying {
-    @available(*, deprecated, message: "On Darwin, you can invoke Port() directly to produce a MessagePort. Since MessagePort's functionality is not available in swift-corelibs-foundation, you should not invoke this initializer directly. Subclasses of Port can delegate to this initializer safely.")
+    /// On Darwin, you can invoke `Port()` directly to produce a `MessagePort`. Since `MessagePort` is not available in swift-corelibs-foundation, you should not invoke this initializer directly. Subclasses of `Port` can delegate to this initializer safely.
     public override init() {
         if type(of: self) == Port.self {
             NSRequiresConcreteImplementation()
@@ -75,6 +78,12 @@ open class MessagePort: Port {}
 @available(*, unavailable, message: "NSMachPort is not available in swift-corelibs-foundation.")
 open class NSMachPort: Port {}
 
+@available(*, unavailable)
+extension MessagePort : Sendable { }
+
+@available(*, unavailable)
+extension NSMachPort : Sendable { }
+
 extension PortDelegate {
     func handle(_ message: PortMessage) { }
 }
@@ -87,6 +96,9 @@ public protocol PortDelegate: AnyObject {
 
 @available(*, unavailable, message: "SocketPort is not available on this platform.")
 open class SocketPort: Port {}
+
+@available(*, unavailable)
+extension SocketPort : Sendable { }
 
 #else
 
@@ -392,6 +404,9 @@ fileprivate func __NSFireSocketDatagram(_ socket: CFSocket?, _ type: CFSocketCal
     let me = Unmanaged<SocketPort>.fromOpaque(nonoptionalInfo).takeUnretainedValue()
     me.socketDidReceiveDatagram(socket, type, address, data)
 }
+
+@available(*, unavailable)
+extension SocketPort : Sendable { }
 
 open class SocketPort : Port {
     struct SocketKind: Hashable {

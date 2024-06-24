@@ -32,6 +32,8 @@ import Foundation
 // Output options
 //  NSXMLNodePrettyPrint
 
+@available(*, unavailable)
+extension XMLNode : Sendable { }
 
 /*!
  @class NSXMLNode
@@ -39,7 +41,7 @@ import Foundation
  */
 open class XMLNode: NSObject, NSCopying {
     
-    public enum Kind : UInt {
+    public enum Kind : UInt, Sendable {
         case invalid
         case document
         case element
@@ -55,7 +57,7 @@ open class XMLNode: NSObject, NSCopying {
         case notationDeclaration
     }
     
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -1023,6 +1025,9 @@ open class XMLNode: NSObject, NSCopying {
 }
 
 internal protocol _NSXMLNodeCollectionType: Collection { }
+
+@available(*, unavailable)
+extension XMLNode.Index : Sendable { }
 
 extension XMLNode: _NSXMLNodeCollectionType {
     

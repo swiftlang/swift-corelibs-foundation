@@ -35,6 +35,11 @@ fileprivate func getDescription(of object: Any) -> String? {
     }
 }
 
+@available(*, unavailable)
+extension NSDictionary : Sendable { }
+
+@available(*, unavailable)
+extension NSDictionary.Iterator : Sendable { }
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByDictionaryLiteral {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
@@ -611,6 +616,9 @@ extension Dictionary : _NSBridgeable {
     internal var _cfObject: CFDictionary { return _nsObject._cfObject }
 }
 
+@available(*, unavailable)
+extension NSMutableDictionary : Sendable { }
+
 open class NSMutableDictionary : NSDictionary {
     
     open func removeObject(forKey aKey: Any) {
@@ -712,7 +720,7 @@ extension NSDictionary {
     As for any usage of hashing, is recommended that the keys have a well-distributed implementation of -hash, and the hash codes must satisfy the hash/isEqual: invariant.
     Keys with duplicate hash codes are allowed, but will cause lower performance and increase memory usage.
     */
-    open class func sharedKeySet(forKeys keys: [NSCopying]) -> Any {
+    public class func sharedKeySet(forKeys keys: [NSCopying]) -> Any {
         return sharedKeySetPlaceholder
     }
 }

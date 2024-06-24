@@ -7,6 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSComparisonPredicate : Sendable { }
+
 // Comparison predicates are predicates which do some form of comparison between the results of two expressions and return a BOOL. They take an operator, a left expression, and a right expression, and return the result of invoking the operator with the results of evaluating the expressions.
 @available(*, deprecated, message: "NSExpression and classes that rely on its functionality are unsupported in swift-corelibs-foundation: NSComparisonPredicate is unavailable.")
 open class NSComparisonPredicate : NSPredicate {
@@ -29,7 +32,7 @@ open class NSComparisonPredicate : NSPredicate {
     @available(*, unavailable, message: "NSComparisonPredicate is unavailable.")
     open var options: Options { NSUnsupported() }
 
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -39,14 +42,14 @@ open class NSComparisonPredicate : NSPredicate {
     }
     
     // Describes how the operator is modified: can be direct, ALL, or ANY
-    public enum Modifier : UInt {
+    public enum Modifier : UInt, Sendable {
         case direct // Do a direct comparison
         case all // ALL toMany.x = y
         case any // ANY toMany.x = y
     }
     
     // Type basic set of operators defined. Most are obvious
-    public enum Operator : UInt {
+    public enum Operator : UInt, Sendable {
         case lessThan // compare: returns NSOrderedAscending
         case lessThanOrEqualTo // compare: returns NSOrderedAscending || NSOrderedSame
         case greaterThan // compare: returns NSOrderedDescending

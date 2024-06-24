@@ -7,7 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+
 /****************       Immutable Ordered Set   ****************/
+@available(*, unavailable)
+extension NSOrderedSet : Sendable { }
+
 open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ExpressibleByArrayLiteral {
 
     fileprivate var _storage: NSSet
@@ -389,6 +393,9 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
 
 
 /****************       Mutable Ordered Set     ****************/
+
+@available(*, unavailable)
+extension NSMutableOrderedSet : Sendable { }
 
 open class NSMutableOrderedSet: NSOrderedSet {
     

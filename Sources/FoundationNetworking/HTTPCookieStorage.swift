@@ -23,7 +23,7 @@ import Foundation
     only from the main document domain
 */
 extension HTTPCookie {
-    public enum AcceptPolicy : UInt {
+    public enum AcceptPolicy : UInt, Sendable {
         case always
         case never
         case onlyFromMainDocumentDomain
@@ -39,7 +39,7 @@ extension HTTPCookie {
     set of cookies.  It also has convenience methods to parse and
     generate cookie-related HTTP header fields.
 */
-open class HTTPCookieStorage: NSObject {
+open class HTTPCookieStorage: NSObject, @unchecked Sendable {
 
     private static let sharedStorage = HTTPCookieStorage(cookieStorageName: "shared")
     private static var sharedCookieStorages: [String: HTTPCookieStorage] = [:] //for group storage containers

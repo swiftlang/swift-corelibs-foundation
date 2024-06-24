@@ -48,8 +48,11 @@ double __CFTSRRate = 0.0;
 static double __CF1_TSRRate = 0.0;
 
 CF_PRIVATE uint64_t __CFTimeIntervalToTSR(CFTimeInterval ti) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-const-int-float-conversion"
     if ((ti * __CFTSRRate) > INT64_MAX / 2) return (INT64_MAX / 2);
     return (uint64_t)(ti * __CFTSRRate);
+#pragma GCC diagnostic pop
 }
 
 CF_PRIVATE CFTimeInterval __CFTSRToTimeInterval(uint64_t tsr) {

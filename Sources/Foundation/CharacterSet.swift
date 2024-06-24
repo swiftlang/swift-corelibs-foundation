@@ -18,11 +18,11 @@ private func _utfRangeToNSRange(_ inRange : ClosedRange<UnicodeScalar>) -> NSRan
     return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
 }
 
-internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType {
+internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType, @unchecked Sendable {
     internal typealias ImmutableType = NSCharacterSet
     internal typealias MutableType = NSMutableCharacterSet
     
-    var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
+    fileprivate var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
     
     init(immutableObject: AnyObject) {
         // Take ownership.
@@ -107,7 +107,7 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
  
  This type provides "copy-on-write" behavior, and is also bridged to the Objective-C `NSCharacterSet` class.
  */
-public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgebra, _MutablePairBoxing {
+public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgebra, Sendable, _MutablePairBoxing {
     public typealias ReferenceType = NSCharacterSet
     
     internal typealias SwiftNSWrapping = _SwiftNSCharacterSet
@@ -528,3 +528,173 @@ extension CharacterSet : Codable {
         try container.encode(self.bitmapRepresentation, forKey: .bitmap)
     }
 }
+
+// MARK: - Boxing protocols
+// Only used by CharacterSet at this time
+
+fileprivate enum _MutableUnmanagedWrapper<ImmutableType : NSObject, MutableType : NSObject> where MutableType : NSMutableCopying {
+    case Immutable(Unmanaged<ImmutableType>)
+    case Mutable(Unmanaged<MutableType>)
+}
+
+fileprivate protocol _SwiftNativeFoundationType: AnyObject {
+    associatedtype ImmutableType : NSObject
+    associatedtype MutableType : NSObject,  NSMutableCopying
+    var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType> { get }
+    
+    init(unmanagedImmutableObject: Unmanaged<ImmutableType>)
+    init(unmanagedMutableObject: Unmanaged<MutableType>)
+    
+    func mutableCopy(with zone : NSZone) -> Any
+    
+    func hash(into hasher: inout Hasher)
+    var hashValue: Int { get }
+
+    var description: String { get }
+    var debugDescription: String { get }
+    
+    func releaseWrappedObject()
+}
+
+extension _SwiftNativeFoundationType {
+    
+    @inline(__always)
+    func _mapUnmanaged<ReturnType>(_ whatToDo : (ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
+        defer { _fixLifetime(self) }
+        
+        switch __wrapped {
+        case .Immutable(let i):
+            return try i._withUnsafeGuaranteedRef {
+                _onFastPath()
+                return try whatToDo($0)
+            }
+        case .Mutable(let m):
+            return try m._withUnsafeGuaranteedRef {
+                _onFastPath()
+                return try whatToDo(_unsafeReferenceCast($0, to: ImmutableType.self))
+            }
+        }
+    }
+    
+    func releaseWrappedObject() {
+        switch __wrapped {
+        case .Immutable(let i):
+            i.release()
+        case .Mutable(let m):
+            m.release()
+        }
+    }
+    
+    func mutableCopy(with zone : NSZone) -> Any {
+        return _mapUnmanaged { ($0 as NSObject).mutableCopy() }
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        _mapUnmanaged { hasher.combine($0) }
+    }
+
+    var hashValue: Int {
+        return _mapUnmanaged { return $0.hashValue }
+    }
+    
+    var description: String {
+        return _mapUnmanaged { return $0.description }
+    }
+    
+    var debugDescription: String {
+        return _mapUnmanaged { return $0.debugDescription }
+    }
+    
+    func isEqual(_ other: AnyObject) -> Bool {
+        return _mapUnmanaged { return $0.isEqual(other) }
+    }
+}
+
+fileprivate protocol _MutablePairBoxing {
+    associatedtype WrappedSwiftNSType : _SwiftNativeFoundationType
+    var _wrapped :  WrappedSwiftNSType { get set }
+}
+
+extension _MutablePairBoxing {
+    @inline(__always)
+    func _mapUnmanaged<ReturnType>(_ whatToDo : (WrappedSwiftNSType.ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
+        // We are using Unmanaged. Make sure that the owning container class
+        // 'self' is guaranteed to be alive by extending the lifetime of 'self'
+        // to the end of the scope of this function.
+        // Note: At the time of this writing using withExtendedLifetime here
+        // instead of _fixLifetime causes different ARC pair matching behavior
+        // foiling optimization. This is why we explicitly use _fixLifetime here
+        // instead.
+        defer { _fixLifetime(self) }
+        
+        let unmanagedHandle = Unmanaged.passUnretained(_wrapped)
+        let wrapper = unmanagedHandle._withUnsafeGuaranteedRef { $0.__wrapped }
+        switch (wrapper) {
+        case .Immutable(let i):
+            return try i._withUnsafeGuaranteedRef {
+                return try whatToDo($0)
+            }
+        case .Mutable(let m):
+            return try m._withUnsafeGuaranteedRef {
+                return try whatToDo(_unsafeReferenceCast($0, to: WrappedSwiftNSType.ImmutableType.self))
+            }
+        }
+    }
+    
+    @inline(__always)
+    mutating func _applyUnmanagedMutation<ReturnType>(_ whatToDo : (WrappedSwiftNSType.MutableType) throws -> ReturnType) rethrows -> ReturnType {
+        // We are using Unmanaged. Make sure that the owning container class
+        // 'self' is guaranteed to be alive by extending the lifetime of 'self'
+        // to the end of the scope of this function.
+        // Note: At the time of this writing using withExtendedLifetime here
+        // instead of _fixLifetime causes different ARC pair matching behavior
+        // foiling optimization. This is why we explicitly use _fixLifetime here
+        // instead.
+        defer { _fixLifetime(self) }
+        
+        var unique = true
+        let _unmanagedHandle = Unmanaged.passUnretained(_wrapped)
+        let wrapper = _unmanagedHandle._withUnsafeGuaranteedRef { $0.__wrapped }
+        
+        // This check is done twice because: <rdar://problem/24939065> Value kept live for too long causing uniqueness check to fail
+        switch (wrapper) {
+        case .Immutable:
+            break
+        case .Mutable:
+            unique = isKnownUniquelyReferenced(&_wrapped)
+        }
+        
+        switch (wrapper) {
+        case .Immutable(let i):
+            // We need to become mutable; by creating a new instance we also become unique
+            let copy = Unmanaged.passRetained(i._withUnsafeGuaranteedRef {
+                return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self) }
+            )
+            
+            // Be sure to set the var before calling out; otherwise references to the struct in the closure may be looking at the old value
+            _wrapped = WrappedSwiftNSType(unmanagedMutableObject: copy)
+            return try copy._withUnsafeGuaranteedRef {
+                _onFastPath()
+                return try whatToDo($0)
+            }
+        case .Mutable(let m):
+            // Only create a new box if we are not uniquely referenced
+            if !unique {
+                let copy = Unmanaged.passRetained(m._withUnsafeGuaranteedRef {
+                    return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self)
+                    })
+                _wrapped = WrappedSwiftNSType(unmanagedMutableObject: copy)
+                return try copy._withUnsafeGuaranteedRef {
+                    _onFastPath()
+                    return try whatToDo($0)
+                }
+            } else {
+                return try m._withUnsafeGuaranteedRef {
+                    _onFastPath()
+                    return try whatToDo($0)
+                }
+            }
+        }
+    }
+}
+

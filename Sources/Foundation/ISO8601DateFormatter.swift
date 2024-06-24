@@ -11,7 +11,7 @@
 
 extension ISO8601DateFormatter {
 
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         
         public private(set) var rawValue: UInt
         
@@ -47,6 +47,9 @@ extension ISO8601DateFormatter {
     }
 
 }
+
+@available(*, unavailable)
+extension ISO8601DateFormatter : Sendable { }
 
 open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     

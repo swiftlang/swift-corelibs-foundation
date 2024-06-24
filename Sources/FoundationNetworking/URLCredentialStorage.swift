@@ -17,9 +17,9 @@ import Foundation
     @class URLCredential.Storage
     @discussion URLCredential.Storage implements a singleton object (shared instance) which manages the shared credentials cache. Note: Whereas in Mac OS X any application can access any credential with a persistence of URLCredential.Persistence.permanent provided the user gives permission, in iPhone OS an application can access only its own credentials.
 */
-open class URLCredentialStorage: NSObject {
+open class URLCredentialStorage: NSObject, @unchecked Sendable {
 
-    private static var _shared = URLCredentialStorage()
+    private static let _shared = URLCredentialStorage()
 
     /*!
         @method sharedCredentialStorage
@@ -79,7 +79,7 @@ open class URLCredentialStorage: NSObject {
         the new one will replace it.
     */
     open func set(_ credential: URLCredential, for space: URLProtectionSpace) {
-        guard credential.persistence != .synchronizable else {
+        guard !credential.persistence.isSynchronizable else {
             // Do what logged-out-from-iCloud Darwin does, and refuse to save synchronizable credentials when a sync service is not available (which, in s-c-f, is always)
             return
         }
@@ -122,7 +122,7 @@ open class URLCredentialStorage: NSObject {
      @discussion The credential is removed from both persistent and temporary storage.
      */
     open func remove(_ credential: URLCredential, for space: URLProtectionSpace, options: [String : AnyObject]? = [:]) {
-        if credential.persistence == .synchronizable {
+        if credential.persistence.isSynchronizable {
             guard let options = options,
                   let removeSynchronizable = options[NSURLCredentialStorageRemoveSynchronizableCredentials] as? NSNumber,
                   removeSynchronizable.boolValue == true else {
@@ -178,7 +178,7 @@ open class URLCredentialStorage: NSObject {
         @discussion If the credential is not yet in the set for the protection space, it will be added to it.
     */
     open func setDefaultCredential(_ credential: URLCredential, for space: URLProtectionSpace) {
-        guard credential.persistence != .synchronizable else {
+        guard !credential.persistence.isSynchronizable else {
             return
         }
 

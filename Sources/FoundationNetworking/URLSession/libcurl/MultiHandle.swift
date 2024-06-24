@@ -65,7 +65,7 @@ extension URLSession {
 
 extension URLSession._MultiHandle {
     func configure(with configuration: URLSession._Configuration) {
-        if NS_CURL_MAX_HOST_CONNECTIONS_SUPPORTED == 1 {
+        if maxHostConnectionsSupported() {
             try! CFURLSession_multi_setopt_l(rawHandle, CFURLSessionMultiOptionMAX_HOST_CONNECTIONS, numericCast(configuration.httpMaximumConnectionsPerHost)).asError()
         }
         

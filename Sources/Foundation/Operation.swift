@@ -53,7 +53,7 @@ extension QualityOfService {
     }
 }
 
-open class Operation : NSObject {
+open class Operation : NSObject, @unchecked Sendable {
     struct PointerHashedUnmanagedBox<T: AnyObject>: Hashable {
         var contents: Unmanaged<T>
         func hash(into hasher: inout Hasher) {
@@ -63,7 +63,7 @@ open class Operation : NSObject {
             return lhs.contents.toOpaque() == rhs.contents.toOpaque()
         }
     }
-    enum __NSOperationState : UInt8 {
+    enum __NSOperationState : UInt8, Sendable {
         case initialized = 0x00
         case enqueuing = 0x48
         case enqueued = 0x50
@@ -631,7 +631,7 @@ extension Operation {
 }
 
 extension Operation {
-    public enum QueuePriority : Int {
+    public enum QueuePriority : Int, Sendable {
         case veryLow = -8
         case low = -4
         case normal = 0
@@ -650,7 +650,7 @@ extension Operation {
     }
 }
 
-open class BlockOperation : Operation {
+open class BlockOperation : Operation, @unchecked Sendable {
     var _block: (() -> Void)?
     var _executionBlocks: [() -> Void]?
     
@@ -658,12 +658,12 @@ open class BlockOperation : Operation {
         
     }
     
-    public convenience init(block: @escaping () -> Void) {
+    public convenience init(block: @Sendable @escaping () -> Void) {
         self.init()
         _block = block
     }
     
-    open func addExecutionBlock(_ block: @escaping () -> Void) {
+    open func addExecutionBlock(_ block: @Sendable @escaping () -> Void) {
         if isExecuting || isFinished {
             fatalError("blocks cannot be added after the operation has started executing or finished")
         }
@@ -709,7 +709,7 @@ open class BlockOperation : Operation {
     }
 }
 
-internal final class _BarrierOperation : Operation {
+internal final class _BarrierOperation : Operation, @unchecked Sendable {
     var _block: (() -> Void)?
     init(_ block: @escaping () -> Void) {
         _block = block
@@ -725,7 +725,7 @@ internal final class _BarrierOperation : Operation {
     }
 }
 
-internal final class _OperationQueueProgress : Progress {
+internal final class _OperationQueueProgress : Progress, @unchecked Sendable {
     var queue: Unmanaged<OperationQueue>?
     let lock = NSLock()
     
@@ -758,7 +758,7 @@ extension OperationQueue {
 }
 
 @available(macOS 10.5, *)
-open class OperationQueue : NSObject, ProgressReporting {
+open class OperationQueue : NSObject, ProgressReporting, @unchecked Sendable {
     let __queueLock = NSLock()
     let __atomicLoad = NSLock()
     var __firstOperation: Unmanaged<Operation>?
@@ -1270,7 +1270,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         }
     }
     
-    open func addOperation(_ block: @escaping () -> Void) {
+    open func addOperation(_ block: @Sendable @escaping () -> Void) {
         let op = BlockOperation(block: block)
         if let qos = __propertyQoS {
             op.qualityOfService = qos
@@ -1278,7 +1278,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         addOperation(op)
     }
     
-    open func addBarrierBlock(_ barrier: @escaping () -> Void) {
+    open func addBarrierBlock(_ barrier: @Sendable @escaping () -> Void) {
         var queue: DispatchQueue?
         _lock()
         if let op = __firstOperation {
@@ -1425,7 +1425,7 @@ extension OperationQueue {
     // These two functions are inherently a race condition and should be avoided if possible
     
     @available(macOS, introduced: 10.5, deprecated: 100000, message: "access to operations is inherently a race condition, it should not be used. For barrier style behaviors please use addBarrierBlock: instead")
-    open var operations: [Operation] {
+    public var operations: [Operation] {
         get {
             return _operations(includingBarriers: false)
         }
@@ -1433,7 +1433,7 @@ extension OperationQueue {
     
     
     @available(macOS, introduced: 10.6, deprecated: 100000)
-    open var operationCount: Int {
+    public var operationCount: Int {
         get {
             return _operationCount
         }

@@ -9,6 +9,9 @@
 
 @_implementationOnly import CoreFoundation
 
+@available(*, unavailable)
+extension NSSortDescriptor : Sendable { }
+
 // In swift-corelibs-foundation, key-value coding is not available. Since encoding and decoding a NSSortDescriptor requires interpreting key paths, NSSortDescriptor does not conform to NSCoding or NSSecureCoding in swift-corelibs-foundation only.
 open class NSSortDescriptor: NSObject, NSCopying {
     open override func copy() -> Any {

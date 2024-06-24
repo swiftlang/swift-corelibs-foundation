@@ -174,8 +174,10 @@ class TestNotificationCenter : XCTestCase {
         let notificationCenter = NotificationCenter()
         let observingQueue = OperationQueue()
         let expectation = self.expectation(description: "Notification posting operation was not executed.")
-        var flag1 = false
-        var flag2 = false
+        
+        // Protected by the inherent ordering of notification center posts - which is the point of this test
+        nonisolated(unsafe) var flag1 = false
+        nonisolated(unsafe) var flag2 = false
         
         _ = notificationCenter.addObserver(forName: name, object: nil, queue: observingQueue) { _ in
             XCTAssertEqual(OperationQueue.current, observingQueue)
@@ -204,8 +206,10 @@ class TestNotificationCenter : XCTestCase {
         let operationQueue = OperationQueue()
         let postingQueue = OperationQueue()
         let expectation = self.expectation(description: "Notification posting operation was not executed.")
-        var flag1 = false
-        var flag2 = false
+        
+        // Protected by the inherent ordering of notification center posts - which is the point of this test
+        nonisolated(unsafe) var flag1 = false
+        nonisolated(unsafe) var flag2 = false
         
         _ = notificationCenter.addObserver(forName: name, object: nil, queue: operationQueue) { _ in
             XCTAssertEqual(OperationQueue.current, operationQueue)

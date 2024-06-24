@@ -24,13 +24,18 @@ import Foundation
         access only its own credentials.
 */
 extension URLCredential {
-    public enum Persistence : UInt {
-        case none
-        case forSession
-        case permanent
+    public enum Persistence : UInt, Sendable {
+        case none = 0
+        case forSession = 1
+        case permanent = 2
         
         @available(*, deprecated, message: "Synchronizable credential storage is not available in swift-corelibs-foundation. If you rely on synchronization for your functionality, please audit your code.")
-        case synchronizable
+        case synchronizable = 3
+        
+        // Wraps the check for synchronizable to avoid deprecation warning
+        internal var isSynchronizable: Bool {
+            self.rawValue == 3
+        }
     }
 }
 
@@ -39,10 +44,10 @@ extension URLCredential {
     @class URLCredential
     @discussion This class is an immutable object representing an authentication credential.  The actual type of the credential is determined by the constructor called in the categories declared below.
 */
-open class URLCredential : NSObject, NSSecureCoding, NSCopying {
-    private var _user : String
-    private var _password : String
-    private var _persistence : Persistence
+open class URLCredential : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
+    private let _user : String
+    private let _password : String
+    private let _persistence : Persistence
     
     /*!
         @method initWithUser:password:persistence:

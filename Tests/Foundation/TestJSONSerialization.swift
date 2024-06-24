@@ -360,9 +360,7 @@ extension TestJSONSerialization {
         let failingData = Data(failingString.utf8)
 
         XCTAssertThrowsError(try getjsonObjectResult(failingData, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Too many nested arrays or dictionaries around character 2561.")
@@ -423,9 +421,7 @@ extension TestJSONSerialization {
         let failingData = Data(failingString.utf8)
 
         XCTAssertThrowsError(try getjsonObjectResult(failingData, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Too many nested arrays or dictionaries around character 513.")
@@ -512,9 +508,7 @@ extension TestJSONSerialization {
                 return
             }
             XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-                guard let nserror = (error as? NSError) else {
-                    return XCTFail("Unexpected error: \(error)")
-                }
+                let nserror = error as NSError
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
                 XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Number with leading zero around character 2.")
@@ -527,9 +521,7 @@ extension TestJSONSerialization {
         let data = Data(subject.utf8)
 
         XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
         }
@@ -613,9 +605,7 @@ extension TestJSONSerialization {
 
             // Check failure to decode without .allowFragments
             XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
-                guard let nserror = (error as? NSError) else {
-                    return XCTFail("Unexpected error: \(error)")
-                }
+                let nserror = error as NSError
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
                 XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "JSON text did not start with array or object and option to allow fragments not set.")
@@ -643,9 +633,7 @@ extension TestJSONSerialization {
             let data = Data(json.utf8)
             
             XCTAssertThrowsError(try getjsonObjectResult(data, objectType)) { error in
-                guard let nserror = (error as? NSError) else {
-                    return XCTFail("Unexpected error: \(error)")
-                }
+                let nserror = error as NSError
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
                 XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unescaped control character around character 2.")
@@ -655,9 +643,7 @@ extension TestJSONSerialization {
     
     func deserialize_unescapedReversedSolidus(objectType: ObjectType) {
         XCTAssertThrowsError(try getjsonObjectResult(Data(#"" \ ""#.utf8), objectType, options: .allowFragments)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
@@ -670,9 +656,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
         }
@@ -683,9 +667,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
         }
@@ -696,9 +678,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during JSON parse.")
@@ -710,9 +690,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 9.")
@@ -724,9 +702,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
         }
@@ -737,9 +713,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid value around character 1.")
@@ -751,9 +725,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
         }
@@ -764,9 +736,7 @@ extension TestJSONSerialization {
 
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Invalid escape sequence around character 2.")
@@ -777,9 +747,7 @@ extension TestJSONSerialization {
         let subject = "[\"\\uDFF3\"]"
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unable to convert hex escape sequence (no high character) to UTF8-encoded character.")
@@ -790,9 +758,7 @@ extension TestJSONSerialization {
         let subject = "[\"\\uD834\"]"
         let data = Data(subject.utf8)
         XCTAssertThrowsError(_ = try getjsonObjectResult(data, objectType)) { error in
-            guard let nserror = (error as? NSError) else {
-                return XCTFail("Unexpected error: \(error)")
-            }
+            let nserror = error as NSError
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Unexpected end of file during string parse (expected low-surrogate code point but did not find one).")
@@ -1545,10 +1511,9 @@ extension TestJSONSerialization {
             _ = try JSONSerialization.jsonObject(with: data, options: [])
         }
         catch let nativeError {
-            if let error = nativeError as? NSError {
-                XCTAssertEqual(error.domain, "NSCocoaErrorDomain")
-                XCTAssertEqual(error.code, 3840)
-            }
+            let error = nativeError as NSError
+            XCTAssertEqual(error.domain, "NSCocoaErrorDomain")
+            XCTAssertEqual(error.code, 3840)
         }
     }
     

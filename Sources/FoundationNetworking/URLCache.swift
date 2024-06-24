@@ -39,7 +39,7 @@ internal extension NSLock {
     disk.
 */
 extension URLCache {
-    public enum StoragePolicy : UInt {
+    public enum StoragePolicy : UInt, Sendable {
         
         case allowed
         case allowedInMemoryOnly
@@ -86,7 +86,7 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
     It is used to maintain characteristics and attributes of a cached 
     object. 
 */
-open class CachedURLResponse : NSObject, NSCopying {
+open class CachedURLResponse : NSObject, NSCopying, @unchecked Sendable {
     open override func copy() -> Any {
         return copy(with: nil)
     }
@@ -193,7 +193,7 @@ open class CachedURLResponse : NSObject, NSCopying {
     }
 }
 
-open class URLCache : NSObject {
+open class URLCache : NSObject, @unchecked Sendable {
     
     private static let sharedLock = NSLock()
     private static var _shared: URLCache?

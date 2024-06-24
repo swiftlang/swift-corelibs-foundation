@@ -244,8 +244,6 @@ class TestCalendar: XCTestCase {
         calendar.locale = Locale(identifier: "en_US_POSIX")
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
 
-        let expectedDescription = calendar.timeZone == TimeZone.current ? "GMT (current)" : "GMT (fixed)"
-
         let calendarCopy = calendar
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
         XCTAssertEqual(calendarCopy.timeZone.secondsFromGMT(), 0)

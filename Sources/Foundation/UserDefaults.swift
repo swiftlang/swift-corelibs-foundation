@@ -17,6 +17,9 @@ fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
     return __SwiftValue.fetch(nonOptional: object)
 }
 
+@available(*, unavailable)
+extension UserDefaults : Sendable { }
+
 open class UserDefaults: NSObject {
     static private func _isValueAllowed(_ nonbridgedValue: Any) -> Bool {
         let value = bridgeFromNSCFTypeIfNeeded(nonbridgedValue)

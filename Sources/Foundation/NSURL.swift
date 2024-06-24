@@ -79,7 +79,7 @@ internal func _pathComponents(_ path: String?) -> [String]? {
     return result
 }
 
-open class NSURL : NSObject, NSSecureCoding, NSCopying {
+open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     typealias CFType = CFURL
     internal var _base = _CFInfo(typeID: CFURLGetTypeID())
     internal var _flags : UInt32 = 0
@@ -733,32 +733,32 @@ extension NSCharacterSet {
     // Predefined character sets for the six URL components and subcomponents which allow percent encoding. These character sets are passed to -stringByAddingPercentEncodingWithAllowedCharacters:.
     
     // Returns a character set containing the characters allowed in an URL's user subcomponent.
-    open class var urlUserAllowed: CharacterSet {
+    public class var urlUserAllowed: CharacterSet {
         return _CFURLComponentsGetURLUserAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's password subcomponent.
-    open class var urlPasswordAllowed: CharacterSet {
+    public class var urlPasswordAllowed: CharacterSet {
         return _CFURLComponentsGetURLPasswordAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's host subcomponent.
-    open class var urlHostAllowed: CharacterSet {
+    public class var urlHostAllowed: CharacterSet {
         return _CFURLComponentsGetURLHostAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's path component. ';' is a legal path character, but it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the URLPathAllowedCharacterSet).
-    open class var urlPathAllowed: CharacterSet {
+    public class var urlPathAllowed: CharacterSet {
         return _CFURLComponentsGetURLPathAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's query component.
-    open class var urlQueryAllowed: CharacterSet {
+    public class var urlQueryAllowed: CharacterSet {
         return _CFURLComponentsGetURLQueryAllowedCharacterSet()._swiftObject
     }
     
     // Returns a character set containing the characters allowed in an URL's fragment component.
-    open class var urlFragmentAllowed: CharacterSet {
+    public class var urlFragmentAllowed: CharacterSet {
         return _CFURLComponentsGetURLFragmentAllowedCharacterSet()._swiftObject
     }
 }
@@ -766,12 +766,12 @@ extension NSCharacterSet {
 extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
-    open func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
+    public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
         return _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, self._cfObject, allowedCharacters._cfObject)._swiftObject
     }
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
-    open var removingPercentEncoding: String? {
+    public var removingPercentEncoding: String? {
         return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
     }
 }
@@ -780,7 +780,7 @@ extension NSURL {
     
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
-    open class func fileURL(withPathComponents components: [String]) -> URL? {
+    public class func fileURL(withPathComponents components: [String]) -> URL? {
         let path = NSString.path(withComponents: components)
         if components.last == "/" {
             return URL(fileURLWithPath: path, isDirectory: true)
@@ -826,11 +826,11 @@ extension NSURL {
         return result
     }
 
-    open var pathComponents: [String]? {
+    public var pathComponents: [String]? {
         return _pathComponents(path)
     }
     
-    open var lastPathComponent: String? {
+    public var lastPathComponent: String? {
         guard let fixedSelf = _pathByFixingSlashes() else {
             return nil
         }
@@ -841,7 +841,7 @@ extension NSURL {
         return String(fixedSelf.suffix(from: fixedSelf._startOfLastPathComponent))
     }
     
-    open var pathExtension: String? {
+    public var pathExtension: String? {
         guard let fixedSelf = _pathByFixingSlashes() else {
             return nil
         }
@@ -856,7 +856,7 @@ extension NSURL {
         }
     }
     
-    open func appendingPathComponent(_ pathComponent: String) -> URL? {
+    public func appendingPathComponent(_ pathComponent: String) -> URL? {
         var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
 
         // File URLs can't be handled on WASI without file system access
@@ -876,31 +876,31 @@ extension NSURL {
         return result
     }
     
-    open func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL? {
+    public func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL? {
         return CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, _cfObject, pathComponent._cfObject, isDirectory)?._swiftObject
     }
     
-    open var deletingLastPathComponent: URL? {
+    public var deletingLastPathComponent: URL? {
         return CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
-    open func appendingPathExtension(_ pathExtension: String) -> URL? {
+    public func appendingPathExtension(_ pathExtension: String) -> URL? {
         return CFURLCreateCopyAppendingPathExtension(kCFAllocatorSystemDefault, _cfObject, pathExtension._cfObject)?._swiftObject
     }
     
-    open var deletingPathExtension: URL? {
+    public var deletingPathExtension: URL? {
         return CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
     }
     
     /* The following methods work only on `file:` scheme URLs; for non-`file:` scheme URLs, these methods return the URL unchanged.
     */
-    open var standardizingPath: URL? {
+    public var standardizingPath: URL? {
         // Documentation says it should expand initial tilde, but it does't do this on OS X.
         // In remaining cases it works just like URLByResolvingSymlinksInPath.
         return _resolveSymlinksInPath(excludeSystemDirs: true, preserveDirectoryFlag: true)
     }
     
-    open var resolvingSymlinksInPath: URL? {
+    public var resolvingSymlinksInPath: URL? {
         return _resolveSymlinksInPath(excludeSystemDirs: true)
     }
     
@@ -1070,7 +1070,7 @@ internal func _CFSwiftURLCopyResourcePropertyForKey(_ url: CFTypeRef, _ key: CFS
         return true
     } catch {
         if let errorPointer = errorPointer {
-            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
             let cfError = Unmanaged.passRetained(nsError._cfObject)
             errorPointer.pointee = cfError
         }
@@ -1097,7 +1097,7 @@ internal func _CFSwiftURLCopyResourcePropertiesForKeys(_ url: CFTypeRef, _ keys:
         return .passRetained(finalDictionary._cfObject)
     } catch {
         if let errorPointer = errorPointer {
-            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
             let cfError = Unmanaged.passRetained(nsError._cfObject)
             errorPointer.pointee = cfError
         }
@@ -1113,7 +1113,7 @@ internal func _CFSwiftURLSetResourcePropertyForKey(_ url: CFTypeRef, _ key: CFSt
         return true
     } catch {
         if let errorPointer = errorPointer {
-            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
             let cfError = Unmanaged.passRetained(nsError._cfObject)
             errorPointer.pointee = cfError
         }
@@ -1136,7 +1136,7 @@ internal func _CFSwiftURLSetResourcePropertiesForKeys(_ url: CFTypeRef, _ proper
         return true
     } catch {
         if let errorPointer = errorPointer {
-            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
             let cfError = Unmanaged.passRetained(nsError._cfObject)
             errorPointer.pointee = cfError
         }
@@ -1163,7 +1163,7 @@ internal func _CFSwiftURLResourceIsReachable(_ url: CFTypeRef, _ errorPointer: U
         return reachable ? true : false
     } catch {
         if let errorPointer = errorPointer {
-            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
             let cfError = Unmanaged.passRetained(nsError._cfObject)
             errorPointer.pointee = cfError
         }

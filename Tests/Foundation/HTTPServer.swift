@@ -1144,11 +1144,12 @@ class LoopbackServerTest : XCTestCase {
         super.tearDown()
     }
     
-    static func startServer() {
-        var _serverPort = 0
+    static func startServer() {        
+        // Protected by dispatchGroup
+        nonisolated(unsafe) var _serverPort = 0
         let dispatchGroup = DispatchGroup()
 
-        func runServer() throws {
+        @Sendable func runServer() throws {
             testServer = try _HTTPServer(port: nil, backlog: options.serverBacklog)
             _serverPort = Int(testServer!.port)
             serverActive = true
@@ -1158,7 +1159,7 @@ class LoopbackServerTest : XCTestCase {
                 do {
                     let httpServer = try testServer!.listen()
                     
-                    func handleRequest() {
+                    @Sendable func handleRequest() {
                         let subServer = TestURLSessionServer(httpServer: httpServer)
                         do {
                             try subServer.readAndRespond()

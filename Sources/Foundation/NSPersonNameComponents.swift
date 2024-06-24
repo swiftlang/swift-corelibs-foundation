@@ -7,11 +7,21 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSPersonNameComponents : Sendable { }
 
 open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
+    override public init() {
+        _pnc = PersonNameComponents()
+    }
+    
+    internal init(pnc: PersonNameComponents) {
+        _pnc = pnc
+    }
+    
     public convenience required init?(coder aDecoder: NSCoder) {
-        self.init()
+        self.init(pnc: .init())
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
@@ -46,22 +56,7 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     
     open func copy(with zone: NSZone? = nil) -> Any {
         let copy = NSPersonNameComponents()
-        copy.namePrefix = namePrefix
-        copy.givenName = givenName
-        copy.middleName = middleName
-        copy.familyName = familyName
-        copy.nameSuffix = nameSuffix
-        copy.nickname = nickname
-        if let PR = phoneticRepresentation {
-            var copyPR = PersonNameComponents()
-            copyPR.namePrefix = PR.namePrefix
-            copyPR.givenName = PR.givenName
-            copyPR.middleName = PR.middleName
-            copyPR.familyName = PR.familyName
-            copyPR.nameSuffix = PR.nameSuffix
-            copyPR.nickname = PR.nickname
-            copy.phoneticRepresentation = copyPR
-        }
+        copy._pnc = _pnc
         return copy
     }
 
@@ -69,48 +64,64 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         guard let object = object else { return false }
 
         switch object {
-        case let other as NSPersonNameComponents: return self.isEqual(other)
-        case let other as PersonNameComponents: return self.isEqual(other._bridgeToObjectiveC())
-        default: return false
+        case let other as NSPersonNameComponents:
+            return _pnc == other._pnc
+        case let other as PersonNameComponents:
+            return _pnc == other
+        default:
+            return false
         }
     }
 
     private func isEqual(_ other: NSPersonNameComponents) -> Bool {
-        if self === other { return true }
-        
-        return (self.namePrefix == other.namePrefix
-            && self.givenName == other.givenName
-            && self.middleName == other.middleName
-            && self.familyName == other.familyName
-            && self.nameSuffix == other.nameSuffix
-            && self.nickname == other.nickname
-            && self.phoneticRepresentation == other.phoneticRepresentation)
+        _pnc == other._pnc
     }
     
-    /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
+    // Internal for ObjectiveCBridgable access
+    internal var _pnc = PersonNameComponents()
     
-    /* Pre-nominal letters denoting title, salutation, or honorific, e.g. Dr., Mr. */
-    open var namePrefix: String?
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", pre-nominal letters denoting title, salutation, or honorific, e.g. Dr., Mr.
+    open var namePrefix: String? {
+        get { _pnc.namePrefix }
+        set { _pnc.namePrefix = newValue }
+    }
     
-    /* Name bestowed upon an individual by one's parents, e.g. Johnathan */
-    open var givenName: String?
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny",  name bestowed upon an individual by one's parents, e.g. Johnathan
+    open var givenName: String? {
+        get { _pnc.givenName }
+        set { _pnc.givenName = newValue }
+    }
     
-    /* Secondary given name chosen to differentiate those with the same first name, e.g. Maple  */
-    open var middleName: String?
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", secondary given name chosen to differentiate those with the same first name, e.g. Maple
+    open var middleName: String? {
+        get { _pnc.middleName }
+        set { _pnc.middleName = newValue }
+    }
     
-    /* Name passed from one generation to another to indicate lineage, e.g. Appleseed  */
-    open var familyName: String?
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", name passed from one generation to another to indicate lineage, e.g. Appleseed
+    open var familyName: String? {
+        get { _pnc.familyName }
+        set { _pnc.familyName = newValue }
+    }
     
-    /* Post-nominal letters denoting degree, accreditation, or other honor, e.g. Esq., Jr., Ph.D. */
-    open var nameSuffix: String?
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", post-nominal letters denoting degree, accreditation, or other honor, e.g. Esq., Jr., Ph.D.
+    open var nameSuffix: String? {
+        get { _pnc.nameSuffix }
+        set { _pnc.nameSuffix = newValue }
+    }
     
-    /* Name substituted for the purposes of familiarity, e.g. "Johnny"*/
-    open var nickname: String?
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", name substituted for the purposes of familiarity, e.g. "Johnny"
+    open var nickname: String? {
+        get { _pnc.nickname }
+        set { _pnc.nickname = newValue }
+    }
     
-    /* Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
-       The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
-    */
-    /*@NSCopying*/ open var phoneticRepresentation: PersonNameComponents?
+    /// Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
+    /// The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
+    open var phoneticRepresentation: PersonNameComponents? {
+        get { _pnc.phoneticRepresentation }
+        set { _pnc.phoneticRepresentation = newValue }
+    }
 }
 
 extension NSPersonNameComponents : _StructTypeBridgeable {

@@ -146,7 +146,7 @@ extension ComparisonResult {
 }
 
 /* Note: QualityOfService enum is available on all platforms, but it may not be implemented on all platforms. */
-public enum QualityOfService : Int {
+public enum QualityOfService : Int, Sendable {
     
     /* UserInteractive QoS is used for work directly involved in providing an interactive UI such as processing events or drawing to the screen. */
     case userInteractive
@@ -164,7 +164,7 @@ public enum QualityOfService : Int {
     case `default`
 }
 
-public struct NSSortOptions: OptionSet {
+public struct NSSortOptions: OptionSet, Sendable {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -172,7 +172,7 @@ public struct NSSortOptions: OptionSet {
     public static let stable = NSSortOptions(rawValue: UInt(1 << 4))
 }
 
-public struct NSEnumerationOptions: OptionSet {
+public struct NSEnumerationOptions: OptionSet, Sendable {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -275,7 +275,8 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (MassFormatter.self, "NSMassFormatter"),
         (NumberFormatter.self, "NSNumberFormatter"),
         (OutputStream.self, "NSOutputStream"),
-        (PersonNameComponentsFormatter.self, "NSPersonNameComponentsFormatter"),
+        // This type is deprecated and unavailable in SCL-F.
+        //(PersonNameComponentsFormatter.self, "NSPersonNameComponentsFormatter"),
         (Pipe.self, "NSPipe"),
         (PropertyListSerialization.self, "NSPropertyListSerialization"),
         (Scanner.self, "NSScanner"),

@@ -53,6 +53,9 @@ fileprivate class NSCacheKey: NSObject {
     }
 }
 
+@available(*, unavailable)
+extension NSCache : Sendable { }
+
 open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     
     private var _entries = Dictionary<NSCacheKey, NSCacheEntry<KeyType, ObjectType>>()

@@ -54,7 +54,7 @@ import Foundation
 loading system that is intended for use by URLProtocol
 implementors.
 */
-public protocol URLProtocolClient : NSObjectProtocol {
+public protocol URLProtocolClient : NSObjectProtocol, Sendable {
     
     
     /*!
@@ -148,11 +148,14 @@ public protocol URLProtocolClient : NSObjectProtocol {
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge)
 }
 
-internal class _ProtocolClient : NSObject {
+internal class _ProtocolClient : NSObject, @unchecked Sendable {
     var cachePolicy: URLCache.StoragePolicy = .notAllowed
     var cacheableData: [Data]?
     var cacheableResponse: URLResponse?
 }
+
+@available(*, unavailable)
+extension URLProtocol : Sendable { }
 
 /*!
     @class NSURLProtocol

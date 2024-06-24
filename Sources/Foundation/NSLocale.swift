@@ -12,9 +12,9 @@
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 @_exported import FoundationInternationalization
 
-open class NSLocale: NSObject, NSCopying, NSSecureCoding {
+open class NSLocale: NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
     // Our own data
-    var _locale: Locale
+    let _locale: Locale
     
     internal init(locale: Locale) {
         _locale = locale
@@ -27,27 +27,16 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         case .countryCode: return self.countryCode
         case .scriptCode: return self.scriptCode
         case .variantCode: return self.variantCode
-        //case .exemplarCharacterSet: return self.exemplarCharacterSet
+#if FOUNDATION_FRAMEWORK
+        case .exemplarCharacterSet: return self.exemplarCharacterSet
+#endif
         case .calendarIdentifier: return self.calendarIdentifier
         case .calendar: return _locale.calendar
         case .collationIdentifier: return self.collationIdentifier
         case .usesMetricSystem: return self.usesMetricSystem
-        // Foundation framework only
-        /*
-        case .measurementSystem:
-            switch locale.measurementSystem {
-            case .us: return NSLocaleMeasurementSystemUS
-            case .uk: return NSLocaleMeasurementSystemUK
-            case .metric: return NSLocaleMeasurementSystemMetric
-            default: return NSLocaleMeasurementSystemMetric
-            }
-        case .temperatureUnit:
-            switch _locale.temperatureUnit {
-            case .celsius: return NSLocaleTemperatureUnitCelsius
-            case .fahrenheit: return NSLocaleTemperatureUnitFahrenheit
-            default: return NSLocaleTemperatureUnitCelsius
-            }
-        */
+#if FOUNDATION_FRAMEWORK
+        case .measurementSystem: return self.measurementSystem
+#endif
         case .decimalSeparator: return self.decimalSeparator
         case .groupingSeparator: return self.groupingSeparator
         case .currencySymbol: return self.currencySymbol
@@ -70,10 +59,6 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     }
     
     open func displayName(forKey key: Key, value: String) -> String? {
-        guard let value = value as? String else {
-            return nil
-        }
-
         switch key {
         case .identifier: return self._nullableLocalizedString(forLocaleIdentifier: value)
         case .languageCode: return self.localizedString(forLanguageCode: value)
@@ -282,62 +267,62 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
 }
 
 extension NSLocale {
-    open class var current: Locale {
+    public class var current: Locale {
         Locale.current
     }
     
-    open class var system: Locale {
+    public class var system: Locale {
         Locale(identifier: "")
     }
 }
 
 extension NSLocale {
-    open class var availableLocaleIdentifiers: [String] {
+    public class var availableLocaleIdentifiers: [String] {
         Locale.availableIdentifiers
     }
     
-    open class var isoLanguageCodes: [String] {
+    public class var isoLanguageCodes: [String] {
         // Map back from the type to strings
         Locale.LanguageCode.isoLanguageCodes.map { $0.identifier }
     }
     
-    open class var isoCountryCodes: [String] {
+    public class var isoCountryCodes: [String] {
         Locale.Region.isoRegions.map { $0.identifier }
     }
     
-    open class var isoCurrencyCodes: [String] {
+    public class var isoCurrencyCodes: [String] {
         Locale.Currency.isoCurrencies.map { $0.identifier }
     }
     
-    open class var commonISOCurrencyCodes: [String] {
+    public class var commonISOCurrencyCodes: [String] {
         Locale.commonISOCurrencyCodes
     }
     
-    open class var preferredLanguages: [String] {
+    public class var preferredLanguages: [String] {
         Locale.preferredLanguages
     }
     
-    open class func components(fromLocaleIdentifier string: String) -> [String : String] {
+    public class func components(fromLocaleIdentifier string: String) -> [String : String] {
         __SwiftValue.fetch(CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)) as? [String : String] ?? [:] 
     }
     
-    open class func localeIdentifier(fromComponents dict: [String : String]) -> String {
+    public class func localeIdentifier(fromComponents dict: [String : String]) -> String {
         Locale.identifier(fromComponents: dict)
     }
     
-    open class func canonicalLocaleIdentifier(from string: String) -> String {
+    public class func canonicalLocaleIdentifier(from string: String) -> String {
         Locale.canonicalLanguageIdentifier(from: string)
     }
     
-    open class func canonicalLanguageIdentifier(from string: String) -> String {
+    public class func canonicalLanguageIdentifier(from string: String) -> String {
         Locale.canonicalLanguageIdentifier(from: string)
     }
     
-    open class func localeIdentifier(fromWindowsLocaleCode lcid: UInt32) -> String? {
+    public class func localeIdentifier(fromWindowsLocaleCode lcid: UInt32) -> String? {
         Locale.identifier(fromWindowsLocaleCode: Int(lcid))
     }
     
-    open class func windowsLocaleCode(fromLocaleIdentifier localeIdentifier: String) -> UInt32 {
+    public class func windowsLocaleCode(fromLocaleIdentifier localeIdentifier: String) -> UInt32 {
         if let code = Locale.windowsLocaleCode(fromIdentifier: localeIdentifier) {
             return UInt32(code)
         } else {
@@ -345,12 +330,12 @@ extension NSLocale {
         }
     }
     
-    open class func characterDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
+    public class func characterDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let language = Locale.Language(components: .init(identifier: isoLangCode))
         return language.characterDirection
     }
     
-    open class func lineDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
+    public class func lineDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let language = Locale.Language(components: .init(identifier: isoLangCode))
         return language.lineLayoutDirection
     }
@@ -358,8 +343,8 @@ extension NSLocale {
 
 extension NSLocale {
 
-    public struct Key : RawRepresentable, Equatable, Hashable {
-        public private(set) var rawValue: String
+    public struct Key : RawRepresentable, Equatable, Hashable, Sendable {
+        public let rawValue: String
         public init(rawValue: String) {
             self.rawValue = rawValue
         }

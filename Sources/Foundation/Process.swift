@@ -21,7 +21,7 @@ import Darwin
 #endif
 
 extension Process {
-    public enum TerminationReason : Int {
+    public enum TerminationReason : Int, Sendable {
         case exit
         case uncaughtSignal
     }
@@ -220,7 +220,7 @@ private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
 }
 #endif
 
-open class Process: NSObject {
+open class Process: NSObject, @unchecked Sendable {
     private static func setup() {
         struct Once {
             static var done = false
@@ -953,7 +953,7 @@ open class Process: NSObject {
 
         defer {
             // Reset the previous working directory path.
-            fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
+            _ = fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
         }
 
         // Launch
@@ -1110,11 +1110,11 @@ open class Process: NSObject {
     /*
     A block to be invoked when the process underlying the Process terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The Process is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the Process has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an Process, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of Process which hasn't been updated to include an implementation of the storage and use of it.  
     */
-    open var terminationHandler: ((Process) -> Void)?
+    open var terminationHandler: (@Sendable (Process) -> Void)?
     open var qualityOfService: QualityOfService = .default  // read-only after the process is launched
 
 
-    open class func run(_ url: URL, arguments: [String], terminationHandler: ((Process) -> Void)? = nil) throws -> Process {
+    open class func run(_ url: URL, arguments: [String], terminationHandler: (@Sendable (Process) -> Void)? = nil) throws -> Process {
         let process = Process()
         process.executableURL = url
         process.arguments = arguments
@@ -1140,7 +1140,7 @@ open class Process: NSObject {
         let currentRunLoop = RunLoop.current
 
         let runRunLoop : () -> Void = (currentRunLoop == self.runLoop)
-                ? { currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
+                ? { _ = currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
                 : { currentRunLoop.run(until: Date(timeIntervalSinceNow: runInterval)) }
         // update .runLoop to allow early wakeup triggered by terminateRunLoop.
         self.runLoop = currentRunLoop

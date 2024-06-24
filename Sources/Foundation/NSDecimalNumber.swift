@@ -10,8 +10,8 @@
 @_spi(SwiftCorelibsFoundation) import FoundationEssentials
 
 /***************	Exceptions		***********/
-public struct NSExceptionName : RawRepresentable, Equatable, Hashable {
-    public private(set) var rawValue: String
+public struct NSExceptionName : RawRepresentable, Equatable, Hashable, Sendable {
+    public let rawValue: String
     
     public init(_ rawValue: String) {
         self.rawValue = rawValue
@@ -60,7 +60,7 @@ fileprivate func handle(_ error: NSDecimalNumber.CalculationError, _ handler: NS
 }
 
 /***************	NSDecimalNumber: the class		***********/
-open class NSDecimalNumber : NSNumber {
+open class NSDecimalNumber : NSNumber, @unchecked Sendable {
 
     fileprivate let decimal: Decimal
     public convenience init(mantissa: UInt64, exponent: Int16, isNegative: Bool) {
@@ -214,7 +214,7 @@ open class NSDecimalNumber : NSNumber {
         return NSDecimalNumber(integerLiteral: 1)
     }
     open class var minimum: NSDecimalNumber {
-        return NSDecimalNumber(decimal:Decimal.leastFiniteMagnitude)
+        return NSDecimalNumber(decimal:-Decimal.greatestFiniteMagnitude)
     }
     open class var maximum: NSDecimalNumber {
         return NSDecimalNumber(decimal:Decimal.greatestFiniteMagnitude)
@@ -416,7 +416,7 @@ open class NSDecimalNumber : NSNumber {
 
 
 /***********	A class for defining common behaviors		*******/
-open class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding {
+open class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding, @unchecked Sendable {
 
     static let defaultBehavior = NSDecimalNumberHandler()
 

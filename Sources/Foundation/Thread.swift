@@ -52,7 +52,7 @@ internal class NSThreadSpecific<T: NSObject> {
     }
 }
 
-internal enum _NSThreadStatus {
+internal enum _NSThreadStatus : Sendable {
     case initialized
     case starting
     case executing
@@ -75,6 +75,9 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
     Thread.releaseReference(context!)
     return nil
 }
+
+@available(*, unavailable)
+extension Thread : Sendable { }
 
 open class Thread : NSObject {
 
@@ -112,7 +115,7 @@ open class Thread : NSObject {
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open class func detachNewThread(_ block: @escaping () -> Swift.Void) {
+    open class func detachNewThread(_ block: @Sendable @escaping () -> Swift.Void) {
         let t = Thread(block: block)
         t.start()
     }
@@ -245,7 +248,7 @@ open class Thread : NSObject {
 #endif
     }
 
-    public convenience init(block: @escaping () -> Swift.Void) {
+    public convenience init(block: @Sendable @escaping () -> Swift.Void) {
         self.init()
         _main = block
     }

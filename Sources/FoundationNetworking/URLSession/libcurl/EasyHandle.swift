@@ -26,7 +26,19 @@ import Foundation
 @_implementationOnly import _CFURLSessionInterface
 import Dispatch
 
+// These helper functions avoid warnings about "will never be executed" code which checks the availability of the underlying libcurl features.
 
+internal func curlInfoCAInfoSupported() -> Bool {
+    NS_CURL_CURLINFO_CAINFO_SUPPORTED == 1
+}
+
+internal func maxHostConnectionsSupported() -> Bool {
+    NS_CURL_MAX_HOST_CONNECTIONS_SUPPORTED == 1
+}
+
+internal func xferInfoFunctionSupported() -> Bool {
+    NS_CURL_XFERINFOFUNCTION_SUPPORTED == 1
+}
 
 /// Minimal wrapper around the [curl easy interface](https://curl.haxx.se/libcurl/c/)
 ///
@@ -209,7 +221,7 @@ extension _EasyHandle {
 #endif
 
 #if !os(Windows) && !os(macOS) && !os(iOS) && !os(watchOS) && !os(tvOS)
-        if NS_CURL_CURLINFO_CAINFO_SUPPORTED == 1 {
+        if curlInfoCAInfoSupported() {
             // Check if there is a default path; if there is, it will already
             // be set, so leave things alone
             var p: UnsafeMutablePointer<Int8>? = nil
@@ -624,7 +636,7 @@ fileprivate extension _EasyHandle {
         
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionPROGRESSDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         
-        if NS_CURL_XFERINFOFUNCTION_SUPPORTED == 1 {
+        if xferInfoFunctionSupported() {
             try! CFURLSession_easy_setopt_tc(rawHandle, CFURLSessionOptionXFERINFOFUNCTION, { (userdata: UnsafeMutableRawPointer?, dltotal :Int64, dlnow: Int64, ultotal: Int64, ulnow: Int64) -> Int32 in
                 guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return -1 }
                 handle.updateProgressMeter(with: _Progress(totalBytesSent: ulnow, totalBytesExpectedToSend: ultotal, totalBytesReceived: dlnow, totalBytesExpectedToReceive: dltotal))

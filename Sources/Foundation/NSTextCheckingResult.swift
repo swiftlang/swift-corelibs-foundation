@@ -11,13 +11,16 @@
 
 /* NSTextCheckingType in this project is limited to regular expressions. */
 extension NSTextCheckingResult {
-    public struct CheckingType : OptionSet {
+    public struct CheckingType : OptionSet, Sendable {
         public let rawValue: UInt64
         public init(rawValue: UInt64) { self.rawValue = rawValue }
         
         public static let regularExpression = CheckingType(rawValue: 1 << 10)
     }
 }
+
+@available(*, unavailable)
+extension NSTextCheckingResult : Sendable { }
 
 open class NSTextCheckingResult: NSObject, NSCopying, NSSecureCoding {
     
@@ -205,7 +208,7 @@ extension NSTextCheckingResult.CheckingType {
     public static let transitInformation = NSTextCheckingResult.CheckingType(rawValue: 1 << 12)
 }
 
-public struct NSTextCheckingKey: RawRepresentable, Hashable {
+public struct NSTextCheckingKey: RawRepresentable, Hashable, Sendable {
     public var rawValue: String
     
     init(_ string: String) {
@@ -234,58 +237,61 @@ extension NSTextCheckingKey {
 
 @available(*, unavailable, message: "These types of results cannot be constructed in swift-corelibs-foundation")
 extension NSTextCheckingResult {
-    open class func orthographyCheckingResult(range: NSRange, orthography: NSOrthography) -> NSTextCheckingResult {
+    public class func orthographyCheckingResult(range: NSRange, orthography: NSOrthography) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func spellCheckingResult(range: NSRange) -> NSTextCheckingResult {
+    public class func spellCheckingResult(range: NSRange) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func grammarCheckingResult(range: NSRange, details: [[String : Any]]) -> NSTextCheckingResult {
+    public class func grammarCheckingResult(range: NSRange, details: [[String : Any]]) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func dateCheckingResult(range: NSRange, date: Date) -> NSTextCheckingResult {
+    public class func dateCheckingResult(range: NSRange, date: Date) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func dateCheckingResult(range: NSRange, date: Date, timeZone: TimeZone, duration: TimeInterval) -> NSTextCheckingResult {
+    public class func dateCheckingResult(range: NSRange, date: Date, timeZone: TimeZone, duration: TimeInterval) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func addressCheckingResult(range: NSRange, components: [NSTextCheckingKey : String]) -> NSTextCheckingResult {
+    public class func addressCheckingResult(range: NSRange, components: [NSTextCheckingKey : String]) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func linkCheckingResult(range: NSRange, url: URL) -> NSTextCheckingResult {
+    public class func linkCheckingResult(range: NSRange, url: URL) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func quoteCheckingResult(range: NSRange, replacementString: String) -> NSTextCheckingResult {
+    public class func quoteCheckingResult(range: NSRange, replacementString: String) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func dashCheckingResult(range: NSRange, replacementString: String) -> NSTextCheckingResult {
+    public class func dashCheckingResult(range: NSRange, replacementString: String) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func replacementCheckingResult(range: NSRange, replacementString: String) -> NSTextCheckingResult {
+    public class func replacementCheckingResult(range: NSRange, replacementString: String) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func correctionCheckingResult(range: NSRange, replacementString: String, alternativeStrings: [String]) -> NSTextCheckingResult {
+    public class func correctionCheckingResult(range: NSRange, replacementString: String, alternativeStrings: [String]) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func phoneNumberCheckingResult(range: NSRange, phoneNumber: String) -> NSTextCheckingResult {
+    public class func phoneNumberCheckingResult(range: NSRange, phoneNumber: String) -> NSTextCheckingResult {
         NSUnsupported()
     }
     
-    open class func transitInformationCheckingResult(range: NSRange, components: [NSTextCheckingKey : String]) -> NSTextCheckingResult {
+    public class func transitInformationCheckingResult(range: NSRange, components: [NSTextCheckingKey : String]) -> NSTextCheckingResult {
         NSUnsupported()
     }
 }
+
+@available(*, unavailable)
+extension NSOrthography : Sendable { }
 
 @available(*, deprecated, message: "NSOrthography is not available in swift-corelibs-foundation")
 open class NSOrthography: NSObject, NSCopying, NSSecureCoding {

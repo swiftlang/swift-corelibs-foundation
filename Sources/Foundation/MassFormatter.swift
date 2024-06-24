@@ -9,7 +9,7 @@
 
 
 extension MassFormatter {
-    public enum Unit : Int {
+    public enum Unit : Int, Sendable {
         case gram
         case kilogram
         case ounce
@@ -17,6 +17,9 @@ extension MassFormatter {
         case stone
     }
 }
+
+@available(*, unavailable)
+extension MassFormatter : Sendable { }
     
 open class MassFormatter : Formatter {
     

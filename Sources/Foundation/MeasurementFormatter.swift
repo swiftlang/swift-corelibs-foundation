@@ -7,9 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension MeasurementFormatter : Sendable { }
+
 @available(*, unavailable, message: "Not supported in swift-corelibs-foundation")
 open class MeasurementFormatter : Formatter, NSSecureCoding {
-    public struct UnitOptions : OptionSet {
+    public struct UnitOptions : OptionSet, Sendable {
         public private(set) var rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         

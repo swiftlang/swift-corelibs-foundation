@@ -8,8 +8,9 @@
 //
 
 
+@available(*, deprecated, message: "Person name components formatting isn't available in swift-corelibs-foundation")
 extension PersonNameComponentsFormatter {
-    public enum Style : Int {
+    public enum Style : Int, Sendable {
         
         case `default`
         
@@ -27,7 +28,7 @@ extension PersonNameComponentsFormatter {
         case abbreviated
     }
 
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -40,7 +41,7 @@ extension PersonNameComponentsFormatter {
 }
 
 @available(*, deprecated, message: "Person name components formatting isn't available in swift-corelibs-foundation")
-open class PersonNameComponentsFormatter : Formatter {
+open class PersonNameComponentsFormatter : Formatter, @unchecked Sendable {
     
     @available(*, unavailable, message: "Person name components formatting isn't available in swift-corelibs-foundation")
     public required init?(coder: NSCoder) {

@@ -84,6 +84,9 @@ extension NSObjectProtocol {
     }
 }
 
+@available(*, unavailable)
+extension NSZone : Sendable { }
+
 public struct NSZone : ExpressibleByNilLiteral {
     
     public init() {
@@ -407,3 +410,7 @@ extension NSObject : CustomDebugStringConvertible {
 
 extension NSObject : CustomStringConvertible {
 }
+
+@available(*, unavailable)
+extension NSObject : Sendable { }
+

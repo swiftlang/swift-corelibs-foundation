@@ -92,6 +92,9 @@ extension ObjCBool : CustomStringConvertible {
 }
 #endif
 
+@available(*, unavailable)
+extension __NSCFType : Sendable { }
+
 @usableFromInline
 internal class __NSCFType : NSObject {
     private var _cfinfo : _CFInfo
@@ -402,6 +405,9 @@ internal enum _NSNonfileURLContentLoader {
         }
     }
 }
+
+@available(*, unavailable)
+extension _NSCFXMLBridgeForFoundationXMLUseOnly : Sendable { }
 
 public struct _NSCFXMLBridgeForFoundationXMLUseOnly {
     public var originalBridge: UnsafeMutableRawPointer

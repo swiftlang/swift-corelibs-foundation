@@ -594,6 +594,7 @@ class TestNSArray : XCTestCase {
         }
     }
 
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_initWithContentsOfFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
         if let _ = testFilePath {
@@ -611,6 +612,7 @@ class TestNSArray : XCTestCase {
         }
     }
 
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_initMutableWithContentsOfFile() {
         if let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234)) {
             let a1: NSArray = ["foo", "bar"]
@@ -630,6 +632,7 @@ class TestNSArray : XCTestCase {
         }
     }
 
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_initMutableWithContentsOfURL() {
         if let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234)) {
             let a1: NSArray = ["foo", "bar"]
@@ -650,6 +653,7 @@ class TestNSArray : XCTestCase {
         }
     }
 
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_writeToFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
         if let _ = testFilePath {

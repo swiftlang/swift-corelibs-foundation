@@ -10,6 +10,9 @@
 
 @_implementationOnly import CoreFoundation
 
+@available(*, unavailable)
+extension _NSCFString : Sendable { }
+
 @usableFromInline
 internal class _NSCFString : NSMutableString {
     required init(characters: UnsafePointer<unichar>, length: Int) {
@@ -57,6 +60,9 @@ internal class _NSCFString : NSMutableString {
         return NSMutableString.self
     }
 }
+
+@available(*, unavailable)
+extension _NSCFConstantString : Sendable { }
 
 @usableFromInline
 internal final class _NSCFConstantString : _NSCFString {

@@ -8,7 +8,7 @@
 //
 
 extension LengthFormatter {
-    public enum Unit: Int {
+    public enum Unit: Int, Sendable {
         case millimeter = 8
         case centimeter = 9
         case meter = 11
@@ -19,6 +19,9 @@ extension LengthFormatter {
         case mile = 1284
     }
 }
+
+@available(*, unavailable)
+extension LengthFormatter : Sendable { }
 
 open class LengthFormatter : Formatter {
     

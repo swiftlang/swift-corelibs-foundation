@@ -36,6 +36,9 @@ internal let NSPropertyListClasses : [AnyClass] = [
         NSNumber.self
 ]
 
+@available(*, unavailable)
+extension NSKeyedArchiver : Sendable { }
+
 /// `NSKeyedArchiver`, a concrete subclass of `NSCoder`, provides a way to encode objects
 /// (and scalar values) into an architecture-independent format that can be stored in a file.
 /// When you archive a set of objects, the class information and instance variables for each object

@@ -12,13 +12,13 @@
 
 extension NotificationQueue {
 
-    public enum PostingStyle : UInt {
+    public enum PostingStyle : UInt, Sendable {
         case whenIdle = 1
         case asap = 2
         case now = 3
     }
 
-    public struct NotificationCoalescing : OptionSet {
+    public struct NotificationCoalescing : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -27,6 +27,9 @@ extension NotificationQueue {
         public static let onSender = NotificationCoalescing(rawValue: 1 << 1)
     }
 }
+
+@available(*, unavailable)
+extension NotificationQueue : Sendable { }
 
 open class NotificationQueue: NSObject {
 

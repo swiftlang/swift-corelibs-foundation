@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSEnumerator : Sendable { }
+
+@available(*, unavailable)
+extension NSEnumerator.Iterator : Sendable { }
+
 open class NSEnumerator : NSObject {
     
     open func nextObject() -> Any? {

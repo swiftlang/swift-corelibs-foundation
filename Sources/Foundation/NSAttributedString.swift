@@ -10,7 +10,7 @@
 @_implementationOnly import CoreFoundation
 
 extension NSAttributedString {
-    public struct Key: RawRepresentable, Equatable, Hashable {
+    public struct Key: RawRepresentable, Equatable, Hashable, Sendable {
         public let rawValue: String
 
         public init(_ rawValue: String) {
@@ -45,6 +45,9 @@ extension NSAttributedString.Key: _ObjectiveCBridgeable {
 
 @available(*, unavailable, renamed: "NSAttributedString.Key")
 public typealias NSAttributedStringKey = NSAttributedString.Key
+
+@available(*, unavailable)
+extension NSAttributedString : Sendable { }
 
 open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
@@ -421,7 +424,7 @@ extension NSAttributedString {
 
 extension NSAttributedString {
 
-    public struct EnumerationOptions: OptionSet {
+    public struct EnumerationOptions: OptionSet, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) {
             self.rawValue = rawValue
@@ -432,6 +435,8 @@ extension NSAttributedString {
 
 }
 
+@available(*, unavailable)
+extension NSMutableAttributedString : Sendable { }
 
 open class NSMutableAttributedString : NSAttributedString {
     

@@ -179,6 +179,7 @@ class TestNSDictionary : XCTestCase {
         }
     }
     
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_initWithContentsOfFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
         if let _ = testFilePath {

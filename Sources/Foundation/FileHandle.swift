@@ -57,7 +57,7 @@ extension NSError {
 
 /* On Darwin, FileHandle conforms to NSSecureCoding for use with NSXPCConnection and related facilities only. On swift-corelibs-foundation, it does not conform to that protocol since those facilities are unavailable. */
  
-open class FileHandle : NSObject {
+open class FileHandle : NSObject, @unchecked Sendable {
 #if os(Windows)
     public private(set) var _handle: HANDLE
 
@@ -160,8 +160,8 @@ open class FileHandle : NSObject {
         return source
     }
 
-    private var _readabilityHandler: ((FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
-    open var readabilityHandler: ((FileHandle) -> Void)? {
+    private var _readabilityHandler: (@Sendable (FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
+    open var readabilityHandler: (@Sendable (FileHandle) -> Void)? {
         get {
             privateAsyncVariablesLock.lock()
             let handler = _readabilityHandler
@@ -188,8 +188,8 @@ open class FileHandle : NSObject {
         }
     }
     
-    private var _writeabilityHandler: ((FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
-    open var writeabilityHandler: ((FileHandle) -> Void)? {
+    private var _writeabilityHandler: (@Sendable (FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
+    open var writeabilityHandler: (@Sendable (FileHandle) -> Void)? {
         get {
             privateAsyncVariablesLock.lock()
             let handler = _writeabilityHandler
@@ -690,17 +690,17 @@ open class FileHandle : NSObject {
     
     // This matches the effect of API_TO_BE_DEPRECATED in ObjC headers:
     @available(swift, deprecated: 100000, renamed: "readToEnd()")
-    open func readDataToEndOfFile() -> Data {
+    public func readDataToEndOfFile() -> Data {
         return try! readToEnd() ?? Data()
     }
     
     @available(swift, deprecated: 100000, renamed: "read(upToCount:)")
-    open func readData(ofLength length: Int) -> Data {
+    public func readData(ofLength length: Int) -> Data {
         return try! read(upToCount: length) ?? Data()
     }
     
     @available(swift, deprecated: 100000, renamed: "write(contentsOf:)")
-    open func write(_ data: Data) {
+    public func write(_ data: Data) {
         try! write(contentsOf: data)
     }
     
@@ -711,27 +711,27 @@ open class FileHandle : NSObject {
     
     @available(swift, deprecated: 100000, renamed: "seekToEnd()")
     @discardableResult
-    open func seekToEndOfFile() -> UInt64 {
+    public func seekToEndOfFile() -> UInt64 {
         return try! seekToEnd()
     }
     
     @available(swift, deprecated: 100000, renamed: "seek(toOffset:)")
-    open func seek(toFileOffset offset: UInt64) {
+    public func seek(toFileOffset offset: UInt64) {
         try! seek(toOffset: offset)
     }
     
     @available(swift, deprecated: 100000, renamed: "truncate(atOffset:)")
-    open func truncateFile(atOffset offset: UInt64) {
+    public func truncateFile(atOffset offset: UInt64) {
         try! truncate(atOffset: offset)
     }
     
     @available(swift, deprecated: 100000, renamed: "synchronize()")
-    open func synchronizeFile() {
+    public func synchronizeFile() {
         try! synchronize()
     }
     
     @available(swift, deprecated: 100000, renamed: "close()")
-    open func closeFile() {
+    public func closeFile() {
         try! self.close()
     }
 }
@@ -742,7 +742,7 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
 
-    open class var standardInput: FileHandle {
+    public class var standardInput: FileHandle {
         return _stdinFileHandle
     }
     
@@ -750,7 +750,7 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
 
-    open class var standardOutput: FileHandle {
+    public class var standardOutput: FileHandle {
         return _stdoutFileHandle
     }
     
@@ -758,12 +758,12 @@ extension FileHandle {
         return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
     
-    open class var standardError: FileHandle {
+    public class var standardError: FileHandle {
         return _stderrFileHandle
     }
 
     internal static var _nulldeviceFileHandle: FileHandle = {
-        class NullDevice: FileHandle {
+        class NullDevice: FileHandle, @unchecked Sendable {
             override var availableData: Data {
                 return Data()
             }
@@ -804,7 +804,7 @@ extension FileHandle {
 #endif
     }()
 
-    open class var nullDevice: FileHandle {
+    public class var nullDevice: FileHandle {
         return _nulldeviceFileHandle
     }
 
@@ -865,11 +865,11 @@ public let NSFileHandleNotificationDataItem: String = "NSFileHandleNotificationD
 public let NSFileHandleNotificationFileHandleItem: String = "NSFileHandleNotificationFileHandleItem"
 
 extension FileHandle {
-    open func readInBackgroundAndNotify() {
+    public func readInBackgroundAndNotify() {
         readInBackgroundAndNotify(forModes: [.default])
     }
 
-    open func readInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+    public func readInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
 #if !canImport(Dispatch)
         NSUnsupported()
 #else
@@ -930,18 +930,18 @@ extension FileHandle {
 #endif // canImport(Dispatch)
     }
     
-    open func readToEndOfFileInBackgroundAndNotify() {
+    public func readToEndOfFileInBackgroundAndNotify() {
         readToEndOfFileInBackgroundAndNotify(forModes: [.default])
     }
     
-    open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+    public func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
 #if !canImport(Dispatch) || !canImport(Dispatch)
         NSUnsupported()
 #else
         privateAsyncVariablesLock.lock()
         guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
         
-        let token = NSObject()
+        nonisolated(unsafe) let token = NSObject()
         currentBackgroundActivityOwner = token
         privateAsyncVariablesLock.unlock()
 
@@ -954,11 +954,7 @@ extension FileHandle {
                 error = nil
             } catch let thrown {
                 data = nil
-                if let thrown = thrown as? NSError {
-                    error = thrown.errnoIfAvailable
-                } else {
-                    error = nil
-                }
+                error = (thrown as NSError).errnoIfAvailable
             }
             
             DispatchQueue.main.async {
@@ -983,7 +979,7 @@ extension FileHandle {
     }
     
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
-    open func acceptConnectionInBackgroundAndNotify() {
+    public func acceptConnectionInBackgroundAndNotify() {
 #if os(Windows) || !canImport(Dispatch)
         NSUnsupported()
 #else
@@ -992,7 +988,7 @@ extension FileHandle {
     }
 
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
-    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+    public func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
 #if os(Windows) || !canImport(Dispatch)
         NSUnsupported()
 #else
@@ -1026,11 +1022,11 @@ extension FileHandle {
 #endif
     }
 
-    open func waitForDataInBackgroundAndNotify() {
+    public func waitForDataInBackgroundAndNotify() {
         waitForDataInBackgroundAndNotify(forModes: [.default])
     }
     
-    open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+    public func waitForDataInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
 #if !canImport(Dispatch)
         NSUnsupported()
 #else
@@ -1055,7 +1051,7 @@ extension FileHandle {
     }
 }
 
-open class Pipe: NSObject {
+open class Pipe: NSObject, @unchecked Sendable {
     public let fileHandleForReading: FileHandle
     public let fileHandleForWriting: FileHandle
 

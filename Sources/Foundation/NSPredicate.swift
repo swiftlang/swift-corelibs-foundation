@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSPredicate : Sendable { }
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
@@ -110,7 +112,7 @@ extension NSPredicate {
 }
 
 extension NSArray {
-    open func filtered(using predicate: NSPredicate) -> [Any] {
+    public func filtered(using predicate: NSPredicate) -> [Any] {
         return allObjects.filter({ object in
             return predicate.evaluate(with: object)
         })
@@ -118,7 +120,7 @@ extension NSArray {
 }
 
 extension NSMutableArray {
-    open func filter(using predicate: NSPredicate) {
+    public func filter(using predicate: NSPredicate) {
         var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {
@@ -130,7 +132,7 @@ extension NSMutableArray {
 }
 
 extension NSSet {
-    open func filtered(using predicate: NSPredicate) -> Set<AnyHashable> {
+    public func filtered(using predicate: NSPredicate) -> Set<AnyHashable> {
         let objs = allObjects.filter { (object) -> Bool in
             return predicate.evaluate(with: object)
         }
@@ -139,7 +141,7 @@ extension NSSet {
 }
 
 extension NSMutableSet {
-    open func filter(using predicate: NSPredicate) {
+    public func filter(using predicate: NSPredicate) {
         for object in self {
             if !predicate.evaluate(with: object) {
                 self.remove(object)
@@ -149,7 +151,7 @@ extension NSMutableSet {
 }
 
 extension NSOrderedSet {
-    open func filtered(using predicate: NSPredicate) -> NSOrderedSet {
+    public func filtered(using predicate: NSPredicate) -> NSOrderedSet {
         return NSOrderedSet(array: self.allObjects.filter({ object in
             return predicate.evaluate(with: object)
         }))
@@ -157,7 +159,7 @@ extension NSOrderedSet {
 }
 
 extension NSMutableOrderedSet {
-    open func filter(using predicate: NSPredicate) {
+    public func filter(using predicate: NSPredicate) {
         var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {

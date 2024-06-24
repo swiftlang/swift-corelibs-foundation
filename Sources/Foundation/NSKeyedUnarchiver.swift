@@ -9,6 +9,9 @@
 
 @_implementationOnly import CoreFoundation
 
+@available(*, unavailable)
+extension NSKeyedUnarchiver : Sendable { }
+
 open class NSKeyedUnarchiver : NSCoder {
     enum InternalError: Error {
         /*

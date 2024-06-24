@@ -35,9 +35,9 @@ extension URLSession {
     /// - Note: This must **only** be accessed on the owning session's work queue.
     class _TaskRegistry {
         /// Completion handler for `URLSessionDataTask`, and `URLSessionUploadTask`.
-        typealias DataTaskCompletion = (Data?, URLResponse?, Error?) -> Void
+        typealias DataTaskCompletion = @Sendable (Data?, URLResponse?, Error?) -> Void
         /// Completion handler for `URLSessionDownloadTask`.
-        typealias DownloadTaskCompletion = (URL?, URLResponse?, Error?) -> Void
+        typealias DownloadTaskCompletion = @Sendable (URL?, URLResponse?, Error?) -> Void
         /// What to do upon events (such as completion) of a specific task.
         enum _Behaviour {
             /// Call the `URLSession`s delegate

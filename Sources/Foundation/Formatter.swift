@@ -8,7 +8,7 @@
 //
 
 extension Formatter {
-    public enum Context : Int {
+    public enum Context : Int, Sendable {
         
         // The capitalization context to be used is unknown (this is the default value).
         case unknown
@@ -35,13 +35,16 @@ extension Formatter {
      * Long is "3 pounds"; medium is "3 lb"; short is "3#";
      */
 
-    public enum UnitStyle : Int {
+    public enum UnitStyle : Int, Sendable {
         
         case short
         case medium
         case long
     }
 }
+
+@available(*, unavailable)
+extension Formatter : Sendable { }
 
 open class Formatter : NSObject, NSCopying, NSCoding {
     

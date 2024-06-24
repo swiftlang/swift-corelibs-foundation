@@ -21,6 +21,7 @@ let coreFoundationBuildSettings: [CSetting] = [
         "-Wno-unused-function",
         "-Wno-microsoft-enum-forward-reference",
         "-Wno-int-conversion",
+        "-Wno-switch",
         "-fconstant-cfstrings",
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
@@ -66,6 +67,10 @@ let interfaceBuildSettings: [CSetting] = [
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
+    .unsafeFlags([
+        "-Xfrontend",
+        "-require-explicit-sendable",
+    ])
 ]
 
 var dependencies: [Package.Dependency] {
@@ -110,6 +115,9 @@ let package = Package(
                 "CoreFoundation"
             ],
             path: "Sources/Foundation",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             swiftSettings: swiftBuildSettings
         ),
         .target(
@@ -121,6 +129,9 @@ let package = Package(
                 "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             swiftSettings: swiftBuildSettings
         ),
         .target(
@@ -132,6 +143,9 @@ let package = Package(
                 "_CFURLSessionInterface"
             ],
             path: "Sources/FoundationNetworking",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             swiftSettings:swiftBuildSettings
         ),
         .target(
@@ -140,7 +154,10 @@ let package = Package(
                 .product(name: "_FoundationICU", package: "swift-foundation-icu"),
             ],
             path: "Sources/CoreFoundation",
-            exclude: ["BlockRuntime"],
+            exclude: [
+                "BlockRuntime",
+                "CMakeLists.txt"
+            ],
             cSettings: coreFoundationBuildSettings
         ),
         .target(
@@ -150,6 +167,9 @@ let package = Package(
                 "Clibxml2",
             ],
             path: "Sources/_CFXMLInterface",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             cSettings: interfaceBuildSettings
         ),
         .target(
@@ -159,6 +179,9 @@ let package = Package(
                 "Clibcurl",
             ],
             path: "Sources/_CFURLSessionInterface",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             cSettings: interfaceBuildSettings
         ),
         .systemLibrary(
@@ -181,6 +204,9 @@ let package = Package(
             name: "plutil",
             dependencies: [
                 "Foundation"
+            ],
+            exclude: [
+                "CMakeLists.txt"
             ]
         ),
         .executableTarget(

@@ -55,7 +55,8 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
     }
 }
 
-class FTPDataTask : NSObject {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class FTPDataTask : NSObject, @unchecked Sendable {
     let dataTaskExpectation: XCTestExpectation!
     var fileData: NSMutableData = NSMutableData()
     var session: URLSession! = nil

@@ -59,6 +59,9 @@ internal func __NSIndexSetIndexOfRangeContainingIndex(_ indexSet: NSIndexSet, _ 
     return NSNotFound
 }
 
+@available(*, unavailable)
+extension NSIndexSet : Sendable { }
+
 open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     // all instance variables are private
     
@@ -576,6 +579,9 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
 }
 
+@available(*, unavailable)
+extension NSIndexSetIterator : Sendable { }
+
 public struct NSIndexSetIterator : IteratorProtocol {
     public typealias Element = Int
     internal let _set: NSIndexSet
@@ -606,6 +612,9 @@ extension NSIndexSet : Sequence {
         return NSIndexSetIterator(self)
     }
 }
+
+@available(*, unavailable)
+extension NSMutableIndexSet : Sendable { }
 
 open class NSMutableIndexSet : NSIndexSet {
     

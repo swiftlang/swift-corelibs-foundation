@@ -16,7 +16,7 @@ import Foundation
 #endif
 
 extension XMLParser {
-    public enum ExternalEntityResolvingPolicy : UInt {
+    public enum ExternalEntityResolvingPolicy : UInt, Sendable {
         case never // default
         case noNetwork
         case sameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
@@ -392,6 +392,9 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
         delegate.parser(parser, parseErrorOccurred: err)
     }
 }
+
+@available(*, unavailable)
+extension XMLParser : Sendable { }
 
 open class XMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler
@@ -811,7 +814,7 @@ extension XMLParser {
     public static let errorDomain: String = "NSXMLParserErrorDomain" // for use with NSError.
 
     // Error reporting
-    public enum ErrorCode : Int {
+    public enum ErrorCode : Int, Sendable {
         
         
         case internalError

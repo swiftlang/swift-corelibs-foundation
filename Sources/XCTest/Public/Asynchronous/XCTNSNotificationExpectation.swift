@@ -11,7 +11,7 @@
 //
 
 /// Expectation subclass for waiting on a condition defined by a Foundation Notification instance.
-open class XCTNSNotificationExpectation: XCTestExpectation {
+open class XCTNSNotificationExpectation: XCTestExpectation, @unchecked Sendable {
 
     /// A closure to be invoked when a notification specified by the expectation is observed.
     ///

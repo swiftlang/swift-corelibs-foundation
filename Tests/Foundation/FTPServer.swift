@@ -75,13 +75,13 @@ class _FTPSocket {
         let sa1 = createSockaddr(port+1)
         socketAddress1.initialize(to: sa1)
         try socketAddress1.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
-            let addr = UnsafeMutablePointer<sockaddr>($0)
+            nonisolated(unsafe) let addr = UnsafeMutablePointer<sockaddr>($0)
             _ = try attempt("bind", valid: isZero, bind(dataSocket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
-            var sockLen = socklen_t(MemoryLayout<sockaddr>.size)
             _ = try attempt("listen", valid: isZero, listen(dataSocket, SOMAXCONN))
             // Open the data port asynchronously. Port should be opened before ESPV header communication.
             DispatchQueue(label: "delay").async {
                 do {
+                    var sockLen = socklen_t(MemoryLayout<sockaddr>.size)
                     self.dataSocket = try self.attempt("accept", valid: self.isNotMinusOne, accept(self.dataSocket, addr, &sockLen))
                     self.dataSocketPort = sa1.sin_port
                 } catch {
@@ -262,7 +262,7 @@ class LoopbackFTPServerTest: XCTestCase {
 
     override class func setUp() {
         super.setUp()
-        func runServer(with condition: ServerSemaphore,
+        @Sendable func runServer(with condition: ServerSemaphore,
                        startDelay: TimeInterval? = nil,
                        sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
             let start = 21961 // 21961

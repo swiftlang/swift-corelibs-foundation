@@ -25,7 +25,7 @@ extension URLSession {
     /*
      * Disposition options for various delegate messages
      */
-    public enum AuthChallengeDisposition : Int {
+    public enum AuthChallengeDisposition : Int, Sendable {
     
         case useCredential /* Use the specified credential, which may be nil */
         case performDefaultHandling /* Default handling for the challenge - as if this delegate were not implemented; the credential parameter is ignored. */
@@ -33,7 +33,7 @@ extension URLSession {
         case rejectProtectionSpace /* This challenge is rejected and the next authentication protection space should be tried; the credential parameter is ignored. */
     }
 
-    public enum ResponseDisposition : Int {
+    public enum ResponseDisposition : Int, Sendable {
         case cancel /* Cancel the load, this is the same as -[task cancel] */
         case allow /* Allow the load to continue */
         
@@ -54,7 +54,7 @@ extension URLSession {
 /*
  * Messages related to the URL session as a whole
  */
-public protocol URLSessionDelegate : NSObjectProtocol {
+public protocol URLSessionDelegate : NSObjectProtocol, Sendable {
     
     /* The last message a session receives.  A session will only become
      * invalid because of a systemic error or when it has been
@@ -71,12 +71,12 @@ public protocol URLSessionDelegate : NSObjectProtocol {
      * behavior will be to use the default handling, which may involve user
      * interaction.
      */
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @Sendable @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
 }
 
 extension URLSessionDelegate {
     public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) { }
-    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) { }
+    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @Sendable @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) { }
 }
 
 /* If an application has received an
@@ -91,7 +91,7 @@ extension URLSessionDelegate {
 /*
  * Messages related to the operation of a specific task.
  */
-public protocol URLSessionTaskDelegate : URLSessionDelegate {
+public protocol URLSessionTaskDelegate : URLSessionDelegate, Sendable {
     
     /* An HTTP request is attempting to perform a redirection to a different
      * URL. You must invoke the completion routine to allow the
@@ -102,20 +102,20 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
      *
      * For tasks in background sessions, redirections will always be followed and this method will not be called.
      */
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @Sendable @escaping (URLRequest?) -> Void)
     
     /* The task has received a request specific authentication challenge.
      * If this delegate is not implemented, the session specific authentication challenge
      * will *NOT* be called and the behavior will be the same as using the default handling
      * disposition.
      */
-    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @Sendable @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
     
     /* Sent if a task requires a new, unopened body stream.  This may be
      * necessary when authentication has failed for any request that
      * involves a body stream.
      */
-    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @Sendable @escaping (InputStream?) -> Void)
     
     /* Sent periodically to notify the delegate of upload progress.  This
      * information is also available as properties of the task.
@@ -127,13 +127,13 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
      */
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     
-    func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @Sendable @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
 }
 
 extension URLSessionTaskDelegate {
-    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @Sendable @escaping (URLRequest?) -> Void) {
         // If the task's delegate does not implement this function, check if the session's delegate does
         if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
             sessionDelegate.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request, completionHandler: completionHandler)
@@ -143,7 +143,7 @@ extension URLSessionTaskDelegate {
         }
     }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @Sendable @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
             sessionDelegate.urlSession(session, task: task, didReceive: challenge, completionHandler: completionHandler)
         } else {
@@ -151,7 +151,7 @@ extension URLSessionTaskDelegate {
         }
     }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @Sendable @escaping (InputStream?) -> Void) {
         if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
             sessionDelegate.urlSession(session, task: task, needNewBodyStream: completionHandler)
         } else {
@@ -171,7 +171,7 @@ extension URLSessionTaskDelegate {
         }
     }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @Sendable @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
         if self === task.delegate, let sessionDelegate = session.delegate as? URLSessionTaskDelegate, self !== sessionDelegate {
             sessionDelegate.urlSession(session, task: task, willBeginDelayedRequest: request, completionHandler: completionHandler)
         }
@@ -200,7 +200,7 @@ public protocol URLSessionDataDelegate : URLSessionTaskDelegate {
     /// (which cannot be converted to download tasks).
     /// - Bug: This will currently not wait for the completion handler to run,
     /// and it will ignore anything passed to the completion handler.
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void)
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @Sendable @escaping (URLSession.ResponseDisposition) -> Void)
     
     /* Notification that a data task has become a download task.  No
      * future messages will be sent to the data task.
@@ -238,13 +238,13 @@ public protocol URLSessionDataDelegate : URLSessionTaskDelegate {
      * attempted for a given resource, and you should not rely on this
      * message to receive the resource data.
      */
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void)
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @Sendable @escaping (CachedURLResponse?) -> Void)
     
 }
 
 extension URLSessionDataDelegate {
     
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) { }
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @Sendable @escaping (URLSession.ResponseDisposition) -> Void) { }
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) { }
     
@@ -252,7 +252,7 @@ extension URLSessionDataDelegate {
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) { }
     
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) { }
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @Sendable @escaping (CachedURLResponse?) -> Void) { }
 }
 
 /*

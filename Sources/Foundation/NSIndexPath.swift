@@ -7,6 +7,8 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSIndexPath : Sendable { }
 
 open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     

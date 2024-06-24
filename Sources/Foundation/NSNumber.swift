@@ -604,11 +604,11 @@ fileprivate func cast<T, U>(_ t: T) -> U {
   return t as! U
 }
 
-open class NSNumber : NSValue {
+open class NSNumber : NSValue, @unchecked Sendable {
     typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
-    private var _base = _CFInfo(typeID: CFNumberGetTypeID())
-    private var _pad: UInt64 = 0
+    private let _base = _CFInfo(typeID: CFNumberGetTypeID())
+    private let _pad: UInt64 = 0
 
     internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)

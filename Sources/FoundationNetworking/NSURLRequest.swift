@@ -52,7 +52,7 @@ import Foundation
 /// with whether already-existing cache data is returned to satisfy a
 /// URL load request.
 extension NSURLRequest {
-    public enum CachePolicy : UInt {
+    public enum CachePolicy : UInt, Sendable {
         /// Specifies that the caching logic defined in the protocol
         /// implementation, if any, is used for a particular URL load request. This
         /// is the default policy for URL load requests.
@@ -86,7 +86,7 @@ extension NSURLRequest {
         case reloadRevalidatingCacheData // Unimplemented
     }
     
-    public enum NetworkServiceType : UInt {
+    public enum NetworkServiceType : UInt, Sendable {
         case `default` // Standard internet traffic
         case voip // Voice over IP control traffic
         case video // Video traffic
@@ -95,6 +95,9 @@ extension NSURLRequest {
         case networkServiceTypeCallSignaling // Call Signaling
     }
 }
+
+@available(*, unavailable)
+extension NSURLRequest : Sendable { }
 
 /// An `NSURLRequest` object represents a URL load request in a
 /// manner independent of protocol and URL scheme.
@@ -377,6 +380,9 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         return super.description + " { URL: \(url) }"
     }
 }
+
+@available(*, unavailable)
+extension NSMutableURLRequest : Sendable { }
 
 /// An `NSMutableURLRequest` object represents a mutable URL load
 /// request in a manner independent of protocol and URL scheme.

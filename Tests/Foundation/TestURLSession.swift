@@ -45,7 +45,6 @@ class TestURLSession: LoopbackServerTest {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/USA"
         let url = URL(string: urlString)!
         let expect = expectation(description: "GET \(urlString): with a completion handler")
-        var expectedResult = "unknown"
         let task = session.dataTask(with: url) { data, response, error in
             defer { expect.fulfill() }
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
@@ -53,8 +52,8 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertNotNil(data)
             guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
             XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
-            expectedResult = String(data: data, encoding: .utf8) ?? ""
-            XCTAssertEqual("Washington, D.C.", expectedResult, "Did not receive expected value")
+            let result = String(data: data, encoding: .utf8) ?? ""
+            XCTAssertEqual("Washington, D.C.", result, "Did not receive expected value")
         }
         task.resume()
         waitForExpectations(timeout: 12)
@@ -78,7 +77,6 @@ class TestURLSession: LoopbackServerTest {
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let expect = expectation(description: "GET \(urlString): with a completion handler")
-        var expectedResult = "unknown"
         let task = session.dataTask(with: urlRequest) { data, response, error in
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
@@ -86,8 +84,8 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
             guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
             XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
-            expectedResult = String(data: data, encoding: .utf8) ?? ""
-            XCTAssertEqual("Rome", expectedResult, "Did not receive expected value")
+            let result = String(data: data, encoding: .utf8) ?? ""
+            XCTAssertEqual("Rome", result, "Did not receive expected value")
         }
         task.resume()
         waitForExpectations(timeout: 12)
@@ -108,13 +106,21 @@ class TestURLSession: LoopbackServerTest {
 
     func test_asyncDataFromURLWithDelegate() async throws {
         guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
-        class CapitalDataTaskDelegate: NSObject, URLSessionDataDelegate {
+        // Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+        final class CapitalDataTaskDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
             var capital: String = "unknown"
+            let expectation: XCTestExpectation
+            init(expectation: XCTestExpectation) {
+                self.expectation = expectation
+            }
+            
             public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+                defer { expectation.fulfill() }
                 capital = String(data: data, encoding: .utf8)!
             }
         }
-        let delegate = CapitalDataTaskDelegate()
+        let expect = expectation(description: "test_asyncDataFromURLWithDelegate")
+        let delegate = CapitalDataTaskDelegate(expectation: expect)
 
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UK"
         let (data, response) = try await URLSession.shared.data(from: URL(string: urlString)!, delegate: delegate)
@@ -122,6 +128,7 @@ class TestURLSession: LoopbackServerTest {
             XCTFail("Did not get response")
             return
         }
+        await waitForExpectations(timeout: 12)
         XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
         let result = String(data: data, encoding: .utf8) ?? ""
         XCTAssertEqual("London", result, "Did not receive expected value")
@@ -318,7 +325,12 @@ class TestURLSession: LoopbackServerTest {
 
     func test_asyncDownloadFromURLWithDelegate() async throws {
         guard #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) else { return }
-        class AsyncDownloadDelegate : NSObject, URLSessionDownloadDelegate {
+        // Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+        class AsyncDownloadDelegate : NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+            init(expectation: XCTestExpectation) {
+                self.expectation = expectation
+            }
+            let expectation: XCTestExpectation
             func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
                 XCTFail("Should not be called for async downloads")
             }
@@ -327,9 +339,12 @@ class TestURLSession: LoopbackServerTest {
             public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
                                    totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) -> Void {
                 self.totalBytesWritten = totalBytesWritten
+                expectation.fulfill()
             }
         }
-        let delegate = AsyncDownloadDelegate()
+        let expect = expectation(description: "test_asyncDownloadFromURLWithDelegate")
+
+        let delegate = AsyncDownloadDelegate(expectation: expect)
 
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let (location, response) = try await URLSession.shared.download(from: URL(string: urlString)!, delegate: delegate)
@@ -337,6 +352,7 @@ class TestURLSession: LoopbackServerTest {
             XCTFail("Did not get response")
             return
         }
+        await waitForExpectations(timeout: 12)
         XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
         XCTAssertNotNil(location, "Download location was nil")
         XCTAssertTrue(delegate.totalBytesWritten > 0)
@@ -1253,14 +1269,13 @@ class TestURLSession: LoopbackServerTest {
     }
 
     func test_dataTaskWithSharedDelegate() {
-        let sharedDelegate = SharedDelegate()
         let urlString0 = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+        let sharedDelegate = SharedDelegate(dataCompletionExpectation: expectation(description: "GET \(urlString0)"))
         let session = URLSession(configuration: .default, delegate: sharedDelegate, delegateQueue: nil)
 
         let dataRequest = URLRequest(url: URL(string: urlString0)!)
         let dataTask = session.dataTask(with: dataRequest)
 
-        sharedDelegate.dataCompletionExpectation = expectation(description: "GET \(urlString0)")
         dataTask.resume()
         waitForExpectations(timeout: 20)
     }
@@ -1552,9 +1567,7 @@ class TestURLSession: LoopbackServerTest {
 
         let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
         let expect2 = expectation(description: "POST \(urlString2)")
-        var req2 = URLRequest(url: URL(string: urlString2)!)
-        req2.httpMethod = "POST"
-
+        
         let task1 = session.dataTask(with: req1) { (data, response, error) -> Void in
             defer { expect1.fulfill() }
             XCTAssertNotNil(data)
@@ -1564,6 +1577,9 @@ class TestURLSession: LoopbackServerTest {
                 return
             }
             XCTAssertNotNil(httpResponse.allHeaderFields["Set-Cookie"])
+
+            var req2 = URLRequest(url: URL(string: urlString2)!)
+            req2.httpMethod = "POST"
 
             let task2 = session.dataTask(with: req2) { (data, _, error) -> Void in
                 defer { expect2.fulfill() }
@@ -1621,8 +1637,6 @@ class TestURLSession: LoopbackServerTest {
 
         let urlString2 = "http://127.0.0.1:\(TestURLSession.serverPort)/echoHeaders"
         let expect2 = expectation(description: "POST \(urlString2)")
-        var req2 = URLRequest(url: URL(string: urlString2)!)
-        req2.httpMethod = "POST"
 
         let task1 = session.dataTask(with: req1) { (data, response, error) -> Void in
             defer { expect1.fulfill() }
@@ -1633,6 +1647,9 @@ class TestURLSession: LoopbackServerTest {
                 return
             }
             XCTAssertNotNil(httpResponse.allHeaderFields["Set-Cookie"])
+
+            var req2 = URLRequest(url: URL(string: urlString2)!)
+            req2.httpMethod = "POST"
 
             let task2 = session.dataTask(with: req2) { (data, _, error) -> Void in
                 defer { expect2.fulfill() }
@@ -1793,7 +1810,7 @@ class TestURLSession: LoopbackServerTest {
         let delegate = SessionDelegate(with: expectation)
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         
-        class EmptyTaskDelegate: NSObject, URLSessionTaskDelegate { }
+        final class EmptyTaskDelegate: NSObject, URLSessionTaskDelegate, Sendable { }
         let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")!
         let request = URLRequest(url: url)
         let task = session.dataTask(with: request)
@@ -2111,7 +2128,7 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
         }
 
-        wait(for: [delegate.expectation], timeout: 50)
+        await fulfillment(of: [delegate.expectation], timeout: 50)
         
         do {
             _ = try await task.receive()
@@ -2146,7 +2163,7 @@ class TestURLSession: LoopbackServerTest {
             task.cancel(with: .normalClosure, reason: "BuhBye".data(using: .utf8))
         }
         
-        wait(for: [delegate.expectation], timeout: 50)
+        await fulfillment(of: [delegate.expectation], timeout: 50)
         
         let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
                           "urlSession(_:webSocketTask:didCloseWith:reason:)",
@@ -2180,7 +2197,7 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertEqual(urlError._nsError.code, NSURLErrorBadServerResponse)
         }
 
-        wait(for: [delegate.expectation], timeout: 50)
+        await fulfillment(of: [delegate.expectation], timeout: 50)
 
         do {
             _ = try await task.receive()
@@ -2220,7 +2237,7 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
         }
 
-        wait(for: [delegate.expectation], timeout: 50)
+        await fulfillment(of: [delegate.expectation], timeout: 50)
 
         do {
             _ = try await task.receive()
@@ -2242,8 +2259,12 @@ class TestURLSession: LoopbackServerTest {
 #endif
 }
 
-class SharedDelegate: NSObject {
-    var dataCompletionExpectation: XCTestExpectation!
+class SharedDelegate: NSObject, @unchecked Sendable {
+    init(dataCompletionExpectation: XCTestExpectation!) {
+        self.dataCompletionExpectation = dataCompletionExpectation
+    }
+    
+    let dataCompletionExpectation: XCTestExpectation
 }
 
 extension SharedDelegate: URLSessionDataDelegate {
@@ -2258,7 +2279,8 @@ extension SharedDelegate: URLSessionDownloadDelegate {
 }
 
 
-class SessionDelegate: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class SessionDelegate: NSObject, URLSessionDelegate, URLSessionWebSocketDelegate, @unchecked Sendable {
     var expectation: XCTestExpectation! = nil
     var session: URLSession! = nil
     var task: URLSessionTask! = nil
@@ -2427,7 +2449,8 @@ extension SessionDelegate: URLSessionDataDelegate {
     }
 }
 
-class DataTask : NSObject {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class DataTask : NSObject, @unchecked Sendable {
     let syncQ = dispatchQueueMake("org.swift.TestFoundation.TestURLSession.DataTask.syncQ")
     let dataTaskExpectation: XCTestExpectation!
     let protocols: [AnyClass]?
@@ -2557,7 +2580,8 @@ extension DataTask : URLSessionTaskDelegate {
     }
 }
 
-class DownloadTask : NSObject {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class DownloadTask : NSObject, @unchecked Sendable {
     var totalBytesWritten: Int64 = 0
     var didDownloadExpectation: XCTestExpectation?
     let didCompleteExpectation: XCTestExpectation
@@ -2685,7 +2709,8 @@ class FailFastProtocol: URLProtocol {
     }
 }
 
-class HTTPRedirectionDataTask: NSObject {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class HTTPRedirectionDataTask: NSObject, @unchecked Sendable {
     let dataTaskExpectation: XCTestExpectation!
     var session: URLSession! = nil
     var task: URLSessionDataTask! = nil
@@ -2770,7 +2795,8 @@ extension HTTPRedirectionDataTask: URLSessionTaskDelegate {
     }
 }
 
-class HTTPUploadDelegate: NSObject {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class HTTPUploadDelegate: NSObject, @unchecked Sendable {
     private(set) var callbacks: [String] = []
 
     var uploadCompletedExpectation: XCTestExpectation!

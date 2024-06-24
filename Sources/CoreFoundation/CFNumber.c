@@ -534,6 +534,8 @@ static Boolean __CFNumberGetValue(CFNumberRef number, CFNumberType type, void *v
 	    }
 	}
 	return true;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-const-int-float-conversion"
     case kCFNumberSInt32Type:
 	if (floatBit) {
 	    if (!storageBit) {
@@ -564,6 +566,7 @@ static Boolean __CFNumberGetValue(CFNumberRef number, CFNumberType type, void *v
 	    }
 	}
 	return true;
+#pragma GCC diagnostic pop
     case kCFNumberSInt128Type:
 	if (floatBit) {
 	    if (!storageBit) {

@@ -8,7 +8,7 @@
 //
 
 
-open class NSNull : NSObject, NSCopying, NSSecureCoding {
+open class NSNull : NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
     
     open override func copy() -> Any {
         return copy(with: nil)

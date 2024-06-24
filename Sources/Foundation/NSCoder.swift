@@ -13,7 +13,7 @@ extension NSCoder {
     /// failures (e.g. corrupt data) for non-TopLevel decodes. Darwin platfrom
     /// supports exceptions here, and there may be other approaches supported
     /// in the future, so its included for completeness.
-    public enum DecodingFailurePolicy : Int {
+    public enum DecodingFailurePolicy : Int, Sendable {
         case raiseException
         case setErrorAndReturn
     }
@@ -79,6 +79,9 @@ public protocol NSSecureCoding : NSCoding {
     
     static var supportsSecureCoding: Bool { get }
 }
+
+@available(*, unavailable)
+extension NSCoder : Sendable { }
 
 /// The `NSCoder` abstract class declares the interface used by concrete
 /// subclasses to transfer objects and other values between memory and some
@@ -732,7 +735,7 @@ open class NSCoder : NSObject {
     }
     
     open func failWithError(_ error: Error) {
-        if let debugDescription = (error as? NSError)?.userInfo[NSDebugDescriptionErrorKey] {
+        if let debugDescription = (error as NSError).userInfo[NSDebugDescriptionErrorKey] {
             NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
         } else {
             NSLog("*** NSKeyedUnarchiver.init: decoding error")

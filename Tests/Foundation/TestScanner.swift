@@ -246,6 +246,7 @@ class TestScanner : XCTestCase {
         }
     }
     
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func testScanString() {
         // Scan skipping whitespace:
         withScanner(for: "h el lo ") {

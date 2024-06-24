@@ -9,7 +9,7 @@
 
 @_implementationOnly import CoreFoundation
 
-internal class NSConcreteValue : NSValue {
+internal class NSConcreteValue : NSValue, @unchecked Sendable {
     
     struct TypeInfo : Equatable {
         let size : Int
@@ -122,7 +122,7 @@ internal class NSConcreteValue : NSValue {
         let typep = type._swiftObject
 
         // FIXME: This will result in reading garbage memory.
-        self.init(bytes: [], objCType: typep)
+        self.init(bytes: Array<UInt8>(), objCType: typep)
         aDecoder.decodeValue(ofObjCType: typep, at: self.value)
     }
     

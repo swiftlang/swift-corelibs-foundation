@@ -31,7 +31,7 @@ internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
 
 extension NSCalendar {
     // This is not the same as Calendar.Identifier due to a spelling difference in ISO8601
-    public struct Identifier : RawRepresentable, Equatable, Hashable, Comparable {
+    public struct Identifier : RawRepresentable, Equatable, Hashable, Comparable, Sendable {
         public private(set) var rawValue: String
         public init(_ rawValue: String) {
             self.rawValue = rawValue
@@ -125,7 +125,7 @@ extension NSCalendar {
     }
 
     
-    public struct Unit: OptionSet {
+    public struct Unit: OptionSet, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) {
             self.rawValue = rawValue
@@ -198,7 +198,7 @@ extension NSCalendar {
 
     }
 
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -218,6 +218,9 @@ extension NSCalendar.Identifier {
         return lhs.rawValue < rhs.rawValue
     }
 }
+
+@available(*, unavailable)
+extension NSCalendar : Sendable { }
 
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     var _calendar: Calendar

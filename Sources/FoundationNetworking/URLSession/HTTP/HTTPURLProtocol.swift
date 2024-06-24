@@ -321,7 +321,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             try easyHandle.set(url: url)
         } catch {
             self.internalState = .transferFailed
-            let nsError = error as? NSError ?? NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL)
+            let nsError = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL)
             failWith(error: nsError, request: request)
             return
         }

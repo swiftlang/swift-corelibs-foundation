@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension Scanner : Sendable { }
 
 open class Scanner: NSObject, NSCopying {
     internal var _scanString: String

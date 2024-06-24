@@ -36,7 +36,7 @@ internal func NSRequiresConcreteImplementation(_ fn: String = #function, file: S
 }
 
 @usableFromInline
-class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
+class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading, @unchecked Sendable {
     @usableFromInline
     required init() {}
     
@@ -51,14 +51,15 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
             return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: url)
         }
 
-        var urlResponse: URLResponse?
         let session = URLSession(configuration: URLSessionConfiguration.default)
         let cond = NSCondition()
         cond.lock()
         
-        var resError: Error?
-        var resData: Data?
-        var taskFinished = false
+        // protected by the condition above
+        nonisolated(unsafe) var urlResponse: URLResponse?
+        nonisolated(unsafe) var resError: Error?
+        nonisolated(unsafe) var resData: Data?
+        nonisolated(unsafe) var taskFinished = false
         let task = session.dataTask(with: url, completionHandler: { data, response, error in
             cond.lock()
             resData = data

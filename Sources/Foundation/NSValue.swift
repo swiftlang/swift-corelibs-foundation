@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Sendable {
     
     open func getValue(_ value: UnsafeMutableRawPointer) {
         NSRequiresConcreteImplementation()

@@ -10,6 +10,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(*, unavailable)
+extension NSMeasurement : Sendable { }
+
 open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     open private(set) var unit: Unit
     open private(set) var doubleValue: Double

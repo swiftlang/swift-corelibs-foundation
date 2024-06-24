@@ -55,7 +55,7 @@ internal let kCFStringNormalizationFormKC = CFStringNormalizationForm.KC
 
 extension NSString {
 
-    public struct EncodingConversionOptions : OptionSet {
+    public struct EncodingConversionOptions : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -64,7 +64,7 @@ extension NSString {
         internal static let failOnPartialEncodingConversion = EncodingConversionOptions(rawValue: 1 << 20)
     }
 
-    public struct EnumerationOptions : OptionSet {
+    public struct EnumerationOptions : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -96,7 +96,7 @@ extension NSString.CompareOptions {
         }
 }
 
-public struct StringTransform: Equatable, Hashable, RawRepresentable {
+public struct StringTransform: Equatable, Hashable, RawRepresentable, Sendable {
     typealias RawType = String
 
     public let rawValue: String
@@ -198,6 +198,9 @@ internal func isAParagraphSeparatorTypeCharacter(_ ch: unichar) -> Bool {
     }
     return ch == 0x0a || ch == 0x0d || ch == 0x2029
 }
+
+@available(*, unavailable)
+extension NSString : Sendable { }
 
 open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFStringGetTypeID())
@@ -320,15 +323,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
-        guard !nullTerminated else {
-            // There is no way to fastly and safely retrieve a pointer to a null-terminated string from a String of Swift.
-            return nil
-        }
-        if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            if _storage._guts._isContiguousASCII {
-                return UnsafeRawPointer(_storage._guts.startASCII).assumingMemoryBound(to: Int8.self)
-            }
-        }
+        // There is no truly safe way to return an inner pointer for CFString here
         return nil
     }
 
@@ -808,7 +803,7 @@ extension NSString {
         return NSRange(location: start, length: parEnd - start)
     }
     
-    private enum EnumerateBy {
+    private enum EnumerateBy : Sendable {
         case lines
         case paragraphs
         case composedCharacterSequences
@@ -972,10 +967,15 @@ extension NSString {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
                 used = min(self.length, maxBufferCount - 1)
-                _storage._guts.startASCII.withMemoryRebound(to: Int8.self,
-                                                            capacity: used) {
-                    buffer.moveAssign(from: $0, count: used)
+                
+                // This is mutable, but since we just checked the contiguous behavior, should not copy
+                var copy = _storage
+                copy.withUTF8 {
+                    $0.withMemoryRebound(to: Int8.self) {
+                        buffer.update(from: $0.baseAddress!, count: used)
+                    }
                 }
+                
                 buffer.advanced(by: used).initialize(to: 0)
                 return true
             }
@@ -1026,7 +1026,7 @@ extension NSString {
         return convertedLen != len ? 0 : numBytes
     }
     
-    open class var availableStringEncodings: UnsafePointer<UInt> {
+    public class var availableStringEncodings: UnsafePointer<UInt> {
         struct once {
             static let encodings: UnsafePointer<UInt> = {
                 let cfEncodings = CFStringGetListOfAvailableEncodings()!
@@ -1054,7 +1054,7 @@ extension NSString {
         return once.encodings
     }
     
-    open class func localizedName(of encoding: UInt) -> String {
+    public class func localizedName(of encoding: UInt) -> String {
         if let theString = CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(numericCast(encoding))) {
             // TODO: read the localized version from the Foundation "bundle"
             return theString._swiftObject
@@ -1063,39 +1063,39 @@ extension NSString {
         return ""
     }
     
-    open class var defaultCStringEncoding: UInt {
+    public class var defaultCStringEncoding: UInt {
         return numericCast(CFStringConvertEncodingToNSStringEncoding(CFStringGetSystemEncoding()))
     }
     
-    open var decomposedStringWithCanonicalMapping: String {
+    public var decomposedStringWithCanonicalMapping: String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormD)
         return string._swiftObject
     }
     
-    open var precomposedStringWithCanonicalMapping: String {
+    public var precomposedStringWithCanonicalMapping: String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormC)
         return string._swiftObject
     }
     
-    open var decomposedStringWithCompatibilityMapping: String {
+    public var decomposedStringWithCompatibilityMapping: String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormKD)
         return string._swiftObject
     }
     
-    open var precomposedStringWithCompatibilityMapping: String {
+    public var precomposedStringWithCompatibilityMapping: String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringNormalize(string, kCFStringNormalizationFormKC)
         return string._swiftObject
     }
     
-    open func components(separatedBy separator: String) -> [String] {
+    public func components(separatedBy separator: String) -> [String] {
         let len = length
         var lrange = range(of: separator, options: [], range: NSRange(location: 0, length: len))
         if lrange.length == 0 {
@@ -1118,7 +1118,7 @@ extension NSString {
         }
     }
     
-    open func components(separatedBy separator: CharacterSet) -> [String] {
+    public func components(separatedBy separator: CharacterSet) -> [String] {
         let len = length
         var range = rangeOfCharacter(from: separator, options: [], range: NSRange(location: 0, length: len))
         if range.length == 0 {
@@ -1141,7 +1141,7 @@ extension NSString {
         }
     }
     
-    open func trimmingCharacters(in set: CharacterSet) -> String {
+    public func trimmingCharacters(in set: CharacterSet) -> String {
         let len = length
         var buf = _NSStringBuffer(string: self, start: 0, end: len)
         while !buf.isAtEnd,
@@ -1168,7 +1168,7 @@ extension NSString {
         }
     }
     
-    open func padding(toLength newLength: Int, withPad padString: String, startingAt padIndex: Int) -> String {
+    public func padding(toLength newLength: Int, withPad padString: String, startingAt padIndex: Int) -> String {
         let len = length
         if newLength <= len {	// The simple cases (truncation)
             return newLength == len ? _swiftObject : substring(with: NSRange(location: 0, length: newLength))
@@ -1186,7 +1186,7 @@ extension NSString {
         return mStr._swiftObject
     }
     
-    open func folding(options: CompareOptions = [], locale: Locale?) -> String {
+    public func folding(options: CompareOptions = [], locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, self._cfObject)
         CFStringFold(string, options._cfValue(), locale?._cfObject)
@@ -1202,7 +1202,7 @@ extension NSString {
         return ""
     }
     
-    open func replacingOccurrences(of target: String, with replacement: String, options: CompareOptions = [], range searchRange: NSRange) -> String {
+    public func replacingOccurrences(of target: String, with replacement: String, options: CompareOptions = [], range searchRange: NSRange) -> String {
         if options.contains(.regularExpression) {
             return _stringByReplacingOccurrencesOfRegularExpressionPattern(target, withTemplate: replacement, options: options, range: searchRange)
         }
@@ -1214,17 +1214,17 @@ extension NSString {
         }
     }
     
-    open func replacingOccurrences(of target: String, with replacement: String) -> String {
+    public func replacingOccurrences(of target: String, with replacement: String) -> String {
         return replacingOccurrences(of: target, with: replacement, options: [], range: NSRange(location: 0, length: length))
     }
     
-    open func replacingCharacters(in range: NSRange, with replacement: String) -> String {
+    public func replacingCharacters(in range: NSRange, with replacement: String) -> String {
         let str = mutableCopy(with: nil) as! NSMutableString
         str.replaceCharacters(in: range, with: replacement)
         return str._swiftObject
     }
     
-    open func applyingTransform(_ transform: StringTransform, reverse: Bool) -> String? {
+    public func applyingTransform(_ transform: StringTransform, reverse: Bool) -> String? {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, _cfObject)
         if (CFStringTransform(string, nil, transform.rawValue._cfObject, reverse)) {
@@ -1262,11 +1262,11 @@ extension NSString {
         try data.write(to: url, options: useAuxiliaryFile ? .atomic : [])
     }
     
-    open func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+    public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(url, useAuxiliaryFile, enc)
     }
     
-    open func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+    public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(URL(fileURLWithPath: path), useAuxiliaryFile, enc)
     }
     
@@ -1447,6 +1447,9 @@ extension NSString {
 }
 
 extension NSString : ExpressibleByStringLiteral { }
+
+@available(*, unavailable)
+extension NSMutableString : Sendable { }
 
 open class NSMutableString : NSString {
     open func replaceCharacters(in range: NSRange, with aString: String) {

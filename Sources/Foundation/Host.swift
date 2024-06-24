@@ -55,6 +55,9 @@ import WinSDK
     }
 #endif
 
+@available(*, unavailable)
+extension Host : Sendable { }
+
 open class Host: NSObject {
     enum ResolveType {
         case name

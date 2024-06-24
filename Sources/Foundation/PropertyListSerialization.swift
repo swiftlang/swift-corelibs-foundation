@@ -15,7 +15,7 @@ let kCFPropertyListBinaryFormat_v1_0 = CFPropertyListFormat.binaryFormat_v1_0
 
 extension PropertyListSerialization {
 
-    public struct MutabilityOptions : OptionSet {
+    public struct MutabilityOptions : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -28,6 +28,9 @@ extension PropertyListSerialization {
     public typealias ReadOptions = MutabilityOptions
     public typealias WriteOptions = Int
 }
+
+@available(*, unavailable)
+extension PropertyListSerialization : Sendable { }
 
 open class PropertyListSerialization : NSObject {
 

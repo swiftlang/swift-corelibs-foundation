@@ -9,24 +9,28 @@
 
 @_implementationOnly import CoreFoundation
 @_spi(SwiftCorelibsFoundation) import FoundationEssentials
+internal import Synchronization
 
-open class DateFormatter : Formatter {
+open class DateFormatter : Formatter, @unchecked Sendable {
     typealias CFType = CFDateFormatter
-    private final var __cfObject: CFType?
+    private let _formatter: Mutex<CFType?> = .init(nil)
+    
     private final var _cfObject: CFType {
-        guard let obj = __cfObject else {
-            let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
-            let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(self.timeStyle.rawValue))!
+        _formatter.withLock { cfDateFormatter in
+            guard let obj = cfDateFormatter else {
+                let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
+                let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(self.timeStyle.rawValue))!
 
-            let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)!
-            _setFormatterAttributes(obj)
-            if let dateFormat = _dateFormat {
-                CFDateFormatterSetFormat(obj, dateFormat._cfObject)
+                let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)!
+                _setFormatterAttributes(obj)
+                if let dateFormat = _dateFormat {
+                    CFDateFormatterSetFormat(obj, dateFormat._cfObject)
+                }
+                cfDateFormatter = obj
+                return obj
             }
-            __cfObject = obj
             return obj
         }
-        return obj
     }
 
     public override init() {
@@ -145,7 +149,9 @@ open class DateFormatter : Formatter {
     }
 
     private func _reset() {
-        __cfObject = nil
+        _formatter.withLock {
+            $0 = nil
+        }
     }
 
     internal final func _setFormatterAttributes(_ formatter: CFDateFormatter) {
@@ -571,7 +577,7 @@ open class DateFormatter : Formatter {
 }
 
 extension DateFormatter {
-    public enum Style : UInt {
+    public enum Style : UInt, Sendable {
         case none
         case short
         case medium

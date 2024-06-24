@@ -10,6 +10,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(*, unavailable)
+extension URLResourceValues : Sendable { }
+
 /**
  URLs to file system resources support the properties defined below. Note that not all property values will exist for all file system URLs. For example, if a file is located on a volume that does not support creation dates, it is valid to request the creation date property, but the returned value will be nil, and no error will be generated.
  
@@ -439,7 +442,7 @@ extension URL {
     ///
     /// `URLResourceValues` keeps track of which of its properties have been set. Those values are the ones used by this function to determine which properties to write.
     public mutating func setResourceValues(_ values: URLResourceValues) throws {
-        var ns = self as NSURL
+        let ns = self as NSURL
         try ns.setResourceValues(values._values)
         self = ns as URL
     }
@@ -459,9 +462,9 @@ extension URL {
     ///
     /// Temporary resource values are for client use. Temporary resource values exist only in memory and are never written to the resource's backing store. Once set, a temporary resource value can be copied from the URL object with `func resourceValues(forKeys:)`. The values are stored in the loosely-typed `allValues` dictionary property.
     ///
-    /// To remove a temporary resource value from the URL object, use `func removeCachedResourceValue(forKey:)`. Care should be taken to ensure the key that identifies a temporary resource value is unique and does not conflict with system defined keys (using reverse domain name notation in your temporary resource value keys is recommended). This method is currently applicable only to URLs for file system resources.
+    /// To remove a temporalet resource value from the URL object, use `func removeCachedResourceValue(forKey:)`. Care should be taken to ensure the key that identifies a temporary resource value is unique and does not conflict with system defined keys (using reverse domain name notation in your temporary resource value keys is recommended). This method is currently applicable only to URLs for file system resources.
     public mutating func setTemporaryResourceValue(_ value : Any, forKey key: URLResourceKey) {
-        var ns = self as NSURL
+        let ns = self as NSURL
         ns.setTemporaryResourceValue(value, forKey: key)
         self = ns as URL
     }
@@ -470,7 +473,7 @@ extension URL {
     ///
     /// This method is currently applicable only to URLs for file system resources.
     public mutating func removeAllCachedResourceValues() {
-        var ns = self as NSURL
+        let ns = self as NSURL
         ns.removeAllCachedResourceValues()
         self = ns as URL
     }
@@ -479,7 +482,7 @@ extension URL {
     ///
     /// Removing a cached resource value may remove other cached resource values because some resource values are cached as a set of values, and because some resource values depend on other resource values (temporary resource values have no dependencies). This method is currently applicable only to URLs for file system resources.
     public mutating func removeCachedResourceValue(forKey key: URLResourceKey) {
-        var ns = self as NSURL
+        let ns = self as NSURL
         ns.removeCachedResourceValue(forKey: key)
         self = ns as URL
     }
