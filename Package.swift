@@ -30,7 +30,8 @@ let coreFoundationBuildSettings: [CSetting] = [
         "\(Context.packageDirectory)/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h",
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // dispatch
+    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])), // dispatch
+    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // Block.h
 ]
 
 // For _CFURLSessionInterface, _CFXMLInterface
@@ -58,7 +59,8 @@ let interfaceBuildSettings: [CSetting] = [
         "-fcf-runtime-abi=swift"
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // dispatch
+    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])), // dispatch
+    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // Block.h
 ]
 
 let swiftBuildSettings: [SwiftSetting] = [
