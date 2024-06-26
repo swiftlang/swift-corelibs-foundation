@@ -171,5 +171,9 @@ set_target_properties(Foundation PROPERTIES
 target_link_libraries(Foundation PUBLIC
     swiftDispatch)
 
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(Foundation PRIVATE "LINKER:--build-id=sha1")
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
 _foundation_install_target(Foundation)
