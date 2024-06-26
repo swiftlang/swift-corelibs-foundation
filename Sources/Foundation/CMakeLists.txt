@@ -21,7 +21,6 @@ add_library(Foundation
     ByteCountFormatter.swift
     CGFloat.swift
     CharacterSet.swift
-    Codable.swift
     DateComponents.swift
     DateComponentsFormatter.swift
     DateFormatter.swift
