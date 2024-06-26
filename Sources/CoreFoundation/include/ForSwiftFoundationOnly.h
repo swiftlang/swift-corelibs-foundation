@@ -517,7 +517,11 @@ static inline bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((no
     buffer.capacity = amount;
 #endif
     buffer.onStack = (_CFIsMainThread() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);
+#if TARGET_OS_WIN32
+    buffer.memory = buffer.onStack ? _alloca(buffer.capacity) : malloc(buffer.capacity);
+#else
     buffer.memory = buffer.onStack ? alloca(buffer.capacity) : malloc(buffer.capacity);
+#endif
     if (buffer.memory == NULL) { return false; }
     applier(&buffer);
     if (!buffer.onStack) {
@@ -540,6 +544,7 @@ CF_CROSS_PLATFORM_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
 #pragma mark - File Functions
 
 #if TARGET_OS_WIN32
+typedef int mode_t;
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const unsigned short *path, int opts, mode_t mode);
 #else
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);

@@ -162,7 +162,7 @@ extension FileManager {
     
     internal func _recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
         // Throw error if path is not a symbolic link:
-        var previousIterationDestination = try _destinationOfSymbolicLink(atPath: path)
+        var previousIterationDestination = try destinationOfSymbolicLink(atPath: path)
         
         // Same recursion limit as in Darwin:
         let symbolicLinkRecursionLimit = 32

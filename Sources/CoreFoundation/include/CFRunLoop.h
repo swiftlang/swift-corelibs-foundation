@@ -16,6 +16,8 @@
 #include "CFString.h"
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <mach/port.h>
+#elif TARGET_OS_WIN32
+#include <Windows.h>
 #endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
