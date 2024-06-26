@@ -108,12 +108,23 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-unused-function"
     "-Wno-microsoft-enum-forward-reference"
     "-Wno-int-conversion"
-    "-fconstant-cfstrings"
-    "-fexceptions" # TODO: not on OpenBSD
-    "-fdollars-in-identifiers"
-    "-fno-common"
     "-fcf-runtime-abi=swift"
     "-fblocks")
+
+if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+    list(APPEND _Foundation_common_build_flags
+        "-fconstant-cfstrings"
+        "-fdollars-in-identifiers"
+        "-fno-common")
+
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL OpenBSD)
+        list(APPEND _Foundation_common_build_flags
+            "-fexceptions")
+    endif()
+else()
+    list(APPEND _Foundation_common_build_flags
+        "/EHsc")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     list(APPEND _Foundation_common_build_flags

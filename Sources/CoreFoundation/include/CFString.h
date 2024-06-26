@@ -160,7 +160,7 @@ since it is the default choice with Mac OS X developer tools.
 CF_EXPORT void *_CF_CONSTANT_STRING_SWIFT_CLASS[];
 #endif
 
-#if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
+#if DEPLOYMENT_RUNTIME_SWIFT
 
 struct __CFConstStr {
     struct {
