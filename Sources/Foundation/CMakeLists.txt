@@ -237,6 +237,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL WASI)
       "SHELL:-Xfrontend -public-autolink-library -Xfrontend wasi-emulated-getpid")
 endif()
 
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(Foundation PRIVATE "LINKER:-build-id=sha1")
+endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
 _install_target(Foundation)

@@ -433,6 +433,10 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   endif()
 endif()
 
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(CoreFoundation PRIVATE "LINKER:-build-id=sha1")
+endif()
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   if((NS_CURL_ASSUME_FEATURES_MISSING) OR (CURL_VERSION_STRING VERSION_LESS "7.32.0"))
     add_compile_definitions($<$<COMPILE_LANGUAGE:C>:NS_CURL_MISSING_XFERINFOFUNCTION>)

@@ -98,6 +98,9 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
   target_link_options(FoundationNetworking PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
 endif()
 
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(FoundationNetworking PRIVATE "LINKER:-build-id=sha1")
+endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationNetworking)
 _install_target(FoundationNetworking)

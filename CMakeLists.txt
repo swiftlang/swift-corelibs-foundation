@@ -67,6 +67,9 @@ endif()
 include(SwiftSupport)
 include(GNUInstallDirs)
 include(XCTest)
+include(CheckLinkerFlag)
+
+check_linker_flag(C "LINKER:-build-id=sha1" LINKER_SUPPORTS_BUILD_ID)
 
 set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 

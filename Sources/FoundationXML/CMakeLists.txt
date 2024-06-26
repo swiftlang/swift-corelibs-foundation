@@ -50,5 +50,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL WASI)
            -Xcc -D_WASI_EMULATED_MMAN")
 endif()
 
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(FoundationXML PRIVATE "LINKER:-build-id=sha1")
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
 _install_target(FoundationXML)
