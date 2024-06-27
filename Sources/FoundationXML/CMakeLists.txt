@@ -46,5 +46,9 @@ target_link_options(FoundationXML PRIVATE
 set_target_properties(FoundationXML PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(FoundationXML PRIVATE "LINKER:--build-id=sha1")
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
 _foundation_install_target(FoundationXML)

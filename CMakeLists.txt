@@ -74,6 +74,10 @@ else()
 endif()
 FetchContent_MakeAvailable(SwiftFoundationICU SwiftFoundation)
 
+include(CheckLinkerFlag)
+
+check_linker_flag(C "LINKER:--build-id=sha1" LINKER_SUPPORTS_BUILD_ID)
+
 # Precompute module triple for installation
 if(NOT SwiftFoundation_MODULE_TRIPLE)
     set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
