@@ -147,6 +147,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
         "-I/usr/lib/swift") # dispatch
 endif()
 
+include(GNUInstallDirs)
 include(FoundationSwiftSupport)
 
 add_subdirectory(Sources)
