@@ -485,7 +485,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
 
-#if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
+#if DEPLOYMENT_RUNTIME_SWIFT
 
 #if TARGET_OS_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))

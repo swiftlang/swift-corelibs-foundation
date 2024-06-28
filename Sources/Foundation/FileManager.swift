@@ -283,8 +283,10 @@ extension FileManager {
             let hiddenAttrs = isHidden
                 ? attrs | FILE_ATTRIBUTE_HIDDEN
                 : attrs & ~FILE_ATTRIBUTE_HIDDEN
-            guard SetFileAttributesW(fsRep, hiddenAttrs) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+            try _fileSystemRepresentation(withPath: path) { fsRep in
+                guard SetFileAttributesW(fsRep, hiddenAttrs) else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+                }
             }
 #else
             if isHidden {
@@ -308,7 +310,7 @@ extension FileManager {
             // Setting these attributes is unsupported on these platforms.
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
 #else
-            let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+            let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: nil)
             var flags = stat.st_flags
             flags |= flagsToSet
             flags &= ~flagsToUnset

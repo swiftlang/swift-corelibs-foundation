@@ -46,6 +46,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
+option(BUILD_SHARED_LIBS "build shared libraries" ON)
+
 # Optionally build tools (on by default) but only when building shared libraries
 if(BUILD_SHARED_LIBS)
     option(FOUNDATION_BUILD_TOOLS "build tools" ON)
@@ -110,12 +112,23 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-unused-function"
     "-Wno-microsoft-enum-forward-reference"
     "-Wno-int-conversion"
-    "-fconstant-cfstrings"
-    "-fexceptions" # TODO: not on OpenBSD
-    "-fdollars-in-identifiers"
-    "-fno-common"
     "-fcf-runtime-abi=swift"
     "-fblocks")
+
+if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+    list(APPEND _Foundation_common_build_flags
+        "-fconstant-cfstrings"
+        "-fdollars-in-identifiers"
+        "-fno-common")
+
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL OpenBSD)
+        list(APPEND _Foundation_common_build_flags
+            "-fexceptions")
+    endif()
+else()
+    list(APPEND _Foundation_common_build_flags
+        "/EHsc")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     list(APPEND _Foundation_common_build_flags

@@ -1,6 +1,5 @@
 module CoreFoundation {
     umbrella header "CoreFoundation.h"
-    explicit module CFPlugInCOM { header "CFPlugInCOM.h" }
 
     export *
     module * {
