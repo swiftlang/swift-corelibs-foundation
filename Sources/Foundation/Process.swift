@@ -499,7 +499,7 @@ open class Process: NSObject {
         }
 
 #if os(Windows)
-        var command: [String] = [launchPath]
+        var command: [String] = [try FileManager.default._fileSystemRepresentation(withPath: launchPath) { String(decodingCString: $0, as: UTF16.self) }]
         if let arguments = self.arguments {
           command.append(contentsOf: arguments)
         }
