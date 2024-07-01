@@ -958,9 +958,12 @@ open class Process: NSObject {
 
         // Launch
         var pid = pid_t()
-        guard _CFPosixSpawn(&pid, launchPath, fileActions, &spawnAttrs, argv, envp) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
-        }
+        
+        try FileManager.default._fileSystemRepresentation(withPath: launchPath, { fsRep in
+            guard _CFPosixSpawn(&pid, fsRep, fileActions, &spawnAttrs, argv, envp) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+            }
+        })
         posix_spawnattr_destroy(&spawnAttrs)
 
         // Close the write end of the input and output pipes.
