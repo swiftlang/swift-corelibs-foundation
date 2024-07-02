@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -67,6 +67,7 @@ let interfaceBuildSettings: [CSetting] = [
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
+    .swiftLanguageVersion(.v6),
     .unsafeFlags([
         "-Xfrontend",
         "-require-explicit-sendable",
@@ -146,7 +147,7 @@ let package = Package(
             exclude: [
                 "CMakeLists.txt"
             ],
-            swiftSettings:swiftBuildSettings
+            swiftSettings: swiftBuildSettings
         ),
         .target(
             name: "CoreFoundation",
@@ -207,6 +208,9 @@ let package = Package(
             ],
             exclude: [
                 "CMakeLists.txt"
+            ],
+            swiftSettings: [
+                .swiftLanguageVersion(.v6)
             ]
         ),
         .executableTarget(
@@ -215,6 +219,9 @@ let package = Package(
                 "Foundation",
                 "FoundationXML",
                 "FoundationNetworking"
+            ],
+            swiftSettings: [
+                .swiftLanguageVersion(.v6)
             ]
         ),
         .target(
@@ -241,7 +248,8 @@ let package = Package(
                 .copy("Foundation/Resources")
             ],
             swiftSettings: [
-                .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT")
+                .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT"),
+                .swiftLanguageVersion(.v6)
             ]
         ),
     ]

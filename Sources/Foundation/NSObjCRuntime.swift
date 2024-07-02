@@ -328,7 +328,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
     return map
 }()
 
-fileprivate var mapFromObjCNameToKnownName: [String: String] = {
+fileprivate let mapFromObjCNameToKnownName: [String: String] = {
     var map: [String: String] = [:]
     for entry in _NSClassesRenamedByObjCAPINotesInNetworkingOrXML {
         map[entry.objCName] = entry.swiftName
@@ -336,7 +336,7 @@ fileprivate var mapFromObjCNameToKnownName: [String: String] = {
     return map
 }()
 
-fileprivate var mapFromKnownNameToObjCName: [String: String] = {
+fileprivate let mapFromKnownNameToObjCName: [String: String] = {
     var map: [String: String] = [:]
     for entry in _NSClassesRenamedByObjCAPINotesInNetworkingOrXML {
         map[entry.swiftName] = entry.objCName
@@ -344,7 +344,7 @@ fileprivate var mapFromKnownNameToObjCName: [String: String] = {
     return map
 }()
 
-fileprivate var mapFromObjCNameToClass: [String: AnyClass] = {
+fileprivate let mapFromObjCNameToClass: [String: AnyClass] = {
     var map: [String: AnyClass] = [:]
     for entry in _NSClassesRenamedByObjCAPINotes {
         map[entry.objCName] = entry.class
@@ -352,7 +352,7 @@ fileprivate var mapFromObjCNameToClass: [String: AnyClass] = {
     return map
 }()
 
-fileprivate var mapFromSwiftClassNameToObjCName: [String: String] = {
+fileprivate let mapFromSwiftClassNameToObjCName: [String: String] = {
     var map: [String: String] = [:]
     for entry in _NSClassesRenamedByObjCAPINotes {
         map[String(reflecting: entry.class)] = entry.objCName

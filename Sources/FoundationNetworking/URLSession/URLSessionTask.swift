@@ -223,11 +223,12 @@ open class URLSessionTask : NSObject, NSCopying, @unchecked Sendable {
         }
         
         if let session = actualSession, let delegate = self.delegate {
+            nonisolated(unsafe) let nonisolatedCompletion = completion
             delegate.urlSession(session, task: self) { (stream) in
                 if let stream = stream {
-                    completion(.stream(stream))
+                    nonisolatedCompletion(.stream(stream))
                 } else {
-                    completion(.none)
+                    nonisolatedCompletion(.none)
                 }
             }
         } else {
@@ -726,10 +727,10 @@ open class URLSessionWebSocketTask : URLSessionTask, @unchecked Sendable  {
         }
     }
 
-    private var sendBuffer = [(Message, (Error?) -> Void)]()
+    private var sendBuffer = [(Message, @Sendable (Error?) -> Void)]()
     private var receiveBuffer = [Message]()
-    private var receiveCompletionHandlers = [(Result<Message, Error>) -> Void]()
-    private var pongCompletionHandlers = [(Error?) -> Void]()
+    private var receiveCompletionHandlers = [@Sendable (Result<Message, Error>) -> Void]()
+    private var pongCompletionHandlers = [@Sendable (Error?) -> Void]()
     private var closeMessage: (CloseCode, Data)? = nil
     
     internal var protocolPicked: String? = nil
@@ -765,7 +766,7 @@ open class URLSessionWebSocketTask : URLSessionTask, @unchecked Sendable  {
         }
     }
     
-    open func sendPing(pongReceiveHandler: @escaping (Error?) -> Void) {
+    open func sendPing(pongReceiveHandler: @Sendable @escaping (Error?) -> Void) {
         self.workQueue.async {
             self._getProtocol { urlProtocol in
                 // The combination of locking in getProtocol and dispatching to the work queue let us use the normally non-Sendable URLProtocol
@@ -1190,9 +1191,10 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .dataCompletionHandler(let completion),
              .dataCompletionHandlerWithTaskDelegate(let completion, _):
-            let dataCompletion = {
+            nonisolated(unsafe) let nonisolatedURLProtocol = urlProtocol
+            let dataCompletion : @Sendable () -> () = {
                 guard task.state != .completed else { return }
-                completion(urlProtocol.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
+                completion(nonisolatedURLProtocol.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -1207,9 +1209,10 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .downloadCompletionHandler(let completion),
              .downloadCompletionHandlerWithTaskDelegate(let completion, _):
-            let downloadCompletion = {
+            nonisolated(unsafe) let nonisolatedURLProtocol = urlProtocol
+            let downloadCompletion : @Sendable () -> () = {
                 guard task.state != .completed else { return }
-                completion(urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
+                completion(nonisolatedURLProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -1346,7 +1349,7 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .dataCompletionHandler(let completion),
              .dataCompletionHandlerWithTaskDelegate(let completion, _):
-            let dataCompletion = {
+            let dataCompletion : @Sendable () -> () = {
                 guard task.state != .completed else { return }
                 completion(nil, nil, error)
                 task.state = .completed
@@ -1363,7 +1366,7 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .downloadCompletionHandler(let completion),
              .downloadCompletionHandlerWithTaskDelegate(let completion, _):
-            let downloadCompletion = {
+            let downloadCompletion : @Sendable () -> () = {
                 guard task.state != .completed else { return }
                 completion(nil, nil, error)
                 task.state = .completed

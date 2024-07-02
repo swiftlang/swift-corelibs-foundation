@@ -738,7 +738,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
 
 extension FileHandle {
     
-    internal static var _stdinFileHandle: FileHandle = {
+    internal static let _stdinFileHandle: FileHandle = {
         return FileHandle(fileDescriptor: STDIN_FILENO, closeOnDealloc: false)
     }()
 
@@ -746,7 +746,7 @@ extension FileHandle {
         return _stdinFileHandle
     }
     
-    internal static var _stdoutFileHandle: FileHandle = {
+    internal static let _stdoutFileHandle: FileHandle = {
         return FileHandle(fileDescriptor: STDOUT_FILENO, closeOnDealloc: false)
     }()
 
@@ -754,7 +754,7 @@ extension FileHandle {
         return _stdoutFileHandle
     }
     
-    internal static var _stderrFileHandle: FileHandle = {
+    internal static let _stderrFileHandle: FileHandle = {
         return FileHandle(fileDescriptor: STDERR_FILENO, closeOnDealloc: false)
     }()
     
@@ -762,7 +762,7 @@ extension FileHandle {
         return _stderrFileHandle
     }
 
-    internal static var _nulldeviceFileHandle: FileHandle = {
+    internal static let _nulldeviceFileHandle: FileHandle = {
         class NullDevice: FileHandle, @unchecked Sendable {
             override var availableData: Data {
                 return Data()

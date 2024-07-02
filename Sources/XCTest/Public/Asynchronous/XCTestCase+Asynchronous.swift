@@ -41,7 +41,8 @@ public extension XCTestCase {
     ///   these environments. To ensure compatibility of tests between
     ///   swift-corelibs-xctest and Apple XCTest, it is not recommended to pass
     ///   explicit values for `file` and `line`.
-    @preconcurrency @MainActor
+    // TODO: Having issues with runtime use of MainActor annotated tests on Linux - causes a precondition failure in a dynamic cast
+    //@preconcurrency @MainActor
     func waitForExpectations(timeout: TimeInterval, file: StaticString = #file, line: Int = #line, handler: XCWaitCompletionHandler? = nil) {
         precondition(Thread.isMainThread, "\(#function) must be called on the main thread")
         if currentWaiter != nil {

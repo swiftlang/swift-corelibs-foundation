@@ -34,20 +34,20 @@ internal let NativeFSREncoding = String.Encoding.utf8.rawValue
 
 #if os(Linux)
 // statx() is only supported by Linux kernels >= 4.11.0
-internal var supportsStatx: Bool = {
+internal let supportsStatx: Bool = {
     let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
     return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
 }()
 
 // renameat2() is only supported by Linux kernels >= 3.15
-internal var kernelSupportsRenameat2: Bool = {
+internal let kernelSupportsRenameat2: Bool = {
     let requiredVersion = OperatingSystemVersion(majorVersion: 3, minorVersion: 15, patchVersion: 0)
     return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
 }()
 #endif
 
 // For testing only: this facility pins the language used by displayName to the passed-in language.
-private var _overriddenDisplayNameLanguages: [String]? = nil
+private nonisolated(unsafe) var _overriddenDisplayNameLanguages: [String]? = nil
 
 extension FileManager {
     

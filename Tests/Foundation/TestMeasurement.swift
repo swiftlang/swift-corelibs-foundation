@@ -17,8 +17,8 @@ class CustomUnit: Unit {
         super.init(coder: aDecoder)
     }
 
-    public static let bugs = CustomUnit(symbol: "bug")
-    public static let features = CustomUnit(symbol: "feature")
+    public static nonisolated(unsafe) let bugs = CustomUnit(symbol: "bug")
+    public static nonisolated(unsafe) let features = CustomUnit(symbol: "feature")
 }
 #endif
 

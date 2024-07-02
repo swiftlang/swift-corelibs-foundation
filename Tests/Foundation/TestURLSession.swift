@@ -15,11 +15,12 @@
     #endif
 #endif
 
-class TestURLSession: LoopbackServerTest {
+@MainActor
+final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
 
     let httpMethods = ["HEAD", "GET", "PUT", "POST", "DELETE"]
 
-    func test_dataTaskWithURL() {
+    func test_dataTaskWithURL() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
         let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
@@ -30,18 +31,18 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_dataTaskWithURLCompletionHandler() {
+    func test_dataTaskWithURLCompletionHandler() async {
         //shared session
-        dataTaskWithURLCompletionHandler(with: URLSession.shared)
+        await dataTaskWithURLCompletionHandler(with: URLSession.shared)
 
         //new session
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        dataTaskWithURLCompletionHandler(with: session)
+        await dataTaskWithURLCompletionHandler(with: session)
     }
 
-    func dataTaskWithURLCompletionHandler(with session: URLSession) {
+    func dataTaskWithURLCompletionHandler(with session: URLSession) async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/USA"
         let url = URL(string: urlString)!
         let expect = expectation(description: "GET \(urlString): with a completion handler")
@@ -59,7 +60,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_dataTaskWithURLRequest() {
+    func test_dataTaskWithURLRequest() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
         let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
@@ -70,7 +71,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
     
-    func test_dataTaskWithURLRequestCompletionHandler() {
+    func test_dataTaskWithURLRequestCompletionHandler() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Italy"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
         let config = URLSessionConfiguration.default
@@ -128,14 +129,14 @@ class TestURLSession: LoopbackServerTest {
             XCTFail("Did not get response")
             return
         }
-        await waitForExpectations(timeout: 12)
+        waitForExpectations(timeout: 12)
         XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
         let result = String(data: data, encoding: .utf8) ?? ""
         XCTAssertEqual("London", result, "Did not receive expected value")
         XCTAssertEqual("London", delegate.capital)
     }
 
-    func test_dataTaskWithHttpInputStream() throws {
+    func test_dataTaskWithHttpInputStream() async throws {
         throw XCTSkip("This test is disabled (Flaky test)")
         #if false
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/jsonBody"
@@ -166,7 +167,7 @@ class TestURLSession: LoopbackServerTest {
 
                 let delegate = SessionDelegate(with: expectation(description: "\(method) \(urlString): with HTTP Body as InputStream"))
                 delegate.run(with: urlRequest, timeoutInterval: 3)
-                waitForExpectations(timeout: 4)
+                await waitForExpectations(timeout: 4)
 
                 let httpResponse = delegate.response as? HTTPURLResponse
                 let contentLength = Int(httpResponse?.value(forHTTPHeaderField: "Content-Length") ?? "")
@@ -228,7 +229,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
     
-    func test_dataTaskWithHTTPBodyRedirect() {
+    func test_dataTaskWithHTTPBodyRedirect() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=Peru"
         let url = URL(string: urlString)!
         let parameters = "foo=bar"
@@ -244,7 +245,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual("Lima", String(data: d.receivedData, encoding: .utf8), "\(#function) did not redirect properly.")
     }
 
-    func test_gzippedDataTask() {
+    func test_gzippedDataTask() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
         let url = URL(string: urlString)!
         let d = DataTask(with: expectation(description: "GET \(urlString): gzipped response"))
@@ -255,7 +256,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_downloadTaskWithURL() {
+    func test_downloadTaskWithURL() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = URL(string: urlString)!
         let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
@@ -263,7 +264,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_downloadTaskWithURLRequest() {
+    func test_downloadTaskWithURLRequest() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
         let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
@@ -271,18 +272,18 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_downloadTaskWithRequestAndHandler() {
+    func test_downloadTaskWithRequestAndHandler() async {
         //shared session
-        downloadTaskWithRequestAndHandler(with: URLSession.shared)
+        await downloadTaskWithRequestAndHandler(with: URLSession.shared)
 
         //newly created session
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        downloadTaskWithRequestAndHandler(with: session)
+        await downloadTaskWithRequestAndHandler(with: session)
     }
 
-    func downloadTaskWithRequestAndHandler(with session: URLSession) {
+    func downloadTaskWithRequestAndHandler(with session: URLSession) async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let expect = expectation(description: "Download GET \(urlString): with a completion handler")
         let req = URLRequest(url: URL(string: urlString)!)
@@ -294,7 +295,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_downloadTaskWithURLAndHandler() {
+    func test_downloadTaskWithURLAndHandler() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
@@ -352,13 +353,13 @@ class TestURLSession: LoopbackServerTest {
             XCTFail("Did not get response")
             return
         }
-        await waitForExpectations(timeout: 12)
+        waitForExpectations(timeout: 12)
         XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
         XCTAssertNotNil(location, "Download location was nil")
         XCTAssertTrue(delegate.totalBytesWritten > 0)
     }
 
-    func test_gzippedDownloadTask() {
+    func test_gzippedDownloadTask() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
         let url = URL(string: urlString)!
         let d = DownloadTask(testCase: self, description: "GET \(urlString): gzipped response")
@@ -369,7 +370,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_finishTasksAndInvalidate() {
+    func test_finishTasksAndInvalidate() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let invalidateExpectation = expectation(description: "Session invalidation")
         let delegate = SessionDelegate(invalidateExpectation: invalidateExpectation)
@@ -385,7 +386,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_taskError() {
+    func test_taskError() async {
         let urlString = "http://127.0.0.0:999999/Nepal"
         let url = URL(string: urlString)!
         let session = URLSession(configuration: URLSessionConfiguration.default,
@@ -420,7 +421,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
     // This test is buggy because the server could respond before the task is cancelled.
-    func test_cancelTask() {
+    func test_cancelTask() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         var urlRequest = URLRequest(url: URL(string: urlString)!)
         urlRequest.setValue("2.0", forHTTPHeaderField: "X-Pause")
@@ -431,7 +432,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
-    func test_unhandledURLProtocol() {
+    func test_unhandledURLProtocol() async {
         let urlString = "foobar://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
         let session = URLSession(configuration: URLSessionConfiguration.default,
@@ -454,7 +455,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_requestToNilURL() {
+    func test_requestToNilURL() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
         let session = URLSession(configuration: URLSessionConfiguration.default,
@@ -479,7 +480,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_suspendResumeTask() throws {
+    func test_suspendResumeTask() async throws {
         throw XCTSkip("This test is disabled (occasionally breaks)")
         #if false
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/get"
@@ -520,7 +521,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
     
-    func test_verifyRequestHeaders() {
+    func test_verifyRequestHeaders() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
@@ -546,7 +547,7 @@ class TestURLSession: LoopbackServerTest {
     // Verify httpAdditionalHeaders from session configuration are added to the request
     // and whether it is overriden by Request.allHTTPHeaderFields.
     
-    func test_verifyHttpAdditionalHeaders() {
+    func test_verifyHttpAdditionalHeaders() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3", "header4": "svalue4"]
@@ -574,7 +575,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
     
-    func test_taskTimeout() {
+    func test_taskTimeout() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
@@ -590,7 +591,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
     
-    func test_httpTimeout() {
+    func test_httpTimeout() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
@@ -607,7 +608,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
 
-    func test_connectTimeout() {
+    func test_connectTimeout() async throws {
         // Reconfigure http server for this specific scenario:
         // a slow request keeps web server busy, while other
         // request times out on connection attempt.
@@ -636,7 +637,7 @@ class TestURLSession: LoopbackServerTest {
             XCTAssertEqual((error as? URLError)?.code, .timedOut, "Task should fail with URLError.timedOut error")
         }
         slowTask.resume()
-        Thread.sleep(forTimeInterval: 0.1) // Give slow task some time to start
+        try await Task.sleep(nanoseconds: 100_000_000) // Give slow task some time to start
         fastTask.resume()
         
         waitForExpectations(timeout: 30)
@@ -647,7 +648,7 @@ class TestURLSession: LoopbackServerTest {
         Self.startServer()
     }
     
-    func test_repeatedRequestsStress() throws {
+    func test_repeatedRequestsStress() async throws {
         // TODO: try disabling curl connection cache to force socket close early. Or create several url sessions (they have cleanup in deinit)
         
         let config = URLSessionConfiguration.default
@@ -655,10 +656,10 @@ class TestURLSession: LoopbackServerTest {
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let req = URLRequest(url: URL(string: urlString)!)
         
-        var requestsLeft = 3000
+        nonisolated(unsafe) var requestsLeft = 3000
         let expect = expectation(description: "\(requestsLeft) x GET \(urlString)")
         
-        func doRequests(completion: @escaping () -> Void) {
+        @Sendable func doRequests(completion: @Sendable @escaping () -> Void) {
             // We only care about completion of one of the tasks,
             // so we could move to next cycle.
             // Some overlapping would happen and that's what we
@@ -676,7 +677,7 @@ class TestURLSession: LoopbackServerTest {
             task3.resume()
         }
 
-        func checkCountAndRunNext() {
+        @Sendable func checkCountAndRunNext() {
             guard requestsLeft > 0 else {
                 expect.fulfill()
                 return
@@ -690,7 +691,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
 
-    func test_httpRedirectionWithCode300() throws {
+    func test_httpRedirectionWithCode300() async throws {
         let statusCode = 300
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -732,7 +733,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectionWithCode301_302() throws {
+    func test_httpRedirectionWithCode301_302() async throws {
         for statusCode in 301...302 {
             for method in httpMethods {
                 let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -779,7 +780,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectionWithCode303() throws {
+    func test_httpRedirectionWithCode303() async throws {
         let statusCode = 303
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -813,7 +814,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectionWithCode304() throws {
+    func test_httpRedirectionWithCode304() async throws {
         let statusCode = 304
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -843,7 +844,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectionWithCode305_308() throws {
+    func test_httpRedirectionWithCode305_308() async throws {
         for statusCode in 305...308 {
             for method in httpMethods {
                 let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -888,7 +889,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectDontFollowUsingNil() throws {
+    func test_httpRedirectDontFollowUsingNil() async throws {
         let statusCode = 302
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -947,7 +948,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectDontFollowIgnoringHandler() throws {
+    func test_httpRedirectDontFollowIgnoringHandler() async throws {
         let statusCode = 302
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
@@ -975,7 +976,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_httpRedirectionWithCompleteRelativePath() {
+    func test_httpRedirectionWithCompleteRelativePath() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         let url = URL(string: urlString)!
         let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
@@ -983,7 +984,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
-    func test_httpRedirectionWithInCompleteRelativePath() {
+    func test_httpRedirectionWithInCompleteRelativePath() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedKingdom"
         let url = URL(string: urlString)!
         let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
@@ -991,7 +992,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
-    func test_httpRedirectionWithDefaultPort() {
+    func test_httpRedirectionWithDefaultPort() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect-with-default-port"
         let url = URL(string: urlString)!
         let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
@@ -999,7 +1000,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
     
-    func test_httpRedirectionWithEncodedQuery() {
+    func test_httpRedirectionWithEncodedQuery() async {
         let location = "echo-query%3Fparam%3Dfoo" // "echo-query?param=foo" url encoded
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=\(location)"
         let url = URL(string: urlString)!
@@ -1015,7 +1016,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
      // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
-    func test_httpRedirectionTimeout() {
+    func test_httpRedirectionTimeout() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         var req = URLRequest(url: URL(string: urlString)!)
         req.timeoutInterval = 3
@@ -1035,7 +1036,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
-    func test_httpRedirectionChainInheritsTimeoutInterval() throws {
+    func test_httpRedirectionChainInheritsTimeoutInterval() async throws {
         throw XCTSkip("This test is disabled (https://bugs.swift.org/browse/SR-14433)")
         #if false
         let redirectCount = 4
@@ -1065,7 +1066,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
 
-    func test_httpRedirectionExceededMaxRedirects() throws {
+    func test_httpRedirectionExceededMaxRedirects() async throws {
         throw XCTSkip("This test is disabled (https://bugs.swift.org/browse/SR-14433)")
         #if false
         let expectedMaxRedirects = 20
@@ -1110,7 +1111,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
 
-    func test_willPerformRedirect() throws {
+    func test_willPerformRedirect() async throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect/1"
         let url = try XCTUnwrap(URL(string: urlString))
         let redirectURL = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/jsonBody"))
@@ -1136,7 +1137,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 5)
     }
 
-    func test_httpNotFound() throws {
+    func test_httpNotFound() async throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/404"
         let url = try XCTUnwrap(URL(string: urlString))
 
@@ -1164,7 +1165,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_http0_9SimpleResponses() throws {
+    func test_http0_9SimpleResponses() async throws {
         throw XCTSkip("This test is disabled (breaks on Ubuntu 20.04)")
         #if false
         for brokenCity in ["Pompeii", "Sodom"] {
@@ -1194,7 +1195,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
 
-    func test_outOfRangeButCorrectlyFormattedHTTPCode() {
+    func test_outOfRangeButCorrectlyFormattedHTTPCode() async {
         let brokenCity = "Kameiros"
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
         let url = URL(string: urlString)!
@@ -1220,7 +1221,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
-    func test_missingContentLengthButStillABody() {
+    func test_missingContentLengthButStillABody() async {
         let brokenCity = "Myndus"
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
         let url = URL(string: urlString)!
@@ -1247,7 +1248,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
 
-    func test_illegalHTTPServerResponses() {
+    func test_illegalHTTPServerResponses() async {
         for brokenCity in ["Gomorrah", "Dinavar", "Kuhikugu"] {
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
             let url = URL(string: urlString)!
@@ -1268,7 +1269,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_dataTaskWithSharedDelegate() {
+    func test_dataTaskWithSharedDelegate() async {
         let urlString0 = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let sharedDelegate = SharedDelegate(dataCompletionExpectation: expectation(description: "GET \(urlString0)"))
         let session = URLSession(configuration: .default, delegate: sharedDelegate, delegateQueue: nil)
@@ -1280,7 +1281,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 20)
     }
 
-    func test_simpleUploadWithDelegate() {
+    func test_simpleUploadWithDelegate() async {
         let delegate = HTTPUploadDelegate()
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/upload"
@@ -1297,7 +1298,7 @@ class TestURLSession: LoopbackServerTest {
 
     }
 
-    func test_requestWithEmptyBody() throws {
+    func test_requestWithEmptyBody() async throws {
         for method in httpMethods {
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/" + method.lowercased()
             let url = try XCTUnwrap(URL(string: urlString))
@@ -1353,7 +1354,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_requestWithNonEmptyBody() throws {
+    func test_requestWithNonEmptyBody() async throws {
         throw XCTSkip("This test is disabled (started failing for no readily available reason)")
         #if false
         let bodyData = try XCTUnwrap("This is a request body".data(using: .utf8))
@@ -1436,7 +1437,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
 
-    func test_concurrentRequests() throws {
+    func test_concurrentRequests() async throws {
         throw XCTSkip("This test is disabled (Intermittent SEGFAULT: rdar://84519512)")
         #if false
         let tasks = 10
@@ -1478,7 +1479,7 @@ class TestURLSession: LoopbackServerTest {
         }
     }
 
-    func test_disableCookiesStorage() {
+    func test_disableCookiesStorage() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         config.httpCookieAcceptPolicy = HTTPCookie.AcceptPolicy.never
@@ -1505,7 +1506,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(cookies?.count, 0)
     }
 
-    func test_cookiesStorage() {
+    func test_cookiesStorage() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         emptyCookieStorage(storage: config.httpCookieStorage)
@@ -1530,7 +1531,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(cookies?.count, 1)
     }
 
-    func test_redirectionWithSetCookies() {
+    func test_redirectionWithSetCookies() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         emptyCookieStorage(storage: config.httpCookieStorage)
@@ -1554,7 +1555,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
 
-    func test_previouslySetCookiesAreSentInLaterRequests() {
+    func test_previouslySetCookiesAreSentInLaterRequests() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         emptyCookieStorage(storage: config.httpCookieStorage)
@@ -1598,7 +1599,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
 
-    func test_cookieStorageForEphemeralConfiguration() {
+    func test_cookieStorageForEphemeralConfiguration() async {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 5
         emptyCookieStorage(storage: config.httpCookieStorage)
@@ -1623,7 +1624,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(cookies2?.count, 0)
     }
 
-    func test_setCookieHeadersCanBeIgnored() {
+    func test_setCookieHeadersCanBeIgnored() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         config.httpShouldSetCookies = false
@@ -1669,7 +1670,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
     // Validate that the properties are correctly set
-    func test_initURLSessionConfiguration() {
+    func test_initURLSessionConfiguration() async {
         let config = URLSessionConfiguration.default
         config.requestCachePolicy = .useProtocolCachePolicy
         config.timeoutIntervalForRequest = 30
@@ -1702,7 +1703,7 @@ class TestURLSession: LoopbackServerTest {
         XCTAssertEqual(config.shouldUseExtendedBackgroundIdleMode, true)
    }
 
-   func test_basicAuthRequest() {
+   func test_basicAuthRequest() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/auth/basic"
         let url = URL(string: urlString)!
         let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
@@ -1711,7 +1712,7 @@ class TestURLSession: LoopbackServerTest {
     }
 
     /* Test for SR-8970 to verify that content-type header is not added to post with empty body */
-    func test_postWithEmptyBody() {
+    func test_postWithEmptyBody() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"
@@ -1729,7 +1730,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
 
-    func test_basicAuthWithUnauthorizedHeader() {
+    func test_basicAuthWithUnauthorizedHeader() async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/unauthorized"
         let url = URL(string: urlString)!
         let expect = expectation(description: "GET \(urlString): with a completion handler")
@@ -1743,7 +1744,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 12, handler: nil)
     }
 
-    func test_checkErrorTypeAfterInvalidateAndCancel() throws {
+    func test_checkErrorTypeAfterInvalidateAndCancel() async throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = try XCTUnwrap(URL(string: urlString))
         var urlRequest = URLRequest(url: url)
@@ -1767,7 +1768,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 5)
     }
 
-    func test_taskCountAfterInvalidateAndCancel() throws {
+    func test_taskCountAfterInvalidateAndCancel() async throws {
         let expect = expectation(description: "Check task count after invalidateAndCancel")
 
         let session = URLSession(configuration: .default)
@@ -1797,15 +1798,15 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 5)
     }
 
-    func test_sessionDelegateAfterInvalidateAndCancel() {
+    func test_sessionDelegateAfterInvalidateAndCancel() async throws {
         let delegate = SessionDelegate()
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         session.invalidateAndCancel()
-        Thread.sleep(forTimeInterval: 2)
+        try await Task.sleep(nanoseconds: 2_000_000_000)
         XCTAssertNil(session.delegate)
     }
 
-    func test_sessionDelegateCalledIfTaskDelegateDoesNotImplement() throws {
+    func test_sessionDelegateCalledIfTaskDelegateDoesNotImplement() async throws {
         let expectation = XCTestExpectation(description: "task finished")
         let delegate = SessionDelegate(with: expectation)
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
@@ -1817,10 +1818,10 @@ class TestURLSession: LoopbackServerTest {
         task.delegate = EmptyTaskDelegate()
         task.resume()
 
-        wait(for: [expectation], timeout: 5)
+        await fulfillment(of: [expectation], timeout: 5)
     }
 
-    func test_getAllTasks() throws {
+    func test_getAllTasks() async throws {
         throw XCTSkip("This test is disabled (this causes later ones to crash)")
         #if false
         let expect = expectation(description: "Tasks URLSession.getAllTasks")
@@ -1871,7 +1872,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
 
-    func test_getTasksWithCompletion() throws {
+    func test_getTasksWithCompletion() async throws {
         throw XCTSkip("This test is disabled (Flaky tests)")
         #if false
         let expect = expectation(description: "Test URLSession.getTasksWithCompletion")
@@ -1922,7 +1923,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
 
-    func test_noDoubleCallbackWhenCancellingAndProtocolFailsFast() throws {
+    func test_noDoubleCallbackWhenCancellingAndProtocolFailsFast() async throws {
         throw XCTSkip("This test is disabled (Crashes nondeterministically: https://bugs.swift.org/browse/SR-11310)")
         #if false
         let urlString = "failfast://bogus"
@@ -1954,7 +1955,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
 
-    func test_cancelledTasksCannotBeResumed() throws {
+    func test_cancelledTasksCannotBeResumed() async throws {
         throw XCTSkip("This test is disabled (breaks on Ubuntu 18.04)")
         #if false
         let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"))
@@ -1973,7 +1974,7 @@ class TestURLSession: LoopbackServerTest {
         waitForExpectations(timeout: 1)
         #endif
     }
-    func test_invalidResumeDataForDownloadTask() throws {
+    func test_invalidResumeDataForDownloadTask() async throws {
         throw XCTSkip("This test is disabled (Crashes nondeterministically: https://bugs.swift.org/browse/SR-11353)")
         #if false
         let done = expectation(description: "Invalid resume data for download task (with completion block)")
@@ -2000,7 +2001,7 @@ class TestURLSession: LoopbackServerTest {
         #endif
     }
     
-    func test_simpleUploadWithDelegateProvidingInputStream() throws {
+    func test_simpleUploadWithDelegateProvidingInputStream() async throws {
         throw XCTSkip("This test is disabled (Times out frequently: https://bugs.swift.org/browse/SR-11343)")
         #if false
         let fileData = Data(count: 16 * 1024)
@@ -2015,7 +2016,7 @@ class TestURLSession: LoopbackServerTest {
                 completionHandler(InputStream(data: fileData))
             }
             delegate.runUploadTask(with: request, timeoutInterval: 4)
-            waitForExpectations(timeout: 5)
+            await waitForExpectations(timeout: 5)
 
             let httpResponse = delegate.response as? HTTPURLResponse
             let callBacks: [String]

@@ -68,6 +68,9 @@ internal func xferInfoFunctionSupported() -> Bool {
 ///
 /// - Note: All code assumes that it is being called on a single thread /
 /// `Dispatch` only -- it is intentionally **not** thread safe.
+@available(*, unavailable)
+extension _EasyHandle : Sendable { }
+
 internal final class _EasyHandle {
     let rawHandle = CFURLSessionEasyHandleInit()
     weak var delegate: _EasyHandleDelegate?

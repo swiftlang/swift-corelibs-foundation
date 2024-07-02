@@ -127,13 +127,15 @@ class TestRunLoop : XCTestCase {
         
         XCTAssertTrue(didDeallocate)
     }
-    
+
+    nonisolated(unsafe) var asyncExecuted = false
+
     func test_mainDispatchQueueCallout() {
         let runLoop = RunLoop.current
 
-        var asyncExecuted = false
+        nonisolated(unsafe) let nonisolatedSelf = self
         DispatchQueue.main.async {
-            asyncExecuted = true
+            nonisolatedSelf.asyncExecuted = true
         }
 
         // RunLoop should service main queue
@@ -142,7 +144,7 @@ class TestRunLoop : XCTestCase {
 
         asyncExecuted = false
         DispatchQueue.main.async {
-            asyncExecuted = true
+            nonisolatedSelf.asyncExecuted = true
         }
 
         // Second run to be sure RunLoop will not stuck

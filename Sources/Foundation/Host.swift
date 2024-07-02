@@ -70,7 +70,7 @@ open class Host: NSObject {
     internal var _names = [String]()
     internal var _addresses = [String]()
     
-    static internal let _current = Host(currentHostName(), .current)
+    static internal let _cachedCurrentHostName = currentHostName()
     
     internal init(_ info: String?, _ type: ResolveType) {
         _info = info
@@ -110,7 +110,7 @@ open class Host: NSObject {
     }
     
     open class func current() -> Host {
-        return _current
+        return Host(Self._cachedCurrentHostName, .current)
     }
     
     public convenience init(name: String?) {

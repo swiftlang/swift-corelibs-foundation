@@ -9,6 +9,7 @@
 
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 // Re-export Darwin and Glibc by importing Foundation
 // This mimics the behavior of the swift sdk overlay on Darwin
@@ -389,19 +390,21 @@ public protocol _NSNonfileURLContentLoading: AnyObject {
 
 
 internal enum _NSNonfileURLContentLoader {
-    static private(set) var external: _NSNonfileURLContentLoading?
+    static let external = Mutex<_NSNonfileURLContentLoading?>(nil)
     
     static var current: _NSNonfileURLContentLoading {
-        if let external = _NSNonfileURLContentLoader.external {
-            return external
-        } else {
-            guard let type = _typeByName(_SwiftFoundationNetworkingModuleName + "._NSNonfileURLContentLoader") as? _NSNonfileURLContentLoading.Type else {
-                fatalError("You must link or load module \(_SwiftFoundationNetworkingModuleName) to load non-file: URL content using String(contentsOf:…), Data(contentsOf:…), etc.")
+        external.withLock {
+            if let external = $0 {
+                return external
+            } else {
+                guard let type = _typeByName(_SwiftFoundationNetworkingModuleName + "._NSNonfileURLContentLoader") as? _NSNonfileURLContentLoading.Type else {
+                    fatalError("You must link or load module \(_SwiftFoundationNetworkingModuleName) to load non-file: URL content using String(contentsOf:…), Data(contentsOf:…), etc.")
+                }
+                
+                let result = type.init()
+                $0 = result
+                return result
             }
-            
-            let result = type.init()
-            _NSNonfileURLContentLoader.external = result
-            return result
         }
     }
 }
@@ -410,31 +413,31 @@ internal enum _NSNonfileURLContentLoader {
 extension _NSCFXMLBridgeForFoundationXMLUseOnly : Sendable { }
 
 public struct _NSCFXMLBridgeForFoundationXMLUseOnly {
-    public var originalBridge: UnsafeMutableRawPointer
-    public var CFArrayGetCount: UnsafeMutableRawPointer
-    public var CFArrayGetValueAtIndex: UnsafeMutableRawPointer
-    public var CFErrorCreate: UnsafeMutableRawPointer
-    public var CFStringCreateWithCString: UnsafeMutableRawPointer
-    public var CFStringCreateMutable: UnsafeMutableRawPointer
-    public var CFStringAppend: UnsafeMutableRawPointer
-    public var CFStringAppendCString: UnsafeMutableRawPointer
-    public var CFStringGetLength: UnsafeMutableRawPointer
-    public var CFStringGetMaximumSizeForEncoding: UnsafeMutableRawPointer
-    public var CFStringGetCString: UnsafeMutableRawPointer
-    public var CFDataCreateWithBytesNoCopy: UnsafeMutableRawPointer
-    public var CFRelease: UnsafeMutableRawPointer
-    public var CFStringCreateWithBytes: UnsafeMutableRawPointer
-    public var CFArrayCreateMutable: UnsafeMutableRawPointer
-    public var CFArrayAppendValue: UnsafeMutableRawPointer
-    public var CFDataGetLength: UnsafeMutableRawPointer
-    public var CFDataGetBytePtr: UnsafeMutableRawPointer
-    public var CFDictionaryCreateMutable: UnsafeMutableRawPointer
-    public var CFDictionarySetValue: UnsafeMutableRawPointer
-    public var kCFAllocatorSystemDefault: UnsafeMutableRawPointer
-    public var kCFAllocatorNull: UnsafeMutableRawPointer
-    public var kCFCopyStringDictionaryKeyCallBacks: UnsafeMutableRawPointer
-    public var kCFTypeDictionaryValueCallBacks: UnsafeMutableRawPointer
-    public var kCFErrorLocalizedDescriptionKey: UnsafeMutableRawPointer
+    public let originalBridge: UnsafeMutableRawPointer
+    public let CFArrayGetCount: UnsafeMutableRawPointer
+    public let CFArrayGetValueAtIndex: UnsafeMutableRawPointer
+    public let CFErrorCreate: UnsafeMutableRawPointer
+    public let CFStringCreateWithCString: UnsafeMutableRawPointer
+    public let CFStringCreateMutable: UnsafeMutableRawPointer
+    public let CFStringAppend: UnsafeMutableRawPointer
+    public let CFStringAppendCString: UnsafeMutableRawPointer
+    public let CFStringGetLength: UnsafeMutableRawPointer
+    public let CFStringGetMaximumSizeForEncoding: UnsafeMutableRawPointer
+    public let CFStringGetCString: UnsafeMutableRawPointer
+    public let CFDataCreateWithBytesNoCopy: UnsafeMutableRawPointer
+    public let CFRelease: UnsafeMutableRawPointer
+    public let CFStringCreateWithBytes: UnsafeMutableRawPointer
+    public let CFArrayCreateMutable: UnsafeMutableRawPointer
+    public let CFArrayAppendValue: UnsafeMutableRawPointer
+    public let CFDataGetLength: UnsafeMutableRawPointer
+    public let CFDataGetBytePtr: UnsafeMutableRawPointer
+    public let CFDictionaryCreateMutable: UnsafeMutableRawPointer
+    public let CFDictionarySetValue: UnsafeMutableRawPointer
+    public let kCFAllocatorSystemDefault: UnsafeMutableRawPointer
+    public let kCFAllocatorNull: UnsafeMutableRawPointer
+    public let kCFCopyStringDictionaryKeyCallBacks: UnsafeMutableRawPointer
+    public let kCFTypeDictionaryValueCallBacks: UnsafeMutableRawPointer
+    public let kCFErrorLocalizedDescriptionKey: UnsafeMutableRawPointer
     
     public init() {
         self.originalBridge = UnsafeMutableRawPointer(&__NSCFXMLBridgeUntyped)

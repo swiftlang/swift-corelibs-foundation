@@ -11,6 +11,10 @@
 //  Prints test progress to stdout.
 //
 
+#if canImport(Glibc)
+@preconcurrency import Glibc
+#endif
+
 /// Prints textual representations of each XCTestObservation event to stdout.
 /// Mirrors the Apple XCTest output exactly.
 internal class PrintObserver: XCTestObservation {

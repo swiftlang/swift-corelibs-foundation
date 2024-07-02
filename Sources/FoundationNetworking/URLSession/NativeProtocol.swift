@@ -414,16 +414,17 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
             // Check if the cached response is good to use:
             if let cachedResponse = cachedResponse, canRespondFromCache(using: cachedResponse) {
                 self.internalState = .fulfillingFromCache(cachedResponse)
+                nonisolated(unsafe) let nonisolatedSelf = self
                 task?.workQueue.async {
-                    self.client?.urlProtocol(self, cachedResponseIsValid: cachedResponse)
-                    self.client?.urlProtocol(self, didReceive: cachedResponse.response, cacheStoragePolicy: .notAllowed)
+                    nonisolatedSelf.client?.urlProtocol(nonisolatedSelf, cachedResponseIsValid: cachedResponse)
+                    nonisolatedSelf.client?.urlProtocol(nonisolatedSelf, didReceive: cachedResponse.response, cacheStoragePolicy: .notAllowed)
                     if !cachedResponse.data.isEmpty {
-                        self.client?.urlProtocol(self, didLoad: cachedResponse.data)
+                        nonisolatedSelf.client?.urlProtocol(nonisolatedSelf, didLoad: cachedResponse.data)
                     }
                     
-                    self.client?.urlProtocolDidFinishLoading(self)
+                    nonisolatedSelf.client?.urlProtocolDidFinishLoading(nonisolatedSelf)
                     
-                    self.internalState = .taskCompleted
+                    nonisolatedSelf.internalState = .taskCompleted
                 }
                 
             } else {
@@ -512,11 +513,12 @@ extension _NativeProtocol {
         guard let s = task?.session as? URLSession else {
             fatalError()
         }
+        
+        nonisolated(unsafe) let nonisolatedSelf = self
         s.delegateQueue.addOperation {
-            delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { [weak self] disposition in
-                guard let task = self else { return }
-                self?.task?.workQueue.async {
-                    task.didCompleteResponseCallback(disposition: disposition)
+            delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { disposition in
+                nonisolatedSelf.task?.workQueue.async {
+                    nonisolatedSelf.didCompleteResponseCallback(disposition: disposition)
                 }
             })
         }

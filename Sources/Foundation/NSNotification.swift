@@ -89,7 +89,7 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
 
 private class NSNotificationReceiver : NSObject {
     fileprivate var name: Notification.Name?
-    fileprivate var block: ((Notification) -> Void)?
+    fileprivate var block: (@Sendable (Notification) -> Void)?
     fileprivate var sender: AnyObject?
     fileprivate var queue: OperationQueue?
 }
@@ -176,10 +176,10 @@ open class NotificationCenter: NSObject, @unchecked Sendable {
 
     @available(*, unavailable, renamed: "addObserver(forName:object:queue:using:)")
     open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
-        return addObserver(forName: name, object: obj, queue: queue, using: block)
+        fatalError()
     }
 
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @Sendable @escaping (Notification) -> Void) -> NSObjectProtocol {
         let newObserver = NSNotificationReceiver()
         newObserver.name = name
         newObserver.block = block

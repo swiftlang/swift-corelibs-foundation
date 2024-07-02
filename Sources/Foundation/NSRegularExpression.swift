@@ -28,10 +28,7 @@ extension NSRegularExpression {
 }
 
 open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
-    internal var _internalStorage: AnyObject
-    internal final var _internal: _CFRegularExpression {
-        unsafeBitCast(_internalStorage, to: _CFRegularExpression.self)
-    }
+    internal var _internal: _CFRegularExpression
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -85,7 +82,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding, @unchecked 
         var error: Unmanaged<CFError>?
         let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
-            _internalStorage = regex
+            _internal = regex
         } else {
             throw error!.takeRetainedValue()._nsObject
         }

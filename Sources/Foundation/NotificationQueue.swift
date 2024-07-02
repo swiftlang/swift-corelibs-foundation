@@ -53,7 +53,7 @@ open class NotificationQueue: NSObject {
 
     // The NSNotificationQueue instance is associated with current thread.
     // The _notificationQueueList represents a list of notification queues related to the current thread.
-    private static var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
+    private static nonisolated(unsafe) var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
     internal static var notificationQueueList: NotificationQueueList {
         return _notificationQueueList.get() {
             return NSMutableArray()
@@ -61,7 +61,7 @@ open class NotificationQueue: NSObject {
     }
 
     // The default notification queue for the current thread.
-    private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
+    private static nonisolated(unsafe) var _defaultQueue = NSThreadSpecific<NotificationQueue>()
     open class var `default`: NotificationQueue {
         return _defaultQueue.get() {
             return NotificationQueue(notificationCenter: NotificationCenter.default)

@@ -1057,7 +1057,7 @@ extension NSURL : _StructTypeBridgeable {
 internal func _CFSwiftURLCopyResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ valuePointer: UnsafeMutablePointer<Unmanaged<CFTypeRef>?>?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
     do {
         let key = URLResourceKey(rawValue: key._swiftObject)
-        let values = try unsafeBitCast(url, to: NSURL.self).resourceValues(forKeys: [ key ])
+        let values = try unsafeDowncast(url, to: NSURL.self).resourceValues(forKeys: [ key ])
         let value = values[key]
         
         if let value = value {
@@ -1087,7 +1087,7 @@ internal func _CFSwiftURLCopyResourcePropertiesForKeys(_ url: CFTypeRef, _ keys:
             }
         }
         
-        let result = try unsafeBitCast(url, to: NSURL.self).resourceValues(forKeys: swiftKeys)
+        let result = try unsafeDowncast(url, to: NSURL.self).resourceValues(forKeys: swiftKeys)
         
         let finalDictionary = NSMutableDictionary()
         for entry in result {
@@ -1108,7 +1108,7 @@ internal func _CFSwiftURLCopyResourcePropertiesForKeys(_ url: CFTypeRef, _ keys:
 internal func _CFSwiftURLSetResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ value: CFTypeRef?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
     do {
         let key = URLResourceKey(rawValue: key._swiftObject)
-        try unsafeBitCast(url, to: NSURL.self).setResourceValue(__SwiftValue.fetch(value), forKey: key)
+        try unsafeDowncast(url, to: NSURL.self).setResourceValue(__SwiftValue.fetch(value), forKey: key)
         
         return true
     } catch {
@@ -1132,7 +1132,7 @@ internal func _CFSwiftURLSetResourcePropertiesForKeys(_ url: CFTypeRef, _ proper
             }
         }
         
-        try unsafeBitCast(url, to: NSURL.self).setResourceValues(swiftValues)
+        try unsafeDowncast(url, to: NSURL.self).setResourceValues(swiftValues)
         return true
     } catch {
         if let errorPointer = errorPointer {
@@ -1146,20 +1146,20 @@ internal func _CFSwiftURLSetResourcePropertiesForKeys(_ url: CFTypeRef, _ proper
 
 internal func _CFSwiftURLClearResourcePropertyCacheForKey(_ url: CFTypeRef, _ key: CFString) {
     let swiftKey = URLResourceKey(rawValue: key._swiftObject)
-    unsafeBitCast(url, to: NSURL.self).removeCachedResourceValue(forKey: swiftKey)
+    unsafeDowncast(url, to: NSURL.self).removeCachedResourceValue(forKey: swiftKey)
 }
 
 internal func _CFSwiftURLClearResourcePropertyCache(_ url: CFTypeRef) {
-    unsafeBitCast(url, to: NSURL.self).removeAllCachedResourceValues()
+    unsafeDowncast(url, to: NSURL.self).removeAllCachedResourceValues()
 }
 
 internal func _CFSwiftSetTemporaryResourceValueForKey(_ url: CFTypeRef, _ key: CFString, _ value: CFTypeRef) {
-    unsafeBitCast(url, to: NSURL.self).setTemporaryResourceValue(__SwiftValue.fetch(value), forKey: URLResourceKey(rawValue: key._swiftObject))
+    unsafeDowncast(url, to: NSURL.self).setTemporaryResourceValue(__SwiftValue.fetch(value), forKey: URLResourceKey(rawValue: key._swiftObject))
 }
 
 internal func _CFSwiftURLResourceIsReachable(_ url: CFTypeRef, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
     do {
-        let reachable = try unsafeBitCast(url, to: NSURL.self).checkResourceIsReachable()
+        let reachable = try unsafeDowncast(url, to: NSURL.self).checkResourceIsReachable()
         return reachable ? true : false
     } catch {
         if let errorPointer = errorPointer {

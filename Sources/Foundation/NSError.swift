@@ -19,6 +19,7 @@ import CRT
 #endif
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 public typealias NSErrorDomain = NSString
 
@@ -169,15 +170,15 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked S
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias UserInfoProvider = (_ error: Error, _ key: String) -> Any?
-    internal static var userInfoProviders = [String: UserInfoProvider]()
+    internal typealias UserInfoProvider = @Sendable (_ error: Error, _ key: String) -> Any?
+    internal static let userInfoProviders = Mutex<[String: UserInfoProvider]>([:])
     
-    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (Error, String) -> Any?)?) {
-        NSError.userInfoProviders[errorDomain] = provider
+    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (@Sendable (Error, String) -> Any?)?) {
+        NSError.userInfoProviders.withLock { $0[errorDomain] = provider }
     }
 
-    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((Error, String) -> Any?)? {
-        return NSError.userInfoProviders[errorDomain]
+    open class func userInfoValueProvider(forDomain errorDomain: String) -> (@Sendable (Error, String) -> Any?)? {
+        NSError.userInfoProviders.withLock { $0[errorDomain] }
     }
     
     override open var description: String {
@@ -882,7 +883,7 @@ func _convertNSErrorToError(_ error: NSError?) -> Error {
 public // COMPILER_INTRINSIC
 func _convertErrorToNSError(_ error: Error) -> NSError {
     if let object = _extractDynamicValue(error as Any) {
-        return unsafeBitCast(object, to: NSError.self)
+        return unsafeDowncast(object, to: NSError.self)
     } else {
         let domain: String
         let code: Int

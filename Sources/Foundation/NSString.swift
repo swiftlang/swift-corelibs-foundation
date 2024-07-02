@@ -9,6 +9,7 @@
 
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 public typealias unichar = UInt16
 
@@ -135,17 +136,18 @@ public struct StringTransform: Equatable, Hashable, RawRepresentable, Sendable {
 }
 
 
+// NSCache is marked as non-Sendable, but it actually does have locking in our implementation
+fileprivate nonisolated(unsafe) let regularExpressionCache: NSCache<NSString, NSRegularExpression> = {
+    let cache = NSCache<NSString, NSRegularExpression>()
+    cache.name = "NSRegularExpressionCache"
+    cache.countLimit = 10
+    return cache
+}()
+
 internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpression.Options) -> NSRegularExpression? {
-    struct local {
-        static let __NSRegularExpressionCache: NSCache<NSString, NSRegularExpression> = {
-            let cache = NSCache<NSString, NSRegularExpression>()
-            cache.name = "NSRegularExpressionCache"
-            cache.countLimit = 10
-            return cache
-        }()
-    }
+    
     let key = "\(options):\(pattern)"
-    if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
+    if let regex = regularExpressionCache.object(forKey: key._nsObject) {
         return regex
     }
 
@@ -153,7 +155,8 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
         return nil
     }
 
-    local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
+    regularExpressionCache.setObject(regex, forKey: key._nsObject)
+    
     return regex
 }
 
@@ -1026,32 +1029,31 @@ extension NSString {
         return convertedLen != len ? 0 : numBytes
     }
     
-    public class var availableStringEncodings: UnsafePointer<UInt> {
-        struct once {
-            static let encodings: UnsafePointer<UInt> = {
-                let cfEncodings = CFStringGetListOfAvailableEncodings()!
-                var idx = 0
-                var numEncodings = 0
-                
-                while cfEncodings.advanced(by: idx).pointee != kCFStringEncodingInvalidId {
-                    idx += 1
-                    numEncodings += 1
-                }
-                
-                let theEncodingList = UnsafeMutablePointer<String.Encoding.RawValue>.allocate(capacity: numEncodings + 1)
-                theEncodingList.advanced(by: numEncodings).pointee = 0 // Terminator
-                
-                numEncodings -= 1
-                while numEncodings >= 0 {
-                    theEncodingList.advanced(by: numEncodings).pointee =
-                        numericCast(CFStringConvertEncodingToNSStringEncoding(cfEncodings.advanced(by: numEncodings).pointee))
-                    numEncodings -= 1
-                }
-                
-                return UnsafePointer<UInt>(theEncodingList)
-            }()
+    private static nonisolated(unsafe) let _availableStringEncodings : UnsafePointer<UInt> = {
+        let cfEncodings = CFStringGetListOfAvailableEncodings()!
+        var idx = 0
+        var numEncodings = 0
+        
+        while cfEncodings.advanced(by: idx).pointee != kCFStringEncodingInvalidId {
+            idx += 1
+            numEncodings += 1
         }
-        return once.encodings
+        
+        let theEncodingList = UnsafeMutablePointer<String.Encoding.RawValue>.allocate(capacity: numEncodings + 1)
+        theEncodingList.advanced(by: numEncodings).pointee = 0 // Terminator
+        
+        numEncodings -= 1
+        while numEncodings >= 0 {
+            theEncodingList.advanced(by: numEncodings).pointee =
+                numericCast(CFStringConvertEncodingToNSStringEncoding(cfEncodings.advanced(by: numEncodings).pointee))
+            numEncodings -= 1
+        }
+        
+        return UnsafePointer<UInt>(theEncodingList)
+    }()
+    
+    public class var availableStringEncodings: UnsafePointer<UInt> {
+        return _availableStringEncodings
     }
     
     public class func localizedName(of encoding: UInt) -> String {
@@ -1279,7 +1281,7 @@ extension NSString {
     }
     
     public convenience init?(utf8String nullTerminatedCString: UnsafePointer<Int8>) {
-        guard let str = String(validatingUTF8: nullTerminatedCString) else { return nil }
+        guard let str = String(validatingCString: nullTerminatedCString) else { return nil }
         self.init(str)
     }
     
@@ -1296,7 +1298,8 @@ extension NSString {
                 let cf = (loc as! NSLocale)._cfObject
                 str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(cf, to: CFDictionary.self), format._cfObject, argList)
             } else if type(of: loc) === NSDictionary.self {
-                str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(loc, to: CFDictionary.self), format._cfObject, argList)
+                let dict = (loc as! NSDictionary)._cfObject
+                str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, dict, format._cfObject, argList)
             } else {
                 fatalError("locale parameter must be a NSLocale or a NSDictionary")
             }

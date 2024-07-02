@@ -81,7 +81,8 @@ extension Thread : Sendable { }
 
 open class Thread : NSObject {
 
-    static internal var _currentThread = NSThreadSpecific<Thread>()
+    static internal nonisolated(unsafe) var _currentThread = NSThreadSpecific<Thread>()
+    @available(*, noasync)
     open class var current: Thread {
         return Thread._currentThread.get() {
             if Thread.isMainThread {
@@ -101,7 +102,7 @@ open class Thread : NSObject {
     }
 
     // !!! NSThread's mainThread property is incorrectly exported as "main", which conflicts with its "main" method.
-    private static let _mainThread: Thread = {
+    private static nonisolated(unsafe) let _mainThread: Thread = {
         var thread = Thread(thread: _CFMainPThread)
         thread._status = .executing
         return thread
@@ -124,6 +125,7 @@ open class Thread : NSObject {
         return true
     }
 
+    @available(*, noasync)
     open class func sleep(until date: Date) {
 #if os(Windows)
         var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
@@ -161,6 +163,7 @@ open class Thread : NSObject {
 #endif
     }
 
+    @available(*, noasync)
     open class func sleep(forTimeInterval interval: TimeInterval) {
 #if os(Windows)
         var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
@@ -196,6 +199,7 @@ open class Thread : NSObject {
 #endif
     }
 
+    @available(*, noasync)
     open class func exit() {
         Thread.current._status = .finished
 #if os(Windows)
@@ -299,11 +303,19 @@ open class Thread : NSObject {
           return ""
         }
       #else
+        // Result is null-terminated
         guard _CFThreadGetName(&buf, Int32(buf.count)) == 0 else {
           return ""
         }
       #endif
-        return String(cString: buf)
+        guard let firstNull = buf.firstIndex(of: 0) else {
+            return ""
+        }
+        if firstNull == buf.startIndex {
+            return ""
+        } else {
+            return String(validating: buf[buf.startIndex..<firstNull], as: UTF8.self)
+        }
     }
 
 #if os(Windows)
@@ -354,6 +366,7 @@ open class Thread : NSObject {
         return _cancelled
     }
 
+    @available(*, noasync)
     open var isMainThread: Bool {
         return self === Thread.mainThread
     }

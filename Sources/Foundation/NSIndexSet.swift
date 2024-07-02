@@ -509,19 +509,11 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                     }
                 }
             }
-#if !os(WASI)
-            if opts.contains(.concurrent) {
-                DispatchQueue.concurrentPerform(iterations: Int(rangeSequence.count), execute: iteration)
-            } else {
-                for idx in 0..<Int(rangeSequence.count) {
-                    iteration(idx)
-                }
-            }
-#else
+            
+            // We ignore the concurrent option because it is not possible to make it thread-safe. The block argument is not marked Sendable.
             for idx in 0..<Int(rangeSequence.count) {
                 iteration(idx)
             }
-#endif
         }
         
         return result

@@ -551,19 +551,10 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 }
             }
 
-#if !os(WASI)
-            if opts.contains(.concurrent) {
-                DispatchQueue.concurrentPerform(iterations: count, execute: iteration)
-            } else {
-                for idx in 0..<count {
-                    iteration(idx)
-                }
-            }
-#else
+            // We ignore the concurrent option because it is not possible to make it thread-safe. The block argument is not marked Sendable.
             for idx in 0..<count {
                 iteration(idx)
             }
-#endif
         }
     }
     
@@ -708,9 +699,11 @@ extension NSDictionary : Sequence {
 // We implement this as a shim for now. It is legal to call these methods and the behavior of the resulting NSDictionary will match Darwin's; however, the performance characteristics will be unmodified for the returned dictionary vs. a NSMutableDictionary created without a shared key set.
 // SR-XXXX.
 
+final internal class SharedKeySetPlaceholder : NSObject, Sendable { }
+
 extension NSDictionary {
     
-    static let sharedKeySetPlaceholder = NSObject()
+    static let sharedKeySetPlaceholder = SharedKeySetPlaceholder()
     
     /*  Use this method to create a key set to pass to +dictionaryWithSharedKeySet:.
     The keys are copied from the array and must be copyable.

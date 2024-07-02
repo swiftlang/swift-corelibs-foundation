@@ -452,7 +452,7 @@ class TestProcess : XCTestCase {
         #if os(Windows)
         throw XCTSkip("Windows does not have signals")
         #else
-        let helper = _SignalHelperRunner()
+        nonisolated(unsafe) let helper = _SignalHelperRunner()
         do {
             try helper.start()
         }  catch {
@@ -879,34 +879,33 @@ class _SignalHelperRunner {
         process.arguments = ["--signal-test"]
         process.standardOutput = outputPipe.fileHandleForWriting
 
-        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] fh in
-            if let strongSelf = self {
-                let newLine = UInt8(ascii: "\n")
-
-                strongSelf.bytesIn.append(fh.availableData)
-                if strongSelf.bytesIn.isEmpty {
-                    return
-                }
-                // Split the incoming data into lines.
-                while let index = strongSelf.bytesIn.firstIndex(of: newLine) {
-                    if index >= strongSelf.bytesIn.startIndex {
-                        // don't include the newline when converting to string
-                        let line = String(data: strongSelf.bytesIn[strongSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
-                        strongSelf.bytesIn.removeSubrange(strongSelf.bytesIn.startIndex...index)
-
-                        if strongSelf.gotReady == false && line == "Ready" {
-                            strongSelf.semaphore.signal()
-                            strongSelf.gotReady = true;
+        nonisolated(unsafe) let nonisolatedSelf = self
+        outputPipe.fileHandleForReading.readabilityHandler = { fh in
+            let newLine = UInt8(ascii: "\n")
+            
+            nonisolatedSelf.bytesIn.append(fh.availableData)
+            if nonisolatedSelf.bytesIn.isEmpty {
+                return
+            }
+            // Split the incoming data into lines.
+            while let index = nonisolatedSelf.bytesIn.firstIndex(of: newLine) {
+                if index >= nonisolatedSelf.bytesIn.startIndex {
+                    // don't include the newline when converting to string
+                    let line = String(data: nonisolatedSelf.bytesIn[nonisolatedSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
+                    nonisolatedSelf.bytesIn.removeSubrange(nonisolatedSelf.bytesIn.startIndex...index)
+                    
+                    if nonisolatedSelf.gotReady == false && line == "Ready" {
+                        nonisolatedSelf.semaphore.signal()
+                        nonisolatedSelf.gotReady = true;
+                    }
+                    else if nonisolatedSelf.gotReady == true {
+                        if line == "Signal: SIGINT" {
+                            nonisolatedSelf.sQueue.sync { nonisolatedSelf._sigIntCount += 1 }
+                            nonisolatedSelf.semaphore.signal()
                         }
-                        else if strongSelf.gotReady == true {
-                            if line == "Signal: SIGINT" {
-                                strongSelf.sQueue.sync { strongSelf._sigIntCount += 1 }
-                                strongSelf.semaphore.signal()
-                            }
-                            else if line == "Signal: SIGCONT" {
-                                strongSelf.sQueue.sync { strongSelf._sigContCount += 1 }
-                                strongSelf.semaphore.signal()
-                            }
+                        else if line == "Signal: SIGCONT" {
+                            nonisolatedSelf.sQueue.sync { nonisolatedSelf._sigContCount += 1 }
+                            nonisolatedSelf.semaphore.signal()
                         }
                     }
                 }

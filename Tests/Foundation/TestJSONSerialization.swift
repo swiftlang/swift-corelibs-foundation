@@ -67,7 +67,6 @@ extension TestJSONSerialization {
         case data
         case stream
     }
-    static var objectType = ObjectType.data
 
     func test_deserialize_emptyObject_withData() {
         deserialize_emptyObject(objectType: .data)

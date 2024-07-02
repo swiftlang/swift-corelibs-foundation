@@ -317,6 +317,7 @@ fileprivate extension URLSession._MultiHandle {
             completedTransfer(forEasyHandle: handle, easyCode: code)
         } while true
     }
+    
     /// Transfer completed.
     func completedTransfer(forEasyHandle handle: CFURLSessionEasyHandle, easyCode: CFURLSessionEasyCode) {
         // Look up the matching wrapper:
@@ -329,12 +330,14 @@ fileprivate extension URLSession._MultiHandle {
         if let errorCode = easyHandle.urlErrorCode(for: easyCode) {
             var errorDescription: String = ""
             if easyHandle.errorBuffer[0] == 0 {
-              let description = CFURLSessionEasyCodeDescription(easyCode)!
-              errorDescription = NSString(bytes: UnsafeMutableRawPointer(mutating: description), length: strlen(description), encoding: String.Encoding.utf8.rawValue)! as String
+                let description = CFURLSessionEasyCodeDescription(easyCode)!
+                errorDescription = NSString(bytes: UnsafeMutableRawPointer(mutating: description), length: strlen(description), encoding: String.Encoding.utf8.rawValue)! as String
             } else {
-              errorDescription = String(cString: easyHandle.errorBuffer)
+                if let firstNull = easyHandle.errorBuffer.firstIndex(of: 0), firstNull != easyHandle.errorBuffer.startIndex {
+                    errorDescription = String(validating: easyHandle.errorBuffer[easyHandle.errorBuffer.startIndex..<firstNull], as: UTF8.self) ?? ""
+                }
             }
-
+            
             error = NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: [
                 NSLocalizedDescriptionKey: errorDescription
             ])
@@ -472,13 +475,14 @@ fileprivate extension URLSession._MultiHandle {
     }
     
     func updateTimeoutTimer(to timeout: _Timeout) {
+        nonisolated(unsafe) let nonisolatedSelf = self
         // Set up a timeout timer based on the given value:
         switch timeout {
         case .none:
             timeoutSource = nil
         case .immediate:
             timeoutSource = nil
-            queue.async { self.timeoutTimerFired() }
+            queue.async { nonisolatedSelf.timeoutTimerFired() }
         case .milliseconds(let milliseconds):
             //TODO: Could simply change the existing timer by using DispatchSourceTimer again.
             let block = DispatchWorkItem { [weak self] in

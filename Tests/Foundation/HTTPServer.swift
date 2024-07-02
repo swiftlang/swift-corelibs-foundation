@@ -40,8 +40,8 @@ private func debugLog(_ msg: String) {
 }
 
 public let globalDispatchQueue = DispatchQueue.global()
-public let dispatchQueueMake: (String) -> DispatchQueue = { DispatchQueue.init(label: $0) }
-public let dispatchGroupMake: () -> DispatchGroup = DispatchGroup.init
+public let dispatchQueueMake: @Sendable (String) -> DispatchQueue = { DispatchQueue.init(label: $0) }
+public let dispatchGroupMake: @Sendable () -> DispatchGroup = DispatchGroup.init
 
 struct _HTTPUtils {
     static let CRLF = "\r\n"
@@ -1082,7 +1082,7 @@ struct ServerError : Error {
 
 extension ServerError : CustomStringConvertible {
     var description: String {
-        let s = String(validatingUTF8: strerror(errno)) ?? ""
+        let s = String(validatingCString: strerror(errno)) ?? ""
         return "\(operation) failed: \(s) (\(_code))"
     }
 }
@@ -1106,10 +1106,10 @@ extension LoopbackServerTest {
 class LoopbackServerTest : XCTestCase {
     private static let staticSyncQ = DispatchQueue(label: "org.swift.TestFoundation.HTTPServer.StaticSyncQ")
 
-    private static var _serverPort: Int = -1
-    private static var _serverActive = false
-    private static var testServer: _HTTPServer? = nil
-    private static var _options: Options = .default
+    nonisolated(unsafe) private static var _serverPort: Int = -1
+    nonisolated(unsafe) private static var _serverActive = false
+    nonisolated(unsafe) private static var testServer: _HTTPServer? = nil
+    nonisolated(unsafe) private static var _options: Options = .default
     
     static var options: Options {
         get {
@@ -1157,7 +1157,7 @@ class LoopbackServerTest : XCTestCase {
 
             while serverActive {
                 do {
-                    let httpServer = try testServer!.listen()
+                    nonisolated(unsafe) let httpServer = try testServer!.listen()
                     
                     @Sendable func handleRequest() {
                         let subServer = TestURLSessionServer(httpServer: httpServer)

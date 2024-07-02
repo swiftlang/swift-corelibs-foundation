@@ -70,6 +70,7 @@ open class Timer : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
+    @available(*, noasync)
     open class func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: @Sendable @escaping (Timer) -> Void) -> Timer {
         let timer = Timer(fire: Date(timeIntervalSinceNow: interval), interval: interval, repeats: repeats, block: block)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)

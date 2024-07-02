@@ -8,6 +8,7 @@
 //
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 // MARK: Port and related types
 
@@ -596,18 +597,17 @@ open class SocketPort : Port {
         self.init(remoteWithProtocolFamily: PF_INET, socketType: FOUNDATION_SOCK_STREAM, protocol: FOUNDATION_IPPROTO_TCP, address: data)
     }
     
-    private static let remoteSocketCoresLock = NSLock()
-    private static var remoteSocketCores: [Signature: Core] = [:]
+    private static let remoteSocketCores = Mutex<[Signature: Core]>([:])
     
     static private func retainedCore(for signature: Signature) -> Core {
-        return SocketPort.remoteSocketCoresLock.synchronized {
-            if let core = SocketPort.remoteSocketCores[signature] {
+        return SocketPort.remoteSocketCores.withLock {
+            if let core = $0[signature] {
                 return core
             } else {
                 let core = Core(isUniqued: true)
                 core.signature = signature
                 
-                SocketPort.remoteSocketCores[signature] = core
+                $0[signature] = core
                 
                 return core
             }
@@ -654,8 +654,8 @@ open class SocketPort : Port {
         }
         
         if let signatureToRemove = signatureToRemove {
-            SocketPort.remoteSocketCoresLock.synchronized {
-                _ = SocketPort.remoteSocketCores.removeValue(forKey: signatureToRemove)
+            SocketPort.remoteSocketCores.withLock {
+                _ = $0.removeValue(forKey: signatureToRemove)
             }
         }
     }
@@ -1055,18 +1055,19 @@ open class SocketPort : Port {
     
     private static let maximumTimeout: TimeInterval = 86400
     
-    private static let sendingSocketsLock = NSLock()
-    private static var sendingSockets: [SocketKind: CFSocket] = [:]
+    private static let sendingSockets = Mutex<[SocketKind: CFSocket]>([:])
     
     private final func sendingSocket(for port: SocketPort, before time: TimeInterval) -> CFSocket? {
         let signature = port.core.signature!
         let socketKind = signature.socketKind
 
-        var context = CFSocketContext()
+        // Uses a pointer value for comparison only
+        nonisolated(unsafe) var context = CFSocketContext()
         context.info = Unmanaged.passUnretained(self).toOpaque()
 
+        nonisolated(unsafe) let nonisolatedSelf = self
         return core.lock.synchronized {
-            if let connector = core.connectors[signature], CFSocketIsValid(connector) {
+            if let connector = nonisolatedSelf.core.connectors[signature], CFSocketIsValid(connector) {
                 return connector
             } else {
                 if signature.socketType == FOUNDATION_SOCK_STREAM {
@@ -1077,7 +1078,7 @@ open class SocketPort : Port {
                         }
                         
                         if CFSocketIsValid(connector) && CFSocketConnectToAddress(connector, address._cfObject, timeout) == CFSocketError(0) {
-                            core.connectors[signature] = connector
+                            nonisolatedSelf.core.connectors[signature] = connector
                             self.addToLoopsAssumingLockHeld(connector)
                             return connector
                         } else {
@@ -1085,20 +1086,20 @@ open class SocketPort : Port {
                         }
                     }
                 } else {
-                    return SocketPort.sendingSocketsLock.synchronized {
+                    return SocketPort.sendingSockets.withLock {
                         var result: CFSocket?
                         
-                        if signature.socketKind == core.signature.socketKind,
-                           let receiver = core.receiver, CFSocketIsValid(receiver) {
+                        if signature.socketKind == nonisolatedSelf.core.signature.socketKind,
+                           let receiver = nonisolatedSelf.core.receiver, CFSocketIsValid(receiver) {
                             result = receiver
-                        } else if let socket = SocketPort.sendingSockets[socketKind], CFSocketIsValid(socket) {
+                        } else if let socket = $0[socketKind], CFSocketIsValid(socket) {
                             result = socket
                         }
                         
                         if result == nil,
                            let sender = CFSocketCreate(nil, socketKind.protocolFamily, socketKind.socketType, socketKind.protocol, CFOptionFlags(kCFSocketNoCallBack), nil, &context), CFSocketIsValid(sender) {
                             
-                            SocketPort.sendingSockets[socketKind] = sender
+                            $0[socketKind] = sender
                             result = sender
                         }
                         

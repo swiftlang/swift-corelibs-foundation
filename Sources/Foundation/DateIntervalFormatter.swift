@@ -83,18 +83,15 @@ internal extension _CFDateIntervalFormatterBoundaryStyle {
 // DateIntervalFormatter returns nil and NO for all methods in Formatter.
 
 open class DateIntervalFormatter: Formatter, @unchecked Sendable {
-    private let _core: AnyObject
-    private final var core: CFDateIntervalFormatter {
-        get { unsafeBitCast(_core, to: CFDateIntervalFormatter.self) }
-    }
+    private let core: CFDateIntervalFormatter
     
     public override init() {
-        _core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
+        core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
         super.init()
     }
 
     private init(cfFormatter: CFDateIntervalFormatter) {
-        self._core = cfFormatter
+        self.core = cfFormatter
         super.init()
     }
     
@@ -120,7 +117,7 @@ open class DateIntervalFormatter: Formatter, @unchecked Sendable {
                                                           object(of: NSLocale.self, from: coder, forKey: "NS.locale")?._cfObject,
                                                           object(of: NSCalendar.self, from: coder, forKey: "NS.calendar")?._cfObject,
                                                           object(of: NSTimeZone.self, from: coder, forKey: "NS.timeZone")?._cfObject)
-        self._core = core
+        self.core = core
         
         super.init(coder: coder)
     }

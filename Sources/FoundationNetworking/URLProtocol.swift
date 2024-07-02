@@ -13,6 +13,8 @@ import SwiftFoundation
 import Foundation
 #endif
 
+internal import Synchronization
+
 /*!
     @header URLProtocol.h
 
@@ -167,8 +169,7 @@ extension URLProtocol : Sendable { }
 */
 open class URLProtocol : NSObject {
 
-    private static var _registeredProtocolClasses = [AnyClass]()
-    private static var _classesLock = NSLock()
+    private static let _registeredProtocolClasses = Mutex<[AnyClass]>([])
 
     //TODO: The right way to do this is using URLProtocol.property(forKey:in) and URLProtocol.setProperty(_:forKey:in)
     var properties: [URLProtocol._PropertyKey: Any] = [:]
@@ -376,13 +377,11 @@ open class URLProtocol : NSObject {
     */
     open class func registerClass(_ protocolClass: AnyClass) -> Bool {
         if protocolClass is URLProtocol.Type {
-            _classesLock.lock()
-            guard !_registeredProtocolClasses.contains(where: { $0 === protocolClass }) else {
-                _classesLock.unlock()
-                return true
+            _registeredProtocolClasses.withLock {
+                if !$0.contains(where: { $0 === protocolClass }) {
+                    $0.append(protocolClass)
+                }
             }
-            _registeredProtocolClasses.append(protocolClass)
-            _classesLock.unlock()
             return true
         }
         return false
@@ -391,24 +390,22 @@ open class URLProtocol : NSObject {
     internal class func getProtocolClass(protocols: [AnyClass], request: URLRequest) -> AnyClass? {
         // Registered protocols are consulted in reverse order.
         // This behaviour makes the latest registered protocol to be consulted first
-        _classesLock.lock()
-        let protocolClasses = protocols
-        for protocolClass in protocolClasses {
-            let urlProtocolClass: AnyClass = protocolClass
-            guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
-            if urlProtocol.canInit(with: request) {
-                _classesLock.unlock()
-                return urlProtocol
+        _registeredProtocolClasses.withLock { _ in
+            // TODO: It appears this code does not access any data protected within the lock. Still, we lock for compatibility with previous code.
+            let protocolClasses = protocols
+            for protocolClass in protocolClasses {
+                let urlProtocolClass: AnyClass = protocolClass
+                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
+                if urlProtocol.canInit(with: request) {
+                    return urlProtocol
+                }
             }
+            return nil
         }
-        _classesLock.unlock()
-        return nil
     }
 
     internal class func getProtocols() -> [AnyClass]? {
-        _classesLock.lock()
-        defer { _classesLock.unlock() }
-        return _registeredProtocolClasses
+        _registeredProtocolClasses.withLock { $0 }
     }
     /*! 
         @method unregisterClass:
@@ -418,11 +415,11 @@ open class URLProtocol : NSObject {
         @param protocolClass The class to unregister.
     */
     open class func unregisterClass(_ protocolClass: AnyClass) {
-        _classesLock.lock()
-        if let idx = _registeredProtocolClasses.firstIndex(where: { $0 === protocolClass }) {
-            _registeredProtocolClasses.remove(at: idx)
+        _registeredProtocolClasses.withLock {
+            if let idx = $0.firstIndex(where: { $0 === protocolClass }) {
+                $0.remove(at: idx)
+            }
         }
-        _classesLock.unlock()
     }
 
     open class func canInit(with task: URLSessionTask) -> Bool {

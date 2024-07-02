@@ -329,12 +329,12 @@ class TestURL : XCTestCase {
     }
     #endif
 
-    static let gBaseTemporaryDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
+    static nonisolated let gBaseTemporaryDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
     static var gBaseCurrentWorkingDirectoryPath : String {
         return FileManager.default.currentDirectoryPath
     }
-    static var gSavedPath = ""
-    static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
+    static nonisolated(unsafe) var gSavedPath = ""
+    static nonisolated(unsafe) var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
     static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
     static let gDirectoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo.globallyUniqueString)"
@@ -778,7 +778,7 @@ class TestURL : XCTestCase {
 
     // MARK: -
 
-    var writableTestDirectoryURL: URL!
+    nonisolated(unsafe) var writableTestDirectoryURL: URL!
 
     override func setUp() {
         super.setUp()

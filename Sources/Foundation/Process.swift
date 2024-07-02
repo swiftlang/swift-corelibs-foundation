@@ -20,6 +20,8 @@ import struct WinSDK.HANDLE
 import Darwin
 #endif
 
+internal import Synchronization
+
 extension Process {
     public enum TerminationReason : Int, Sendable {
         case exit
@@ -47,9 +49,12 @@ private func WTERMSIG(_ status: Int32) -> Int32 {
     return status & 0x7f
 }
 
-private var managerThreadRunLoop : RunLoop? = nil
-private var managerThreadRunLoopIsRunning = false
-private var managerThreadRunLoopIsRunningCondition = NSCondition()
+// Protected by 'Once' below in `setup`
+private nonisolated(unsafe) var managerThreadRunLoop : RunLoop? = nil
+
+// Protected by managerThreadRunLoopIsRunningCondition
+private nonisolated(unsafe) var managerThreadRunLoopIsRunning = false
+private let managerThreadRunLoopIsRunningCondition = NSCondition()
 
 internal let kCFSocketNoCallBack: CFOptionFlags = 0 // .noCallBack cannot be used because empty option flags are imported as unavailable.
 internal let kCFSocketAcceptCallBack = CFSocketCallBackType.acceptCallBack.rawValue
@@ -222,13 +227,10 @@ private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
 
 open class Process: NSObject, @unchecked Sendable {
     private static func setup() {
-        struct Once {
-            static var done = false
-            static let lock = NSLock()
-        }
+        let once = Mutex(false)
         
-        Once.lock.synchronized {
-            if !Once.done {
+        once.withLock {
+            if !$0 {
                 let thread = Thread {
                     managerThreadRunLoop = RunLoop.current
                     var emptySourceContext = CFRunLoopSourceContext()
@@ -261,7 +263,7 @@ open class Process: NSObject, @unchecked Sendable {
                     managerThreadRunLoopIsRunningCondition.wait()
                 }
                 managerThreadRunLoopIsRunningCondition.unlock()
-                Once.done = true
+                $0 = true
             }
         }
     }

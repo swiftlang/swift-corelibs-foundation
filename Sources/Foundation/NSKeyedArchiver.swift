@@ -8,6 +8,7 @@
 //
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 /// Archives created using the class method `archivedData(withRootObject:)` use this key
 /// for the root object in the hierarchy of encoded objects. The `NSKeyedUnarchiver` class method
@@ -81,8 +82,7 @@ open class NSKeyedArchiver : NSCoder {
         var genericKey : UInt = 0
     }
 
-    private static var _classNameMap = Dictionary<String, String>()
-    private static var _classNameMapLock = NSLock()
+    private static let _globalClassNameMap = Mutex<Dictionary<String, String>>([:])
     
     private var _stream : AnyObject
     private var _flags = ArchiverFlags(rawValue: 0)
@@ -226,7 +226,7 @@ open class NSKeyedArchiver : NSCoder {
                 success = true
             }
         } else {
-            let stream = unsafeBitCast(self._stream, to: CFWriteStream.self)
+            let stream = unsafeDowncast(self._stream, to: CFWriteStream.self)
             success = CFPropertyListWrite(plist, stream, kCFPropertyListXMLFormat_v1_0, 0, nil) > 0
         }
         
@@ -302,8 +302,8 @@ open class NSKeyedArchiver : NSCoder {
     ///   - cls:        The class for which to set up a translation mapping.
     open class func setClassName(_ codedName: String?, for cls: AnyClass) {
         let clsName = String(describing: type(of: cls))
-        _classNameMapLock.synchronized {
-            _classNameMap[clsName] = codedName
+        _globalClassNameMap.withLock {
+            $0[clsName] = codedName
         }
     }
     
@@ -910,13 +910,9 @@ open class NSKeyedArchiver : NSCoder {
     ///                     Returns `nil` if `NSKeyedArchiver` does not have a translation mapping for `cls`.
     open class func classNameForClass(_ cls: AnyClass) -> String? {
         let clsName = String(reflecting: cls)
-        var mappedClass : String?
-        
-        _classNameMapLock.synchronized {
-            mappedClass = _classNameMap[clsName]
+        return _globalClassNameMap.withLock {
+            $0[clsName]
         }
-        
-        return mappedClass
     }
     
     /// Returns the class name with which the archiver encodes instances of a given class.

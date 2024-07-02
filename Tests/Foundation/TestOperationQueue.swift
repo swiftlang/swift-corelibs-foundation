@@ -70,8 +70,9 @@ class TestOperationQueue : XCTestCase {
     }
 
     func test_isExecutingWorks() {
-        class _OperationBox {
-            var operation: Operation?
+        final class _OperationBox : Sendable {
+            // Only mutate this before kicking off the operation
+            nonisolated(unsafe) var operation: Operation?
             init() {
                 self.operation = nil
             }
@@ -700,8 +701,9 @@ class TestOperationQueue : XCTestCase {
             let didRunOp1 = expectation(description: "Did run first operation")
             let didRunOp2 = expectation(description: "Did run second operation")
             
+            nonisolated(unsafe) let nonisolatedSelf = self
             queue.addOperation {
-                self.wait(for: [didRunOp2], timeout: 0.2)
+                nonisolatedSelf.wait(for: [didRunOp2], timeout: 0.2)
                 didRunOp1.fulfill()
             }
             queue.addOperation {
@@ -722,9 +724,10 @@ class TestOperationQueue : XCTestCase {
             let didRunOp1Completion = expectation(description: "Did run first operation completion")
             let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
             let didRunOp2 = expectation(description: "Did run second operation")
-            
+
+            nonisolated(unsafe) let nonisolatedSelf = self
             let op1 = BlockOperation {
-                self.wait(for: [didRunOp1Dependency, didRunOp2], timeout: 0.2)
+                nonisolatedSelf.wait(for: [didRunOp1Dependency, didRunOp2], timeout: 0.2)
                 didRunOp1.fulfill()
             }
             op1.completionBlock = {

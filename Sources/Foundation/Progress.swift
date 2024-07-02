@@ -40,7 +40,7 @@ open class Progress : NSObject, @unchecked Sendable {
     // This is set once, but after initialization
     private var _portionOfParent : Int64
     
-    static private var _tsdKey = "_Foundation_CurrentProgressKey"
+    static private let _tsdKey = "_Foundation_CurrentProgressKey"
     
     /// The instance of `Progress` associated with the current thread by a previous invocation of `becomeCurrent(withPendingUnitCount:)`, if any. 
     ///
@@ -274,7 +274,7 @@ open class Progress : NSObject, @unchecked Sendable {
     /// A closure to be called when `cancel` is called.
     ///
     /// The closure will be called even when the function is called on an ancestor of the receiver. Your closure won't be called on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
-    open var cancellationHandler: (() -> Void)? {
+    open var cancellationHandler: (@Sendable () -> Void)? {
         didSet {
             guard let handler = cancellationHandler else { return }
             // If we're already cancelled, then invoke it - asynchronously
@@ -289,7 +289,7 @@ open class Progress : NSObject, @unchecked Sendable {
     /// A closure to be called when pause is called.
     ///
     /// The closure will be called even when the function is called on an ancestor of the receiver. Your closure won't be called on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
-    open var pausingHandler: (() -> Void)? {
+    open var pausingHandler: (@Sendable () -> Void)? {
         didSet {
             guard let handler = pausingHandler else { return }
             // If we're already paused, then invoke it - asynchronously
@@ -305,7 +305,7 @@ open class Progress : NSObject, @unchecked Sendable {
     /// A closure to be called when resume is called.
     ///
     /// The closure will be called even when the function is called on an ancestor of the receiver. Your closure won't be called on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
-    open var resumingHandler: (() -> Void)?
+    open var resumingHandler: (@Sendable () -> Void)?
     
     /// Returns `true` if the progress is indeterminate.
     ///

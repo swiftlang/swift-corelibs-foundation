@@ -335,10 +335,10 @@ struct _NSCFXMLBridgeUntyped {
     void *kCFErrorLocalizedDescriptionKey;
 };
 
-CF_EXPORT struct _NSCFXMLBridgeStrong __NSCFXMLBridgeStrong;
-CF_EXPORT struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped;
+CF_EXPORT struct _NSCFXMLBridgeStrong __NSCFXMLBridgeStrong __attribute__((swift_attr("nonisolated(unsafe)")));
+CF_EXPORT struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped __attribute__((swift_attr("nonisolated(unsafe)")));
 
-CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
+CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge __attribute__((swift_attr("nonisolated(unsafe)")));
 
 CF_EXPORT void *_Nullable _CFSwiftRetain(void *_Nullable t);
 CF_EXPORT void _CFSwiftRelease(void *_Nullable t);
@@ -407,7 +407,7 @@ typedef void *_CFThreadSpecificKey;
 #endif
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
-CF_EXPORT _CFThreadRef _CFMainPThread;
+CF_EXPORT _CFThreadRef _CFMainPThread __attribute__((swift_attr("nonisolated(unsafe)")));
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 

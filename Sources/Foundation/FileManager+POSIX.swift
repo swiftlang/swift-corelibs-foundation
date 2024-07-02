@@ -14,6 +14,7 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
 #endif
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 #if os(WASI)
 import WASILibc
@@ -25,6 +26,10 @@ internal var O_DIRECTORY: Int32 { _getConst_O_DIRECTORY() }
 internal var O_EXCL: Int32 { _getConst_O_EXCL() }
 internal var O_TRUNC: Int32 { _getConst_O_TRUNC() }
 internal var O_WRONLY: Int32 { _getConst_O_WRONLY() }
+#endif
+
+#if os(Linux)
+fileprivate let previousStatxFailed = Mutex(false)
 #endif
 
 @_implementationOnly import CoreFoundation
@@ -257,7 +262,8 @@ extension FileManager {
         }
 
         return try _fileSystemRepresentation(withPath: path) { fsRep in
-            if supportsStatx {
+            let statxPreviouslyFailed = previousStatxFailed.withLock { $0 }
+            if supportsStatx && !statxPreviouslyFailed {
                 var statInfo = stat()
                 var btime = timespec()
                 let statxErrno = _stat_with_btime(fsRep, &statInfo, &btime)
@@ -266,7 +272,7 @@ extension FileManager {
                     case EPERM, ENOSYS:
                         // statx() may be blocked by a security mechanism (eg libseccomp or Docker) even if the kernel verison is new enough. EPERM or ENONSYS may be reported.
                         // Dont try to use it in future and fallthough to a normal lstat() call.
-                        supportsStatx = false
+                        previousStatxFailed.withLock { $0 = true }
                         return try _statxFallback(atPath: path, withFileSystemRepresentation: fsRep)
 
                     default:

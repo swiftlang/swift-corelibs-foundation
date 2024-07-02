@@ -168,6 +168,8 @@ import SwiftFoundation
 import Foundation
 #endif
 
+internal import Synchronization
+
 extension URLSession {
     public enum DelayedRequestDisposition : Sendable {
         case cancel
@@ -176,13 +178,10 @@ extension URLSession {
     }
 }
 
-fileprivate let globalVarSyncQ = DispatchQueue(label: "org.swift.Foundation.URLSession.GlobalVarSyncQ")
-fileprivate var sessionCounter = Int32(0)
+fileprivate let sessionCounter = Atomic<Int32>(0)
 fileprivate func nextSessionIdentifier() -> Int32 {
-    return globalVarSyncQ.sync {
-        sessionCounter += 1
-        return sessionCounter
-    }
+    let (_, new) = sessionCounter.add(1, ordering: .relaxed)
+    return new
 }
 public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
@@ -684,37 +683,15 @@ internal extension URLSession {
     }
 }
 
-fileprivate struct Lock<State>: @unchecked Sendable {
-    let stateLock: ManagedBuffer<State, NSLock>
-    init(initialState: State) {
-        stateLock = .create(minimumCapacity: 1) { buffer in
-            buffer.withUnsafeMutablePointerToElements { lock in
-                lock.initialize(to: .init())
-            }
-            return initialState
-        }
-    }
-
-    func withLock<R>(_ body: @Sendable (inout State) throws -> R) rethrows -> R where R : Sendable {
-        return try stateLock.withUnsafeMutablePointers { header, lock in
-            lock.pointee.lock()
-            defer {
-                lock.pointee.unlock()
-            }
-            return try body(&header.pointee)
-        }
-    }
-}
-
 fileprivate extension URLSession {
     final class CancelState: Sendable {
         struct State {
             var isCancelled: Bool
             var task: URLSessionTask?
         }
-        let lock: Lock<State>
+        
+        let lock = Mutex<State>(State(isCancelled: false, task: nil))
         init() {
-            lock = Lock(initialState: State(isCancelled: false, task: nil))
         }
 
         func cancel() {

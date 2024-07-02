@@ -83,7 +83,8 @@ open class RunLoop: NSObject {
         set { _cfRunLoopStorage = newValue }
     }
 
-    internal static var _mainRunLoop: RunLoop = {
+    // TODO: We need some kind API to expose only the Sendable part of the main run loop
+    internal static nonisolated(unsafe) var _mainRunLoop: RunLoop = {
         let cfObject: CFRunLoop! = CFRunLoopGetMain()
 #if os(Windows)
         // Enable the main runloop on Windows to process the Windows UI events.
@@ -98,6 +99,7 @@ open class RunLoop: NSObject {
         _cfRunLoopStorage = cfObject
     }
 
+    @available(*, noasync)
     open class var current: RunLoop {
         return _CFRunLoopGet2(CFRunLoopGetCurrent()) as! RunLoop
     }
@@ -148,8 +150,10 @@ open class RunLoop: NSObject {
                 
                 let shouldStartMonitoring = monitoredPortObservers[aPort] == nil
                 if shouldStartMonitoring {
-                    monitoredPortObservers[aPort] = NotificationCenter.default.addObserver(forName: Port.didBecomeInvalidNotification, object: aPort, queue: nil, using: { [weak self] (notification) in
-                        self?.portDidInvalidate(aPort)
+                    nonisolated(unsafe) let strongNonisolatedSelf = self
+                    nonisolated(unsafe) let nonisolatedPort = aPort
+                    monitoredPortObservers[aPort] = NotificationCenter.default.addObserver(forName: Port.didBecomeInvalidNotification, object: aPort, queue: nil, using: { (notification) in
+                        strongNonisolatedSelf.portDidInvalidate(nonisolatedPort)
                     })
                 }
                 
@@ -215,6 +219,7 @@ open class RunLoop: NSObject {
         return Date(timeIntervalSinceReferenceDate: nextTimerFireAbsoluteTime)
     }
 
+    @available(*, noasync)
     open func acceptInput(forMode mode: String, before limitDate: Date) {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return
@@ -225,15 +230,17 @@ open class RunLoop: NSObject {
 }
 
 extension RunLoop {
-
+    @available(*, noasync)
     public func run() {
         while run(mode: .default, before: Date.distantFuture) { }
     }
 
+    @available(*, noasync)
     public func run(until limitDate: Date) {
         while run(mode: .default, before: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
+    @available(*, noasync)
     public func run(mode: RunLoop.Mode, before limitDate: Date) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
@@ -338,7 +345,7 @@ extension RunLoop {
     // @available(*, deprecated, message: "For XCTest use only.")
     public class _Observer {
         fileprivate let _cfObserverStorage: AnyObject
-        fileprivate var cfObserver: CFRunLoopObserver { unsafeBitCast(_cfObserverStorage, to: CFRunLoopObserver.self) }
+        fileprivate var cfObserver: CFRunLoopObserver { unsafeDowncast(_cfObserverStorage, to: CFRunLoopObserver.self) }
         
         fileprivate init(activities: _Activities, repeats: Bool, order: Int, handler: @escaping (_Activity) -> Void) {
             self._cfObserverStorage = CFRunLoopObserverCreateWithHandler(kCFAllocatorSystemDefault, CFOptionFlags(activities.rawValue), repeats, CFIndex(order), { (cfObserver, cfActivity) in
