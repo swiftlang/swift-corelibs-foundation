@@ -1063,7 +1063,7 @@ static void _CFLogvEx2Predicate(CFLogFunc logit, CFStringRef (*copyDescFunc)(voi
 #endif
     CFStringRef str = format ? _CFStringCreateWithFormatAndArgumentsAux2(kCFAllocatorSystemDefault, copyDescFunc, contextDescFunc, formatOptions, (CFStringRef)format, args) : 0;
     CFIndex blen = str ? CFStringGetMaximumSizeForEncoding(CFStringGetLength(str), kCFStringEncodingUTF8) + 1 : 0;
-    char *buf = str ? (char *)malloc(blen) : 0;
+    char *buf = str ? (char *)malloc(blen) : NULL;
     if (str && buf) {
 	Boolean converted = CFStringGetCString(str, buf, blen, kCFStringEncodingUTF8);
 	size_t len = strlen(buf);
@@ -1149,7 +1149,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
     const char *tag = "Swift"; // process name not available from NDK
     
     if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
-        buffer = calloc(sizeof(char), maxLength);
+        buffer = calloc(maxLength, sizeof(char));
         if (!buffer) {
             maxLength = sizeof(stack_buffer) / sizeof(stack_buffer[0]);
             buffer = &stack_buffer[0];
