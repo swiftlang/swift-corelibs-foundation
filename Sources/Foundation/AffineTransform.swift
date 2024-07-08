@@ -412,7 +412,10 @@ public struct NSAffineTransformStruct : Sendable {
     }
 }
 
-open class NSAffineTransform: NSObject, @unchecked Sendable {
+@available(*, unavailable)
+extension NSAffineTransform : Sendable { }
+
+open class NSAffineTransform: NSObject {
     // Internal only for testing.
     internal var affineTransform: AffineTransform
     
