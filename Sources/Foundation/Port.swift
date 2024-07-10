@@ -90,18 +90,22 @@ open class SocketPort: Port {}
 
 #else
 
+#if canImport(Darwin)
+import Darwin
+fileprivate let FOUNDATION_SOCK_STREAM = SOCK_STREAM
+fileprivate let FOUNDATION_IPPROTO_TCP = IPPROTO_TCP
+#endif
+
 #if canImport(Glibc) && !os(Android) && !os(OpenBSD)
 import Glibc
-fileprivate let SOCK_STREAM = Int32(Glibc.SOCK_STREAM.rawValue)
-fileprivate let SOCK_DGRAM  = Int32(Glibc.SOCK_DGRAM.rawValue)
-fileprivate let IPPROTO_TCP = Int32(Glibc.IPPROTO_TCP)
+fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM.rawValue)
+fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
 #endif
 
 #if canImport(Glibc) && os(Android) || os(OpenBSD)
 import Glibc
-fileprivate let SOCK_STREAM = Int32(Glibc.SOCK_STREAM)
-fileprivate let SOCK_DGRAM  = Int32(Glibc.SOCK_DGRAM)
-fileprivate let IPPROTO_TCP = Int32(Glibc.IPPROTO_TCP)
+fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM)
+fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
 fileprivate let INADDR_ANY: in_addr_t = 0
 #if os(OpenBSD)
 fileprivate let INADDR_LOOPBACK = 0x7f000001
@@ -123,7 +127,8 @@ import WinSDK
 fileprivate typealias sa_family_t = ADDRESS_FAMILY
 fileprivate typealias in_port_t = USHORT
 fileprivate typealias in_addr_t = UInt32
-fileprivate let IPPROTO_TCP = Int32(WinSDK.IPPROTO_TCP.rawValue)
+fileprivate let FOUNDATION_SOCK_STREAM = SOCK_STREAM
+fileprivate let FOUNDATION_IPPROTO_TCP = Int32(WinSDK.IPPROTO_TCP.rawValue)
 #endif
 
 // MARK: Darwin representation of socket addresses
@@ -484,7 +489,7 @@ open class SocketPort : Port {
         
         let data = withUnsafeBytes(of: address) { Data($0) }
         
-        self.init(protocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
+        self.init(protocolFamily: PF_INET, socketType: FOUNDATION_SOCK_STREAM, protocol: FOUNDATION_IPPROTO_TCP, address: data)
     }
     
     private final func createNonuniquedCore(from socket: CFSocket, protocolFamily family: Int32, socketType type: Int32, protocol: Int32) {
@@ -500,7 +505,7 @@ open class SocketPort : Port {
         var context = CFSocketContext()
         context.info = Unmanaged.passUnretained(self).toOpaque()
         var s: CFSocket
-        if type == SOCK_STREAM {
+        if type == FOUNDATION_SOCK_STREAM {
             s = CFSocketCreate(nil, family, type, `protocol`, CFOptionFlags(kCFSocketAcceptCallBack), __NSFireSocketAccept, &context)
         } else {
             s = CFSocketCreate(nil, family, type, `protocol`, CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketDatagram, &context)
@@ -519,7 +524,7 @@ open class SocketPort : Port {
         var context = CFSocketContext()
         context.info = Unmanaged.passUnretained(self).toOpaque()
         var s: CFSocket
-        if type == SOCK_STREAM {
+        if type == FOUNDATION_SOCK_STREAM {
             s = CFSocketCreateWithNative(nil, CFSocketNativeHandle(sock), CFOptionFlags(kCFSocketAcceptCallBack), __NSFireSocketAccept, &context)
         } else {
             s = CFSocketCreateWithNative(nil, CFSocketNativeHandle(sock), CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketDatagram, &context)
@@ -543,7 +548,7 @@ open class SocketPort : Port {
                 sinAddr.sin_addr = inAddr
                 
                 let data = withUnsafeBytes(of: sinAddr) { Data($0) }
-                self.init(remoteWithProtocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
+                self.init(remoteWithProtocolFamily: PF_INET, socketType: FOUNDATION_SOCK_STREAM, protocol: FOUNDATION_IPPROTO_TCP, address: data)
                 return
             }
         }
@@ -556,7 +561,7 @@ open class SocketPort : Port {
                 sinAddr.sin6_addr = in6Addr
                 
                 let data = withUnsafeBytes(of: sinAddr) { Data($0) }
-                self.init(remoteWithProtocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
+                self.init(remoteWithProtocolFamily: PF_INET, socketType: FOUNDATION_SOCK_STREAM, protocol: FOUNDATION_IPPROTO_TCP, address: data)
                 return
             }
         }
@@ -573,7 +578,7 @@ open class SocketPort : Port {
             withUnsafeBytes(of: in_addr_t(INADDR_LOOPBACK).bigEndian) { buffer.copyMemory(from: $0) }
         }
         let data = withUnsafeBytes(of: sinAddr) { Data($0) }
-        self.init(remoteWithProtocolFamily: PF_INET, socketType: SOCK_STREAM, protocol: IPPROTO_TCP, address: data)
+        self.init(remoteWithProtocolFamily: PF_INET, socketType: FOUNDATION_SOCK_STREAM, protocol: FOUNDATION_IPPROTO_TCP, address: data)
     }
     
     private static let remoteSocketCoresLock = NSLock()
@@ -1049,7 +1054,7 @@ open class SocketPort : Port {
             if let connector = core.connectors[signature], CFSocketIsValid(connector) {
                 return connector
             } else {
-                if signature.socketType == SOCK_STREAM {
+                if signature.socketType == FOUNDATION_SOCK_STREAM {
                     if let connector = CFSocketCreate(nil, socketKind.protocolFamily, socketKind.socketType, socketKind.protocol, CFOptionFlags(kCFSocketDataCallBack), __NSFireSocketData, &context), CFSocketIsValid(connector) {
                         var timeout = time - Date.timeIntervalSinceReferenceDate
                         if timeout < 0 || timeout >= SocketPort.maximumTimeout {
