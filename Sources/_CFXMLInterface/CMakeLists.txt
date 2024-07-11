@@ -17,6 +17,7 @@ add_library(_CFXMLInterface STATIC CFXMLInterface.c)
 target_include_directories(_CFXMLInterface
     PUBLIC
         include
+        ../CoreFoundation/include
     PRIVATE
         ../CoreFoundation/internalInclude
         /usr/include/libxml2/)
@@ -25,7 +26,6 @@ target_compile_options(_CFXMLInterface PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:C>:${_Foundation_common_build_flags}>")
 
 target_link_libraries(_CFXMLInterface PRIVATE
-    CoreFoundation
     dispatch
     LibXml2::LibXml2)
 

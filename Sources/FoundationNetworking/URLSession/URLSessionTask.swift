@@ -20,7 +20,6 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-@_implementationOnly import CoreFoundation
 
 private class Bag<Element> {
     var values: [Element] = []

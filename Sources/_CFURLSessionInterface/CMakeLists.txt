@@ -17,6 +17,7 @@ add_library(_CFURLSessionInterface STATIC CFURLSessionInterface.c)
 target_include_directories(_CFURLSessionInterface
     PUBLIC
         include
+        ../CoreFoundation/include
     PRIVATE
         ../CoreFoundation/internalInclude)
 
@@ -26,7 +27,6 @@ target_compile_options(_CFURLSessionInterface PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:C>:${_Foundation_common_build_flags}>")
 
 target_link_libraries(_CFURLSessionInterface PRIVATE
-    CoreFoundation
     dispatch
     CURL::libcurl)
 

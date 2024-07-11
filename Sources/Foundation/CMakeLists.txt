@@ -149,8 +149,9 @@ target_compile_options(Foundation PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:Swift>:${_Foundation_swift_build_flags}>")
 
 target_link_libraries(Foundation
-    PUBLIC
+    PRIVATE
         CoreFoundation
+    PUBLIC
         FoundationEssentials
         FoundationInternationalization)
 
