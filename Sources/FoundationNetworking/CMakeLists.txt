@@ -51,7 +51,6 @@ target_compile_options(FoundationNetworking PRIVATE
 
 target_link_libraries(FoundationNetworking
     PRIVATE
-        CoreFoundation
         _CFURLSessionInterface
     PUBLIC
         Foundation)
@@ -59,8 +58,6 @@ target_link_libraries(FoundationNetworking
 if(NOT BUILD_SHARED_LIBS)
     target_compile_options(FoundationNetworking PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFURLSessionInterface>")
-    target_compile_options(FoundationNetworking PRIVATE
-        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend CoreFoundation>")
     target_compile_options(FoundationNetworking PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend curl>")
 endif()

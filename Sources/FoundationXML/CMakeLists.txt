@@ -26,7 +26,6 @@ target_compile_options(FoundationXML PRIVATE
 
 target_link_libraries(FoundationXML
     PRIVATE
-        CoreFoundation
         _CFXMLInterface
     PUBLIC
         Foundation)
@@ -34,8 +33,6 @@ target_link_libraries(FoundationXML
 if(NOT BUILD_SHARED_LIBS)
     target_compile_options(FoundationXML PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFXMLInterface>")
-    target_compile_options(FoundationXML PRIVATE
-        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend CoreFoundation>")
     target_compile_options(FoundationXML PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend xml2>")
 endif()
