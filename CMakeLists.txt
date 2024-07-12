@@ -112,14 +112,14 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-unused-function"
     "-Wno-microsoft-enum-forward-reference"
     "-Wno-int-conversion"
-    "-fcf-runtime-abi=swift"
     "-fblocks")
 
 if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
     list(APPEND _Foundation_common_build_flags
         "-fconstant-cfstrings"
         "-fdollars-in-identifiers"
-        "-fno-common")
+        "-fno-common"
+        "-fcf-runtime-abi=swift")
 
     if(NOT CMAKE_SYSTEM_NAME STREQUAL OpenBSD)
         list(APPEND _Foundation_common_build_flags
@@ -127,7 +127,8 @@ if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
     endif()
 else()
     list(APPEND _Foundation_common_build_flags
-        "/EHsc")
+        "/EHsc"
+        "/clang:-fcf-runtime-abi=swift")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
