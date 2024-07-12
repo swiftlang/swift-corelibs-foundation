@@ -59,6 +59,8 @@
 
 #if TARGET_OS_LINUX
 #include <sys/sysmacros.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #endif
 
 #if TARGET_OS_ANDROID

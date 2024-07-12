@@ -640,35 +640,6 @@ extension String {
     }
 }
 
-extension FileHandle: @retroactive TextOutputStream {
-    public func write(_ string: String) {
-        write(Data(string.utf8))
-    }
-    
-    struct EncodedOutputStream: TextOutputStream {
-        let fileHandle: FileHandle
-        let encoding: String.Encoding
-        
-        init(_ fileHandle: FileHandle, encoding: String.Encoding) {
-            self.fileHandle = fileHandle
-            self.encoding = encoding
-        }
-        
-        func write(_ string: String) {
-            fileHandle.write(string.data(using: encoding)!)
-        }
-    }
-}
-
-extension NSLock {
-    public func synchronized<T>(_ closure: () throws -> T) rethrows -> T {
-        self.lock()
-        defer { self.unlock() }
-        return try closure()
-    }
-}
-
-
 // Create a uniquely named temporary directory, pass the URL and path to a closure then remove the directory afterwards.
 public func withTemporaryDirectory<R>(functionName: String = #function, block: (URL, String) throws -> R) throws -> R {
 

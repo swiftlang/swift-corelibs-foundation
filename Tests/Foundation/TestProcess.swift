@@ -580,25 +580,23 @@ class TestProcess : XCTestCase {
         task.executableURL = url
         task.arguments = []
         let stdoutPipe = Pipe()
-        let dataLock = NSLock()
+        let stdoutData = Mutex(Data())
         task.standardOutput = stdoutPipe
 
-        // protected by the task.waitUntilExit()
-        nonisolated(unsafe) var stdoutData = Data()
         stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
-            dataLock.synchronized {
-                stdoutData.append(fh.availableData)
+            stdoutData.withLock {
+                $0.append(fh.availableData)
             }
         }
         try task.run()
         task.waitUntilExit()
         stdoutPipe.fileHandleForReading.readabilityHandler = nil
 
-        try dataLock.synchronized {
+        try stdoutData.withLock {
             if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
-                stdoutData.append(d)
+                $0.append(d)
             }
-            XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
+            XCTAssertEqual(String(data: $0, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
         }
     }
 
