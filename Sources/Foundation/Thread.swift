@@ -128,7 +128,7 @@ open class Thread : NSObject {
     @available(*, noasync)
     open class func sleep(until date: Date) {
 #if os(Windows)
-        var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
+        let hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
         if hTimer == HANDLE(bitPattern: 0) { fatalError("unable to create timer: \(GetLastError())") }
         defer { CloseHandle(hTimer) }
 
@@ -166,7 +166,7 @@ open class Thread : NSObject {
     @available(*, noasync)
     open class func sleep(forTimeInterval interval: TimeInterval) {
 #if os(Windows)
-        var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
+        let hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
         // FIXME(compnerd) how to check that hTimer is not NULL?
         defer { CloseHandle(hTimer) }
 
@@ -410,37 +410,41 @@ open class Thread : NSObject {
         let hProcess: HANDLE = GetCurrentProcess()
         SymSetOptions(DWORD(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS))
         if !SymInitializeW(hProcess, nil, true) {
-          return []
+            return []
         }
         return backtraceAddresses { (addresses, count) in
-          var symbols: [String] = []
-
-          let addresses: UnsafeMutableBufferPointer<PVOID?> =
-              UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
-          withUnsafeTemporaryAllocation(byteCount: MemoryLayout<SYMBOL_INFO>.size + 127,
-                                        alignment: 8) { buffer in
-            let pSymbolInfo: UnsafeMutablePointer<SYMBOL_INFO> =
+            var symbols: [String] = []
+            
+            let addresses: UnsafeMutableBufferPointer<PVOID?> =
+            UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
+            withUnsafeTemporaryAllocation(byteCount: MemoryLayout<SYMBOL_INFO>.size + 127,
+                                          alignment: 8) { buffer in
+                let pSymbolInfo: UnsafeMutablePointer<SYMBOL_INFO> =
                 buffer.baseAddress!.assumingMemoryBound(to: SYMBOL_INFO.self)
-
-            for address in addresses {
-              pSymbolInfo.pointee.SizeOfStruct =
+                
+                for address in addresses {
+                    pSymbolInfo.pointee.SizeOfStruct =
                     ULONG(MemoryLayout<SYMBOL_INFO>.size)
-              pSymbolInfo.pointee.MaxNameLen = 128
-
-              var dwDisplacement: DWORD64 = 0
-              if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
-                             &dwDisplacement, &pSymbolInfo.pointee) {
-                symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
-                  strncpy($0.baseAddress, &pSymbolInfo.pointee.Name, $0.count)
-                  return $0.count
-                })
-              } else {
-                symbols.append("\(address)")
-              }
+                    pSymbolInfo.pointee.MaxNameLen = 128
+                    
+                    var dwDisplacement: DWORD64 = 0
+                    if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
+                                   &dwDisplacement, &pSymbolInfo.pointee) {
+                        symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
+                            strncpy_s($0.baseAddress, $0.count, &pSymbolInfo.pointee.Name, $0.count)
+                            return $0.count
+                        })
+                    } else {
+                        if let address {
+                            symbols.append("\(address)")
+                        } else {
+                            symbols.append("<unknown address>")
+                        }
+                    }
+                }
             }
-          }
-
-          return symbols
+            
+            return symbols
         }
 #else
         return backtraceAddresses({ (addrs, count) in

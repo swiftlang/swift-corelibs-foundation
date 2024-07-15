@@ -35,6 +35,7 @@
 #define NOMINMAX
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
+#define _CRT_NONSTDC_NO_DEPRECATE
 #include <Windows.h>
 #elif !TARGET_OS_WASI
 #include <fts.h>

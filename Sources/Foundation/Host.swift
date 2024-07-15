@@ -135,7 +135,7 @@ open class Host: NSObject {
         var ulResult: ULONG =
             GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, nil, &ulSize)
 
-        var arAdapters: UnsafeMutableRawPointer =
+        let arAdapters: UnsafeMutableRawPointer =
             UnsafeMutableRawPointer.allocate(byteCount: Int(ulSize),
                                              alignment: 1)
         defer { arAdapters.deallocate() }
@@ -150,7 +150,7 @@ open class Host: NSObject {
         while pAdapter != nil {
           // print("Adapter: \(String(cString: pAdapter!.pointee.AdapterName))")
 
-          var arAddresses: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS> =
+          let arAddresses: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS> =
               pAdapter!.pointee.FirstUnicastAddress
 
           var pAddress: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS>? =
