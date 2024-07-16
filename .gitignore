@@ -3,6 +3,8 @@
 # Mac OS X filesystem metadata
 .DS_Store
 
+Package.resolved
+
 # Xcode user artifacts
 xcuserdata/
 project.xcworkspace
@@ -28,3 +30,4 @@ Build
 *.swp
 *.orig
 .arcconfig
+.swiftpm

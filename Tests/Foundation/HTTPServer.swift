@@ -320,9 +320,9 @@ class _HTTPServer: CustomStringConvertible {
     public func request() throws -> _HTTPRequest {
 
         var reader = _SocketDataReader(socket: tcpSocket)
-        let headerData = try reader.readBlockSeparated(by: _HTTPUtils.CRLF2.data(using: .ascii)!)
+        let headerData = try reader.readBlockSeparated(by: _HTTPUtils.CRLF2.data(using: .utf8)!)
 
-        guard let headerString = String(bytes: headerData, encoding: .ascii) else {
+        guard let headerString = String(bytes: headerData, encoding: .utf8) else {
             throw InternalServerError.requestTooShort
         }
         var request = try _HTTPRequest(header: headerString)
@@ -347,14 +347,14 @@ class _HTTPServer: CustomStringConvertible {
 
             // There maybe some part of the body in the initial data
 
-            let bodySeparator = _HTTPUtils.CRLF.data(using: .ascii)!
+            let bodySeparator = _HTTPUtils.CRLF.data(using: .utf8)!
             var messageData = Data()
             var finished = false
 
             while !finished {
                 let chunkSizeData = try reader.readBlockSeparated(by: bodySeparator)
                 // Should now have <num bytes>\r\n
-                guard let number = String(bytes: chunkSizeData, encoding: .ascii), let chunkSize = Int(number, radix: 16) else {
+                guard let number = String(bytes: chunkSizeData, encoding: .utf8), let chunkSize = Int(number, radix: 16) else {
                      throw InternalServerError.requestTooShort
                 }
                 if chunkSize == 0 {
@@ -676,7 +676,7 @@ public class TestURLSessionServer: CustomStringConvertible {
             // Serve this directly as binary data to avoid any String encoding conversions.
             if let url = testBundle().url(forResource: "NSString-ISO-8859-1-data", withExtension: "txt"),
                 let content = try? Data(contentsOf: url) {
-                var responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .ascii)!
+                var responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .utf8)!
                 responseData.append(content)
                 try httpServer.tcpSocket.writeRawData(responseData)
             } else {

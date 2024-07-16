@@ -1,0 +1,8 @@
+module _CFURLSessionInterface {
+    umbrella header "CFURLSessionInterface.h"
+
+    export *
+    module * {
+      export *
+    }
+}

@@ -20,7 +20,6 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-@_implementationOnly import CoreFoundation
 
 open class URLSessionTaskMetrics : NSObject {
     public internal(set) var transactionMetrics: [URLSessionTaskTransactionMetrics] = []

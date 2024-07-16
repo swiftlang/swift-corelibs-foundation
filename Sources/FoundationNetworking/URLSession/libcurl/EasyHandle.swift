@@ -23,8 +23,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-@_implementationOnly import CoreFoundation
-@_implementationOnly import CFURLSessionInterface
+@_implementationOnly import _CFURLSessionInterface
 import Dispatch
 
 
@@ -209,40 +208,39 @@ extension _EasyHandle {
         }
 #endif
 
-#if !NS_CURL_MISSING_CURLINFO_CAINFO
 #if !os(Windows) && !os(macOS) && !os(iOS) && !os(watchOS) && !os(tvOS)
-        // Check if there is a default path; if there is, it will already
-        // be set, so leave things alone
-        var p: UnsafeMutablePointer<Int8>? = nil
-
-        try! CFURLSession_easy_getinfo_charp(rawHandle, CFURLSessionInfoCAINFO, &p).asError()
-
-        if p != nil {
-          return
-        }
-
-        // Otherwise, search a list of known paths
-        let paths = [
-            "/etc/ssl/certs/ca-certificates.crt",
-            "/etc/pki/tls/certs/ca-bundle.crt",
-            "/usr/share/ssl/certs/ca-bundle.crt",
-            "/usr/local/share/certs/ca-root-nss.crt",
-            "/etc/ssl/cert.pem"
-        ]
-
-        for path in paths {
-            var isDirectory: ObjCBool = false
-            if FileManager.default.fileExists(atPath: path,
-                                              isDirectory: &isDirectory)
-                 && !isDirectory.boolValue {
-              path.withCString { pathPtr in
-                try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, UnsafeMutablePointer(mutating: pathPtr)).asError()
-              }
-              return
-          }
+        if NS_CURL_CURLINFO_CAINFO_SUPPORTED == 1 {
+            // Check if there is a default path; if there is, it will already
+            // be set, so leave things alone
+            var p: UnsafeMutablePointer<Int8>? = nil
+            
+            try! CFURLSession_easy_getinfo_charp(rawHandle, CFURLSessionInfoCAINFO, &p).asError()
+            if p != nil {
+                return
+            }
+            
+            // Otherwise, search a list of known paths
+            let paths = [
+                "/etc/ssl/certs/ca-certificates.crt",
+                "/etc/pki/tls/certs/ca-bundle.crt",
+                "/usr/share/ssl/certs/ca-bundle.crt",
+                "/usr/local/share/certs/ca-root-nss.crt",
+                "/etc/ssl/cert.pem"
+            ]
+            
+            for path in paths {
+                var isDirectory: ObjCBool = false
+                if FileManager.default.fileExists(atPath: path,
+                                                  isDirectory: &isDirectory)
+                    && !isDirectory.boolValue {
+                    path.withCString { pathPtr in
+                        try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, UnsafeMutablePointer(mutating: pathPtr)).asError()
+                    }
+                    return
+                }
+            }
         }
 #endif // !os(Windows) && !os(macOS) && !os(iOS) && !os(watchOS) && !os(tvOS)
-#endif // !NS_CURL_MISSING_CURLINFO_CAINFO
     }
 
     /// Set allowed protocols
@@ -626,13 +624,13 @@ fileprivate extension _EasyHandle {
         
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionPROGRESSDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         
-        #if !NS_CURL_MISSING_XFERINFOFUNCTION
-        try! CFURLSession_easy_setopt_tc(rawHandle, CFURLSessionOptionXFERINFOFUNCTION, { (userdata: UnsafeMutableRawPointer?, dltotal :Int64, dlnow: Int64, ultotal: Int64, ulnow: Int64) -> Int32 in
-            guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return -1 }
-            handle.updateProgressMeter(with: _Progress(totalBytesSent: ulnow, totalBytesExpectedToSend: ultotal, totalBytesReceived: dlnow, totalBytesExpectedToReceive: dltotal))
-            return 0
-        }).asError()
-        #endif
+        if NS_CURL_XFERINFOFUNCTION_SUPPORTED == 1 {
+            try! CFURLSession_easy_setopt_tc(rawHandle, CFURLSessionOptionXFERINFOFUNCTION, { (userdata: UnsafeMutableRawPointer?, dltotal :Int64, dlnow: Int64, ultotal: Int64, ulnow: Int64) -> Int32 in
+                guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return -1 }
+                handle.updateProgressMeter(with: _Progress(totalBytesSent: ulnow, totalBytesExpectedToSend: ultotal, totalBytesReceived: dlnow, totalBytesExpectedToReceive: dltotal))
+                return 0
+            }).asError()
+        }
 
     }
     /// This callback function gets called by libcurl when it receives body

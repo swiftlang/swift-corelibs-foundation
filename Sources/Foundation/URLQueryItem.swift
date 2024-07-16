@@ -7,63 +7,12 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-/// A single name-value pair, for use with `URLComponents`.
-public struct URLQueryItem: ReferenceConvertible, Hashable, Equatable {
-    public typealias ReferenceType = NSURLQueryItem
-
-    fileprivate var _queryItem: NSURLQueryItem
-
-    public init(name: String, value: String?) {
-        _queryItem = NSURLQueryItem(name: name, value: value)
-    }
-
-    fileprivate init(reference: NSURLQueryItem) { _queryItem = reference.copy() as! NSURLQueryItem }
-    fileprivate var reference: NSURLQueryItem { return _queryItem }
-
-    public var name: String {
-        get { return _queryItem.name }
-        set { _queryItem = NSURLQueryItem(name: newValue, value: value) }
-    }
-
-    public var value: String? {
-        get { return _queryItem.value }
-        set { _queryItem = NSURLQueryItem(name: name, value: newValue) }
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(_queryItem)
-    }
-
-    public static func ==(lhs: URLQueryItem, rhs: URLQueryItem) -> Bool {
-        return lhs._queryItem.isEqual(rhs._queryItem)
-    }
-}
-
-extension URLQueryItem: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
-    public var description: String {
-        if let v = value {
-            return "\(name)=\(v)"
-        } else {
-            return name
-        }
-    }
-
-    public var debugDescription: String {
-        return self.description
-    }
-
-    public var customMirror: Mirror {
-        var c: [(label: String?, value: Any)] = []
-        c.append((label: "name", value: name))
-        c.append((label: "value", value: value as Any))
-        return Mirror(self, children: c, displayStyle: .struct)
-    }
-}
+// URLQueryItem is defined in FoundationEssentials
+@_exported import FoundationEssentials
 
 extension URLQueryItem: _NSBridgeable {
     typealias NSType = NSURLQueryItem
-    internal var _nsObject: NSType { return _queryItem }
+    internal var _nsObject: NSType { return NSURLQueryItem(name: self.name, value: self.value) }
 }
 
 extension URLQueryItem: _ObjectiveCBridgeable {
@@ -75,7 +24,7 @@ extension URLQueryItem: _ObjectiveCBridgeable {
 
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURLQueryItem {
-        return _queryItem
+        return NSURLQueryItem(name: self.name, value: self.value)
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSURLQueryItem, result: inout URLQueryItem?) {
@@ -85,7 +34,7 @@ extension URLQueryItem: _ObjectiveCBridgeable {
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSURLQueryItem, result: inout URLQueryItem?) -> Bool {
-        result = URLQueryItem(reference: x)
+        result = URLQueryItem(name: x.name, value: x.value)
         return true
     }
 
@@ -98,5 +47,5 @@ extension URLQueryItem: _ObjectiveCBridgeable {
 
 extension NSURLQueryItem: _SwiftBridgeable {
     typealias SwiftType = URLQueryItem
-    internal var _swiftObject: SwiftType { return URLQueryItem(reference: self) }
+    internal var _swiftObject: SwiftType { return URLQueryItem(name: self.name, value: self.value) }
 }

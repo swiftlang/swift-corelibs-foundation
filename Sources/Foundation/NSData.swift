@@ -13,47 +13,11 @@ import Dispatch
 #endif
 
 extension NSData {
-    public struct ReadingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let mappedIfSafe = ReadingOptions(rawValue: UInt(1 << 0))
-        public static let uncached = ReadingOptions(rawValue: UInt(1 << 1))
-        public static let alwaysMapped = ReadingOptions(rawValue: UInt(1 << 2))
-    }
-
-    public struct WritingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let atomic = WritingOptions(rawValue: UInt(1 << 0))
-        public static let withoutOverwriting = WritingOptions(rawValue: UInt(1 << 1))
-    }
-
-    public struct SearchOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let backwards = SearchOptions(rawValue: UInt(1 << 0))
-        public static let anchored = SearchOptions(rawValue: UInt(1 << 1))
-    }
-
-    public struct Base64EncodingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let lineLength64Characters = Base64EncodingOptions(rawValue: UInt(1 << 0))
-        public static let lineLength76Characters = Base64EncodingOptions(rawValue: UInt(1 << 1))
-        public static let endLineWithCarriageReturn = Base64EncodingOptions(rawValue: UInt(1 << 4))
-        public static let endLineWithLineFeed = Base64EncodingOptions(rawValue: UInt(1 << 5))
-    }
-
-    public struct Base64DecodingOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        
-        public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: UInt(1 << 0))
-    }
+    public typealias ReadingOptions = Data.ReadingOptions
+    public typealias WritingOptions = Data.WritingOptions
+    public typealias SearchOptions = Data.SearchOptions
+    public typealias Base64EncodingOptions = Data.Base64EncodingOptions
+    public typealias Base64DecodingOptions = Data.Base64DecodingOptions
 }
 
 private final class _NSDataDeallocator {
@@ -461,9 +425,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         // WASI does not have permission concept
         let permissions: Int? = nil
 #else
-        let permissions = try? fm._permissionsOfItem(atPath: path)
+        let permissions = try? fm.attributesOfItem(atPath: path)[.posixPermissions] as? Int
 #endif
-
         if writeOptionsMask.contains(.atomic) {
             let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
             let fh = FileHandle(fileDescriptor: newFD, closeOnDealloc: true)
@@ -582,7 +545,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return Data()
         }
         if range.location == 0 && range.length == self.length {
-            return Data(referencing: self)
+            return Data(self)
         }
         let p = self.bytes.advanced(by: range.location).bindMemory(to: UInt8.self, capacity: range.length)
         return Data(bytes: p, count: range.length)
@@ -947,7 +910,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 // MARK: -
 extension NSData : _SwiftBridgeable {
     typealias SwiftType = Data
-    internal var _swiftObject: SwiftType { return Data(referencing: self) }
+    internal var _swiftObject: SwiftType { return Data(self) }
 }
 
 extension Data : _NSBridgeable {
@@ -961,7 +924,7 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSData
     typealias SwiftType = Data
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
-    internal var _swiftObject: SwiftType { return Data(referencing: self._nsObject) }
+    internal var _swiftObject: SwiftType { return Data(self._nsObject) }
 }
 
 // MARK: -
@@ -1204,5 +1167,87 @@ extension NSData {
         if funnelsAreAbstract {
             NSRequiresConcreteImplementation()
         }
+    }
+}
+
+// MARK: - Bridging
+
+extension Data {
+    @available(*, unavailable, renamed: "copyBytes(to:count:)")
+    public func getBytes<UnsafeMutablePointerVoid: _Pointer>(_ buffer: UnsafeMutablePointerVoid, length: Int) { }
+    
+    @available(*, unavailable, renamed: "copyBytes(to:from:)")
+    public func getBytes<UnsafeMutablePointerVoid: _Pointer>(_ buffer: UnsafeMutablePointerVoid, range: NSRange) { }
+}
+
+
+extension Data {
+    public init(referencing d: NSData) {
+        self = Data(d)
+    }
+}
+
+extension Data : _ObjectiveCBridgeable {
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSData {
+        return self.withUnsafeBytes {
+            NSData(bytes: $0.baseAddress, length: $0.count)
+        }
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ input: NSData, result: inout Data?) {
+        // We must copy the input because it might be mutable; just like storing a value type in ObjC
+        result = Data(input)
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ input: NSData, result: inout Data?) -> Bool {
+        // We must copy the input because it might be mutable; just like storing a value type in ObjC
+        result = Data(input)
+        return true
+    }
+
+//    @_effects(readonly)
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSData?) -> Data {
+        guard let src = source else { return Data() }
+        return Data(src)
+    }
+}
+
+extension NSData : _HasCustomAnyHashableRepresentation {
+    // Must be @nonobjc to avoid infinite recursion during bridging.
+    @nonobjc
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        return AnyHashable(Data._unconditionallyBridgeFromObjectiveC(self))
+    }
+}
+
+// MARK: -
+// Temporary extension on Data until this implementation lands in swift-foundation
+extension Data {
+        /// Find the given `Data` in the content of this `Data`.
+    ///
+    /// - parameter dataToFind: The data to be searched for.
+    /// - parameter options: Options for the search. Default value is `[]`.
+    /// - parameter range: The range of this data in which to perform the search. Default value is `nil`, which means the entire content of this data.
+    /// - returns: A `Range` specifying the location of the found data, or nil if a match could not be found.
+    /// - precondition: `range` must be in the bounds of the Data.
+    public func range(of dataToFind: Data, options: Data.SearchOptions = [], in range: Range<Index>? = nil) -> Range<Index>? {
+        let nsRange : NSRange
+        if let r = range {
+            nsRange = NSRange(location: r.lowerBound - startIndex, length: r.upperBound - r.lowerBound)
+        } else {
+            nsRange = NSRange(location: 0, length: count)
+        }
+
+        let ns = self as NSData
+        var opts = NSData.SearchOptions()
+        if options.contains(.anchored) { opts.insert(.anchored) }
+        if options.contains(.backwards) { opts.insert(.backwards) }
+
+        let result = ns.range(of: dataToFind, options: opts, in: nsRange)
+        if result.location == NSNotFound {
+            return nil
+        }
+        return (result.location + startIndex)..<((result.location + startIndex) + result.length)
     }
 }

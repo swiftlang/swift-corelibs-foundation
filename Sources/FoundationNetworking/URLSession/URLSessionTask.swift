@@ -20,7 +20,6 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-@_implementationOnly import CoreFoundation
 
 private class Bag<Element> {
     var values: [Element] = []
@@ -38,12 +37,8 @@ open class URLSessionTask : NSObject, NSCopying {
         didSet { updateProgress() }
     }
     
-    #if NS_CURL_MISSING_XFERINFOFUNCTION
-    @available(*, deprecated, message: "This platform doesn't fully support reporting the progress of a URLSessionTask. The progress instance returned will be functional, but may not have continuous updates as bytes are sent or received.")
+    /* On platforms with NS_CURL_XFERINFOFUNCTION_SUPPORTED not set, the progress instance returned will be functional, but may not have continuous updates as bytes are sent or received. */
     open private(set) var progress = Progress(totalUnitCount: -1)
-    #else
-    open private(set) var progress = Progress(totalUnitCount: -1)
-    #endif
     
     func updateProgress() {
         self.workQueue.async {

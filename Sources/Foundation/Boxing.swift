@@ -10,13 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if NS_BUILDING_FOUNDATION_NETWORKING
-#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-import SwiftFoundation
-#else
-import Foundation
-#endif
-#endif
+// This file is for internal use of Foundation
 
 /// A class type which acts as a handle (pointer-to-pointer) to a Foundation reference type which has only a mutable class (e.g., NSURLComponents).
 ///
