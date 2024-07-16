@@ -486,9 +486,12 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
 #if os(Windows)
         if let resolved = CFURLCopyAbsoluteURL(_cfObject),
                 let representation = CFURLCopyFileSystemPath(resolved, kCFURLWindowsPathStyle)?._swiftObject {
-            let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: representation.count + 1)
-            representation.withCString { buffer.initialize(from: $0, count: representation.count + 1) }
-            buffer[representation.count] = 0
+            let buffer = representation.withCString {
+                let len = strlen($0)
+                let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: len + 1)
+                buffer.initialize(from: $0, count: len + 1)
+                return buffer
+            }
             return UnsafePointer(buffer)
         }
 #else
