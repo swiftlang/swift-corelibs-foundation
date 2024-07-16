@@ -40,7 +40,7 @@ extension ByteCountFormatter {
 }
 
 @available(*, unavailable)
-extension ByteCountFormatter : Sendable { }
+extension ByteCountFormatter : @unchecked Sendable { }
 
 open class ByteCountFormatter : Formatter {
     public override init() {

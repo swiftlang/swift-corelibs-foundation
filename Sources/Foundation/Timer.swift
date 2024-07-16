@@ -16,7 +16,7 @@ internal func __NSFireTimer(_ timer: CFRunLoopTimer?, info: UnsafeMutableRawPoin
 }
 
 @available(*, unavailable)
-extension Timer : Sendable { }
+extension Timer : @unchecked Sendable { }
 
 open class Timer : NSObject {
     internal final var _cfObject: CFRunLoopTimer {

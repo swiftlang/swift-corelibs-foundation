@@ -14,7 +14,7 @@
 import Dispatch
 
 @available(*, unavailable)
-extension DispatchData.Region : Sendable { }
+extension DispatchData.Region : @unchecked Sendable { }
 
 extension DispatchData : DataProtocol {
     public typealias Regions = [Region]

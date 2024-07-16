@@ -61,7 +61,7 @@ extension EnergyFormatter {
 }
 
 @available(*, unavailable)
-extension EnergyFormatter : Sendable { }
+extension EnergyFormatter : @unchecked Sendable { }
 
 open class EnergyFormatter: Formatter {
 

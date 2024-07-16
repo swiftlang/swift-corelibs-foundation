@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 @available(*, unavailable)
-extension NSMeasurement : Sendable { }
+extension NSMeasurement : @unchecked Sendable { }
 
 open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     open private(set) var unit: Unit

@@ -394,7 +394,7 @@ internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLIn
 }
 
 @available(*, unavailable)
-extension XMLParser : Sendable { }
+extension XMLParser : @unchecked Sendable { }
 
 open class XMLParser : NSObject {
     private var _handler: _CFXMLInterfaceSAXHandler

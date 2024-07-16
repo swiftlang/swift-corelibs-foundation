@@ -8,11 +8,9 @@
 //
 
 @available(*, unavailable)
-extension NSEnumerator : Sendable { }
-
-@available(*, unavailable)
 extension NSEnumerator.Iterator : Sendable { }
 
+//@_nonSendable
 open class NSEnumerator : NSObject {
     
     open func nextObject() -> Any? {

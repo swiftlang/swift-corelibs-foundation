@@ -18,9 +18,6 @@ extension NSCompoundPredicate {
     }
 }
 
-@available(*, unavailable)
-extension NSCompoundPredicate : Sendable { }
-
 open class NSCompoundPredicate : NSPredicate {
     public init(type: LogicalType, subpredicates: [NSPredicate]) {
         if type == .not && subpredicates.isEmpty {

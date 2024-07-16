@@ -19,7 +19,7 @@ fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
 }
 
 @available(*, unavailable)
-extension UserDefaults : Sendable { }
+extension UserDefaults : @unchecked Sendable { }
 
 open class UserDefaults: NSObject {
     static private func _isValueAllowed(_ nonbridgedValue: Any) -> Bool {

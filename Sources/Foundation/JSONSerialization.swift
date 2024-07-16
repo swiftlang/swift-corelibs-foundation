@@ -54,7 +54,7 @@ extension JSONSerialization {
 */
 
 @available(*, unavailable)
-extension JSONSerialization : Sendable { }
+extension JSONSerialization : @unchecked Sendable { }
 
 open class JSONSerialization : NSObject {
     

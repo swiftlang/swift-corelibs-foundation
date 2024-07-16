@@ -56,7 +56,7 @@ import WinSDK
 #endif
 
 @available(*, unavailable)
-extension Host : Sendable { }
+extension Host : @unchecked Sendable { }
 
 open class Host: NSObject {
     enum ResolveType {

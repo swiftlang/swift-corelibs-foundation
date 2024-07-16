@@ -32,7 +32,7 @@
 public let NSDateComponentUndefined: Int = Int.max
 
 @available(*, unavailable)
-extension NSDateComponents : Sendable { }
+extension NSDateComponents : @unchecked Sendable { }
 
 open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
     internal var _components: DateComponents

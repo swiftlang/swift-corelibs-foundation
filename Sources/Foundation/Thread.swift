@@ -77,7 +77,7 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
 }
 
 @available(*, unavailable)
-extension Thread : Sendable { }
+extension Thread : @unchecked Sendable { }
 
 open class Thread : NSObject {
 

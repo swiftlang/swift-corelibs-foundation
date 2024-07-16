@@ -80,9 +80,6 @@ public protocol NSSecureCoding : NSCoding {
     static var supportsSecureCoding: Bool { get }
 }
 
-@available(*, unavailable)
-extension NSCoder : Sendable { }
-
 /// The `NSCoder` abstract class declares the interface used by concrete
 /// subclasses to transfer objects and other values between memory and some
 /// other format. This capability provides the basis for archiving (where
@@ -103,6 +100,7 @@ extension NSCoder : Sendable { }
 /// is normally of the same class as the object that was originally encoded into
 /// the stream. An object can change its class when encoded, however; this is
 /// described in Archives and Serializations Programming Guide.
+//@_nonSendable
 open class NSCoder : NSObject {
     internal var _pendingBuffers = Array<(UnsafeMutableRawPointer, Int)>()
     

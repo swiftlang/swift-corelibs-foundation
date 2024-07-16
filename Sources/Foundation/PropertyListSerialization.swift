@@ -30,7 +30,7 @@ extension PropertyListSerialization {
 }
 
 @available(*, unavailable)
-extension PropertyListSerialization : Sendable { }
+extension PropertyListSerialization : @unchecked Sendable { }
 
 open class PropertyListSerialization : NSObject {
 

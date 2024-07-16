@@ -56,9 +56,6 @@ extension XMLDocument {
     }
 }
 
-@available(*, unavailable)
-extension XMLDocument : Sendable { }
-
 /*!
     @class XMLDocument
     @abstract An XML Document

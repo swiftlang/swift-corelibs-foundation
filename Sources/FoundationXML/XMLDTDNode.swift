@@ -66,9 +66,6 @@ extension XMLDTDNode {
     }
 }
 
-@available(*, unavailable)
-extension XMLDTDNode : Sendable { }
-
 /*!
     @class XMLDTDNode
     @abstract The nodes that are exclusive to a DTD

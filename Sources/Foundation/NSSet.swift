@@ -11,7 +11,7 @@
 @_implementationOnly import CoreFoundation
 
 @available(*, unavailable)
-extension NSSet : Sendable { }
+extension NSSet : @unchecked Sendable { }
 
 open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
@@ -369,9 +369,6 @@ extension NSSet: CustomReflectable {
     }
 }
 
-@available(*, unavailable)
-extension NSMutableSet : Sendable { }
-
 open class NSMutableSet : NSSet {
     
     open func add(_ object: Any) {
@@ -463,9 +460,6 @@ open class NSMutableSet : NSSet {
 }
 
 /****************	Counted Set	****************/
-
-@available(*, unavailable)
-extension NSCountedSet : Sendable { }
 
 open class NSCountedSet : NSMutableSet {
     // Note: in 5.0 and earlier, _table contained the object's exact count.

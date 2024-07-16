@@ -50,7 +50,7 @@ extension RunLoop.Mode {
 #if !canImport(Dispatch)
 
 @available(*, unavailable)
-extension RunLoop : Sendable { }
+extension RunLoop : @unchecked Sendable { }
 
 open class RunLoop: NSObject {
     @available(*, unavailable, message: "RunLoop is not available on WASI")
@@ -74,7 +74,7 @@ internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
 }
 
 @available(*, unavailable)
-extension RunLoop : Sendable { }
+extension RunLoop : @unchecked Sendable { }
 
 open class RunLoop: NSObject {
     internal var _cfRunLoopStorage : AnyObject!

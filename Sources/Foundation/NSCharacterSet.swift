@@ -61,7 +61,7 @@ fileprivate extension String {
 }
 
 @available(*, unavailable)
-extension NSCharacterSet : Sendable { }
+extension NSCharacterSet : @unchecked Sendable { }
 
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet
@@ -393,9 +393,6 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         }
     }
 }
-
-@available(*, unavailable)
-extension NSMutableCharacterSet : Sendable { }
 
 open class NSMutableCharacterSet : NSCharacterSet {
     

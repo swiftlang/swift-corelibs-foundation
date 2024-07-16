@@ -10,7 +10,7 @@
 
 /****************       Immutable Ordered Set   ****************/
 @available(*, unavailable)
-extension NSOrderedSet : Sendable { }
+extension NSOrderedSet : @unchecked Sendable { }
 
 open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ExpressibleByArrayLiteral {
 
@@ -393,9 +393,6 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
 
 
 /****************       Mutable Ordered Set     ****************/
-
-@available(*, unavailable)
-extension NSMutableOrderedSet : Sendable { }
 
 open class NSMutableOrderedSet: NSOrderedSet {
     

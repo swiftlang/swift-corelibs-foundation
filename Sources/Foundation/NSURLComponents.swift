@@ -10,7 +10,7 @@
 @_implementationOnly import CoreFoundation
 
 @available(*, unavailable)
-extension NSURLComponents : Sendable { }
+extension NSURLComponents : @unchecked Sendable { }
 
 open class NSURLComponents: NSObject, NSCopying {
     private let _componentsStorage: AnyObject!

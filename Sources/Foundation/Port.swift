@@ -18,9 +18,7 @@ extension Port {
     public static let didBecomeInvalidNotification  = NSNotification.Name(rawValue: "NSPortDidBecomeInvalidNotification")
 }
 
-@available(*, unavailable)
-extension Port : Sendable { }
-
+//@_nonSendable
 open class Port : NSObject, NSCopying {
     /// On Darwin, you can invoke `Port()` directly to produce a `MessagePort`. Since `MessagePort` is not available in swift-corelibs-foundation, you should not invoke this initializer directly. Subclasses of `Port` can delegate to this initializer safely.
     public override init() {
@@ -80,10 +78,10 @@ open class MessagePort: Port {}
 open class NSMachPort: Port {}
 
 @available(*, unavailable)
-extension MessagePort : Sendable { }
+extension MessagePort : @unchecked Sendable { }
 
 @available(*, unavailable)
-extension NSMachPort : Sendable { }
+extension NSMachPort : @unchecked Sendable { }
 
 extension PortDelegate {
     func handle(_ message: PortMessage) { }
@@ -99,7 +97,7 @@ public protocol PortDelegate: AnyObject {
 open class SocketPort: Port {}
 
 @available(*, unavailable)
-extension SocketPort : Sendable { }
+extension SocketPort : @unchecked Sendable { }
 
 #else
 
@@ -407,7 +405,7 @@ fileprivate func __NSFireSocketDatagram(_ socket: CFSocket?, _ type: CFSocketCal
 }
 
 @available(*, unavailable)
-extension SocketPort : Sendable { }
+extension SocketPort : @unchecked Sendable { }
 
 open class SocketPort : Port {
     struct SocketKind: Hashable {

@@ -532,7 +532,7 @@ public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable, Senda
 }
 
 @available(*, unavailable)
-extension _ProgressTSD : Sendable { }
+extension _ProgressTSD : @unchecked Sendable { }
 
 fileprivate class _ProgressTSD : NSObject {
     /// The thread's default progress.

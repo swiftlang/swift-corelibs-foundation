@@ -36,7 +36,7 @@ fileprivate func getDescription(of object: Any) -> String? {
 }
 
 @available(*, unavailable)
-extension NSDictionary : Sendable { }
+extension NSDictionary : @unchecked Sendable { }
 
 @available(*, unavailable)
 extension NSDictionary.Iterator : Sendable { }
@@ -606,9 +606,6 @@ extension Dictionary : _NSBridgeable {
     internal var _nsObject: NSDictionary { return _bridgeToObjectiveC() }
     internal var _cfObject: CFDictionary { return _nsObject._cfObject }
 }
-
-@available(*, unavailable)
-extension NSMutableDictionary : Sendable { }
 
 open class NSMutableDictionary : NSDictionary {
     

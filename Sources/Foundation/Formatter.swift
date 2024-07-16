@@ -43,9 +43,7 @@ extension Formatter {
     }
 }
 
-@available(*, unavailable)
-extension Formatter : Sendable { }
-
+//@_nonSendable
 open class Formatter : NSObject, NSCopying, NSCoding {
     
     public override init() {

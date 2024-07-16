@@ -148,7 +148,7 @@ internal class NSUnitConverterReciprocal : UnitConverter, NSSecureCoding, @unche
  */
 
 @available(*, unavailable)
-extension Unit : Sendable { }
+extension Unit : @unchecked Sendable { }
 
 open class Unit : NSObject, NSCopying, NSSecureCoding {
     
@@ -194,9 +194,6 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         return self.symbol == other.symbol
     }
 }
-
-@available(*, unavailable)
-extension Dimension : Sendable { }
 
 open class Dimension : Unit {
     

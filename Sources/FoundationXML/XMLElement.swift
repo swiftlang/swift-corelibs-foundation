@@ -14,9 +14,6 @@ import Foundation
 #endif
 @_implementationOnly import _CFXMLInterface
 
-@available(*, unavailable)
-extension XMLElement : Sendable { }
-
 /*!
     @class XMLElement
     @abstract An XML element

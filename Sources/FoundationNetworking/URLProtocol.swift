@@ -157,7 +157,7 @@ internal class _ProtocolClient : NSObject, @unchecked Sendable {
 }
 
 @available(*, unavailable)
-extension URLProtocol : Sendable { }
+extension URLProtocol : @unchecked Sendable { }
 
 /*!
     @class NSURLProtocol

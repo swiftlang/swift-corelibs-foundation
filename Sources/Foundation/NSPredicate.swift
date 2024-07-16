@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension NSPredicate : Sendable { }
+extension NSPredicate : @unchecked Sendable { }
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 

@@ -20,7 +20,7 @@ extension NSTextCheckingResult {
 }
 
 @available(*, unavailable)
-extension NSTextCheckingResult : Sendable { }
+extension NSTextCheckingResult : @unchecked Sendable { }
 
 open class NSTextCheckingResult: NSObject, NSCopying, NSSecureCoding {
     
@@ -291,7 +291,7 @@ extension NSTextCheckingResult {
 }
 
 @available(*, unavailable)
-extension NSOrthography : Sendable { }
+extension NSOrthography : @unchecked Sendable { }
 
 @available(*, deprecated, message: "NSOrthography is not available in swift-corelibs-foundation")
 open class NSOrthography: NSObject, NSCopying, NSSecureCoding {

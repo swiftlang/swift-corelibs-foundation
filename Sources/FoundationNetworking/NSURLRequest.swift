@@ -97,7 +97,7 @@ extension NSURLRequest {
 }
 
 @available(*, unavailable)
-extension NSURLRequest : Sendable { }
+extension NSURLRequest : @unchecked Sendable { }
 
 /// An `NSURLRequest` object represents a URL load request in a
 /// manner independent of protocol and URL scheme.
@@ -380,9 +380,6 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         return super.description + " { URL: \(url) }"
     }
 }
-
-@available(*, unavailable)
-extension NSMutableURLRequest : Sendable { }
 
 /// An `NSMutableURLRequest` object represents a mutable URL load
 /// request in a manner independent of protocol and URL scheme.

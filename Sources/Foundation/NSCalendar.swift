@@ -220,7 +220,7 @@ extension NSCalendar.Identifier {
 }
 
 @available(*, unavailable)
-extension NSCalendar : Sendable { }
+extension NSCalendar : @unchecked Sendable { }
 
 open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     var _calendar: Calendar

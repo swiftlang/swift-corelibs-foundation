@@ -94,7 +94,7 @@ extension ObjCBool : CustomStringConvertible {
 #endif
 
 @available(*, unavailable)
-extension __NSCFType : Sendable { }
+extension __NSCFType : @unchecked Sendable { }
 
 @usableFromInline
 internal class __NSCFType : NSObject {

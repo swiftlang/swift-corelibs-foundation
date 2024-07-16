@@ -21,7 +21,7 @@ extension LengthFormatter {
 }
 
 @available(*, unavailable)
-extension LengthFormatter : Sendable { }
+extension LengthFormatter : @unchecked Sendable { }
 
 open class LengthFormatter : Formatter {
     
@@ -57,11 +57,20 @@ open class LengthFormatter : Formatter {
     
     // Format a number in meters to a localized string with the locale-appropriate unit and an appropriate scale (e.g. 4.3m = 14.1ft in the US locale).
     open func string(fromMeters numberInMeters: Double) -> String {
+        let unitLength: [Unit:UnitLength] = [.millimeter:.millimeters,
+                                                     .centimeter:.centimeters,
+                                                     .meter:.meters,
+                                                     .kilometer:.kilometers,
+                                                     .inch:.inches,
+                                                     .foot:.feet,
+                                                     .yard:.yards,
+                                                     .mile:.miles]
+        
         //Convert to the locale-appropriate unit
         let unitFromMeters = unit(fromMeters: numberInMeters)
         
         //Map the unit to UnitLength type for conversion later
-        let unitLengthFromMeters = LengthFormatter.unitLength[unitFromMeters]!
+        let unitLengthFromMeters = unitLength[unitFromMeters]!
         
         //Create a measurement object based on the value in meters
         let meterMeasurement = Measurement<UnitLength>(value:numberInMeters, unit: .meters)
@@ -99,13 +108,21 @@ open class LengthFormatter : Formatter {
     
     // Return the locale-appropriate unit, the same unit used by -stringFromMeters:.
     open func unitString(fromMeters numberInMeters: Double, usedUnit unitp: UnsafeMutablePointer<Unit>?) -> String {
+        let unitLength: [Unit:UnitLength] = [.millimeter:.millimeters,
+                                                     .centimeter:.centimeters,
+                                                     .meter:.meters,
+                                                     .kilometer:.kilometers,
+                                                     .inch:.inches,
+                                                     .foot:.feet,
+                                                     .yard:.yards,
+                                                     .mile:.miles]
         
         //Convert to the locale-appropriate unit
         let unitFromMeters = unit(fromMeters: numberInMeters)
         unitp?.pointee = unitFromMeters
         
         //Map the unit to UnitLength type for conversion later
-        let unitLengthFromMeters = LengthFormatter.unitLength[unitFromMeters]!
+        let unitLengthFromMeters = unitLength[unitFromMeters]!
         
         //Create a measurement object based on the value in meters
         let meterMeasurement = Measurement<UnitLength>(value:numberInMeters, unit: .meters)
@@ -155,16 +172,6 @@ open class LengthFormatter : Formatter {
         }
     }
     
-    /// Maps LengthFormatter.Unit enum to UnitLength class. Used for measurement conversion.
-    private static let unitLength: [Unit:UnitLength] = [.millimeter:.millimeters,
-                                                 .centimeter:.centimeters,
-                                                 .meter:.meters,
-                                                 .kilometer:.kilometers,
-                                                 .inch:.inches,
-                                                 .foot:.feet,
-                                                 .yard:.yards,
-                                                 .mile:.miles]
-
     /// Maps a unit to its short symbol. Reuses strings from UnitLength wherever possible.
     private static let shortSymbol: [Unit: String] = [.millimeter:UnitLength.millimeters.symbol,
                                                    .centimeter:UnitLength.centimeters.symbol,

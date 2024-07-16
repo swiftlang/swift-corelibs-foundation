@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension MeasurementFormatter : Sendable { }
+extension MeasurementFormatter : @unchecked Sendable { }
 
 @available(*, unavailable, message: "Not supported in swift-corelibs-foundation")
 open class MeasurementFormatter : Formatter, NSSecureCoding {

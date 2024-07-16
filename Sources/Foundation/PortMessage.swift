@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension PortMessage : Sendable { }
+extension PortMessage : @unchecked Sendable { }
 
 open class PortMessage : NSObject, NSCopying {
     public init(sendPort: Port?, receivePort replyPort: Port?, components: [AnyObject]?) {

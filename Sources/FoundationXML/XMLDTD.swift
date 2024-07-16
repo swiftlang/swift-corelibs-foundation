@@ -14,9 +14,6 @@ import Foundation
 #endif
 @_implementationOnly import _CFXMLInterface
 
-@available(*, unavailable)
-extension XMLDTD : Sendable { }
-
 /*!
     @class XMLDTD
     @abstract Defines the order, repetition, and allowable values for a document

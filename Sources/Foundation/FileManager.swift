@@ -608,12 +608,6 @@ extension FileAttributeKey {
     internal static let _accessDate = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._accessDate")
 }
 
-@available(*, unavailable)
-extension FileManager.DirectoryEnumerator : Sendable { }
-
-@available(*, unavailable)
-extension FileManager.NSPathDirectoryEnumerator : Sendable { }
-
 extension FileManager {
     open class DirectoryEnumerator : NSEnumerator {
         

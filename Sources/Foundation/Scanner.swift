@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension Scanner : Sendable { }
+extension Scanner : @unchecked Sendable { }
 
 open class Scanner: NSObject, NSCopying {
     internal var _scanString: String

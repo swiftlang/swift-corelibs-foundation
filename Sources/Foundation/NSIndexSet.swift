@@ -60,7 +60,7 @@ internal func __NSIndexSetIndexOfRangeContainingIndex(_ indexSet: NSIndexSet, _ 
 }
 
 @available(*, unavailable)
-extension NSIndexSet : Sendable { }
+extension NSIndexSet : @unchecked Sendable { }
 
 open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     // all instance variables are private
@@ -604,9 +604,6 @@ extension NSIndexSet : Sequence {
         return NSIndexSetIterator(self)
     }
 }
-
-@available(*, unavailable)
-extension NSMutableIndexSet : Sendable { }
 
 open class NSMutableIndexSet : NSIndexSet {
     

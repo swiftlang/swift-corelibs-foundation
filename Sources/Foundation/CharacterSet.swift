@@ -18,7 +18,7 @@ private func _utfRangeToNSRange(_ inRange : ClosedRange<UnicodeScalar>) -> NSRan
     return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
 }
 
-internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType, @unchecked Sendable {
+internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType {
     internal typealias ImmutableType = NSCharacterSet
     internal typealias MutableType = NSMutableCharacterSet
     
@@ -114,7 +114,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     internal typealias ImmutableType = SwiftNSWrapping.ImmutableType
     internal typealias MutableType = SwiftNSWrapping.MutableType
     
-    internal var _wrapped : _SwiftNSCharacterSet
+    internal nonisolated(unsafe) var _wrapped : _SwiftNSCharacterSet
     
     // MARK: Init methods
     

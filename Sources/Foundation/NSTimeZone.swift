@@ -11,7 +11,7 @@
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 
 @available(*, unavailable)
-extension NSTimeZone : Sendable { }
+extension NSTimeZone : @unchecked Sendable { }
 
 open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     var _timeZone: TimeZone

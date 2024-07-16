@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension NSNotification : Sendable { }
+extension NSNotification : @unchecked Sendable { }
 
 open class NSNotification: NSObject, NSCopying, NSCoding {
     public struct Name : RawRepresentable, Equatable, Hashable, Sendable {

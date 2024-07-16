@@ -203,7 +203,7 @@ internal func isAParagraphSeparatorTypeCharacter(_ ch: unichar) -> Bool {
 }
 
 @available(*, unavailable)
-extension NSString : Sendable { }
+extension NSString : @unchecked Sendable { }
 
 open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFStringGetTypeID())
@@ -1450,9 +1450,6 @@ extension NSString {
 }
 
 extension NSString : ExpressibleByStringLiteral { }
-
-@available(*, unavailable)
-extension NSMutableString : Sendable { }
 
 open class NSMutableString : NSString {
     open func replaceCharacters(in range: NSRange, with aString: String) {

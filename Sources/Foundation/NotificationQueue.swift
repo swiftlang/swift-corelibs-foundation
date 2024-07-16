@@ -29,7 +29,7 @@ extension NotificationQueue {
 }
 
 @available(*, unavailable)
-extension NotificationQueue : Sendable { }
+extension NotificationQueue : @unchecked Sendable { }
 
 open class NotificationQueue: NSObject {
 

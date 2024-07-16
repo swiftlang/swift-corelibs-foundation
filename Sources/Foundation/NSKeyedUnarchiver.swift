@@ -11,7 +11,7 @@
 internal import Synchronization
 
 @available(*, unavailable)
-extension NSKeyedUnarchiver : Sendable { }
+extension NSKeyedUnarchiver : @unchecked Sendable { }
 
 open class NSKeyedUnarchiver : NSCoder {
     enum InternalError: Error {

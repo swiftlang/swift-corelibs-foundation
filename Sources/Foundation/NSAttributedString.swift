@@ -47,7 +47,7 @@ extension NSAttributedString.Key: _ObjectiveCBridgeable {
 public typealias NSAttributedStringKey = NSAttributedString.Key
 
 @available(*, unavailable)
-extension NSAttributedString : Sendable { }
+extension NSAttributedString : @unchecked Sendable { }
 
 open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
@@ -434,9 +434,6 @@ extension NSAttributedString {
     }
 
 }
-
-@available(*, unavailable)
-extension NSMutableAttributedString : Sendable { }
 
 open class NSMutableAttributedString : NSAttributedString {
     

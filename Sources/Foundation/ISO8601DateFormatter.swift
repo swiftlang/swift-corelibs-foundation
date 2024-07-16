@@ -49,7 +49,7 @@ extension ISO8601DateFormatter {
 }
 
 @available(*, unavailable)
-extension ISO8601DateFormatter : Sendable { }
+extension ISO8601DateFormatter : @unchecked Sendable { }
 
 open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     

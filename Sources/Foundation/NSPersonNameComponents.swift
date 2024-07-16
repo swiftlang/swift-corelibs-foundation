@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension NSPersonNameComponents : Sendable { }
+extension NSPersonNameComponents : @unchecked Sendable { }
 
 open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
     

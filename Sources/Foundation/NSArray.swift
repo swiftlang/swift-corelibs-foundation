@@ -10,7 +10,7 @@
 @_implementationOnly import CoreFoundation
 
 @available(*, unavailable)
-extension NSArray : Sendable { }
+extension NSArray : @unchecked Sendable { }
 
 @available(*, unavailable)
 extension NSArray.Iterator : Sendable { }
@@ -751,9 +751,6 @@ public struct NSBinarySearchingOptions : OptionSet, Sendable {
     public static let lastEqual = NSBinarySearchingOptions(rawValue: 1 << 9)
     public static let insertionIndex = NSBinarySearchingOptions(rawValue: 1 << 10)
 }
-
-@available(*, unavailable)
-extension NSMutableArray : Sendable { }
 
 open class NSMutableArray : NSArray {
     

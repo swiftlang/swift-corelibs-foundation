@@ -33,7 +33,7 @@ import Foundation
 //  NSXMLNodePrettyPrint
 
 @available(*, unavailable)
-extension XMLNode : Sendable { }
+extension XMLNode : @unchecked Sendable { }
 
 /*!
  @class NSXMLNode

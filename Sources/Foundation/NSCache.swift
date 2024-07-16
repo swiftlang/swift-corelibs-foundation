@@ -54,7 +54,7 @@ fileprivate class NSCacheKey: NSObject {
 }
 
 @available(*, unavailable)
-extension NSCache : Sendable { }
+extension NSCache : @unchecked Sendable { }
 
 open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     

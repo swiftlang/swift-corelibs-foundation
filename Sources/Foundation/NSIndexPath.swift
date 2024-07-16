@@ -8,7 +8,7 @@
 //
 
 @available(*, unavailable)
-extension NSIndexPath : Sendable { }
+extension NSIndexPath : @unchecked Sendable { }
 
 open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     

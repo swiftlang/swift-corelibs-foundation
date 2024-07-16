@@ -30,7 +30,7 @@ extension NSExpression {
 }
 
 @available(*, unavailable)
-extension NSExpression : Sendable { }
+extension NSExpression : @unchecked Sendable { }
 
 @available(*, deprecated, message: "NSExpression is not available in swift-corelibs-foundation")
 open class NSExpression : NSObject, NSCopying {

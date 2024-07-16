@@ -53,11 +53,9 @@ extension Stream {
     }
 }
 
-@available(*, unavailable)
-extension Stream : Sendable { }
-
 // Stream is an abstract class encapsulating the common API to InputStream and OutputStream.
 // Subclassers of InputStream and OutputStream must also implement these methods.
+//@_nonSendable
 open class Stream: NSObject {
 
     public override init() {
@@ -103,7 +101,7 @@ open class Stream: NSObject {
 }
 
 @available(*, unavailable)
-extension InputStream : Sendable { }
+extension InputStream : @unchecked Sendable { }
 
 // InputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
@@ -181,7 +179,7 @@ open class InputStream: Stream {
 }
 
 @available(*, unavailable)
-extension OutputStream : Sendable { }
+extension OutputStream : @unchecked Sendable { }
 
 // OutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
