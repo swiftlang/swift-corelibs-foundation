@@ -82,10 +82,10 @@ var dependencies: [Package.Dependency] {
         [
             .package(
                 url: "https://github.com/apple/swift-foundation-icu",
-                from: "0.0.8"),
+                from: "0.0.9"),
             .package(
                 url: "https://github.com/apple/swift-foundation",
-                revision: "ef8a7787c355edae3c142e4dff8767d05a32c51f")
+                revision: "35d896ab47ab5e487cfce822fbe40d2b278c51d6")
         ]
     }
 }
