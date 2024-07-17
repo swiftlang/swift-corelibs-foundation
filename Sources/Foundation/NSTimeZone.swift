@@ -7,37 +7,32 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
 @_implementationOnly import CoreFoundation
+@_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 
 open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    typealias CFType = CFTimeZone
-    private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
-    private var _name: UnsafeMutableRawPointer? = nil
-    private var _data: UnsafeMutableRawPointer? = nil
-    private var _periods: UnsafeMutableRawPointer? = nil
-    private var _periodCnt = Int32(0)
+    var _timeZone: TimeZone
     
-    internal final var _cfObject: CFType {
-        return unsafeBitCast(self, to: CFType.self)
+    init(_timeZone tz: TimeZone) {
+        _timeZone = tz
     }
     
-    // Primary creation method is +timeZoneWithName:; the
-    // data-taking variants should rarely be used directly
     public convenience init?(name tzName: String) {
         self.init(name: tzName, data: nil)
     }
 
     public init?(name tzName: String, data aData: Data?) {
-        super.init()
-        
         /* From https://developer.apple.com/documentation/foundation/nstimezone/1387250-init:
          "Discussion
          As of macOS 10.6, the underlying implementation of this method has been changed to ignore the specified data parameter."
          */
-        if !_CFTimeZoneInit(_cfObject, tzName._cfObject, nil) {
+        if let tz = TimeZone(identifier: tzName) {
+            _timeZone = tz
+        } else {
             return nil
         }
+        
+        super.init()
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
@@ -55,7 +50,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        _timeZone.hashValue
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -64,44 +59,22 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open override var description: String {
-        return CFCopyDescription(_cfObject)._swiftObject
-    }
-
-    deinit {
-        _CFDeinit(self)
-    }
-
-    // `init(forSecondsFromGMT:)` is not a failable initializer, so we need a designated initializer that isn't failable.
-    internal init(_name tzName: String) {
-        super.init()
-        _CFTimeZoneInit(_cfObject, tzName._cfObject, nil)
+        _timeZone.description
     }
 
     // Time zones created with this never have daylight savings and the
     // offset is constant no matter the date; the name and abbreviation
     // do NOT follow the POSIX convention (of minutes-west).
     public convenience init(forSecondsFromGMT seconds: Int) {
-        let sign = seconds < 0 ? "-" : "+"
-        let absoluteValue = abs(seconds)
-        var minutes = absoluteValue / 60
-        if (absoluteValue % 60) >= 30 { minutes += 1 }
-        var hours = minutes / 60
-        minutes %= 60
-        hours = min(hours, 99) // Two digits only; leave CF to enforce actual max offset.
-        let mm = minutes < 10 ? "0\(minutes)" : "\(minutes)"
-        let hh = hours < 10 ? "0\(hours)" : "\(hours)"
-        self.init(_name: "GMT" + sign + hh + mm)
+        let tz = TimeZone(secondsFromGMT: seconds)!
+        self.init(_timeZone: tz)
     }
     
     public convenience init?(abbreviation: String) {
-        let abbr = abbreviation._cfObject
-        let possibleName: NSString? = withExtendedLifetime(abbr) {
-            return unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafeRawPointer.self)), to: NSString?.self)
-        }
-        guard let name = possibleName else {
+        guard let tz = TimeZone(abbreviation: abbreviation) else {
             return nil
         }
-        self.init(name: name._swiftObject , data: nil)
+        self.init(_timeZone: tz)
     }
 
     open func encode(with aCoder: NSCoder) {
@@ -126,216 +99,186 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var name: String {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneGetName(_cfObject)._swiftObject
+        _timeZone.identifier
     }
     
     open var data: Data {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneGetData(_cfObject)._swiftObject
+        TimeZone._dataFromTZFile(_timeZone.identifier)
     }
-    
+
     open func secondsFromGMT(for aDate: Date) -> Int {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
+        _timeZone.secondsFromGMT(for: aDate)
     }
     
     open func abbreviation(for aDate: Date) -> String? {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
+        _timeZone.abbreviation(for: aDate)
     }
     
     open func isDaylightSavingTime(for aDate: Date) -> Bool {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
+        _timeZone.isDaylightSavingTime(for: aDate)
     }
     
     open func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
+        _timeZone.daylightSavingTimeOffset(for: aDate)
     }
     
     open func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        let ti = CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate)
-        guard ti > 0 else { return nil }
-        return Date(timeIntervalSinceReferenceDate: ti)
+        _timeZone.nextDaylightSavingTimeTransition(after: aDate)
     }
 
     open class var system: TimeZone {
-        return CFTimeZoneCopySystem()._swiftObject
+        TimeZone.current
     }
 
     open class func resetSystemTimeZone() {
+        let _ = TimeZone._resetSystemTimeZone()
+        // Also reset CF's system time zone
         CFTimeZoneResetSystem()
     }
 
     open class var `default`: TimeZone {
         get {
-            return CFTimeZoneCopyDefault()._swiftObject
+            // This assumes that the behavior of CFTimeZoneCopyDefault is the same as FoundationEssential's default, when no default has been set
+            TimeZone._default
         }
         set {
+            TimeZone._default = newValue
+            // Need to reset the default in two places since CFTimeZone does not call up to Swift on this platform
             CFTimeZoneSetDefault(newValue._cfObject)
         }
     }
 
     open class var local: TimeZone {
-        return TimeZone(adoptingReference: __NSLocalTimeZone.shared, autoupdating: true)
+        TimeZone.autoupdatingCurrent
     }
 
     open class var knownTimeZoneNames: [String] {
-        guard let knownNames = CFTimeZoneCopyKnownNames() else { return [] }
-        return knownNames._nsObject._bridgeToSwift() as! [String]
+        TimeZone.knownTimeZoneIdentifiers
     }
 
     open class var abbreviationDictionary: [String : String] {
         get {
-            guard let dictionary = CFTimeZoneCopyAbbreviationDictionary() else { return [:] }
-            return dictionary._nsObject._bridgeToSwift() as! [String : String]
+            TimeZone.abbreviationDictionary
         }
         set {
-            CFTimeZoneSetAbbreviationDictionary(newValue._cfObject)
+            TimeZone.abbreviationDictionary = newValue
         }
     }
 
     open class var timeZoneDataVersion: String {
-        return __CFTimeZoneCopyDataVersionString()._swiftObject
+        TimeZone.timeZoneDataVersion
     }
 
     open var secondsFromGMT: Int {
-        let currentDate = Date()
-        return secondsFromGMT(for: currentDate)
+        _timeZone.secondsFromGMT()
     }
 
     /// The abbreviation for the receiver, such as "EDT" (Eastern Daylight Time). (read-only)
     ///
     /// This invokes `abbreviationForDate:` with the current date as the argument.
     open var abbreviation: String? {
-        let currentDate = Date()
-        return abbreviation(for: currentDate)
+        _timeZone.abbreviation()
     }
 
     open var isDaylightSavingTime: Bool {
-        let currentDate = Date()
-        return isDaylightSavingTime(for: currentDate)
+        _timeZone.isDaylightSavingTime()
     }
 
     open var daylightSavingTimeOffset: TimeInterval {
-        let currentDate = Date()
-        return daylightSavingTimeOffset(for: currentDate)
+        _timeZone.daylightSavingTimeOffset()
     }
 
     /*@NSCopying*/ open var nextDaylightSavingTimeTransition: Date?  {
-        let currentDate = Date()
-        return nextDaylightSavingTimeTransition(after: currentDate)
+        _timeZone.nextDaylightSavingTimeTransition
     }
 
     open func isEqual(to aTimeZone: TimeZone) -> Bool {
-        return CFEqual(self._cfObject, aTimeZone._cfObject)
+        self._timeZone == aTimeZone
     }
 
     open func localizedName(_ style: NameStyle, locale: Locale?) -> String? {
-        let cfStyle = CFTimeZoneNameStyle(rawValue: style.rawValue)!
-        return CFTimeZoneCopyLocalizedName(self._cfObject, cfStyle, locale?._cfObject ?? CFLocaleCopyCurrent())._swiftObject
+        _timeZone.localizedName(for: style, locale: locale)
     }
 
-}
-
-extension NSTimeZone: _SwiftBridgeable {
-    typealias SwiftType = TimeZone
-    var _swiftObject: TimeZone { return TimeZone(reference: self) }
-}
-
-extension CFTimeZone : _SwiftBridgeable, _NSBridgeable {
-    typealias NSType = NSTimeZone
-    var _nsObject : NSTimeZone { return unsafeBitCast(self, to: NSTimeZone.self) }
-    var _swiftObject: TimeZone { return _nsObject._swiftObject }
-}
-
-extension TimeZone : _NSBridgeable {
-    typealias NSType = NSTimeZone
-    typealias CFType = CFTimeZone
-    var _nsObject : NSTimeZone { return _bridgeToObjectiveC() }
-    var _cfObject : CFTimeZone { return _nsObject._cfObject }
 }
 
 extension NSTimeZone {
-
-    public enum NameStyle : Int {
-        case standard    // Central Standard Time
-        case shortStandard    // CST
-        case daylightSaving    // Central Daylight Time
-        case shortDaylightSaving    // CDT
-        case generic    // Central Time
-        case shortGeneric    // CT
-    }
-
+    public typealias NameStyle = TimeZone.NameStyle
 }
 
 extension NSNotification.Name {
     public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: kCFTimeZoneSystemTimeZoneDidChangeNotification._swiftObject)
 }
 
-internal class __NSLocalTimeZone: NSTimeZone {
-    static var shared = __NSLocalTimeZone()
-    
-    private init() {
-        super.init(_name: "GMT+0000")
+// MARK: - Bridging
+
+extension NSTimeZone: _SwiftBridgeable {
+    typealias SwiftType = TimeZone
+    var _swiftObject: TimeZone {
+        _timeZone
     }
     
-    public convenience required init?(coder aDecoder: NSCoder) {
-        // We do not encode details of the local time zone, merely the placeholder object.
-        self.init()
-    }
-    
-    override func encode(with aCoder: NSCoder) {
-        // We do not encode details of the local time zone, merely the placeholder object.
-    }
-    
-    private var system: NSTimeZone {
-        return NSTimeZone.system._nsObject
-    }
-    
-    override var name: String { return system.name }
-    override var data: Data { return system.data }
-    override func secondsFromGMT(for aDate: Date) -> Int {
-        return system.secondsFromGMT(for: aDate)
-    }
-    override func abbreviation(for aDate: Date) -> String? {
-        return system.abbreviation(for: aDate)
-    }
-    override func isDaylightSavingTime(for aDate: Date) -> Bool {
-        return system.isDaylightSavingTime(for: aDate)
-    }
-    override func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
-        return system.daylightSavingTimeOffset(for: aDate)
-    
-    }
-    override func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
-        return system.nextDaylightSavingTimeTransition(after: aDate)
-    }
-    override func localizedName(_ style: NSTimeZone.NameStyle, locale: Locale?) -> String? {
-        return system.localizedName(style, locale: locale)
-    }
-    override var description: String {
-        return "Local Time Zone (\(system.description))"
-    }
-    
-    override func copy(with zone: NSZone? = nil) -> Any {
-        return self
+    var _cfObject : CFTimeZone {
+        let name = self.name
+        let tz = CFTimeZoneCreateWithName(nil, name._cfObject, true)!
+        return tz
     }
 }
+
+extension CFTimeZone : _SwiftBridgeable, _NSBridgeable {
+    typealias NSType = NSTimeZone
+    var _nsObject : NSTimeZone {
+        let name = CFTimeZoneGetName(self)._swiftObject
+        let tz = TimeZone(identifier: name)!
+        return NSTimeZone(_timeZone: tz)
+    }
+    
+    var _swiftObject: TimeZone {
+        return _nsObject._swiftObject
+    }
+}
+
+extension TimeZone : _NSBridgeable {
+    typealias NSType = NSTimeZone
+    typealias CFType = CFTimeZone
+    var _nsObject : NSTimeZone {
+        return _bridgeToObjectiveC()
+    }
+    
+    var _cfObject : CFTimeZone {
+        _nsObject._cfObject
+    }
+}
+
+extension TimeZone : ReferenceConvertible {
+    public typealias ReferenceType = NSTimeZone
+}
+
+extension TimeZone : _ObjectiveCBridgeable {
+    public static func _isBridgedToObjectiveC() -> Bool {
+        return true
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSTimeZone {
+        NSTimeZone(_timeZone: self)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ input: NSTimeZone, result: inout TimeZone?) {
+        if !_conditionallyBridgeFromObjectiveC(input, result: &result) {
+            fatalError("Unable to bridge \(NSTimeZone.self) to \(self)")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ input: NSTimeZone, result: inout TimeZone?) -> Bool {
+        result = input._timeZone
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSTimeZone?) -> TimeZone {
+        var result: TimeZone? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}
+

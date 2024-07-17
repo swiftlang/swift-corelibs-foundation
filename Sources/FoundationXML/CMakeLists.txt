@@ -1,54 +1,51 @@
+##===----------------------------------------------------------------------===##
+##
+## This source file is part of the Swift open source project
+##
+## Copyright (c) 2024 Apple Inc. and the Swift project authors
+## Licensed under Apache License v2.0
+##
+## See LICENSE.txt for license information
+## See CONTRIBUTORS.md for the list of Swift project authors
+##
+## SPDX-License-Identifier: Apache-2.0
+##
+##===----------------------------------------------------------------------===##
+
 add_library(FoundationXML
-  XMLDocument.swift
-  XMLDTD.swift
-  XMLDTDNode.swift
-  XMLElement.swift
-  XMLNode.swift
-  XMLParser.swift
-  CFAccess.swift)
-target_compile_definitions(FoundationXML PRIVATE
-  DEPLOYMENT_RUNTIME_SWIFT)
-target_compile_options(FoundationXML PUBLIC
-  $<$<BOOL:${ENABLE_TESTING}>:-enable-testing>
-  "SHELL:-Xfrontend -disable-autolink-framework -Xfrontend CFXMLInterface"
-  "SHELL:-Xcc -F${CMAKE_BINARY_DIR}")
+    CFAccess.swift
+    XMLDocument.swift
+    XMLDTD.swift
+    XMLDTDNode.swift
+    XMLElement.swift
+    XMLNode.swift
+    XMLParser.swift)
+
+target_compile_options(FoundationXML PRIVATE
+    "SHELL:$<$<COMPILE_LANGUAGE:Swift>:${_Foundation_swift_build_flags}>")
+
 target_link_libraries(FoundationXML
-  PRIVATE
-    CFXMLInterface
-  PUBLIC
-    Foundation)
+    PRIVATE
+        _CFXMLInterface
+    PUBLIC
+        Foundation)
 
 if(NOT BUILD_SHARED_LIBS)
-  target_compile_options(FoundationXML
-    PRIVATE
-      "SHELL:-Xfrontend -public-autolink-library -Xfrontend xml2")
-
-  if(BUILD_FULLY_STATIC)
-    target_compile_options(FoundationXML
-      PRIVATE
-        "SHELL:-Xfrontend -public-autolink-library -Xfrontend z")
-  endif()
-
-  # Merge private dependencies into single static objects archive
-  set_property(TARGET FoundationXML PROPERTY STATIC_LIBRARY_OPTIONS
-    $<TARGET_OBJECTS:CFXMLInterface>)
+    target_compile_options(FoundationXML PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFXMLInterface>")
+    target_compile_options(FoundationXML PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend xml2>")
 endif()
+
+target_link_options(FoundationXML PRIVATE
+    "SHELL:-no-toolchain-stdlib-rpath")
 
 set_target_properties(FoundationXML PROPERTIES
-  INSTALL_RPATH "$ORIGIN"
-  Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/swift)
+    INSTALL_RPATH "$ORIGIN")
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
-  target_link_options(FoundationXML PRIVATE "SHELL:-no-toolchain-stdlib-rpath")
-endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL WASI)
-  target_compile_options(FoundationXML PRIVATE
-    "SHELL:-Xcc -D_WASI_EMULATED_SIGNAL
-           -Xcc -D_WASI_EMULATED_PROCESS_CLOCKS
-           -Xcc -D_WASI_EMULATED_MMAN")
+if(LINKER_SUPPORTS_BUILD_ID)
+  target_link_options(FoundationXML PRIVATE "LINKER:--build-id=sha1")
 endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS FoundationXML)
-_install_target(FoundationXML)
+_foundation_install_target(FoundationXML)

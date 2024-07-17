@@ -180,9 +180,6 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(_CFKeyedArchiverUIDGetTypeID(), unsafeBitCast(_NSKeyedArchiverUID.self, to: UnsafeRawPointer.self))
     
@@ -297,19 +294,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSData.increaseLengthBy = _CFSwiftDataIncreaseLength
     __CFSwiftBridge.NSData.appendBytes = _CFSwiftDataAppendBytes
     __CFSwiftBridge.NSData.replaceBytes = _CFSwiftDataReplaceBytes
-    
-    __CFSwiftBridge.NSCalendar.calendarIdentifier = _CFSwiftCalendarGetCalendarIdentifier
-    __CFSwiftBridge.NSCalendar.copyLocale = _CFSwiftCalendarCopyLocale
-    __CFSwiftBridge.NSCalendar.setLocale = _CFSwiftCalendarSetLocale
-    __CFSwiftBridge.NSCalendar.copyTimeZone = _CFSwiftCalendarCopyTimeZone
-    __CFSwiftBridge.NSCalendar.setTimeZone = _CFSwiftCalendarSetTimeZone
-    __CFSwiftBridge.NSCalendar.firstWeekday = _CFSwiftCalendarGetFirstWeekday
-    __CFSwiftBridge.NSCalendar.setFirstWeekday = _CFSwiftCalendarSetFirstWeekday
-    __CFSwiftBridge.NSCalendar.minimumDaysInFirstWeek = _CFSwiftCalendarGetMinimumDaysInFirstWeek
-    __CFSwiftBridge.NSCalendar.setMinimumDaysInFirstWeek = _CFSwiftCalendarSetMinimumDaysInFirstWeek
-    __CFSwiftBridge.NSCalendar.copyGregorianStartDate = _CFSwiftCalendarCopyGregorianStartDate
-    __CFSwiftBridge.NSCalendar.setGregorianStartDate = _CFSwiftCalendarSetGregorianStartDate
-    
+        
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
     
 #if !os(WASI)

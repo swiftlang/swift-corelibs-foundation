@@ -1,3 +1,0 @@
-module CFURLSessionInterface [extern_c] [system] {
-    umbrella header "CFURLSessionInterface.h"
-}

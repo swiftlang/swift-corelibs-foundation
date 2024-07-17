@@ -22,7 +22,6 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-@_implementationOnly import CoreFoundation
 
 
 

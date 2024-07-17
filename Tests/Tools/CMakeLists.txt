@@ -1,2 +1,0 @@
-add_subdirectory(GenerateTestFixtures)
-add_subdirectory(XDGTestHelper)

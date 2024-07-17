@@ -99,7 +99,7 @@ class _TCPSocket: CustomStringConvertible {
         listening = false
     }
 
-    init(port: UInt16?) throws {
+    init(port: UInt16?, backlog: Int32) throws {
         listening = true
         self.port = 0
 
@@ -124,7 +124,7 @@ class _TCPSocket: CustomStringConvertible {
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, { 
             let addr = UnsafePointer<sockaddr>($0)
             _ = try attempt("bind", valid: isZero, bind(_socket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
-            _ = try attempt("listen", valid: isZero, listen(_socket, SOMAXCONN))
+            _ = try attempt("listen", valid: isZero, listen(_socket, backlog))
         })
 
         var actualSA = sockaddr_in()
@@ -295,8 +295,8 @@ class _HTTPServer: CustomStringConvertible {
     let tcpSocket: _TCPSocket
     var port: UInt16 { tcpSocket.port }
 
-    init(port: UInt16?) throws {
-        tcpSocket = try _TCPSocket(port: port)
+    init(port: UInt16?, backlog: Int32 = SOMAXCONN) throws {
+        tcpSocket = try _TCPSocket(port: port, backlog: backlog)
     }
 
     init(socket: _TCPSocket) {
@@ -320,9 +320,9 @@ class _HTTPServer: CustomStringConvertible {
     public func request() throws -> _HTTPRequest {
 
         var reader = _SocketDataReader(socket: tcpSocket)
-        let headerData = try reader.readBlockSeparated(by: _HTTPUtils.CRLF2.data(using: .ascii)!)
+        let headerData = try reader.readBlockSeparated(by: _HTTPUtils.CRLF2.data(using: .utf8)!)
 
-        guard let headerString = String(bytes: headerData, encoding: .ascii) else {
+        guard let headerString = String(bytes: headerData, encoding: .utf8) else {
             throw InternalServerError.requestTooShort
         }
         var request = try _HTTPRequest(header: headerString)
@@ -347,14 +347,14 @@ class _HTTPServer: CustomStringConvertible {
 
             // There maybe some part of the body in the initial data
 
-            let bodySeparator = _HTTPUtils.CRLF.data(using: .ascii)!
+            let bodySeparator = _HTTPUtils.CRLF.data(using: .utf8)!
             var messageData = Data()
             var finished = false
 
             while !finished {
                 let chunkSizeData = try reader.readBlockSeparated(by: bodySeparator)
                 // Should now have <num bytes>\r\n
-                guard let number = String(bytes: chunkSizeData, encoding: .ascii), let chunkSize = Int(number, radix: 16) else {
+                guard let number = String(bytes: chunkSizeData, encoding: .utf8), let chunkSize = Int(number, radix: 16) else {
                      throw InternalServerError.requestTooShort
                 }
                 if chunkSize == 0 {
@@ -676,7 +676,7 @@ public class TestURLSessionServer: CustomStringConvertible {
             // Serve this directly as binary data to avoid any String encoding conversions.
             if let url = testBundle().url(forResource: "NSString-ISO-8859-1-data", withExtension: "txt"),
                 let content = try? Data(contentsOf: url) {
-                var responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .ascii)!
+                var responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .utf8)!
                 responseData.append(content)
                 try httpServer.tcpSocket.writeRawData(responseData)
             } else {
@@ -1094,6 +1094,14 @@ enum InternalServerError : Error {
     case badHeaders
 }
 
+extension LoopbackServerTest {
+    struct Options {
+        var serverBacklog: Int32
+        var isAsynchronous: Bool
+        
+        static let `default` = Options(serverBacklog: SOMAXCONN, isAsynchronous: true)
+    }
+}
 
 class LoopbackServerTest : XCTestCase {
     private static let staticSyncQ = DispatchQueue(label: "org.swift.TestFoundation.HTTPServer.StaticSyncQ")
@@ -1101,8 +1109,17 @@ class LoopbackServerTest : XCTestCase {
     private static var _serverPort: Int = -1
     private static var _serverActive = false
     private static var testServer: _HTTPServer? = nil
-
-
+    private static var _options: Options = .default
+    
+    static var options: Options {
+        get {
+            return staticSyncQ.sync { _options }
+        }
+        set {
+            staticSyncQ.sync { _options = newValue }
+        }
+    }
+    
     static var serverPort: Int {
         get {
             return staticSyncQ.sync { _serverPort }
@@ -1119,12 +1136,20 @@ class LoopbackServerTest : XCTestCase {
 
     override class func setUp() {
         super.setUp()
+        Self.startServer()
+    }
 
+    override class func tearDown() {
+        Self.stopServer()
+        super.tearDown()
+    }
+    
+    static func startServer() {
         var _serverPort = 0
         let dispatchGroup = DispatchGroup()
 
         func runServer() throws {
-            testServer = try _HTTPServer(port: nil)
+            testServer = try _HTTPServer(port: nil, backlog: options.serverBacklog)
             _serverPort = Int(testServer!.port)
             serverActive = true
             dispatchGroup.leave()
@@ -1132,13 +1157,20 @@ class LoopbackServerTest : XCTestCase {
             while serverActive {
                 do {
                     let httpServer = try testServer!.listen()
-                    globalDispatchQueue.async {
+                    
+                    func handleRequest() {
                         let subServer = TestURLSessionServer(httpServer: httpServer)
                         do {
                             try subServer.readAndRespond()
                         } catch {
                             NSLog("readAndRespond: \(error)")
                         }
+                    }
+                    
+                    if options.isAsynchronous {
+                        globalDispatchQueue.async(execute: handleRequest)
+                    } else {
+                        handleRequest()
                     }
                 } catch {
                     if (serverActive) { // Ignore errors thrown on shutdown
@@ -1165,11 +1197,11 @@ class LoopbackServerTest : XCTestCase {
             fatalError("Timedout waiting for server to be ready")
         }
         serverPort = _serverPort
+        debugLog("Listening on \(serverPort)")
     }
-
-    override class func tearDown() {
+    
+    static func stopServer() {
         serverActive = false
         try? testServer?.stop()
-        super.tearDown()
     }
 }
