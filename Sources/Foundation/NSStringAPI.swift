@@ -14,57 +14,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-// Important Note
-// ==============
-//
-// This file is shared between two projects:
-//
-// 1. https://github.com/apple/swift/tree/master/stdlib/public/Darwin/Foundation
-// 2. https://github.com/apple/swift-corelibs-foundation/tree/main/Foundation
-//
-// If you change this file, you must update it in both places.
-
-#if !DEPLOYMENT_RUNTIME_SWIFT
-@_exported import Foundation // Clang module
-#endif
-
 // Open Issues
 // ===========
 //
 // Property Lists need to be properly bridged
 //
-
-func _toNSArray<T, U : AnyObject>(_ a: [T], f: (T) -> U) -> NSArray {
-    let result = NSMutableArray(capacity: a.count)
-    for s in a {
-        result.add(f(s))
-    }
-    return result
-}
-
-#if !DEPLOYMENT_RUNTIME_SWIFT
-// We only need this for UnsafeMutablePointer, but there's not currently a way
-// to write that constraint.
-extension Optional {
-    /// Invokes `body` with `nil` if `self` is `nil`; otherwise, passes the
-    /// address of `object` to `body`.
-    ///
-    /// This is intended for use with Foundation APIs that return an Objective-C
-    /// type via out-parameter where it is important to be able to *ignore* that
-    /// parameter by passing `nil`. (For some APIs, this may allow the
-    /// implementation to avoid some work.)
-    ///
-    /// In most cases it would be simpler to just write this code inline, but if
-    /// `body` is complicated than that results in unnecessarily repeated code.
-    internal func _withNilOrAddress<NSType : AnyObject, ResultType>(
-        of object: inout NSType?,
-        _ body:
-        (AutoreleasingUnsafeMutablePointer<NSType?>?) -> ResultType
-        ) -> ResultType {
-        return self == nil ? body(nil) : body(&object)
-    }
-}
-#endif
 
 /// From a non-`nil` `UnsafePointer` to a null-terminated string
 /// with possibly-transient lifetime, create a null-terminated array of 'C' char.
@@ -247,45 +201,6 @@ extension String {
     //===--- Already provided by String's core ------------------------------===//
     // - (instancetype)init
 
-    //===--- Initializers that can fail -------------------------------------===//
-    // - (instancetype)
-    //     initWithBytes:(const void *)bytes
-    //     length:(NSUInteger)length
-    //     encoding:(NSStringEncoding)encoding
-
-    /// Creates a new string equivalent to the given bytes interpreted in the
-    /// specified encoding.
-    ///
-    /// - Parameters:
-    ///   - bytes: A sequence of bytes to interpret using `encoding`.
-    ///   - encoding: The encoding to use to interpret `bytes`.
-    public init?<S: Sequence>(bytes: __shared S, encoding: Encoding)
-        where S.Iterator.Element == UInt8 {
-            if encoding == .utf8 {
-                if let str = bytes.withContiguousStorageIfAvailable({ String._tryFromUTF8($0) }) {
-                    guard let str else {
-                        return nil
-                    }
-                    self = str
-                } else {
-                    let byteArray = Array(bytes)
-                    guard let str = byteArray.withUnsafeBufferPointer({ String._tryFromUTF8($0) }) else {
-                        return nil
-                    }
-                    self = str
-                }
-                return
-            }
-
-            let byteArray = Array(bytes)
-            if let ns = NSString(
-                bytes: byteArray, length: byteArray.count, encoding: encoding.rawValue) {
-                self = String._unconditionallyBridgeFromObjectiveC(ns)
-            } else {
-                return nil
-            }
-    }
-
     // - (instancetype)
     //     initWithBytesNoCopy:(void *)bytes
     //     length:(NSUInteger)length
@@ -297,6 +212,7 @@ extension String {
     /// frees the buffer.
     ///
     /// - Warning: This initializer is not memory-safe!
+    @available(swift, deprecated: 6.0, message: "String does not support no-copy initialization")
     public init?(
         bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int,
         encoding: Encoding, freeWhenDone flag: Bool
@@ -322,7 +238,7 @@ extension String {
         utf16CodeUnits: UnsafePointer<unichar>,
         count: Int
         ) {
-        self = String._unconditionallyBridgeFromObjectiveC(NSString(characters: utf16CodeUnits, length: count))
+        self = String(decoding: UnsafeBufferPointer(start: utf16CodeUnits, count: count), as: UTF16.self)
     }
 
     // - (instancetype)
@@ -332,6 +248,7 @@ extension String {
 
     /// Creates a new string that contains the specified number of characters
     /// from the given C array of UTF-16 code units.
+    @available(swift, deprecated: 6.0, message: "String does not support no-copy initialization")
     public init(
         utf16CodeUnitsNoCopy: UnsafePointer<unichar>,
         count: Int,
@@ -345,86 +262,20 @@ extension String {
 
     //===--- Initializers that can fail -------------------------------------===//
 
-    // - (instancetype)
-    //     initWithContentsOfFile:(NSString *)path
-    //     encoding:(NSStringEncoding)enc
-    //     error:(NSError **)error
-    //
-
-    /// Produces a string created by reading data from the file at a
-    /// given path interpreted using a given encoding.
-    public init(
-        contentsOfFile path: __shared String,
-        encoding enc: Encoding
-        ) throws {
-        let ns = try NSString(contentsOfFile: path, encoding: enc.rawValue)
-        self = String._unconditionallyBridgeFromObjectiveC(ns)
-    }
-
-    // - (instancetype)
-    //     initWithContentsOfFile:(NSString *)path
-    //     usedEncoding:(NSStringEncoding *)enc
-    //     error:(NSError **)error
-
-    /// Produces a string created by reading data from the file at
-    /// a given path and returns by reference the encoding used to
-    /// interpret the file.
-    public init(
-        contentsOfFile path: __shared String,
-        usedEncoding: inout Encoding
-        ) throws {
-        var enc: UInt = 0
-        let ns = try NSString(contentsOfFile: path, usedEncoding: &enc)
-        usedEncoding = Encoding(rawValue: enc)
-        self = String._unconditionallyBridgeFromObjectiveC(ns)
-    }
-
+    @available(swift, deprecated: 6.0, message: "Use `init(contentsOfFile:encoding:)` instead")
     public init(
         contentsOfFile path: __shared String
         ) throws {
-        let ns = try NSString(contentsOfFile: path, usedEncoding: nil)
-        self = String._unconditionallyBridgeFromObjectiveC(ns)
+        var encoding = Encoding.utf8
+        try self.init(contentsOfFile: path, usedEncoding: &encoding)
     }
 
-    // - (instancetype)
-    //     initWithContentsOfURL:(NSURL *)url
-    //     encoding:(NSStringEncoding)enc
-    //     error:(NSError**)error
-
-    /// Produces a string created by reading data from a given URL
-    /// interpreted using a given encoding.  Errors are written into the
-    /// inout `error` argument.
-    public init(
-        contentsOf url: __shared URL,
-        encoding enc: Encoding
-        ) throws {
-        let ns = try NSString(contentsOf: url, encoding: enc.rawValue)
-        self = String._unconditionallyBridgeFromObjectiveC(ns)
-    }
-
-    // - (instancetype)
-    //     initWithContentsOfURL:(NSURL *)url
-    //     usedEncoding:(NSStringEncoding *)enc
-    //     error:(NSError **)error
-
-    /// Produces a string created by reading data from a given URL
-    /// and returns by reference the encoding used to interpret the
-    /// data.  Errors are written into the inout `error` argument.
-    public init(
-        contentsOf url: __shared URL,
-        usedEncoding: inout Encoding
-        ) throws {
-        var enc: UInt = 0
-        let ns = try NSString(contentsOf: url as URL, usedEncoding: &enc)
-        usedEncoding = Encoding(rawValue: enc)
-        self = String._unconditionallyBridgeFromObjectiveC(ns)
-    }
-
+    @available(swift, deprecated: 6.0, message: "Use `init(contentsOf:encoding:)` instead")
     public init(
         contentsOf url: __shared URL
         ) throws {
-        let ns = try NSString(contentsOf: url, usedEncoding: nil)
-        self = String._unconditionallyBridgeFromObjectiveC(ns)
+        var encoding = Encoding.utf8
+        try self.init(contentsOf: url, usedEncoding: &encoding)
     }
 
     // - (instancetype)
@@ -509,25 +360,6 @@ extension String {
 
     // FIXME: handle optional locale with default arguments
 
-    // - (instancetype)
-    //     initWithData:(NSData *)data
-    //     encoding:(NSStringEncoding)encoding
-
-    /// Returns a `String` initialized by converting given `data` into
-    /// Unicode characters using a given `encoding`.
-    public init?(data: __shared Data, encoding: Encoding) {
-        if encoding == .utf8,
-            let str = data.withUnsafeBytes({
-                String._tryFromUTF8($0.bindMemory(to: UInt8.self))
-            }) {
-            self = str
-            return
-        }
-
-        guard let s = NSString(data: data, encoding: encoding.rawValue) else { return nil }
-        self = String._unconditionallyBridgeFromObjectiveC(s)
-    }
-
     // - (instancetype)initWithFormat:(NSString *)format, ...
 
     /// Returns a `String` object initialized by using a given
@@ -566,17 +398,11 @@ extension String {
     /// format string as a template into which the remaining argument
     /// values are substituted according to given locale information.
     public init(format: __shared String, locale: __shared Locale?, arguments: __shared [CVarArg]) {
-        #if DEPLOYMENT_RUNTIME_SWIFT
         self = withVaList(arguments) {
             String._unconditionallyBridgeFromObjectiveC(
                 NSString(format: format, locale: locale?._bridgeToObjectiveC(), arguments: $0)
             )
         }
-        #else
-        self = withVaList(arguments) {
-            NSString(format: format, locale: locale, arguments: $0) as String
-        }
-        #endif
     }
 
     public init(_ cocoaString: NSString) {
@@ -762,7 +588,6 @@ extension StringProtocol {
         matchesInto outputArray: UnsafeMutablePointer<[String]>? = nil,
         filterTypes: [String]? = nil
         ) -> Int {
-        #if DEPLOYMENT_RUNTIME_SWIFT
         var outputNamePlaceholder: String?
         var outputArrayPlaceholder = [String]()
         let res = self._ns.completePath(
@@ -778,39 +603,6 @@ extension StringProtocol {
         }
         outputArray?.pointee = outputArrayPlaceholder
         return res
-        #else // DEPLOYMENT_RUNTIME_SWIFT
-        var nsMatches: NSArray?
-        var nsOutputName: NSString?
-
-        let result: Int = outputName._withNilOrAddress(of: &nsOutputName) {
-            outputName in outputArray._withNilOrAddress(of: &nsMatches) {
-                outputArray in
-                // FIXME: completePath(...) is incorrectly annotated as requiring
-                // non-optional output parameters. rdar://problem/25494184
-                let outputNonOptionalName = unsafeBitCast(
-                    outputName, to: AutoreleasingUnsafeMutablePointer<NSString?>.self)
-                let outputNonOptionalArray = unsafeBitCast(
-                    outputArray, to: AutoreleasingUnsafeMutablePointer<NSArray?>.self)
-                return self._ns.completePath(
-                    into: outputNonOptionalName,
-                    caseSensitive: caseSensitive,
-                    matchesInto: outputNonOptionalArray,
-                    filterTypes: filterTypes
-                )
-            }
-        }
-
-        if let matches = nsMatches {
-            // Since this function is effectively a bridge thunk, use the
-            // bridge thunk semantics for the NSArray conversion
-            outputArray?.pointee = matches as! [String]
-        }
-
-        if let n = nsOutputName {
-            outputName?.pointee = n as String
-        }
-        return result
-        #endif // DEPLOYMENT_RUNTIME_SWIFT
     }
 
     // - (NSArray *)
@@ -965,25 +757,6 @@ extension StringProtocol {
     public var precomposedStringWithCompatibilityMapping: String {
         return _ns.precomposedStringWithCompatibilityMapping
     }
-
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    // - (id)propertyList
-
-    /// Parses the `String` as a text representation of a
-    /// property list, returning an NSString, NSData, NSArray, or
-    /// NSDictionary object, according to the topmost element.
-    public func propertyList() -> Any {
-        return _ns.propertyList()
-    }
-
-    // - (NSDictionary *)propertyListFromStringsFileFormat
-
-    /// Returns a dictionary object initialized with the keys and
-    /// values found in the `String`.
-    public func propertyListFromStringsFileFormat() -> [String : String] {
-        return _ns.propertyListFromStringsFileFormat() as! [String : String]? ?? [:]
-    }
-    #endif
 
     // - (BOOL)localizedStandardContainsString:(NSString *)str NS_AVAILABLE(10_11, 9_0);
 
@@ -1141,22 +914,6 @@ extension StringProtocol {
             : _ns.replacingOccurrences(of: target, with: replacement)
     }
 
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    // - (NSString *)
-    //     stringByReplacingPercentEscapesUsingEncoding:(NSStringEncoding)encoding
-
-    /// Returns a new string made by replacing in the `String`
-    /// all percent escapes with the matching characters as determined
-    /// by a given encoding.
-    @available(swift, deprecated: 3.0, obsoleted: 4.0,
-    message: "Use removingPercentEncoding instead, which always uses the recommended UTF-8 encoding.")
-    public func replacingPercentEscapes(
-        using encoding: String.Encoding
-        ) -> String? {
-        return _ns.replacingPercentEscapes(using: encoding.rawValue)
-    }
-    #endif
-
     // - (NSString *)stringByTrimmingCharactersInSet:(NSCharacterSet *)set
 
     /// Returns a new string made by removing from both ends of
@@ -1167,93 +924,6 @@ extension StringProtocol {
 
     //===--- Omitted due to redundancy with "utf8" property -----------------===//
     // - (const char *)UTF8String
-
-    // - (BOOL)
-    //     writeToFile:(NSString *)path
-    //     atomically:(BOOL)useAuxiliaryFile
-    //     encoding:(NSStringEncoding)enc
-    //     error:(NSError **)error
-
-    /// Writes the contents of the `String` to a file at a given
-    /// path using a given encoding.
-    public func write<
-        T : StringProtocol
-        >(
-        toFile path: T, atomically useAuxiliaryFile: Bool,
-        encoding enc: String.Encoding
-        ) throws {
-        try _ns.write(
-            toFile: path._ephemeralString,
-            atomically: useAuxiliaryFile,
-            encoding: enc.rawValue)
-    }
-
-    // - (BOOL)
-    //     writeToURL:(NSURL *)url
-    //     atomically:(BOOL)useAuxiliaryFile
-    //     encoding:(NSStringEncoding)enc
-    //     error:(NSError **)error
-
-    /// Writes the contents of the `String` to the URL specified
-    /// by url using the specified encoding.
-    public func write(
-        to url: URL, atomically useAuxiliaryFile: Bool,
-        encoding enc: String.Encoding
-        ) throws {
-        try _ns.write(
-            to: url, atomically: useAuxiliaryFile, encoding: enc.rawValue)
-    }
-
-    // - (nullable NSString *)stringByApplyingTransform:(NSString *)transform reverse:(BOOL)reverse NS_AVAILABLE(10_11, 9_0);
-
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    /// Perform string transliteration.
-    @available(macOS 10.11, iOS 9.0, *)
-    public func applyingTransform(
-        _ transform: StringTransform, reverse: Bool
-        ) -> String? {
-        return _ns.applyingTransform(transform, reverse: reverse)
-    }
-
-    // - (void)
-    //     enumerateLinguisticTagsInRange:(NSRange)range
-    //     scheme:(NSString *)tagScheme
-    //     options:(LinguisticTaggerOptions)opts
-    //     orthography:(Orthography *)orthography
-    //     usingBlock:(
-    //       void (^)(
-    //         NSString *tag, NSRange tokenRange,
-    //         NSRange sentenceRange, BOOL *stop)
-    //       )block
-
-    /// Performs linguistic analysis on the specified string by
-    /// enumerating the specific range of the string, providing the
-    /// Block with the located tags.
-    public func enumerateLinguisticTags<
-        T : StringProtocol, R : RangeExpression
-        >(
-        in range: R,
-        scheme tagScheme: T,
-        options opts: NSLinguisticTagger.Options = [],
-        orthography: NSOrthography? = nil,
-        invoking body:
-        (String, Range<Index>, Range<Index>, inout Bool) -> Void
-        ) where R.Bound == Index {
-        let range = range.relative(to: self)
-        _ns.enumerateLinguisticTags(
-            in: _toRelativeNSRange(range),
-            scheme: NSLinguisticTagScheme(rawValue: tagScheme._ephemeralString),
-            options: opts,
-            orthography: orthography
-        ) {
-            var stop_ = false
-            body($0!.rawValue, self._toRange($1), self._toRange($2), &stop_)
-            if stop_ {
-                $3.pointee = true
-            }
-        }
-    }
-    #endif
 
     // - (void)
     //     enumerateSubstringsInRange:(NSRange)range
@@ -1454,45 +1124,6 @@ extension StringProtocol {
     // @property BOOL absolutePath;
     // - (BOOL)isEqualToString:(NSString *)aString
 
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    // - (NSArray *)
-    //     linguisticTagsInRange:(NSRange)range
-    //     scheme:(NSString *)tagScheme
-    //     options:(LinguisticTaggerOptions)opts
-    //     orthography:(Orthography *)orthography
-    //     tokenRanges:(NSArray**)tokenRanges
-
-    /// Returns an array of linguistic tags for the specified
-    /// range and requested tags within the receiving string.
-    public func linguisticTags<
-        T : StringProtocol, R : RangeExpression
-        >(
-        in range: R,
-        scheme tagScheme: T,
-        options opts: NSLinguisticTagger.Options = [],
-        orthography: NSOrthography? = nil,
-        tokenRanges: UnsafeMutablePointer<[Range<Index>]>? = nil // FIXME:Can this be nil?
-        ) -> [String] where R.Bound == Index {
-        var nsTokenRanges: NSArray?
-        let result = tokenRanges._withNilOrAddress(of: &nsTokenRanges) {
-            self._ns.linguisticTags(
-                in: _toRelativeNSRange(range.relative(to: self)),
-                scheme: NSLinguisticTagScheme(rawValue: tagScheme._ephemeralString),
-                options: opts,
-                orthography: orthography,
-                tokenRanges: $0) as NSArray
-        }
-
-        if let nsTokenRanges = nsTokenRanges {
-            tokenRanges?.pointee = (nsTokenRanges as [AnyObject]).map {
-                self._toRange($0.rangeValue)
-            }
-        }
-
-        return result as! [String]
-    }
-    #endif
-
     // - (NSRange)rangeOfCharacterFromSet:(NSCharacterSet *)aSet
     //
     // - (NSRange)
@@ -1612,22 +1243,6 @@ extension StringProtocol {
         return _optionalRange(
             _ns.localizedStandardRange(of: string._ephemeralString))
     }
-
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    // - (NSString *)
-    //     stringByAddingPercentEscapesUsingEncoding:(NSStringEncoding)encoding
-
-    /// Returns a representation of the `String` using a given
-    /// encoding to determine the percent escapes necessary to convert
-    /// the `String` into a legal URL string.
-    @available(swift, deprecated: 3.0, obsoleted: 4.0,
-    message: "Use addingPercentEncoding(withAllowedCharacters:) instead, which always uses the recommended UTF-8 encoding, and which encodes for a specific URL component or subcomponent since each URL component or subcomponent has different rules for what characters are valid.")
-    public func addingPercentEscapes(
-        using encoding: String.Encoding
-        ) -> String? {
-        return _ns.addingPercentEscapes(using: encoding.rawValue)
-    }
-    #endif
 
     //===--- From the 10.10 release notes; not in public documentation ------===//
     // No need to make these unavailable on earlier OSes, since they can
@@ -1944,20 +1559,6 @@ extension StringProtocol {
         fatalError("unavailable function can't be called")
     }
 
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    @available(*, unavailable, renamed: "enumerateLinguisticTags(in:scheme:options:orthography:_:)")
-    public func enumerateLinguisticTagsIn(
-        _ range: Range<Index>,
-        scheme tagScheme: String,
-        options opts: NSLinguisticTagger.Options,
-        orthography: NSOrthography?,
-        _ body:
-        (String, Range<Index>, Range<Index>, inout Bool) -> Void
-        ) {
-        fatalError("unavailable function can't be called")
-    }
-    #endif
-
     @available(*, unavailable, renamed: "enumerateSubstrings(in:options:_:)")
     public func enumerateSubstringsIn(
         _ range: Range<Index>,
@@ -2012,19 +1613,6 @@ extension StringProtocol {
     public func lineRangeFor(_ aRange: Range<Index>) -> Range<Index> {
         fatalError("unavailable function can't be called")
     }
-
-    #if !DEPLOYMENT_RUNTIME_SWIFT
-    @available(*, unavailable, renamed: "linguisticTags(in:scheme:options:orthography:tokenRanges:)")
-    public func linguisticTagsIn(
-        _ range: Range<Index>,
-        scheme tagScheme: String,
-        options opts: NSLinguisticTagger.Options = [],
-        orthography: NSOrthography? = nil,
-        tokenRanges: UnsafeMutablePointer<[Range<Index>]>? = nil
-        ) -> [String] {
-        fatalError("unavailable function can't be called")
-    }
-    #endif
 
     @available(*, unavailable, renamed: "lowercased(with:)")
     public func lowercaseStringWith(_ locale: Locale?) -> String {
