@@ -35,13 +35,13 @@ if(NOT BUILD_SHARED_LIBS)
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFXMLInterface>")
     target_compile_options(FoundationXML PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend xml2>")
+    target_compile_options(FoundationNetworking PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend swiftSynchronization>")
 endif()
 
-target_link_options(FoundationXML PRIVATE
-    "SHELL:-no-toolchain-stdlib-rpath")
-
 set_target_properties(FoundationXML PROPERTIES
-    INSTALL_RPATH "$ORIGIN")
+    INSTALL_RPATH "$ORIGIN"
+    INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
 
 if(LINKER_SUPPORTS_BUILD_ID)
   target_link_options(FoundationXML PRIVATE "LINKER:--build-id=sha1")
