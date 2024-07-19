@@ -76,17 +76,7 @@ else()
 endif()
 FetchContent_MakeAvailable(SwiftFoundationICU SwiftFoundation)
 
-include(CheckSymbolExists)
 include(CheckLinkerFlag)
-
-check_symbol_exists(strlcat "string.h" HAVE_STRLCAT)
-check_symbol_exists(strlcpy "string.h" HAVE_STRLCPY)
-if(HAVE_STRLCAT)
-    add_compile_definitions($<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:HAVE_STRLCAT>)
-endif()
-if(HAVE_STRLCPY)
-    add_compile_definitions($<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:HAVE_STRLCPY>)
-endif()
 
 check_linker_flag(C "LINKER:--build-id=sha1" LINKER_SUPPORTS_BUILD_ID)
 
