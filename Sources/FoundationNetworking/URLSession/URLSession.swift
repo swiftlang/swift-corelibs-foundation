@@ -217,6 +217,8 @@ open class URLSession : NSObject {
         return URLSession(configuration: configuration, delegate: nil, delegateQueue: nil)
     }()
 
+    private static let sharedQueue = DispatchQueue(label: "org.swift.URLSession.SharedQueue")
+
     /*
      * Customization of URLSession occurs during creation of a new session.
      * If you only need to use the convenience routines with custom
@@ -227,7 +229,7 @@ open class URLSession : NSObject {
     public /*not inherited*/ init(configuration: URLSessionConfiguration) {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
-        self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
+        self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>", target: Self.sharedQueue)
         self.delegateQueue = OperationQueue()
         self.delegateQueue.maxConcurrentOperationCount = 1
         self.delegate = nil
@@ -249,7 +251,7 @@ open class URLSession : NSObject {
     public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
-        self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
+        self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>", target: Self.sharedQueue)
         if let _queue = queue {
            self.delegateQueue = _queue
         } else {
