@@ -178,3 +178,7 @@ endif()
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS Foundation)
 _foundation_install_target(Foundation)
+install(FILES
+    $<TARGET_LINKER_FILE:FoundationEssentials>
+    $<TARGET_LINKER_FILE:FoundationInternationalization>
+  DESTINATION lib)
