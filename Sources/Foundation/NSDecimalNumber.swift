@@ -7,6 +7,8 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@_spi(SwiftCorelibsFoundation) import FoundationEssentials
+
 /***************	Exceptions		***********/
 public struct NSExceptionName : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
@@ -39,26 +41,17 @@ extension NSExceptionName {
 
 /***************	Type definitions		***********/
 extension NSDecimalNumber {
-    public enum RoundingMode : UInt {
-        case plain // Round up on a tie
-        case down // Always down == truncate
-        case up // Always up
-        case bankers // on a tie round so last digit is even
-    }
-    
-    public enum CalculationError : UInt {
-        case noError
-        case lossOfPrecision // Result lost precision
-        case underflow // Result became 0
-        case overflow // Result exceeds possible representation
-        case divideByZero
-    }
+    public typealias RoundingMode = Decimal.RoundingMode
+    public typealias CalculationError = Decimal.CalculationError
 }
 
 public protocol NSDecimalNumberBehaviors {
     func roundingMode() -> NSDecimalNumber.RoundingMode
     func scale() -> Int16
 }
+
+public var NSDecimalMaxSize: Int32 { 8 }
+public var NSDecimalNoScale: Int32 { Int32(Int16.max) }
 
 // Receiver can raise, return a new value, or return nil to ignore the exception.
 
@@ -71,9 +64,7 @@ open class NSDecimalNumber : NSNumber {
 
     fileprivate let decimal: Decimal
     public convenience init(mantissa: UInt64, exponent: Int16, isNegative: Bool) {
-        var d = Decimal(mantissa)
-        d._exponent += Int32(exponent)
-        d._isNegative = isNegative ? 1 : 0
+        let d = Decimal(mantissa: mantissa, exponent: exponent, isNegative: isNegative)
         self.init(decimal: d)
     }
 
@@ -106,7 +97,7 @@ open class NSDecimalNumber : NSNumber {
             return nil  // raise "Critical NSDecimalNumber archived data is wrong size"
         }
         // Byte order?
-        let mantissa:(UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (
+        let mantissa : Decimal.Mantissa = (
             UInt16(mantissaData[0]) << 8 & UInt16(mantissaData[1]),
             UInt16(mantissaData[2]) << 8 & UInt16(mantissaData[3]),
             UInt16(mantissaData[4]) << 8 & UInt16(mantissaData[5]),
@@ -117,6 +108,7 @@ open class NSDecimalNumber : NSNumber {
             UInt16(mantissaData[14]) << 8 & UInt16(mantissaData[15])
         )
         self.decimal = Decimal(_exponent: exponent, _length: length, _isNegative: isNegative, _isCompact: isCompact, _reserved: 0, _mantissa: mantissa)
+
         super.init()
     }
 
@@ -328,7 +320,9 @@ open class NSDecimalNumber : NSNumber {
     // compare two NSDecimalNumbers
     open override func compare(_ decimalNumber: NSNumber) -> ComparisonResult {
         if let num = decimalNumber as? NSDecimalNumber {
-            return decimal.compare(to: num.decimal)
+            var lhs = decimal
+            var rhs = num.decimal
+            return NSDecimalCompare(&lhs, &rhs)
         } else {
             // NOTE: The lhs must be an NSNumber and not self (an NSDecimalNumber) so that NSNumber.compare() is used
             return decimalNumber.compare(self)
@@ -351,43 +345,43 @@ open class NSDecimalNumber : NSNumber {
     // return 'd' for double
     
     open override var int8Value: Int8 {
-        return Int8(truncatingIfNeeded: decimal.int64Value)
+        return Int8(truncatingIfNeeded: int64Value)
     }
 
     open override var uint8Value: UInt8 {
-        return UInt8(truncatingIfNeeded: decimal.uint64Value)
+        return UInt8(truncatingIfNeeded: uint64Value)
     }
 
     open override var int16Value: Int16 {
-        return Int16(truncatingIfNeeded: decimal.int64Value)
+        return Int16(truncatingIfNeeded: int64Value)
     }
 
     open override var uint16Value: UInt16 {
-        return UInt16(truncatingIfNeeded: decimal.uint64Value)
+        return UInt16(truncatingIfNeeded: uint64Value)
     }
 
     open override var int32Value: Int32 {
-        return Int32(truncatingIfNeeded: decimal.int64Value)
+        return Int32(truncatingIfNeeded: int64Value)
     }
 
     open override var uint32Value: UInt32 {
-        return UInt32(truncatingIfNeeded: decimal.uint64Value)
+        return UInt32(truncatingIfNeeded: uint64Value)
     }
 
     open override var int64Value: Int64 {
-        return decimal.int64Value
+        decimal._int64Value
     }
 
     open override var uint64Value: UInt64 {
-        return decimal.uint64Value
+        decimal._uint64Value
     }
 
     open override var floatValue: Float {
-        return Float(decimal.doubleValue)
+        return Float(decimal._doubleValue)
     }
 
     open override var doubleValue: Double {
-        return decimal.doubleValue
+        return decimal._doubleValue
     }
 
     open override var boolValue: Bool {
@@ -395,11 +389,11 @@ open class NSDecimalNumber : NSNumber {
     }
 
     open override var intValue: Int {
-        return Int(truncatingIfNeeded: decimal.int64Value)
+        return Int(truncatingIfNeeded: int64Value)
     }
 
     open override var uintValue: UInt {
-        return UInt(truncatingIfNeeded: decimal.uint64Value)
+        return UInt(truncatingIfNeeded: uint64Value)
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
@@ -521,4 +515,30 @@ extension NSNumber {
     }
 }
 
+@available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
+extension Decimal {
+    @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
+    @_transparent
+    public mutating func add(_ other: Decimal) {
+        self += other
+    }
+
+    @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
+    @_transparent
+    public mutating func subtract(_ other: Decimal) {
+        self -= other
+    }
+
+    @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
+    @_transparent
+    public mutating func multiply(by other: Decimal) {
+        self *= other
+    }
+
+    @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
+    @_transparent
+    public mutating func divide(by other: Decimal) {
+        self /= other
+    }
+}
 
