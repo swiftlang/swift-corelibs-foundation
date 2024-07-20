@@ -4,26 +4,49 @@ The Foundation framework defines a base layer of functionality that is required 
 
 It is designed with these goals in mind:
 
-* Provide a small set of basic utility classes.
+* Provide a small set of basic utility classes and data structures.
 * Make software development easier by introducing consistent conventions.
 * Support internationalization and localization, to make software accessible to users around the world.
 * Provide a level of OS independence, to enhance portability.
 
 There is more information on the Foundation framework [here](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/ObjC_classic/).
 
-This project, `swift-corelibs-foundation`, provides an implementation of the Foundation API for platforms where there is no Objective-C runtime. On macOS, iOS, and other Apple platforms, apps should use the Foundation that comes with the operating system. Our goal is for the API in this project to match the OS-provided Foundation and abstract away the exact underlying platform as much as possible.
+This project, `swift-corelibs-foundation`, provides an compatibility implementation of the Foundation API for platforms where there is no Objective-C runtime. On macOS, iOS, and other Apple platforms, apps should use the Foundation that comes with the operating system. 
 
-## Common API
+## Project Navigator
 
-Our primary goal is to achieve implementation parity with Foundation on Apple platforms. This will help to enable the overall Swift goal of **portability**.
+Foundation builds in different configurations and is composed of several projects.
 
-Therefore, we are not looking to make major API changes to the library that do not correspond with changes made to Foundation on Apple platforms. However, there are some areas where API changes are unavoidable. In these cases, documentation on the method will provide additional detail of the reason for the difference.
+```mermaid
+  graph TD;
+      FF[Foundation.framework]-->SF
+      subgraph GitHub
+        SCLF[swift-corelibs-foundation]-->SF
+        SF[swift-foundation]-->FICU[swift-foundation-icu]
+        SF-->SC[swift-collections]
+      end   
+```
 
-For more information on those APIs and the overall design of Foundation, please see [our design document](Docs/Design.md).
+### Swift Foundation
 
-## Current Status
+A shared library shipped in the Swift toolchain, written in Swift. It provides the core implementation of many key types, including `URL`, `Data`, `JSONDecoder`, `Locale`, `Calendar`, and more in the `FoundationEssentials` and `FoundationInternationalization` modules. Its source code is shared across all platforms.
 
-See our [status page](Docs/Status.md) for a detailed list of what features are currently implemented.
+_swift-foundation_ depends on a limited set of packages, primarily [swift-collections](http://github.com/apple/swift-collections) and [swift-syntax](http://github.com/apple/swift-syntax).
+
+### Swift Corelibs Foundation
+
+A shared library shipped in the Swift toolchain. It provides compatibility API for clients that need pre-Swift API from Foundation. It is written in Swift and C. It provides, among other types, `NSObject`, class-based data structures, `NSFormatter`, and `NSKeyedArchiver`. It re-exports the `FoundationEssentials` and `FoundationInternationalization` modules, allowing compatibility for source written before the introduction of the _swift-foundation_ project. As these implementations are distinct from those written in Objective-C, the compatibility is best-effort only.
+
+_swift-corelibs-foundation_ builds for non-Darwin platforms only. It installs the `Foundation` umbrella module, `FoundationXML`, and `FoundationNetworking`.
+
+### Foundation ICU
+
+A private library for Foundation, wrapping ICU. Using a standard version of ICU provides stability in the behavior of our internationalization API, and consistency with the latest releases on Darwin platforms. It is imported from the `FoundationInternationalization` module only. Clients that do not need API that relies upon the data provided by ICU can import `FoundationEssentials` instead.
+
+### Foundation Framework
+
+A [framework](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPFrameworks/Frameworks.html) built into macOS, iOS, and all other Darwin platforms. It is written in a combination of C, Objective-C, and Swift. The Foundation framework compiles the sources from _swift-foundation_ into its binary and provides one `Foundation` module that contains all features.
+
 
 ## Using Foundation
 
@@ -45,35 +68,10 @@ You will want to use the [Swift Package Manager](https://swift.org/package-manag
 
 ## Working on Foundation
 
-For information on how to build Foundation, please see [Getting Started](Docs/GettingStarted.md). If you would like, please consult our [status page](Docs/Status.md) to see where you can make the biggest impact, and once you're ready to make changes of your own, check out our [information on contributing](CONTRIBUTING.md).
+swift-corelibs-foundation builds as a standalone project using Swift Package Manager. Simply use `swift build` in the root of the checkout to build the project.
 
-## FAQ
+swift-corelibs-foundation also builds as part of the toolchain for non-Darwin platforms. Instructions on building the toolchain are available in the [Swift project](https://github.com/swiftlang/swift?tab=readme-ov-file#building).
 
-#### Why include Foundation on Linux?
-
-We believe that the Swift standard library should remain small and laser-focused on providing support for language primitives. The Foundation framework has the flexibility to include higher-level concepts and to build on top of the standard library, much in the same way that it builds upon the C standard library and Objective-C runtime on Darwin platforms.
-
-#### Why include NSString, NSDictionary, NSArray, and NSSet? Aren't those already provided by the standard library?
-
-There are several reasons why these types are useful in Swift as distinct types from the ones in the standard library:
-
-* They provide reference semantics instead of value semantics, which is a useful tool to have in the toolbox.
-* They can be subclassed to specialize behavior while maintaining the same interface for the client.
-* They exist in archives, and we wish to maintain as much forward and backward compatibility with persistence formats as is possible.
-* They are the backing for almost all Swift `Array`, `Dictionary`, and `Set` objects that you receive from frameworks implemented in Objective-C on Darwin platforms. This may be considered an implementation detail, but it leaks into client code in many ways. We want to provide them here so that your code will remain portable.
-
-#### How do we decide if something belongs in the standard library or Foundation?
-
-In general, the dividing line should be drawn in overlapping area of what people consider the language and what people consider to be a library feature.
-
-For example, `Optional` is a type provided by the standard library. However, the compiler understands the concept to provide support for things like optional-chaining syntax. The compiler also has syntax for creating instances of type `Array` and `Dictionary`.
-
-On the other hand, the compiler has no built-in support for types like `URL`. `URL` also ties into more complex functionality like basic networking support. Therefore this type is more appropriate for Foundation.
-
-#### Why not make the existing Objective-C implementation of Foundation open source?
-
-Foundation on Darwin is written primarily in Objective-C, and the Objective-C runtime is not part of the Swift open source project. CoreFoundation, however, is a portable C library and does not require the Objective-C runtime. It contains much of the behavior that is exposed via the Foundation API. Therefore, it is used on all platforms including Linux.
-
-#### How do I contribute?
+## Contributions
 
 We welcome contributions to Foundation! Please see the [known issues](Docs/Issues.md) page if you are looking for an area where we need help. We are also standing by on the [mailing lists](https://swift.org/community/#communication) to answer questions about what is most important to do and what we will accept into the project.
