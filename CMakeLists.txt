@@ -63,7 +63,7 @@ if (_SwiftFoundationICU_SourceDIR)
 else()
     FetchContent_Declare(SwiftFoundationICU
         GIT_REPOSITORY https://github.com/apple/swift-foundation-icu.git
-        GIT_TAG 0.0.8)
+        GIT_TAG 0.0.9)
 endif()
 
 if (_SwiftFoundation_SourceDIR)

@@ -160,14 +160,14 @@ if(NOT BUILD_SHARED_LIBS)
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend CoreFoundation>")
     target_compile_options(Foundation PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _FoundationICU>")
+    target_compile_options(Foundation PRIVATE
+        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend swiftSynchronization>")
 endif()
-
-target_link_options(Foundation PRIVATE
-    "SHELL:-no-toolchain-stdlib-rpath")
 
 set_target_properties(Foundation PROPERTIES
     INSTALL_RPATH "$ORIGIN"
-    BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>")
+    BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>"
+    INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
 
 target_link_libraries(Foundation PUBLIC
     swiftDispatch)
