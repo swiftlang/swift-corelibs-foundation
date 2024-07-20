@@ -12,6 +12,8 @@ import SwiftFoundation
 import Foundation
 #endif
 
+@_spi(SwiftCorelibsFoundation) import FoundationEssentials
+
 internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
     #if os(Android)
     NSLog("\(fn) is not yet implemented. \(file):\(line)")
@@ -42,8 +44,8 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
     func contentsOf(url: URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
 
         func cocoaError(with error: Error? = nil) -> Error {
-            var userInfo: [String: Any] = [:]
-            if let error = error {
+            var userInfo: [String: AnyHashable] = [:]
+            if let error = error as? AnyHashable {
                 userInfo[NSUnderlyingErrorKey] = error
             }
             return CocoaError.error(.fileReadUnknown, userInfo: userInfo, url: url)
@@ -85,7 +87,7 @@ class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading {
             switch statusCode {
                 // These are the only valid response codes that data will be returned for, all other codes will be treated as error.
                 case 101, 200...399, 401, 407:
-                    return (data as NSData, urlResponse?.textEncodingName)
+                    return (NSData(data: data), urlResponse?.textEncodingName)
 
                 default:
                     break

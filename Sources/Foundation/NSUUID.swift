@@ -90,7 +90,7 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     open override func isEqual(_ value: Any?) -> Bool {
         switch value {
-        case let other as UUID:
+        case let other as FoundationEssentials.UUID:
             return other.uuid.0 == buffer[0] &&
                 other.uuid.1 == buffer[1] &&
                 other.uuid.2 == buffer[2] &&
@@ -124,9 +124,9 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
 }
 
 extension NSUUID : _StructTypeBridgeable {
-    public typealias _StructType = UUID
+    public typealias _StructType = FoundationEssentials.UUID
     
-    public func _bridgeToSwift() -> UUID {
-        return UUID._unconditionallyBridgeFromObjectiveC(self)
+    public func _bridgeToSwift() -> FoundationEssentials.UUID {
+        return FoundationEssentials.UUID._unconditionallyBridgeFromObjectiveC(self)
     }
 }

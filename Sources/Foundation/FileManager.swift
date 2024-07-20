@@ -9,9 +9,7 @@
 
 #if !canImport(Darwin) && !os(FreeBSD)
 // The values do not matter as long as they are nonzero.
-fileprivate let UF_IMMUTABLE: Int32 = 1
 fileprivate let SF_IMMUTABLE: Int32 = 1
-fileprivate let UF_APPEND: Int32 = 1
 fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
@@ -33,16 +31,25 @@ internal typealias NativeFSRCharType = CChar
 internal let NativeFSREncoding = String.Encoding.utf8.rawValue
 #endif
 
-open class FileManager : NSObject {
-    
-    /* Returns the default singleton instance.
-    */
-    private static let _default = FileManager()
-    open class var `default`: FileManager {
-        get {
-            return _default
-        }
-    }
+
+#if os(Linux)
+// statx() is only supported by Linux kernels >= 4.11.0
+internal var supportsStatx: Bool = {
+    let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
+    return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
+}()
+
+// renameat2() is only supported by Linux kernels >= 3.15
+internal var kernelSupportsRenameat2: Bool = {
+    let requiredVersion = OperatingSystemVersion(majorVersion: 3, minorVersion: 15, patchVersion: 0)
+    return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
+}()
+#endif
+
+// For testing only: this facility pins the language used by displayName to the passed-in language.
+private var _overriddenDisplayNameLanguages: [String]? = nil
+
+extension FileManager {
     
     /// Returns an array of URLs that identify the mounted volumes available on the device.
     open func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
@@ -75,70 +82,6 @@ open class FileManager : NSObject {
         }
         return result
     }
-    
-    internal enum _SearchPathDomain {
-        case system
-        case local
-        case network
-        case user
-        
-        static let correspondingValues: [UInt: _SearchPathDomain] = [
-            SearchPathDomainMask.systemDomainMask.rawValue: .system,
-            SearchPathDomainMask.localDomainMask.rawValue: .local,
-            SearchPathDomainMask.networkDomainMask.rawValue: .network,
-            SearchPathDomainMask.userDomainMask.rawValue: .user,
-        ]
-        
-        static let searchOrder: [SearchPathDomainMask] = [
-            .systemDomainMask,
-            .localDomainMask,
-            .networkDomainMask,
-            .userDomainMask,
-        ]
-        
-        init?(_ domainMask: SearchPathDomainMask) {
-            if let value = _SearchPathDomain.correspondingValues[domainMask.rawValue] {
-                self = value
-            } else {
-                return nil
-            }
-        }
-        
-        static func allInSearchOrder(from domainMask: SearchPathDomainMask) -> [_SearchPathDomain] {
-            var domains: [_SearchPathDomain] = []
-
-            for bit in _SearchPathDomain.searchOrder {
-                if domainMask.contains(bit) {
-                    domains.append(_SearchPathDomain.correspondingValues[bit.rawValue]!)
-                }
-            }
-            
-            return domains
-        }
-    }
-
-    /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
-     */
-    open func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
-        return _urls(for: directory, in: domainMask)
-    }
-
-    internal lazy var xdgHomeDirectory: String = {
-        let key = "HOME="
-        if let contents = try? String(contentsOfFile: "/etc/default/useradd", encoding: .utf8) {
-            for line in contents.components(separatedBy: "\n") {
-                if line.hasPrefix(key) {
-                    let index = line.index(line.startIndex, offsetBy: key.count)
-                    let str = String(line[index...]) as NSString
-                    let homeDir = str.trimmingCharacters(in: CharacterSet.whitespaces)
-                    if homeDir.count > 0 {
-                        return homeDir
-                    }
-                }
-            }
-        }
-        return "/home"
-    }()
 
     private enum URLForDirectoryError: Error {
         case directoryUnknown
@@ -216,11 +159,11 @@ open class FileManager : NSObject {
         if shouldCreate || directory == .itemReplacementDirectory {
             var attributes: [FileAttributeKey : Any] = [:]
             
-            switch _SearchPathDomain(domain) {
-            case .some(.user):
+            switch domain {
+            case .userDomainMask:
                 attributes[.posixPermissions] = 0o700
                 
-            case .some(.system):
+            case .systemDomainMask:
                 attributes[.posixPermissions] = 0o755
                 attributes[.ownerAccountID] = 0 // root
                 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
@@ -326,622 +269,106 @@ open class FileManager : NSObject {
         try getRelationship(outRelationship, ofDirectoryAt: try self.url(for: directory, in: actualMask, appropriateFor: url, create: false), toItemAt: url)
     }
     
-    /* createDirectoryAtURL:withIntermediateDirectories:attributes:error: creates a directory at the specified URL. If you pass 'NO' for withIntermediateDirectories, the directory must not exist at the time this call is made. Passing 'YES' for withIntermediateDirectories will create any necessary intermediate directories. This method returns YES if all directories specified in 'url' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
-     */
-    open func createDirectory(at url: URL, withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey : Any]? = [:]) throws {
-        guard url.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
-        }
-        try self.createDirectory(atPath: url.path, withIntermediateDirectories: createIntermediates, attributes: attributes)
-    }
-    
-    /* createSymbolicLinkAtURL:withDestinationURL:error: returns YES if the symbolic link that point at 'destURL' was able to be created at the location specified by 'url'. 'destURL' is always resolved against its base URL, if it has one. If 'destURL' has no base URL and it's 'relativePath' is indeed a relative path, then a relative symlink will be created. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
-     */
-    open func createSymbolicLink(at url: URL, withDestinationURL destURL: URL) throws {
-        guard url.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
-        }
-        guard destURL.scheme == nil || destURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : destURL])
-        }
-        try self.createSymbolicLink(atPath: url.path, withDestinationPath: destURL.path)
-    }
-    
-    /* Instances of FileManager may now have delegates. Each instance has one delegate, and the delegate is not retained. In versions of Mac OS X prior to 10.5, the behavior of calling [[NSFileManager alloc] init] was undefined. In Mac OS X 10.5 "Leopard" and later, calling [[NSFileManager alloc] init] returns a new instance of an FileManager.
-     */
-    open weak var delegate: FileManagerDelegate?
-    
-    /* setAttributes:ofItemAtPath:error: returns YES when the attributes specified in the 'attributes' dictionary are set successfully on the item specified by 'path'. If this method returns NO, a presentable NSError will be provided by-reference in the 'error' parameter. If no error is required, you may pass 'nil' for the error.
-     
-        This method replaces changeFileAttributes:atPath:.
-     */
-    open func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
-        try _setAttributes(attributes, ofItemAtPath: path)
-    }
-    
-    internal func _setAttributes(_ attributeValues: [FileAttributeKey : Any], ofItemAtPath path: String, includingPrivateAttributes: Bool = false) throws {
-        var attributes = Set(attributeValues.keys)
-        if !includingPrivateAttributes {
-            attributes.formIntersection(FileAttributeKey.allPublicKeys)
+    internal func _setAttributesIncludingPrivate(_ values: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
+        // Call through to FoundationEssentials to handle all public attributes
+        try self.setAttributes(values, ofItemAtPath: path)
+        
+        // Handle private attributes
+        var flagsToSet: UInt32 = 0
+        var flagsToUnset: UInt32 = 0
+        
+        if let isHidden = values[._hidden] as? Bool {
+#if os(Windows)
+            let attrs = try windowsFileAttributes(atPath: path).dwFileAttributes
+            let hiddenAttrs = isHidden
+                ? attrs | FILE_ATTRIBUTE_HIDDEN
+                : attrs & ~FILE_ATTRIBUTE_HIDDEN
+            try _fileSystemRepresentation(withPath: path) { fsRep in
+                guard SetFileAttributesW(fsRep, hiddenAttrs) else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
+                }
+            }
+#else
+            if isHidden {
+                flagsToSet |= UInt32(UF_HIDDEN)
+            } else {
+                flagsToUnset |= UInt32(UF_HIDDEN)
+            }
+#endif
         }
         
-        try _fileSystemRepresentation(withPath: path) { fsRep in
-            var flagsToSet: UInt32 = 0
-            var flagsToUnset: UInt32 = 0
-            
-            var newModificationDate: Date?
-            var newAccessDate: Date?
-            
-            for attribute in attributes {
-                
-                func prepareToSetOrUnsetFlag(_ flag: Int32) {
-                    guard let shouldSet = attributeValues[attribute] as? Bool else {
-                        fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                    }
-                    
-                    if shouldSet {
-                        flagsToSet |= UInt32(flag)
-                    } else {
-                        flagsToUnset |= UInt32(flag)
-                    }
-                }
-                
-                switch attribute {
-                case .posixPermissions:
-#if os(WASI)
-                    // WASI does not have permission concept
-                    throw _NSErrorWithErrno(ENOTSUP, reading: false, path: path)
-#else
-                    guard let number = attributeValues[attribute] as? NSNumber else {
-                        fatalError("Can't set file permissions to \(attributeValues[attribute] as Any?)")
-                    }
-                    #if os(macOS) || os(iOS)
-                        let modeT = number.uint16Value
-                    #elseif os(Linux) || os(Android) || os(Windows) || os(OpenBSD)
-                        let modeT = number.uint32Value
-                    #endif
-#if os(Windows)
-                    let result = _wchmod(fsRep, mode_t(modeT))
-#else
-                    let result = chmod(fsRep, mode_t(modeT))
-#endif
-                    guard result == 0 else {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
-                    }
-#endif // os(WASI)
-                
-                case .modificationDate: fallthrough
-                case ._accessDate:
-                    guard let providedDate = attributeValues[attribute] as? Date else {
-                        fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                    }
-
-                    if attribute == .modificationDate {
-                        newModificationDate = providedDate
-                    } else if attribute == ._accessDate {
-                        newAccessDate = providedDate
-                    }
-
-                case .immutable: fallthrough
-                case ._userImmutable:
-                    prepareToSetOrUnsetFlag(UF_IMMUTABLE)
-                    
-                case ._systemImmutable:
-                    prepareToSetOrUnsetFlag(SF_IMMUTABLE)
-                    
-                case .appendOnly:
-                    prepareToSetOrUnsetFlag(UF_APPEND)
-                    
-                case ._hidden:
-#if os(Windows)
-                    let attrs = try windowsFileAttributes(atPath: path).dwFileAttributes
-                    guard let isHidden = attributeValues[attribute] as? Bool else {
-                      fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
-                    }
-
-                    let hiddenAttrs = isHidden
-                        ? attrs | FILE_ATTRIBUTE_HIDDEN
-                        : attrs & ~FILE_ATTRIBUTE_HIDDEN
-                    guard SetFileAttributesW(fsRep, hiddenAttrs) else {
-                      throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [path])
-                    }
-#else
-                    prepareToSetOrUnsetFlag(UF_HIDDEN)
-#endif
-                    
-                // FIXME: On Darwin, these can be set with setattrlist(); and of course chown/chgrp on other OSes.
-                case .ownerAccountID: fallthrough
-                case .ownerAccountName: fallthrough
-                case .groupOwnerAccountID: fallthrough
-                case .groupOwnerAccountName: fallthrough
-                case .creationDate: fallthrough
-                case .extensionHidden:
-                    // Setting these attributes is unsupported (for now) in swift-corelibs-foundation
-                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
-                    
-                default:
-                    break
-                }
+        if let isSystemImmutable = values[._systemImmutable] as? Bool {
+            if isSystemImmutable {
+                flagsToSet |= UInt32(SF_IMMUTABLE)
+            } else {
+                flagsToUnset |= UInt32(SF_IMMUTABLE)
             }
-
-            if flagsToSet != 0 || flagsToUnset != 0 {
-                #if !canImport(Darwin) && !os(FreeBSD)
-                    // Setting these attributes is unsupported on these platforms.
-                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
-                #else
-                    let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
-                    var flags = stat.st_flags
-                    flags |= flagsToSet
-                    flags &= ~flagsToUnset
-                
-                    guard chflags(fsRep, flags) == 0 else {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
-                    }
-                #endif
+        }
+        
+        if flagsToSet != 0 || flagsToUnset != 0 {
+#if !canImport(Darwin) && !os(FreeBSD)
+            // Setting these attributes is unsupported on these platforms.
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+#else
+            let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: nil)
+            var flags = stat.st_flags
+            flags |= flagsToSet
+            flags &= ~flagsToUnset
+            
+            guard chflags(fsRep, flags) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-
-            if newModificationDate != nil || newAccessDate != nil {
-              // Set dates as the very last step, to avoid other operations overwriting these values:
-              try _updateTimes(atPath: path, withFileSystemRepresentation: fsRep, accessTime: newAccessDate, modificationTime: newModificationDate)
+#endif
+        }
+        
+        let accessDate = values[._accessDate] as? Date
+        let modificationDate = values[.modificationDate] as? Date
+        
+        if accessDate != nil || modificationDate != nil {
+            // Set dates as the very last step, to avoid other operations overwriting these values
+            // Also re-set modification date here in case setting flags above changed it
+            try _fileSystemRepresentation(withPath: path) {
+                try _updateTimes(atPath: path, withFileSystemRepresentation: $0, accessTime: accessDate, modificationTime: modificationDate)
             }
         }
     }
     
-    /* createDirectoryAtPath:withIntermediateDirectories:attributes:error: creates a directory at the specified path. If you pass 'NO' for createIntermediates, the directory must not exist at the time this call is made. Passing 'YES' for 'createIntermediates' will create any necessary intermediate directories. This method returns YES if all directories specified in 'path' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
-     
-        This method replaces createDirectoryAtPath:attributes:
-     */
-    open func createDirectory(atPath path: String, withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey : Any]? = [:]) throws {
-        return try _createDirectory(atPath: path, withIntermediateDirectories: createIntermediates, attributes: attributes)
-    }
-
-    /**
-     Performs a shallow search of the specified directory and returns the paths of any contained items.
-     
-     This method performs a shallow search of the directory and therefore does not traverse symbolic links or return the contents of any subdirectories. This method also does not return URLs for the current directory (“.”), parent directory (“..”) but it does return other hidden files (files that begin with a period character).
-     
-     The order of the files in the returned array is undefined.
-     
-     - Parameter path: The path to the directory whose contents you want to enumerate.
-     
-     - Throws: `NSError` if the directory does not exist, this error is thrown with the associated error code.
-     
-     - Returns: An array of String each of which identifies a file, directory, or symbolic link contained in `path`. The order of the files returned is undefined.
-     */
-    open func contentsOfDirectory(atPath path: String) throws -> [String] {
-        var contents: [String] = []
-
-        try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
-            contents.append(entryName)
-        })
-        return contents
-    }
-
-    /**
-    Performs a deep enumeration of the specified directory and returns the paths of all of the contained subdirectories.
-    
-    This method recurses the specified directory and its subdirectories. The method skips the “.” and “..” directories at each level of the recursion.
-    
-    Because this method recurses the directory’s contents, you might not want to use it in performance-critical code. Instead, consider using the enumeratorAtURL:includingPropertiesForKeys:options:errorHandler: or enumeratorAtPath: method to enumerate the directory contents yourself. Doing so gives you more control over the retrieval of items and more opportunities to abort the enumeration or perform other tasks at the same time.
-    
-    - Parameter path: The path of the directory to list.
-    
-    - Throws: `NSError` if the directory does not exist, this error is thrown with the associated error code.
-    
-    - Returns: An array of NSString objects, each of which contains the path of an item in the directory specified by path. If path is a symbolic link, this method traverses the link. This method returns nil if it cannot retrieve the device of the linked-to file.
-    */
-    open func subpathsOfDirectory(atPath path: String) throws -> [String] {
-        return try _subpathsOfDirectory(atPath: path)
-    }
-
-    /* attributesOfItemAtPath:error: returns an NSDictionary of key/value pairs containing the attributes of the item (file, directory, symlink, etc.) at the path in question. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
-
-        This method replaces fileAttributesAtPath:traverseLink:.
-     */
-    open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
-        return try _attributesOfItem(atPath: path)
-    }
-    
-    internal func _attributesOfItem(atPath path: String, includingPrivateAttributes: Bool = false) throws -> [FileAttributeKey: Any] {
-        var result: [FileAttributeKey:Any] = [:]
-
+    internal func _attributesOfItemIncludingPrivate(atPath path: String) throws -> [FileAttributeKey: Any] {
+        // Call to FoundationEssentials to get all public attributes
+        var result = try self.attributesOfItem(atPath: path)
+        
 #if os(Linux)
-        let (s, creationDate) = try _statxFile(atPath: path)
-        result[.creationDate] = creationDate
+        let (s, _) = try _statxFile(atPath: path)
 #elseif os(Windows)
-        let (s, ino) = try _statxFile(atPath: path)
-        result[.creationDate] = s.creationDate
+        let (s, _) = try _statxFile(atPath: path)
 #else
         let s = try _lstatFile(atPath: path)
-        result[.creationDate] = s.creationDate
 #endif
-
-        result[.size] = NSNumber(value: UInt64(s.st_size))
-
-        result[.modificationDate] = s.lastModificationDate
-        if includingPrivateAttributes {
-            result[._accessDate] = s.lastAccessDate
-        }
-
-        result[.posixPermissions] = NSNumber(value: _filePermissionsMask(mode: UInt32(s.st_mode)))
-        result[.referenceCount] = NSNumber(value: UInt64(s.st_nlink))
-        result[.systemNumber] = NSNumber(value: UInt64(s.st_dev))
-#if os(Windows)
-        result[.systemFileNumber] = NSNumber(value: UInt64(ino))
-#else
-        result[.systemFileNumber] = NSNumber(value: UInt64(s.st_ino))
-#endif
-
-#if os(Windows)
-        result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
-        let attributes = try windowsFileAttributes(atPath: path)
-        let type = FileAttributeType(attributes: attributes, atPath: path)
-#elseif os(WASI)
-        let type = FileAttributeType(statMode: mode_t(s.st_mode))
-#else
-        if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
-            let name = String(cString: pwd.pointee.pw_name)
-            result[.ownerAccountName] = name
-        }
-
-        if let grd = getgrgid(s.st_gid), grd.pointee.gr_name != nil {
-            let name = String(cString: grd.pointee.gr_name)
-            result[.groupOwnerAccountName] = name
-        }
-
-        let type = FileAttributeType(statMode: mode_t(s.st_mode))
-#endif
-        result[.type] = type
-
-        if type == .typeBlockSpecial || type == .typeCharacterSpecial {
-            result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
-        }
-
+        result[._accessDate] = s.lastAccessDate
+        
 #if canImport(Darwin)
-        if (s.st_flags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE)) != 0 {
-            result[.immutable] = NSNumber(value: true)
-        }
-        
-        if includingPrivateAttributes {
-            result[._userImmutable] = (s.st_flags & UInt32(UF_IMMUTABLE)) != 0
-            result[._systemImmutable] = (s.st_flags & UInt32(SF_IMMUTABLE)) != 0
-            result[._hidden] = (s.st_flags & UInt32(UF_HIDDEN)) != 0
-        }
-        
-        if (s.st_flags & UInt32(UF_APPEND | SF_APPEND)) != 0 {
-            result[.appendOnly] = NSNumber(value: true)
-        }
+        result[._systemImmutable] = (s.st_flags & UInt32(SF_IMMUTABLE)) != 0
+        result[._hidden] = (s.st_flags & UInt32(UF_HIDDEN)) != 0
+#elseif os(Windows)
+        result[._hidden] = try windowsFileAttributes(atPath: path).dwFileAttributes & FILE_ATTRIBUTE_HIDDEN != 0
 #endif
-
-#if os(Windows)
-        let attrs = attributes.dwFileAttributes
-        result[._hidden] = attrs & FILE_ATTRIBUTE_HIDDEN != 0
-#endif
-        result[.ownerAccountID] = NSNumber(value: UInt64(s.st_uid))
-        result[.groupOwnerAccountID] = NSNumber(value: UInt64(s.st_gid))
-
         return result
-    }
-
-    /* attributesOfFileSystemForPath:error: returns an NSDictionary of key/value pairs containing the attributes of the filesystem containing the provided path. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
-     
-        This method replaces fileSystemAttributesAtPath:.
-     */
-    open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        return try _attributesOfFileSystem(forPath: path)
-    }
-
-    /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
-
-        This method replaces createSymbolicLinkAtPath:pathContent:
-     */
-    open func createSymbolicLink(atPath path: String, withDestinationPath destPath: String) throws {
-        return try _createSymbolicLink(atPath: path, withDestinationPath: destPath)
-    }
-
-    /* destinationOfSymbolicLinkAtPath:error: returns a String containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be thrown.
-
-        This method replaces pathContentOfSymbolicLinkAtPath:
-     */
-    open func destinationOfSymbolicLink(atPath path: String) throws -> String {
-        return try _destinationOfSymbolicLink(atPath: path)
     }
     
     internal func recursiveDestinationOfSymbolicLink(atPath path: String) throws -> String {
         return try _recursiveDestinationOfSymbolicLink(atPath: path)
     }
 
-    internal func extraErrorInfo(srcPath: String?, dstPath: String?, userVariant: String?) -> [String : Any] {
-        var result = [String : Any]()
-        result["NSSourceFilePathErrorKey"] = srcPath
-        result["NSDestinationFilePath"] = dstPath
-        result["NSUserStringVariant"] = userVariant.map(NSArray.init(object:))
-        return result
-    }
-
-    internal func shouldProceedAfterError(_ error: Error, copyingItemAtPath path: String, toPath: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return false }
-        if isURL {
-            return delegate.fileManager(self, shouldProceedAfterError: error, copyingItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
-        } else {
-            return delegate.fileManager(self, shouldProceedAfterError: error, copyingItemAtPath: path, toPath: toPath)
-        }
-    }
-    
-    internal func shouldCopyItemAtPath(_ path: String, toPath: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return true }
-        if isURL {
-            return delegate.fileManager(self, shouldCopyItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
-        } else {
-            return delegate.fileManager(self, shouldCopyItemAtPath: path, toPath: toPath)
-        }
-    }
-    
-    fileprivate func _copyItem(atPath srcPath: String, toPath dstPath: String, isURL: Bool) throws {
-        try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
-            guard shouldCopyItemAtPath(srcPath, toPath: dstPath, isURL: isURL) else {
-                return
-            }
-            
-            do {
-                switch fileType {
-                case .typeRegular:
-                    try _copyRegularFile(atPath: srcPath, toPath: dstPath)
-                case .typeSymbolicLink:
-                    try _copySymlink(atPath: srcPath, toPath: dstPath)
-                default:
-                    break
-                }
-            } catch {
-                if !shouldProceedAfterError(error, copyingItemAtPath: srcPath, toPath: dstPath, isURL: isURL) {
-                    throw error
-                }
-            }
-        }
-    }
-    
-    internal func shouldProceedAfterError(_ error: Error, movingItemAtPath path: String, toPath: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return false }
-        if isURL {
-            return delegate.fileManager(self, shouldProceedAfterError: error, movingItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
-        } else {
-            return delegate.fileManager(self, shouldProceedAfterError: error, movingItemAtPath: path, toPath: toPath)
-        }
-    }
-    
-    internal func shouldMoveItemAtPath(_ path: String, toPath: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return true }
-        if isURL {
-            return delegate.fileManager(self, shouldMoveItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
-        } else {
-            return delegate.fileManager(self, shouldMoveItemAtPath: path, toPath: toPath)
-        }
-    }
-    
-    internal func shouldProceedAfterError(_ error: Error, linkingItemAtPath path: String, toPath: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return false }
-        if isURL {
-            return delegate.fileManager(self, shouldProceedAfterError: error, linkingItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
-        } else {
-            return delegate.fileManager(self, shouldProceedAfterError: error, linkingItemAtPath: path, toPath: toPath)
-        }
-    }
-    
-    internal func shouldLinkItemAtPath(_ path: String, toPath: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return true }
-        if isURL {
-            return delegate.fileManager(self, shouldLinkItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
-        } else {
-            return delegate.fileManager(self, shouldLinkItemAtPath: path, toPath: toPath)
-        }
-    }
-    
-    internal func shouldProceedAfterError(_ error: Error, removingItemAtPath path: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return false }
-        if isURL {
-            return delegate.fileManager(self, shouldProceedAfterError: error, removingItemAt: URL(fileURLWithPath: path))
-        } else {
-            return delegate.fileManager(self, shouldProceedAfterError: error, removingItemAtPath: path)
-        }
-    }
-    
-    internal func shouldRemoveItemAtPath(_ path: String, isURL: Bool) -> Bool {
-        guard let delegate = self.delegate else { return true }
-        if isURL {
-            return delegate.fileManager(self, shouldRemoveItemAt: URL(fileURLWithPath: path))
-        } else {
-            return delegate.fileManager(self, shouldRemoveItemAtPath: path)
-        }
-    }
-
-    open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
-        try _copyItem(atPath: srcPath, toPath: dstPath, isURL: false)
-    }
-    
-    open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
-        try _moveItem(atPath: srcPath, toPath: dstPath, isURL: false)
-    }
-    
-    open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
-        try _linkItem(atPath: srcPath, toPath: dstPath, isURL: false)
-    }
-    
-    open func removeItem(atPath path: String) throws {
-        try _removeItem(atPath: path, isURL: false)
-    }
-    
-    open func copyItem(at srcURL: URL, to dstURL: URL) throws {
-        guard srcURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : srcURL])
-        }
-        guard dstURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
-        }
-        try _copyItem(atPath: srcURL.path, toPath: dstURL.path, isURL: true)
-    }
-    
-    open func moveItem(at srcURL: URL, to dstURL: URL) throws {
-        guard srcURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : srcURL])
-        }
-        guard dstURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
-        }
-        try _moveItem(atPath: srcURL.path, toPath: dstURL.path, isURL: true)
-    }
-    
-    open func linkItem(at srcURL: URL, to dstURL: URL) throws {
-        guard srcURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : srcURL])
-        }
-        guard dstURL.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
-        }
-        try _linkItem(atPath: srcURL.path, toPath: dstURL.path, isURL: true)
-    }
-
-    open func removeItem(at url: URL) throws {
-        guard url.isFileURL else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
-        }
-        try _removeItem(atPath: url.path, isURL: true)
-    }
-
-    /* Process working directory management. Despite the fact that these are instance methods on FileManager, these methods report and change (respectively) the working directory for the entire process. Developers are cautioned that doing so is fraught with peril.
-     */
-    open var currentDirectoryPath: String {
-        return _currentDirectoryPath()
-    }
-
-    @discardableResult
-    open func changeCurrentDirectoryPath(_ path: String) -> Bool {
-        return _changeCurrentDirectoryPath(path)
-    }
-
-    /* The following methods are of limited utility. Attempting to predicate behavior based on the current state of the filesystem or a particular file on the filesystem is encouraging odd behavior in the face of filesystem race conditions. It's far better to attempt an operation (like loading a file or creating a directory) and handle the error gracefully than it is to try to figure out ahead of time whether the operation will succeed.
-     */
-    open func fileExists(atPath path: String) -> Bool {
-        return _fileExists(atPath: path, isDirectory: nil)
-    }
-
     open func fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
-        return _fileExists(atPath: path, isDirectory: isDirectory)
-    }
-
-    open func isReadableFile(atPath path: String) -> Bool {
-        return _isReadableFile(atPath: path)
-    }
-
-    open func isWritableFile(atPath path: String) -> Bool {
-        return _isWritableFile(atPath: path)
-    }
-
-    open func isExecutableFile(atPath path: String) -> Bool {
-        return _isExecutableFile(atPath: path)
-    }
-
-    /**
-     - parameters:
-        - path: The path to the file we are trying to determine is deletable.
-
-      - returns: `true` if the file is deletable, `false` otherwise.
-     */
-    open func isDeletableFile(atPath path: String) -> Bool {
-        return _isDeletableFile(atPath: path)
-    }
-
-    internal func _compareDirectories(atPath path1: String, andPath path2: String) -> Bool {
-        guard let enumerator1 = enumerator(atPath: path1) else {
-            return false
-        }
-
-        guard let enumerator2 = enumerator(atPath: path2) else {
-            return false
-        }
-        enumerator1.skipDescendants()
-        enumerator2.skipDescendants()
-
-        var path1entries = Set<String>()
-        while let item = enumerator1.nextObject() as? String {
-            path1entries.insert(item)
-        }
-
-        while let item = enumerator2.nextObject() as? String {
-            if path1entries.remove(item) == nil {
-                return false
-            }
-            if contentsEqual(atPath: NSString(string: path1).appendingPathComponent(item), andPath: NSString(string: path2).appendingPathComponent(item)) == false {
-                return false
-            }
-        }
-        return path1entries.isEmpty
-    }
-
-    internal func _filePermissionsMask(mode : UInt32) -> Int {
-#if os(Windows)
-        return Int(mode & ~UInt32(ucrt.S_IFMT))
-#elseif canImport(Darwin)
-        return Int(mode & ~UInt32(S_IFMT))
-#else
-        return Int(mode & ~S_IFMT)
-#endif
-    }
-
-    internal func _permissionsOfItem(atPath path: String) throws -> Int {
-        let fileInfo = try _lstatFile(atPath: path)
-        return _filePermissionsMask(mode: UInt32(fileInfo.st_mode))
-    }
-
-#if os(Linux)
-    // statx() is only supported by Linux kernels >= 4.11.0
-    internal lazy var supportsStatx: Bool = {
-        let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
-        return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
-    }()
-
-    // renameat2() is only supported by Linux kernels >= 3.15
-    internal lazy var kernelSupportsRenameat2: Bool = {
-        let requiredVersion = OperatingSystemVersion(majorVersion: 3, minorVersion: 15, patchVersion: 0)
-        return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
-    }()
-#endif
-
-    internal func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<NativeFSRCharType>, andFileSystemRepresentation file2Rep: UnsafePointer<NativeFSRCharType>, size: Int64, bufSize: Int) -> Bool {
-        guard let file1 = FileHandle(fileSystemRepresentation: file1Rep, flags: O_RDONLY, createMode: 0) else { return false }
-        guard let file2 = FileHandle(fileSystemRepresentation: file2Rep, flags: O_RDONLY, createMode: 0) else { return false }
-
-        let buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
-        let buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        var isDir: Bool = false
         defer {
-            buffer1.deallocate()
-            buffer2.deallocate()
+            if let isDirectory {
+                isDirectory.pointee = ObjCBool(isDir)
+            }
         }
-        var bytesLeft = size
-        while bytesLeft > 0 {
-            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
-
-            guard let file1BytesRead = try? file1._readBytes(into: buffer1, length: bytesToRead), file1BytesRead == bytesToRead else {
-                return false
-            }
-            guard let file2BytesRead = try? file2._readBytes(into: buffer2, length: bytesToRead), file2BytesRead == bytesToRead else {
-                return false
-            }
-            guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
-                return false
-            }
-            bytesLeft -= Int64(bytesToRead)
-        }
-        return true
-    }
-
-    /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
-     */
-    open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
-        return _contentsEqual(atPath: path1, andPath: path2)
+        return self.fileExists(atPath: path, isDirectory: &isDir)
     }
     
-    // For testing only: this facility pins the language used by displayName to the passed-in language.
-    private var _overriddenDisplayNameLanguages: [String]? = nil
     internal func _overridingDisplayNameLanguages<T>(with languages: [String], within body: () throws -> T) rethrows -> T {
         let old = _overriddenDisplayNameLanguages
         defer { _overriddenDisplayNameLanguages = old }
@@ -1031,44 +458,26 @@ open class FileManager : NSObject {
         return try? subpathsOfDirectory(atPath: path)
     }
     
-    /* These methods are provided here for compatibility. The corresponding methods on NSData which return NSErrors should be regarded as the primary method of creating a file from an NSData or retrieving the contents of a file as an NSData.
-     */
-    open func contents(atPath path: String) -> Data? {
-        return try? Data(contentsOf: URL(fileURLWithPath: path))
-    }
-
-    @discardableResult
-    open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
-        do {
-            try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .atomic)
-            if let attr = attr {
-                try self.setAttributes(attr, ofItemAtPath: path)
-            }
-            return true
-        } catch {
-            return false
-        }
-    }
-    
     /* fileSystemRepresentationWithPath: returns an array of characters suitable for passing to lower-level POSIX style APIs. The string is provided in the representation most appropriate for the filesystem in question.
      */
     open func fileSystemRepresentation(withPath path: String) -> UnsafePointer<Int8> {
         precondition(path != "", "Empty path argument")
-#if os(Windows)
-        // On Windows, the internal _fileSystemRepresentation returns UTF16
-        // encoded data, so we need to re-encode the result as UTF-8 before
-        // returning.
-        return try! _fileSystemRepresentation(withPath: path) {
-            String(decodingCString: $0, as: UTF16.self).withCString() {
-                let size = strnlen($0, Int(MAX_PATH))
-                let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: size + 1)
-                buffer.initialize(from: $0, count: size + 1)
-                return UnsafePointer(buffer)
+        return self.withFileSystemRepresentation(for: path) { ptr in
+            guard let ptr else {
+                let allocation = UnsafeMutablePointer<Int8>.allocate(capacity: 1)
+                allocation.pointee = 0
+                return UnsafePointer(allocation)
             }
+            var endIdx = ptr
+            while endIdx.pointee != 0 {
+                endIdx = endIdx.advanced(by: 1)
+            }
+            endIdx = endIdx.advanced(by: 1)
+            let size = ptr.distance(to: endIdx)
+            let buffer = UnsafeMutableBufferPointer<Int8>.allocate(capacity: size)
+            buffer.initialize(fromContentsOf: UnsafeBufferPointer(start: ptr, count: size))
+            return UnsafePointer(buffer.baseAddress!)
         }
-#else
-        return try! __fileSystemRepresentation(withPath: path)
-#endif
     }
 
     internal func __fileSystemRepresentation(withPath path: String) throws -> UnsafePointer<NativeFSRCharType> {
@@ -1098,12 +507,6 @@ open class FileManager : NSObject {
         defer { fsRep2.deallocate() }
 
         return try body(fsRep1, fsRep2)
-    }
-
-    /* stringWithFileSystemRepresentation:length: returns an NSString created from an array of bytes that are in the filesystem representation.
-     */
-    open func string(withFileSystemRepresentation str: UnsafePointer<Int8>, length len: Int) -> String {
-        return NSString(bytes: str, length: len, encoding: String.Encoding.utf8.rawValue)!._swiftObject
     }
 
     /* -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: is for developers who wish to perform a safe-save without using the full NSDocument machinery that is available in the AppKit.
@@ -1150,25 +553,6 @@ open class FileManager : NSObject {
 
         return _appendSymlinkDestination(destination, toPath: path)
     }
-
-    open var homeDirectoryForCurrentUser: URL {
-        CFCopyHomeDirectoryURLForUser(nil)!.takeRetainedValue()._swiftObject
-    }
-    
-    open var temporaryDirectory: URL {
-        return URL(fileURLWithPath: NSTemporaryDirectory())
-    }
-    
-    open func homeDirectory(forUser userName: String) -> URL? {
-        guard !userName.isEmpty else { return nil }
-        // Prefer to take the `CFCopyHomeDirectoryURLForUser` path for the
-        // current user.
-        return CFCopyHomeDirectoryURLForUser(userName == NSUserName()
-                                                ? nil
-                                                : userName._cfObject)?
-                    .takeRetainedValue()
-                    ._swiftObject
-    }
 }
 
 extension FileManager {
@@ -1184,79 +568,9 @@ extension FileManager {
          */
         public static let produceFileReferenceURLs = VolumeEnumerationOptions(rawValue: 1 << 2)
     }
-    
-    public struct DirectoryEnumerationOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-
-        /* NSDirectoryEnumerationSkipsSubdirectoryDescendants causes the NSDirectoryEnumerator to perform a shallow enumeration and not descend into directories it encounters.
-         */
-        public static let skipsSubdirectoryDescendants = DirectoryEnumerationOptions(rawValue: 1 << 0)
-
-        /* NSDirectoryEnumerationSkipsPackageDescendants will cause the NSDirectoryEnumerator to not descend into packages.
-         */
-        public static let skipsPackageDescendants = DirectoryEnumerationOptions(rawValue: 1 << 1)
-
-        /* NSDirectoryEnumerationSkipsHiddenFiles causes the NSDirectoryEnumerator to not enumerate hidden files.
-         */
-        public static let skipsHiddenFiles = DirectoryEnumerationOptions(rawValue: 1 << 2)
-    }
-
-    public struct ItemReplacementOptions : OptionSet {
-        public let rawValue : UInt
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-
-        /* Causes -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: to use metadata from the new item only and not to attempt to preserve metadata from the original item.
-         */
-        public static let usingNewMetadataOnly = ItemReplacementOptions(rawValue: 1 << 0)
-
-        /* Causes -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: to leave the backup item in place after a successful replacement. The default behavior is to remove the item.
-         */
-        public static let withoutDeletingBackupItem = ItemReplacementOptions(rawValue: 1 << 1)
-    }
-
-    public enum URLRelationship : Int {
-        case contains
-        case same
-        case other
-    }
 }
 
-public struct FileAttributeKey : RawRepresentable, Equatable, Hashable {
-    public let rawValue: String
-    
-    public init(_ rawValue: String) {
-        self.rawValue = rawValue
-    }
-    
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public static let type = FileAttributeKey(rawValue: "NSFileType")
-    public static let size = FileAttributeKey(rawValue: "NSFileSize")
-    public static let modificationDate = FileAttributeKey(rawValue: "NSFileModificationDate")
-    public static let referenceCount = FileAttributeKey(rawValue: "NSFileReferenceCount")
-    public static let deviceIdentifier = FileAttributeKey(rawValue: "NSFileDeviceIdentifier")
-    public static let ownerAccountName = FileAttributeKey(rawValue: "NSFileOwnerAccountName")
-    public static let groupOwnerAccountName = FileAttributeKey(rawValue: "NSFileGroupOwnerAccountName")
-    public static let posixPermissions = FileAttributeKey(rawValue: "NSFilePosixPermissions")
-    public static let systemNumber = FileAttributeKey(rawValue: "NSFileSystemNumber")
-    public static let systemFileNumber = FileAttributeKey(rawValue: "NSFileSystemFileNumber")
-    public static let extensionHidden = FileAttributeKey(rawValue: "NSFileExtensionHidden")
-    public static let hfsCreatorCode = FileAttributeKey(rawValue: "NSFileHFSCreatorCode")
-    public static let hfsTypeCode = FileAttributeKey(rawValue: "NSFileHFSTypeCode")
-    public static let immutable = FileAttributeKey(rawValue: "NSFileImmutable")
-    public static let appendOnly = FileAttributeKey(rawValue: "NSFileAppendOnly")
-    public static let creationDate = FileAttributeKey(rawValue: "NSFileCreationDate")
-    public static let ownerAccountID = FileAttributeKey(rawValue: "NSFileOwnerAccountID")
-    public static let groupOwnerAccountID = FileAttributeKey(rawValue: "NSFileGroupOwnerAccountID")
-    public static let busy = FileAttributeKey(rawValue: "NSFileBusy")
-    public static let systemSize = FileAttributeKey(rawValue: "NSFileSystemSize")
-    public static let systemFreeSize = FileAttributeKey(rawValue: "NSFileSystemFreeSize")
-    public static let systemNodes = FileAttributeKey(rawValue: "NSFileSystemNodes")
-    public static let systemFreeNodes = FileAttributeKey(rawValue: "NSFileSystemFreeNodes")
-    
+extension FileAttributeKey {
     // These are the public keys:
     internal static let allPublicKeys: Set<FileAttributeKey> = [
         .type,
@@ -1288,148 +602,8 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable {
     // They are intended for use by NSURL's resource keys.
     
     internal static let _systemImmutable = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._systemImmutable")
-    internal static let _userImmutable = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._userImmutable")
     internal static let _hidden = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._hidden")
     internal static let _accessDate = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._accessDate")
-}
-
-public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
-    public let rawValue: String
-
-    public init(_ rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-#if os(Windows)
-    internal init(attributes: WIN32_FILE_ATTRIBUTE_DATA, atPath path: String) {
-        if attributes.dwFileAttributes & FILE_ATTRIBUTE_DEVICE == FILE_ATTRIBUTE_DEVICE {
-            self = .typeCharacterSpecial
-        } else if attributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT == FILE_ATTRIBUTE_REPARSE_POINT {
-            // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
-            let handle: HANDLE = (try? FileManager.default._fileSystemRepresentation(withPath: path) {
-              CreateFileW($0, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nil,
-                          OPEN_EXISTING,
-                          FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-                          nil)
-            }) ?? INVALID_HANDLE_VALUE
-            if handle == INVALID_HANDLE_VALUE {
-                self = .typeUnknown
-                return
-            }
-            defer { CloseHandle(handle) }
-            var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
-            if !GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tagInfo,
-                                             DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) {
-                self = .typeUnknown
-                return
-            }
-            self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
-        } else if attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
-            // Note: Since Windows marks directory symlinks as both
-            // directories and reparse points, having this after the
-            // reparse point check implicitly encodes Windows
-            // directory symlinks as not directories, which matches
-            // POSIX behavior.
-            self = .typeDirectory
-        } else {
-            self = .typeRegular
-        }
-    }
-#else
-    internal init(statMode: mode_t) {
-        switch statMode & S_IFMT {
-        case S_IFCHR: self = .typeCharacterSpecial
-        case S_IFDIR: self = .typeDirectory
-        case S_IFBLK: self = .typeBlockSpecial
-        case S_IFREG: self = .typeRegular
-        case S_IFLNK: self = .typeSymbolicLink
-        case S_IFSOCK: self = .typeSocket
-        default: self = .typeUnknown
-        }
-    }
-#endif
-
-    public static let typeDirectory = FileAttributeType(rawValue: "NSFileTypeDirectory")
-    public static let typeRegular = FileAttributeType(rawValue: "NSFileTypeRegular")
-    public static let typeSymbolicLink = FileAttributeType(rawValue: "NSFileTypeSymbolicLink")
-    public static let typeSocket = FileAttributeType(rawValue: "NSFileTypeSocket")
-    public static let typeCharacterSpecial = FileAttributeType(rawValue: "NSFileTypeCharacterSpecial")
-    public static let typeBlockSpecial = FileAttributeType(rawValue: "NSFileTypeBlockSpecial")
-    public static let typeUnknown = FileAttributeType(rawValue: "NSFileTypeUnknown")
-}
-
-public protocol FileManagerDelegate : NSObjectProtocol {
-    
-    /* fileManager:shouldCopyItemAtPath:toPath: gives the delegate an opportunity to filter the resulting copy. Returning YES from this method will allow the copy to happen. Returning NO from this method causes the item in question to be skipped. If the item skipped was a directory, no children of that directory will be copied, nor will the delegate be notified of those children.
-     */
-    func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldCopyItemAt srcURL: URL, to dstURL: URL) -> Bool
-    
-    /* fileManager:shouldProceedAfterError:copyingItemAtPath:toPath: gives the delegate an opportunity to recover from or continue copying after an error. If an error occurs, the error object will contain an NSError indicating the problem. The source path and destination paths are also provided. If this method returns YES, the FileManager instance will continue as if the error had not occurred. If this method returns NO, the FileManager instance will stop copying, return NO from copyItemAtPath:toPath:error: and the error will be provided there.
-     */
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAt srcURL: URL, to dstURL: URL) -> Bool
-    
-    /* fileManager:shouldMoveItemAtPath:toPath: gives the delegate an opportunity to not move the item at the specified path. If the source path and the destination path are not on the same device, a copy is performed to the destination path and the original is removed. If the copy does not succeed, an error is returned and the incomplete copy is removed, leaving the original in place.
-    
-     */
-    func fileManager(_ fileManager: FileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldMoveItemAt srcURL: URL, to dstURL: URL) -> Bool
-    
-    /* fileManager:shouldProceedAfterError:movingItemAtPath:toPath: functions much like fileManager:shouldProceedAfterError:copyingItemAtPath:toPath: above. The delegate has the opportunity to remedy the error condition and allow the move to continue.
-     */
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAt srcURL: URL, to dstURL: URL) -> Bool
-    
-    /* fileManager:shouldLinkItemAtPath:toPath: acts as the other "should" methods, but this applies to the file manager creating hard links to the files in question.
-     */
-    func fileManager(_ fileManager: FileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldLinkItemAt srcURL: URL, to dstURL: URL) -> Bool
-    
-    /* fileManager:shouldProceedAfterError:linkingItemAtPath:toPath: allows the delegate an opportunity to remedy the error which occurred in linking srcPath to dstPath. If the delegate returns YES from this method, the linking will continue. If the delegate returns NO from this method, the linking operation will stop and the error will be returned via linkItemAtPath:toPath:error:.
-     */
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAt srcURL: URL, to dstURL: URL) -> Bool
-    
-    /* fileManager:shouldRemoveItemAtPath: allows the delegate the opportunity to not remove the item at path. If the delegate returns YES from this method, the FileManager instance will attempt to remove the item. If the delegate returns NO from this method, the remove skips the item. If the item is a directory, no children of that item will be visited.
-     */
-    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtPath path: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldRemoveItemAt URL: URL) -> Bool
-    
-    /* fileManager:shouldProceedAfterError:removingItemAtPath: allows the delegate an opportunity to remedy the error which occurred in removing the item at the path provided. If the delegate returns YES from this method, the removal operation will continue. If the delegate returns NO from this method, the removal operation will stop and the error will be returned via linkItemAtPath:toPath:error:.
-     */
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAtPath path: String) -> Bool
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAt URL: URL) -> Bool
-}
-
-extension FileManagerDelegate {
-    func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldCopyItemAt srcURL: URL, to dstURL: URL) -> Bool { return true }
-
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAt srcURL: URL, to dstURL: URL) -> Bool { return false }
-
-    func fileManager(_ fileManager: FileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldMoveItemAt srcURL: URL, to dstURL: URL) -> Bool { return true }
-
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAt srcURL: URL, to dstURL: URL) -> Bool { return false }
-
-    func fileManager(_ fileManager: FileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldLinkItemAt srcURL: URL, to dstURL: URL) -> Bool { return true }
-
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAt srcURL: URL, to dstURL: URL) -> Bool { return false }
-
-    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtPath path: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldRemoveItemAt URL: URL) -> Bool { return true }
-
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAtPath path: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAt URL: URL) -> Bool { return false }
 }
 
 extension FileManager {

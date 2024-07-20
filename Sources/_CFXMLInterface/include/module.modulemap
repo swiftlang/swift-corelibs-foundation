@@ -1,0 +1,8 @@
+module _CFXMLInterface {
+    umbrella header "CFXMLInterface.h"
+
+    export *
+    module * {
+      export *
+    }
+}

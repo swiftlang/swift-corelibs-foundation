@@ -7,11 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(OpenBSD)
-import CoreFoundation
-#else
 @_implementationOnly import CoreFoundation
-#endif
 
 internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
 internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
@@ -115,22 +111,23 @@ open class RunLoop: NSObject {
     // On platforms where it's available, getCFRunLoop() can be overridden and we use it below.
     // Make sure we honor the override -- var currentCFRunLoop will do so on platforms where overrides are available.
 
+    // TODO: This has been removed as public API in port to the package, because CoreFoundation cannot be available as both toolchain "CoreFoundation" and package "_CoreFoundation"
     #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(OpenBSD)
     internal var currentCFRunLoop: CFRunLoop { getCFRunLoop() }
 
     @available(*, deprecated, message: "Directly accessing the run loop may cause your code to not become portable in the future.")
-    open func getCFRunLoop() -> CFRunLoop {
+    internal func getCFRunLoop() -> CFRunLoop {
         return _cfRunLoop
     }
     #else
     internal final var currentCFRunLoop: CFRunLoop { _cfRunLoop }
 
     @available(*, unavailable, message: "Core Foundation is not available on your platform.")
-    open func getCFRunLoop() -> Never {
+    internal func getCFRunLoop() -> Never {
         fatalError()
     }
     #endif
-
+    
     open func add(_ timer: Timer, forMode mode: RunLoop.Mode) {
         CFRunLoopAddTimer(_cfRunLoop, timer._cfObject, mode._cfStringUniquingKnown)
     }

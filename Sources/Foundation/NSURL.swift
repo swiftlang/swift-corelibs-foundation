@@ -486,9 +486,12 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
 #if os(Windows)
         if let resolved = CFURLCopyAbsoluteURL(_cfObject),
                 let representation = CFURLCopyFileSystemPath(resolved, kCFURLWindowsPathStyle)?._swiftObject {
-            let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: representation.count + 1)
-            representation.withCString { buffer.initialize(from: $0, count: representation.count + 1) }
-            buffer[representation.count] = 0
+            let buffer = representation.withCString {
+                let len = strlen($0)
+                let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: len + 1)
+                buffer.initialize(from: $0, count: len + 1)
+                return buffer
+            }
             return UnsafePointer(buffer)
         }
 #else
@@ -1024,7 +1027,7 @@ extension NSURL {
 
 extension NSURL: _SwiftBridgeable {
     typealias SwiftType = URL
-    internal var _swiftObject: SwiftType { return URL(reference: self) }
+    internal var _swiftObject: SwiftType { return self as URL }
 }
 
 extension CFURL : _NSBridgeable, _SwiftBridgeable {
@@ -1037,7 +1040,7 @@ extension CFURL : _NSBridgeable, _SwiftBridgeable {
 extension URL : _NSBridgeable {
     typealias NSType = NSURL
     typealias CFType = CFURL
-    internal var _nsObject: NSType { return self.reference }
+    internal var _nsObject: NSType { return self as NSURL }
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }
 
@@ -1208,7 +1211,7 @@ fileprivate extension URLResourceValuesStorage {
             if let storage = fileAttributesStorage {
                 return storage
             } else {
-                let storage = try fm._attributesOfItem(atPath: path, includingPrivateAttributes: true)
+                let storage = try fm._attributesOfItemIncludingPrivate(atPath: path)
                 fileAttributesStorage = storage
                 return storage
             }
@@ -1314,7 +1317,7 @@ fileprivate extension URLResourceValuesStorage {
             case .isSystemImmutableKey:
                 result[key] = try attribute(._systemImmutable) as? Bool == true
             case .isUserImmutableKey:
-                result[key] = try attribute(._userImmutable) as? Bool == true
+                result[key] = try attribute(.immutable) as? Bool == true
             case .isHiddenKey:
                 result[key] = try attribute(._hidden) as? Bool == true
             case .hasHiddenExtensionKey:
@@ -1522,7 +1525,7 @@ fileprivate extension URLResourceValuesStorage {
                 switch key {
                     
                 case .isUserImmutableKey:
-                    try prepareToSetFileAttribute(._userImmutable, value: value as? Bool)
+                    try prepareToSetFileAttribute(.immutable, value: value as? Bool)
 
                 case .isSystemImmutableKey:
                     try prepareToSetFileAttribute(._systemImmutable, value: value as? Bool)
@@ -1560,7 +1563,7 @@ fileprivate extension URLResourceValuesStorage {
             
             // _setAttributes(…) needs to figure out the correct order to apply these attributes in, so set them all together at the end.
             if !attributesToSet.isEmpty {
-                try fm._setAttributes(attributesToSet, ofItemAtPath: path, includingPrivateAttributes: true)
+                try fm._setAttributesIncludingPrivate(attributesToSet, ofItemAtPath: path)
                 unsuccessfulKeys.formSymmetricDifference(keysThatSucceedBySettingAttributes)
             }
             

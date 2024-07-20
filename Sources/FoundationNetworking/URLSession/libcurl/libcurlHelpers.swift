@@ -17,8 +17,7 @@
 // -----------------------------------------------------------------------------
 
 
-@_implementationOnly import CoreFoundation
-@_implementationOnly import CFURLSessionInterface
+@_implementationOnly import _CFURLSessionInterface
 
 //TODO: Move things in this file?
 
