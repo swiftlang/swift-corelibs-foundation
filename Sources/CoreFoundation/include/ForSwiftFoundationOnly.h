@@ -78,6 +78,7 @@
 #include <errno.h>
 #include <features.h>
 #include <termios.h>
+#include <fcntl.h>
 
 #ifdef __GLIBC_PREREQ
 #if __GLIBC_PREREQ(2, 28) == 0

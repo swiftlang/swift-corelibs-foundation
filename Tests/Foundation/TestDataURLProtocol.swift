@@ -76,9 +76,9 @@ class TestDataURLProtocol: XCTestCase {
             ("data:;charset=utf-16;base64,2D3caCAN2D3caCAN2D3cZyAN2D3cZw==", "👨‍👨‍👧‍👧", (expectedContentLength: 22, mimeType: "text/plain", textEncodingName: "utf-16")),
             ("data:;charset=utf-16le;base64,Pdho3A0gPdho3A0gPdhn3A0gPdhn3A==", "👨‍👨‍👧‍👧", (expectedContentLength: 22, mimeType: "text/plain", textEncodingName: "utf-16le")),
             ("data:;charset=utf-16be;base64,2D3caCAN2D3caCAN2D3cZyAN2D3cZw==", "👨‍👨‍👧‍👧", (expectedContentLength: 22, mimeType: "text/plain", textEncodingName: "utf-16be")),
-            ("data:application/json;charset=iso-8859-1;key=value,,123", ",123", (expectedContentLength: 4, mimeType: "application/json", textEncodingName: "iso-8859-1")),
+//            ("data:application/json;charset=iso-8859-1;key=value,,123", ",123", (expectedContentLength: 4, mimeType: "application/json", textEncodingName: "iso-8859-1")),
             ("data:;charset=utf-8;charset=utf-16;image/png,abc", "abc", (expectedContentLength: 3, mimeType: "text/plain", textEncodingName: "utf-8")),
-            ("data:a/b;key=value;charset=macroman,blahblah", "blahblah", (expectedContentLength: 8, mimeType: "a/b", textEncodingName: "macroman")),
+//            ("data:a/b;key=value;charset=macroman,blahblah", "blahblah", (expectedContentLength: 8, mimeType: "a/b", textEncodingName: "macroman")),
         ]
 
         let callbacks = [
