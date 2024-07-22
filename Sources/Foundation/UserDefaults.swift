@@ -10,7 +10,7 @@
 @_implementationOnly import CoreFoundation
 internal import Synchronization
 
-private let registeredDefaults = Mutex<[String: Any]>([:])
+private let registeredDefaults = Mutex<[String: (Any & Sendable)]>([:])
 private nonisolated(unsafe) var sharedDefaults = UserDefaults() // the default one is thread safe, at least
 
 fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
@@ -342,14 +342,14 @@ open class UserDefaults: NSObject {
         return _dictionaryRepresentation(includingVolatileDomains: true)
     }
     
-    private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: Any] {
+    private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: (Any & Sendable)] {
         let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults.withLock { $0 } : [:]
         
         let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
-        let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
+        let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: (Any & Sendable)] ?? [:]
         
         if registeredDefaultsIfAllowed.isEmpty {
-            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]
+            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: (Any & Sendable)]
         } else {
             var allDefaults = registeredDefaultsIfAllowed
             
@@ -357,7 +357,7 @@ open class UserDefaults: NSObject {
                 allDefaults[key] = value
             }
             
-            return UserDefaults._unboxingNSNumbers(allDefaults) as! [String: Any]
+            return UserDefaults._unboxingNSNumbers(allDefaults) as! [String: (Any & Sendable)]
         }
     }
     

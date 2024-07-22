@@ -407,6 +407,8 @@ fileprivate func __NSFireSocketDatagram(_ socket: CFSocket?, _ type: CFSocketCal
 @available(*, unavailable)
 extension SocketPort : @unchecked Sendable { }
 
+extension CFSocket : @unchecked Sendable { }
+
 open class SocketPort : Port {
     struct SocketKind: Hashable {
         var protocolFamily: Int32
@@ -474,7 +476,7 @@ open class SocketPort : Port {
         }
     }
     
-    class Core {
+    class Core : @unchecked Sendable {
         fileprivate let isUniqued: Bool
         fileprivate var signature: Signature!
         
