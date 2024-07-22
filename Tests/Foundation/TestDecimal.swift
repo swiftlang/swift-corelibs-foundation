@@ -73,7 +73,6 @@ class TestDecimal: XCTestCase {
          */
         
         let fr = Locale(identifier: "fr_FR")
-        let greatestFiniteMagnitude = "3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
         XCTAssertEqual("0", NSDecimalNumber(decimal: Decimal()).description(withLocale: fr))
         XCTAssertEqual("1000", NSDecimalNumber(decimal: Decimal(1000)).description(withLocale: fr))
@@ -86,6 +85,8 @@ class TestDecimal: XCTestCase {
         
         // Disabled pending decision about size of Decimal mantissa
         /*
+         let greatestFiniteMagnitude = "3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
         XCTAssertEqual(greatestFiniteMagnitude, NSDecimalNumber(decimal: Decimal.greatestFiniteMagnitude).description(withLocale: fr))
         XCTAssertEqual("0,00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNormalMagnitude).description(withLocale: fr))
         XCTAssertEqual("0,00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", NSDecimalNumber(decimal: Decimal.leastNonzeroMagnitude).description(withLocale: fr))
