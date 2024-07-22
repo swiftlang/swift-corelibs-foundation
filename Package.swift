@@ -91,7 +91,7 @@ var dependencies: [Package.Dependency] {
                 from: "0.0.9"),
             .package(
                 url: "https://github.com/apple/swift-foundation",
-                revision: "35d896ab47ab5e487cfce822fbe40d2b278c51d6")
+                revision: "d59046871c6b69a13595f18d334afa1553e0ba50")
         ]
     }
 }
