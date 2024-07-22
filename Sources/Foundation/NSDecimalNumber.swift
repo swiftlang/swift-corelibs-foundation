@@ -407,7 +407,7 @@ open class NSDecimalNumber : NSNumber, @unchecked Sendable {
         return false
     }
 
-    override var _swiftValueOfOptimalType: Any {
+    override var _swiftValueOfOptimalType: (Any & Sendable) {
       return decimal
     }
 }

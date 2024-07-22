@@ -663,7 +663,7 @@ open class NSNumber : NSValue, @unchecked Sendable {
         }
     }
     
-    internal var _swiftValueOfOptimalType: Any {
+    internal var _swiftValueOfOptimalType: (Any & Sendable) {
         if self === kCFBooleanTrue {
             return true
         } else if self === kCFBooleanFalse {
@@ -1170,7 +1170,7 @@ internal func _CFSwiftNumberGetBoolValue(_ obj: CFTypeRef) -> Bool {
 }
 
 protocol _NSNumberCastingWithoutBridging {
-  var _swiftValueOfOptimalType: Any { get }
+  var _swiftValueOfOptimalType: (Any & Sendable) { get }
 }
 
 extension NSNumber: _NSNumberCastingWithoutBridging {}

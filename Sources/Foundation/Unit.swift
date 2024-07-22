@@ -147,13 +147,9 @@ internal class NSUnitConverterReciprocal : UnitConverter, NSSecureCoding, @unche
  NSUnit is the base class for all unit types (dimensional and dimensionless).
  */
 
-@available(*, unavailable)
-extension Unit : @unchecked Sendable { }
 
-open class Unit : NSObject, NSCopying, NSSecureCoding {
-    
-    
-    open private(set) var symbol: String
+open class Unit : NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
+    public let symbol: String
     
     
     public required init(symbol: String) {
@@ -195,10 +191,10 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-open class Dimension : Unit {
+open class Dimension : Unit, @unchecked Sendable {
     
     
-    open private(set) var converter: UnitConverter
+    public let converter: UnitConverter
     
     public required init(symbol: String, converter: UnitConverter) {
         self.converter = converter

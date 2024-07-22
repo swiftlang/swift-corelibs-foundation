@@ -383,7 +383,7 @@ extension Array {
     internal typealias _DarwinCompatibleBoolean = Bool
 #endif
 
-public protocol _NSNonfileURLContentLoading: AnyObject {
+public protocol _NSNonfileURLContentLoading: AnyObject, Sendable {
     init()
     func contentsOf(url: URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?)
 }
