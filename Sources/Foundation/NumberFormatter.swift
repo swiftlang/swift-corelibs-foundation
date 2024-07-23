@@ -53,11 +53,18 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
         super.init(coder: coder)
     }
     
-    // Consumes state
-    private convenience init(state: State) {
+    private convenience init(state: consuming sending State) {
         self.init()
-        nonisolated(unsafe) let consumedState = state
-        _lock.withLock { $0 = consumedState }
+
+        // work around issue that state needs to be reinitialized after consuming
+        struct Wrapper : ~Copyable, @unchecked Sendable {
+            var value: State? = nil
+        }
+        var w = Wrapper(value: consume state)
+        
+        _lock.withLock {
+            $0 = w.value.take()!
+        }
     }
     
     open override func copy(with zone: NSZone? = nil) -> Any {
@@ -74,86 +81,79 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
         return numberFormatter.string(for: num)!
     }
 
-    final class State {
-        private var _formatter: CFNumberFormatter? = nil
+    struct State : ~Copyable {
+        class Box {
+            var formatter: CFNumberFormatter?
+            init() {}
+        }
+        
+        private var _formatter = Box()
         
         // MARK: -
         
         func copy(with zone: NSZone? = nil) -> State {
-            let copied = State()
-            
-            func __copy<T>(_ keyPath: ReferenceWritableKeyPath<State, T>) {
-                copied[keyPath: keyPath] = self[keyPath: keyPath]
-            }
-            
-            func __copy<T>(_ keyPath: ReferenceWritableKeyPath<State, T>) where T: NSCopying {
-                copied[keyPath: keyPath] = self[keyPath: keyPath].copy(with: zone) as! T
-            }
-            
-            func __copy<T>(_ keyPath: ReferenceWritableKeyPath<State, T?>) where T: NSCopying {
-                copied[keyPath: keyPath] = self[keyPath: keyPath]?.copy(with: zone) as! T?
-            }
-            
-            __copy(\.formattingContext)
-            __copy(\._numberStyle)
-            __copy(\._locale)
-            __copy(\._generatesDecimalNumbers)
-            __copy(\._textAttributesForNegativeValues)
-            __copy(\._textAttributesForPositiveValues)
-            __copy(\._allowsFloats)
-            __copy(\._decimalSeparator)
-            __copy(\._alwaysShowsDecimalSeparator)
-            __copy(\._currencyDecimalSeparator)
-            __copy(\._usesGroupingSeparator)
-            __copy(\._groupingSeparator)
-            __copy(\._zeroSymbol)
-            __copy(\._textAttributesForZero)
-            __copy(\._nilSymbol)
-            __copy(\._textAttributesForNil)
-            __copy(\._notANumberSymbol)
-            __copy(\._textAttributesForNotANumber)
-            __copy(\._positiveInfinitySymbol)
-            __copy(\._textAttributesForPositiveInfinity)
-            __copy(\._negativeInfinitySymbol)
-            __copy(\._textAttributesForNegativeInfinity)
-            __copy(\._positivePrefix)
-            __copy(\._positiveSuffix)
-            __copy(\._negativePrefix)
-            __copy(\._negativeSuffix)
-            __copy(\._currencyCode)
-            __copy(\._currencySymbol)
-            __copy(\._internationalCurrencySymbol)
-            __copy(\._percentSymbol)
-            __copy(\._perMillSymbol)
-            __copy(\._minusSign)
-            __copy(\._plusSign)
-            __copy(\._exponentSymbol)
-            __copy(\._groupingSize)
-            __copy(\._secondaryGroupingSize)
-            __copy(\._multiplier)
-            __copy(\._formatWidth)
-            __copy(\._paddingCharacter)
-            __copy(\._paddingPosition)
-            __copy(\._roundingMode)
-            __copy(\._roundingIncrement)
-            __copy(\._minimumIntegerDigits)
-            __copy(\._maximumIntegerDigits)
-            __copy(\._minimumFractionDigits)
-            __copy(\._maximumFractionDigits)
-            __copy(\._minimum)
-            __copy(\._maximum)
-            __copy(\._currencyGroupingSeparator)
-            __copy(\._lenient)
-            __copy(\._usesSignificantDigits)
-            __copy(\._minimumSignificantDigits)
-            __copy(\._maximumSignificantDigits)
-            __copy(\._partialStringValidationEnabled)
-            __copy(\._hasThousandSeparators)
-            __copy(\._thousandSeparator)
-            __copy(\._localizesFormat)
-            __copy(\._positiveFormat)
-            __copy(\._negativeFormat)
-            __copy(\._roundingBehavior)
+            var copied = State()
+                        
+            copied.formattingContext = formattingContext
+            copied._numberStyle = _numberStyle
+            copied._locale = _locale
+            copied._generatesDecimalNumbers = _generatesDecimalNumbers
+            copied._textAttributesForNegativeValues = _textAttributesForNegativeValues
+            copied._textAttributesForPositiveValues = _textAttributesForPositiveValues
+            copied._allowsFloats = _allowsFloats
+            copied._decimalSeparator = _decimalSeparator
+            copied._alwaysShowsDecimalSeparator = _alwaysShowsDecimalSeparator
+            copied._currencyDecimalSeparator = _currencyDecimalSeparator
+            copied._usesGroupingSeparator = _usesGroupingSeparator
+            copied._groupingSeparator = _groupingSeparator
+            copied._zeroSymbol = _zeroSymbol
+            copied._textAttributesForZero = _textAttributesForZero
+            copied._nilSymbol = _nilSymbol
+            copied._textAttributesForNil = _textAttributesForNil
+            copied._notANumberSymbol = _notANumberSymbol
+            copied._textAttributesForNotANumber = _textAttributesForNotANumber
+            copied._positiveInfinitySymbol = _positiveInfinitySymbol
+            copied._textAttributesForPositiveInfinity = _textAttributesForPositiveInfinity
+            copied._negativeInfinitySymbol = _negativeInfinitySymbol
+            copied._textAttributesForNegativeInfinity = _textAttributesForNegativeInfinity
+            copied._positivePrefix = _positivePrefix
+            copied._positiveSuffix = _positiveSuffix
+            copied._negativePrefix = _negativePrefix
+            copied._negativeSuffix = _negativeSuffix
+            copied._currencyCode = _currencyCode
+            copied._currencySymbol = _currencySymbol
+            copied._internationalCurrencySymbol = _internationalCurrencySymbol
+            copied._percentSymbol = _percentSymbol
+            copied._perMillSymbol = _perMillSymbol
+            copied._minusSign = _minusSign
+            copied._plusSign = _plusSign
+            copied._exponentSymbol = _exponentSymbol
+            copied._groupingSize = _groupingSize
+            copied._secondaryGroupingSize = _secondaryGroupingSize
+            copied._multiplier = _multiplier
+            copied._formatWidth = _formatWidth
+            copied._paddingCharacter = _paddingCharacter
+            copied._paddingPosition = _paddingPosition
+            copied._roundingMode = _roundingMode
+            copied._roundingIncrement = _roundingIncrement
+            copied._minimumIntegerDigits = _minimumIntegerDigits
+            copied._maximumIntegerDigits = _maximumIntegerDigits
+            copied._minimumFractionDigits = _minimumFractionDigits
+            copied._maximumFractionDigits = _maximumFractionDigits
+            copied._minimum = _minimum
+            copied._maximum = _maximum
+            copied._currencyGroupingSeparator = _currencyGroupingSeparator
+            copied._lenient = _lenient
+            copied._usesSignificantDigits = _usesSignificantDigits
+            copied._minimumSignificantDigits = _minimumSignificantDigits
+            copied._maximumSignificantDigits = _maximumSignificantDigits
+            copied._partialStringValidationEnabled = _partialStringValidationEnabled
+            copied._hasThousandSeparators = _hasThousandSeparators
+            copied._thousandSeparator = _thousandSeparator
+            copied._localizesFormat = _localizesFormat
+            copied._positiveFormat = _positiveFormat
+            copied._negativeFormat = _negativeFormat
+            copied._roundingBehavior = _roundingBehavior
             
             return copied
         }
@@ -161,11 +161,11 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
         // MARK: -
         
         func _reset() {
-            _formatter = nil
+            _formatter.formatter = nil
         }
         
         func formatter() -> CFNumberFormatter {
-            if let obj = _formatter {
+            if let obj = _formatter.formatter {
                 return obj
             } else {
                 let numberStyle = CFNumberFormatterStyle(rawValue: CFIndex(_numberStyle.rawValue))!
@@ -180,7 +180,7 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
                     }
                     CFNumberFormatterSetFormat(obj, format._cfObject)
                 }
-                _formatter = obj
+                _formatter.formatter = obj
                 return obj
             }
         }

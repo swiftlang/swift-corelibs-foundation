@@ -18,11 +18,18 @@ open class DateFormatter : Formatter, @unchecked Sendable {
         super.init()
     }
 
-    // Consumes state
-    private convenience init(state: State) {
+    private convenience init(state: consuming sending State) {
         self.init()
-        nonisolated(unsafe) let consumedState = state
-        _lock.withLock { $0 = consumedState }
+        
+        // work around issue that state needs to be reinitialized after consuming
+        struct Wrapper : ~Copyable, @unchecked Sendable {
+            var value: State? = nil
+        }
+        var w = Wrapper(value: consume state)
+        
+        _lock.withLock {
+            $0 = w.value.take()!
+        }
     }
 
     open override func copy(with zone: NSZone? = nil) -> Any {
@@ -37,56 +44,57 @@ open class DateFormatter : Formatter, @unchecked Sendable {
         super.init(coder: coder)
     }
 
-    final class State {
-        private var _formatter : CFDateFormatter? = nil
+    struct State : ~Copyable {
+        class Box {
+            var formatter: CFDateFormatter?
+            init() {}
+        }
         
-        func copy(with zone: NSZone? = nil) -> State {
-            let copied = State()
+        private var _formatter = Box()
+        
+        func copy(with zone: NSZone? = nil) -> sending State {
+            var copied = State()
 
-            func __copy<T>(_ keyPath: ReferenceWritableKeyPath<State, T>) {
-                copied[keyPath: keyPath] = self[keyPath: keyPath]
-            }
-
-            __copy(\.formattingContext)
-            __copy(\.dateStyle)
-            __copy(\.timeStyle)
-            __copy(\._locale)
-            __copy(\.generatesCalendarDates)
-            __copy(\._timeZone)
-            __copy(\._calendar)
-            __copy(\.isLenient)
-            __copy(\._twoDigitStartDate)
-            __copy(\._eraSymbols)
-            __copy(\._monthSymbols)
-            __copy(\._shortMonthSymbols)
-            __copy(\._weekdaySymbols)
-            __copy(\._shortWeekdaySymbols)
-            __copy(\._amSymbol)
-            __copy(\._pmSymbol)
-            __copy(\._longEraSymbols)
-            __copy(\._veryShortMonthSymbols)
-            __copy(\._standaloneMonthSymbols)
-            __copy(\._shortStandaloneMonthSymbols)
-            __copy(\._veryShortStandaloneMonthSymbols)
-            __copy(\._veryShortWeekdaySymbols)
-            __copy(\._standaloneWeekdaySymbols)
-            __copy(\._shortStandaloneWeekdaySymbols)
-            __copy(\._veryShortStandaloneWeekdaySymbols)
-            __copy(\._quarterSymbols)
-            __copy(\._shortQuarterSymbols)
-            __copy(\._standaloneQuarterSymbols)
-            __copy(\._shortStandaloneQuarterSymbols)
-            __copy(\._gregorianStartDate)
-            __copy(\.doesRelativeDateFormatting)
+            copied.formattingContext = formattingContext
+            copied.dateStyle = dateStyle
+            copied.timeStyle = timeStyle
+            copied._locale = _locale
+            copied.generatesCalendarDates = generatesCalendarDates
+            copied._timeZone = _timeZone
+            copied._calendar = _calendar
+            copied.isLenient = isLenient
+            copied._twoDigitStartDate = _twoDigitStartDate
+            copied._eraSymbols = _eraSymbols
+            copied._monthSymbols = _monthSymbols
+            copied._shortMonthSymbols = _shortMonthSymbols
+            copied._weekdaySymbols = _weekdaySymbols
+            copied._shortWeekdaySymbols = _shortWeekdaySymbols
+            copied._amSymbol = _amSymbol
+            copied._pmSymbol = _pmSymbol
+            copied._longEraSymbols = _longEraSymbols
+            copied._veryShortMonthSymbols = _veryShortMonthSymbols
+            copied._standaloneMonthSymbols = _standaloneMonthSymbols
+            copied._shortStandaloneMonthSymbols = _shortStandaloneMonthSymbols
+            copied._veryShortStandaloneMonthSymbols = _veryShortStandaloneMonthSymbols
+            copied._veryShortWeekdaySymbols = _veryShortWeekdaySymbols
+            copied._standaloneWeekdaySymbols = _standaloneWeekdaySymbols
+            copied._shortStandaloneWeekdaySymbols = _shortStandaloneWeekdaySymbols
+            copied._veryShortStandaloneWeekdaySymbols = _veryShortStandaloneWeekdaySymbols
+            copied._quarterSymbols = _quarterSymbols
+            copied._shortQuarterSymbols = _shortQuarterSymbols
+            copied._standaloneQuarterSymbols = _standaloneQuarterSymbols
+            copied._shortStandaloneQuarterSymbols = _shortStandaloneQuarterSymbols
+            copied._gregorianStartDate = _gregorianStartDate
+            copied.doesRelativeDateFormatting = doesRelativeDateFormatting
 
             // The last is `_dateFormat` because setting `dateStyle` and `timeStyle` make it `nil`.
-            __copy(\._dateFormat)
+            copied._dateFormat = _dateFormat
 
             return copied
         }
         
         func formatter() -> CFDateFormatter {
-            guard let obj = _formatter else {
+            guard let obj = _formatter.formatter else {
                 let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(dateStyle.rawValue))!
                 let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(timeStyle.rawValue))!
 
@@ -95,14 +103,14 @@ open class DateFormatter : Formatter, @unchecked Sendable {
                 if let dateFormat = _dateFormat {
                     CFDateFormatterSetFormat(obj, dateFormat._cfObject)
                 }
-                _formatter = obj
+                _formatter.formatter = obj
                 return obj
             }
             return obj
         }
         
-        private func _reset() {
-            _formatter = nil
+        private mutating func _reset() {
+            _formatter.formatter = nil
         }
         
         // MARK: -
@@ -143,7 +151,7 @@ open class DateFormatter : Formatter, @unchecked Sendable {
             _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: _gregorianStartDate?._cfObject)
         }
 
-        internal final func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
+        internal func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
             if let value = value {
                 CFDateFormatterSetProperty(formatter, attributeName, value)
             }
@@ -174,7 +182,7 @@ open class DateFormatter : Formatter, @unchecked Sendable {
             }
         }
 
-        /*@NSCopying*/ internal var _locale: Locale? { willSet { _reset() } }
+        internal var _locale: Locale? { willSet { _reset() } }
         var locale: Locale! {
             get {
                 guard let locale = _locale else { return .current }
@@ -187,7 +195,7 @@ open class DateFormatter : Formatter, @unchecked Sendable {
 
         var generatesCalendarDates = false { willSet { _reset() } }
 
-        /*@NSCopying*/ internal var _timeZone: TimeZone? { willSet { _reset() } }
+        internal var _timeZone: TimeZone? { willSet { _reset() } }
         var timeZone: TimeZone! {
             get {
                 guard let tz = _timeZone else {
@@ -203,7 +211,7 @@ open class DateFormatter : Formatter, @unchecked Sendable {
             }
         }
 
-        /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
+        internal var _calendar: Calendar! { willSet { _reset() } }
         var calendar: Calendar! {
             get {
                 guard let calendar = _calendar else {
@@ -221,7 +229,7 @@ open class DateFormatter : Formatter, @unchecked Sendable {
 
         var isLenient = false { willSet { _reset() } }
 
-        /*@NSCopying*/ internal var _twoDigitStartDate: Date? { willSet { _reset() } }
+        internal var _twoDigitStartDate: Date? { willSet { _reset() } }
         var twoDigitStartDate: Date? {
             get {
                 guard let startDate = _twoDigitStartDate else {
@@ -234,7 +242,7 @@ open class DateFormatter : Formatter, @unchecked Sendable {
             }
         }
 
-        /*@NSCopying*/ var defaultDate: Date? { willSet { _reset() } }
+        var defaultDate: Date? { willSet { _reset() } }
         
         internal var _eraSymbols: [String]? { willSet { _reset() } }
         var eraSymbols: [String] {
