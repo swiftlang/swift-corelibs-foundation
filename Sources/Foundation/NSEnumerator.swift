@@ -10,7 +10,7 @@
 @available(*, unavailable)
 extension NSEnumerator.Iterator : Sendable { }
 
-//@_nonSendable
+//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
 open class NSEnumerator : NSObject {
     
     open func nextObject() -> Any? {

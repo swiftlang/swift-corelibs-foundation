@@ -100,7 +100,7 @@ public protocol NSSecureCoding : NSCoding {
 /// is normally of the same class as the object that was originally encoded into
 /// the stream. An object can change its class when encoded, however; this is
 /// described in Archives and Serializations Programming Guide.
-//@_nonSendable
+//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
 open class NSCoder : NSObject {
     internal var _pendingBuffers = Array<(UnsafeMutableRawPointer, Int)>()
     

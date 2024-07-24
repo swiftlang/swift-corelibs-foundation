@@ -152,7 +152,7 @@ extension NSMutableCopying {
 }
 
 /// The root class of most Foundation class hierarchies.
-//@_nonSendable
+//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
 open class NSObject : NSObjectProtocol, Equatable, Hashable {
     // Important: add no ivars here. It will subvert the careful layout of subclasses that bridge into CF.
     

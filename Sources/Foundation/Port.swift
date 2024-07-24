@@ -18,7 +18,7 @@ extension Port {
     public static let didBecomeInvalidNotification  = NSNotification.Name(rawValue: "NSPortDidBecomeInvalidNotification")
 }
 
-//@_nonSendable
+//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
 open class Port : NSObject, NSCopying {
     /// On Darwin, you can invoke `Port()` directly to produce a `MessagePort`. Since `MessagePort` is not available in swift-corelibs-foundation, you should not invoke this initializer directly. Subclasses of `Port` can delegate to this initializer safely.
     public override init() {
