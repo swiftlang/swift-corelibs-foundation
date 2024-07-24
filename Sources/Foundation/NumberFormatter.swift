@@ -53,17 +53,10 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
         super.init(coder: coder)
     }
     
-    private convenience init(state: consuming sending State) {
+    private convenience init(state: State) {
         self.init()
-
-        // work around issue that state needs to be reinitialized after consuming
-        struct Wrapper : ~Copyable, @unchecked Sendable {
-            var value: State? = nil
-        }
-        var w = Wrapper(value: consume state)
-        
         _lock.withLock {
-            $0 = w.value.take()!
+            $0 = state
         }
     }
     
@@ -81,7 +74,8 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
         return numberFormatter.string(for: num)!
     }
 
-    struct State : ~Copyable {
+    // This class is not Sendable, but marking it as such was the only way to work around compiler crashes while attempting to use `~Copyable` like `DateFormatter` does.
+    final class State : @unchecked Sendable {
         class Box {
             var formatter: CFNumberFormatter?
             init() {}
@@ -92,7 +86,7 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
         // MARK: -
         
         func copy(with zone: NSZone? = nil) -> State {
-            var copied = State()
+            let copied = State()
                         
             copied.formattingContext = formattingContext
             copied._numberStyle = _numberStyle
@@ -230,6 +224,7 @@ open class NumberFormatter : Formatter, @unchecked Sendable {
             } else {
                 _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingCharacter, value: ""._cfObject)
             }
+            
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMultiplier, value: multiplier?._cfObject)
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPositivePrefix, value: _positivePrefix?._cfObject)
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPositiveSuffix, value: _positiveSuffix?._cfObject)
