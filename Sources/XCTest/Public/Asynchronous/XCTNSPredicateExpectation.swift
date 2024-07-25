@@ -11,7 +11,7 @@
 //
 
 /// Expectation subclass for waiting on a condition defined by an NSPredicate and an optional object.
-open class XCTNSPredicateExpectation: XCTestExpectation {
+open class XCTNSPredicateExpectation: XCTestExpectation, @unchecked Sendable {
 
     /// A closure to be invoked whenever evaluating the predicate against the object returns true.
     ///
@@ -96,8 +96,9 @@ open class XCTNSPredicateExpectation: XCTestExpectation {
         }
 
         runLoop.add(timer, forMode: .default)
+        nonisolated(unsafe) let t = timer
         queue.async {
-            self.timer = timer
+            self.timer = t
         }
     }
 

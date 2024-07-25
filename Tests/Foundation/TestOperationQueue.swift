@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Synchronization
 import Dispatch
 
 class TestOperationQueue : XCTestCase {
@@ -35,18 +36,18 @@ class TestOperationQueue : XCTestCase {
     }
 
     func test_OperationPriorities() {
-        var msgOperations = [String]()
+        let msgOperations = Mutex([String]())
         let operation1 : BlockOperation = BlockOperation(block: {
-            msgOperations.append("Operation1 executed")
+            msgOperations.withLock { $0.append("Operation1 executed") }
         })
         let operation2 : BlockOperation = BlockOperation(block: {
-            msgOperations.append("Operation2 executed")
+            msgOperations.withLock { $0.append("Operation2 executed") }
         })
         let operation3 : BlockOperation = BlockOperation(block: {
-            msgOperations.append("Operation3 executed")
+            msgOperations.withLock { $0.append("Operation3 executed") }
         })
         let operation4: BlockOperation = BlockOperation(block: {
-            msgOperations.append("Operation4 executed")
+            msgOperations.withLock { $0.append("Operation4 executed") }
         })
         operation4.queuePriority = .veryLow
         operation3.queuePriority = .veryHigh
@@ -60,15 +61,18 @@ class TestOperationQueue : XCTestCase {
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         queue.addOperations(operations, waitUntilFinished: true)
-        XCTAssertEqual(msgOperations[0], "Operation3 executed")
-        XCTAssertEqual(msgOperations[1], "Operation1 executed")
-        XCTAssertEqual(msgOperations[2], "Operation2 executed")
-        XCTAssertEqual(msgOperations[3], "Operation4 executed")
+        msgOperations.withLock {
+            XCTAssertEqual($0[0], "Operation3 executed")
+            XCTAssertEqual($0[1], "Operation1 executed")
+            XCTAssertEqual($0[2], "Operation2 executed")
+            XCTAssertEqual($0[3], "Operation4 executed")
+        }
     }
 
     func test_isExecutingWorks() {
-        class _OperationBox {
-            var operation: Operation?
+        final class _OperationBox : Sendable {
+            // Only mutate this before kicking off the operation
+            nonisolated(unsafe) var operation: Operation?
             init() {
                 self.operation = nil
             }
@@ -125,10 +129,10 @@ class TestOperationQueue : XCTestCase {
     
     func test_CancelOneOperation() {
         var operations = [Operation]()
-        var valueOperations = [Int]()
+        let valueOperations = Mutex([Int]())
         for i in 0..<5 {
             let operation = BlockOperation {
-                valueOperations.append(i)
+                valueOperations.withLock { $0.append(i) }
                 Thread.sleep(forTimeInterval: 2)
             }
             operations.append(operation)
@@ -139,41 +143,41 @@ class TestOperationQueue : XCTestCase {
         queue.addOperations(operations, waitUntilFinished: false)
         operations.remove(at: 2).cancel()
         queue.waitUntilAllOperationsAreFinished()
-        XCTAssertTrue(!valueOperations.contains(2))
+        XCTAssertTrue(!valueOperations.withLock({ $0.contains(2)}))
     }
     
     func test_CancelOperationsOfSpecificQueuePriority() {
         var operations = [Operation]()
-        var valueOperations = [Int]()
+        let valueOperations = Mutex([Int]())
         
         let operation1 = BlockOperation {
-            valueOperations.append(0)
+            valueOperations.withLock { $0.append(0) }
             Thread.sleep(forTimeInterval: 2)
         }
         operation1.queuePriority = .high
         operations.append(operation1)
         
         let operation2 = BlockOperation {
-            valueOperations.append(1)
+            valueOperations.withLock { $0.append(1) }
             Thread.sleep(forTimeInterval: 2)
         }
         operation2.queuePriority = .high
         operations.append(operation2)
         
         let operation3 = BlockOperation {
-            valueOperations.append(2)
+            valueOperations.withLock { $0.append(2) }
         }
         operation3.queuePriority = .normal
         operations.append(operation3)
         
         let operation4 = BlockOperation {
-            valueOperations.append(3)
+            valueOperations.withLock { $0.append(3) }
         }
         operation4.queuePriority = .normal
         operations.append(operation4)
         
         let operation5 = BlockOperation {
-            valueOperations.append(4)
+            valueOperations.withLock { $0.append(4) }
         }
         operation5.queuePriority = .normal
         operations.append(operation5)
@@ -187,9 +191,11 @@ class TestOperationQueue : XCTestCase {
             }
         }
         queue.waitUntilAllOperationsAreFinished()
-        XCTAssertTrue(valueOperations.count == 2)
-        XCTAssertTrue(valueOperations[0] == 0)
-        XCTAssertTrue(valueOperations[1] == 1)
+        valueOperations.withLock {
+            XCTAssertTrue($0.count == 2)
+            XCTAssertTrue($0[0] == 0)
+            XCTAssertTrue($0[1] == 1)
+        }
     }
     
     func test_CurrentQueueOnMainQueue() {
@@ -277,13 +283,10 @@ class TestOperationQueue : XCTestCase {
     }
     
     func test_OperationDependencyCount() {
-        var results = [Int]()
         let op1 = BlockOperation {
-            results.append(1)
         }
         op1.name = "op1"
         let op2 = BlockOperation {
-            results.append(2)
         }
         op2.name = "op2"
         op1.addDependency(op2)
@@ -406,34 +409,34 @@ class TestOperationQueue : XCTestCase {
         queue.maxConcurrentOperationCount = 1
         queue.isSuspended = true
 
-        var array = [Int]()
+        let array = Mutex([Int]())
 
         let op1 = BlockOperation {
-            array.append(1)
+            array.withLock { $0.append(1) }
         }
         op1.queuePriority = .normal
         op1.name = "op1"
 
         let op2 = BlockOperation {
-            array.append(2)
+            array.withLock { $0.append(2) }
         }
         op2.queuePriority = .normal
         op2.name = "op2"
 
         let op3 = BlockOperation {
-            array.append(3)
+            array.withLock { $0.append(3) }
         }
         op3.queuePriority = .normal
         op3.name = "op3"
 
         let op4 = BlockOperation {
-            array.append(4)
+            array.withLock { $0.append(4) }
         }
         op4.queuePriority = .normal
         op4.name = "op4"
 
         let op5 = BlockOperation {
-            array.append(5)
+            array.withLock { $0.append(5) }
         }
         op5.queuePriority = .normal
         op5.name = "op5"
@@ -447,7 +450,9 @@ class TestOperationQueue : XCTestCase {
         queue.isSuspended = false
         queue.waitUntilAllOperationsAreFinished()
 
-        XCTAssertEqual(array, [1, 2, 3, 4, 5])
+        array.withLock {
+            XCTAssertEqual($0, [1, 2, 3, 4, 5])
+        }
     }
 
     public func test_OperationOrder2() {
@@ -455,34 +460,34 @@ class TestOperationQueue : XCTestCase {
         queue.maxConcurrentOperationCount = 1
         queue.isSuspended = true
 
-        var array = [Int]()
+        let array = Mutex([Int]())
 
         let op1 = BlockOperation {
-            array.append(1)
+            array.withLock { $0.append(1) }
         }
         op1.queuePriority = .veryLow
         op1.name = "op1"
 
         let op2 = BlockOperation {
-            array.append(2)
+            array.withLock { $0.append(2) }
         }
         op2.queuePriority = .low
         op2.name = "op2"
 
         let op3 = BlockOperation {
-            array.append(3)
+            array.withLock { $0.append(3) }
         }
         op3.queuePriority = .normal
         op3.name = "op3"
 
         let op4 = BlockOperation {
-            array.append(4)
+            array.withLock { $0.append(4) }
         }
         op4.queuePriority = .high
         op4.name = "op4"
 
         let op5 = BlockOperation {
-            array.append(5)
+            array.withLock { $0.append(5) }
         }
         op5.queuePriority = .veryHigh
         op5.name = "op5"
@@ -496,7 +501,9 @@ class TestOperationQueue : XCTestCase {
         queue.isSuspended = false
         queue.waitUntilAllOperationsAreFinished()
 
-        XCTAssertEqual(array, [5, 4, 3, 2, 1])
+        array.withLock {
+            XCTAssertEqual($0, [5, 4, 3, 2, 1])
+        }
     }
 
     func test_ExecutionOrder() {
@@ -505,7 +512,8 @@ class TestOperationQueue : XCTestCase {
         let didRunOp1 = expectation(description: "Did run first operation")
         let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
         let didRunOp2 = expectation(description: "Did run second operation")
-        var didRunOp1DependencyFirst = false
+        // Protected by the ordering of execution, which we are testing here
+        nonisolated(unsafe) var didRunOp1DependencyFirst = false
         
         let op1 = BlockOperation {
             didRunOp1.fulfill()
@@ -601,41 +609,55 @@ class TestOperationQueue : XCTestCase {
         let op3DidRun = expectation(description: "op3 is not supposed to be run")
         op3DidRun.isInverted = true
 
-        var op1: Operation!
-        var op2: Operation!
-        var op3: Operation!
+        struct Ops {
+            var op1: Operation!
+            var op2: Operation!
+            var op3: Operation!
+            init() {
+                op1 = nil
+                op2 = nil
+                op3 = nil
+            }
+        }
+        let ops = Mutex(Ops())
 
         let queue1 = OperationQueue()
-        op1 = BlockOperation {
-            op1DidRun.fulfill()
-            if op2.isFinished {
-                op2Finished.fulfill()
+        ops.withLock {
+            $0.op1 = BlockOperation {
+                op1DidRun.fulfill()
+                ops.withLock {
+                    if $0.op2.isFinished {
+                        op2Finished.fulfill()
+                    }
+                }
             }
-        }
-        op2 = BlockOperation {
-            op2DidRun.fulfill()
-            if op3.isCancelled {
-                op3Cancelled.fulfill()
+            $0.op2 = BlockOperation {
+                op2DidRun.fulfill()
+                ops.withLock {
+                    if $0.op3.isCancelled {
+                        op3Cancelled.fulfill()
+                    }
+                }
             }
+            $0.op3 = BlockOperation {
+                op3DidRun.fulfill()
+            }
+            
+            // Create dependency cycle
+            $0.op1.addDependency($0.op2)
+            $0.op2.addDependency($0.op3)
+            $0.op3.addDependency($0.op1)
+            
+            queue1.addOperation($0.op1)
+            queue1.addOperation($0.op2)
+            queue1.addOperation($0.op3)
+            
+            XCTAssertEqual(queue1.operationCount, 3)
+            
+            //Break dependency cycle
+            $0.op3.cancel()
         }
-        op3 = BlockOperation {
-            op3DidRun.fulfill()
-        }
-
-        // Create dependency cycle
-        op1.addDependency(op2)
-        op2.addDependency(op3)
-        op3.addDependency(op1)
-
-        queue1.addOperation(op1)
-        queue1.addOperation(op2)
-        queue1.addOperation(op3)
-
-        XCTAssertEqual(queue1.operationCount, 3)
-
-        //Break dependency cycle
-        op3.cancel()
-
+        
         waitForExpectations(timeout: 1)
     }
 
@@ -679,8 +701,9 @@ class TestOperationQueue : XCTestCase {
             let didRunOp1 = expectation(description: "Did run first operation")
             let didRunOp2 = expectation(description: "Did run second operation")
             
+            nonisolated(unsafe) let nonisolatedSelf = self
             queue.addOperation {
-                self.wait(for: [didRunOp2], timeout: 0.2)
+                nonisolatedSelf.wait(for: [didRunOp2], timeout: 0.2)
                 didRunOp1.fulfill()
             }
             queue.addOperation {
@@ -701,9 +724,10 @@ class TestOperationQueue : XCTestCase {
             let didRunOp1Completion = expectation(description: "Did run first operation completion")
             let didRunOp1Dependency = expectation(description: "Did run first operation dependency")
             let didRunOp2 = expectation(description: "Did run second operation")
-            
+
+            nonisolated(unsafe) let nonisolatedSelf = self
             let op1 = BlockOperation {
-                self.wait(for: [didRunOp1Dependency, didRunOp2], timeout: 0.2)
+                nonisolatedSelf.wait(for: [didRunOp1Dependency, didRunOp2], timeout: 0.2)
                 didRunOp1.fulfill()
             }
             op1.completionBlock = {
@@ -738,7 +762,7 @@ class TestOperationQueue : XCTestCase {
     }
 }
 
-class AsyncOperation: Operation {
+class AsyncOperation: Operation, @unchecked Sendable {
 
     private let queue = DispatchQueue(label: "async.operation.queue")
     private let lock = NSLock()
@@ -803,7 +827,7 @@ class AsyncOperation: Operation {
 
 }
 
-class SyncOperation: Operation {
+class SyncOperation: Operation, @unchecked Sendable {
 
     var hasRun = false
 

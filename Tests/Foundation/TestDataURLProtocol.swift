@@ -7,14 +7,17 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Synchronization
 
-class DataURLTestDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
+final class DataURLTestDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate, Sendable {
 
-    var callbacks: [String] = []
     let expectation: XCTestExpectation?
-    var data: Data?
-    var error: Error?
-    var response: URLResponse?
+    
+    // This state is setup before running and checked after `expectation`. Unsafe, but would be better with a lock in the future.
+    nonisolated(unsafe) var callbacks: [String] = []
+    nonisolated(unsafe) var data: Data?
+    nonisolated(unsafe) var error: Error?
+    nonisolated(unsafe) var response: URLResponse?
 
 
     init(expectation: XCTestExpectation?) {

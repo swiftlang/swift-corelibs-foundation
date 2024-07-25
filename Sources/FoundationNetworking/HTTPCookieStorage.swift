@@ -13,6 +13,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
+internal import Synchronization
 
 /*!
     @enum HTTPCookie.AcceptPolicy
@@ -23,7 +24,7 @@ import Foundation
     only from the main document domain
 */
 extension HTTPCookie {
-    public enum AcceptPolicy : UInt {
+    public enum AcceptPolicy : UInt, Sendable {
         case always
         case never
         case onlyFromMainDocumentDomain
@@ -39,11 +40,10 @@ extension HTTPCookie {
     set of cookies.  It also has convenience methods to parse and
     generate cookie-related HTTP header fields.
 */
-open class HTTPCookieStorage: NSObject {
+open class HTTPCookieStorage: NSObject, @unchecked Sendable {
 
     private static let sharedStorage = HTTPCookieStorage(cookieStorageName: "shared")
-    private static var sharedCookieStorages: [String: HTTPCookieStorage] = [:] //for group storage containers
-    private static let sharedSyncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.sharedSyncQ")
+    private static let sharedCookieStorages = Mutex<[String: HTTPCookieStorage]>([:]) //for group storage containers
 
     /* only modified in init */
     private var cookieFilePath: String?
@@ -151,10 +151,10 @@ open class HTTPCookieStorage: NSObject {
         method with the same identifier will return the same cookie storage instance.
      */
     open class func sharedCookieStorage(forGroupContainerIdentifier identifier: String) -> HTTPCookieStorage {
-        return sharedSyncQ.sync {
-            guard let cookieStorage = sharedCookieStorages[identifier] else {
+        sharedCookieStorages.withLock {
+            guard let cookieStorage = $0[identifier] else {
                 let newCookieStorage = HTTPCookieStorage(cookieStorageName: identifier)
-                sharedCookieStorages[identifier] = newCookieStorage
+                $0[identifier] = newCookieStorage
                 return newCookieStorage
             }
             return cookieStorage

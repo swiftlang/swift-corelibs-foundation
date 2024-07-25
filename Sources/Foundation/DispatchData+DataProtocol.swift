@@ -13,6 +13,9 @@
 #if canImport(Dispatch)
 import Dispatch
 
+@available(*, unavailable)
+extension DispatchData.Region : @unchecked Sendable { }
+
 extension DispatchData : DataProtocol {
     public typealias Regions = [Region]
     

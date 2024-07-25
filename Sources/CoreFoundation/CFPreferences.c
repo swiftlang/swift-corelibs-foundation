@@ -234,14 +234,20 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
     __CFGenericValidateType(host, CFStringGetTypeID());
 
     domain = _CFPreferencesStandardDomain(appName, user, host);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnonnull"
     if (!domain) return NULL;
+#pragma GCC diagnostic pop
     if (!keysToFetch) {
         return _CFPreferencesDomainDeepCopyDictionary(domain);
     } else {
         __CFGenericValidateType(keysToFetch, CFArrayGetTypeID());
         count = CFArrayGetCount(keysToFetch);
         result = CFDictionaryCreateMutable(CFGetAllocator(domain), count, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnonnull"
         if (!result) return NULL;
+#pragma GCC diagnostic pop
         for (idx = 0; idx < count; idx ++) {
             CFStringRef key = (CFStringRef)CFArrayGetValueAtIndex(keysToFetch, idx);
             CFPropertyListRef value;

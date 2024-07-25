@@ -34,25 +34,25 @@ internal let NativeFSREncoding = String.Encoding.utf8.rawValue
 
 #if os(Linux)
 // statx() is only supported by Linux kernels >= 4.11.0
-internal var supportsStatx: Bool = {
+internal let supportsStatx: Bool = {
     let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
     return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
 }()
 
 // renameat2() is only supported by Linux kernels >= 3.15
-internal var kernelSupportsRenameat2: Bool = {
+internal let kernelSupportsRenameat2: Bool = {
     let requiredVersion = OperatingSystemVersion(majorVersion: 3, minorVersion: 15, patchVersion: 0)
     return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
 }()
 #endif
 
 // For testing only: this facility pins the language used by displayName to the passed-in language.
-private var _overriddenDisplayNameLanguages: [String]? = nil
+private nonisolated(unsafe) var _overriddenDisplayNameLanguages: [String]? = nil
 
 extension FileManager {
     
     /// Returns an array of URLs that identify the mounted volumes available on the device.
-    open func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
+    public func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
         return _mountedVolumeURLs(includingResourceValuesForKeys: propertyKeys, options: options)
     }
 
@@ -65,7 +65,7 @@ extension FileManager {
      
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
-    open func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = []) throws -> [URL] {
+    public func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = []) throws -> [URL] {
         var error : Error? = nil
         let e = self.enumerator(at: url, includingPropertiesForKeys: keys, options: mask.union(.skipsSubdirectoryDescendants)) { (url, err) -> Bool in
             error = err
@@ -91,7 +91,7 @@ extension FileManager {
      
         You may pass only one of the values from the NSSearchPathDomainMask enumeration, and you may not pass NSAllDomainsMask.
      */
-    open func url(for directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor reference: URL?, create
+    public func url(for directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor reference: URL?, create
         shouldCreate: Bool) throws -> URL {
         var url: URL
         
@@ -186,7 +186,8 @@ extension FileManager {
                         url = attemptedURL
                         break
                     } catch {
-                        if let error = error as? NSError, error.domain == NSCocoaErrorDomain, error.code == CocoaError.fileWriteFileExists.rawValue {
+                        let error = error as NSError
+                        if error.domain == NSCocoaErrorDomain, error.code == CocoaError.fileWriteFileExists.rawValue {
                             attempt += 1
                         } else {
                             throw error
@@ -204,7 +205,7 @@ extension FileManager {
     
     /* Sets 'outRelationship' to NSURLRelationshipContains if the directory at 'directoryURL' directly or indirectly contains the item at 'otherURL', meaning 'directoryURL' is found while enumerating parent URLs starting from 'otherURL'. Sets 'outRelationship' to NSURLRelationshipSame if 'directoryURL' and 'otherURL' locate the same item, meaning they have the same NSURLFileResourceIdentifierKey value. If 'directoryURL' is not a directory, or does not contain 'otherURL' and they do not locate the same file, then sets 'outRelationship' to NSURLRelationshipOther. If an error occurs, returns NO and sets 'error'.
      */
-    open func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, ofDirectoryAt directoryURL: URL, toItemAt otherURL: URL) throws {
+    public func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, ofDirectoryAt directoryURL: URL, toItemAt otherURL: URL) throws {
         let from = try _canonicalizedPath(toFileAtPath: directoryURL.path)
         let to = try _canonicalizedPath(toFileAtPath: otherURL.path)
         
@@ -224,7 +225,7 @@ extension FileManager {
     
     /* Similar to -[NSFileManager getRelationship:ofDirectoryAtURL:toItemAtURL:error:], except that the directory is instead defined by an NSSearchPathDirectory and NSSearchPathDomainMask. Pass 0 for domainMask to instruct the method to automatically choose the domain appropriate for 'url'. For example, to discover if a file is contained by a Trash directory, call [fileManager getRelationship:&result ofDirectory:NSTrashDirectory inDomain:0 toItemAtURL:url error:&error].
      */
-    open func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, of directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAt url: URL) throws {
+    public func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, of directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAt url: URL) throws {
         let actualMask: SearchPathDomainMask
         
         if domainMask.isEmpty {
@@ -359,7 +360,7 @@ extension FileManager {
         return try _recursiveDestinationOfSymbolicLink(atPath: path)
     }
 
-    open func fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
+    public func fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
         var isDir: Bool = false
         defer {
             if let isDirectory {
@@ -383,7 +384,7 @@ extension FileManager {
 
     /* displayNameAtPath: returns an NSString suitable for presentation to the user. For directories which have localization information, this will return the appropriate localized string. This string is not suitable for passing to anything that must interact with the filesystem.
      */
-    open func displayName(atPath path: String) -> String {
+    public func displayName(atPath path: String) -> String {
         
         let url = URL(fileURLWithPath: path)
         let name = url.lastPathComponent
@@ -423,7 +424,7 @@ extension FileManager {
     
     /* componentsToDisplayForPath: returns an NSArray of display names for the path provided. Localization will occur as in displayNameAtPath: above. This array cannot and should not be reassembled into an usable filesystem path for any kind of access.
      */
-    open func componentsToDisplay(forPath path: String) -> [String]? {
+    public func componentsToDisplay(forPath path: String) -> [String]? {
         var url = URL(fileURLWithPath: path)
         var count = url.pathComponents.count
         
@@ -439,7 +440,7 @@ extension FileManager {
     
     /* enumeratorAtPath: returns an NSDirectoryEnumerator rooted at the provided path. If the enumerator cannot be created, this returns NULL. Because NSDirectoryEnumerator is a subclass of NSEnumerator, the returned object can be used in the for...in construct.
      */
-    open func enumerator(atPath path: String) -> DirectoryEnumerator? {
+    public func enumerator(atPath path: String) -> DirectoryEnumerator? {
         return NSPathDirectoryEnumerator(path: path)
     }
     
@@ -448,19 +449,19 @@ extension FileManager {
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
     // Note: Because the error handler is an optional block, the compiler treats it as @escaping by default. If that behavior changes, the @escaping will need to be added back.
-    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (/* @escaping */ (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
+    public func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (/* @escaping */ (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
         return NSURLDirectoryEnumerator(url: url, options: mask, errorHandler: handler)
     }
     
     /* subpathsAtPath: returns an NSArray of all contents and subpaths recursively from the provided path. This may be very expensive to compute for deep filesystem hierarchies, and should probably be avoided.
      */
-    open func subpaths(atPath path: String) -> [String]? {
+    public func subpaths(atPath path: String) -> [String]? {
         return try? subpathsOfDirectory(atPath: path)
     }
     
     /* fileSystemRepresentationWithPath: returns an array of characters suitable for passing to lower-level POSIX style APIs. The string is provided in the representation most appropriate for the filesystem in question.
      */
-    open func fileSystemRepresentation(withPath path: String) -> UnsafePointer<Int8> {
+    public func fileSystemRepresentation(withPath path: String) -> UnsafePointer<Int8> {
         precondition(path != "", "Empty path argument")
         return self.withFileSystemRepresentation(for: path) { ptr in
             guard let ptr else {
@@ -475,7 +476,8 @@ extension FileManager {
             endIdx = endIdx.advanced(by: 1)
             let size = ptr.distance(to: endIdx)
             let buffer = UnsafeMutableBufferPointer<Int8>.allocate(capacity: size)
-            buffer.initialize(fromContentsOf: UnsafeBufferPointer(start: ptr, count: size))
+            // TODO: This whole function should be obsoleted as it returns a value that the caller must free. This works on Darwin, but is too easy to misuse without the presence of an autoreleasepool on other platforms.
+            _ = buffer.initialize(fromContentsOf: UnsafeBufferPointer(start: ptr, count: size))
             return UnsafePointer(buffer.baseAddress!)
         }
     }
@@ -521,7 +523,7 @@ extension FileManager {
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     #if os(Windows)
     @available(Windows, deprecated, message: "Not yet implemented")
-    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
+    public func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
         NSUnimplemented()
     }
 
@@ -531,7 +533,7 @@ extension FileManager {
     }
 
     #else
-    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
+    public func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
         return try _replaceItem(at: originalItemURL, withItemAt: newItemURL, backupItemName: backupItemName, options: options)
     }
 
@@ -541,7 +543,7 @@ extension FileManager {
     #endif
     
     @available(*, unavailable, message: "Returning an object through an autoreleased pointer is not supported in swift-corelibs-foundation. Use replaceItem(at:withItemAt:backupItemName:options:) instead.", renamed: "replaceItem(at:withItemAt:backupItemName:options:)")
-    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: FileManager.ItemReplacementOptions = [], resultingItemURL resultingURL: UnsafeMutablePointer<NSURL?>?) throws {
+    public func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: FileManager.ItemReplacementOptions = [], resultingItemURL resultingURL: UnsafeMutablePointer<NSURL?>?) throws {
         NSUnsupported()
     }
 
@@ -556,7 +558,7 @@ extension FileManager {
 }
 
 extension FileManager {
-    public struct VolumeEnumerationOptions : OptionSet {
+    public struct VolumeEnumerationOptions : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -605,6 +607,9 @@ extension FileAttributeKey {
     internal static let _hidden = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._hidden")
     internal static let _accessDate = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._accessDate")
 }
+
+@available(*, unavailable)
+extension FileManager.DirectoryEnumerator : Sendable { }
 
 extension FileManager {
     open class DirectoryEnumerator : NSEnumerator {

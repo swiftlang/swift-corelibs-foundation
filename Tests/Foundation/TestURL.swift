@@ -329,12 +329,12 @@ class TestURL : XCTestCase {
     }
     #endif
 
-    static let gBaseTemporaryDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
+    static nonisolated let gBaseTemporaryDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
     static var gBaseCurrentWorkingDirectoryPath : String {
         return FileManager.default.currentDirectoryPath
     }
-    static var gSavedPath = ""
-    static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
+    static nonisolated(unsafe) var gSavedPath = ""
+    static nonisolated(unsafe) var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
     static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
     static let gDirectoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo.globallyUniqueString)"
@@ -364,7 +364,7 @@ class TestURL : XCTestCase {
           try FileManager.default.removeItem(atPath: gFileDoesNotExistPath)
         } catch {
           // The error code is a CocoaError
-          if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+          if (error as NSError).code != CocoaError.fileNoSuchFile.rawValue {
             return false
           }
         }
@@ -373,7 +373,7 @@ class TestURL : XCTestCase {
           try FileManager.default.createDirectory(atPath: gDirectoryExistsPath, withIntermediateDirectories: false)
         } catch {
             // The error code is a CocoaError
-            if (error as? NSError)?.code != CocoaError.fileWriteFileExists.rawValue {
+            if (error as NSError).code != CocoaError.fileWriteFileExists.rawValue {
                 return false
             }
         }
@@ -382,13 +382,13 @@ class TestURL : XCTestCase {
           try FileManager.default.removeItem(atPath: gDirectoryDoesNotExistPath)
         } catch {
             // The error code is a CocoaError
-            if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+            if (error as NSError).code != CocoaError.fileNoSuchFile.rawValue {
                 return false
             }
         }
 
         TestURL.gSavedPath = FileManager.default.currentDirectoryPath
-        FileManager.default.changeCurrentDirectoryPath(NSTemporaryDirectory())
+        _ = FileManager.default.changeCurrentDirectoryPath(NSTemporaryDirectory())
 
         let cwd = FileManager.default.currentDirectoryPath
         let cwdURL = URL(fileURLWithPath: cwd, isDirectory: true)
@@ -405,7 +405,7 @@ class TestURL : XCTestCase {
             let error = strerror(errno)!
             XCTFail("Failed to set up test paths: \(String(cString: error))")
         }
-        defer { FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
+        defer { _ = FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
 
         // test with file that exists
         var path = TestURL.gFileExistsPath
@@ -465,7 +465,7 @@ class TestURL : XCTestCase {
             let error = strerror(errno)!
             XCTFail("Failed to set up test paths: \(String(cString: error))")
         }
-        defer { FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
+        defer { _ = FileManager.default.changeCurrentDirectoryPath(TestURL.gSavedPath) }
 
         // test with file that exists
         var path = TestURL.gFileExistsPath
@@ -549,8 +549,8 @@ class TestURL : XCTestCase {
         defer { try? fileManager.removeItem(at: writableTestDirectoryURL) }
 
         let previousCurrentDirectory = fileManager.currentDirectoryPath
-        fileManager.changeCurrentDirectoryPath(writableTestDirectoryURL.path)
-        defer { fileManager.changeCurrentDirectoryPath(previousCurrentDirectory) }
+        _ = fileManager.changeCurrentDirectoryPath(writableTestDirectoryURL.path)
+        defer { _ = fileManager.changeCurrentDirectoryPath(previousCurrentDirectory) }
 
         // In Darwin, because temporary directory is inside /private,
         // writableTestDirectoryURL will be something like /var/folders/...,
@@ -770,18 +770,15 @@ class TestURL : XCTestCase {
                 assertRelevantValuesAreEqual(in: newValues)
             }
         } catch {
-            if let error = error as? NSError {
-                print("error: \(error.description) - \(error.userInfo)")
-            } else {
-                print("error: \(error)")
-            }
+            let error = error as NSError
+            print("error: \(error.description) - \(error.userInfo)")
             throw error
         }
     }
 
     // MARK: -
 
-    var writableTestDirectoryURL: URL!
+    nonisolated(unsafe) var writableTestDirectoryURL: URL!
 
     override func setUp() {
         super.setUp()

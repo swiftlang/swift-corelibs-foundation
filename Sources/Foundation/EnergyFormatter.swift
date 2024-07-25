@@ -8,7 +8,7 @@
 //
 
 extension EnergyFormatter {
-    public enum Unit: Int {
+    public enum Unit: Int, Sendable {
 
         case joule = 11
         case kilojoule = 14
@@ -59,6 +59,9 @@ extension EnergyFormatter {
         }
     }
 }
+
+@available(*, unavailable)
+extension EnergyFormatter : @unchecked Sendable { }
 
 open class EnergyFormatter: Formatter {
 

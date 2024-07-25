@@ -24,7 +24,7 @@ import Foundation
 
 internal extension URLSession {
     /// This is an immutable / `struct` version of `URLSessionConfiguration`.
-    struct _Configuration {
+    struct _Configuration : Sendable {
         /// identifier for the background session configuration
         let identifier: String?
         
@@ -47,7 +47,8 @@ internal extension URLSession {
         let isDiscretionary: Bool
         
         /// The proxy dictionary, as described by <CFNetwork/CFHTTPStream.h>
-        let connectionProxyDictionary: [AnyHashable : Any]?
+        // TODO: It would be nice to have the type not be AnyHashable, but for now we need this for source compatibility.
+        nonisolated(unsafe) let connectionProxyDictionary: [AnyHashable : Any]?
         
         /// Allow the use of HTTP pipelining
         let httpShouldUsePipelining: Bool

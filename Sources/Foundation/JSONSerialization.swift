@@ -13,7 +13,7 @@
 @_implementationOnly import CoreFoundation
 
 extension JSONSerialization {
-    public struct ReadingOptions : OptionSet {
+    public struct ReadingOptions : OptionSet, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -25,7 +25,7 @@ extension JSONSerialization {
         public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
     }
 
-    public struct WritingOptions : OptionSet {
+    public struct WritingOptions : OptionSet, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -52,6 +52,9 @@ extension JSONSerialization {
     - All dictionary keys are `Swift.String`s
     - `NSNumber`s are not NaN or infinity
 */
+
+@available(*, unavailable)
+extension JSONSerialization : @unchecked Sendable { }
 
 open class JSONSerialization : NSObject {
     

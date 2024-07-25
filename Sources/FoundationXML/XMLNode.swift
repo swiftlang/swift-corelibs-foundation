@@ -32,6 +32,8 @@ import Foundation
 // Output options
 //  NSXMLNodePrettyPrint
 
+@available(*, unavailable)
+extension XMLNode : @unchecked Sendable { }
 
 /*!
  @class NSXMLNode
@@ -39,7 +41,7 @@ import Foundation
  */
 open class XMLNode: NSObject, NSCopying {
     
-    public enum Kind : UInt {
+    public enum Kind : UInt, Sendable {
         case invalid
         case document
         case element
@@ -55,7 +57,7 @@ open class XMLNode: NSObject, NSCopying {
         case notationDeclaration
     }
     
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -752,16 +754,16 @@ open class XMLNode: NSObject, NSCopying {
         node.objectValue = value
         return node
     }
-    private static let _defaultNamespaces: [XMLNode] = [
+    private static nonisolated(unsafe) let _defaultNamespaces: [XMLNode] = [
         XMLNode.defaultNamespace(prefix: "xml", value: "http://www.w3.org/XML/1998/namespace"),
         XMLNode.defaultNamespace(prefix: "xml", value: "http://www.w3.org/2001/XMLSchema"),
         XMLNode.defaultNamespace(prefix: "xml", value: "http://www.w3.org/2001/XMLSchema-instance"),
     ]
     
-    internal static let _defaultNamespacesByPrefix: [String: XMLNode] =
+    internal static nonisolated(unsafe) let _defaultNamespacesByPrefix: [String: XMLNode] =
         Dictionary(XMLNode._defaultNamespaces.map { ($0.name!, $0) }, uniquingKeysWith: { old, _ in old })
 
-    internal static let _defaultNamespacesByURI: [String: XMLNode] =
+    internal static nonisolated(unsafe) let _defaultNamespacesByURI: [String: XMLNode] =
         Dictionary(XMLNode._defaultNamespaces.map { ($0.stringValue!, $0) }, uniquingKeysWith: { old, _ in old })
 
     open class func predefinedNamespace(forPrefix name: String) -> XMLNode? {
@@ -1023,6 +1025,9 @@ open class XMLNode: NSObject, NSCopying {
 }
 
 internal protocol _NSXMLNodeCollectionType: Collection { }
+
+@available(*, unavailable)
+extension XMLNode.Index : Sendable { }
 
 extension XMLNode: _NSXMLNodeCollectionType {
     

@@ -14,7 +14,7 @@
 /// [ m21  m22  0 ]
 /// [  tX   tY  1 ]
 /// ```
-public struct AffineTransform: ReferenceConvertible {
+public struct AffineTransform: ReferenceConvertible, Sendable {
     public typealias ReferenceType = NSAffineTransform
 
     public var m11: CGFloat
@@ -382,7 +382,7 @@ extension AffineTransform: CustomStringConvertible {
 
 
 /// A structure that defines the three-by-three matrix that performs an affine transform between two coordinate systems.
-public struct NSAffineTransformStruct {
+public struct NSAffineTransformStruct : Sendable {
     public var m11: CGFloat
     public var m12: CGFloat
     public var m21: CGFloat
@@ -411,6 +411,9 @@ public struct NSAffineTransformStruct {
                    tX: 0,  tY: 0)
     }
 }
+
+@available(*, unavailable)
+extension NSAffineTransform : @unchecked Sendable { }
 
 open class NSAffineTransform: NSObject {
     // Internal only for testing.
@@ -495,7 +498,7 @@ extension NSAffineTransform {
 }
 
 extension NSAffineTransform: NSCopying {
-    open func copy(with zone: NSZone? = nil) -> Any {
+    public func copy(with zone: NSZone? = nil) -> Any {
         NSAffineTransform(transform: affineTransform)
     }
 }
@@ -503,7 +506,7 @@ extension NSAffineTransform: NSCopying {
 extension NSAffineTransform: NSSecureCoding {
     public static let supportsSecureCoding = true
     
-    open func encode(with aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         precondition(aCoder.allowsKeyedCoding, "Unkeyed coding is unsupported.")
         
         let array = [
@@ -526,32 +529,32 @@ extension NSAffineTransform: NSSecureCoding {
     
 extension NSAffineTransform {
     /// Applies the specified translation factors to the transformation matrix.
-    open func translateX(by deltaX: CGFloat, yBy deltaY: CGFloat) {
+    public func translateX(by deltaX: CGFloat, yBy deltaY: CGFloat) {
         affineTransform.translate(x: deltaX, y: deltaY)
     }
 
     /// Applies scaling factors to each axis of the transformation matrix.
-    open func scaleX(by scaleX: CGFloat, yBy scaleY: CGFloat) {
+    public func scaleX(by scaleX: CGFloat, yBy scaleY: CGFloat) {
         affineTransform.scale(x: scaleX, y: scaleY)
     }
     
     /// Applies the specified scaling factor along both x and y axes to the transformation matrix.
-    open func scale(by scale: CGFloat) {
+    public func scale(by scale: CGFloat) {
         affineTransform.scale(scale)
     }
     
     /// Applies a rotation factor (measured in degrees) to the transformation matrix.
-    open func rotate(byDegrees angle: CGFloat) {
+    public func rotate(byDegrees angle: CGFloat) {
         affineTransform.rotate(byDegrees: angle)
     }
 
     /// Applies a rotation factor (measured in radians) to the transformation matrix.
-    open func rotate(byRadians angle: CGFloat) {
+    public func rotate(byRadians angle: CGFloat) {
         affineTransform.rotate(byRadians: angle)
     }
     
     /// Replaces the matrix with its inverse matrix.
-    open func invert() {
+    public func invert() {
         guard let inverse = affineTransform.inverted() else {
             fatalError("NSAffineTransform: Transform has no inverse")
         }
@@ -560,22 +563,22 @@ extension NSAffineTransform {
     }
     
     /// Appends the specified matrix.
-    open func append(_ transform: AffineTransform) {
+    public func append(_ transform: AffineTransform) {
         affineTransform.append(transform)
     }
 
     /// Prepends the specified matrix.
-    open func prepend(_ transform: AffineTransform) {
+    public func prepend(_ transform: AffineTransform) {
         affineTransform.prepend(transform)
     }
     
     /// Applies the transform to the specified point and returns the result.
-    open func transform(_ aPoint: CGPoint) -> CGPoint {
+    public func transform(_ aPoint: CGPoint) -> CGPoint {
         affineTransform.transform(aPoint)
     }
 
     /// Applies the transform to the specified size and returns the result.
-    open func transform(_ aSize: CGSize) -> CGSize {
+    public func transform(_ aSize: CGSize) -> CGSize {
         affineTransform.transform(aSize)
     }
 }

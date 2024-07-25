@@ -10,7 +10,7 @@
 
 @_implementationOnly import CoreFoundation
 
-internal class __NSCFBoolean : NSNumber {
+internal class __NSCFBoolean : NSNumber, @unchecked Sendable {
     override var hash: Int {
         return Int(bitPattern: CFHash(unsafeBitCast(self, to: CFBoolean.self)))
     }

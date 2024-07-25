@@ -13,7 +13,7 @@ extension NSCoder {
     /// failures (e.g. corrupt data) for non-TopLevel decodes. Darwin platfrom
     /// supports exceptions here, and there may be other approaches supported
     /// in the future, so its included for completeness.
-    public enum DecodingFailurePolicy : Int {
+    public enum DecodingFailurePolicy : Int, Sendable {
         case raiseException
         case setErrorAndReturn
     }
@@ -100,6 +100,7 @@ public protocol NSSecureCoding : NSCoding {
 /// is normally of the same class as the object that was originally encoded into
 /// the stream. An object can change its class when encoded, however; this is
 /// described in Archives and Serializations Programming Guide.
+//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
 open class NSCoder : NSObject {
     internal var _pendingBuffers = Array<(UnsafeMutableRawPointer, Int)>()
     
@@ -732,7 +733,7 @@ open class NSCoder : NSObject {
     }
     
     open func failWithError(_ error: Error) {
-        if let debugDescription = (error as? NSError)?.userInfo[NSDebugDescriptionErrorKey] {
+        if let debugDescription = (error as NSError).userInfo[NSDebugDescriptionErrorKey] {
             NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
         } else {
             NSLog("*** NSKeyedUnarchiver.init: decoding error")

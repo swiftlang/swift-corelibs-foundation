@@ -87,6 +87,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -97,6 +98,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -116,6 +118,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func `try`() -> Bool {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -127,6 +130,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(before limit: Date) -> Bool {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -178,10 +182,12 @@ open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
         _value = condition
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
         let _ = lock(before: Date.distantFuture)
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
         _cond.lock()
 #if os(Windows)
@@ -197,18 +203,22 @@ open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
         return _value
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(whenCondition condition: Int) {
         let _ = lock(whenCondition: condition, before: Date.distantFuture)
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func `try`() -> Bool {
         return lock(before: Date.distantPast)
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func tryLock(whenCondition condition: Int) -> Bool {
         return lock(whenCondition: condition, before: Date.distantPast)
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock(withCondition condition: Int) {
         _cond.lock()
 #if os(Windows)
@@ -221,6 +231,7 @@ open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
         _cond.unlock()
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(before limit: Date) -> Bool {
         _cond.lock()
         while _thread != nil {
@@ -238,6 +249,7 @@ open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
         return true
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(whenCondition condition: Int, before limit: Date) -> Bool {
         _cond.lock()
         while _thread != nil || _value != condition {
@@ -312,6 +324,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -322,6 +335,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -341,6 +355,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func `try`() -> Bool {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -352,6 +367,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(before limit: Date) -> Bool {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -412,6 +428,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
         cond.deallocate()
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -422,6 +439,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -432,6 +450,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func wait() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -442,6 +461,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
 
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func wait(until limit: Date) -> Bool {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
@@ -456,6 +476,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
 #endif
     }
     
+    @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func signal() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms

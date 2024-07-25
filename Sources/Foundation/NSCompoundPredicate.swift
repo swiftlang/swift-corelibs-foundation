@@ -11,7 +11,7 @@
 // Compound predicates are predicates which act on the results of evaluating other operators. We provide the basic boolean operators: AND, OR, and NOT.
 
 extension NSCompoundPredicate {
-    public enum LogicalType : UInt {
+    public enum LogicalType : UInt, Sendable {
         case not
         case and
         case or

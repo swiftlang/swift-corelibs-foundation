@@ -13,7 +13,7 @@
 /// Expectations represent specific conditions in asynchronous testing.
 open class XCTestExpectation: @unchecked Sendable {
 
-    private static var currentMonotonicallyIncreasingToken: UInt64 = 0
+    private static nonisolated(unsafe) var currentMonotonicallyIncreasingToken: UInt64 = 0
     private static func queue_nextMonotonicallyIncreasingToken() -> UInt64 {
         dispatchPrecondition(condition: .onQueue(XCTWaiter.subsystemQueue))
         currentMonotonicallyIncreasingToken += 1

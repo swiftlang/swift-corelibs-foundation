@@ -681,6 +681,7 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssertEqual(notationDecl.name, "otherNotation")
     }
     
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_creatingAnEmptyDocumentAndNode() {
         _ = XMLDocument()
         _ = XMLNode()

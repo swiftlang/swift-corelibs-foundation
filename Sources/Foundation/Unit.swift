@@ -2,7 +2,7 @@
  NSUnitConverter describes how to convert a unit to and from the base unit of its dimension.  Use the NSUnitConverter protocol to implement new ways of converting a unit.
  */
 
-open class UnitConverter : NSObject {
+open class UnitConverter : NSObject, @unchecked Sendable {
     
     
     /*
@@ -35,7 +35,7 @@ open class UnitConverter : NSObject {
     }
 }
 
-open class UnitConverterLinear : UnitConverter, NSSecureCoding {
+open class UnitConverterLinear : UnitConverter, NSSecureCoding, @unchecked Sendable {
     
     
     open private(set) var coefficient: Double
@@ -95,7 +95,7 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
 }
 
 // This must be named with a NS prefix because it can be sometimes encoded by Darwin, and we need to match the name in the archive.
-internal class NSUnitConverterReciprocal : UnitConverter, NSSecureCoding {
+internal class NSUnitConverterReciprocal : UnitConverter, NSSecureCoding, @unchecked Sendable {
     
     
     private var reciprocal: Double
@@ -147,10 +147,9 @@ internal class NSUnitConverterReciprocal : UnitConverter, NSSecureCoding {
  NSUnit is the base class for all unit types (dimensional and dimensionless).
  */
 
-open class Unit : NSObject, NSCopying, NSSecureCoding {
-    
-    
-    open private(set) var symbol: String
+
+open class Unit : NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
+    public let symbol: String
     
     
     public required init(symbol: String) {
@@ -192,10 +191,10 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-open class Dimension : Unit {
+open class Dimension : Unit, @unchecked Sendable {
     
     
-    open private(set) var converter: UnitConverter
+    public let converter: UnitConverter
     
     public required init(symbol: String, converter: UnitConverter) {
         self.converter = converter
@@ -249,7 +248,7 @@ open class Dimension : Unit {
     }
 }
 
-public final class UnitAcceleration : Dimension {
+public final class UnitAcceleration : Dimension, @unchecked Sendable {
     
     /*
      Base unit - metersPerSecondSquared
@@ -298,7 +297,7 @@ public final class UnitAcceleration : Dimension {
     }
 }
 
-public final class UnitAngle : Dimension {
+public final class UnitAngle : Dimension, @unchecked Sendable {
     
     /*
      Base unit - degrees
@@ -379,7 +378,7 @@ public final class UnitAngle : Dimension {
     }
 }
 
-public final class UnitArea : Dimension {
+public final class UnitArea : Dimension, @unchecked Sendable {
     
     /*
      Base unit - squareMeters
@@ -524,7 +523,7 @@ public final class UnitArea : Dimension {
     }
 }
 
-public final class UnitConcentrationMass : Dimension {
+public final class UnitConcentrationMass : Dimension, @unchecked Sendable {
     
     /*
      Base unit - gramsPerLiter
@@ -579,7 +578,7 @@ public final class UnitConcentrationMass : Dimension {
     }
 }
 
-public final class UnitDispersion : Dimension {
+public final class UnitDispersion : Dimension, @unchecked Sendable {
     
     /*
      Base unit - partsPerMillion
@@ -620,7 +619,7 @@ public final class UnitDispersion : Dimension {
     }
 }
 
-public final class UnitDuration : Dimension {
+public final class UnitDuration : Dimension, @unchecked Sendable {
     
     /*
      Base unit - seconds
@@ -709,7 +708,7 @@ public final class UnitDuration : Dimension {
     }
 }
 
-public final class UnitElectricCharge : Dimension {
+public final class UnitElectricCharge : Dimension, @unchecked Sendable {
     /*
      Base unit - coulombs
      */
@@ -789,7 +788,7 @@ public final class UnitElectricCharge : Dimension {
     }
 }
 
-public final class UnitElectricCurrent : Dimension {
+public final class UnitElectricCurrent : Dimension, @unchecked Sendable {
     
     /*
      Base unit - amperes
@@ -863,7 +862,7 @@ public final class UnitElectricCurrent : Dimension {
     }
 }
 
-public final class UnitElectricPotentialDifference : Dimension {
+public final class UnitElectricPotentialDifference : Dimension, @unchecked Sendable {
     
     /*
      Base unit - volts
@@ -937,7 +936,7 @@ public final class UnitElectricPotentialDifference : Dimension {
     }
 }
 
-public final class UnitElectricResistance : Dimension {
+public final class UnitElectricResistance : Dimension, @unchecked Sendable {
     
     /*
      Base unit - ohms
@@ -1011,7 +1010,7 @@ public final class UnitElectricResistance : Dimension {
     }
 }
 
-public final class UnitEnergy : Dimension {
+public final class UnitEnergy : Dimension, @unchecked Sendable {
     
     /*
      Base unit - joules
@@ -1085,7 +1084,7 @@ public final class UnitEnergy : Dimension {
     }
 }
 
-public final class UnitFrequency : Dimension {
+public final class UnitFrequency : Dimension, @unchecked Sendable {
     
     /*
      Base unit - hertz
@@ -1182,7 +1181,7 @@ public final class UnitFrequency : Dimension {
     }
 }
 
-public final class UnitFuelEfficiency : Dimension {
+public final class UnitFuelEfficiency : Dimension, @unchecked Sendable {
     
     /*
      Base unit - litersPer100Kilometers
@@ -1239,7 +1238,7 @@ public final class UnitFuelEfficiency : Dimension {
     }
 }
 
-public final class UnitLength : Dimension {
+public final class UnitLength : Dimension, @unchecked Sendable {
     
     /*
      Base unit - meters
@@ -1448,7 +1447,7 @@ public final class UnitLength : Dimension {
     }
 }
 
-public final class UnitIlluminance : Dimension {
+public final class UnitIlluminance : Dimension, @unchecked Sendable {
     
     /*
      Base unit - lux
@@ -1489,7 +1488,7 @@ public final class UnitIlluminance : Dimension {
     }
 }
 
-public final class UnitInformationStorage : Dimension {
+public final class UnitInformationStorage : Dimension, @unchecked Sendable {
     
     /*
      Base unit - bit
@@ -1808,7 +1807,7 @@ public final class UnitInformationStorage : Dimension {
     }
 }
 
-public final class UnitMass : Dimension {
+public final class UnitMass : Dimension, @unchecked Sendable {
     
     /*
      Base unit - kilograms
@@ -1969,7 +1968,7 @@ public final class UnitMass : Dimension {
     }
 }
 
-public final class UnitPower : Dimension {
+public final class UnitPower : Dimension, @unchecked Sendable {
     
     /*
      Base unit - watts
@@ -2090,7 +2089,7 @@ public final class UnitPower : Dimension {
     }
 }
 
-public final class UnitPressure : Dimension {
+public final class UnitPressure : Dimension, @unchecked Sendable {
     
     /*
      Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
@@ -2203,7 +2202,7 @@ public final class UnitPressure : Dimension {
     }
 }
 
-public final class UnitSpeed : Dimension {
+public final class UnitSpeed : Dimension, @unchecked Sendable {
     
     /*
      Base unit - metersPerSecond
@@ -2268,7 +2267,7 @@ public final class UnitSpeed : Dimension {
     }
 }
 
-public final class UnitTemperature : Dimension {
+public final class UnitTemperature : Dimension, @unchecked Sendable {
     
     /*
      Base unit - kelvin
@@ -2331,7 +2330,7 @@ public final class UnitTemperature : Dimension {
     }
 }
 
-public final class UnitVolume : Dimension {
+public final class UnitVolume : Dimension, @unchecked Sendable {
     
     /*
      Base unit - liters

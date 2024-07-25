@@ -28,7 +28,7 @@ internal protocol NSSpecialValueCoding {
     var description: String { get }
 }
 
-internal class NSSpecialValue : NSValue {
+internal class NSSpecialValue : NSValue, @unchecked Sendable {
 
     // Originally these were functions in NSSpecialValueCoding but it's probably
     // more convenient to keep it as a table here as nothing else really needs to
@@ -59,7 +59,7 @@ internal class NSSpecialValue : NSValue {
         return _specialTypes.first(where: { $1.objCType() == objCType })?.1
     }
     
-    internal var _value : NSSpecialValueCoding
+    internal let _value : NSSpecialValueCoding
     
     init(_ value: NSSpecialValueCoding) {
         self._value = value

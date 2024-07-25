@@ -21,7 +21,7 @@ import Foundation
 /// the actual bytes representing the content of a URL. See
 /// `URLSession` for more information about receiving the content
 /// data for a URL load.
-open class URLResponse : NSObject, NSSecureCoding, NSCopying {
+open class URLResponse : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
 
     static public var supportsSecureCoding: Bool {
         return true
@@ -175,7 +175,7 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
 /// HTTP URL load. It is a specialization of URLResponse which
 /// provides conveniences for accessing information specific to HTTP
 /// protocol responses.
-open class HTTPURLResponse : URLResponse {
+open class HTTPURLResponse : URLResponse, @unchecked Sendable {
     
     /// Initializer for HTTPURLResponse objects.
     ///
@@ -390,7 +390,7 @@ private func getSuggestedFilename(fromHeaderFields headerFields: [String : Strin
     return nil
 }
 /// Parts corresponding to the `Content-Type` header field in a HTTP message.
-private struct ContentTypeComponents {
+private struct ContentTypeComponents : Sendable {
     /// For `text/html; charset=ISO-8859-4` this would be `text/html`
     let mimeType: String
     /// For `text/html; charset=ISO-8859-4` this would be `ISO-8859-4`. Will be
@@ -432,10 +432,10 @@ extension ContentTypeComponents {
 /// attribute               = token
 /// value                   = token | quoted-string
 /// ```
-private struct ValueWithParameters {
+private struct ValueWithParameters : Sendable {
     let value: String
     let parameters: [Parameter]
-    struct Parameter {
+    struct Parameter : Sendable {
         let attribute: String
         let value: String?
     }
@@ -469,7 +469,7 @@ private extension String {
         let escape = UnicodeScalar(0x5c)!    //  \
         let quote = UnicodeScalar(0x22)!     //  "
         let separator = UnicodeScalar(0x3b)! //  ;
-        enum State {
+        enum State : Sendable {
             case nonQuoted(String)
             case nonQuotedEscaped(String)
             case quoted(String)

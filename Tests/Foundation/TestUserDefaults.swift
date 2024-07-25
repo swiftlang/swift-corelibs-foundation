@@ -390,7 +390,7 @@ class TestUserDefaults : XCTestCase {
 
 		let done = expectation(description: "All notifications have fired.")
 		
-		var countOfFiredNotifications = 0
+		nonisolated(unsafe) var countOfFiredNotifications = 0
 		let expectedNotificationCount = 3
 		
 		let observer = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { (_) in

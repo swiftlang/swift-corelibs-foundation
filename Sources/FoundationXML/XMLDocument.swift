@@ -47,7 +47,7 @@ extension XMLDocument {
         @constant XMLDocument.ContentKind.html Outputs empty tags without a close tag, eg <br>
         @constant XMLDocument.ContentKind.text Output the string value of the document
     */
-    public enum ContentKind : UInt {
+    public enum ContentKind : UInt, Sendable {
 
         case xml
         case xhtml

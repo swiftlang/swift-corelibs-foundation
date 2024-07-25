@@ -1814,6 +1814,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
 #endif
 }
 
+// `buf` must be null-terminated
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 #if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_MAC

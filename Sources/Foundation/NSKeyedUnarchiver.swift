@@ -8,6 +8,10 @@
 //
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
+
+@available(*, unavailable)
+extension NSKeyedUnarchiver : @unchecked Sendable { }
 
 open class NSKeyedUnarchiver : NSCoder {
     enum InternalError: Error {
@@ -44,8 +48,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
     }
     
-    private static var _classNameMap : Dictionary<String, AnyClass> = [:]
-    private static var _classNameMapLock = NSLock()
+    private static let _globalClassNameMap = Mutex<Dictionary<String, AnyClass>>([:])
     
     open weak var delegate: NSKeyedUnarchiverDelegate?
     
@@ -627,8 +630,8 @@ open class NSKeyedUnarchiver : NSCoder {
     }
 
     open class func setClass(_ cls: AnyClass?, forClassName codedName: String) {
-        _classNameMapLock.synchronized {
-            _classNameMap[codedName] = cls
+        _globalClassNameMap.withLock {
+            $0[codedName] = cls
         }
     }
     
@@ -640,13 +643,9 @@ open class NSKeyedUnarchiver : NSCoder {
     // own table, then if there was no mapping there, the class's.
     
     open class func `class`(forClassName codedName: String) -> AnyClass? {
-        var mappedClass : AnyClass?
-        
-        _classNameMapLock.synchronized {
-            mappedClass = _classNameMap[codedName]
+        _globalClassNameMap.withLock {
+            $0[codedName]
         }
-        
-        return mappedClass
     }
     
     open func `class`(forClassName codedName: String) -> AnyClass? {

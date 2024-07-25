@@ -25,7 +25,7 @@ public typealias XCTestCaseEntry = (testCaseClass: XCTestCase.Type, allTests: [(
 
 // A global pointer to the currently running test case. This is required in
 // order for XCTAssert functions to report failures.
-internal var XCTCurrentTestCase: XCTestCase?
+internal nonisolated(unsafe) var XCTCurrentTestCase: XCTestCase?
 
 /// An instance of this class represents an individual test case which can be
 /// run by the framework. This class is normally subclassed and extended with
@@ -48,7 +48,8 @@ open class XCTestCase: XCTest {
         return 1
     }
 
-    @MainActor
+    // TODO: Having issues with runtime use of MainActor annotated tests on Linux - causes a precondition failure in a dynamic cast
+    //@MainActor
     internal var currentWaiter: XCTWaiter?
 
     /// The set of expectations made upon this test case.
@@ -228,8 +229,9 @@ open class XCTestCase: XCTest {
 
         do {
             if #available(macOS 12.0, *) {
+                nonisolated(unsafe) let nonisolatedSelf = self
                 try awaitUsingExpectation {
-                    try await self.setUp()
+                    try await nonisolatedSelf.setUp()
                 }
             }
         } catch {
@@ -274,8 +276,9 @@ open class XCTestCase: XCTest {
 
         do {
             if #available(macOS 12.0, *) {
+                nonisolated(unsafe) let nonisolatedSelf = self
                 try awaitUsingExpectation {
-                    try await self.tearDown()
+                    try await nonisolatedSelf.tearDown()
                 }
             }
         } catch {
@@ -340,15 +343,18 @@ func awaitUsingExpectation(
     let expectation = XCTestExpectation(description: "async test completion")
     let thrownErrorWrapper = ThrownErrorWrapper()
 
-    Task {
+    nonisolated(unsafe) let nonisolatedClosure = closure
+    let work : @Sendable () async -> () = {
         defer { expectation.fulfill() }
 
         do {
-            try await closure()
+            try await nonisolatedClosure()
         } catch {
             thrownErrorWrapper.error = error
         }
     }
+    
+    Task<Void, Error>(priority: nil, operation: work)
 
     _ = XCTWaiter.wait(for: [expectation], timeout: asyncTestTimeout)
 

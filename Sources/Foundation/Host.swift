@@ -55,6 +55,9 @@ import WinSDK
     }
 #endif
 
+@available(*, unavailable)
+extension Host : @unchecked Sendable { }
+
 open class Host: NSObject {
     enum ResolveType {
         case name
@@ -67,7 +70,7 @@ open class Host: NSObject {
     internal var _names = [String]()
     internal var _addresses = [String]()
     
-    static internal let _current = Host(currentHostName(), .current)
+    static internal let _cachedCurrentHostName = currentHostName()
     
     internal init(_ info: String?, _ type: ResolveType) {
         _info = info
@@ -107,7 +110,7 @@ open class Host: NSObject {
     }
     
     open class func current() -> Host {
-        return _current
+        return Host(Self._cachedCurrentHostName, .current)
     }
     
     public convenience init(name: String?) {
@@ -132,7 +135,7 @@ open class Host: NSObject {
         var ulResult: ULONG =
             GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, nil, &ulSize)
 
-        var arAdapters: UnsafeMutableRawPointer =
+        let arAdapters: UnsafeMutableRawPointer =
             UnsafeMutableRawPointer.allocate(byteCount: Int(ulSize),
                                              alignment: 1)
         defer { arAdapters.deallocate() }
@@ -147,7 +150,7 @@ open class Host: NSObject {
         while pAdapter != nil {
           // print("Adapter: \(String(cString: pAdapter!.pointee.AdapterName))")
 
-          var arAddresses: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS> =
+          let arAddresses: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS> =
               pAdapter!.pointee.FirstUnicastAddress
 
           var pAddress: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS>? =

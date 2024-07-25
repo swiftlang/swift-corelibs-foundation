@@ -16,7 +16,7 @@ internal struct SourceLocation {
 
     /// Represents an "unknown" source location, with default values, which may be used as a fallback
     /// when a real source location may not be known.
-    static var unknown: SourceLocation = {
+    static let unknown: SourceLocation = {
         return SourceLocation(file: "<unknown>", line: 0)
     }()
 

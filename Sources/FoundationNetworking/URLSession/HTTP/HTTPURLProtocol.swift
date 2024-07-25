@@ -321,7 +321,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             try easyHandle.set(url: url)
         } catch {
             self.internalState = .transferFailed
-            let nsError = error as? NSError ?? NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL)
+            let nsError = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL)
             failWith(error: nsError, request: request)
             return
         }
@@ -413,23 +413,21 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         if request.isTimeoutIntervalSet {
             timeoutInterval = Int(request.timeoutInterval) * 1000
         }
-        let timeoutHandler = DispatchWorkItem { [weak self] in
-            guard let self = self, let task = self.task else {
-                fatalError("Timeout on a task that doesn't exist")
-            } //this guard must always pass
-
+        // Access to self is protected by the work item executing on the correct queue
+        nonisolated(unsafe) let nonisolatedSelf = self
+        let timeoutHandler = DispatchWorkItem {
             // If a timeout occurred while waiting for a redirect completion handler to be called by
             // the delegate then terminate the task but DONT set the error to NSURLErrorTimedOut.
             // This matches Darwin.
-            if case .waitingForRedirectCompletionHandler(response: let response,_) = self.internalState {
-                task.response = response
-                self.easyHandle.timeoutTimer = nil
-                self.internalState = .taskCompleted
+            if case .waitingForRedirectCompletionHandler(response: let response,_) = nonisolatedSelf.internalState {
+                nonisolatedSelf.task!.response = response
+                nonisolatedSelf.easyHandle.timeoutTimer = nil
+                nonisolatedSelf.internalState = .taskCompleted
             } else {
-                self.internalState = .transferFailed
+                nonisolatedSelf.internalState = .transferFailed
                 let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
-                self.completeTask(withError: urlError)
-                self.client?.urlProtocol(self, didFailWithError: urlError)
+                nonisolatedSelf.completeTask(withError: urlError)
+                nonisolatedSelf.client?.urlProtocol(self, didFailWithError: urlError)
             }
         }
 
@@ -486,11 +484,13 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             // before we call delegate API
             self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
+            let task = self.task!
+            // Self state is protected by the dispatch queue
+            nonisolated(unsafe) let nonisolatedSelf = self
             session.delegateQueue.addOperation {
-                delegate.urlSession(session, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
-                    guard let self = self else { return }
-                    self.task?.workQueue.async {
-                        self.didCompleteRedirectCallback(request)
+                delegate.urlSession(session, task: task, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { (request: URLRequest?) in
+                    task.workQueue.async {
+                        nonisolatedSelf.didCompleteRedirectCallback(request)
                     }
                 }
             }
@@ -686,7 +686,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     }
 }
 
-fileprivate var userAgentString: String = {
+fileprivate let userAgentString: String = {
     // Darwin uses something like this: "xctest (unknown version) CFNetwork/760.4.2 Darwin/15.4.0 (x86_64)"
     let info = ProcessInfo.processInfo
     let name = info.processName

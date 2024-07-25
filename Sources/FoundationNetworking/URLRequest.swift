@@ -16,7 +16,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
+public struct URLRequest : ReferenceConvertible, Equatable, Hashable, Sendable {
     public typealias ReferenceType = NSURLRequest
     public typealias CachePolicy = NSURLRequest.CachePolicy
     public typealias NetworkServiceType = NSURLRequest.NetworkServiceType

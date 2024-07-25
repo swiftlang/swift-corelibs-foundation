@@ -10,6 +10,9 @@
 
 @_implementationOnly import CoreFoundation
 
+@available(*, unavailable)
+extension NSSet : @unchecked Sendable { }
+
 open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFSetGetTypeID())
     internal var _storage: Set<NSObject>
@@ -71,11 +74,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
     public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
         if flag {
             self.init(array: set.map {
-                if let item = $0 as? NSObject {
-                    return item.copy()
-                } else {
-                    return $0
-                }
+                return ($0 as NSObject).copy()
             })
         } else {
             self.init(array: Array(set))
@@ -461,6 +460,7 @@ open class NSMutableSet : NSSet {
 }
 
 /****************	Counted Set	****************/
+
 open class NSCountedSet : NSMutableSet {
     // Note: in 5.0 and earlier, _table contained the object's exact count.
     // In 5.1 and earlier, it contains the count minus one. This allows us to have a quick 'is this set just like a regular NSSet' flag (if this table is empty, then all objects in it exist at most once in it.)

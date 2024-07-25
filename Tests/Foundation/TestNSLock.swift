@@ -53,7 +53,8 @@ class TestNSLock: XCTestCase {
         let endSeconds: Double = 2
 
         let endTime = Date.init(timeIntervalSinceNow: endSeconds)
-        var threadsStarted = Array<Bool>(repeating: false, count: threadCount)
+        // Protected by arrayLock
+        nonisolated(unsafe) var threadsStarted = Array<Bool>(repeating: false, count: threadCount)
         let arrayLock = NSLock()
 
         for t in 0..<threadCount {
@@ -114,8 +115,10 @@ class TestNSLock: XCTestCase {
         let countdownPerThread = 1000
         let endTime = Date(timeIntervalSinceNow: 30)
         
-        var completedThreadCount = 0
-        var countdownValue = threadCount * countdownPerThread
+        // Protected by threadCompletedCondition
+        nonisolated(unsafe) var completedThreadCount = 0
+        // Protected by recursive countdownValueLock
+        nonisolated(unsafe) var countdownValue = threadCount * countdownPerThread
         
         let threadCompletedCondition = NSCondition()
         let countdownValueLock = NSRecursiveLock()
@@ -180,7 +183,8 @@ class TestNSLock: XCTestCase {
     func test_withLock() {
         let lock = NSLock()
 
-        var counter = 0
+        // Protected by lock
+        nonisolated(unsafe) var counter = 0
         let counterIncrementPerThread = 10_000
 
         let threadCount = 10

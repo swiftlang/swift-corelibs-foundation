@@ -29,7 +29,7 @@ import Dispatch
  
  - note: In swift-corelibs-foundation, Key Value Observing is not yet available.
  */
-open class Progress : NSObject {
+open class Progress : NSObject, @unchecked Sendable {
     
     private weak var _parent : Progress?
     private var _children : Set<Progress>
@@ -40,11 +40,12 @@ open class Progress : NSObject {
     // This is set once, but after initialization
     private var _portionOfParent : Int64
     
-    static private var _tsdKey = "_Foundation_CurrentProgressKey"
+    static private let _tsdKey = "_Foundation_CurrentProgressKey"
     
     /// The instance of `Progress` associated with the current thread by a previous invocation of `becomeCurrent(withPendingUnitCount:)`, if any. 
     ///
     /// The purpose of this per-thread value is to allow code that does work to usefully report progress even when it is widely separated from the code that actually presents progress to the user, without requiring layers of intervening code to pass the instance of `Progress` through. Using the result of invoking this directly will often not be the right thing to do, because the invoking code will often not even know what units of work the current progress object deals in. Using `Progress(withTotalUnitCount:)` to create a child `Progress` object and then using that to report progress makes more sense in that situation.
+    @available(*, noasync)
     open class func current() -> Progress? {
         return (Thread.current.threadDictionary[Progress._tsdKey] as? _ProgressTSD)?.currentProgress
     }
@@ -74,6 +75,7 @@ open class Progress : NSObject {
     }
     
     /// Initializes an instance of `Progress` with the specified parent and user info dictionary.
+    @available(*, noasync)
     public init(parent parentProgress: Progress?, userInfo userInfoOrNil: [ProgressUserInfoKey : Any]? = nil) {
         _children = Set()
         
@@ -104,6 +106,7 @@ open class Progress : NSObject {
     /// MARK: -
     
     /// This is called when some other progress becomes an implicit child of this progress.
+    @available(*, noasync)
     private func _addImplicitChild(_ child : Progress) {
         guard let tsd = Thread.current.threadDictionary[Progress._tsdKey] as? _ProgressTSD else { preconditionFailure("A child was added without a current progress being set") }
         
@@ -123,6 +126,7 @@ open class Progress : NSObject {
     /// The unit of work in a call to `becomeCurrent(withPendingUnitCount:)` has to be the same unit of work as that used for the value of the `totalUnitCount` property, but the unit of work used by the child can be a completely different one, and often will be. 
     ///
     /// You must always balance invocations of this method with invocations of `resignCurrent`.
+    @available(*, noasync)
     open func becomeCurrent(withPendingUnitCount unitCount: Int64) {
         let oldTSD = Thread.current.threadDictionary[Progress._tsdKey] as? _ProgressTSD
         if let checkedTSD = oldTSD {
@@ -136,6 +140,7 @@ open class Progress : NSObject {
     /// Balance the most recent previous invocation of `becomeCurrent(withPendingUnitCount:)` on the same thread.
     ///
     /// This restores the current progress object to what it was before `becomeCurrent(withPendingUnitCount:)` was invoked.
+    @available(*, noasync)
     open func resignCurrent() {
         guard let oldTSD = Thread.current.threadDictionary[Progress._tsdKey] as? _ProgressTSD else {
             preconditionFailure("This Progress was not the current progress on this thread.")
@@ -269,7 +274,7 @@ open class Progress : NSObject {
     /// A closure to be called when `cancel` is called.
     ///
     /// The closure will be called even when the function is called on an ancestor of the receiver. Your closure won't be called on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
-    open var cancellationHandler: (() -> Void)? {
+    open var cancellationHandler: (@Sendable () -> Void)? {
         didSet {
             guard let handler = cancellationHandler else { return }
             // If we're already cancelled, then invoke it - asynchronously
@@ -284,7 +289,7 @@ open class Progress : NSObject {
     /// A closure to be called when pause is called.
     ///
     /// The closure will be called even when the function is called on an ancestor of the receiver. Your closure won't be called on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
-    open var pausingHandler: (() -> Void)? {
+    open var pausingHandler: (@Sendable () -> Void)? {
         didSet {
             guard let handler = pausingHandler else { return }
             // If we're already paused, then invoke it - asynchronously
@@ -300,7 +305,7 @@ open class Progress : NSObject {
     /// A closure to be called when resume is called.
     ///
     /// The closure will be called even when the function is called on an ancestor of the receiver. Your closure won't be called on any particular queue. If it must do work on a specific queue then it should schedule that work on that queue.
-    open var resumingHandler: (() -> Void)?
+    open var resumingHandler: (@Sendable () -> Void)?
     
     /// Returns `true` if the progress is indeterminate.
     ///
@@ -396,7 +401,7 @@ open class Progress : NSObject {
     /// If the value of the `localizedDescription` property has not been set, then the default implementation of `localizedDescription` uses the progress kind to determine how to use the values of other properties, as well as values in the user info dictionary, to create a string that is presentable to the user.
     open var kind: ProgressKind?
     
-    public struct FileOperationKind : RawRepresentable, Equatable, Hashable {
+    public struct FileOperationKind : RawRepresentable, Equatable, Hashable, Sendable {
         public let rawValue: String
         public init(_ rawValue: String) { self.rawValue = rawValue }
         public init(rawValue: String) { self.rawValue = rawValue }
@@ -473,7 +478,7 @@ public protocol ProgressReporting : NSObjectProtocol {
     var progress: Progress { get }
 }
 
-public struct ProgressKind : RawRepresentable, Equatable, Hashable {
+public struct ProgressKind : RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
@@ -484,7 +489,7 @@ public struct ProgressKind : RawRepresentable, Equatable, Hashable {
     public static let file = ProgressKind(rawValue: "NSProgressKindFile")
 }
 
-public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
+public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
@@ -525,6 +530,9 @@ public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
     /// Value is an `NSNumber`.
     public static let fileCompletedCountKey = ProgressUserInfoKey(rawValue: "NSProgressFileCompletedCountKey")
 }
+
+@available(*, unavailable)
+extension _ProgressTSD : @unchecked Sendable { }
 
 fileprivate class _ProgressTSD : NSObject {
     /// The thread's default progress.

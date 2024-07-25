@@ -17,14 +17,14 @@ import Dispatch
     import Darwin
 #endif
 
-public class ServerSemaphore {
+final class ServerSemaphore : Sendable {
     let dispatchSemaphore = DispatchSemaphore(value: 0)
 
-    public func wait(timeout: DispatchTime) -> DispatchTimeoutResult {
+    func wait(timeout: DispatchTime) -> DispatchTimeoutResult {
         return dispatchSemaphore.wait(timeout: timeout)
     }
 
-    public func signal() {
+    func signal() {
         dispatchSemaphore.signal()
     }
 }
@@ -75,15 +75,16 @@ class _FTPSocket {
         let sa1 = createSockaddr(port+1)
         socketAddress1.initialize(to: sa1)
         try socketAddress1.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
-            let addr = UnsafeMutablePointer<sockaddr>($0)
+            nonisolated(unsafe) let addr = UnsafeMutablePointer<sockaddr>($0)
             _ = try attempt("bind", valid: isZero, bind(dataSocket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
-            var sockLen = socklen_t(MemoryLayout<sockaddr>.size)
             _ = try attempt("listen", valid: isZero, listen(dataSocket, SOMAXCONN))
             // Open the data port asynchronously. Port should be opened before ESPV header communication.
+            nonisolated(unsafe) let nonisolatedSelf = self
             DispatchQueue(label: "delay").async {
                 do {
-                    self.dataSocket = try self.attempt("accept", valid: self.isNotMinusOne, accept(self.dataSocket, addr, &sockLen))
-                    self.dataSocketPort = sa1.sin_port
+                    var sockLen = socklen_t(MemoryLayout<sockaddr>.size)
+                    nonisolatedSelf.dataSocket = try nonisolatedSelf.attempt("accept", valid: nonisolatedSelf.isNotMinusOne, accept(nonisolatedSelf.dataSocket, addr, &sockLen))
+                    nonisolatedSelf.dataSocketPort = sa1.sin_port
                 } catch {
 		     NSLog("Could not open data port.")
                 }
@@ -160,20 +161,20 @@ class _FTPServer {
         socket = try _FTPSocket(port: port)
     }
 
-    public class func create(port: UInt16) throws -> _FTPServer {
+    class func create(port: UInt16) throws -> _FTPServer {
         return try _FTPServer(port: port)
     }
 
-    public func listen(notify: ServerSemaphore) throws {
+    func listen(notify: ServerSemaphore) throws {
         try socket.acceptConnection(notify: notify)
     }
 
-    public func stop() {
+    func stop() {
         socket.shutdown()
     }
 
     // parse header information and respond accordingly
-    public func parseHeaderData() throws {
+    func parseHeaderData() throws {
         let saveData = """
                        FTP implementation to test FTP
                        upload, download and data tasks. Instead of sending a file,
@@ -222,29 +223,29 @@ class _FTPServer {
         }
     }
 
-    public func respondWithRawData(with string: String) throws {
+    func respondWithRawData(with string: String) throws {
         try self.socket.writeRawData(string.data(using: String.Encoding.utf8)!)
     }
 
-    public func respondWithData(with data: Data) throws -> Int32 {
+    func respondWithData(with data: Data) throws -> Int32 {
         return try self.socket.writeRawData(socket: data)
     }
-    public func readDataOnDataSocket() throws -> String {
+    func readDataOnDataSocket() throws -> String {
         return try self.socket.readDataOnDataSocket()
     }
 }
 
-public class TestFTPURLSessionServer {
+class TestFTPURLSessionServer {
     let ftpServer: _FTPServer
 
-    public init (port: UInt16) throws {
+    init (port: UInt16) throws {
         ftpServer = try _FTPServer.create(port: port)
     }
-    public func start(started: ServerSemaphore) throws {
+    func start(started: ServerSemaphore) throws {
         started.signal()
         try ftpServer.listen(notify: started)
     }
-    public func parseHeaderAndRespond()  throws {
+    func parseHeaderAndRespond()  throws {
         try ftpServer.parseHeaderData()
     }
 
@@ -258,11 +259,11 @@ public class TestFTPURLSessionServer {
 }
 
 class LoopbackFTPServerTest: XCTestCase {
-    static var serverPort: Int = -1
+    nonisolated(unsafe) static var serverPort: Int = -1
 
     override class func setUp() {
         super.setUp()
-        func runServer(with condition: ServerSemaphore,
+        @Sendable func runServer(with condition: ServerSemaphore,
                        startDelay: TimeInterval? = nil,
                        sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
             let start = 21961 // 21961

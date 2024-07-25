@@ -35,6 +35,7 @@
 #define NOMINMAX
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
+#define _CRT_NONSTDC_NO_DEPRECATE
 #include <Windows.h>
 #elif !TARGET_OS_WASI
 #include <fts.h>
@@ -59,6 +60,8 @@
 
 #if TARGET_OS_LINUX
 #include <sys/sysmacros.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #endif
 
 #if TARGET_OS_ANDROID
@@ -335,10 +338,10 @@ struct _NSCFXMLBridgeUntyped {
     void *kCFErrorLocalizedDescriptionKey;
 };
 
-CF_EXPORT struct _NSCFXMLBridgeStrong __NSCFXMLBridgeStrong;
-CF_EXPORT struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped;
+CF_EXPORT struct _NSCFXMLBridgeStrong __NSCFXMLBridgeStrong __attribute__((swift_attr("nonisolated(unsafe)")));
+CF_EXPORT struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped __attribute__((swift_attr("nonisolated(unsafe)")));
 
-CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
+CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge __attribute__((swift_attr("nonisolated(unsafe)")));
 
 CF_EXPORT void *_Nullable _CFSwiftRetain(void *_Nullable t);
 CF_EXPORT void _CFSwiftRelease(void *_Nullable t);
@@ -407,7 +410,7 @@ typedef void *_CFThreadSpecificKey;
 #endif
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
-CF_EXPORT _CFThreadRef _CFMainPThread;
+CF_EXPORT _CFThreadRef _CFMainPThread __attribute__((swift_attr("nonisolated(unsafe)")));
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 

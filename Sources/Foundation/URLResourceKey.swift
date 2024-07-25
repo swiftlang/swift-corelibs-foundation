@@ -8,8 +8,8 @@
 //
 
 
-public struct URLResourceKey: RawRepresentable, Equatable, Hashable {
-    public private(set) var rawValue: String
+public struct URLResourceKey: RawRepresentable, Equatable, Hashable, Sendable {
+    public let rawValue: String
 
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -123,8 +123,8 @@ extension URLResourceKey {
 }
 
 
-public struct URLFileResourceType: RawRepresentable, Equatable, Hashable {
-    public private(set) var rawValue: String
+public struct URLFileResourceType: RawRepresentable, Equatable, Hashable, Sendable {
+    public let rawValue: String
 
     public init(rawValue: String) {
         self.rawValue = rawValue

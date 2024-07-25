@@ -25,7 +25,8 @@ class TestHTTPCookieStorage: XCTestCase {
     func test_sharedCookieStorageAccessedFromMultipleThreads() {
         let q = DispatchQueue.global()
         let syncQ = DispatchQueue(label: "TestHTTPCookieStorage.syncQ")
-        var allCookieStorages: [HTTPCookieStorage] = []
+        // Protected by `g` dispatchGroup
+        nonisolated(unsafe) var allCookieStorages: [HTTPCookieStorage] = []
         let g = DispatchGroup()
         for _ in 0..<64 {
             g.enter()
@@ -307,7 +308,7 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies(for: superSwiftOrgUrl)!, [])
     }
 
-    func test_cookieInXDGSpecPath() {
+    func test_cookieInXDGSpecPath() throws {
 #if !os(Android) && !DARWIN_COMPATIBILITY_TESTS && !os(Windows)// No XDG on native Foundation
         //Test without setting the environment variable
         let testCookie = HTTPCookie(properties: [
@@ -341,7 +342,7 @@ class TestHTTPCookieStorage: XCTestCase {
         task.environment = environment
 
         // Launch the task
-        task.launch()
+        try task.run()
         task.waitUntilExit()
         let status = task.terminationStatus
         XCTAssertEqual(status, 0)

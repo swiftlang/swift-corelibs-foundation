@@ -116,5 +116,6 @@ struct _Delimiters {
     static let DoubleQuote = UnicodeScalar(0x22)!
     static let Equals = UnicodeScalar(0x3d)!
     /// *Separators* according to RFC 2616
-    static let Separators = NSCharacterSet(charactersIn: "()<>@,;:\\\"/[]?={} \t")
+    // Sendable-safe due to immutability
+    static nonisolated(unsafe) let Separators = NSCharacterSet(charactersIn: "()<>@,;:\\\"/[]?={} \t")
 }

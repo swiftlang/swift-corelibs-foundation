@@ -604,11 +604,11 @@ fileprivate func cast<T, U>(_ t: T) -> U {
   return t as! U
 }
 
-open class NSNumber : NSValue {
+open class NSNumber : NSValue, @unchecked Sendable {
     typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
-    private var _base = _CFInfo(typeID: CFNumberGetTypeID())
-    private var _pad: UInt64 = 0
+    private let _base = _CFInfo(typeID: CFNumberGetTypeID())
+    private let _pad: UInt64 = 0
 
     internal final var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
@@ -663,7 +663,7 @@ open class NSNumber : NSValue {
         }
     }
     
-    internal var _swiftValueOfOptimalType: Any {
+    internal var _swiftValueOfOptimalType: (Any & Sendable) {
         if self === kCFBooleanTrue {
             return true
         } else if self === kCFBooleanFalse {
@@ -701,7 +701,8 @@ open class NSNumber : NSValue {
     }
     
     private convenience init(bytes: UnsafeRawPointer, numberType: CFNumberType) {
-        let cfnumber = CFNumberCreate(nil, numberType, bytes)
+        // CFNumber is not Sendable, but we know this is safe
+        nonisolated(unsafe) let cfnumber = CFNumberCreate(nil, numberType, bytes)
         self.init(factory: { cast(unsafeBitCast(cfnumber, to: NSNumber.self)) })
     }
     
@@ -1157,19 +1158,19 @@ extension CFNumber : _NSBridgeable {
 }
 
 internal func _CFSwiftNumberGetType(_ obj: CFTypeRef) -> CFNumberType {
-    return unsafeBitCast(obj, to: NSNumber.self)._cfNumberType()
+    return unsafeDowncast(obj, to: NSNumber.self)._cfNumberType()
 }
 
 internal func _CFSwiftNumberGetValue(_ obj: CFTypeRef, _ valuePtr: UnsafeMutableRawPointer, _ type: CFNumberType) -> Bool {
-    return unsafeBitCast(obj, to: NSNumber.self)._getValue(valuePtr, forType: type)
+    return unsafeDowncast(obj, to: NSNumber.self)._getValue(valuePtr, forType: type)
 }
 
 internal func _CFSwiftNumberGetBoolValue(_ obj: CFTypeRef) -> Bool {
-    return unsafeBitCast(obj, to: NSNumber.self).boolValue
+    return unsafeDowncast(obj, to: NSNumber.self).boolValue
 }
 
 protocol _NSNumberCastingWithoutBridging {
-  var _swiftValueOfOptimalType: Any { get }
+  var _swiftValueOfOptimalType: (Any & Sendable) { get }
 }
 
 extension NSNumber: _NSNumberCastingWithoutBridging {}

@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Synchronization
+
 class TestProcess : XCTestCase {
     
     func test_exit0() throws {
@@ -18,7 +20,7 @@ class TestProcess : XCTestCase {
             // Fallback on earlier versions
             process.launchPath = executableURL.path
         }
-        XCTAssertEqual(executableURL.path, process.launchPath)
+        XCTAssertEqual(executableURL.path, process.executableURL?.path)
         process.arguments = ["--exit", "0"]
         try process.run()
         process.waitUntilExit()
@@ -339,7 +341,7 @@ class TestProcess : XCTestCase {
             XCTAssertNoThrow(try process.run())
             process.waitUntilExit()
             XCTAssertThrowsError(try process.run()) {
-                let nserror = ($0 as! NSError)
+                let nserror = ($0 as NSError)
                 XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
                 let code = CocoaError(_nsError: nserror).code
                 XCTAssertEqual(code, .executableLoad)
@@ -363,7 +365,7 @@ class TestProcess : XCTestCase {
             XCTAssertThrowsError(try process.run())
         }
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
-        fm.changeCurrentDirectoryPath(cwd)
+        _ = fm.changeCurrentDirectoryPath(cwd)
     }
 
     func test_preStartEndState() {
@@ -450,7 +452,7 @@ class TestProcess : XCTestCase {
         #if os(Windows)
         throw XCTSkip("Windows does not have signals")
         #else
-        let helper = _SignalHelperRunner()
+        nonisolated(unsafe) let helper = _SignalHelperRunner()
         do {
             try helper.start()
         }  catch {
@@ -578,28 +580,27 @@ class TestProcess : XCTestCase {
         task.executableURL = url
         task.arguments = []
         let stdoutPipe = Pipe()
-        let dataLock = NSLock()
+        let stdoutData = Mutex(Data())
         task.standardOutput = stdoutPipe
 
-        var stdoutData = Data()
         stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
-            dataLock.synchronized {
-                stdoutData.append(fh.availableData)
+            stdoutData.withLock {
+                $0.append(fh.availableData)
             }
         }
         try task.run()
         task.waitUntilExit()
         stdoutPipe.fileHandleForReading.readabilityHandler = nil
 
-        try dataLock.synchronized {
+        try stdoutData.withLock {
             if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
-                stdoutData.append(d)
+                $0.append(d)
             }
-            XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
+            XCTAssertEqual(String(data: $0, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
         }
     }
 
-
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_currentDirectory() throws {
 
         let process = Process()
@@ -639,7 +640,7 @@ class TestProcess : XCTestCase {
 
         process.executableURL = URL(fileURLWithPath: "/some_file_that_doesnt_exist", isDirectory: false)
         XCTAssertThrowsError(try process.run()) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: ($0 as NSError).code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
@@ -702,7 +703,7 @@ class TestProcess : XCTestCase {
         }
 
         XCTAssertThrowsError(try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/some_directory_that_doesnt_exsit")) { error in
-            let code = CocoaError.Code(rawValue: (error as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: (error as NSError).code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
     }
@@ -876,34 +877,33 @@ class _SignalHelperRunner {
         process.arguments = ["--signal-test"]
         process.standardOutput = outputPipe.fileHandleForWriting
 
-        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] fh in
-            if let strongSelf = self {
-                let newLine = UInt8(ascii: "\n")
-
-                strongSelf.bytesIn.append(fh.availableData)
-                if strongSelf.bytesIn.isEmpty {
-                    return
-                }
-                // Split the incoming data into lines.
-                while let index = strongSelf.bytesIn.firstIndex(of: newLine) {
-                    if index >= strongSelf.bytesIn.startIndex {
-                        // don't include the newline when converting to string
-                        let line = String(data: strongSelf.bytesIn[strongSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
-                        strongSelf.bytesIn.removeSubrange(strongSelf.bytesIn.startIndex...index)
-
-                        if strongSelf.gotReady == false && line == "Ready" {
-                            strongSelf.semaphore.signal()
-                            strongSelf.gotReady = true;
+        nonisolated(unsafe) let nonisolatedSelf = self
+        outputPipe.fileHandleForReading.readabilityHandler = { fh in
+            let newLine = UInt8(ascii: "\n")
+            
+            nonisolatedSelf.bytesIn.append(fh.availableData)
+            if nonisolatedSelf.bytesIn.isEmpty {
+                return
+            }
+            // Split the incoming data into lines.
+            while let index = nonisolatedSelf.bytesIn.firstIndex(of: newLine) {
+                if index >= nonisolatedSelf.bytesIn.startIndex {
+                    // don't include the newline when converting to string
+                    let line = String(data: nonisolatedSelf.bytesIn[nonisolatedSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
+                    nonisolatedSelf.bytesIn.removeSubrange(nonisolatedSelf.bytesIn.startIndex...index)
+                    
+                    if nonisolatedSelf.gotReady == false && line == "Ready" {
+                        nonisolatedSelf.semaphore.signal()
+                        nonisolatedSelf.gotReady = true;
+                    }
+                    else if nonisolatedSelf.gotReady == true {
+                        if line == "Signal: SIGINT" {
+                            nonisolatedSelf.sQueue.sync { nonisolatedSelf._sigIntCount += 1 }
+                            nonisolatedSelf.semaphore.signal()
                         }
-                        else if strongSelf.gotReady == true {
-                            if line == "Signal: SIGINT" {
-                                strongSelf.sQueue.sync { strongSelf._sigIntCount += 1 }
-                                strongSelf.semaphore.signal()
-                            }
-                            else if line == "Signal: SIGCONT" {
-                                strongSelf.sQueue.sync { strongSelf._sigContCount += 1 }
-                                strongSelf.semaphore.signal()
-                            }
+                        else if line == "Signal: SIGCONT" {
+                            nonisolatedSelf.sQueue.sync { nonisolatedSelf._sigContCount += 1 }
+                            nonisolatedSelf.semaphore.signal()
                         }
                     }
                 }
@@ -936,7 +936,8 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     let process = Process()
 
     var arguments = arguments
-    process.launchPath = arguments.removeFirst()
+    let firstArg = arguments.removeFirst()
+    process.executableURL = URL(fileURLWithPath: firstArg)
     process.arguments = arguments
     // Darwin Foundation doesnt allow .environment to be set to nil although the documentation
     // says it is an optional. https://developer.apple.com/documentation/foundation/process/1409412-environment
@@ -959,21 +960,23 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
 
     let stdoutPipe = Pipe()
     let stderrPipe = Pipe()
-    let dataLock = NSLock()
+    struct Output {
+        var stdoutData = Data()
+        var stderrData = Data()
+    }
+    let dataLock = Mutex(Output())
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
 
-    var stdoutData = Data()
     stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
-        dataLock.synchronized {
-            stdoutData.append(fh.availableData)
+        dataLock.withLock {
+            $0.stdoutData.append(fh.availableData)
         }
     }
 
-    var stderrData = Data()
     stderrPipe.fileHandleForReading.readabilityHandler = { fh in
-        dataLock.synchronized {
-            stderrData.append(fh.availableData)
+        dataLock.withLock {
+            $0.stderrData.append(fh.availableData)
         }
     }
 
@@ -986,22 +989,22 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
         throw Error.TerminationStatus(process.terminationStatus)
     }
 
-    return try dataLock.synchronized {
+    return try dataLock.withLock {
         // Drain any data remaining in the pipes
         if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
-            stdoutData.append(d)
+            $0.stdoutData.append(d)
         }
 
         if let d = try stderrPipe.fileHandleForReading.readToEnd() {
-            stderrData.append(d)
+            $0.stderrData.append(d)
         }
 
-        guard let stdout = String(data: stdoutData, encoding: .utf8) else {
-            throw Error.UnicodeDecodingError(stdoutData)
+        guard let stdout = String(data: $0.stdoutData, encoding: .utf8) else {
+            throw Error.UnicodeDecodingError($0.stdoutData)
         }
 
-        guard let stderr = String(data: stderrData, encoding: .utf8) else {
-            throw Error.UnicodeDecodingError(stderrData)
+        guard let stderr = String(data: $0.stderrData, encoding: .utf8) else {
+            throw Error.UnicodeDecodingError($0.stderrData)
         }
 
         return (stdout, stderr)

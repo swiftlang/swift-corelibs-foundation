@@ -112,6 +112,7 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-unused-function"
     "-Wno-microsoft-enum-forward-reference"
     "-Wno-int-conversion"
+    "-Wno-switch"
     "-fblocks")
 
 if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
@@ -139,8 +140,11 @@ endif()
 # Swift build flags (Foundation, FoundationNetworking, FoundationXML)
 set(_Foundation_swift_build_flags)
 list(APPEND _Foundation_swift_build_flags
+    "-swift-version 6"
     "-DDEPLOYMENT_RUNTIME_SWIFT"
-    "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS")
+    "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS"
+    "-Xfrontend"
+    "-require-explicit-sendable")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND _Foundation_common_build_flags
