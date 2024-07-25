@@ -29,7 +29,7 @@ internal func _persistCString(_ p: UnsafePointer<CChar>?) -> [CChar]? {
     }
     let bytesToCopy = UTF8._nullCodeUnitOffset(in: cString) + 1 // +1 for the terminating NUL
     let result = [CChar](unsafeUninitializedCapacity: bytesToCopy) { buf, initedCount in
-        buf.baseAddress!.assign(from: cString, count: bytesToCopy)
+        buf.baseAddress!.update(from: cString, count: bytesToCopy)
         initedCount = bytesToCopy
     }
     return result
@@ -137,7 +137,7 @@ extension String {
     /// Creates a string by copying the data from a given
     /// null-terminated C array of UTF8-encoded bytes.
     public init?(utf8String bytes: UnsafePointer<CChar>) {
-        if let str = String(validatingUTF8: bytes) {
+        if let str = String(validatingCString: bytes) {
             self = str
             return
         }
@@ -152,15 +152,19 @@ extension String {
     /// null-terminated array of UTF8-encoded bytes.
     @_alwaysEmitIntoClient
     public init?(utf8String bytes: [CChar]) {
-        // the stdlib's validatingUTF8 [CChar] overload checks for null termination.
-        if let str = String(validatingUTF8: bytes) {
-            self = str
-            return
-        }
         guard let nullPosition = bytes.firstIndex(of: 0) else {
             fatalError(
                 "input of String.init(utf8String:) must be null-terminated"
             )
+        }
+        guard nullPosition != bytes.startIndex else {
+            self = ""
+            return
+        }
+        let substrBeforeNull = bytes[bytes.startIndex..<nullPosition]
+        if let str = String(validating: substrBeforeNull, as: UTF8.self) {
+            self = str
+            return
         }
         let ns = bytes.withUnsafeBytes {
             NSString(bytes: $0.baseAddress!,
@@ -286,7 +290,7 @@ extension String {
     /// in a given C array, interpreted according to a given encoding.
     public init?(cString: UnsafePointer<CChar>, encoding enc: Encoding) {
         if enc == .utf8 || enc == .ascii {
-            if let str = String(validatingUTF8: cString) {
+            if let str = String(validatingCString: cString) {
                 if enc == .utf8 || str._guts._isContiguousASCII {
                     self = str
                     return
@@ -304,9 +308,19 @@ extension String {
     /// in a given array, interpreted according to a given encoding.
     @_alwaysEmitIntoClient
     public init?(cString: [CChar], encoding enc: Encoding) {
+        guard let nullPosition = cString.firstIndex(of: 0) else {
+            fatalError(
+                "input of String.init(cString:encoding:) must be null-terminated"
+            )
+        }
+
         if enc == .utf8 || enc == .ascii {
-            // the stdlib's validatingUTF8 [CChar] overload checks for null termination.
-            if let str = String(validatingUTF8: cString) {
+            guard nullPosition != cString.startIndex else {
+                self = ""
+                return
+            }
+            let substrBeforeNull = cString[cString.startIndex..<nullPosition]
+            if let str = String(validating: substrBeforeNull, as: UTF8.self) {
                 if enc == .utf8 || str._guts._isContiguousASCII {
                     self = str
                     return

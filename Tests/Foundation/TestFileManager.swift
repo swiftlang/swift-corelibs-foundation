@@ -113,7 +113,7 @@ class TestFileManager : XCTestCase {
     func test_creatingDirectoryWithShortIntermediatePath() {
         let fileManager = FileManager.default
         let cwd = fileManager.currentDirectoryPath
-        fileManager.changeCurrentDirectoryPath(NSTemporaryDirectory())
+        _ = fileManager.changeCurrentDirectoryPath(NSTemporaryDirectory())
 
         let relativePath = NSUUID().uuidString
 
@@ -123,7 +123,7 @@ class TestFileManager : XCTestCase {
         } catch {
             XCTFail("Failed to create and clean up directory")
         }
-        fileManager.changeCurrentDirectoryPath(cwd)
+        _ = fileManager.changeCurrentDirectoryPath(cwd)
     }
 
     func test_moveFile() {
@@ -646,7 +646,7 @@ class TestFileManager : XCTestCase {
         try? fm.removeItem(at: root)
 
         try XCTAssertNoThrow(fm.createDirectory(at: subdirectory, withIntermediateDirectories: true, attributes: nil))
-        try XCTAssertNoThrow(fm.createFile(atPath: file.path, contents: Data(), attributes: nil))
+        _ = fm.createFile(atPath: file.path, contents: Data(), attributes: nil)
         let contents = try XCTUnwrap(fm.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles]))
         XCTAssertEqual(contents.count, 1)
         XCTAssertEqual(contents, [subdirectory])
@@ -1752,8 +1752,9 @@ class TestFileManager : XCTestCase {
 
         let operationCount = 10
 
-        var directoryURLs = [URL?](repeating: nil, count: operationCount)
-        var errors = [Error?](repeating: nil, count: operationCount)
+        // Protected by dispatchGroup
+        nonisolated(unsafe) var directoryURLs = [URL?](repeating: nil, count: operationCount)
+        nonisolated(unsafe) var errors = [Error?](repeating: nil, count: operationCount)
 
         let dispatchGroup = DispatchGroup()
         for operationIndex in 0..<operationCount {

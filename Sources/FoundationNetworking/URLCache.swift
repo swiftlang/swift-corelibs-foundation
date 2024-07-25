@@ -13,6 +13,8 @@ import SwiftFoundation
 import Foundation
 #endif
 
+internal import Synchronization
+
 internal extension NSLock {
     func performLocked<T>(_ block: () throws -> T) rethrows -> T {
         lock(); defer { unlock() }
@@ -39,7 +41,7 @@ internal extension NSLock {
     disk.
 */
 extension URLCache {
-    public enum StoragePolicy : UInt {
+    public enum StoragePolicy : UInt, Sendable {
         
         case allowed
         case allowedInMemoryOnly
@@ -86,7 +88,7 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
     It is used to maintain characteristics and attributes of a cached 
     object. 
 */
-open class CachedURLResponse : NSObject, NSCopying {
+open class CachedURLResponse : NSObject, NSCopying, @unchecked Sendable {
     open override func copy() -> Any {
         return copy(with: nil)
     }
@@ -193,10 +195,9 @@ open class CachedURLResponse : NSObject, NSCopying {
     }
 }
 
-open class URLCache : NSObject {
+open class URLCache : NSObject, @unchecked Sendable {
     
-    private static let sharedLock = NSLock()
-    private static var _shared: URLCache?
+    private static let _shared = Mutex<URLCache?>(nil)
     
     /*! 
         @method sharedURLCache
@@ -217,19 +218,19 @@ open class URLCache : NSObject {
     */
     open class var shared: URLCache {
         get {
-            return sharedLock.performLocked {
-                if let shared = _shared {
+            return _shared.withLock {
+                if let shared = $0 {
                     return shared
                 }
                 
                 let shared = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 20 * 1024 * 1024, diskPath: nil)
-                _shared = shared
+                $0 = shared
                 return shared
             }
         }
         set {
-            sharedLock.performLocked {
-                _shared = newValue
+            _shared.withLock {
+                $0 = newValue
             }
         }
     }
@@ -665,7 +666,7 @@ open class URLCache : NSObject {
         storeCachedResponse(cachedResponse, for: request)
     }
     
-    open func getCachedResponse(for dataTask: URLSessionDataTask, completionHandler: @escaping (CachedURLResponse?) -> Void) {
+    open func getCachedResponse(for dataTask: URLSessionDataTask, completionHandler: @Sendable @escaping (CachedURLResponse?) -> Void) {
         guard let request = dataTask.currentRequest else {
             completionHandler(nil)
             return

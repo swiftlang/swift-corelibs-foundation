@@ -28,7 +28,7 @@ extension Calendar {
 }
 
 enum Fixtures {
-    static let mutableAttributedString = TypedFixture<NSMutableAttributedString>("NSMutableAttributedString") {
+    static nonisolated(unsafe) let mutableAttributedString = TypedFixture<NSMutableAttributedString>("NSMutableAttributedString") {
         let string = NSMutableAttributedString(string: "0123456789")
         // Should have:                                 .xyyzzxyx.
         
@@ -53,17 +53,17 @@ enum Fixtures {
         return string
     }
     
-    static let attributedString = TypedFixture<NSAttributedString>("NSAttributedString") {
+    static nonisolated(unsafe) let attributedString = TypedFixture<NSAttributedString>("NSAttributedString") {
         return NSAttributedString(attributedString: try Fixtures.mutableAttributedString.make())
     }
     
     // ===== ByteCountFormatter =====
     
-    static let byteCountFormatterDefault = TypedFixture<ByteCountFormatter>("ByteCountFormatter-Default") {
+    static nonisolated(unsafe) let byteCountFormatterDefault = TypedFixture<ByteCountFormatter>("ByteCountFormatter-Default") {
         return ByteCountFormatter()
     }
     
-    static let byteCountFormatterAllFieldsSet = TypedFixture<ByteCountFormatter>("ByteCountFormatter-AllFieldsSet") {
+    static nonisolated(unsafe) let byteCountFormatterAllFieldsSet = TypedFixture<ByteCountFormatter>("ByteCountFormatter-AllFieldsSet") {
         let f = ByteCountFormatter()
         
         f.allowedUnits = [.useBytes, .useKB]
@@ -83,7 +83,7 @@ enum Fixtures {
     
     // ===== DateIntervalFormatter =====
     
-    static let dateIntervalFormatterDefault = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-Default") {
+    static nonisolated(unsafe) let dateIntervalFormatterDefault = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-Default") {
         let dif = DateIntervalFormatter()
         
         let calendar = Calendar.neutral
@@ -95,7 +95,7 @@ enum Fixtures {
         return dif
     }
     
-    static let dateIntervalFormatterValuesSetWithoutTemplate = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-ValuesSetWithoutTemplate") {
+    static nonisolated(unsafe) let dateIntervalFormatterValuesSetWithoutTemplate = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-ValuesSetWithoutTemplate") {
         let dif = DateIntervalFormatter()
         
         var calendar = Calendar.neutral
@@ -111,7 +111,7 @@ enum Fixtures {
         return dif
     }
     
-    static let dateIntervalFormatterValuesSetWithTemplate = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-ValuesSetWithTemplate") {
+    static nonisolated(unsafe) let dateIntervalFormatterValuesSetWithTemplate = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-ValuesSetWithTemplate") {
         let dif = DateIntervalFormatter()
 
         var calendar = Calendar.neutral
@@ -128,14 +128,14 @@ enum Fixtures {
     
     // ===== ISO8601DateFormatter =====
     
-    static let iso8601FormatterDefault = TypedFixture<ISO8601DateFormatter>("ISO8601DateFormatter-Default") {
+    static nonisolated(unsafe) let iso8601FormatterDefault = TypedFixture<ISO8601DateFormatter>("ISO8601DateFormatter-Default") {
         let idf = ISO8601DateFormatter()
         idf.timeZone = Calendar.neutral.timeZone
         
         return idf
     }
     
-    static let iso8601FormatterOptionsSet = TypedFixture<ISO8601DateFormatter>("ISO8601DateFormatter-OptionsSet") {
+    static nonisolated(unsafe) let iso8601FormatterOptionsSet = TypedFixture<ISO8601DateFormatter>("ISO8601DateFormatter-OptionsSet") {
         let idf = ISO8601DateFormatter()
         idf.timeZone = Calendar.neutral.timeZone
         
@@ -146,7 +146,7 @@ enum Fixtures {
     
     // ===== NSTextCheckingResult =====
     
-    static let textCheckingResultSimpleRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-SimpleRegex") {
+    static nonisolated(unsafe) let textCheckingResultSimpleRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-SimpleRegex") {
         let string = "aaa"
         let regexp = try NSRegularExpression(pattern: "aaa", options: [])
         let result = try XCTUnwrap(regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first)
@@ -155,7 +155,7 @@ enum Fixtures {
     }
     
     
-    static let textCheckingResultExtendedRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ExtendedRegex") {
+    static nonisolated(unsafe) let textCheckingResultExtendedRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ExtendedRegex") {
         let string = "aaaaaa"
         let regexp = try NSRegularExpression(pattern: "a(a(a(a(a(a)))))", options: [])
         let result = try XCTUnwrap(regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first)
@@ -163,7 +163,7 @@ enum Fixtures {
         return result
     }
     
-    static let textCheckingResultComplexRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ComplexRegex") {
+    static nonisolated(unsafe) let textCheckingResultComplexRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ComplexRegex") {
         let string = "aaaaaaaaa"
         let regexp = try NSRegularExpression(pattern: "a(a(a(a(a(a(a(a(a))))))))", options: [])
         let result = try XCTUnwrap(regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first)
@@ -173,15 +173,15 @@ enum Fixtures {
     
     // ===== NSIndexSet =====
     
-    static let indexSetEmpty = TypedFixture<NSIndexSet>("NSIndexSet-Empty") {
+    static nonisolated(unsafe) let indexSetEmpty = TypedFixture<NSIndexSet>("NSIndexSet-Empty") {
         return NSIndexSet(indexesIn: NSMakeRange(0, 0))
     }
     
-    static let indexSetOneRange = TypedFixture<NSIndexSet>("NSIndexSet-OneRange") {
+    static nonisolated(unsafe) let indexSetOneRange = TypedFixture<NSIndexSet>("NSIndexSet-OneRange") {
         return NSIndexSet(indexesIn: NSMakeRange(0, 50))
     }
     
-    static let indexSetManyRanges = TypedFixture<NSIndexSet>("NSIndexSet-ManyRanges") {
+    static nonisolated(unsafe) let indexSetManyRanges = TypedFixture<NSIndexSet>("NSIndexSet-ManyRanges") {
         let indexSet = NSMutableIndexSet()
         indexSet.add(in: NSMakeRange(0, 50))
         indexSet.add(in: NSMakeRange(100, 50))
@@ -190,29 +190,29 @@ enum Fixtures {
         return indexSet.copy() as! NSIndexSet
     }
     
-    static let mutableIndexSetEmpty = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-Empty") {
+    static nonisolated(unsafe) let mutableIndexSetEmpty = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-Empty") {
         return (try Fixtures.indexSetEmpty.make()).mutableCopy() as! NSMutableIndexSet
     }
     
-    static let mutableIndexSetOneRange = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-OneRange") {
+    static nonisolated(unsafe) let mutableIndexSetOneRange = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-OneRange") {
         return (try Fixtures.indexSetOneRange.make()).mutableCopy() as! NSMutableIndexSet
     }
     
-    static let mutableIndexSetManyRanges = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-ManyRanges") {
+    static nonisolated(unsafe) let mutableIndexSetManyRanges = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-ManyRanges") {
         return (try Fixtures.indexSetManyRanges.make()).mutableCopy() as! NSMutableIndexSet
     }
     
     // ===== NSIndexPath =====
     
-    static let indexPathEmpty = TypedFixture<NSIndexPath>("NSIndexPath-Empty") {
+    static nonisolated(unsafe) let indexPathEmpty = TypedFixture<NSIndexPath>("NSIndexPath-Empty") {
         return NSIndexPath()
     }
     
-    static let indexPathOneIndex = TypedFixture<NSIndexPath>("NSIndexPath-OneIndex") {
+    static nonisolated(unsafe) let indexPathOneIndex = TypedFixture<NSIndexPath>("NSIndexPath-OneIndex") {
         return NSIndexPath(index: 52)
     }
     
-    static let indexPathManyIndices = TypedFixture<NSIndexPath>("NSIndexPath-ManyIndices") {
+    static nonisolated(unsafe) let indexPathManyIndices = TypedFixture<NSIndexPath>("NSIndexPath-ManyIndices") {
         var indexPath = IndexPath()
         indexPath.append([4, 8, 15, 16, 23, 42])
         return indexPath as NSIndexPath
@@ -220,32 +220,32 @@ enum Fixtures {
     
     // ===== NSSet, NSMutableSet =====
     
-    static let setOfNumbers = TypedFixture<NSSet>("NSSet-Numbers") {
+    static nonisolated(unsafe) let setOfNumbers = TypedFixture<NSSet>("NSSet-Numbers") {
         let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
         return NSSet(array: numbers)
     }
     
-    static let setEmpty = TypedFixture<NSSet>("NSSet-Empty") {
+    static nonisolated(unsafe) let setEmpty = TypedFixture<NSSet>("NSSet-Empty") {
         return NSSet()
     }
     
-    static let mutableSetOfNumbers = TypedFixture<NSMutableSet>("NSMutableSet-Numbers") {
+    static nonisolated(unsafe) let mutableSetOfNumbers = TypedFixture<NSMutableSet>("NSMutableSet-Numbers") {
         let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
         return NSMutableSet(array: numbers)
     }
     
-    static let mutableSetEmpty = TypedFixture<NSMutableSet>("NSMutableSet-Empty") {
+    static nonisolated(unsafe) let mutableSetEmpty = TypedFixture<NSMutableSet>("NSMutableSet-Empty") {
         return NSMutableSet()
     }
     
     // ===== NSCountedSet =====
     
-    static let countedSetOfNumbersAppearingOnce = TypedFixture<NSCountedSet>("NSCountedSet-NumbersAppearingOnce") {
+    static nonisolated(unsafe) let countedSetOfNumbersAppearingOnce = TypedFixture<NSCountedSet>("NSCountedSet-NumbersAppearingOnce") {
         let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
         return NSCountedSet(array: numbers)
     }
     
-    static let countedSetOfNumbersAppearingSeveralTimes = TypedFixture<NSCountedSet>("NSCountedSet-NumbersAppearingSeveralTimes") {
+    static nonisolated(unsafe) let countedSetOfNumbersAppearingSeveralTimes = TypedFixture<NSCountedSet>("NSCountedSet-NumbersAppearingSeveralTimes") {
         let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
         let set = NSCountedSet()
         for _ in 0 ..< 5 {
@@ -256,75 +256,75 @@ enum Fixtures {
         return set
     }
     
-    static let countedSetEmpty = TypedFixture<NSCountedSet>("NSCountedSet-Empty") {
+    static nonisolated(unsafe) let countedSetEmpty = TypedFixture<NSCountedSet>("NSCountedSet-Empty") {
         return NSCountedSet()
     }
     
     // ===== NSCharacterSet, NSMutableCharacterSet =====
     
-    static let characterSetEmpty = TypedFixture<NSCharacterSet>("NSCharacterSet-Empty") {
+    static nonisolated(unsafe) let characterSetEmpty = TypedFixture<NSCharacterSet>("NSCharacterSet-Empty") {
         return NSCharacterSet()
     }
     
-    static let characterSetRange = TypedFixture<NSCharacterSet>("NSCharacterSet-Range") {
+    static nonisolated(unsafe) let characterSetRange = TypedFixture<NSCharacterSet>("NSCharacterSet-Range") {
         return NSCharacterSet(range: NSMakeRange(0, 255))
     }
     
-    static let characterSetString = TypedFixture<NSCharacterSet>("NSCharacterSet-String") {
+    static nonisolated(unsafe) let characterSetString = TypedFixture<NSCharacterSet>("NSCharacterSet-String") {
         return NSCharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz")
     }
     
-    static let characterSetBitmap = TypedFixture<NSCharacterSet>("NSCharacterSet-Bitmap") {
+    static nonisolated(unsafe) let characterSetBitmap = TypedFixture<NSCharacterSet>("NSCharacterSet-Bitmap") {
         let someSet = NSCharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz")
         return NSCharacterSet(bitmapRepresentation: someSet.bitmapRepresentation)
     }
     
-    static let characterSetBuiltin = TypedFixture<NSCharacterSet>("NSCharacterSet-Builtin") {
+    static nonisolated(unsafe) let characterSetBuiltin = TypedFixture<NSCharacterSet>("NSCharacterSet-Builtin") {
         return NSCharacterSet.alphanumerics as NSCharacterSet
     }
     
     // ===== NSOrderedSet, NSMutableOrderedSet =====
     
-    static let orderedSetOfNumbers = TypedFixture<NSOrderedSet>("NSOrderedSet-Numbers") {
+    static nonisolated(unsafe) let orderedSetOfNumbers = TypedFixture<NSOrderedSet>("NSOrderedSet-Numbers") {
         let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
         return NSOrderedSet(array: numbers)
     }
     
-    static let orderedSetEmpty = TypedFixture<NSOrderedSet>("NSOrderedSet-Empty") {
+    static nonisolated(unsafe) let orderedSetEmpty = TypedFixture<NSOrderedSet>("NSOrderedSet-Empty") {
         return NSOrderedSet()
     }
     
-    static let mutableOrderedSetOfNumbers = TypedFixture<NSMutableOrderedSet>("NSMutableOrderedSet-Numbers") {
+    static nonisolated(unsafe) let mutableOrderedSetOfNumbers = TypedFixture<NSMutableOrderedSet>("NSMutableOrderedSet-Numbers") {
         let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
         return NSMutableOrderedSet(array: numbers)
     }
     
-    static let mutableOrderedSetEmpty = TypedFixture<NSMutableOrderedSet>("NSMutableOrderedSet-Empty") {
+    static nonisolated(unsafe) let mutableOrderedSetEmpty = TypedFixture<NSMutableOrderedSet>("NSMutableOrderedSet-Empty") {
         return NSMutableOrderedSet()
     }
     
     // ===== NSMeasurement =====
     
-    static let zeroMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Zero") {
+    static nonisolated(unsafe) let zeroMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Zero") {
         let noUnit = Unit(symbol: "")
         return NSMeasurement(doubleValue: 0, unit: noUnit)
     }
     
-    static let lengthMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Length") {
+    static nonisolated(unsafe) let lengthMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Length") {
         return NSMeasurement(doubleValue: 45, unit: UnitLength.miles)
     }
     
-    static let frequencyMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Frequency") {
+    static nonisolated(unsafe) let frequencyMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Frequency") {
         return NSMeasurement(doubleValue: 1400, unit: UnitFrequency.megahertz)
     }
     
-    static let angleMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Angle") {
+    static nonisolated(unsafe) let angleMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Angle") {
         return NSMeasurement(doubleValue: 90, unit: UnitAngle.degrees)
     }
     
     // ===== Fixture list =====
     
-    static let _listOfAllFixtures: [AnyFixture] = [
+    static nonisolated(unsafe) let _listOfAllFixtures: [AnyFixture] = [
         AnyFixture(Fixtures.mutableAttributedString),
         AnyFixture(Fixtures.attributedString),
         AnyFixture(Fixtures.byteCountFormatterDefault),
@@ -370,11 +370,11 @@ enum Fixtures {
     
     // This ensures that we do not have fixtures with duplicate identifiers:
     
-    static var all: [AnyFixture] {
+    static nonisolated(unsafe) var all: [AnyFixture] {
         return Array(Fixtures.allFixturesByIdentifier.values)
     }
     
-    static var allFixturesByIdentifier: [String: AnyFixture] = {
+    static nonisolated(unsafe) var allFixturesByIdentifier: [String: AnyFixture] = {
         let keysAndValues = Fixtures._listOfAllFixtures.map { ($0.identifier, $0) }
         return Dictionary(keysAndValues, uniquingKeysWith: { _, _ in fatalError("No two keys should be the same in fixtures. Double-check keys in FixtureValues.swift to make sure they're all unique.") })
     }()

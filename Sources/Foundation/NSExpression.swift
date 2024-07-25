@@ -9,8 +9,9 @@
 
 
 // Expressions are the core of the predicate implementation. When expressionValueWithObject: is called, the expression is evaluated, and a value returned which can then be handled by an operator. Expressions can be anything from constants to method invocations. Scalars should be wrapped in appropriate NSValue classes.
+@available(*, deprecated, message: "NSExpression is not available in swift-corelibs-foundation")
 extension NSExpression {
-    public enum ExpressionType : UInt {
+    public enum ExpressionType : UInt, Sendable {
         
         case constantValue // Expression that always returns the same value
         case evaluatedObject // Expression that always returns the parameter object itself
@@ -27,6 +28,9 @@ extension NSExpression {
         case conditional
     }
 }
+
+@available(*, unavailable)
+extension NSExpression : @unchecked Sendable { }
 
 @available(*, deprecated, message: "NSExpression is not available in swift-corelibs-foundation")
 open class NSExpression : NSObject, NSCopying {

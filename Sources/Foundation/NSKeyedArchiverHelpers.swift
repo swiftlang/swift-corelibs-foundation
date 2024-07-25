@@ -15,24 +15,24 @@ extension CFKeyedArchiverUID : _NSBridgeable {
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
-internal class _NSKeyedArchiverUID : NSObject {
+final internal class _NSKeyedArchiverUID : NSObject, Sendable {
     typealias CFType = CFKeyedArchiverUID
-    internal var _base = _CFInfo(typeID: _CFKeyedArchiverUIDGetTypeID())
-    internal var value : UInt32 = 0
+    internal let _base = _CFInfo(typeID: _CFKeyedArchiverUIDGetTypeID())
+    internal let value : UInt32
     
     internal var _cfObject : CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override var _cfTypeID: CFTypeID {
         return _CFKeyedArchiverUIDGetTypeID()
     }
 
-    open override var hash: Int {
+    override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject as CFTypeRef?))
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    override func isEqual(_ object: Any?) -> Bool {
         // no need to compare these?
         return false
     }

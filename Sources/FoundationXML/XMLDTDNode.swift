@@ -19,7 +19,7 @@ import Foundation
 	@abstract The subkind of a DTD node kind.
 */
 extension XMLDTDNode {
-    public enum DTDKind : UInt {
+    public enum DTDKind : UInt, Sendable {
         
         
         case general

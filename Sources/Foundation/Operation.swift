@@ -8,7 +8,7 @@
 //
 
 #if canImport(Dispatch)
-import Dispatch
+@preconcurrency import Dispatch
 
 internal let _NSOperationIsFinished = "isFinished"
 internal let _NSOperationIsFinishedAlternate = "finished"
@@ -53,7 +53,7 @@ extension QualityOfService {
     }
 }
 
-open class Operation : NSObject {
+open class Operation : NSObject, @unchecked Sendable {
     struct PointerHashedUnmanagedBox<T: AnyObject>: Hashable {
         var contents: Unmanaged<T>
         func hash(into hasher: inout Hasher) {
@@ -63,7 +63,7 @@ open class Operation : NSObject {
             return lhs.contents.toOpaque() == rhs.contents.toOpaque()
         }
     }
-    enum __NSOperationState : UInt8 {
+    enum __NSOperationState : UInt8, Sendable {
         case initialized = 0x00
         case enqueuing = 0x48
         case enqueued = 0x50
@@ -81,7 +81,7 @@ open class Operation : NSObject {
     internal var __dependencies = [Operation]()
     internal var __downDependencies = Set<PointerHashedUnmanagedBox<Operation>>()
     internal var __unfinishedDependencyCount: Int = 0
-    internal var __completion: (() -> Void)?
+    internal var __completion: (@Sendable () -> Void)?
     internal var __name: String?
     internal var __schedule: DispatchWorkItem?
     internal var __state: __NSOperationState = .initialized
@@ -562,7 +562,7 @@ open class Operation : NSObject {
     }
     
     
-    open var completionBlock: (() -> Void)? {
+    open var completionBlock: (@Sendable () -> Void)? {
         get {
             _lock()
             defer { _unlock() }
@@ -575,6 +575,7 @@ open class Operation : NSObject {
         }
     }
     
+    @available(*, noasync, message: "Use completionBlock or a dependent Operation instead")
     open func waitUntilFinished() {
         __waitCondition.lock()
         while !isFinished {
@@ -631,14 +632,14 @@ extension Operation {
 }
 
 extension Operation {
-    public enum QueuePriority : Int {
+    public enum QueuePriority : Int, Sendable {
         case veryLow = -8
         case low = -4
         case normal = 0
         case high = 4
         case veryHigh = 8
         
-        internal static var barrier = 12
+        internal static let barrier = 12
         internal static let priorities = [
             Operation.QueuePriority.barrier,
             Operation.QueuePriority.veryHigh.rawValue,
@@ -650,20 +651,20 @@ extension Operation {
     }
 }
 
-open class BlockOperation : Operation {
-    var _block: (() -> Void)?
-    var _executionBlocks: [() -> Void]?
+open class BlockOperation : Operation, @unchecked Sendable {
+    var _block: (@Sendable () -> Void)?
+    var _executionBlocks: [@Sendable () -> Void]?
     
     public override init() {
         
     }
     
-    public convenience init(block: @escaping () -> Void) {
+    public convenience init(block: @Sendable @escaping () -> Void) {
         self.init()
         _block = block
     }
     
-    open func addExecutionBlock(_ block: @escaping () -> Void) {
+    open func addExecutionBlock(_ block: @Sendable @escaping () -> Void) {
         if isExecuting || isFinished {
             fatalError("blocks cannot be added after the operation has started executing or finished")
         }
@@ -678,11 +679,11 @@ open class BlockOperation : Operation {
         }
     }
     
-    open var executionBlocks: [() -> Void] {
+    open var executionBlocks: [@Sendable () -> Void] {
         get {
             _lock()
             defer { _unlock() }
-            var blocks = [() -> Void]()
+            var blocks = [@Sendable () -> Void]()
             if let existing = _block {
                 blocks.append(existing)
             }
@@ -694,7 +695,7 @@ open class BlockOperation : Operation {
     }
     
     open override func main() {
-        var blocks = [() -> Void]()
+        var blocks = [@Sendable () -> Void]()
         _lock()
         if let existing = _block {
             blocks.append(existing)
@@ -709,7 +710,7 @@ open class BlockOperation : Operation {
     }
 }
 
-internal final class _BarrierOperation : Operation {
+internal final class _BarrierOperation : Operation, @unchecked Sendable {
     var _block: (() -> Void)?
     init(_ block: @escaping () -> Void) {
         _block = block
@@ -725,7 +726,7 @@ internal final class _BarrierOperation : Operation {
     }
 }
 
-internal final class _OperationQueueProgress : Progress {
+internal final class _OperationQueueProgress : Progress, @unchecked Sendable {
     var queue: Unmanaged<OperationQueue>?
     let lock = NSLock()
     
@@ -758,7 +759,7 @@ extension OperationQueue {
 }
 
 @available(macOS 10.5, *)
-open class OperationQueue : NSObject, ProgressReporting {
+open class OperationQueue : NSObject, ProgressReporting, @unchecked Sendable {
     let __queueLock = NSLock()
     let __atomicLoad = NSLock()
     var __firstOperation: Unmanaged<Operation>?
@@ -950,7 +951,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         return queue
     }
     
-    static internal var _currentQueue = NSThreadSpecific<OperationQueue>()
+    static internal nonisolated(unsafe) var _currentQueue = NSThreadSpecific<OperationQueue>()
     
     internal func _schedule(_ op: Operation) {
         op._state = .starting
@@ -1261,6 +1262,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         _addOperations([op], barrier: false)
     }
     
+    @available(*, noasync, message: "Use addBarrierBlock or a dependent Operation instead")
     open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
         _addOperations(ops, barrier: false)
         if wait {
@@ -1270,7 +1272,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         }
     }
     
-    open func addOperation(_ block: @escaping () -> Void) {
+    open func addOperation(_ block: @Sendable @escaping () -> Void) {
         let op = BlockOperation(block: block)
         if let qos = __propertyQoS {
             op.qualityOfService = qos
@@ -1278,7 +1280,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         addOperation(op)
     }
     
-    open func addBarrierBlock(_ barrier: @escaping () -> Void) {
+    open func addBarrierBlock(_ barrier: @Sendable @escaping () -> Void) {
         var queue: DispatchQueue?
         _lock()
         if let op = __firstOperation {
@@ -1392,6 +1394,7 @@ open class OperationQueue : NSObject, ProgressReporting {
         }
     }
     
+    @available(*, noasync, message: "Use completionBlock or a dependent Operation instead")
     open func waitUntilAllOperationsAreFinished() {
         var ops = _operations(includingBarriers: true)
         while 0 < ops.count {
@@ -1425,7 +1428,7 @@ extension OperationQueue {
     // These two functions are inherently a race condition and should be avoided if possible
     
     @available(macOS, introduced: 10.5, deprecated: 100000, message: "access to operations is inherently a race condition, it should not be used. For barrier style behaviors please use addBarrierBlock: instead")
-    open var operations: [Operation] {
+    public var operations: [Operation] {
         get {
             return _operations(includingBarriers: false)
         }
@@ -1433,7 +1436,7 @@ extension OperationQueue {
     
     
     @available(macOS, introduced: 10.6, deprecated: 100000)
-    open var operationCount: Int {
+    public var operationCount: Int {
         get {
             return _operationCount
         }

@@ -31,6 +31,12 @@ private let __kCFBytesInline: CFOptionFlags = 2
 private let __kCFUseAllocator: CFOptionFlags = 3
 private let __kCFDontDeallocate: CFOptionFlags = 4
 
+@available(*, unavailable)
+extension NSData : @unchecked Sendable { }
+
+@available(*, unavailable)
+extension NSData.NSDataReadResult : Sendable { }
+
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
 
@@ -928,6 +934,7 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
 }
 
 // MARK: -
+
 open class NSMutableData : NSData {
     internal final var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
 

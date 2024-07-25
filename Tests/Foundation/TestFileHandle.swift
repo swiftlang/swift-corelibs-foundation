@@ -467,8 +467,9 @@ class TestFileHandle : XCTestCase {
     
     func test_readToEndOfFileInBackgroundAndNotify() {
         let handle = createFileHandle()
+        nonisolated(unsafe) let nonisolatedSelf = self
         let done = expectation(forNotification: .NSFileHandleReadToEndOfFileCompletion, object: handle, notificationCenter: .default) { (notification) -> Bool in
-            XCTAssertEqual(notification.userInfo as? [String: AnyHashable], [NSFileHandleNotificationDataItem: self.content], "User info was incorrect")
+            XCTAssertEqual(notification.userInfo as? [String: AnyHashable], [NSFileHandleNotificationDataItem: nonisolatedSelf.content], "User info was incorrect")
             return true
         }
         

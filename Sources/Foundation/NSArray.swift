@@ -9,6 +9,12 @@
 
 @_implementationOnly import CoreFoundation
 
+@available(*, unavailable)
+extension NSArray : @unchecked Sendable { }
+
+@available(*, unavailable)
+extension NSArray.Iterator : Sendable { }
+
 open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByArrayLiteral {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
     internal var _storage = [AnyObject]()
@@ -737,7 +743,7 @@ extension Array : _NSBridgeable {
     internal var _cfObject: CFArray { return _nsObject._cfObject }
 }
 
-public struct NSBinarySearchingOptions : OptionSet {
+public struct NSBinarySearchingOptions : OptionSet, Sendable {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
@@ -961,24 +967,26 @@ open class NSMutableArray : NSArray {
     
     open func sort(using sortDescriptors: [NSSortDescriptor]) {
         var descriptors = sortDescriptors._nsObject
-        CFArraySortValues(_cfMutableObject, CFRangeMake(0, count), { (lhsPointer, rhsPointer, context) -> CFComparisonResult in
-            let descriptors = context!.assumingMemoryBound(to: NSArray.self).pointee._swiftObject
-            
-            for item in descriptors {
-                let descriptor = item as! NSSortDescriptor
-                let result =
-                    descriptor.compare(__SwiftValue.fetch(Unmanaged<AnyObject>.fromOpaque(lhsPointer!).takeUnretainedValue())!,
-                                   to: __SwiftValue.fetch(Unmanaged<AnyObject>.fromOpaque(rhsPointer!).takeUnretainedValue())!)
+        withUnsafeMutablePointer(to: &descriptors) { descriptors in
+            CFArraySortValues(_cfMutableObject, CFRangeMake(0, count), { (lhsPointer, rhsPointer, context) -> CFComparisonResult in
+                let descriptors = context!.assumingMemoryBound(to: NSArray.self).pointee._swiftObject
                 
-                if result == .orderedAscending {
-                    return kCFCompareLessThan
-                } else if result == .orderedDescending {
-                    return kCFCompareGreaterThan
+                for item in descriptors {
+                    let descriptor = item as! NSSortDescriptor
+                    let result =
+                    descriptor.compare(__SwiftValue.fetch(Unmanaged<AnyObject>.fromOpaque(lhsPointer!).takeUnretainedValue())!,
+                                       to: __SwiftValue.fetch(Unmanaged<AnyObject>.fromOpaque(rhsPointer!).takeUnretainedValue())!)
+                    
+                    if result == .orderedAscending {
+                        return kCFCompareLessThan
+                    } else if result == .orderedDescending {
+                        return kCFCompareGreaterThan
+                    }
                 }
-            }
-            
-            return kCFCompareEqualTo
-        }, &descriptors)
+                
+                return kCFCompareEqualTo
+            }, descriptors)
+        }
     }
 }
 

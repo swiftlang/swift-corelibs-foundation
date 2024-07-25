@@ -294,9 +294,9 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
                 foundSupportFiles2 = true;
             } else if (fileNameLen == supportFilesDirectoryLength && CFStringCompareWithOptions(fileName, _CFBundleSupportFilesDirectoryName1, CFRangeMake(0, supportFilesDirectoryLength), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
                 foundSupportFiles1 = true;
-            } else if (fileNameLen == wrapperDirLength && CFStringCompareWithOptions(fileName, _CFBundleWrapperDirectoryName, CFRangeMake(0, wrapperDirLength), kCFCompareEqualTo) == kCFCompareEqualTo) {
+            } else if (fileNameLen == wrapperDirLength && CFStringCompareWithOptions(fileName, _CFBundleWrapperDirectoryName, CFRangeMake(0, wrapperDirLength), 0) == kCFCompareEqualTo) {
                 foundAppWrapperDirectory = true;
-            } else if (fileType == DT_LNK && fileNameLen == wrapperLinkLength && CFStringCompareWithOptions(fileName, _CFBundleWrapperLinkName, CFRangeMake(0, wrapperLinkLength), kCFCompareEqualTo) == kCFCompareEqualTo) {
+            } else if (fileType == DT_LNK && fileNameLen == wrapperLinkLength && CFStringCompareWithOptions(fileName, _CFBundleWrapperLinkName, CFRangeMake(0, wrapperLinkLength), 0) == kCFCompareEqualTo) {
                 foundAppWrapperLink = true;
             }
         } else if (fileType == DT_UNKNOWN) {

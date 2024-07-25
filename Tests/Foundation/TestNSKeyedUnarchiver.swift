@@ -37,7 +37,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
         case .skip:
             classes = []
         case .performWithDefaultClass:
-            classes = [ (expectedObject as! NSObject).classForCoder ]
+            classes = [ (expectedObject as NSObject).classForCoder ]
         case .performWithClasses(let specifiedClasses):
             classes = specifiedClasses
         }

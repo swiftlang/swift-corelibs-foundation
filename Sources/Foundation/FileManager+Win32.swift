@@ -108,7 +108,7 @@ extension FileManager {
 
         var wszVolumeName: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(MAX_PATH))
 
-        var hVolumes: HANDLE = FindFirstVolumeW(&wszVolumeName, DWORD(wszVolumeName.count))
+        let hVolumes: HANDLE = FindFirstVolumeW(&wszVolumeName, DWORD(wszVolumeName.count))
         guard hVolumes != INVALID_HANDLE_VALUE else { return nil }
         defer { FindVolumeClose(hVolumes) }
 
@@ -350,7 +350,7 @@ extension FileManager {
             guard let _lastReturned else { return firstValidItem() }
 
             if _lastReturned.hasDirectoryPath && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
-                try walk(directory: _lastReturned) { entry, attributes in
+                walk(directory: _lastReturned) { entry, attributes in
                     if entry == "." || entry == ".." { return }
                     if _options.contains(.skipsHiddenFiles) && attributes & FILE_ATTRIBUTE_HIDDEN == FILE_ATTRIBUTE_HIDDEN {
                         return
@@ -386,7 +386,7 @@ extension FileManager.NSPathDirectoryEnumerator {
     internal func _nextObject() -> Any? {
         guard let url = innerEnumerator.nextObject() as? URL else { return nil }
 
-        let path: String? = try? baseURL.withUnsafeNTPath { pwszBasePath in
+        let path: String? = baseURL.withUnsafeNTPath { pwszBasePath in
             let dwBaseAttrs = GetFileAttributesW(pwszBasePath)
             if dwBaseAttrs == INVALID_FILE_ATTRIBUTES { return nil }
 

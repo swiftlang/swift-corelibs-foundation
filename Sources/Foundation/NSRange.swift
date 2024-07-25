@@ -11,7 +11,7 @@
 
 @_implementationOnly import CoreFoundation
 
-public struct _NSRange {
+public struct _NSRange : Sendable {
     public var location: Int
     public var length: Int
     

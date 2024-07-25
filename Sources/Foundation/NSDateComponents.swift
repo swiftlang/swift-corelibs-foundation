@@ -29,7 +29,10 @@
 // or quantities of the units.
 // When you create a new one of these, all values begin Undefined.
 
-public var NSDateComponentUndefined: Int = Int.max
+public let NSDateComponentUndefined: Int = Int.max
+
+@available(*, unavailable)
+extension NSDateComponents : @unchecked Sendable { }
 
 open class NSDateComponents: NSObject, NSCopying, NSSecureCoding {
     internal var _components: DateComponents

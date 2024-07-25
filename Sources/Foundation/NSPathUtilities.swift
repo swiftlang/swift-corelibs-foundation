@@ -536,7 +536,7 @@ extension NSString {
         return String(decodingCString: fsr, as: UTF16.self).withCString() {
             let chars = strnlen_s($0, max)
             guard chars < max else { return false }
-            cname.assign(from: $0, count: chars + 1)
+            cname.update(from: $0, count: chars + 1)
             return true
         }
 #else
@@ -584,7 +584,7 @@ extension NSString {
         return fsr.withCString(encodedAs: UTF16.self) {
             let wchars = wcsnlen_s($0, max)
             guard wchars < max else { return false }
-            cname.assign(from: $0, count: wchars + 1)
+            cname.update(from: $0, count: wchars + 1)
             return true
         }
 #else

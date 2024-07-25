@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Sendable {
     
     open func getValue(_ value: UnsafeMutableRawPointer) {
         NSRequiresConcreteImplementation()
@@ -77,11 +77,11 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 extension NSValue : _Factory {}
 
 internal protocol _Factory {
-    init(factory: () -> Self)
+    init(factory: @Sendable () -> Self)
 }
 
 extension _Factory {
-    init(factory: () -> Self) {
+    init(factory: @Sendable () -> Self) {
         self = factory()
     }
 }

@@ -49,14 +49,14 @@ extension IndexSet.RangeView {
 /// Manages a `Set` of integer values, which are commonly used as an index type in Cocoa API.
 ///
 /// The range of valid integer values is 0..<INT_MAX-1. Anything outside this range is an error.
-public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollection, SetAlgebra {
+public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollection, SetAlgebra, Sendable {
     
     /// An view of the contents of an IndexSet, organized by range.
     ///
     /// For example, if an IndexSet is composed of:
     ///  `[1..<5]` and `[7..<10]` and `[13]`
     /// then calling `next()` on this view's iterator will produce 3 ranges before returning nil.
-    public struct RangeView : Equatable, BidirectionalCollection {
+    public struct RangeView : Equatable, BidirectionalCollection, Sendable {
         public typealias Index = Int
         public let startIndex: Index
         public let endIndex: Index
@@ -129,7 +129,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     }
     
     /// The mechanism for accessing the integers stored in an IndexSet.
-    public struct Index : CustomStringConvertible, Comparable {
+    public struct Index : CustomStringConvertible, Comparable, Sendable {
         fileprivate var value: IndexSet.Element
         fileprivate var extent: Range<IndexSet.Element>
         fileprivate var rangeIndex: Int
@@ -833,6 +833,9 @@ extension NSIndexSet : _HasCustomAnyHashableRepresentation {
 
 // MARK: Protocol
 
+@available(*, unavailable)
+extension _MutablePair : Sendable { }
+
 // TODO: This protocol should be replaced with a native Swift object like the other Foundation bridged types. However, NSIndexSet does not have an abstract zero-storage base class like NSCharacterSet, NSData, and NSAttributedString. Therefore the same trick of laying it out with Swift ref counting does not work.and
 /// Holds either the immutable or mutable version of a Foundation type.
 ///
@@ -847,7 +850,7 @@ internal enum _MutablePair<ImmutableType, MutableType> {
 ///
 /// a.k.a. Box
 @usableFromInline
-internal final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject>
+internal final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject> : @unchecked Sendable
   where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying {
     @usableFromInline
     internal var _pointer: _MutablePair<ImmutableType, MutableType>

@@ -8,14 +8,18 @@
 //
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
-private var registeredDefaults = [String: Any]()
-private var sharedDefaults = UserDefaults()
+private let registeredDefaults = Mutex<[String: (Any & Sendable)]>([:])
+private nonisolated(unsafe) var sharedDefaults = UserDefaults() // the default one is thread safe, at least
 
 fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
     let object = value as AnyObject
     return __SwiftValue.fetch(nonOptional: object)
 }
+
+@available(*, unavailable)
+extension UserDefaults : @unchecked Sendable { }
 
 open class UserDefaults: NSObject {
     static private func _isValueAllowed(_ nonbridgedValue: Any) -> Bool {
@@ -106,7 +110,9 @@ open class UserDefaults: NSObject {
         }
         
         func getFromRegistered() -> Any? {
-            return UserDefaults._unboxingNSNumbers(registeredDefaults[defaultName])
+            registeredDefaults.withLock {
+                UserDefaults._unboxingNSNumbers($0[defaultName])
+            }
         }
         
         guard let anObj = CFPreferencesCopyAppValue(defaultName._cfObject, suite?._cfObject ?? kCFPreferencesCurrentApplication) else {
@@ -318,7 +324,11 @@ open class UserDefaults: NSObject {
     }
     
     open func register(defaults registrationDictionary: [String : Any]) {
-        registeredDefaults.merge(registrationDictionary.mapValues(bridgeFromNSCFTypeIfNeeded), uniquingKeysWith: { $1 })
+        // The 'Any' values here must be Property List types, which are all Sendable
+        nonisolated(unsafe) let copy = registrationDictionary
+        registeredDefaults.withLock {
+            $0.merge(copy.mapValues(bridgeFromNSCFTypeIfNeeded), uniquingKeysWith: { $1 })
+        }
     }
 
     open func addSuite(named suiteName: String) {
@@ -332,14 +342,14 @@ open class UserDefaults: NSObject {
         return _dictionaryRepresentation(includingVolatileDomains: true)
     }
     
-    private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: Any] {
-        let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults : [:]
+    private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: (Any & Sendable)] {
+        let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults.withLock { $0 } : [:]
         
         let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
-        let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
+        let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: (Any & Sendable)] ?? [:]
         
         if registeredDefaultsIfAllowed.isEmpty {
-            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]
+            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: (Any & Sendable)]
         } else {
             var allDefaults = registeredDefaultsIfAllowed
             
@@ -347,11 +357,12 @@ open class UserDefaults: NSObject {
                 allDefaults[key] = value
             }
             
-            return UserDefaults._unboxingNSNumbers(allDefaults) as! [String: Any]
+            return UserDefaults._unboxingNSNumbers(allDefaults) as! [String: (Any & Sendable)]
         }
     }
     
-    private static let _parsedArgumentsDomain: [String: Any] = UserDefaults._parseArguments(ProcessInfo.processInfo.arguments)
+    // We know, but cannot prove statically, that the 'Any' here is only property list types, which are all Sendable
+    private static nonisolated(unsafe) let _parsedArgumentsDomain: [String: Any] = UserDefaults._parseArguments(ProcessInfo.processInfo.arguments)
     
     private var _volatileDomains: [String: [String: Any]] = [:]
     private let _volatileDomainsLock = NSLock()

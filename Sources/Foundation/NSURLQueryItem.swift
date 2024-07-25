@@ -9,10 +9,10 @@
 
 @_exported import FoundationEssentials
 // NSURLQueryItem encapsulates a single query name-value pair. The name and value strings of a query name-value pair are not percent encoded. For use with the NSURLComponents queryItems property.
-open class NSURLQueryItem: NSObject, NSSecureCoding, NSCopying {
+open class NSURLQueryItem: NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
 
-    open private(set) var name: String
-    open private(set) var value: String?
+    public let name: String
+    public let value: String?
 
     public init(name: String, value: String?) {
         self.name = name

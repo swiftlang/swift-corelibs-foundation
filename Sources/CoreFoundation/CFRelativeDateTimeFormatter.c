@@ -23,7 +23,7 @@ struct __CFRelativeDateTimeFormatter {
     CFRelativeDateTimeFormattingContext _formattingContext;
 };
 
-static UDateRelativeDateTimeFormatterStyle icuRelativeDateTimeStyleFromUnitsStyle(CFRelativeDateTimeFormatterStyle style) {
+static UDateRelativeDateTimeFormatterStyle icuRelativeDateTimeStyleFromUnitsStyle(CFRelativeDateTimeFormatterUnitsStyle style) {
     switch (style) {
         case CFRelativeDateTimeFormatterUnitsStyleSpellOut:
         case CFRelativeDateTimeFormatterUnitsStyleFull:

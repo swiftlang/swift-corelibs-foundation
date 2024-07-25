@@ -15,6 +15,9 @@ internal func __NSFireTimer(_ timer: CFRunLoopTimer?, info: UnsafeMutableRawPoin
     t._fire(t)
 }
 
+@available(*, unavailable)
+extension Timer : @unchecked Sendable { }
+
 open class Timer : NSObject {
     internal final var _cfObject: CFRunLoopTimer {
         get {
@@ -27,13 +30,14 @@ open class Timer : NSObject {
     
     internal var _timerStorage: AnyObject?
     internal final var _timer: CFRunLoopTimer? { unsafeBitCast(_timerStorage, to: CFRunLoopTimer?.self) } // has to be optional because this is a chicken/egg problem with initialization in swift
-    internal var _fire: (Timer) -> Void = { (_: Timer) in }
+    // This is a var but it is only initialized in the init methods and not mutated again after
+    internal var _fire: @Sendable (Timer) -> Void = { (_: Timer) in }
     
     /// Alternative API for timer creation with a block.
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    public init(fire date: Date, interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Swift.Void) {
+    public init(fire date: Date, interval: TimeInterval, repeats: Bool, block: @Sendable @escaping (Timer) -> Swift.Void) {
         super.init()
         _fire = block
         var context = CFRunLoopTimerContext()
@@ -58,7 +62,7 @@ open class Timer : NSObject {
     /// - parameter timeInterval: The number of seconds between firings of the timer. If seconds is less than or equal to 0.0, this method chooses the nonnegative value of 0.1 milliseconds instead
     /// - parameter repeats: If YES, the timer will repeatedly reschedule itself until invalidated. If NO, the timer will be invalidated after it fires.
     /// - parameter block: The execution body of the timer; the timer itself is passed as the parameter to this block when executed to aid in avoiding cyclical references
-    public convenience init(timeInterval interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Swift.Void) {
+    public convenience init(timeInterval interval: TimeInterval, repeats: Bool, block: @Sendable @escaping (Timer) -> Swift.Void) {
         self.init(fire: Date(), interval: interval, repeats: repeats, block: block)
     }
     
@@ -66,7 +70,8 @@ open class Timer : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     /// - Warning: Capturing the timer or the owner of the timer inside of the block may cause retain cycles. Use with caution
-    open class func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: @escaping (Timer) -> Void) -> Timer {
+    @available(*, noasync)
+    open class func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: @Sendable @escaping (Timer) -> Void) -> Timer {
         let timer = Timer(fire: Date(timeIntervalSinceNow: interval), interval: interval, repeats: repeats, block: block)
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._timer!, kCFRunLoopDefaultMode)
         return timer

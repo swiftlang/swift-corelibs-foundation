@@ -13,7 +13,7 @@
 @_implementationOnly import CoreFoundation
 
 extension NSRegularExpression {
-    public struct Options : OptionSet {
+    public struct Options : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -27,11 +27,8 @@ extension NSRegularExpression {
     }
 }
 
-open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
-    internal var _internalStorage: AnyObject
-    internal final var _internal: _CFRegularExpression {
-        unsafeBitCast(_internalStorage, to: _CFRegularExpression.self)
-    }
+open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
+    internal var _internal: _CFRegularExpression
     
     open override func copy() -> Any {
         return copy(with: nil)
@@ -85,23 +82,23 @@ open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
         var error: Unmanaged<CFError>?
         let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
-            _internalStorage = regex
+            _internal = regex
         } else {
             throw error!.takeRetainedValue()._nsObject
         }
     }
     
-    open var pattern: String {
+    public var pattern: String {
         return _CFRegularExpressionGetPattern(_internal)._swiftObject
     }
     
-    open var options: Options {
+    public var options: Options {
         let opt = _CFRegularExpressionGetOptions(_internal).rawValue
     
         return Options(rawValue: opt)
     }
     
-    open var numberOfCaptureGroups: Int {
+    public var numberOfCaptureGroups: Int {
         return _CFRegularExpressionGetNumberOfCaptureGroups(_internal)
     }
 
@@ -111,14 +108,14 @@ open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
 
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as pattern metacharacters.
     */
-    open class func escapedPattern(for string: String) -> String { 
+    public class func escapedPattern(for string: String) -> String { 
         return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
     }
 }
 
 extension NSRegularExpression {
 
-    public struct MatchingOptions : OptionSet {
+    public struct MatchingOptions : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -130,7 +127,7 @@ extension NSRegularExpression {
         internal static let OmitResult = MatchingOptions(rawValue: 1 << 13)
     }
 
-    public struct MatchingFlags : OptionSet {
+    public struct MatchingFlags : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -349,7 +346,7 @@ extension NSRegularExpression {
     
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as template metacharacters. 
     */
-    open class func escapedTemplate(for string: String) -> String {
+    public class func escapedTemplate(for string: String) -> String {
         return _CFRegularExpressionCreateEscapedPattern(string._cfObject)._swiftObject
     }
 }

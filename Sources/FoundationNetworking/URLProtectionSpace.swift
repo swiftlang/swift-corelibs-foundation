@@ -96,14 +96,14 @@ public let NSURLAuthenticationMethodNegotiate: String = "NSURLAuthenticationMeth
     @const NSURLAuthenticationMethodClientCertificate
     @abstract SSL Client certificate.  Applies to any protocol.
  */
-@available(*, deprecated, message: "swift-corelibs-foundation does not currently support certificate authentication.")
+@available(*, unavailable, message: "swift-corelibs-foundation does not currently support certificate authentication.")
 public let NSURLAuthenticationMethodClientCertificate: String = "NSURLAuthenticationMethodClientCertificate"
 
 /*!
     @const NSURLAuthenticationMethodServerTrust
     @abstract SecTrustRef validation required.  Applies to any protocol.
  */
-@available(*, deprecated, message: "swift-corelibs-foundation does not support methods of authentication that rely on the Darwin Security framework.")
+@available(*, unavailable, message: "swift-corelibs-foundation does not support methods of authentication that rely on the Darwin Security framework.")
 public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMethodServerTrust"
 
 
@@ -111,7 +111,7 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
     @class URLProtectionSpace
     @discussion This class represents a protection space requiring authentication.
 */
-open class URLProtectionSpace : NSObject, NSCopying {
+open class URLProtectionSpace : NSObject, NSCopying, @unchecked Sendable {
 
     private let _host: String
     private let _isProxy: Bool
@@ -213,9 +213,6 @@ open class URLProtectionSpace : NSObject, NSCopying {
                 
             case NSURLAuthenticationMethodNTLM: fallthrough
             case NSURLAuthenticationMethodNegotiate: fallthrough
-            case NSURLAuthenticationMethodClientCertificate: fallthrough
-            case NSURLAuthenticationMethodServerTrust:
-                return true
                 
             default:
                 return false
@@ -289,8 +286,6 @@ open class URLProtectionSpace : NSObject, NSCopying {
             NSURLAuthenticationMethodHTMLForm,
             NSURLAuthenticationMethodNTLM,
             NSURLAuthenticationMethodNegotiate,
-            NSURLAuthenticationMethodClientCertificate,
-            NSURLAuthenticationMethodServerTrust
         ]
         var result = "<\(type(of: self)) \(Unmanaged.passUnretained(self).toOpaque())>: "
         result += "Host:\(host), "

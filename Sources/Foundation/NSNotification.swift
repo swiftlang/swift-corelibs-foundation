@@ -7,6 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension NSNotification : @unchecked Sendable { }
+
 open class NSNotification: NSObject, NSCopying, NSCoding {
     public struct Name : RawRepresentable, Equatable, Hashable, Sendable {
         public private(set) var rawValue: String
@@ -86,14 +89,14 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
 
 private class NSNotificationReceiver : NSObject {
     fileprivate var name: Notification.Name?
-    fileprivate var block: ((Notification) -> Void)?
+    fileprivate var block: (@Sendable (Notification) -> Void)?
     fileprivate var sender: AnyObject?
     fileprivate var queue: OperationQueue?
 }
 
 private let _defaultCenter: NotificationCenter = NotificationCenter()
 
-open class NotificationCenter: NSObject {
+open class NotificationCenter: NSObject, @unchecked Sendable {
     private lazy var _nilIdentifier: ObjectIdentifier = ObjectIdentifier(_observersLock)
     private lazy var _nilHashable: AnyHashable = AnyHashable(_nilIdentifier)
     
@@ -130,7 +133,9 @@ open class NotificationCenter: NSObject {
                 }
                 
                 if let queue = observer.queue, queue != OperationQueue.current {
-                    queue.addOperation { block(notification) }
+                    // Not entirely safe, but maintained for compatibility
+                    nonisolated(unsafe) let unsafeNotification = notification
+                    queue.addOperation { block(unsafeNotification) }
                     queue.waitUntilAllOperationsAreFinished()
                 } else {
                     block(notification)
@@ -171,10 +176,10 @@ open class NotificationCenter: NSObject {
 
     @available(*, unavailable, renamed: "addObserver(forName:object:queue:using:)")
     open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
-        return addObserver(forName: name, object: obj, queue: queue, using: block)
+        fatalError()
     }
 
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @Sendable @escaping (Notification) -> Void) -> NSObjectProtocol {
         let newObserver = NSNotificationReceiver()
         newObserver.name = name
         newObserver.block = block

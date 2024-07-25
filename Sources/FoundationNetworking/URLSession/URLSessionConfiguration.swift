@@ -35,7 +35,7 @@ import Foundation
 ///
 /// A background session can be used to perform networking operations
 /// on behalf of a suspended application, within certain constraints.
-open class URLSessionConfiguration : NSObject, NSCopying {
+open class URLSessionConfiguration : NSObject, NSCopying, @unchecked Sendable {
     // -init is silently incorrect in URLSessionCofiguration on the desktop. Ensure code that relied on swift-corelibs-foundation's init() being functional is redirected to the appropriate cross-platform class property.
     @available(*, deprecated, message: "Use .default instead.", renamed: "URLSessionConfiguration.default")
     public override init() {
@@ -257,7 +257,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
 
 @available(*, unavailable, message: "Not available on non-Darwin platforms")
 extension URLSessionConfiguration {
-    public enum MultipathServiceType {
+    public enum MultipathServiceType : Sendable {
         case none
         case handover
         case interactive

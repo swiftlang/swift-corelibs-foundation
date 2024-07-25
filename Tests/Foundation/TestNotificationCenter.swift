@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+final class NotificationCenterDummyObject : NSObject, Sendable { }
+
 class TestNotificationCenter : XCTestCase {
     func test_defaultCenter() {
         let defaultCenter1 = NotificationCenter.default
@@ -25,11 +27,11 @@ class TestNotificationCenter : XCTestCase {
     func test_postNotification() {
         let notificationCenter = NotificationCenter()
         let notificationName = Notification.Name(rawValue: "test_postNotification_name")
-        var flag = false
-        let dummyObject = NSObject()
+        nonisolated(unsafe) var flag = false
+        let dummyObject = NotificationCenterDummyObject()
         let observer = notificationCenter.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             XCTAssertEqual(notificationName, notification.name)
-            XCTAssertTrue(dummyObject === notification.object as? NSObject)
+            XCTAssertTrue(dummyObject === notification.object as? NotificationCenterDummyObject)
             
             flag = true
         }
@@ -43,9 +45,9 @@ class TestNotificationCenter : XCTestCase {
     func test_postNotificationForObject() {
         let notificationCenter = NotificationCenter()
         let notificationName = Notification.Name(rawValue: "test_postNotificationForObject_name")
-        var flag = true
-        let dummyObject = NSObject()
-        let dummyObject2 = NSObject()
+        nonisolated(unsafe) var flag = true
+        let dummyObject = NotificationCenterDummyObject()
+        let dummyObject2 = NotificationCenterDummyObject()
         let observer = notificationCenter.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             flag = false
         }
@@ -59,17 +61,17 @@ class TestNotificationCenter : XCTestCase {
     func test_postMultipleNotifications() {
         let notificationCenter = NotificationCenter()
         let notificationName = Notification.Name(rawValue: "test_postMultipleNotifications_name")
-        var flag1 = false
+        nonisolated(unsafe) var flag1 = false
         let observer1 = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { _ in
             flag1 = true
         }
         
-        var flag2 = true
+        nonisolated(unsafe) var flag2 = true
         let observer2 = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { _ in
             flag2 = false
         }
         
-        var flag3 = false
+        nonisolated(unsafe) var flag3 = false
         let observer3 = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { _ in
             flag3 = true
         }
@@ -89,17 +91,17 @@ class TestNotificationCenter : XCTestCase {
         let notificationCenter = NotificationCenter()
         let notificationName = Notification.Name(rawValue: "test_addObserverForNilName_name")
         let invalidNotificationName = Notification.Name(rawValue: "test_addObserverForNilName_name_invalid")
-        var flag1 = false
+        nonisolated(unsafe) var flag1 = false
         let observer1 = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { _ in
             flag1 = true
         }
         
-        var flag2 = true
+        nonisolated(unsafe) var flag2 = true
         let observer2 = notificationCenter.addObserver(forName: invalidNotificationName, object: nil, queue: nil) { _ in
             flag2 = false
         }
         
-        var flag3 = false
+        nonisolated(unsafe) var flag3 = false
         let observer3 = notificationCenter.addObserver(forName: nil, object: nil, queue: nil) { _ in
             flag3 = true
         }
@@ -117,7 +119,7 @@ class TestNotificationCenter : XCTestCase {
     func test_removeObserver() {
         let notificationCenter = NotificationCenter()
         let notificationName = Notification.Name(rawValue: "test_removeObserver_name")
-        var flag = true
+        nonisolated(unsafe) var flag = true
         let observer = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { _ in
             flag = false
         }
@@ -150,8 +152,8 @@ class TestNotificationCenter : XCTestCase {
         let name = Notification.Name(rawValue: "\(#function)_name")
         let notificationCenter = NotificationCenter()
         let operationQueue = OperationQueue()
-        var flag1 = false
-        var flag2 = false
+        nonisolated(unsafe) var flag1 = false
+        nonisolated(unsafe) var flag2 = false
         
         _ = notificationCenter.addObserver(forName: name, object: nil, queue: operationQueue) { _ in
             XCTAssertEqual(OperationQueue.current, operationQueue)
@@ -174,8 +176,10 @@ class TestNotificationCenter : XCTestCase {
         let notificationCenter = NotificationCenter()
         let observingQueue = OperationQueue()
         let expectation = self.expectation(description: "Notification posting operation was not executed.")
-        var flag1 = false
-        var flag2 = false
+        
+        // Protected by the inherent ordering of notification center posts - which is the point of this test
+        nonisolated(unsafe) var flag1 = false
+        nonisolated(unsafe) var flag2 = false
         
         _ = notificationCenter.addObserver(forName: name, object: nil, queue: observingQueue) { _ in
             XCTAssertEqual(OperationQueue.current, observingQueue)
@@ -204,8 +208,10 @@ class TestNotificationCenter : XCTestCase {
         let operationQueue = OperationQueue()
         let postingQueue = OperationQueue()
         let expectation = self.expectation(description: "Notification posting operation was not executed.")
-        var flag1 = false
-        var flag2 = false
+        
+        // Protected by the inherent ordering of notification center posts - which is the point of this test
+        nonisolated(unsafe) var flag1 = false
+        nonisolated(unsafe) var flag2 = false
         
         _ = notificationCenter.addObserver(forName: name, object: nil, queue: operationQueue) { _ in
             XCTAssertEqual(OperationQueue.current, operationQueue)

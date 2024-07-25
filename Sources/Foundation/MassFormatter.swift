@@ -9,7 +9,7 @@
 
 
 extension MassFormatter {
-    public enum Unit : Int {
+    public enum Unit : Int, Sendable {
         case gram
         case kilogram
         case ounce
@@ -17,6 +17,9 @@ extension MassFormatter {
         case stone
     }
 }
+
+@available(*, unavailable)
+extension MassFormatter : @unchecked Sendable { }
     
 open class MassFormatter : Formatter {
     
@@ -66,11 +69,17 @@ open class MassFormatter : Formatter {
     
     // Format a number in kilograms to a localized string with the locale-appropriate unit and an appropriate scale (e.g. 1.2kg = 2.64lb in the US locale).
     open func string(fromKilograms numberInKilograms: Double) -> String {
+        let unitMass: [Unit: UnitMass] = [.gram: .grams,
+                                                         .kilogram: .kilograms,
+                                                         .ounce: .ounces,
+                                                         .pound: .pounds,
+                                                         .stone: .stones]
+        
         //Convert to the locale-appropriate unit
         let unitFromKilograms = convertedUnit(fromKilograms: numberInKilograms)
         
         //Map the unit to UnitMass type for conversion later
-        let unitMassFromKilograms = MassFormatter.unitMass[unitFromKilograms]!
+        let unitMassFromKilograms = unitMass[unitFromKilograms]!
         
         //Create a measurement object based on the value in kilograms
         let kilogramMeasurement = Measurement<UnitMass>(value:numberInKilograms, unit: .kilograms)
@@ -101,12 +110,18 @@ open class MassFormatter : Formatter {
     
     // Return the locale-appropriate unit, the same unit used by -stringFromKilograms:.
     open func unitString(fromKilograms numberInKilograms: Double, usedUnit unitp: UnsafeMutablePointer<Unit>?) -> String {
+        let unitMass: [Unit: UnitMass] = [.gram: .grams,
+                                                         .kilogram: .kilograms,
+                                                         .ounce: .ounces,
+                                                         .pound: .pounds,
+                                                         .stone: .stones]
+        
         //Convert to the locale-appropriate unit
         let unitFromKilograms = convertedUnit(fromKilograms: numberInKilograms)
         unitp?.pointee = unitFromKilograms
         
         //Map the unit to UnitMass type for conversion later
-        let unitMassFromKilograms = MassFormatter.unitMass[unitFromKilograms]!
+        let unitMassFromKilograms = unitMass[unitFromKilograms]!
         
         //Create a measurement object based on the value in kilograms
         let kilogramMeasurement = Measurement<UnitMass>(value:numberInKilograms, unit: .kilograms)
@@ -195,14 +210,7 @@ open class MassFormatter : Formatter {
     
     /// The number of pounds in 1 stone
     private static let poundsPerStone = 14.0
-    
-    /// Maps MassFormatter.Unit enum to UnitMass class. Used for measurement conversion.
-    private static let unitMass: [Unit: UnitMass] = [.gram: .grams,
-                                                     .kilogram: .kilograms,
-                                                     .ounce: .ounces,
-                                                     .pound: .pounds,
-                                                     .stone: .stones]
-    
+        
     /// Maps a unit to its short symbol. Reuses strings from UnitMass.
     private static let shortSymbol: [Unit: String] = [.gram: UnitMass.grams.symbol,
                                                       .kilogram: UnitMass.kilograms.symbol,

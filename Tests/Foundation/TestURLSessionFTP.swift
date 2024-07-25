@@ -9,6 +9,8 @@
 
 #if !os(Windows)
 
+import Synchronization
+
 class TestURLSessionFTP : LoopbackFTPServerTest {
     let saveString = """
                      FTP implementation to test FTP
@@ -55,7 +57,8 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
     }
 }
 
-class FTPDataTask : NSObject {
+// Sendable note: Access to ivars is essentially serialized by the XCTestExpectation. It would be better to do it with a lock, but this is sufficient for now.
+class FTPDataTask : NSObject, @unchecked Sendable {
     let dataTaskExpectation: XCTestExpectation!
     var fileData: NSMutableData = NSMutableData()
     var session: URLSession! = nil
@@ -64,11 +67,10 @@ class FTPDataTask : NSObject {
     var responseReceivedExpectation: XCTestExpectation?
     var hasTransferCompleted = false
 
-    private var errorLock = NSLock()
-    private var _error = false
+    private let _error = Mutex(false)
     public var error: Bool {
-        get { errorLock.synchronized { _error } }
-        set { errorLock.synchronized { _error = newValue } }
+        get { _error.withLock { $0 } }
+        set { _error.withLock { $0 = newValue } }
     }
     
     init(with expectation: XCTestExpectation) {

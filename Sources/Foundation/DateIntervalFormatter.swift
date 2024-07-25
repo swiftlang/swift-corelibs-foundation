@@ -22,7 +22,7 @@ internal let kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths = _CFDa
 
 extension DateIntervalFormatter {
     // Keep these in sync with CFDateIntervalFormatterStyle.
-    public enum Style: UInt {
+    public enum Style: UInt, Sendable {
         case none = 0
         case short = 1
         case medium = 2
@@ -82,20 +82,16 @@ internal extension _CFDateIntervalFormatterBoundaryStyle {
 // DateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
 // DateIntervalFormatter returns nil and NO for all methods in Formatter.
 
-open class DateIntervalFormatter: Formatter {
-    private var _core: AnyObject
-    private final var core: CFDateIntervalFormatter {
-        get { unsafeBitCast(_core, to: CFDateIntervalFormatter.self) }
-        set { _core = newValue }
-    }
+open class DateIntervalFormatter: Formatter, @unchecked Sendable {
+    private let core: CFDateIntervalFormatter
     
     public override init() {
-        _core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
+        core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
         super.init()
     }
 
     private init(cfFormatter: CFDateIntervalFormatter) {
-        self._core = cfFormatter
+        self.core = cfFormatter
         super.init()
     }
     
@@ -121,7 +117,7 @@ open class DateIntervalFormatter: Formatter {
                                                           object(of: NSLocale.self, from: coder, forKey: "NS.locale")?._cfObject,
                                                           object(of: NSCalendar.self, from: coder, forKey: "NS.calendar")?._cfObject,
                                                           object(of: NSTimeZone.self, from: coder, forKey: "NS.timeZone")?._cfObject)
-        self._core = core
+        self.core = core
         
         super.init(coder: coder)
     }

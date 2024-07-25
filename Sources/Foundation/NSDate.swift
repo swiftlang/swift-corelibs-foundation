@@ -36,7 +36,7 @@ extension timeval {
 }
 #endif
 
-open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Sendable {
     typealias CFType = CFDate
     
     open override var hash: Int {
@@ -159,23 +159,23 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSDate {
     
-    open func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
+    public func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
-    open var timeIntervalSinceNow: TimeInterval {
+    public var timeIntervalSinceNow: TimeInterval {
         return timeIntervalSince(Date())
     }
     
-    open var timeIntervalSince1970: TimeInterval {
+    public var timeIntervalSince1970: TimeInterval {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    open func addingTimeInterval(_ ti: TimeInterval) -> Date {
+    public func addingTimeInterval(_ ti: TimeInterval) -> Date {
         return Date(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
-    open func earlierDate(_ anotherDate: Date) -> Date {
+    public func earlierDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
         } else {
@@ -183,7 +183,7 @@ extension NSDate {
         }
     }
     
-    open func laterDate(_ anotherDate: Date) -> Date {
+    public func laterDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return anotherDate
         } else {
@@ -191,7 +191,7 @@ extension NSDate {
         }
     }
     
-    open func compare(_ other: Date) -> ComparisonResult {
+    public func compare(_ other: Date) -> ComparisonResult {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
@@ -203,19 +203,19 @@ extension NSDate {
         }
     }
     
-    open func isEqual(to otherDate: Date) -> Bool {
+    public func isEqual(to otherDate: Date) -> Bool {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 }
 
 extension NSDate {
     internal static let _distantFuture = Date(timeIntervalSinceReferenceDate: 63113904000.0)
-    open class var distantFuture: Date {
+    public class var distantFuture: Date {
         return _distantFuture
     }
     
     internal static let _distantPast = Date(timeIntervalSinceReferenceDate: -63113904000.0)
-    open class var distantPast: Date {
+    public class var distantPast: Date {
         return _distantPast
     }
     
@@ -241,14 +241,14 @@ extension Date : CustomPlaygroundDisplayConvertible {
     }
 }
 
-open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
+open class NSDateInterval : NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
     
     
     /*
      NSDateInterval represents a closed date interval in the form of [startDate, endDate].  It is possible for the start and end dates to be the same with a duration of 0.  NSDateInterval does not support reverse intervals i.e. intervals where the duration is less than 0 and the end date occurs earlier in time than the start date.
      */
     
-    open private(set) var startDate: Date
+    public let startDate: Date
     
     open var endDate: Date {
         get {
@@ -260,7 +260,7 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    open private(set) var duration: TimeInterval
+    public let duration: TimeInterval
     
     
     // This method initializes an NSDateInterval object with start and end dates set to the current date and the duration set to 0.

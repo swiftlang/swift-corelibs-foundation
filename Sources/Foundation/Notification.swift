@@ -10,6 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(*, unavailable)
+extension Notification : @unchecked Sendable { }
 
 /**
  `Notification` encapsulates information broadcast to observers via a `NotificationCenter`.

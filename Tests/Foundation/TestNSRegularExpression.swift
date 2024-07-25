@@ -354,7 +354,7 @@ class TestNSRegularExpression : XCTestCase {
             _ = try NSRegularExpression(pattern: "(", options: [])
             XCTFail()
         } catch {
-            let err = try XCTUnwrap(error as? NSError)
+            let err = error as NSError
             XCTAssertEqual(err.domain, NSCocoaErrorDomain)
             XCTAssertEqual(err.code, CocoaError.formatting.rawValue)
             XCTAssertEqual(err.userInfo["NSInvalidValue"] as? String, "(")
@@ -367,7 +367,7 @@ class TestNSRegularExpression : XCTestCase {
             _ = try NSRegularExpression(pattern: patternString, options: [])
             XCTFail("Building regular expression for pattern with unicode group name should fail.")
         } catch {
-            let err = try XCTUnwrap(error as? NSError)
+            let err = error as NSError
             XCTAssertEqual(err.domain, NSCocoaErrorDomain)
             XCTAssertEqual(err.code, CocoaError.formatting.rawValue)
             XCTAssertEqual(err.userInfo["NSInvalidValue"] as? String, patternString)
@@ -380,7 +380,7 @@ class TestNSRegularExpression : XCTestCase {
             _ = try NSRegularExpression(pattern: patternString, options: [])
             XCTFail("Building regular expression for pattern with identically named groups should fail.")
         } catch {
-            let err = try XCTUnwrap(error as? NSError)
+            let err = error as NSError
             XCTAssertEqual(err.domain, NSCocoaErrorDomain)
             XCTAssertEqual(err.code, CocoaError.formatting.rawValue)
             XCTAssertEqual(err.userInfo["NSInvalidValue"] as? String, patternString)

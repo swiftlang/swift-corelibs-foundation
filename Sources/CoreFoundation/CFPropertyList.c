@@ -1587,6 +1587,8 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo * _Nonnull pInfo, CFTypeRef * _
 
 static Boolean parseDataTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
     const char *base = pInfo->curr;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-folding-constant"
     static const unsigned char dataDecodeTableSize = 128;
     static const signed char dataDecodeTable[dataDecodeTableSize] = {
         /* 000 */ -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1606,7 +1608,7 @@ static Boolean parseDataTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
         /* 'p' */ 41, 42, 43, 44, 45, 46, 47, 48,
         /* 'x' */ 49, 50, 51, -1, -1, -1, -1, -1
     };
-    
+#pragma GCC diagnostic pop
     int tmpbufpos = 0;
     int tmpbuflen = 256;
     uint8_t *tmpbuf = pInfo->skip ? NULL : (uint8_t *)CFAllocatorAllocate(pInfo->allocator, tmpbuflen, 0);

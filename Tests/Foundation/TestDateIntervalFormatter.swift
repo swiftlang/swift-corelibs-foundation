@@ -46,7 +46,7 @@ extension String {
 }
 
 class TestDateIntervalFormatter: XCTestCase {
-    private var formatter: DateIntervalFormatter!
+    private nonisolated(unsafe) var formatter: DateIntervalFormatter!
     
     override func setUp() {
         super.setUp()

@@ -9,7 +9,7 @@
 
 
 extension ByteCountFormatter {
-    public struct Units : OptionSet {
+    public struct Units : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
@@ -27,7 +27,7 @@ extension ByteCountFormatter {
         public static let useAll = Units(rawValue: 0x0FFFF)
     }
     
-    public enum CountStyle : Int {
+    public enum CountStyle : Int, Sendable {
         
         // Specifies display of file or storage byte counts. The actual behavior for this is platform-specific; on OS X 10.8, this uses the decimal style, but that may change over time.
         case file
@@ -38,6 +38,9 @@ extension ByteCountFormatter {
         case binary // 1024 bytes are shown as 1 KB
     }
 }
+
+@available(*, unavailable)
+extension ByteCountFormatter : @unchecked Sendable { }
 
 open class ByteCountFormatter : Formatter {
     public override init() {
