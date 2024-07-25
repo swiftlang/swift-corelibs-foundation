@@ -7,9 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+final class DummyObject : NSObject, Sendable { }
+
 class TestNotificationQueue : XCTestCase {
     func test_defaultQueue() {
-        let defaultQueue1 = NotificationQueue.default
+        nonisolated(unsafe) let defaultQueue1 = NotificationQueue.default
         let defaultQueue2 = NotificationQueue.default
         XCTAssertEqual(defaultQueue1, defaultQueue2)
 
@@ -22,9 +24,9 @@ class TestNotificationQueue : XCTestCase {
 
     func test_postNowToDefaultQueueWithoutCoalescing() {
         let notificationName = Notification.Name(rawValue: "test_postNowWithoutCoalescing")
-        let dummyObject = NSObject()
+        let dummyObject = DummyObject()
         let notification = Notification(name: notificationName, object: dummyObject)
-        var numberOfCalls = 0
+        nonisolated(unsafe) var numberOfCalls = 0
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
@@ -36,9 +38,9 @@ class TestNotificationQueue : XCTestCase {
 
     func test_postNowToDefaultQueueWithCoalescing() {
         let notificationName = Notification.Name(rawValue: "test_postNowToDefaultQueueWithCoalescingOnName")
-        let dummyObject = NSObject()
+        let dummyObject = DummyObject()
         let notification = Notification(name: notificationName, object: dummyObject)
-        var numberOfCalls = 0
+        nonisolated(unsafe) var numberOfCalls = 0
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
@@ -53,9 +55,9 @@ class TestNotificationQueue : XCTestCase {
 
     func test_postNowToCustomQueue() {
         let notificationName = Notification.Name(rawValue: "test_postNowToCustomQueue")
-        let dummyObject = NSObject()
+        let dummyObject = DummyObject()
         let notification = Notification(name: notificationName, object: dummyObject)
-        var numberOfCalls = 0
+        nonisolated(unsafe) var numberOfCalls = 0
         let notificationCenter = NotificationCenter()
         let obs = notificationCenter.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
@@ -68,21 +70,21 @@ class TestNotificationQueue : XCTestCase {
 
     func test_postNowForDefaultRunLoopMode() {
         let notificationName = Notification.Name(rawValue: "test_postNowToDefaultQueueWithCoalescingOnName")
-        let dummyObject = NSObject()
-        let notification = Notification(name: notificationName, object: dummyObject)
-        var numberOfCalls = 0
+        let dummyObject = DummyObject()
+        nonisolated(unsafe) var numberOfCalls = 0
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
-        let queue = NotificationQueue.default
-
-        let runLoop = RunLoop.current
+        
         let endDate = Date(timeInterval: TimeInterval(0.05), since: Date())
 
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { _ in
-            guard let runLoopMode = runLoop.currentMode else {
+            guard let runLoopMode = RunLoop.current.currentMode else {
                 return
             }
+
+            let queue = NotificationQueue.default
+            let notification = Notification(name: notificationName, object: dummyObject)
 
             // post 2 notifications for the RunLoop.Mode.default mode
             queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [runLoopMode])
@@ -91,17 +93,17 @@ class TestNotificationQueue : XCTestCase {
             // The notification queue will only post the notification to its notification center if the run loop is in one of the modes provided in the array.
             queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [.common])
         }
-        runLoop.add(dummyTimer, forMode: .default)
-        let _ = runLoop.run(mode: .default, before: endDate)
+        RunLoop.current.add(dummyTimer, forMode: .default)
+        let _ = RunLoop.current.run(mode: .default, before: endDate)
         XCTAssertEqual(numberOfCalls, 2)
         NotificationCenter.default.removeObserver(obs)
     }
 
     func test_postAsapToDefaultQueue() {
         let notificationName = Notification.Name(rawValue: "test_postAsapToDefaultQueue")
-        let dummyObject = NSObject()
+        let dummyObject = DummyObject()
         let notification = Notification(name: notificationName, object: dummyObject)
-        var numberOfCalls = 0
+        nonisolated(unsafe) var numberOfCalls = 0
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
         }
@@ -116,8 +118,8 @@ class TestNotificationQueue : XCTestCase {
     func test_postAsapToDefaultQueueWithCoalescingOnNameAndSender() {
         // Check coalescing on name and object
         let notificationName = Notification.Name(rawValue: "test_postAsapToDefaultQueueWithCoalescingOnNameAndSender")
-        let notification = Notification(name: notificationName, object: NSObject())
-        var numberOfCalls = 0
+        let notification = Notification(name: notificationName, object: DummyObject())
+        nonisolated(unsafe) var numberOfCalls = 0
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: notification.object, queue: nil) { notification in
             numberOfCalls += 1
         }
@@ -134,13 +136,13 @@ class TestNotificationQueue : XCTestCase {
     func test_postAsapToDefaultQueueWithCoalescingOnNameOrSender() {
         // Check coalescing on name or sender
         let notificationName = Notification.Name(rawValue: "test_postAsapToDefaultQueueWithCoalescingOnNameOrSender")
-        let notification1 = Notification(name: notificationName, object: NSObject())
-        var numberOfNameCoalescingCalls = 0
+        let notification1 = Notification(name: notificationName, object: DummyObject())
+        nonisolated(unsafe) var numberOfNameCoalescingCalls = 0
         let obs1 = NotificationCenter.default.addObserver(forName: notificationName, object: notification1.object, queue: nil) { notification in
             numberOfNameCoalescingCalls += 1
         }
-        let notification2 = Notification(name: notificationName, object: NSObject())
-        var numberOfObjectCoalescingCalls = 0
+        let notification2 = Notification(name: notificationName, object: DummyObject())
+        nonisolated(unsafe) var numberOfObjectCoalescingCalls = 0
         let obs2 = NotificationCenter.default.addObserver(forName: notificationName, object: notification2.object, queue: nil) { notification in
             numberOfObjectCoalescingCalls += 1
         }
@@ -167,9 +169,9 @@ class TestNotificationQueue : XCTestCase {
 
     func test_postIdleToDefaultQueue() {
         let notificationName = Notification.Name(rawValue: "test_postIdleToDefaultQueue")
-        let dummyObject = NSObject()
+        let dummyObject = DummyObject()
         let notification = Notification(name: notificationName, object: dummyObject)
-        var numberOfCalls = 0
+        nonisolated(unsafe) var numberOfCalls = 0
 
         let obs = NotificationCenter.default.addObserver(forName: notificationName, object: dummyObject, queue: nil) { notification in
             numberOfCalls += 1
@@ -183,7 +185,7 @@ class TestNotificationQueue : XCTestCase {
 
     func test_notificationQueueLifecycle() {
         // check that notificationqueue is associated with current thread. when the thread is destroyed, the queue should be deallocated as well
-        weak var notificationQueue: NotificationQueue?
+        nonisolated(unsafe) weak var notificationQueue: NotificationQueue?
 
         self.executeInBackgroundThread() {
             let nq = NotificationQueue(notificationCenter: NotificationCenter())
@@ -205,7 +207,7 @@ class TestNotificationQueue : XCTestCase {
         waitForExpectations(timeout: 0.1)
     }
 
-    private func executeInBackgroundThread(_ operation: @escaping () -> Void) {
+    private func executeInBackgroundThread(_ operation: @Sendable @escaping () -> Void) {
         let e = expectation(description: "Background Execution")
         let bgThread = Thread() {
             operation()

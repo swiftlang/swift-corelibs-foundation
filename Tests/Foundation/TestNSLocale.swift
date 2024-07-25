@@ -100,6 +100,7 @@ class TestNSLocale : XCTestCase {
         XCTAssertEqual(a1.hashValue, a2.hashValue)
     }
 
+    @available(*, deprecated) // test of deprecated API, suppress deprecation warning
     func test_staticProperties() {
         let euroCurrencyCode = "EUR"
         let spainRegionCode = "ES"

@@ -93,7 +93,8 @@ internal  func _CFSwiftCharacterSetCharacterIsMember(_ cset: CFTypeRef, _ ch: Un
 }
 
 internal  func _CFSwiftCharacterSetMutableCopy(_ cset: CFTypeRef) -> Unmanaged<CFMutableCharacterSet> {
-    return Unmanaged.passRetained(unsafeBitCast((cset as! NSCharacterSet).mutableCopy(), to: CFMutableCharacterSet.self))
+    let copy = (cset as! NSCharacterSet).mutableCopy() as! NSMutableCharacterSet
+    return Unmanaged.passRetained(unsafeDowncast(copy, to: CFMutableCharacterSet.self))
 }
 
 internal  func _CFSwiftCharacterSetLongCharacterIsMember(_ cset: CFTypeRef, _ ch:UInt32) -> Bool {

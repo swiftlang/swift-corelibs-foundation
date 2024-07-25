@@ -1774,11 +1774,15 @@ struct _NSCFXMLBridgeUntyped __NSCFXMLBridgeUntyped = {
   CFDataGetBytePtr,
   CFDictionaryCreateMutable,
   CFDictionarySetValue,
+    // We cannot use the real types here because eventually it winds up exposed as API using CF types in Swift, which we do not want
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
   &kCFAllocatorSystemDefault,
   &kCFAllocatorNull,
   &kCFCopyStringDictionaryKeyCallBacks,
   &kCFTypeDictionaryValueCallBacks,
   &kCFErrorLocalizedDescriptionKey,
+#pragma GCC diagnostic pop
 };
 
 // Call out to the CF-level finalizer, because the object is going to go away.

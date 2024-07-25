@@ -60,6 +60,9 @@ fileprivate extension String {
     static let characterSetNewIsInvertedKey = "NSIsInverted2"
 }
 
+@available(*, unavailable)
+extension NSCharacterSet : @unchecked Sendable { }
+
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())

@@ -11,7 +11,7 @@
 //  Notification center for test run progress events.
 //
 
-private let _sharedCenter: XCTestObservationCenter = XCTestObservationCenter()
+private nonisolated(unsafe) let _sharedCenter: XCTestObservationCenter = XCTestObservationCenter()
 
 /// Provides a registry for objects wishing to be informed about progress
 /// during the course of a test run. Observers must implement the

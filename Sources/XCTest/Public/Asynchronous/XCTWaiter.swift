@@ -71,7 +71,7 @@ public extension XCTWaiterDelegate {
 /// Waiters can be used without a delegate or any association with a test case instance. This allows test
 /// support libraries to provide convenience methods for waiting without having to pass test cases through
 /// those APIs.
-open class XCTWaiter {
+open class XCTWaiter: @unchecked Sendable {
 
     /// Values returned by a waiter when it completes, times out, or is interrupted due to another waiter
     /// higher in the call stack timing out.
@@ -132,7 +132,8 @@ open class XCTWaiter {
         }
         set {
             dispatchPrecondition(condition: .notOnQueue(XCTWaiter.subsystemQueue))
-            XCTWaiter.subsystemQueue.async { self._delegate = newValue }
+            nonisolated(unsafe) let nonisolatedNewValue = newValue
+            XCTWaiter.subsystemQueue.async { self._delegate = nonisolatedNewValue }
         }
     }
 
@@ -283,8 +284,8 @@ open class XCTWaiter {
             // This function operates by blocking a background thread instead of one owned by libdispatch or by the
             // Swift runtime (as used by Swift concurrency.) To ensure we use a thread owned by neither subsystem, use
             // Foundation's Thread.detachNewThread(_:).
-            Thread.detachNewThread { [self] in
-                let result = wait(for: expectations, timeout: timeout, enforceOrder: enforceOrder, file: file, line: line)
+            Thread.detachNewThread {
+                let result = self.wait(for: expectations, timeout: timeout, enforceOrder: enforceOrder, file: file, line: line)
                 continuation.resume(returning: result)
             }
         }
@@ -398,8 +399,10 @@ open class XCTWaiter {
         }
 
         if let delegateBlock = delegateBlock, let delegate = _delegate {
+            nonisolated(unsafe) let nonisolatedDelegate = delegate
+            nonisolated(unsafe) let nonisolatedDelegateBlock = delegateBlock
             delegateQueue.async {
-                delegateBlock(delegate)
+                nonisolatedDelegateBlock(nonisolatedDelegate)
             }
         }
     }

@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Synchronization
+
 class TestTimer : XCTestCase {
     func test_timerInit() {
         let fireDate = Date()
@@ -24,12 +26,13 @@ class TestTimer : XCTestCase {
     }
     
     func test_timerTickOnce() {
-        var flag = false
+        let flag = Atomic(false)
         
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { timer in
-            XCTAssertFalse(flag)
-
-            flag = true
+            
+            let (exchanged, original) = flag.compareExchange(expected: false, desired: true, ordering: .relaxed)
+            XCTAssertFalse(original)
+            XCTAssertTrue(exchanged)
             timer.invalidate()
         }
 
@@ -37,24 +40,34 @@ class TestTimer : XCTestCase {
         runLoop.add(dummyTimer, forMode: .default)
         runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         
-        XCTAssertTrue(flag)
+        XCTAssertTrue(flag.load(ordering: .relaxed))
     }
 
     func test_timerRepeats() {
-        var flag = 0
+        let flag = Mutex(0)
         let interval = TimeInterval(0.1)
         let numberOfRepeats = 3
-        var previousInterval = Date().timeIntervalSince1970
+        let previousInterval = Mutex(Date().timeIntervalSince1970)
         
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
             XCTAssertEqual(timer.timeInterval, interval)
 
             let currentInterval = Date().timeIntervalSince1970
-            XCTAssertEqual(currentInterval, previousInterval + interval, accuracy: 0.2)
-            previousInterval = currentInterval
+            previousInterval.withLock {
+                XCTAssertEqual(currentInterval, $0 + interval, accuracy: 0.2)
+                $0 = currentInterval
+            }
             
-            flag += 1
-            if (flag == numberOfRepeats) {
+            let invalidate = flag.withLock {
+                $0 += 1
+                if $0 == numberOfRepeats {
+                    return true
+                } else {
+                    return false
+                }
+            }
+            
+            if invalidate {
                 timer.invalidate()
             }
         }
@@ -63,11 +76,14 @@ class TestTimer : XCTestCase {
         runLoop.add(dummyTimer, forMode: .default)
         runLoop.run(until: Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
         
-        XCTAssertEqual(flag, numberOfRepeats)
+        flag.withLock {
+            XCTAssertEqual($0, numberOfRepeats)
+        }
     }
 
     func test_timerInvalidate() {
-        var flag = false
+        // Only mutated once, protected by behavior of RunLoop validated in this test
+        nonisolated(unsafe) var flag = false
         
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { timer in
             XCTAssertTrue(timer.isValid)

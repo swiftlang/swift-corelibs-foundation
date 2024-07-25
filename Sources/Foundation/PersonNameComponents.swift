@@ -10,71 +10,85 @@
 //
 //===----------------------------------------------------------------------===//
 
-public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, _MutableBoxing {
+public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, Sendable {
     public typealias ReferenceType = NSPersonNameComponents
-    internal var _handle: _MutableHandle<NSPersonNameComponents>
     
     public init() {
-        _handle = _MutableHandle(adoptingReference: NSPersonNameComponents())
+        _phoneticRepresentation = .none
     }
     
-    fileprivate init(reference: NSPersonNameComponents) {
-        _handle = _MutableHandle(reference: reference)
-    }
-
-    /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
-    
-    /* Pre-nominal letters denoting title, salutation, or honorific, e.g. Dr., Mr. */
-    public var namePrefix: String? {
-        get { return _handle.map { $0.namePrefix } }
-        set { _applyMutation { $0.namePrefix = newValue } }
-    }
-    
-    /* Name bestowed upon an individual by one's parents, e.g. Johnathan */
-    public var givenName: String? {
-        get { return _handle.map { $0.givenName } }
-        set { _applyMutation { $0.givenName = newValue } }
-    }
-    
-    /* Secondary given name chosen to differentiate those with the same first name, e.g. Maple  */
-    public var middleName: String? {
-        get { return _handle.map { $0.middleName } }
-        set { _applyMutation { $0.middleName = newValue } }
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    public init(
+        namePrefix: String? = nil,
+        givenName: String? = nil,
+        middleName: String? = nil,
+        familyName: String? = nil,
+        nameSuffix: String? = nil,
+        nickname: String? = nil,
+        phoneticRepresentation: PersonNameComponents? = nil) {
+        self.init()
+        self.namePrefix = namePrefix
+        self.givenName = givenName
+        self.middleName = middleName
+        self.familyName = familyName
+        self.nameSuffix = nameSuffix
+        self.nickname = nickname
+        self.phoneticRepresentation = phoneticRepresentation
     }
     
-    /* Name passed from one generation to another to indicate lineage, e.g. Appleseed  */
-    public var familyName: String? {
-        get { return _handle.map { $0.familyName } }
-        set { _applyMutation { $0.familyName = newValue } }
-    }
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", pre-nominal letters denoting title, salutation, or honorific, e.g. Dr., Mr.
+    public var namePrefix: String?
     
-    /* Post-nominal letters denoting degree, accreditation, or other honor, e.g. Esq., Jr., Ph.D. */
-    public var nameSuffix: String? {
-        get { return _handle.map { $0.nameSuffix } }
-        set { _applyMutation { $0.nameSuffix = newValue } }
-    }
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny",  name bestowed upon an individual by one's parents, e.g. Johnathan
+    public var givenName: String?
     
-    /* Name substituted for the purposes of familiarity, e.g. "Johnny"*/
-    public var nickname: String? {
-        get { return _handle.map { $0.nickname } }
-        set { _applyMutation { $0.nickname = newValue } }
-    }
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", secondary given name chosen to differentiate those with the same first name, e.g. Maple
+    public var middleName: String?
     
-    /* Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
-     The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
-     */
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", name passed from one generation to another to indicate lineage, e.g. Appleseed
+    public var familyName: String?
+    
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", post-nominal letters denoting degree, accreditation, or other honor, e.g. Esq., Jr., Ph.D.
+    public var nameSuffix: String?
+    
+    /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", name substituted for the purposes of familiarity, e.g. "Johnny"
+    public var nickname: String?
+    
+    /// Each element of the phoneticRepresentation should correspond to an element of the original PersonNameComponents instance.
+    /// The phoneticRepresentation of the phoneticRepresentation object itself will be ignored. nil by default, must be instantiated.
     public var phoneticRepresentation: PersonNameComponents? {
-        get { return _handle.map { $0.phoneticRepresentation } }
-        set { _applyMutation { $0.phoneticRepresentation = newValue } }
+        get {
+            switch _phoneticRepresentation {
+            case .wrapped(let personNameComponents):
+                personNameComponents
+            case .none:
+                nil
+            }
+        }
+        set {
+            switch newValue {
+            case .some(let pnc):
+                _phoneticRepresentation = .wrapped(pnc)
+            case .none:
+                _phoneticRepresentation = .none
+            }
+        }
     }
     
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(_handle.map { $0 })
-    }
+    private var _phoneticRepresentation: PhoneticRepresentation
+}
 
-    public static func ==(lhs : PersonNameComponents, rhs: PersonNameComponents) -> Bool {
-        // Don't copy references here; no one should be storing anything
-        return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
+/// Allows for `PersonNameComponents` to store a `PersonNameComponents` for its phonetic representation.
+private enum PhoneticRepresentation : Hashable, Equatable {
+    indirect case wrapped(PersonNameComponents)
+    case none
+    
+    func hash(into hasher: inout Hasher) {
+        let opt : PersonNameComponents? = switch self {
+        case .wrapped(let pnc): pnc
+        case .none: nil
+        }
+        hasher.combine(opt)
     }
 }
 
@@ -109,7 +123,7 @@ extension PersonNameComponents : _ObjectiveCBridgeable {
 
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSPersonNameComponents {
-        return _handle._copiedReference()
+        return NSPersonNameComponents(pnc: self)
     }
 
     public static func _forceBridgeFromObjectiveC(_ personNameComponents: NSPersonNameComponents, result: inout PersonNameComponents?) {
@@ -119,7 +133,7 @@ extension PersonNameComponents : _ObjectiveCBridgeable {
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ personNameComponents: NSPersonNameComponents, result: inout PersonNameComponents?) -> Bool {
-        result = PersonNameComponents(reference: personNameComponents)
+        result = personNameComponents._pnc
         return true
     }
 

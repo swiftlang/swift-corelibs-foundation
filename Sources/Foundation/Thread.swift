@@ -52,7 +52,7 @@ internal class NSThreadSpecific<T: NSObject> {
     }
 }
 
-internal enum _NSThreadStatus {
+internal enum _NSThreadStatus : Sendable {
     case initialized
     case starting
     case executing
@@ -76,9 +76,13 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
     return nil
 }
 
+@available(*, unavailable)
+extension Thread : @unchecked Sendable { }
+
 open class Thread : NSObject {
 
-    static internal var _currentThread = NSThreadSpecific<Thread>()
+    static internal nonisolated(unsafe) var _currentThread = NSThreadSpecific<Thread>()
+    @available(*, noasync)
     open class var current: Thread {
         return Thread._currentThread.get() {
             if Thread.isMainThread {
@@ -98,7 +102,7 @@ open class Thread : NSObject {
     }
 
     // !!! NSThread's mainThread property is incorrectly exported as "main", which conflicts with its "main" method.
-    private static let _mainThread: Thread = {
+    private static nonisolated(unsafe) let _mainThread: Thread = {
         var thread = Thread(thread: _CFMainPThread)
         thread._status = .executing
         return thread
@@ -112,7 +116,7 @@ open class Thread : NSObject {
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open class func detachNewThread(_ block: @escaping () -> Swift.Void) {
+    open class func detachNewThread(_ block: @Sendable @escaping () -> Swift.Void) {
         let t = Thread(block: block)
         t.start()
     }
@@ -121,9 +125,10 @@ open class Thread : NSObject {
         return true
     }
 
+    @available(*, noasync)
     open class func sleep(until date: Date) {
 #if os(Windows)
-        var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
+        let hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
         if hTimer == HANDLE(bitPattern: 0) { fatalError("unable to create timer: \(GetLastError())") }
         defer { CloseHandle(hTimer) }
 
@@ -158,9 +163,10 @@ open class Thread : NSObject {
 #endif
     }
 
+    @available(*, noasync)
     open class func sleep(forTimeInterval interval: TimeInterval) {
 #if os(Windows)
-        var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
+        let hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
         // FIXME(compnerd) how to check that hTimer is not NULL?
         defer { CloseHandle(hTimer) }
 
@@ -193,6 +199,7 @@ open class Thread : NSObject {
 #endif
     }
 
+    @available(*, noasync)
     open class func exit() {
         Thread.current._status = .finished
 #if os(Windows)
@@ -245,7 +252,7 @@ open class Thread : NSObject {
 #endif
     }
 
-    public convenience init(block: @escaping () -> Swift.Void) {
+    public convenience init(block: @Sendable @escaping () -> Swift.Void) {
         self.init()
         _main = block
     }
@@ -296,11 +303,19 @@ open class Thread : NSObject {
           return ""
         }
       #else
+        // Result is null-terminated
         guard _CFThreadGetName(&buf, Int32(buf.count)) == 0 else {
           return ""
         }
       #endif
-        return String(cString: buf)
+        guard let firstNull = buf.firstIndex(of: 0) else {
+            return ""
+        }
+        if firstNull == buf.startIndex {
+            return ""
+        } else {
+            return String(validating: buf[buf.startIndex..<firstNull], as: UTF8.self)
+        }
     }
 
 #if os(Windows)
@@ -351,6 +366,7 @@ open class Thread : NSObject {
         return _cancelled
     }
 
+    @available(*, noasync)
     open var isMainThread: Bool {
         return self === Thread.mainThread
     }
@@ -394,37 +410,41 @@ open class Thread : NSObject {
         let hProcess: HANDLE = GetCurrentProcess()
         SymSetOptions(DWORD(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS))
         if !SymInitializeW(hProcess, nil, true) {
-          return []
+            return []
         }
         return backtraceAddresses { (addresses, count) in
-          var symbols: [String] = []
-
-          let addresses: UnsafeMutableBufferPointer<PVOID?> =
-              UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
-          withUnsafeTemporaryAllocation(byteCount: MemoryLayout<SYMBOL_INFO>.size + 127,
-                                        alignment: 8) { buffer in
-            let pSymbolInfo: UnsafeMutablePointer<SYMBOL_INFO> =
+            var symbols: [String] = []
+            
+            let addresses: UnsafeMutableBufferPointer<PVOID?> =
+            UnsafeMutableBufferPointer<PVOID?>(start: addresses, count: count)
+            withUnsafeTemporaryAllocation(byteCount: MemoryLayout<SYMBOL_INFO>.size + 127,
+                                          alignment: 8) { buffer in
+                let pSymbolInfo: UnsafeMutablePointer<SYMBOL_INFO> =
                 buffer.baseAddress!.assumingMemoryBound(to: SYMBOL_INFO.self)
-
-            for address in addresses {
-              pSymbolInfo.pointee.SizeOfStruct =
+                
+                for address in addresses {
+                    pSymbolInfo.pointee.SizeOfStruct =
                     ULONG(MemoryLayout<SYMBOL_INFO>.size)
-              pSymbolInfo.pointee.MaxNameLen = 128
-
-              var dwDisplacement: DWORD64 = 0
-              if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
-                             &dwDisplacement, &pSymbolInfo.pointee) {
-                symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
-                  strncpy($0.baseAddress, &pSymbolInfo.pointee.Name, $0.count)
-                  return $0.count
-                })
-              } else {
-                symbols.append("\(address)")
-              }
+                    pSymbolInfo.pointee.MaxNameLen = 128
+                    
+                    var dwDisplacement: DWORD64 = 0
+                    if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
+                                   &dwDisplacement, &pSymbolInfo.pointee) {
+                        symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
+                            strncpy_s($0.baseAddress, $0.count, &pSymbolInfo.pointee.Name, $0.count)
+                            return $0.count
+                        })
+                    } else {
+                        if let address {
+                            symbols.append("\(address)")
+                        } else {
+                            symbols.append("<unknown address>")
+                        }
+                    }
+                }
             }
-          }
-
-          return symbols
+            
+            return symbols
         }
 #else
         return backtraceAddresses({ (addrs, count) in

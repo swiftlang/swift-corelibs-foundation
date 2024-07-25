@@ -12,13 +12,13 @@
 
 extension NotificationQueue {
 
-    public enum PostingStyle : UInt {
+    public enum PostingStyle : UInt, Sendable {
         case whenIdle = 1
         case asap = 2
         case now = 3
     }
 
-    public struct NotificationCoalescing : OptionSet {
+    public struct NotificationCoalescing : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -27,6 +27,9 @@ extension NotificationQueue {
         public static let onSender = NotificationCoalescing(rawValue: 1 << 1)
     }
 }
+
+@available(*, unavailable)
+extension NotificationQueue : @unchecked Sendable { }
 
 open class NotificationQueue: NSObject {
 
@@ -50,7 +53,7 @@ open class NotificationQueue: NSObject {
 
     // The NSNotificationQueue instance is associated with current thread.
     // The _notificationQueueList represents a list of notification queues related to the current thread.
-    private static var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
+    private static nonisolated(unsafe) var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
     internal static var notificationQueueList: NotificationQueueList {
         return _notificationQueueList.get() {
             return NSMutableArray()
@@ -58,7 +61,7 @@ open class NotificationQueue: NSObject {
     }
 
     // The default notification queue for the current thread.
-    private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
+    private static nonisolated(unsafe) var _defaultQueue = NSThreadSpecific<NotificationQueue>()
     open class var `default`: NotificationQueue {
         return _defaultQueue.get() {
             return NotificationQueue(notificationCenter: NotificationCenter.default)

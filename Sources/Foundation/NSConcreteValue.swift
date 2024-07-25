@@ -8,8 +8,9 @@
 //
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
-internal class NSConcreteValue : NSValue {
+internal class NSConcreteValue : NSValue, @unchecked Sendable {
     
     struct TypeInfo : Equatable {
         let size : Int
@@ -61,22 +62,20 @@ internal class NSConcreteValue : NSValue {
         }
     }
     
-    private static var _cachedTypeInfo = Dictionary<String, TypeInfo>()
-    private static var _cachedTypeInfoLock = NSLock()
+    private static let _cachedTypeInfo = Mutex(Dictionary<String, TypeInfo>())
     
     private var _typeInfo : TypeInfo
     private var _storage : UnsafeMutableRawPointer
       
     required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         let spec = String(cString: type)
-        var typeInfo : TypeInfo? = nil
-
-        NSConcreteValue._cachedTypeInfoLock.synchronized {
-            typeInfo = NSConcreteValue._cachedTypeInfo[spec]
+        let typeInfo = NSConcreteValue._cachedTypeInfo.withLock {
+            var typeInfo = $0[spec]
             if typeInfo == nil {
                 typeInfo = TypeInfo(objCType: spec)
-                NSConcreteValue._cachedTypeInfo[spec] = typeInfo
+                $0[spec] = typeInfo
             }
+            return typeInfo
         }
         
         guard typeInfo != nil else {
@@ -122,7 +121,7 @@ internal class NSConcreteValue : NSValue {
         let typep = type._swiftObject
 
         // FIXME: This will result in reading garbage memory.
-        self.init(bytes: [], objCType: typep)
+        self.init(bytes: Array<UInt8>(), objCType: typep)
         aDecoder.decodeValue(ofObjCType: typep, at: self.value)
     }
     

@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -34,6 +34,7 @@ let coreFoundationBuildSettings: [CSetting] = [
         "-Wno-unused-function",
         "-Wno-microsoft-enum-forward-reference",
         "-Wno-int-conversion",
+        "-Wno-switch",
         "-fconstant-cfstrings",
         "-fexceptions", // TODO: not on OpenBSD
         "-fdollars-in-identifiers",
@@ -77,6 +78,11 @@ let interfaceBuildSettings: [CSetting] = [
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
+    .swiftLanguageVersion(.v6),
+    .unsafeFlags([
+        "-Xfrontend",
+        "-require-explicit-sendable",
+    ])
 ]
 
 var dependencies: [Package.Dependency] {
@@ -96,7 +102,7 @@ var dependencies: [Package.Dependency] {
                 from: "0.0.9"),
             .package(
                 url: "https://github.com/apple/swift-foundation",
-                revision: "35d896ab47ab5e487cfce822fbe40d2b278c51d6")
+                revision: "d59046871c6b69a13595f18d334afa1553e0ba50")
         ]
     }
 }
@@ -121,6 +127,9 @@ let package = Package(
                 "CoreFoundation"
             ],
             path: "Sources/Foundation",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             swiftSettings: swiftBuildSettings
         ),
         .target(
@@ -132,6 +141,9 @@ let package = Package(
                 "_CFXMLInterface"
             ],
             path: "Sources/FoundationXML",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             swiftSettings: swiftBuildSettings
         ),
         .target(
@@ -143,7 +155,10 @@ let package = Package(
                 "_CFURLSessionInterface"
             ],
             path: "Sources/FoundationNetworking",
-            swiftSettings:swiftBuildSettings
+            exclude: [
+                "CMakeLists.txt"
+            ],
+            swiftSettings: swiftBuildSettings
         ),
         .target(
             name: "CoreFoundation",
@@ -151,7 +166,10 @@ let package = Package(
                 .product(name: "_FoundationICU", package: "swift-foundation-icu"),
             ],
             path: "Sources/CoreFoundation",
-            exclude: ["BlockRuntime"],
+            exclude: [
+                "BlockRuntime",
+                "CMakeLists.txt"
+            ],
             cSettings: coreFoundationBuildSettings
         ),
         .target(
@@ -161,6 +179,9 @@ let package = Package(
                 "Clibxml2",
             ],
             path: "Sources/_CFXMLInterface",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             cSettings: interfaceBuildSettings
         ),
         .target(
@@ -170,6 +191,9 @@ let package = Package(
                 "Clibcurl",
             ],
             path: "Sources/_CFURLSessionInterface",
+            exclude: [
+                "CMakeLists.txt"
+            ],
             cSettings: interfaceBuildSettings
         ),
         .systemLibrary(
@@ -192,6 +216,12 @@ let package = Package(
             name: "plutil",
             dependencies: [
                 "Foundation"
+            ],
+            exclude: [
+                "CMakeLists.txt"
+            ],
+            swiftSettings: [
+                .swiftLanguageVersion(.v6)
             ]
         ),
         .executableTarget(
@@ -200,6 +230,9 @@ let package = Package(
                 "Foundation",
                 "FoundationXML",
                 "FoundationNetworking"
+            ],
+            swiftSettings: [
+                .swiftLanguageVersion(.v6)
             ]
         ),
         .target(
@@ -226,7 +259,8 @@ let package = Package(
                 .copy("Foundation/Resources")
             ],
             swiftSettings: [
-                .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT")
+                .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT"),
+                .swiftLanguageVersion(.v6)
             ]
         ),
     ]

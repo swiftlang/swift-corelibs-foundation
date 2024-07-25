@@ -10,7 +10,7 @@
 //  WaiterManager.swift
 //
 
-internal protocol ManageableWaiter: AnyObject, Equatable {
+internal protocol ManageableWaiter: AnyObject, Equatable, Sendable {
     var isFinished: Bool { get }
 
     // Invoked on `XCTWaiter.subsystemQueue`

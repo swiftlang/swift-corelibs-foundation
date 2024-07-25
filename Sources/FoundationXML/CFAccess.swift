@@ -13,4 +13,4 @@ import SwiftFoundation
 import Foundation
 #endif
 
-let CF = _NSCFXMLBridgeForFoundationXMLUseOnly()
+nonisolated(unsafe) let CF = _NSCFXMLBridgeForFoundationXMLUseOnly()

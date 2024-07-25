@@ -10,8 +10,8 @@
 /* DateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see DateIntervalFormatter. DateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
  */
 @available(*, unavailable, message: "Not supported in swift-corelibs-foundation")
-open class DateComponentsFormatter : Formatter {
-    public enum UnitsStyle : Int {
+open class DateComponentsFormatter : Formatter, @unchecked Sendable {
+    public enum UnitsStyle : Int, Sendable {
         case positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
         case abbreviated // "1h 10m"
         case short // "1hr, 10min"
@@ -20,7 +20,7 @@ open class DateComponentsFormatter : Formatter {
         case brief // "1hr 10min"
     }
     
-    public struct ZeroFormattingBehavior : OptionSet {
+    public struct ZeroFormattingBehavior : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         

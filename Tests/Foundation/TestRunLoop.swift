@@ -34,10 +34,13 @@ class TestRunLoop : XCTestCase {
     }
     
     func test_runLoopRunMode() {
-        let runLoop = RunLoop.current
+        // RunLoop is not sendable, but we do want to verify that the current run loop here is the one we access below in the Timer block
+        nonisolated(unsafe) let runLoop = RunLoop.current
         let timeInterval = TimeInterval(0.05)
         let endDate = Date(timeInterval: timeInterval, since: Date())
-        var flag = false
+        
+        // Protected by the ordering of the run loop - that is what this test verifies
+        nonisolated(unsafe) var flag = false
 
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { _ in
             flag = true
@@ -124,13 +127,15 @@ class TestRunLoop : XCTestCase {
         
         XCTAssertTrue(didDeallocate)
     }
-    
+
+    nonisolated(unsafe) var asyncExecuted = false
+
     func test_mainDispatchQueueCallout() {
         let runLoop = RunLoop.current
 
-        var asyncExecuted = false
+        nonisolated(unsafe) let nonisolatedSelf = self
         DispatchQueue.main.async {
-            asyncExecuted = true
+            nonisolatedSelf.asyncExecuted = true
         }
 
         // RunLoop should service main queue
@@ -139,14 +144,15 @@ class TestRunLoop : XCTestCase {
 
         asyncExecuted = false
         DispatchQueue.main.async {
-            asyncExecuted = true
+            nonisolatedSelf.asyncExecuted = true
         }
 
         // Second run to be sure RunLoop will not stuck
         _ = runLoop.run(mode: .default, before: Date(timeIntervalSinceNow: 2))
         XCTAssertTrue(asyncExecuted, "Main queue async code should be executed")
 
-        var timerFired = false
+        // Protected by the ordering of the run loop - that is what this test verifies
+        nonisolated(unsafe) var timerFired = false
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
             timerFired = true
         }

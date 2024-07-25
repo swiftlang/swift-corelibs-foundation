@@ -34,7 +34,7 @@ open class Bundle: NSObject, @unchecked Sendable {
         #endif
     }
 
-    private static var _mainBundle : Bundle = {
+    private static let _mainBundle : Bundle = {
         return Bundle(cfBundle: CFBundleGetMainBundle())
     }()
     

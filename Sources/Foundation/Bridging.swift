@@ -222,7 +222,7 @@ internal final class __SwiftValue : NSObject, NSCopying {
         return __SwiftValue(value)
     }
     
-    public static let null: AnyObject = NSNull()
+    public static nonisolated(unsafe) let null: AnyObject = NSNull()
 
     override var description: String { String(describing: value) }
 }

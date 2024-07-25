@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@available(*, unavailable)
+extension PortMessage : @unchecked Sendable { }
 
 open class PortMessage : NSObject, NSCopying {
     public init(sendPort: Port?, receivePort replyPort: Port?, components: [AnyObject]?) {

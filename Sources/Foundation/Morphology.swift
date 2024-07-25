@@ -11,11 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-public struct Morphology {
+public struct Morphology : Sendable {
     public init() {}
     
     @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-    public enum GrammaticalGender: Int, Hashable {
+    public enum GrammaticalGender: Int, Hashable, Sendable {
         case feminine  = 1
         case masculine
         case neuter
@@ -23,7 +23,7 @@ public struct Morphology {
     public var grammaticalGender: GrammaticalGender?
 
     @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-    public enum PartOfSpeech: Int, Hashable {
+    public enum PartOfSpeech: Int, Hashable, Sendable {
         case determiner = 1
         case pronoun
         case letter
@@ -42,7 +42,7 @@ public struct Morphology {
     public var partOfSpeech: PartOfSpeech?
 
     @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-    public enum GrammaticalNumber: Int, Hashable {
+    public enum GrammaticalNumber: Int, Hashable, Sendable {
         case singular = 1
         case zero
         case plural
@@ -56,7 +56,7 @@ public struct Morphology {
 }
 
 @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-public enum InflectionRule {
+public enum InflectionRule : Sendable {
     case automatic
     case explicit(Morphology)
 
@@ -294,7 +294,7 @@ extension Morphology {
     }
 
     @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-    public struct CustomPronoun {
+    public struct CustomPronoun : Sendable {
         public init() {}
 
         public static func isSupported(forLanguage language: String) -> Bool {

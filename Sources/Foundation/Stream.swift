@@ -16,8 +16,8 @@ internal extension UInt {
 }
 
 extension Stream {
-    public struct PropertyKey : RawRepresentable, Equatable, Hashable {
-        public private(set) var rawValue: String
+    public struct PropertyKey : RawRepresentable, Equatable, Hashable, Sendable {
+        public let rawValue: String
         
         public init(_ rawValue: String) {
             self.rawValue = rawValue
@@ -28,7 +28,7 @@ extension Stream {
         }
     }
     
-    public enum Status : UInt {
+    public enum Status : UInt, Sendable {
         
         case notOpen
         case opening
@@ -40,7 +40,7 @@ extension Stream {
         case error
     }
 
-    public struct Event : OptionSet {
+    public struct Event : OptionSet, Sendable {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
@@ -53,10 +53,9 @@ extension Stream {
     }
 }
 
-
-
 // Stream is an abstract class encapsulating the common API to InputStream and OutputStream.
 // Subclassers of InputStream and OutputStream must also implement these methods.
+//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
 open class Stream: NSObject {
 
     public override init() {
@@ -100,6 +99,9 @@ open class Stream: NSObject {
         NSRequiresConcreteImplementation()
     }
 }
+
+@available(*, unavailable)
+extension InputStream : @unchecked Sendable { }
 
 // InputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
@@ -176,6 +178,9 @@ open class InputStream: Stream {
     }
 }
 
+@available(*, unavailable)
+extension OutputStream : @unchecked Sendable { }
+
 // OutputStream is an abstract class representing the base functionality of a write stream.
 // Subclassers are required to implement these methods.
 // Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
@@ -250,6 +255,9 @@ open class OutputStream : Stream {
         CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.currentCFRunLoop, mode.rawValue._cfObject)
     }
 }
+
+@available(*, unavailable)
+extension _InputStreamSPIForFoundationNetworkingUseOnly : Sendable { }
 
 public struct _InputStreamSPIForFoundationNetworkingUseOnly {
     var inputStream: InputStream
@@ -334,7 +342,7 @@ extension Stream.PropertyKey {
 }
 
 // MARK: -
-public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable {
+public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -350,7 +358,7 @@ extension StreamSocketSecurityLevel {
 
 
 // MARK: -
-public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hashable {
+public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -366,7 +374,7 @@ extension StreamSOCKSProxyConfiguration {
 
 
 // MARK: -
-public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable {
+public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -379,7 +387,7 @@ extension StreamSOCKSProxyVersion {
 
 
 // MARK: - Supported network service types
-public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hashable {
+public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue

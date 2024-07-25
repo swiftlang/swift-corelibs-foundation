@@ -25,70 +25,70 @@ CF_IMPLICIT_BRIDGING_ENABLED
 CF_ASSUME_NONNULL_BEGIN
 CF_EXTERN_C_BEGIN
 
-extern CFIndex _kCFXMLInterfaceRecover;
-extern CFIndex _kCFXMLInterfaceNoEnt;
-extern CFIndex _kCFXMLInterfaceDTDLoad;
-extern CFIndex _kCFXMLInterfaceDTDAttr;
-extern CFIndex _kCFXMLInterfaceDTDValid;
-extern CFIndex _kCFXMLInterfaceNoError;
-extern CFIndex _kCFXMLInterfaceNoWarning;
-extern CFIndex _kCFXMLInterfacePedantic;
-extern CFIndex _kCFXMLInterfaceNoBlanks;
-extern CFIndex _kCFXMLInterfaceSAX1;
-extern CFIndex _kCFXMLInterfaceXInclude;
-extern CFIndex _kCFXMLInterfaceNoNet;
-extern CFIndex _kCFXMLInterfaceNoDict;
-extern CFIndex _kCFXMLInterfaceNSClean;
-extern CFIndex _kCFXMLInterfaceNoCdata;
-extern CFIndex _kCFXMLInterfaceNoXIncnode;
-extern CFIndex _kCFXMLInterfaceCompact;
-extern CFIndex _kCFXMLInterfaceOld10;
-extern CFIndex _kCFXMLInterfaceNoBasefix;
-extern CFIndex _kCFXMLInterfaceHuge;
-extern CFIndex _kCFXMLInterfaceOldsax;
-extern CFIndex _kCFXMLInterfaceIgnoreEnc;
-extern CFIndex _kCFXMLInterfaceBigLines;
+extern const CFIndex _kCFXMLInterfaceRecover;
+extern const CFIndex _kCFXMLInterfaceNoEnt;
+extern const CFIndex _kCFXMLInterfaceDTDLoad;
+extern const CFIndex _kCFXMLInterfaceDTDAttr;
+extern const CFIndex _kCFXMLInterfaceDTDValid;
+extern const CFIndex _kCFXMLInterfaceNoError;
+extern const CFIndex _kCFXMLInterfaceNoWarning;
+extern const CFIndex _kCFXMLInterfacePedantic;
+extern const CFIndex _kCFXMLInterfaceNoBlanks;
+extern const CFIndex _kCFXMLInterfaceSAX1;
+extern const CFIndex _kCFXMLInterfaceXInclude;
+extern const CFIndex _kCFXMLInterfaceNoNet;
+extern const CFIndex _kCFXMLInterfaceNoDict;
+extern const CFIndex _kCFXMLInterfaceNSClean;
+extern const CFIndex _kCFXMLInterfaceNoCdata;
+extern const CFIndex _kCFXMLInterfaceNoXIncnode;
+extern const CFIndex _kCFXMLInterfaceCompact;
+extern const CFIndex _kCFXMLInterfaceOld10;
+extern const CFIndex _kCFXMLInterfaceNoBasefix;
+extern const CFIndex _kCFXMLInterfaceHuge;
+extern const CFIndex _kCFXMLInterfaceOldsax;
+extern const CFIndex _kCFXMLInterfaceIgnoreEnc;
+extern const CFIndex _kCFXMLInterfaceBigLines;
 
-extern CFIndex _kCFXMLTypeInvalid;
-extern CFIndex _kCFXMLTypeDocument;
-extern CFIndex _kCFXMLTypeElement;
-extern CFIndex _kCFXMLTypeAttribute;
-extern CFIndex _kCFXMLTypeProcessingInstruction;
-extern CFIndex _kCFXMLTypeComment;
-extern CFIndex _kCFXMLTypeText;
-extern CFIndex _kCFXMLTypeCDataSection;
-extern CFIndex _kCFXMLTypeDTD;
-extern CFIndex _kCFXMLDocTypeHTML;
-extern CFIndex _kCFXMLTypeNamespace;
+extern const CFIndex _kCFXMLTypeInvalid;
+extern const CFIndex _kCFXMLTypeDocument;
+extern const CFIndex _kCFXMLTypeElement;
+extern const CFIndex _kCFXMLTypeAttribute;
+extern const CFIndex _kCFXMLTypeProcessingInstruction;
+extern const CFIndex _kCFXMLTypeComment;
+extern const CFIndex _kCFXMLTypeText;
+extern const CFIndex _kCFXMLTypeCDataSection;
+extern const CFIndex _kCFXMLTypeDTD;
+extern const CFIndex _kCFXMLDocTypeHTML;
+extern const CFIndex _kCFXMLTypeNamespace;
 
-extern CFIndex _kCFXMLDTDNodeTypeEntity;
-extern CFIndex _kCFXMLDTDNodeTypeAttribute;
-extern CFIndex _kCFXMLDTDNodeTypeElement;
-extern CFIndex _kCFXMLDTDNodeTypeNotation;
+extern const CFIndex _kCFXMLDTDNodeTypeEntity;
+extern const CFIndex _kCFXMLDTDNodeTypeAttribute;
+extern const CFIndex _kCFXMLDTDNodeTypeElement;
+extern const CFIndex _kCFXMLDTDNodeTypeNotation;
 
-extern CFIndex _kCFXMLDTDNodeElementTypeUndefined;
-extern CFIndex _kCFXMLDTDNodeElementTypeEmpty;
-extern CFIndex _kCFXMLDTDNodeElementTypeAny;
-extern CFIndex _kCFXMLDTDNodeElementTypeMixed;
-extern CFIndex _kCFXMLDTDNodeElementTypeElement;
+extern const CFIndex _kCFXMLDTDNodeElementTypeUndefined;
+extern const CFIndex _kCFXMLDTDNodeElementTypeEmpty;
+extern const CFIndex _kCFXMLDTDNodeElementTypeAny;
+extern const CFIndex _kCFXMLDTDNodeElementTypeMixed;
+extern const CFIndex _kCFXMLDTDNodeElementTypeElement;
 
-extern CFIndex _kCFXMLDTDNodeEntityTypeInternalGeneral;
-extern CFIndex _kCFXMLDTDNodeEntityTypeExternalGeneralParsed;
-extern CFIndex _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed;
-extern CFIndex _kCFXMLDTDNodeEntityTypeInternalParameter;
-extern CFIndex _kCFXMLDTDNodeEntityTypeExternalParameter;
-extern CFIndex _kCFXMLDTDNodeEntityTypeInternalPredefined;
+extern const CFIndex _kCFXMLDTDNodeEntityTypeInternalGeneral;
+extern const CFIndex _kCFXMLDTDNodeEntityTypeExternalGeneralParsed;
+extern const CFIndex _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed;
+extern const CFIndex _kCFXMLDTDNodeEntityTypeInternalParameter;
+extern const CFIndex _kCFXMLDTDNodeEntityTypeExternalParameter;
+extern const CFIndex _kCFXMLDTDNodeEntityTypeInternalPredefined;
 
-extern CFIndex _kCFXMLDTDNodeAttributeTypeCData;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeID;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeIDRef;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeIDRefs;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeEntity;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeEntities;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeNMToken;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeNMTokens;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeEnumeration;
-extern CFIndex _kCFXMLDTDNodeAttributeTypeNotation;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeCData;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeID;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeIDRef;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeIDRefs;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeEntity;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeEntities;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeNMToken;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeNMTokens;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeEnumeration;
+extern const CFIndex _kCFXMLDTDNodeAttributeTypeNotation;
 
 typedef struct _xmlParserInput *_CFXMLInterfaceParserInput;
 typedef struct _xmlParserCtxt *_CFXMLInterfaceParserContext;
@@ -327,7 +327,7 @@ struct _NSXMLParserBridge {
                            const unsigned char *SystemID);
 };
 
-CF_EXPORT struct _NSXMLParserBridge __CFSwiftXMLParserBridge;
+CF_EXPORT struct _NSXMLParserBridge __CFSwiftXMLParserBridge __attribute__((swift_attr("nonisolated(unsafe)")));
 
 
 CF_EXTERN_C_END

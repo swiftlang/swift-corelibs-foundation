@@ -17,6 +17,8 @@
 import _SwiftCoreFoundationOverlayShims
 #endif
 
+extension Measurement : Sendable where UnitType : Sendable { }
+
 /// A `Measurement` is a model type that holds a `Double` value associated with a `Unit`.
 ///
 /// Measurements support a large set of operators, including `+`, `-`, `*`, `/`, and a full set of comparison operators.

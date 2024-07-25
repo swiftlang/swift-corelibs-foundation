@@ -19,6 +19,7 @@ import CRT
 #endif
 
 @_implementationOnly import CoreFoundation
+internal import Synchronization
 
 public typealias NSErrorDomain = NSString
 
@@ -47,7 +48,7 @@ public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
 public let NSURLErrorKey: String = "NSURL"
 public let NSFilePathErrorKey: String = "NSFilePath"
 
-open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Sendable {
     typealias CFType = CFError
     
     internal final var _cfObject: CFType {
@@ -55,13 +56,11 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     // ErrorType forbids this being internal
-    open var _domain: String
-    open var _code: Int
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
+    public let _domain: String
+    public let _code: Int
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
-    private var _userInfo: [String : Any]?
+    private let _userInfo: [String : Any]?
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation
     /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     public init(domain: String, code: Int, userInfo dict: [String : Any]? = nil) {
         _domain = domain
@@ -84,6 +83,8 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
                 }
             })
             _userInfo = filteredUserInfo
+        } else {
+            _userInfo = nil
         }
     }
     
@@ -169,15 +170,15 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return userInfo[NSHelpAnchorErrorKey] as? String
     }
     
-    internal typealias UserInfoProvider = (_ error: Error, _ key: String) -> Any?
-    internal static var userInfoProviders = [String: UserInfoProvider]()
+    internal typealias UserInfoProvider = @Sendable (_ error: Error, _ key: String) -> Any?
+    internal static let userInfoProviders = Mutex<[String: UserInfoProvider]>([:])
     
-    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (/* @escaping */ (Error, String) -> Any?)?) {
-        NSError.userInfoProviders[errorDomain] = provider
+    open class func setUserInfoValueProvider(forDomain errorDomain: String, provider: (@Sendable (Error, String) -> Any?)?) {
+        NSError.userInfoProviders.withLock { $0[errorDomain] = provider }
     }
 
-    open class func userInfoValueProvider(forDomain errorDomain: String) -> ((Error, String) -> Any?)? {
-        return NSError.userInfoProviders[errorDomain]
+    open class func userInfoValueProvider(forDomain errorDomain: String) -> (@Sendable (Error, String) -> Any?)? {
+        NSError.userInfoProviders.withLock { $0[errorDomain] }
     }
     
     override open var description: String {
@@ -218,6 +219,9 @@ extension CFError : _NSBridgeable {
         return NSError(domain: CFErrorGetDomain(self)._swiftObject, code: CFErrorGetCode(self), userInfo: newUserInfo)
     }
 }
+
+@available(*, unavailable)
+extension _CFErrorSPIForFoundationXMLUseOnly : Sendable { }
 
 public struct _CFErrorSPIForFoundationXMLUseOnly {
     let error: AnyObject
@@ -353,12 +357,7 @@ public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.R
 public extension Error {
     /// Retrieve the localized description for this error.
     var localizedDescription: String {
-        if let nsError = self as? NSError {
-            return nsError.localizedDescription
-        }
-
-        let defaultUserInfo = _swift_Foundation_getErrorDefaultUserInfo(self) as? [String : Any]
-        return NSError(domain: _domain, code: _code, userInfo: defaultUserInfo).localizedDescription
+        (self as NSError).localizedDescription
     }
 }
 
@@ -721,7 +720,7 @@ extension CocoaError: _ObjectiveCBridgeable {
 }
 
 /// Describes errors in the URL error domain.
-public struct URLError : _BridgedStoredNSError {
+public struct URLError : _BridgedStoredNSError, Sendable {
     public let _nsError: NSError
 
     public init(_nsError error: NSError) {
@@ -731,7 +730,7 @@ public struct URLError : _BridgedStoredNSError {
 
     public static var _nsErrorDomain: String { return NSURLErrorDomain }
 
-    public enum Code : Int, _ErrorCodeProtocol {
+    public enum Code : Int, _ErrorCodeProtocol, Sendable {
         public typealias _ErrorType = URLError
 
         case unknown = -1
@@ -884,7 +883,7 @@ func _convertNSErrorToError(_ error: NSError?) -> Error {
 public // COMPILER_INTRINSIC
 func _convertErrorToNSError(_ error: Error) -> NSError {
     if let object = _extractDynamicValue(error as Any) {
-        return unsafeBitCast(object, to: NSError.self)
+        return unsafeDowncast(object, to: NSError.self)
     } else {
         let domain: String
         let code: Int
