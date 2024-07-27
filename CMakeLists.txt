@@ -92,10 +92,21 @@ if(NOT SwiftFoundation_MODULE_TRIPLE)
     mark_as_advanced(SwiftFoundation_MODULE_TRIPLE)
 endif()
 
-# System dependencies (fail fast if dependencies are missing)
+# System dependencies
+find_package(dispatch CONFIG)
+if(NOT dispatch_FOUND)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+        set(DISPATCH_INCLUDE_PATH "/usr/lib/swift" CACHE STRING "A path to where you can find libdispatch headers")
+        message("-- dispatch_DIR not found, using dispatch from SDK at ${DISPATCH_INCLUDE_PATH}")
+        list(APPEND _Foundation_common_build_flags
+            "-I${DISPATCH_INCLUDE_PATH}"
+            "-I${DISPATCH_INCLUDE_PATH}/Block")
+    else()
+        message(FATAL_ERROR "-- dispatch_DIR is required on this platform")
+    endif()
+endif()
 find_package(LibXml2 REQUIRED)
 find_package(CURL REQUIRED)
-find_package(dispatch CONFIG REQUIRED)
 
 # Common build flags (_CFURLSessionInterface, _CFXMLInterface, CoreFoundation)
 list(APPEND _Foundation_common_build_flags
@@ -148,8 +159,7 @@ list(APPEND _Foundation_swift_build_flags
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND _Foundation_common_build_flags
-        "-D_GNU_SOURCE"
-        "-I/usr/lib/swift") # dispatch
+        "-D_GNU_SOURCE")
 endif()
 
 include(GNUInstallDirs)

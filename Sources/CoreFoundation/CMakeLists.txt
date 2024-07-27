@@ -105,6 +105,9 @@ target_include_directories(CoreFoundation
     PRIVATE
         internalInclude)
 
+target_compile_options(CoreFoundation INTERFACE
+  "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/include/module.modulemap>")
+
 target_compile_options(CoreFoundation PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:C>:${_Foundation_common_build_flags}>")
 
