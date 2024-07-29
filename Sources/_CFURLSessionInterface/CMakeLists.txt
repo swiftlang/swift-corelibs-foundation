@@ -23,6 +23,10 @@ target_include_directories(_CFURLSessionInterface
 
 target_precompile_headers(_CFURLSessionInterface PRIVATE ${CMAKE_SOURCE_DIR}/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h)
 
+target_compile_options(_CFURLSessionInterface INTERFACE
+  "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/../CoreFoundation/include/module.modulemap>"
+  "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/include/module.modulemap>")
+
 target_compile_options(_CFURLSessionInterface PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:C>:${_Foundation_common_build_flags}>")
 

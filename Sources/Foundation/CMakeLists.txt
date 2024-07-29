@@ -166,11 +166,14 @@ endif()
 
 set_target_properties(Foundation PROPERTIES
     INSTALL_RPATH "$ORIGIN"
-    BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>"
     INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
 
-target_link_libraries(Foundation PUBLIC
-    swiftDispatch)
+if(dispatch_FOUND)
+    set_target_properties(Foundation PROPERTIES
+        BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>")
+    target_link_libraries(Foundation PUBLIC
+        swiftDispatch)
+endif()
 
 if(LINKER_SUPPORTS_BUILD_ID)
   target_link_options(Foundation PRIVATE "LINKER:--build-id=sha1")
