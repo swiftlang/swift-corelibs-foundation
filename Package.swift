@@ -3,6 +3,19 @@
 
 import PackageDescription
 
+var dispatchIncludeFlags: CSetting
+if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
+    dispatchIncludeFlags = .unsafeFlags([
+        "-I\(environmentPath)",
+        "-I\(environmentPath)/Block"
+    ])
+} else {
+    dispatchIncludeFlags = .unsafeFlags([
+        "-I/usr/lib/swift",
+        "-I/usr/lib/swift/Block"
+    ], .when(platforms: [.linux, .android]))
+}
+
 let coreFoundationBuildSettings: [CSetting] = [
     .headerSearchPath("internalInclude"),
     .define("DEBUG", .when(configuration: .debug)),
@@ -31,8 +44,7 @@ let coreFoundationBuildSettings: [CSetting] = [
         "\(Context.packageDirectory)/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h",
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])), // dispatch
-    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // Block.h
+    dispatchIncludeFlags
 ]
 
 // For _CFURLSessionInterface, _CFXMLInterface
@@ -60,8 +72,7 @@ let interfaceBuildSettings: [CSetting] = [
         "-fcf-runtime-abi=swift"
         // /EHsc for Windows
     ]),
-    .unsafeFlags(["-I/usr/lib/swift"], .when(platforms: [.linux, .android])), // dispatch
-    .unsafeFlags(["-I/usr/lib/swift/Block"], .when(platforms: [.linux, .android])) // Block.h
+    dispatchIncludeFlags
 ]
 
 let swiftBuildSettings: [SwiftSetting] = [
