@@ -3,17 +3,25 @@
 
 import PackageDescription
 
-var dispatchIncludeFlags: CSetting
+var dispatchIncludeFlags: [CSetting]
 if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
-    dispatchIncludeFlags = .unsafeFlags([
+    dispatchIncludeFlags = [.unsafeFlags([
         "-I\(environmentPath)",
         "-I\(environmentPath)/Block"
-    ])
+    ])]
 } else {
-    dispatchIncludeFlags = .unsafeFlags([
-        "-I/usr/lib/swift",
-        "-I/usr/lib/swift/Block"
-    ], .when(platforms: [.linux, .android]))
+    dispatchIncludeFlags = [
+        .unsafeFlags([
+            "-I/usr/lib/swift",
+            "-I/usr/lib/swift/Block"
+        ], .when(platforms: [.linux, .android]))
+    ]
+    if let sdkRoot = Context.environment["SDKROOT"] {
+        dispatchIncludeFlags.append(.unsafeFlags([
+            "-I\(sdkRoot)usr\\include",
+            "-I\(sdkRoot)usr\\include\\Block",
+        ], .when(platforms: [.windows])))
+    }
 }
 
 let coreFoundationBuildSettings: [CSetting] = [
@@ -43,9 +51,8 @@ let coreFoundationBuildSettings: [CSetting] = [
         "-include",
         "\(Context.packageDirectory)/Sources/CoreFoundation/internalInclude/CoreFoundation_Prefix.h",
         // /EHsc for Windows
-    ]),
-    dispatchIncludeFlags
-]
+    ])
+] + dispatchIncludeFlags
 
 // For _CFURLSessionInterface, _CFXMLInterface
 let interfaceBuildSettings: [CSetting] = [
@@ -71,9 +78,8 @@ let interfaceBuildSettings: [CSetting] = [
         "-fno-common",
         "-fcf-runtime-abi=swift"
         // /EHsc for Windows
-    ]),
-    dispatchIncludeFlags
-]
+    ])
+] + dispatchIncludeFlags
 
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
