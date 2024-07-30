@@ -226,9 +226,9 @@ private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
 #endif
 
 open class Process: NSObject, @unchecked Sendable {
+    static let once = Mutex(false)
+    
     private static func setup() {
-        let once = Mutex(false)
-        
         once.withLock {
             if !$0 {
                 let thread = Thread {
