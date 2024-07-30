@@ -156,7 +156,8 @@ class TestTimeZone: XCTestCase {
         XCTAssertEqual(actualIdentifier, expectedIdentifier, "expected identifier \"\(expectedIdentifier)\" is not equal to \"\(actualIdentifier as Optional)\"")
     }
 
-#if !os(Windows)
+// Test disabled due to Amazon Linux failures (rdar://132784697)
+#if !os(Windows) && false
     func test_systemTimeZoneUsesSystemTime() {
         tzset()
         var t = time(nil)

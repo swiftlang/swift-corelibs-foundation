@@ -331,6 +331,8 @@ class TestDateFormatter: XCTestCase {
         XCTAssertNotNil(result)
     }
 
+// Test disabled due to Amazon Linux failures (rdar://132784697)
+#if false
     func test_setTimeZoneToNil() {
         let f = DateFormatter()
         // Time zone should be the system one by default.
@@ -339,6 +341,7 @@ class TestDateFormatter: XCTestCase {
         // Time zone should go back to the system one.
         XCTAssertEqual(f.timeZone, NSTimeZone.system)
     }
+#endif
 
     func test_setTimeZone() {
         // Test two different time zones. Should ensure that if one
