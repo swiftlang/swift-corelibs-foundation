@@ -2146,6 +2146,107 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
     }
     
+    func test_webSocketCompletions() async throws {
+        guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard URLSessionWebSocketTask.supportsWebSockets else {
+            print("libcurl lacks WebSockets support, skipping \(#function)")
+            return
+        }
+        
+        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket"
+        let url = try XCTUnwrap(URL(string: urlString))
+        let request = URLRequest(url: url)
+        
+        let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
+        let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
+        
+        // We interleave sending and receiving, as the test HTTPServer implementation is barebones, and can't handle receiving more than one frame at a time.  So, this back-and-forth acts as a gating mechanism
+
+        let didCompleteSendingString = expectation(description: "Did complete sending a string")
+        task.send(.string("Hello")) { error in 
+            XCTAssertNil(error)
+            didCompleteSendingString.fulfill()
+        }
+        await fulfillment(of: [didCompleteSendingString], timeout: 5.0)
+        
+        let didCompleteReceivingString = expectation(description: "Did complete receiving a string")
+        task.receive { result in
+            switch result {
+            case .failure(let error):
+                XCTFail()
+            case .success(let stringMessage):
+                switch stringMessage {
+                case .string(let str):
+                    XCTAssert(str == "Hello")
+                default:
+                    XCTFail("Unexpected String Message")
+                }
+            }
+            didCompleteReceivingString.fulfill()
+        }
+        await fulfillment(of: [didCompleteReceivingString], timeout: 5.0)
+
+        let didCompleteSendingData = expectation(description: "Did complete sending data")
+        task.send(.data(Data([0x20, 0x22, 0x10, 0x03]))) { error in
+            XCTAssertNil(error)
+            didCompleteSendingData.fulfill()
+        }
+        await fulfillment(of: [didCompleteSendingData], timeout: 5.0)
+
+        let didCompleteReceivingData = expectation(description: "Did complete receiving data")
+        task.receive { result in
+            switch result {
+            case .failure(let error):
+                XCTFail()
+            case .success(let dataMessage):
+                switch dataMessage {
+                case .data(let data):
+                    XCTAssert(data == Data([0x20, 0x22, 0x10, 0x03]))
+                default:
+                    XCTFail("Unexpected Data Message")
+                }
+            }
+            didCompleteReceivingData.fulfill()
+        }
+        await fulfillment(of: [didCompleteReceivingData], timeout: 5.0)
+
+        let didCompleteSendingPing = expectation(description: "Did complete sending ping")
+        task.sendPing { error in
+            if let error {
+                // Server closed the connection before we could process the pong
+                if let urlError = error as? URLError {
+                    XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+                } else {
+                    XCTFail("Unexpecter error type")
+                }
+            }
+            didCompleteSendingPing.fulfill()
+        }
+        await fulfillment(of: [delegate.expectation, didCompleteSendingPing], timeout: 50.0)
+        
+        let didCompleteReceiving = expectation(description: "Did complete receiving")
+        task.receive { result in
+            switch result {
+            case .failure(let error):
+                if let urlError = error as? URLError {
+                    XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+                } else {
+                    XCTFail("Unexpecter error type")
+                }
+            case .success:
+                XCTFail("Expected to throw when receiving on closed task")    
+            }
+            didCompleteReceiving.fulfill()
+        }
+        await fulfillment(of: [didCompleteReceiving], timeout: 5.0)
+        
+        let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
+                          "urlSession(_:webSocketTask:didCloseWith:reason:)",
+                          "urlSession(_:task:didCompleteWithError:)" ]
+        XCTAssertEqual(delegate.callbacks.count, callbacks.count)
+        XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
+    }
+    
     func test_webSocketSpecificProtocol() async throws {
         guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
