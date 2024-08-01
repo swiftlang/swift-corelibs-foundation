@@ -126,10 +126,16 @@ file(COPY
     DESTINATION
         ${CMAKE_BINARY_DIR}/_CModulesForClients/CoreFoundation)
 
+if(NOT BUILD_SHARED_LIBS)
+    set(swift swift_static)
+else()
+    set(swift swift)
+endif()
+
 install(DIRECTORY
             include/
         DESTINATION
-            lib/swift/CoreFoundation)
+            lib/${swift}/CoreFoundation)
 
 if(NOT BUILD_SHARED_LIBS)
     install(TARGETS CoreFoundation
