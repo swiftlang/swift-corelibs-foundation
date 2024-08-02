@@ -1176,7 +1176,7 @@ protocol _NSNumberCastingWithoutBridging {
 extension NSNumber: _NSNumberCastingWithoutBridging {}
 
 // Called by FoundationEssentials
-internal final class _FoundationNSNumberInitializer : _NSNumberInitializer {
+internal struct _FoundationNSNumberInitializer : _NSNumberInitializer {
     public static func initialize(value: some BinaryInteger) -> Any {
         if let int64 = Int64(exactly: value) {
             return NSNumber(value: int64)
@@ -1188,4 +1188,9 @@ internal final class _FoundationNSNumberInitializer : _NSNumberInitializer {
     public static func initialize(value: Bool) -> Any {
         NSNumber(value: value)
     }
+}
+
+@_dynamicReplacement(for: _nsNumberInitializer())
+private func _nsNumberInitializer_corelibs_foundation() -> _NSNumberInitializer.Type? {
+    return _FoundationNSNumberInitializer.self
 }
