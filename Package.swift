@@ -84,24 +84,33 @@ let interfaceBuildSettings: [CSetting] = [
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
-    .swiftLanguageVersion(.v6),
+    .swiftLanguageMode(.v6),
     .unsafeFlags([
         "-Xfrontend",
         "-require-explicit-sendable",
     ])
 ]
 
-var dependencies: [Package.Dependency] {
-    if Context.environment["SWIFTCI_USE_LOCAL_DEPS"] != nil {
+var dependencies: [Package.Dependency] = []
+
+if let useLocalDepsEnv = Context.environment["SWIFTCI_USE_LOCAL_DEPS"] {
+    let root: String
+    if useLocalDepsEnv == "1" {
+        root = ".."
+    } else {
+        root = useLocalDepsEnv
+    }
+    dependencies += 
         [
             .package(
                 name: "swift-foundation-icu",
-                path: "../swift-foundation-icu"),
+                path: "\(root)/swift-foundation-icu"),
             .package(
                 name: "swift-foundation",
-                path: "../swift-foundation")
+                path: "\(root)/swift-foundation")
         ]
-    } else {
+} else {
+    dependencies += 
         [
             .package(
                 url: "https://github.com/apple/swift-foundation-icu",
@@ -110,7 +119,6 @@ var dependencies: [Package.Dependency] {
                 url: "https://github.com/apple/swift-foundation",
                 revision: "acae3d26b69113cec2db7772b4144ab9558241db")
         ]
-    }
 }
 
 let package = Package(
@@ -227,7 +235,7 @@ let package = Package(
                 "CMakeLists.txt"
             ],
             swiftSettings: [
-                .swiftLanguageVersion(.v6)
+                .swiftLanguageMode(.v6)
             ]
         ),
         .executableTarget(
@@ -238,7 +246,7 @@ let package = Package(
                 "FoundationNetworking"
             ],
             swiftSettings: [
-                .swiftLanguageVersion(.v6)
+                .swiftLanguageMode(.v6)
             ]
         ),
         .target(
@@ -266,7 +274,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .define("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT"),
-                .swiftLanguageVersion(.v6)
+                .swiftLanguageMode(.v6)
             ]
         ),
     ]
