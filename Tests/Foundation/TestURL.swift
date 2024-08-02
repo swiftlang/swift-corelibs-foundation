@@ -775,6 +775,11 @@ class TestURL : XCTestCase {
             throw error
         }
     }
+    
+    func test_dataFromNonFileURL() throws {
+        // Tests the up-call to FoundationNetworking to perform the network request
+        XCTAssertNoThrow(try Data(contentsOf: URL(string: "https://swift.org")!))
+    }
 
     // MARK: -
 
