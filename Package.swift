@@ -12,6 +12,7 @@ let platformsWithThreads: [Platform] = [
     .driverKit,
     .android,
     .linux,
+    .windows,
 ]
 var dispatchIncludeFlags: [CSetting]
 if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
