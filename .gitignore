@@ -25,6 +25,7 @@ project.xcworkspace
 
 Build
 .build
+.index-build
 .configuration
 
 *.swp
