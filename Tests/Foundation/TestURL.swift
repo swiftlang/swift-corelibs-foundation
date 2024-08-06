@@ -781,7 +781,7 @@ class TestURL : XCTestCase {
             // Tests the up-call to FoundationNetworking to perform the network request
             try Data(contentsOf: URL(string: "https://swift.org")!)
         } catch {
-            if let cocoaCode = (error as? CocoaError).code {
+            if let cocoaCode = (error as? CocoaError)?.code {
                 // Just ensure that we supported this feature, even if the request failed
                 XCTAssertNotEqual(cocoaCode, .featureUnsupported)
             }
