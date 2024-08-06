@@ -355,14 +355,7 @@ extension FileManager {
                     defer { ps.deallocate() }
                     ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
-                    return ps.withMemoryRebound(to: UnsafeMutablePointer<CChar>.self, capacity: 2) { rebound_ps in
-#if canImport(Android)
-                        let arg = rebound_ps
-#else
-                        let arg = ps
-#endif
-                        return fts_open(arg, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
-                    }
+                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 }
                 if _stream == nil {
                     throw _NSErrorWithErrno(errno, reading: true, url: url)
