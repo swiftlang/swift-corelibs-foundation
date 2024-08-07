@@ -20,7 +20,7 @@ target_include_directories(_CFXMLInterface
         ../CoreFoundation/include
     PRIVATE
         ../CoreFoundation/internalInclude
-        /usr/include/libxml2/)
+        ${LIBXML2_INCLUDE_DIR})
 
 target_compile_options(_CFXMLInterface INTERFACE
   "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/../CoreFoundation/include/module.modulemap>"
