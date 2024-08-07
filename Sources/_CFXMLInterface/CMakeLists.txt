@@ -33,6 +33,10 @@ target_link_libraries(_CFXMLInterface PRIVATE
     dispatch
     LibXml2::LibXml2)
 
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+    target_link_libraries(_CFXMLInterface PRIVATE BlocksRuntime)
+endif()
+
 if(NOT BUILD_SHARED_LIBS)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS _CFXMLInterface)
     install(TARGETS _CFXMLInterface
