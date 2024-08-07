@@ -15,7 +15,9 @@
 # Build the vendored version of the BlocksRuntime library, which is used by
 # platforms that don't support libdispatch.
 
-add_library(BlocksRuntime
+# Build the BlocksRuntime as an object library, shipped as a part
+# of libCoreFoundation.
+add_library(BlocksRuntime OBJECT
     data.c
     runtime.c)
 
@@ -27,11 +29,4 @@ target_include_directories(BlocksRuntime PUBLIC
 set_target_properties(BlocksRuntime PROPERTIES
     POSITION_INDEPENDENT_CODE FALSE)
 
-add_library(BlocksRuntime::BlocksRuntime ALIAS BlocksRuntime)
-
-if(NOT BUILD_SHARED_LIBS)
-    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS BlocksRuntime)
-    install(TARGETS BlocksRuntime
-        ARCHIVE DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/${SWIFT_SYSTEM_NAME}
-        LIBRARY DESTINATION lib/swift$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:_static>/${SWIFT_SYSTEM_NAME})
-endif()
+set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS BlocksRuntime)
