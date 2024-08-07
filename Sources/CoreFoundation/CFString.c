@@ -35,7 +35,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 #include <unistd.h>
 #endif
 #if TARGET_OS_WASI
