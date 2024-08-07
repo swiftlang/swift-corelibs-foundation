@@ -93,18 +93,22 @@ if(NOT SwiftFoundation_MODULE_TRIPLE)
 endif()
 
 # System dependencies
-find_package(dispatch CONFIG)
-if(NOT dispatch_FOUND AND NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
-        set(DEFAULT_DISPATCH_INCLUDE_PATH "/usr/lib/swift")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        set(DEFAULT_DISPATCH_INCLUDE_PATH "$ENV{SDKROOT}usr/include")
+
+# We know libdispatch is always unavailable on WASI
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+    find_package(dispatch CONFIG)
+    if(NOT dispatch_FOUND)
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+            set(DEFAULT_DISPATCH_INCLUDE_PATH "/usr/lib/swift")
+        elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+            set(DEFAULT_DISPATCH_INCLUDE_PATH "$ENV{SDKROOT}usr/include")
+        endif()
+        set(DISPATCH_INCLUDE_PATH "${DEFAULT_DISPATCH_INCLUDE_PATH}" CACHE STRING "A path to where you can find libdispatch headers")
+        message("-- dispatch_DIR not found, using dispatch from SDK at ${DISPATCH_INCLUDE_PATH}")
+        list(APPEND _Foundation_common_build_flags
+            "-I${DISPATCH_INCLUDE_PATH}"
+            "-I${DISPATCH_INCLUDE_PATH}/Block")
     endif()
-    set(DISPATCH_INCLUDE_PATH "${DEFAULT_DISPATCH_INCLUDE_PATH}" CACHE STRING "A path to where you can find libdispatch headers")
-    message("-- dispatch_DIR not found, using dispatch from SDK at ${DISPATCH_INCLUDE_PATH}")
-    list(APPEND _Foundation_common_build_flags
-        "-I${DISPATCH_INCLUDE_PATH}"
-        "-I${DISPATCH_INCLUDE_PATH}/Block")
 endif()
 find_package(LibXml2 REQUIRED)
 find_package(CURL REQUIRED)
