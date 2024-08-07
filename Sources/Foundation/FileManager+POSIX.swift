@@ -408,7 +408,7 @@ extension FileManager {
                         case FTS_D:
                             let (showFile, skipDescendants) = match(filename: filename, to: _options, isDir: true)
                             if skipDescendants {
-                                fts_set(stream, _current!, FTS_SKIP)
+                                fts_set(stream, current, FTS_SKIP)
                             }
                             if showFile {
                                  return URL(fileURLWithPath: filename, isDirectory: true)
