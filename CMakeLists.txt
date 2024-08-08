@@ -41,6 +41,13 @@ if(NOT SWIFT_SYSTEM_NAME)
   endif()
 endif()
 
+# Enable whole module optimization for release builds & incremental for debug builds
+if(POLICY CMP0157)
+    set(CMAKE_Swift_COMPILATION_MODE "$<IF:$<CONFIG:Release>,wholemodule,incremental>")
+else()
+    add_compile_options($<$<AND:$<COMPILE_LANGUAGE:Swift>,$<IF:$<CONFIG:Release>>>:-wmo>)
+endif()
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -183,13 +190,6 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND _Foundation_common_build_flags
         "-D_GNU_SOURCE")
-endif()
-
-# Enable whole module optimization for release builds & incremental for debug builds
-if(POLICY CMP0157)
-    set(CMAKE_Swift_COMPILATION_MODE "$<IF:$<CONFIG:Release>,wholemodule,incremental>")
-else()
-    add_compile_options($<$<AND:$<COMPILE_LANGUAGE:Swift>,$<IF:$<CONFIG:Release>>>:-wmo>)
 endif()
 
 include(GNUInstallDirs)
