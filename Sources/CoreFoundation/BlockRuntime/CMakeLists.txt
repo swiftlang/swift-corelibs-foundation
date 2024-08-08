@@ -26,7 +26,4 @@ target_include_directories(BlocksRuntime PUBLIC
     # For CFTargetConditionals.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
-set_target_properties(BlocksRuntime PROPERTIES
-    POSITION_INDEPENDENT_CODE FALSE)
-
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS BlocksRuntime)
