@@ -35,6 +35,16 @@ internal func NSRequiresConcreteImplementation(_ fn: String = #function, file: S
     fatalError("\(fn) must be overridden", file: file, line: line)
 }
 
+extension Data {
+    @_dynamicReplacement(for: init(_contentsOfRemote:options:))
+    private init(_contentsOfRemote_foundationNetworking url: URL, options: Data.ReadingOptions = []) throws {
+        let (nsData, _) = try _NSNonfileURLContentLoader().contentsOf(url: url)
+        self = withExtendedLifetime(nsData) {
+            return Data(bytes: nsData.bytes, count: nsData.length)
+        }
+    }
+}
+
 @usableFromInline
 class _NSNonfileURLContentLoader: _NSNonfileURLContentLoading, @unchecked Sendable {
     @usableFromInline
