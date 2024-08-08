@@ -185,6 +185,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
         "-D_GNU_SOURCE")
 endif()
 
+# Enable whole module optimization for release builds & incremental for debug builds
+if(POLICY CMP0157)
+    set(CMAKE_Swift_COMPILATION_MODE "$<IF:$<CONFIG:Release>,wholemodule,incremental>")
+else()
+    add_compile_options($<$<AND:$<COMPILE_LANGUAGE:Swift>,$<IF:$<CONFIG:Release>>>:-wmo>)
+endif()
+
 include(GNUInstallDirs)
 include(FoundationSwiftSupport)
 
