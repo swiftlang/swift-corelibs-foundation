@@ -45,7 +45,7 @@ endif()
 if(POLICY CMP0157)
     set(CMAKE_Swift_COMPILATION_MODE "$<IF:$<CONFIG:Release>,wholemodule,incremental>")
 else()
-    add_compile_options($<$<AND:$<COMPILE_LANGUAGE:Swift>,$<IF:$<CONFIG:Release>>>:-wmo>)
+    add_compile_options($<$<AND:$<COMPILE_LANGUAGE:Swift>,$<CONFIG:Release>>:-wmo>)
 endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
