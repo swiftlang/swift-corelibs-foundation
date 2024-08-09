@@ -58,9 +58,7 @@
 #include "CFLocale.h"
 #include "CFNumber.h"
 #include "CFNumberFormatter.h"
-#if !TARGET_OS_WASI
 #include "CFPreferences.h"
-#endif
 #include "CFPropertyList.h"
 #include "CFSet.h"
 #include "CFString.h"
@@ -76,13 +74,17 @@
 
 #include "ForSwiftFoundationOnly.h"
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32 || TARGET_OS_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#  if !TARGET_OS_WASI
 #include "CFMessagePort.h"
 #include "CFPlugIn.h"
+#  endif
 #include "CFRunLoop.h"
 #include "CFStream.h"
+#  if !TARGET_OS_WASI
 #include "CFSocket.h"
 #include "CFMachPort.h"
+#  endif
 
 #include "CFAttributedString.h"
 #include "CFNotificationCenter.h"

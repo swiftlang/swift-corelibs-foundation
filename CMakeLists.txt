@@ -93,18 +93,22 @@ if(NOT SwiftFoundation_MODULE_TRIPLE)
 endif()
 
 # System dependencies
-find_package(dispatch CONFIG)
-if(NOT dispatch_FOUND)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
-        set(DEFAULT_DISPATCH_INCLUDE_PATH "/usr/lib/swift")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        set(DEFAULT_DISPATCH_INCLUDE_PATH "$ENV{SDKROOT}usr/include")
+
+# We know libdispatch is always unavailable on WASI
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+    find_package(dispatch CONFIG)
+    if(NOT dispatch_FOUND)
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+            set(DEFAULT_DISPATCH_INCLUDE_PATH "/usr/lib/swift")
+        elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+            set(DEFAULT_DISPATCH_INCLUDE_PATH "$ENV{SDKROOT}usr/include")
+        endif()
+        set(DISPATCH_INCLUDE_PATH "${DEFAULT_DISPATCH_INCLUDE_PATH}" CACHE STRING "A path to where you can find libdispatch headers")
+        message("-- dispatch_DIR not found, using dispatch from SDK at ${DISPATCH_INCLUDE_PATH}")
+        list(APPEND _Foundation_common_build_flags
+            "-I${DISPATCH_INCLUDE_PATH}"
+            "-I${DISPATCH_INCLUDE_PATH}/Block")
     endif()
-    set(DISPATCH_INCLUDE_PATH "${DEFAULT_DISPATCH_INCLUDE_PATH}" CACHE STRING "A path to where you can find libdispatch headers")
-    message("-- dispatch_DIR not found, using dispatch from SDK at ${DISPATCH_INCLUDE_PATH}")
-    list(APPEND _Foundation_common_build_flags
-        "-I${DISPATCH_INCLUDE_PATH}"
-        "-I${DISPATCH_INCLUDE_PATH}/Block")
 endif()
 find_package(LibXml2 REQUIRED)
 find_package(CURL REQUIRED)
@@ -113,7 +117,6 @@ find_package(CURL REQUIRED)
 list(APPEND _Foundation_common_build_flags
     "-DDEPLOYMENT_RUNTIME_SWIFT"
     "-DCF_BUILDING_CF"
-    "-DDEPLOYMENT_ENABLE_LIBDISPATCH"
     "-DHAVE_STRUCT_TIMESPEC"
     "-Wno-shorten-64-to-32"
     "-Wno-deprecated-declarations"
@@ -126,16 +129,10 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-switch"
     "-fblocks")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
-  list(APPEND _Foundation_common_build_flags
-    "-D_WASI_EMULATED_SIGNAL"
-    "-DHAVE_STRLCPY"
-    "-DHAVE_STRLCAT"
-  )
-else()
-  list(APPEND _Foundation_common_build_flags
-    "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS"
-  )
+if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+    list(APPEND _Foundation_common_build_flags
+        "-DDEPLOYMENT_ENABLE_LIBDISPATCH"
+        "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS")
 endif()
 
 if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
@@ -168,16 +165,17 @@ list(APPEND _Foundation_swift_build_flags
     "-Xfrontend"
     "-require-explicit-sendable")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
-  list(APPEND _Foundation_swift_build_flags
-    "-D_WASI_EMULATED_SIGNAL"
-    "-DHAVE_STRLCPY"
-    "-DHAVE_STRLCAT"
-  )
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+    # Enable wasi-libc emulation features
+    set(WASI_EMULATION_DEFS _WASI_EMULATED_MMAN _WASI_EMULATED_SIGNAL _WASI_EMULATED_PROCESS_CLOCKS)
+    foreach(def ${WASI_EMULATION_DEFS})
+        list(APPEND _Foundation_swift_build_flags "SHELL:-Xcc -D${def}")
+        list(APPEND _Foundation_common_build_flags "-D${def}")
+    endforeach()
 else()
-  list(APPEND _Foundation_swift_build_flags
-    "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS"
-  )
+    # Assume we have threads on other platforms
+    list(APPEND _Foundation_swift_build_flags
+        "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")

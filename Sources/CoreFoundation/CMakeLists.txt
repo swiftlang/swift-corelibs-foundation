@@ -118,6 +118,13 @@ target_link_libraries(CoreFoundation
         _FoundationICU
         dispatch)
 
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+    # On WASI, we use vendored BlocksRuntime instead of the one from libdispatch
+    add_subdirectory(BlockRuntime)
+    # Add BlocksRuntime object library to CoreFoundation static archive
+    target_link_libraries(CoreFoundation PRIVATE BlocksRuntime)
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS CoreFoundation)
 
 # Copy Headers to known directory for direct client (XCTest) test builds

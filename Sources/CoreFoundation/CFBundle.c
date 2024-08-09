@@ -600,7 +600,7 @@ CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
 #if TARGET_OS_WASI
     hint = NULL;
 #else
-    hint = __builtin_frame_address(0);
+    hint = __builtin_return_address(0);
 #endif
     return _CFBundleGetBundleWithIdentifier(bundleID, hint);
 }

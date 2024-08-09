@@ -20,7 +20,7 @@ target_include_directories(_CFXMLInterface
         ../CoreFoundation/include
     PRIVATE
         ../CoreFoundation/internalInclude
-        /usr/include/libxml2/)
+        ${LIBXML2_INCLUDE_DIR})
 
 target_compile_options(_CFXMLInterface INTERFACE
   "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/../CoreFoundation/include/module.modulemap>"
@@ -32,6 +32,10 @@ target_compile_options(_CFXMLInterface PRIVATE
 target_link_libraries(_CFXMLInterface PRIVATE
     dispatch
     LibXml2::LibXml2)
+
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+    target_link_libraries(_CFXMLInterface PRIVATE BlocksRuntime)
+endif()
 
 if(NOT BUILD_SHARED_LIBS)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS _CFXMLInterface)
