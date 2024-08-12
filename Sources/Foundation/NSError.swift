@@ -182,7 +182,11 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked S
     }
     
     override open var description: String {
-        return "Error Domain=\(domain) Code=\(code) \"\(localizedFailureReason ?? "(null)")\""
+        var result = "Error Domain=\(domain) Code=\(code) \"\(localizedFailureReason ?? "(null)")\""
+        if !userInfo.isEmpty {
+            result += "UserInfo={\(userInfo.map { "\($0)=\($1)"}.joined(separator: ", "))}"
+        }
+        return result
     }
     
     // -- NSObject Overrides --
