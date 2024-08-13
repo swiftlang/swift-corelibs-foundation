@@ -63,6 +63,14 @@ if(BUILD_SHARED_LIBS)
     option(FOUNDATION_BUILD_TOOLS "build tools" ON)
 endif()
 
+set(FOUNDATION_BUILD_NETWORKING_default ON)
+if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+    # Networking is not supported on WASI
+    set(FOUNDATION_BUILD_NETWORKING_default OFF)
+endif()
+option(FOUNDATION_BUILD_NETWORKING "build FoundationNetworking"
+    ${FOUNDATION_BUILD_NETWORKING_default})
+
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 # Fetchable dependcies
@@ -121,7 +129,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
     endif()
 endif()
 find_package(LibXml2 REQUIRED)
-find_package(CURL REQUIRED)
+if(FOUNDATION_BUILD_NETWORKING)
+    find_package(CURL REQUIRED)
+endif()
 
 # Common build flags (_CFURLSessionInterface, _CFXMLInterface, CoreFoundation)
 list(APPEND _Foundation_common_build_flags
