@@ -12,13 +12,6 @@
 import WinSDK
 #elseif os(WASI)
 import WASILibc
-// CoreFoundation brings <errno.h> but it conflicts with WASILibc.errno
-// definition, so we need to explicitly select the one from WASILibc.
-// This is defined as "internal" since this workaround also used in other files.
-internal var errno: Int32 {
-    get { WASILibc.errno }
-    set { WASILibc.errno = newValue }
-}
 #endif
 
 #if os(Windows)
