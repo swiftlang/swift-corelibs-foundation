@@ -13,7 +13,7 @@ class TestProcess : XCTestCase {
     
     func test_exit0() throws {
         let process = Process()
-        let executableURL = xdgTestHelperURL()
+        let executableURL = try xdgTestHelperURL()
         if #available(macOS 10.13, *) {
             process.executableURL = executableURL
         } else {
@@ -31,7 +31,7 @@ class TestProcess : XCTestCase {
     
     func test_exit1() throws {
         let process = Process()
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--exit", "1"]
 
         try process.run()
@@ -42,7 +42,7 @@ class TestProcess : XCTestCase {
     
     func test_exit100() throws {
         let process = Process()
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--exit", "100"]
         
         try process.run()
@@ -53,7 +53,7 @@ class TestProcess : XCTestCase {
     
     func test_sleep2() throws {
         let process = Process()
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--sleep", "2"]
         
         try process.run()
@@ -64,7 +64,7 @@ class TestProcess : XCTestCase {
 
     func test_terminationReason_uncaughtSignal() throws {
         let process = Process()
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--signal-self", SIGTERM.description]
         try process.run()
         process.waitUntilExit()
@@ -75,7 +75,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stdin() throws {
         let process = Process()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--cat"]
         let outputPipe = Pipe()
         process.standardOutput = outputPipe
@@ -109,7 +109,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stdout() throws {
         let process = Process()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--getcwd"]
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -131,7 +131,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stderr() throws {
         let process = Process()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--cat", "invalid_file_name"]
 
         let errorPipe = Pipe()
@@ -154,7 +154,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stdout_and_stderr_same_pipe() throws {
         let process = Process()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--cat", "invalid_file_name"]
 
         let pipe = Pipe()
@@ -189,7 +189,7 @@ class TestProcess : XCTestCase {
     func test_file_stdout() throws {
         let process = Process()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--getcwd"]
 
         let url: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: false)
@@ -213,50 +213,38 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\r", "\n"])), FileManager.default.currentDirectoryPath)
     }
     
-    func test_passthrough_environment() {
-        do {
-            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: nil)
-            let env = try parseEnv(output)
+    func test_passthrough_environment() throws {
+        let (output, _) = try runTask([try xdgTestHelperURL().path, "--env"], environment: nil)
+        let env = try parseEnv(output)
 #if os(Windows)
-            // On Windows, Path is always passed to the sub process
-            XCTAssertGreaterThan(env.count, 1)
+        // On Windows, Path is always passed to the sub process
+        XCTAssertGreaterThan(env.count, 1)
 #else
-            XCTAssertGreaterThan(env.count, 0)
+        XCTAssertGreaterThan(env.count, 0)
 #endif
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
     }
 
-    func test_no_environment() {
-        do {
-            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: [:])
-            let env = try parseEnv(output)
+    func test_no_environment() throws {
+        let (output, _) = try runTask([try xdgTestHelperURL().path, "--env"], environment: [:])
+        let env = try parseEnv(output)
 #if os(Windows)
-            // On Windows, Path is always passed to the sub process
-            XCTAssertEqual(env.count, 1)
+        // On Windows, Path is always passed to the sub process
+        XCTAssertEqual(env.count, 1)
 #else
-            XCTAssertEqual(env.count, 0)
+        XCTAssertEqual(env.count, 0)
 #endif
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
     }
 
-    func test_custom_environment() {
-        do {
-            let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
-            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: input)
-            var env = try parseEnv(output)
+    func test_custom_environment() throws {
+        let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
+        let (output, _) = try runTask([try xdgTestHelperURL().path, "--env"], environment: input)
+        var env = try parseEnv(output)
 #if os(Windows)
-            // On Windows, Path is always passed to the sub process, remove it
-            // before comparing.
-            env.removeValue(forKey: "Path")
+        // On Windows, Path is always passed to the sub process, remove it
+        // before comparing.
+        env.removeValue(forKey: "Path")
 #endif
-            XCTAssertEqual(env, input)
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+        XCTAssertEqual(env, input)
     }
 
     func test_current_working_directory() throws {
@@ -276,67 +264,57 @@ class TestProcess : XCTestCase {
 
         // Test that getcwd() returns the currentDirectoryPath
         do {
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
+            let (pwd, _) = try runTask([try xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines).standardizePath(), tmpDir)
-        } catch {
-            XCTFail("Test failed: \(error)")
         }
 
         // Test that $PWD by default is set to currentDirectoryPath
         do {
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
+            let (pwd, _) = try runTask([try xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             let cwd = FileManager.default.currentDirectoryPath.standardizePath()
             XCTAssertNotEqual(cwd, tmpDir)
             XCTAssertNotEqual(pwd.trimmingCharacters(in: .newlines).standardizePath(), tmpDir)
-        } catch {
-            XCTFail("Test failed: \(error)")
         }
 
         // Test that $PWD can be over-ridden
         do {
             var env = ProcessInfo.processInfo.environment
             env["PWD"] = "/bin"
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+            let (pwd, _) = try runTask([try xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "/bin")
-        } catch {
-            XCTFail("Test failed: \(error)")
         }
 
         // Test that $PWD can be set to empty
         do {
             var env = ProcessInfo.processInfo.environment
             env["PWD"] = ""
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+            let (pwd, _) = try runTask([try xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "")
-        } catch {
-            XCTFail("Test failed: \(error)")
         }
 
         XCTAssertEqual(previousWorkingDirectory, fm.currentDirectoryPath)
     }
 
-    func test_run() {
+    func test_run() throws {
         let fm = FileManager.default
         let cwd = fm.currentDirectoryPath
 
         do {
-            let process = try Process.run(xdgTestHelperURL(), arguments: ["--exit", "123"], terminationHandler: nil)
+            let process = try Process.run(try xdgTestHelperURL(), arguments: ["--exit", "123"], terminationHandler: nil)
             process.waitUntilExit()
             XCTAssertEqual(process.terminationReason, .exit)
             XCTAssertEqual(process.terminationStatus, 123)
-        } catch {
-            XCTFail("Cant execute \(xdgTestHelperURL().path): \(error)")
         }
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
 
         do {
             // Check running the process twice throws an error.
             let process = Process()
-            process.executableURL = xdgTestHelperURL()
+            process.executableURL = try xdgTestHelperURL()
             process.arguments = ["--exit", "0"]
             XCTAssertNoThrow(try process.run())
             process.waitUntilExit()
@@ -350,7 +328,7 @@ class TestProcess : XCTestCase {
 
         do {
             let process = Process()
-            process.executableURL = xdgTestHelperURL()
+            process.executableURL = try xdgTestHelperURL()
             process.arguments = ["--exit", "0"]
             process.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
             XCTAssertThrowsError(try process.run())
@@ -368,7 +346,7 @@ class TestProcess : XCTestCase {
         _ = fm.changeCurrentDirectoryPath(cwd)
     }
 
-    func test_preStartEndState() {
+    func test_preStartEndState() throws {
         let process = Process()
         XCTAssertNil(process.executableURL)
         XCTAssertNotNil(process.currentDirectoryURL)
@@ -378,7 +356,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.processIdentifier, 0)
         XCTAssertEqual(process.qualityOfService, .default)
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--cat"]
         _ = try? process.run()
         XCTAssertTrue(process.isRunning)
@@ -395,7 +373,7 @@ class TestProcess : XCTestCase {
         #if os(Windows)
         throw XCTSkip("Windows does not have signals")
         #else
-        let helper = _SignalHelperRunner()
+        let helper = try _SignalHelperRunner()
         do {
             try helper.start()
         }  catch {
@@ -434,8 +412,8 @@ class TestProcess : XCTestCase {
         #endif
     }
 
-    func test_terminate() {
-        guard let process = try? Process.run(xdgTestHelperURL(), arguments: ["--cat"]) else {
+    func test_terminate() throws {
+        guard let process = try? Process.run(try xdgTestHelperURL(), arguments: ["--cat"]) else {
             XCTFail("Cant run 'cat'")
             return
         }
@@ -452,7 +430,7 @@ class TestProcess : XCTestCase {
         #if os(Windows)
         throw XCTSkip("Windows does not have signals")
         #else
-        nonisolated(unsafe) let helper = _SignalHelperRunner()
+        nonisolated(unsafe) let helper = try _SignalHelperRunner()
         do {
             try helper.start()
         }  catch {
@@ -507,9 +485,9 @@ class TestProcess : XCTestCase {
     }
 
 
-    func test_redirect_stdin_using_null() {
+    func test_redirect_stdin_using_null() throws {
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--cat"]
         task.standardInput = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
@@ -517,18 +495,18 @@ class TestProcess : XCTestCase {
     }
 
 
-    func test_redirect_stdout_using_null() {
+    func test_redirect_stdout_using_null() throws {
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--env"]
         task.standardOutput = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
         task.waitUntilExit()
     }
 
-    func test_redirect_stdin_stdout_using_null() {
+    func test_redirect_stdin_stdout_using_null() throws {
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--cat"]
         task.standardInput = FileHandle.nullDevice
         task.standardOutput = FileHandle.nullDevice
@@ -539,7 +517,7 @@ class TestProcess : XCTestCase {
 
     func test_redirect_stderr_using_null() throws {
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--env"]
         task.standardError = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
@@ -549,7 +527,7 @@ class TestProcess : XCTestCase {
 
     func test_redirect_all_using_null() throws {
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--cat"]
         task.standardInput = FileHandle.nullDevice
         task.standardOutput = FileHandle.nullDevice
@@ -560,7 +538,7 @@ class TestProcess : XCTestCase {
 
     func test_redirect_all_using_nil() throws {
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--cat"]
         task.standardInput = nil
         task.standardOutput = nil
@@ -645,7 +623,7 @@ class TestProcess : XCTestCase {
         }
 
         do {
-            let (stdout, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/")
+            let (stdout, _) = try runTask([try xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/")
             var directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
 #if os(Windows)
             let zero: String.Index = directory.startIndex
@@ -665,7 +643,7 @@ class TestProcess : XCTestCase {
 #if !os(Windows)
             XCTAssertNotEqual("/", FileManager.default.currentDirectoryPath)
             XCTAssertNotEqual(FileManager.default.currentDirectoryPath, "/")
-            let (stdout, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: "/")
+            let (stdout, _) = try runTask([try xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: "/")
             let directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
             XCTAssertEqual(directory, ProcessInfo.processInfo.environment["PWD"])
             XCTAssertNotEqual(directory, "/")
@@ -674,7 +652,7 @@ class TestProcess : XCTestCase {
 
         do {
             let process = Process()
-            process.executableURL = xdgTestHelperURL()
+            process.executableURL = try xdgTestHelperURL()
             process.arguments = [ "--getcwd" ]
             process.currentDirectoryPath = ""
 
@@ -698,11 +676,9 @@ class TestProcess : XCTestCase {
             }
             let directory = stdout.trimmingCharacters(in: CharacterSet(["\n", "\r"]))
             XCTAssertEqual(directory, FileManager.default.currentDirectoryPath)
-        } catch {
-            XCTFail(String(describing: error))
         }
 
-        XCTAssertThrowsError(try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/some_directory_that_doesnt_exsit")) { error in
+        XCTAssertThrowsError(try runTask([try xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: "/some_directory_that_doesnt_exsit")) { error in
             let code = CocoaError.Code(rawValue: (error as NSError).code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
@@ -712,7 +688,7 @@ class TestProcess : XCTestCase {
     func test_fileDescriptorsAreNotInherited() throws {
         let task = Process()
         let someExtraFDs = [dup(1), dup(1), dup(1), dup(1), dup(1), dup(1), dup(1)]
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--print-open-file-descriptors"]
         task.standardInput = FileHandle.nullDevice
         let stdoutPipe = Pipe()
@@ -747,12 +723,12 @@ class TestProcess : XCTestCase {
     }
     #endif
 
-    func test_pipeCloseBeforeLaunch() {
+    func test_pipeCloseBeforeLaunch() throws {
         let process = Process()
         let stdInput = Pipe()
         let stdOutput = Pipe()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--cat"]
         process.standardInput = stdInput
         process.standardOutput = stdOutput
@@ -775,17 +751,17 @@ class TestProcess : XCTestCase {
         }
     }
 
-    func test_multiProcesses() {
+    func test_multiProcesses() throws {
         let source = Process()
-        source.executableURL = xdgTestHelperURL()
+        source.executableURL = try xdgTestHelperURL()
         source.arguments = [ "--getcwd" ]
 
         let cat1 = Process()
-        cat1.executableURL = xdgTestHelperURL()
+        cat1.executableURL = try xdgTestHelperURL()
         cat1.arguments = [ "--cat" ]
 
         let cat2 = Process()
-        cat2.executableURL = xdgTestHelperURL()
+        cat2.executableURL = try xdgTestHelperURL()
         cat2.arguments = [ "--cat" ]
 
         let pipe1 = Pipe()
@@ -820,7 +796,7 @@ class TestProcess : XCTestCase {
         // The process group of the child process should be different to the parent's.
         let process = Process()
 
-        process.executableURL = xdgTestHelperURL()
+        process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--pgrp"]
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -871,8 +847,8 @@ class _SignalHelperRunner {
     var sigContCount: Int { return sQueue.sync { return _sigContCount } }
 
 
-    init() {
-        process.executableURL = xdgTestHelperURL()
+    init() throws {
+        process.executableURL = try xdgTestHelperURL()
         process.environment = ProcessInfo.processInfo.environment
         process.arguments = ["--signal-test"]
         process.standardOutput = outputPipe.fileHandleForWriting

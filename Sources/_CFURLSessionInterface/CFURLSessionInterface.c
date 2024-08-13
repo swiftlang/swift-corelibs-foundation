@@ -18,8 +18,8 @@
 ///
 //===----------------------------------------------------------------------===//
 
-#include "CFURLSessionInterface.h"
 #include "CFInternal.h"
+#include "CFURLSessionInterface.h"
 #include "CFString.h"
 #include <curl/curl.h>
 

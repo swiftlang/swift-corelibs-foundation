@@ -14,19 +14,20 @@ let platformsWithThreads: [Platform] = [
     .linux,
     .windows,
 ]
-var dispatchIncludeFlags: [CSetting]
+
+var dispatchIncludeFlags: [CSetting] = []
 if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
-    dispatchIncludeFlags = [.unsafeFlags([
+    dispatchIncludeFlags.append(.unsafeFlags([
         "-I\(environmentPath)",
         "-I\(environmentPath)/Block"
-    ])]
+    ]))
 } else {
-    dispatchIncludeFlags = [
+    dispatchIncludeFlags.append(
         .unsafeFlags([
             "-I/usr/lib/swift",
             "-I/usr/lib/swift/Block"
         ], .when(platforms: [.linux, .android]))
-    ]
+    )
     if let sdkRoot = Context.environment["SDKROOT"] {
         dispatchIncludeFlags.append(.unsafeFlags([
             "-I\(sdkRoot)usr\\include",
@@ -35,10 +36,55 @@ if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
     }
 }
 
+var libxmlIncludeFlags: [CSetting] = []
+if let environmentPath = Context.environment["LIBXML_INCLUDE_PATH"] {
+    libxmlIncludeFlags = [
+        .unsafeFlags([
+            "-I\(environmentPath)"
+        ]),
+        .define("LIBXML_STATIC")
+    ]
+}
+
+var curlIncludeFlags: [CSetting] = []
+if let environmentPath = Context.environment["CURL_INCLUDE_PATH"] {
+    curlIncludeFlags  = [
+        .unsafeFlags([
+            "-I\(environmentPath)"
+        ]),
+        .define("CURL_STATICLIB")
+    ]
+}
+
+var curlLinkFlags: [LinkerSetting] = [
+    .linkedLibrary("libcurl.lib", .when(platforms: [.windows])),
+    .linkedLibrary("zlibstatic.lib", .when(platforms: [.windows]))
+]
+if let environmentPath = Context.environment["CURL_LIBRARY_PATH"] {
+    curlLinkFlags.append(.unsafeFlags([
+        "-L\(environmentPath)"
+    ]))
+}
+if let environmentPath = Context.environment["ZLIB_LIBRARY_PATH"] {
+    curlLinkFlags.append(.unsafeFlags([
+        "-L\(environmentPath)"
+    ]))
+}
+
+var libxmlLinkFlags: [LinkerSetting] = [
+    .linkedLibrary("libxml2s.lib", .when(platforms: [.windows]))
+]
+if let environmentPath = Context.environment["LIBXML2_LIBRARY_PATH"] {
+    libxmlLinkFlags.append(.unsafeFlags([
+        "-L\(environmentPath)"
+    ]))
+}
+
 let coreFoundationBuildSettings: [CSetting] = [
     .headerSearchPath("internalInclude"),
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
+    .define("CF_WINDOWS_EXECUTABLE_INITIALIZER", .when(platforms: [.windows])), // Ensure __CFInitialize is run even when statically linked into an executable
     .define("DEPLOYMENT_ENABLE_LIBDISPATCH", .when(platforms: platformsWithThreads)),
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("HAVE_STRUCT_TIMESPEC"),
@@ -216,25 +262,27 @@ let package = Package(
             name: "_CFXMLInterface",
             dependencies: [
                 "CoreFoundation",
-                "Clibxml2",
+                .target(name: "Clibxml2", condition: .when(platforms: [.linux])),
             ],
             path: "Sources/_CFXMLInterface",
             exclude: [
                 "CMakeLists.txt"
             ],
-            cSettings: interfaceBuildSettings
+            cSettings: interfaceBuildSettings + libxmlIncludeFlags,
+            linkerSettings: libxmlLinkFlags
         ),
         .target(
             name: "_CFURLSessionInterface",
             dependencies: [
                 "CoreFoundation",
-                "Clibcurl",
+                .target(name: "Clibcurl", condition: .when(platforms: [.linux])),
             ],
             path: "Sources/_CFURLSessionInterface",
             exclude: [
                 "CMakeLists.txt"
             ],
-            cSettings: interfaceBuildSettings
+            cSettings: interfaceBuildSettings + curlIncludeFlags,
+            linkerSettings: curlLinkFlags
         ),
         .systemLibrary(
             name: "Clibxml2",
@@ -292,8 +340,8 @@ let package = Package(
                 "Foundation",
                 "FoundationXML",
                 "FoundationNetworking",
-                .targetItem(name: "XCTest", condition: .when(platforms: [.linux])),
-                "xdgTestHelper"
+                "XCTest",
+                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux]))
             ],
             resources: [
                 .copy("Foundation/Resources")

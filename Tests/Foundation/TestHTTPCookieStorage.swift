@@ -334,7 +334,7 @@ class TestHTTPCookieStorage: XCTestCase {
 
         // Test by setting the environmental variable
         let task = Process()
-        task.executableURL = xdgTestHelperURL()
+        task.executableURL = try xdgTestHelperURL()
         task.arguments = ["--xdgcheck"]
         var environment = ProcessInfo.processInfo.environment
         let testPath = NSHomeDirectory() + "/TestXDG"
