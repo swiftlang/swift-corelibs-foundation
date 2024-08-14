@@ -45,16 +45,9 @@ class TestProcessInfo : XCTestCase {
     }
     
     func test_processName() {
-#if DARWIN_COMPATIBILITY_TESTS
-        let targetName = "xctest"
-#elseif os(Windows)
-        let targetName = "swift-corelibs-foundationPackageTests.exe"
-#else
-        let targetName = "swift-corelibs-foundationPackageTests.xctest"
-#endif
         let processInfo = ProcessInfo.processInfo
         let originalProcessName = processInfo.processName
-        XCTAssertEqual(originalProcessName, targetName)
+        XCTAssertEqual(originalProcessName, "swift-corelibs-foundationPackageTests.xctest")
         
         // Try assigning a new process name.
         let newProcessName = "TestProcessName"
