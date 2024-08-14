@@ -1258,18 +1258,14 @@ class TestFileManager : XCTestCase {
         return stdout.trimmingCharacters(in: CharacterSet.newlines)
     }
     
-    func assertFetchingPath(withConfiguration config: String, identifier: String, yields path: String) {
+    func assertFetchingPath(withConfiguration config: String, identifier: String, yields path: String) throws {
         for method in [ "NSSearchPath", "FileManagerDotURLFor", "FileManagerDotURLsFor" ] {
-            do {
-                let found = try printPathByRunningHelper(withConfiguration: config, method: method, identifier: identifier)
-                XCTAssertEqual(found, path)
-            } catch let error {
-                XCTFail("Failed with method \(method), configuration \(config), identifier \(identifier), equal to \(path), error \(error)")
-            }
+            let found = try printPathByRunningHelper(withConfiguration: config, method: method, identifier: identifier)
+            XCTAssertEqual(found, path)
         }
     }
     
-    func test_fetchXDGPathsFromHelper() {
+    func test_fetchXDGPathsFromHelper() throws {
         let prefix = NSHomeDirectory() + "/_Foundation_Test_"
         
         let configuration = """
@@ -1282,13 +1278,13 @@ class TestFileManager : XCTestCase {
         VIDEOS=\(prefix)/Videos
         """
         
-        assertFetchingPath(withConfiguration: configuration, identifier: "desktop", yields: "\(prefix)/Desktop")
-        assertFetchingPath(withConfiguration: configuration, identifier: "download", yields: "\(prefix)/Download")
-        assertFetchingPath(withConfiguration: configuration, identifier: "publicShare", yields: "\(prefix)/PublicShare")
-        assertFetchingPath(withConfiguration: configuration, identifier: "documents", yields: "\(prefix)/Documents")
-        assertFetchingPath(withConfiguration: configuration, identifier: "music", yields: "\(prefix)/Music")
-        assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
-        assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "desktop", yields: "\(prefix)/Desktop")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "download", yields: "\(prefix)/Download")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "publicShare", yields: "\(prefix)/PublicShare")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "documents", yields: "\(prefix)/Documents")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "music", yields: "\(prefix)/Music")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
     }
     #endif // !os(Android)
 #endif // !DEPLOYMENT_RUNTIME_OBJC

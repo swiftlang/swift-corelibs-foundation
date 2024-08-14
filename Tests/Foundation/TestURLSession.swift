@@ -1022,8 +1022,10 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
-     // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
-    func test_httpRedirectionTimeout() async {
+    func test_httpRedirectionTimeout() async throws {
+        #if os(Windows)
+        throw XCTSkip("temporarily disabled (https://bugs.swift.org/browse/SR-5751)")
+        #else
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         var req = URLRequest(url: URL(string: urlString)!)
         req.timeoutInterval = 3
@@ -1041,6 +1043,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+        #endif
     }
 
     func test_httpRedirectionChainInheritsTimeoutInterval() async throws {

@@ -21,7 +21,9 @@ let validPathSeps: [Character] = ["/"]
 #endif
 
 public func NSTemporaryDirectory() -> String {
-    FileManager.default.temporaryDirectory.path()
+    FileManager.default.temporaryDirectory.withUnsafeFileSystemRepresentation {
+        String(cString: $0!)
+    }
 }
 
 extension String {
@@ -614,12 +616,16 @@ public func NSSearchPathForDirectoriesInDomains(_ directory: FileManager.SearchP
 }
 
 public func NSHomeDirectory() -> String {
-    FileManager.default.homeDirectoryForCurrentUser.path
+    FileManager.default.homeDirectoryForCurrentUser.withUnsafeFileSystemRepresentation {
+        String(cString: $0!)
+    }
 }
 
 public func NSHomeDirectoryForUser(_ user: String?) -> String? {
     guard let user else { return NSHomeDirectory() }
-    return FileManager.default.homeDirectory(forUser: user)?.path
+    return FileManager.default.homeDirectory(forUser: user)?.withUnsafeFileSystemRepresentation {
+        String(cString: $0!)
+    }
 }
 
 public func NSUserName() -> String {
