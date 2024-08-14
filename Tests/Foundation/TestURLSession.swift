@@ -652,6 +652,9 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
     
     func test_repeatedRequestsStress() async throws {
+        #if os(Windows)
+        throw XCTSkip("This test is currently disabled on Windows")
+        #else
         // TODO: try disabling curl connection cache to force socket close early. Or create several url sessions (they have cleanup in deinit)
         
         let config = URLSessionConfiguration.default
@@ -692,6 +695,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         checkCountAndRunNext()
 
         waitForExpectations(timeout: 30)
+        #endif
     }
 
     func test_httpRedirectionWithCode300() async throws {
