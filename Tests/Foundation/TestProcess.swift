@@ -413,10 +413,7 @@ class TestProcess : XCTestCase {
     }
 
     func test_terminate() throws {
-        guard let process = try? Process.run(try xdgTestHelperURL(), arguments: ["--cat"]) else {
-            XCTFail("Cant run 'cat'")
-            return
-        }
+        let process = try Process.run(try xdgTestHelperURL(), arguments: ["--cat"])
 
         process.terminate()
         process.waitUntilExit()
@@ -549,6 +546,10 @@ class TestProcess : XCTestCase {
 
 
     func test_plutil() throws {
+        #if os(Windows)
+        // See explanation in xdgTestHelperURL() as to why this is unsupported
+        throw XCTSkip("Running plutil as part of unit tests is not supported on Windows")
+        #else
         let task = Process()
 
         guard let url = testBundle(executable: true).url(forAuxiliaryExecutable: "plutil") else {
@@ -576,6 +577,7 @@ class TestProcess : XCTestCase {
             }
             XCTAssertEqual(String(data: $0, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
         }
+        #endif
     }
 
     @available(*, deprecated) // test of deprecated API, suppress deprecation warning
@@ -613,7 +615,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.currentDirectoryPath, "")
         XCTAssertNil(process.currentDirectoryURL)
         process.currentDirectoryURL = nil
-        XCTAssertEqual(process.currentDirectoryPath, cwd.path)
+        XCTAssertEqual(process.currentDirectoryPath, cwd.withUnsafeFileSystemRepresentation { String(cString: $0!) })
 
 
         process.executableURL = URL(fileURLWithPath: "/some_file_that_doesnt_exist", isDirectory: false)
