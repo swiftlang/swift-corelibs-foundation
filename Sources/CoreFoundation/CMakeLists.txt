@@ -85,6 +85,7 @@ add_library(CoreFoundation STATIC
     CFStringUtilities.c
     CFSystemDirectories.c
     CFTimeZone.c
+    CFTimeZone_WindowsMappings.c
     CFTree.c
     CFUniChar.c
     CFUnicodeDecomposition.c

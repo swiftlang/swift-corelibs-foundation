@@ -39,7 +39,7 @@
 #if TARGET_OS_WIN32
 #include <tchar.h>
 
-#include "WindowsResources.h"
+#include "CFTimeZone_WindowsMapping.h"
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
@@ -91,11 +91,6 @@ static CFLock_t __CFTimeZoneCompatibilityMappingLock = CFLockInit;
 static CFArrayRef __CFKnownTimeZoneList = NULL;
 static CFMutableDictionaryRef __CFTimeZoneCache = NULL;
 static CFLock_t __CFTimeZoneGlobalLock = CFLockInit;
-
-#if TARGET_OS_WIN32
-static CFDictionaryRef __CFTimeZoneWinToOlsonDict = NULL;
-static CFLock_t __CFTimeZoneWinToOlsonLock = CFLockInit;
-#endif
 
 CF_INLINE void __CFTimeZoneLockGlobal(void) {
     __CFLock(&__CFTimeZoneGlobalLock);
@@ -672,110 +667,7 @@ CFTypeID CFTimeZoneGetTypeID(void) {
     return _kCFRuntimeIDCFTimeZone;
 }
 
-#if TARGET_OS_WIN32
-CF_INLINE void __CFTimeZoneLockWinToOlson(void) {
-    __CFLock(&__CFTimeZoneWinToOlsonLock);
-}
-
-CF_INLINE void __CFTimeZoneUnlockWinToOlson(void) {
-    __CFUnlock(&__CFTimeZoneWinToOlsonLock);
-}
-
-static Boolean CFTimeZoneLoadPlistResource(LPCSTR lpName, LPVOID *ppResource, LPDWORD pdwSize) {
-    HRSRC hResource;
-    HGLOBAL hMemory;
-    HMODULE hModule;
-
-    if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                            (LPCWSTR)&CFTimeZoneLoadPlistResource, &hModule)) {
-        return FALSE;
-    }
-
-    hResource = FindResourceA(hModule, lpName, "PLIST");
-    if (hResource == NULL) {
-        return FALSE;
-    }
-
-    hMemory = LoadResource(hModule, hResource);
-    if (hMemory == NULL) {
-        return FALSE;
-    }
-
-    *pdwSize = SizeofResource(hModule, hResource);
-    *ppResource = LockResource(hMemory);
-
-    return *pdwSize && *ppResource;
-}
-
-CFDictionaryRef CFTimeZoneCopyWinToOlsonDictionary(void) {
-    CFDictionaryRef dict;
-
-    __CFTimeZoneLockWinToOlson();
-    if (NULL == __CFTimeZoneWinToOlsonDict) {
-        const uint8_t *plist;
-        DWORD dwSize;
-
-        if (CFTimeZoneLoadPlistResource(MAKEINTRESOURCEA(IDR_WINDOWS_OLSON_MAPPING), (LPVOID *)&plist, &dwSize)) {
-            CFDataRef data = CFDataCreate(kCFAllocatorSystemDefault, plist, dwSize);
-            __CFTimeZoneWinToOlsonDict = (CFDictionaryRef)CFPropertyListCreateFromXMLData(kCFAllocatorSystemDefault, data, kCFPropertyListImmutable, NULL);
-            CFRelease(data);
-        }
-    }
-    if (NULL == __CFTimeZoneWinToOlsonDict) {
-        __CFTimeZoneWinToOlsonDict = CFDictionaryCreate(kCFAllocatorSystemDefault, NULL, NULL, 0, NULL, NULL);
-    }
-    dict = __CFTimeZoneWinToOlsonDict ? (CFDictionaryRef)CFRetain(__CFTimeZoneWinToOlsonDict) : NULL;
-    __CFTimeZoneUnlockWinToOlson();
-
-    return dict;
-}
-
-static CFDictionaryRef CFTimeZoneCopyOlsonToWindowsDictionary(void) {
-    static CFDictionaryRef dict;
-    static CFLock_t lock;
-
-    __CFLock(&lock);
-    if (dict == NULL) {
-      const uint8_t *plist;
-      DWORD dwSize;
-
-      if (CFTimeZoneLoadPlistResource(MAKEINTRESOURCEA(IDR_OLSON_WINDOWS_MAPPING), (LPVOID *)&plist, &dwSize)) {
-          CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, plist, dwSize, kCFAllocatorNull);
-          dict = CFPropertyListCreateFromXMLData(kCFAllocatorSystemDefault, data, kCFPropertyListImmutable, NULL);
-          CFRelease(data);
-      }
-    }
-    __CFUnlock(&lock);
-
-    return dict ? CFRetain(dict) : NULL;
-}
-
-void CFTimeZoneSetWinToOlsonDictionary(CFDictionaryRef dict) {
-    __CFGenericValidateType(dict, CFDictionaryGetTypeID());
-    __CFTimeZoneLockWinToOlson();
-    if (dict != __CFTimeZoneWinToOlsonDict) {
-        CFDictionaryRef oldDict = __CFTimeZoneWinToOlsonDict;
-        __CFTimeZoneWinToOlsonDict = dict ? CFRetain(dict) : NULL;
-        CFRelease(oldDict);
-    }
-    __CFTimeZoneUnlockWinToOlson();
-}
-
-CFTimeZoneRef CFTimeZoneCreateWithWindowsName(CFAllocatorRef allocator, CFStringRef winName) {
-    if (!winName) return NULL;
-    
-    CFDictionaryRef winToOlson = CFTimeZoneCopyWinToOlsonDictionary();
-    if (!winToOlson) return NULL;
-    
-    CFStringRef olsonName = CFDictionaryGetValue(winToOlson, winName);
-    CFTimeZoneRef retval = NULL;
-    if (olsonName) {
-         retval = CFTimeZoneCreateWithName(allocator, olsonName, false);
-    }
-    CFRelease(winToOlson);
-    return retval;
-}
-#elif TARGET_OS_MAC
+#if TARGET_OS_MAC
 static void __InitTZStrings(void) {
     static dispatch_once_t initOnce = 0;
 
@@ -810,7 +702,7 @@ static void __InitTZStrings(void) {
     });
 }
 
-#elif TARGET_OS_ANDROID
+#elif TARGET_OS_ANDROID || TARGET_OS_WINDOWS
 // Nothing
 #elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
 static void __InitTZStrings(void) {
@@ -834,12 +726,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         LPWSTR standardName = (LPWSTR)&tzi.StandardName;
         CFStringRef cfStandardName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (UInt8 *)standardName, wcslen(standardName)*sizeof(WCHAR), kCFStringEncodingUTF16LE, false);
         if (cfStandardName) {
-            CFDictionaryRef winToOlson = CFTimeZoneCopyWinToOlsonDictionary();
-            if (winToOlson) {
-                name = CFDictionaryGetValue(winToOlson, cfStandardName);
-                if (name) CFRetain(name);
-                CFRelease(winToOlson);
-            }
+            name = _CFTimeZoneCopyOlsonNameForWindowsName(cfStandardName);
             CFRelease(cfStandardName);
         }
     } else {
@@ -1326,9 +1213,9 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 
     tzName = CFDictionaryGetValue(abbrevs, name);
     if (tzName == NULL) {
-        CFDictionaryRef olson = CFTimeZoneCopyOlsonToWindowsDictionary();
-        tzName = CFDictionaryGetValue(olson, name);
-        CFRelease(olson);
+        tzName = _CFTimeZoneCopyWindowsNameForOlsonName(name);
+    } else {
+        CFRetain(tzName);
     }
 
     CFRelease(abbrevs);
@@ -1336,6 +1223,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     if (tzName) {
         __CFTimeZoneGetOffset(tzName, &offset);
         // TODO: handle DST
+        CFRelease(tzName);
         return __CFTimeZoneInitFixed(timeZone, offset, name, 0);
     }
 
@@ -1542,15 +1430,16 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 
     tzName = CFDictionaryGetValue(abbrevs, name);
     if (tzName == NULL) {
-        CFDictionaryRef olson = CFTimeZoneCopyOlsonToWindowsDictionary();
-        tzName = CFDictionaryGetValue(olson, name);
-        CFRelease(olson);
+        tzName = _CFTimeZoneCopyWindowsNameForOlsonName(name);
+    } else {
+        tzName = CFRetain(tzName);
     }
 
     CFRelease(abbrevs);
 
     if (tzName) {
         __CFTimeZoneGetOffset(tzName, &offset);
+        CFRelease(tzName);
         // TODO: handle DST
         result = __CFTimeZoneCreateFixed(allocator, offset, name, 0);
     }
