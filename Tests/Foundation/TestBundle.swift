@@ -48,7 +48,7 @@ internal func xdgTestHelperURL() throws -> URL {
     // While this works on Linux due to special linker functionality, this doesn't work on Windows and results in a collision between the two main symbols
     // SwiftPM also cannot support depending on this executable (to ensure it is built) without also linking its objects into the test runner
     // For those reasons, using the xdgTestHelper on Windows is currently unsupported and tests that rely on it must be skipped
-    throw XCTSkip("xdgTestHelper is not supported during testing on Windows")
+    throw XCTSkip("xdgTestHelper is not supported during testing on Windows (test executables are not supported by SwiftPM on Windows)")
     #else
     testBundle().bundleURL.deletingLastPathComponent().appendingPathComponent("xdgTestHelper")
     #endif
