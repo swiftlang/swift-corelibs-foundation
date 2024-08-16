@@ -524,11 +524,14 @@ class TestBundle : XCTestCase {
             XCTFail("should not fail to load")
         }
         
+        // This causes a dialog box to appear on Windows which will suspend the tests, so skip testing this on Windows for now
+        #if !os(Windows)
         // Executable cannot be located
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)
             XCTAssertThrowsError(try bundle!.loadAndReturnError())
         }
+        #endif
     }
     
     func test_bundleWithInvalidPath() {
@@ -539,12 +542,15 @@ class TestBundle : XCTestCase {
     func test_bundlePreflight() {
         XCTAssertNoThrow(try testBundle(executable: true).preflight())
         
+        // Windows DLL bundles are always executable
+        #if !os(Windows)
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
             
             // Must throw as the main executable is a dummy empty file.
             XCTAssertThrowsError(try bundle.preflight())
         }
+        #endif
     }
     
     func test_bundleFindExecutable() {

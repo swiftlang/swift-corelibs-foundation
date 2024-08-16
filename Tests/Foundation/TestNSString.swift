@@ -1047,7 +1047,11 @@ class TestNSString: LoopbackServerTest {
             let path = NSString(string: "~\(userName)/")
             let result = path.expandingTildeInPath
           	// next assert fails in VirtualBox because home directory for unknown user resolved to /var/run/vboxadd
+            #if os(Windows)
+            XCTAssertEqual(result, ProcessInfo.processInfo.environment["ALLUSERSPROFILE"])
+            #else
             XCTAssertEqual(result, "/var/empty", "Return copy of receiver if home directory could not be resolved.")
+            #endif
         }
     }
     

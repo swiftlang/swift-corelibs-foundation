@@ -23,7 +23,7 @@ let validPathSeps: [Character] = ["/"]
 public func NSTemporaryDirectory() -> String {
     FileManager.default.temporaryDirectory.withUnsafeFileSystemRepresentation {
         String(cString: $0!)
-    }
+    } + String(validPathSeps[0])
 }
 
 extension String {
