@@ -1251,7 +1251,7 @@ class TestFileManager : XCTestCase {
             environment[entry.key] = entry.value
         }
         
-        let helper = xdgTestHelperURL()
+        let helper = try xdgTestHelperURL()
         let (stdout, _) = try runTask([ helper.path, "--nspathfor", method, identifier ],
                                       environment: environment)
         

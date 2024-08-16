@@ -1380,6 +1380,16 @@ static CFBundleRef RegisterCoreFoundationBundle(void) {
 #define DLL_THREAD_DETACH    3
 #define DLL_PROCESS_DETACH   0
 
+#if CF_WINDOWS_EXECUTABLE_INITIALIZER
+static void __CFWindowsExecutableInitializer(void) __attribute__ ((constructor)) __attribute__ ((used));
+
+void __CFWindowsExecutableInitializer(void) {
+    static CFBundleRef cfBundle = NULL;
+    __CFInitialize();
+    cfBundle = RegisterCoreFoundationBundle();
+}
+#endif
+
 int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
     static CFBundleRef cfBundle = NULL;
     if (dwReason == DLL_PROCESS_ATTACH) {
