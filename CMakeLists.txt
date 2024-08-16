@@ -87,8 +87,28 @@ endif()
 FetchContent_MakeAvailable(SwiftFoundationICU SwiftFoundation)
 
 include(CheckLinkerFlag)
+include(CheckSymbolExists)
 
 check_linker_flag(C "LINKER:--build-id=sha1" LINKER_SUPPORTS_BUILD_ID)
+
+# Detect if the system libc defines symbols for these functions.
+# If it is not availble, swift-corelibs-foundation has its own implementations
+# that will be used. If it is available, it should not redefine them.
+# Note: SwiftPM does not have the ability to introspect the contents of the SDK
+#       and therefore will always include these functions in the build and will
+#       cause build failures on platforms that define these functions.
+check_symbol_exists("strlcat" "string.h" HAVE_STRLCAT)
+check_symbol_exists("strlcpy" "string.h" HAVE_STRLCPY)
+check_symbol_exists("issetugid" "unistd.h" HAVE_ISSETUGID)
+add_compile_definitions(
+  $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_STRLCAT}>>:HAVE_STRLCAT>
+  $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_STRLCPY}>>:HAVE_STRLCPY>
+  $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_ISSETUGID}>>:HAVE_ISSETUGID>)
+
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+  check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
+  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_SCHED_GETAFFINITY>)
+endif()
 
 # Precompute module triple for installation
 if(NOT SwiftFoundation_MODULE_TRIPLE)
@@ -103,6 +123,7 @@ if(NOT SwiftFoundation_MODULE_TRIPLE)
 endif()
 
 # System dependencies
+find_package(LibRT)
 find_package(dispatch CONFIG)
 if(NOT dispatch_FOUND)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
