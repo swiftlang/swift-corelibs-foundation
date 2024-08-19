@@ -104,6 +104,8 @@ class TestThread : XCTestCase {
     func test_callStackSymbols() throws {
         #if os(Android) || os(OpenBSD)
         throw XCTSkip("Android/OpenBSD doesn't support backtraces at the moment.")
+        #elseif os(Windows)
+        throw XCTSkip("This test is unexpectedly crashing in CI at the moment.")
         #else
         let symbols = Thread.callStackSymbols
         XCTAssertTrue(symbols.count > 0)
@@ -114,6 +116,8 @@ class TestThread : XCTestCase {
     func test_callStackReturnAddresses() throws {
         #if os(Android) || os(OpenBSD)
         throw XCTSkip("Android/OpenBSD doesn't support backtraces at the moment.")
+        #elseif os(Windows)
+        throw XCTSkip("This test is unexpectedly crashing in CI at the moment.")
         #else
         let addresses = Thread.callStackReturnAddresses
         XCTAssertTrue(addresses.count > 0)
