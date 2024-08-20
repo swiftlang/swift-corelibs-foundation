@@ -21,5 +21,5 @@ import CRT
 // This function is used to mimic a bare minimum of the swift-testing library. Since this package has no swift-testing tests, we simply exit.
 // The test runner will automatically call this function when running tests, so it must exit gracefully rather than using `fatalError()`.
 public func __swiftPMEntryPoint(passing _: (any Sendable)? = nil) async -> Never {
-		exit(0)
+    exit(0)
 }
