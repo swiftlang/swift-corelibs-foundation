@@ -241,16 +241,22 @@ let package = Package(
                 .swiftLanguageVersion(.v6)
             ]
         ),
-        .target(
             // swift-corelibs-foundation has a copy of XCTest's sources so:
             // (1) we do not depend on the toolchain's XCTest, which depends on toolchain's Foundation, which we cannot pull in at the same time as a Foundation package
             // (2) we do not depend on a swift-corelibs-xctest Swift package, which depends on Foundation, which causes a circular dependency in swiftpm
             // We believe Foundation is the only project that needs to take this rather drastic measure.
+            // We also have a stub for swift-testing for the same purpose, but without an implementation since this package has no swift-testing style tests
+        .target(
             name: "XCTest",
             dependencies: [
                 "Foundation"
             ],
             path: "Sources/XCTest"
+        ),
+        .target(
+            name: "Testing",
+            dependencies: [],
+            path: "Sources/Testing"
         ),
         .testTarget(
             name: "TestFoundation",
@@ -259,6 +265,7 @@ let package = Package(
                 "FoundationXML",
                 "FoundationNetworking",
                 .targetItem(name: "XCTest", condition: .when(platforms: [.linux])),
+                "Testing",
                 "xdgTestHelper"
             ],
             resources: [
