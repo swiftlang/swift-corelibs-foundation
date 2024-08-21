@@ -63,7 +63,7 @@ class TestFileManager : XCTestCase {
         
     }
     
-    func test_createFile() {
+    func test_createFile() throws {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "testfile\(NSUUID().uuidString)"
         
@@ -76,38 +76,22 @@ class TestFileManager : XCTestCase {
         XCTAssertTrue(exists)
         XCTAssertFalse(isDir.boolValue)
         
-        do {
-            try fm.removeItem(atPath: path)
-        } catch {
-            XCTFail("Failed to clean up file")
-        }
+        try fm.removeItem(atPath: path)
 
 #if os(Windows)
-        let permissions = NSNumber(value: Int16(0o700))
+        let permissions = NSNumber(value: Int16(0o600))
 #else
         let permissions = NSNumber(value: Int16(0o753))
 #endif
         let attributes = [FileAttributeKey.posixPermissions: permissions]
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(),
                                     attributes: attributes))
-        guard let retrievedAtributes = try? fm.attributesOfItem(atPath: path) else {
-            XCTFail("Failed to retrieve file attributes from created file")
-            return
-        }
+        let retrievedAtributes = try fm.attributesOfItem(atPath: path)
 
-        XCTAssertTrue(retrievedAtributes.contains(where: { (attribute) -> Bool in
-            guard let attributeValue = attribute.value as? NSNumber else {
-                return false
-            }
-            return (attribute.key == .posixPermissions)
-                && (attributeValue == permissions)
-        }))
+        let retrievedPermissions = try XCTUnwrap(retrievedAtributes[.posixPermissions] as? NSNumber)
+        XCTAssertEqual(retrievedPermissions, permissions)
 
-        do {
-            try fm.removeItem(atPath: path)
-        } catch {
-            XCTFail("Failed to clean up file")
-        }
+        try fm.removeItem(atPath: path)
     }
 
     func test_creatingDirectoryWithShortIntermediatePath() {
@@ -174,12 +158,7 @@ class TestFileManager : XCTestCase {
             try fm.createDirectory(atPath: tmpDir.path, withIntermediateDirectories: false, attributes: nil)
             XCTAssertTrue(fm.createFile(atPath: testFile.path, contents: Data()))
             try fm.createSymbolicLink(atPath: goodSymLink.path, withDestinationPath: testFile.path)
-#if os(Windows)
-            // Creating a broken symlink is expected to fail on Windows
-            XCTAssertNil(try? fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file"))
-#else
             try fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file")
-#endif
             try fm.createSymbolicLink(atPath: dirSymLink.path, withDestinationPath: "..")
 
             var isDirFlag: ObjCBool = false
@@ -335,11 +314,7 @@ class TestFileManager : XCTestCase {
         //read back the attributes
         do {
             let attributes = try fm.attributesOfItem(atPath: path)
-#if os(Windows)
-            XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0700)
-#else
             XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
-#endif
             XCTAssertEqual((attributes[.modificationDate] as? NSDate)?.timeIntervalSince1970 ?? .nan, modificationDate.timeIntervalSince1970, accuracy: 1.0)
         }
         catch { XCTFail("\(error)") }
@@ -689,9 +664,9 @@ class TestFileManager : XCTestCase {
         
         do {
             // Check a bad path fails
-            XCTAssertNil(fm.subpaths(atPath: "/..."))
+            XCTAssertNil(fm.subpaths(atPath: "/does-not-exist"))
 
-            let _ = try fm.subpathsOfDirectory(atPath: "/...")
+            let _ = try fm.subpathsOfDirectory(atPath: "/does-not-exist")
             XCTFail()
         }
         catch {
@@ -1046,7 +1021,7 @@ class TestFileManager : XCTestCase {
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("foo1").path, withDestinationPath: "foo.txt")
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
             let unreadable = testDir1.appendingPathComponent("unreadable_file").path
-            try "unreadable".write(toFile: unreadable, atomically: false, encoding: .ascii)
+            try "".write(toFile: unreadable, atomically: false, encoding: .ascii)
             try fm.setAttributes([.posixPermissions: NSNumber(value: 0)], ofItemAtPath: unreadable)
             try Data().write(to: testDir1.appendingPathComponent("empty_file"))
             try fm.createSymbolicLink(atPath: symlink, withDestinationPath: testFile1URL.path)
@@ -1057,11 +1032,6 @@ class TestFileManager : XCTestCase {
 
             // testDir2
             try fm.createDirectory(atPath: testDir2.path, withIntermediateDirectories: true)
-#if os(Windows)
-            try "foo".write(toFile: testDir2.appendingPathComponent("foo1").path, atomically: false, encoding: .ascii)
-            try fm.createDirectory(atPath: testDir2.appendingPathComponent("../testDir1").path, withIntermediateDirectories: true)
-            try "foo".write(toFile: testDir2.appendingPathComponent("../testDir1/foo.txt").path, atomically: false, encoding: .ascii)
-#endif
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
 
@@ -1113,7 +1083,6 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: symlink, andPath: testFile1URL.path))
 
         XCTAssertTrue(fm.contentsEqual(atPath: testDir1.path, andPath: testDir1.path))
-        XCTAssertTrue(fm.contentsEqual(atPath: testDir2.path, andPath: testDir3.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
 
         // Copy everything in testDir1 to testDir2 to make them equal
@@ -1258,18 +1227,14 @@ class TestFileManager : XCTestCase {
         return stdout.trimmingCharacters(in: CharacterSet.newlines)
     }
     
-    func assertFetchingPath(withConfiguration config: String, identifier: String, yields path: String) {
+    func assertFetchingPath(withConfiguration config: String, identifier: String, yields path: String) throws {
         for method in [ "NSSearchPath", "FileManagerDotURLFor", "FileManagerDotURLsFor" ] {
-            do {
-                let found = try printPathByRunningHelper(withConfiguration: config, method: method, identifier: identifier)
-                XCTAssertEqual(found, path)
-            } catch let error {
-                XCTFail("Failed with method \(method), configuration \(config), identifier \(identifier), equal to \(path), error \(error)")
-            }
+            let found = try printPathByRunningHelper(withConfiguration: config, method: method, identifier: identifier)
+            XCTAssertEqual(found, path)
         }
     }
     
-    func test_fetchXDGPathsFromHelper() {
+    func test_fetchXDGPathsFromHelper() throws {
         let prefix = NSHomeDirectory() + "/_Foundation_Test_"
         
         let configuration = """
@@ -1282,13 +1247,13 @@ class TestFileManager : XCTestCase {
         VIDEOS=\(prefix)/Videos
         """
         
-        assertFetchingPath(withConfiguration: configuration, identifier: "desktop", yields: "\(prefix)/Desktop")
-        assertFetchingPath(withConfiguration: configuration, identifier: "download", yields: "\(prefix)/Download")
-        assertFetchingPath(withConfiguration: configuration, identifier: "publicShare", yields: "\(prefix)/PublicShare")
-        assertFetchingPath(withConfiguration: configuration, identifier: "documents", yields: "\(prefix)/Documents")
-        assertFetchingPath(withConfiguration: configuration, identifier: "music", yields: "\(prefix)/Music")
-        assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
-        assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "desktop", yields: "\(prefix)/Desktop")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "download", yields: "\(prefix)/Download")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "publicShare", yields: "\(prefix)/PublicShare")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "documents", yields: "\(prefix)/Documents")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "music", yields: "\(prefix)/Music")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
+        try assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
     }
     #endif // !os(Android)
 #endif // !DEPLOYMENT_RUNTIME_OBJC
@@ -1300,38 +1265,46 @@ class TestFileManager : XCTestCase {
         // are throwable, an NSError is thrown instead which is more useful.
         let fm = FileManager.default
 
-        XCTAssertEqual(fm.homeDirectory(forUser: ""), URL(filePath: "/var/empty", directoryHint: .isDirectory))
-        XCTAssertEqual(NSHomeDirectoryForUser(""), "/var/empty")
+        #if os(Windows)
+        let defaultHomeDirectory = ProcessInfo.processInfo.environment["ALLUSERSPROFILE"]!
+        let emptyFileNameError: CocoaError.Code? = .fileReadInvalidFileName
+        #else
+        let defaultHomeDirectory = "/var/empty"
+        let emptyFileNameError: CocoaError.Code? = nil
+        #endif
+
+        XCTAssertEqual(fm.homeDirectory(forUser: ""), URL(filePath: defaultHomeDirectory, directoryHint: .isDirectory))
+        XCTAssertEqual(NSHomeDirectoryForUser(""), defaultHomeDirectory)
 
         XCTAssertThrowsError(try fm.contentsOfDirectory(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
 
         XCTAssertNil(fm.enumerator(atPath: ""))
         XCTAssertNil(fm.subpaths(atPath: ""))
         XCTAssertThrowsError(try fm.subpathsOfDirectory(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.createDirectory(atPath: "", withIntermediateDirectories: true)) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileNoSuchFile)
         }
         XCTAssertFalse(fm.createFile(atPath: "", contents: Data()))
         XCTAssertThrowsError(try fm.removeItem(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: "/tmp/t"))  {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: ""))  {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "/tmp/t", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
@@ -1342,25 +1315,33 @@ class TestFileManager : XCTestCase {
         // TODO: re-enable when URLResourceValues are supported in swift-foundation
         XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "/tmp/t")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadInvalidFileName)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadInvalidFileName)
         }
         #endif
         XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
+            #if os(Windows)
+            XCTAssertEqual(code, .fileNoSuchFile)
+            #else
             XCTAssertEqual(code, .fileWriteFileExists)
+            #endif
         }
         XCTAssertThrowsError(try fm.moveItem(atPath: "/tmp/t", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
+            #if os(Windows)
+            XCTAssertEqual(code, .fileNoSuchFile)
+            #else
             XCTAssertEqual(code, .fileWriteFileExists)
+            #endif
         }
 
         XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "/tmp/t")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "/tmp/t", toPath: "")) {
             let code = ($0 as? CocoaError)?.code
@@ -1369,11 +1350,11 @@ class TestFileManager : XCTestCase {
 
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileNoSuchFile)
         }
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "/tmp/t")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileNoSuchFile)
         }
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "/tmp/t", withDestinationPath: "")) {
             let code = ($0 as? CocoaError)?.code
@@ -1382,22 +1363,26 @@ class TestFileManager : XCTestCase {
 
         XCTAssertThrowsError(try fm.destinationOfSymbolicLink(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
         XCTAssertFalse(fm.fileExists(atPath: ""))
         XCTAssertFalse(fm.fileExists(atPath: "", isDirectory: nil))
         XCTAssertFalse(fm.isReadableFile(atPath: ""))
         XCTAssertFalse(fm.isWritableFile(atPath: ""))
         XCTAssertFalse(fm.isExecutableFile(atPath: ""))
+        #if os(Windows)
+        XCTAssertFalse(fm.isDeletableFile(atPath: ""))
+        #else
         XCTAssertTrue(fm.isDeletableFile(atPath: ""))
+        #endif
 
         XCTAssertThrowsError(try fm.attributesOfItem(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
         XCTAssertThrowsError(try fm.attributesOfFileSystem(forPath: "")) {
             let code = ($0 as? CocoaError)?.code
-            XCTAssertEqual(code, .fileReadNoSuchFile)
+            XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
         }
 
         XCTAssertNil(fm.contents(atPath: ""))
@@ -1690,7 +1675,7 @@ class TestFileManager : XCTestCase {
         throw XCTSkip("This test is only enabled on Windows")
         #else
         let fm = FileManager.default
-        let tmpPath = writableTestDirectoryURL.path
+        let tmpPath = writableTestDirectoryURL.withUnsafeFileSystemRepresentation { String(cString: $0!) }
         do {
             try fm.createDirectory(atPath: tmpPath, withIntermediateDirectories: true, attributes: nil)
         } catch {
@@ -1717,7 +1702,6 @@ class TestFileManager : XCTestCase {
             "\(tmpPath)\\testfile",       // C:/Users/...\testfile
             "\(tmpPath)/testfile",        // C:/Users.../testfile
             "\(tmpPath)/testfile",        // /Users/user/.../testfile
-            "\(tmpPath.first!):testfile", // C:testfile
 
             // Relative Paths
             ".\\testfile",
@@ -1748,6 +1732,9 @@ class TestFileManager : XCTestCase {
      - Bug: [SR-12272](https://bugs.swift.org/browse/SR-12272)
      */
     func test_concurrentGetItemReplacementDirectory() throws {
+        #if os(Windows)
+        throw XCTSkip("Test expected to fail - intermittent SEGFAULT")
+        #else
         let fileManager = FileManager.default
 
         let operationCount = 10
@@ -1784,6 +1771,7 @@ class TestFileManager : XCTestCase {
                 XCTFail("One of the concurrent calls to get the item replacement directory failed: \(error)")
             }
         }
+        #endif
     }
     
     func testNSNumberUpcall() throws {

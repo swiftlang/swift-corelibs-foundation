@@ -74,7 +74,7 @@ if let environmentPath = Context.environment["ZLIB_LIBRARY_PATH"] {
 var libxmlLinkFlags: [LinkerSetting] = [
     .linkedLibrary("libxml2s.lib", .when(platforms: [.windows]))
 ]
-if let environmentPath = Context.environment["LIBXML2_LIBRARY_PATH"] {
+if let environmentPath = Context.environment["LIBXML_LIBRARY_PATH"] {
     libxmlLinkFlags.append(.unsafeFlags([
         "-L\(environmentPath)"
     ]))

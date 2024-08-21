@@ -78,6 +78,14 @@ class BundlePlayground {
                 #endif
             }
         }
+
+        var fileNameSuffix: String? {
+            #if os(Windows) && DEBUG
+            "_debug"
+            #else
+            nil
+            #endif
+        }
         
         var flatPathExtension: String? {
             #if os(Windows)
@@ -216,7 +224,7 @@ class BundlePlayground {
                 
                 // Make a main and an auxiliary executable:
                 self.mainExecutableURL = bundleURL
-                    .appendingPathComponent(bundleName)
+                    .appendingPathComponent(bundleName + (executableType.fileNameSuffix ?? ""))
                 
                 if let ext = executableType.flatPathExtension {
                     self.mainExecutableURL.appendPathExtension(ext)
@@ -227,7 +235,7 @@ class BundlePlayground {
                 }
                 
                 var auxiliaryExecutableURL = bundleURL
-                    .appendingPathComponent(auxiliaryExecutableName)
+                    .appendingPathComponent(auxiliaryExecutableName + (executableType.fileNameSuffix ?? ""))
                 
                 if let ext = executableType.flatPathExtension {
                     auxiliaryExecutableURL.appendPathExtension(ext)
@@ -270,7 +278,7 @@ class BundlePlayground {
                 // Make a main and an auxiliary executable:
                 self.mainExecutableURL = temporaryDirectory
                     .appendingPathComponent(executableType.fhsPrefix)
-                    .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName)
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName + (executableType.fileNameSuffix ?? ""))
                 
                 if let ext = executableType.pathExtension {
                     self.mainExecutableURL.appendPathExtension(ext)
@@ -280,7 +288,7 @@ class BundlePlayground {
                 let executablesDirectory = temporaryDirectory.appendingPathComponent("libexec").appendingPathComponent("\(bundleName).executables")
                 try FileManager.default.createDirectory(atPath: executablesDirectory.path, withIntermediateDirectories: true, attributes: nil)
                 var auxiliaryExecutableURL = executablesDirectory
-                    .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName)
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName + (executableType.fileNameSuffix ?? ""))
                 
                 if let ext = executableType.pathExtension {
                     auxiliaryExecutableURL.appendPathExtension(ext)
@@ -317,7 +325,7 @@ class BundlePlayground {
                 
                 // Make a main executable:
                 self.mainExecutableURL = temporaryDirectory
-                    .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName)
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName + (executableType.fileNameSuffix ?? ""))
                 
                 if let ext = executableType.pathExtension {
                     self.mainExecutableURL.appendPathExtension(ext)
@@ -330,7 +338,7 @@ class BundlePlayground {
                 
                 // Make an auxiliary executable:
                 var auxiliaryExecutableURL = resourcesDirectory
-                    .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName)
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName + (executableType.fileNameSuffix ?? ""))
                 if let ext = executableType.pathExtension {
                     auxiliaryExecutableURL.appendPathExtension(ext)
                 }
@@ -516,11 +524,14 @@ class TestBundle : XCTestCase {
             XCTFail("should not fail to load")
         }
         
+        // This causes a dialog box to appear on Windows which will suspend the tests, so skip testing this on Windows for now
+        #if !os(Windows)
         // Executable cannot be located
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)
             XCTAssertThrowsError(try bundle!.loadAndReturnError())
         }
+        #endif
     }
     
     func test_bundleWithInvalidPath() {
@@ -531,12 +542,15 @@ class TestBundle : XCTestCase {
     func test_bundlePreflight() {
         XCTAssertNoThrow(try testBundle(executable: true).preflight())
         
+        // Windows DLL bundles are always executable
+        #if !os(Windows)
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
             
             // Must throw as the main executable is a dummy empty file.
             XCTAssertThrowsError(try bundle.preflight())
         }
+        #endif
     }
     
     func test_bundleFindExecutable() {

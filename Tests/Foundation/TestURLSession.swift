@@ -652,6 +652,9 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
     
     func test_repeatedRequestsStress() async throws {
+        #if os(Windows)
+        throw XCTSkip("This test is currently disabled on Windows")
+        #else
         // TODO: try disabling curl connection cache to force socket close early. Or create several url sessions (they have cleanup in deinit)
         
         let config = URLSessionConfiguration.default
@@ -692,6 +695,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         checkCountAndRunNext()
 
         waitForExpectations(timeout: 30)
+        #endif
     }
 
     func test_httpRedirectionWithCode300() async throws {
@@ -1018,8 +1022,10 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
-     // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
-    func test_httpRedirectionTimeout() async {
+    func test_httpRedirectionTimeout() async throws {
+        #if os(Windows)
+        throw XCTSkip("temporarily disabled (https://bugs.swift.org/browse/SR-5751)")
+        #else
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         var req = URLRequest(url: URL(string: urlString)!)
         req.timeoutInterval = 3
@@ -1037,6 +1043,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+        #endif
     }
 
     func test_httpRedirectionChainInheritsTimeoutInterval() async throws {

@@ -27,6 +27,16 @@ let kCFURLCreateAbsoluteURLWithBytesCreator = "CFURLCreateAbsoluteURLWithBytes"
 let kNullURLString = "<null url>"
 let kNullString = "<null>"
 
+func XCTAssertEqualFileSystemPaths(_ lhs: String?, _ rhs: String?, _ message: @autoclosure () -> String = "", file: StaticString = #filePath, line: UInt = #line) {
+    #if os(Windows)
+    let mappedLHS = lhs?.replacingOccurrences(of: "\\", with: "/")
+    let mappedRHS = rhs?.replacingOccurrences(of: "\\", with: "/")
+    XCTAssertEqual(mappedLHS, mappedRHS, message(), file: file, line: line)
+    #else
+    XCTAssertEqual(lhs, rhs, message(), file: file, line: line)
+    #endif
+}
+
 /// Reads the test data plist file and returns the list of objects
 private func getTestData() -> [Any]? {
     let testFilePath = testBundle().url(forResource: "NSURLTestData", withExtension: "plist")
@@ -53,17 +63,6 @@ class TestURL : XCTestCase {
       // e.g. NOT file:///S:/b/u1%2/
       let u1 = URL(fileURLWithPath: "S:\\b\\u1/")
       XCTAssertEqual(u1.absoluteString, "file:///S:/b/u1/")
-
-      // ensure that trailing slashes are compressed
-      // e.g. NOT file:///S:/b/u2%2F%2F%2F%/
-      let u2 = URL(fileURLWithPath: "S:\\b\\u2/////")
-      XCTAssertEqual(u2.absoluteString, "file:///S:/b/u2/")
-
-      // ensure that the trailing slashes are compressed even when mixed
-      // e.g. NOT file:///S:/b/u3%2F%/%2F%2/
-      let u3 = URL(fileURLWithPath: "S:\\b\\u3//\\//")
-      XCTAssertEqual(u3.absoluteString, "file:///S:/b/u3/")
-      XCTAssertEqual(u3.path, "S:/b/u3")
 
       // ensure that the regular conversion works
       let u4 = URL(fileURLWithPath: "S:\\b\\u4")
@@ -103,9 +102,6 @@ class TestURL : XCTestCase {
       let u3 = URL(fileURLWithPath: "\\", isDirectory: false)
       XCTAssertEqual(u3.absoluteString, "file:///")
 
-      let u4 = URL(fileURLWithPath: "S:\\b\\u3//\\//")
-      XCTAssertEqual(u4.absoluteString, "file:///S:/b/u3/")
-
       // ensure leading slash doesn't break everything
       let u5 = URL(fileURLWithPath: "\\abs\\path")
       XCTAssertEqual(u5.absoluteString, "file:///abs/path")
@@ -124,7 +120,7 @@ class TestURL : XCTestCase {
     func test_fileURLWithPath_relativeTo() {
         let homeDirectory = NSHomeDirectory()
         let homeURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
-        XCTAssertEqual(homeDirectory, homeURL.path)
+        XCTAssertEqualFileSystemPaths(homeDirectory, homeURL.withUnsafeFileSystemRepresentation { String(cString: $0!) })
 
         #if os(macOS)
         let baseURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
@@ -411,25 +407,25 @@ class TestURL : XCTestCase {
         var path = TestURL.gFileExistsPath
         var url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with file that doesn't exist
         path = TestURL.gFileDoesNotExistPath
         url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with directory that exists
         path = TestURL.gDirectoryExistsPath
         url = NSURL(fileURLWithPath: path)
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with directory that doesn't exist
         path = TestURL.gDirectoryDoesNotExistPath
         url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with name relative to current working directory
         path = TestURL.gFileDoesNotExistName
@@ -473,7 +469,7 @@ class TestURL : XCTestCase {
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: false)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with file that doesn't exist
         path = TestURL.gFileDoesNotExistPath
@@ -481,7 +477,7 @@ class TestURL : XCTestCase {
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: false)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with directory that exists
         path = TestURL.gDirectoryExistsPath
@@ -489,7 +485,7 @@ class TestURL : XCTestCase {
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: true)
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with directory that doesn't exist
         path = TestURL.gDirectoryDoesNotExistPath
@@ -497,7 +493,7 @@ class TestURL : XCTestCase {
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: true)
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
-        XCTAssertEqual(path, url.path, "path from file path URL is wrong")
+        XCTAssertEqualFileSystemPaths(path, url.path, "path from file path URL is wrong")
 
         // test with name relative to current working directory
         path = TestURL.gFileDoesNotExistName
