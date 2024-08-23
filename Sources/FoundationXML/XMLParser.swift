@@ -462,34 +462,57 @@ open class XMLParser : NSObject {
     
     open var allowedExternalEntityURLs: Set<URL>?
 
-    /// The current parser is stored in a task local variable to allow for
-    /// concurrent parsing in different tasks with different parsers.
-    ///
-    /// Rationale for `@unchecked Sendable`:
-    /// While the ``XMLParser`` class itself is not `Sendable`, `TaskLocal`
-    /// requires the value type to be `Sendable`. The sendability requirement
-    /// of `TaskLocal` is only for the "default" value and values set with
-    /// `withValue` will not be shared between tasks.
-    /// So as long as 1. the default value is safe to be shared between tasks
-    /// and 2. the `Sendable` conformance of `_CurrentParser` is not used
-    /// outside of `TaskLocal`, it is safe to mark it as `@unchecked Sendable`.
-    private struct _CurrentParser: @unchecked Sendable {
-        let parser: XMLParser?
-
-        static var `default`: _CurrentParser {
-            return _CurrentParser(parser: nil)
+    /// The current parser context for the current thread.
+    private class _CurrentParserContext {
+        var _stack: [XMLParser] = []
+        var _current: XMLParser? {
+            return _stack.last
         }
     }
 
-    @TaskLocal
-    private static var _currentParser: _CurrentParser = .default
-
-    internal static func currentParser() -> XMLParser? {
-        return _currentParser.parser
+    #if os(WASI)
+    /// The current parser associated with the current thread. (assuming no multi-threading)
+    /// FIXME: Unify the implementation with the other platforms once we unlock `threadDictionary`
+    ///        or migrate to `FoundationEssentials._ThreadLocal`.
+    private static nonisolated(unsafe) var _currentParserContext: _CurrentParserContext?
+    #else
+    /// The current parser associated with the current thread.
+    private static var _currentParserContext: _CurrentParserContext? {
+        get {
+            return Thread.current.threadDictionary["__CurrentNSXMLParser"] as? _CurrentParserContext
+        }
+        set {
+            Thread.current.threadDictionary["__CurrentNSXMLParser"] = newValue
+        }
     }
-    
+    #endif
+
+    /// The current parser associated with the current thread.
+    internal static func currentParser() -> XMLParser? {
+        if let ctx = _currentParserContext {
+            return ctx._current
+        }
+        return nil
+    }
+
+    /// Execute the given closure with the current parser set to the given parser.
     internal static func withCurrentParser<R>(_ parser: XMLParser, _ body: () -> R) -> R {
-        return self.$_currentParser.withValue(_CurrentParser(parser: parser), operation: body)
+        var ctx: _CurrentParserContext
+        if let current = _currentParserContext {
+            // Use the existing context if it exists
+            ctx = current
+        } else {
+            // Create a new context in TLS
+            ctx = _CurrentParserContext()
+            _currentParserContext = ctx
+        }
+        // Push the parser onto the stack
+        ctx._stack.append(parser)
+        defer {
+            // Pop the parser off the stack
+            ctx._stack.removeLast()
+        }
+        return body()
     }
     
     internal func _handleParseResult(_ parseResult: Int32) -> Bool {
