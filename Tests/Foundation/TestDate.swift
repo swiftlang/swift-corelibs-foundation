@@ -134,6 +134,7 @@ class TestDate : XCTestCase {
         XCTAssertEqual(recreatedComponents.weekOfMonth, 2)
         XCTAssertEqual(recreatedComponents.weekOfYear, 45)
         XCTAssertEqual(recreatedComponents.yearForWeekOfYear, 2017)
+        XCTAssertEqual(recreatedComponents.isLeapMonth, false)
         
         // Quarter is now supported by Calendar
         XCTAssertEqual(recreatedComponents.quarter, 4)
