@@ -57,6 +57,8 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <mach/mach_time.h>
 #endif
 
+_CF_EXPORT_SCOPE_BEGIN
+
 #if __BLOCKS__
 /* These functions implement standard error handling for reallocation. Their parameters match their unsafe variants (realloc/CFAllocatorReallocate). They differ from reallocf as they provide a chance for you to clean up a buffers contents (in addition to freeing the buffer, etc.)
  
@@ -69,9 +71,12 @@ CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nulla
 #endif
 
 Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef _Nullable allocator);
+
 typedef CF_ENUM(CFOptionFlags, _CFAllocatorHint) {
     _CFAllocatorHintZeroWhenAllocating = 1
 };
+
+_CF_EXPORT_SCOPE_END
 
 #define NSISARGTYPE void * _Nullable
 
