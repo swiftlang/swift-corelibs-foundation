@@ -46,8 +46,11 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying, @unchecked Sendabl
         }
         
         // re-sanitizing with lastPathComponent because of supportsSecureCoding
-        let encodedFilename = aDecoder.decodeObject(of: NSString.self, forKey: "NS.suggestedFilename")?.lastPathComponent
-        self.suggestedFilename = encodedFilename?.isEmpty != false ? "Unknown" : encodedFilename
+        if let encodedFilename = aDecoder.decodeObject(of: NSString.self, forKey: "NS.suggestedFilename")?.lastPathComponent, !encodedFilename.isEmpty {
+            self.suggestedFilename = encodedFilename
+        } else {
+            self.suggestedFilename = "Unknown"
+        }
     }
     
     open func encode(with aCoder: NSCoder) {
