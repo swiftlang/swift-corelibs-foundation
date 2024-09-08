@@ -27,16 +27,16 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssert(element.name! == "D:propfind")
         XCTAssert(element.rootDocument == nil)
         if let namespace = element.namespaces?.first {
-            XCTAssert(namespace.prefix == "D")
-            XCTAssert(namespace.stringValue == "DAV:")
+            XCTAssertEqual(namespace.prefix, "D")
+            XCTAssertEqual(namespace.stringValue, "DAV:")
         } else {
             XCTFail("Namespace was not parsed correctly")
         }
         
         if let child = element.elements(forName: "D:prop").first {
-            XCTAssert(child.localName == "prop")
-            XCTAssert(child.prefix == "D")
-            XCTAssert(child.name == "D:prop")
+            XCTAssertEqual(child.localName, "prop")
+            XCTAssertEqual(child.prefix, "D")
+            XCTAssertEqual(child.name, "D:prop")
         } else {
             XCTFail("Child element was not parsed correctly!")
         }
@@ -484,8 +484,8 @@ class TestXMLDocument : LoopbackServerTest {
         let elementDecl = XMLDTDNode(kind: .elementDeclaration)
         elementDecl.name = "MyElement"
         elementDecl.stringValue = "(#PCDATA | array)*"
-        XCTAssert(elementDecl.stringValue == "(#PCDATA | array)*", elementDecl.stringValue ?? "nil string value")
-        XCTAssert(elementDecl.name == "MyElement")
+        XCTAssertEqual(elementDecl.stringValue, "(#PCDATA | array)*")
+        XCTAssertEqual(elementDecl.name, "MyElement")
     }
 
     func test_documentWithDTD() throws {
@@ -562,9 +562,9 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssert(newNS.name == "F")
         
         let root = doc.rootElement()!
-        XCTAssert(root.localName == "propfind")
-        XCTAssert(root.name == "D:propfind")
-        XCTAssert(root.prefix == "D")
+        XCTAssertEqual(root.localName, "propfind")
+        XCTAssertEqual(root.name, "D:propfind")
+        XCTAssertEqual(root.prefix, "D")
         let node = doc.findFirstChild(named: "prop")
         XCTAssert(node != nil, "failed to find existing node")
         XCTAssert(node?.localName == "prop")
