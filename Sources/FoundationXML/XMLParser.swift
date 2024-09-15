@@ -462,24 +462,16 @@ open class XMLParser : NSObject {
     
     open var allowedExternalEntityURLs: Set<URL>?
 
-    /// The current parser context for the current thread.
-    private class _CurrentParserContext {
-        var _stack: [XMLParser] = []
-        var _current: XMLParser? {
-            return _stack.last
-        }
-    }
-
     #if os(WASI)
     /// The current parser associated with the current thread. (assuming no multi-threading)
     /// FIXME: Unify the implementation with the other platforms once we unlock `threadDictionary`
     ///        or migrate to `FoundationEssentials._ThreadLocal`.
-    private static nonisolated(unsafe) var _currentParserContext: _CurrentParserContext?
+    private static nonisolated(unsafe) var _currentParser: XMLParser? = nil
     #else
     /// The current parser associated with the current thread.
-    private static var _currentParserContext: _CurrentParserContext? {
+    private static var _currentParser: XMLParser? {
         get {
-            return Thread.current.threadDictionary["__CurrentNSXMLParser"] as? _CurrentParserContext
+            return Thread.current.threadDictionary["__CurrentNSXMLParser"] as? XMLParser
         }
         set {
             Thread.current.threadDictionary["__CurrentNSXMLParser"] = newValue
@@ -489,29 +481,14 @@ open class XMLParser : NSObject {
 
     /// The current parser associated with the current thread.
     internal static func currentParser() -> XMLParser? {
-        if let ctx = _currentParserContext {
-            return ctx._current
-        }
-        return nil
+        return _currentParser
     }
 
     /// Execute the given closure with the current parser set to the given parser.
     internal static func withCurrentParser<R>(_ parser: XMLParser, _ body: () -> R) -> R {
-        var ctx: _CurrentParserContext
-        if let current = _currentParserContext {
-            // Use the existing context if it exists
-            ctx = current
-        } else {
-            // Create a new context in TLS
-            ctx = _CurrentParserContext()
-            _currentParserContext = ctx
-        }
-        // Push the parser onto the stack
-        ctx._stack.append(parser)
-        defer {
-            // Pop the parser off the stack
-            ctx._stack.removeLast()
-        }
+        let oldParser = _currentParser
+        _currentParser = parser
+        defer { _currentParser = oldParser }
         return body()
     }
     
