@@ -198,5 +198,46 @@ class TestXMLParser : XCTestCase {
         ElementNameChecker("noPrefix").check()
         ElementNameChecker("myPrefix:myLocalName").check()
     }
-    
+
+    func testExternalEntity() throws {
+        class Delegate: XMLParserDelegateEventStream {
+            override func parserDidStartDocument(_ parser: XMLParser) {
+                // Start a child parser, updating `currentParser` to the child parser
+                // to ensure that `currentParser` won't be reset to `nil`, which would
+                // ignore any external entity related configuration.
+                let childParser = XMLParser(data: "<child />".data(using: .utf8)!)
+                XCTAssertTrue(childParser.parse())
+                super.parserDidStartDocument(parser)
+            }
+        }
+        try withTemporaryDirectory { dir, _ in
+            let greetingPath = dir.appendingPathComponent("greeting.xml")
+            try Data("<hello />".utf8).write(to: greetingPath)
+            let xml = """
+            <?xml version="1.0" standalone="no"?>
+            <!DOCTYPE doc [
+              <!ENTITY greeting SYSTEM "\(greetingPath.absoluteString)">
+            ]>
+            <doc>&greeting;</doc>
+            """
+
+            let parser = XMLParser(data: xml.data(using: .utf8)!)
+            // Explicitly disable external entity resolving
+            parser.externalEntityResolvingPolicy = .never
+            let delegate = Delegate()
+            parser.delegate = delegate
+            // The parse result changes depending on the libxml2 version
+            // because of the following libxml2 commit (shipped in libxml2 2.9.10):
+            // https://gitlab.gnome.org/GNOME/libxml2/-/commit/eddfbc38fa7e84ccd480eab3738e40d1b2c83979
+            // So we don't check the parse result here.
+            _ = parser.parse()
+            XCTAssertEqual(delegate.events, [
+                .startDocument,
+                .didStartElement("doc", nil, nil, [:]),
+                // Should not have parsed the external entity
+                .didEndElement("doc", nil, nil),
+                .endDocument,
+            ])
+        }
+    }
 }
