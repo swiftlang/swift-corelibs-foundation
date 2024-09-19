@@ -33,7 +33,7 @@ target_link_libraries(_CFXMLInterface PRIVATE
     dispatch
     LibXml2::LibXml2)
 
-if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     target_link_libraries(_CFXMLInterface PRIVATE BlocksRuntime)
 endif()
 
