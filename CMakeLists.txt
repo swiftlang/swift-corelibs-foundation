@@ -64,7 +64,7 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 set(FOUNDATION_BUILD_NETWORKING_default ON)
-if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     # Networking is not supported on WASI
     set(FOUNDATION_BUILD_NETWORKING_default OFF)
 endif()
@@ -133,7 +133,7 @@ endif()
 # System dependencies
 
 # We know libdispatch is always unavailable on WASI
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
     find_package(LibRT)
     find_package(dispatch CONFIG)
     if(NOT dispatch_FOUND)
@@ -170,7 +170,7 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-switch"
     "-fblocks")
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
     list(APPEND _Foundation_common_build_flags
         "-DDEPLOYMENT_ENABLE_LIBDISPATCH"
         "-DSWIFT_CORELIBS_FOUNDATION_HAS_THREADS")
@@ -206,7 +206,7 @@ list(APPEND _Foundation_swift_build_flags
     "-Xfrontend"
     "-require-explicit-sendable")
 
-if(CMAKE_SYSTEM_NAME STREQUAL WASI)
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     # Enable wasi-libc emulation features
     set(WASI_EMULATION_DEFS _WASI_EMULATED_MMAN _WASI_EMULATED_SIGNAL _WASI_EMULATED_PROCESS_CLOCKS)
     foreach(def ${WASI_EMULATION_DEFS})
