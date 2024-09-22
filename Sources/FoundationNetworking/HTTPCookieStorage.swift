@@ -311,7 +311,7 @@ open class HTTPCookieStorage: NSObject, @unchecked Sendable {
         if mainDocumentURL != nil && cookieAcceptPolicy == .onlyFromMainDocumentDomain {
             guard let mainDocumentHost = mainDocumentURL?.host?.lowercased() else { return }
 
-            //the url.host must be a suffix of manDocumentURL.host, this is based on Darwin's behaviour
+            //the url.host must be a suffix of mainDocumentURL.host, this is based on Darwin's behaviour
             guard mainDocumentHost.hasSuffix(urlHost) else { return }
         }
 
