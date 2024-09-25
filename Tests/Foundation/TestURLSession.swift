@@ -410,7 +410,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
     
-    func test_taskCopy() {
+    func test_taskCopy() async {
         let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal")!
         let session = URLSession(configuration: URLSessionConfiguration.default,
                                  delegate: nil,
