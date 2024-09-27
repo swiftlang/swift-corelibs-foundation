@@ -2,10 +2,6 @@
 
 Contributions to Foundation are welcome! This project follows the [contribution guidelines for the Swift project](https://swift.org/contributing/#contributing-code). If you are interested in contributing, please consult with our [status page](Docs/Status.md) to see what work remains to be done. A few additional details are outlined below.
 
-## Licensing
-
-By submitting a pull request, you represent that you have the right to license your contribution to Apple and the community, and agree by submitting the patch that your contributions are licensed under the [Swift license](https://swift.org/LICENSE.txt).
-
 
 ## Bug Reports
 
