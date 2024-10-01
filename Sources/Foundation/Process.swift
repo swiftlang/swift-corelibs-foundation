@@ -925,8 +925,15 @@ open class Process: NSObject, @unchecked Sendable {
         for fd in addclose.filter({ $0 >= 0 }) {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
+        let useFallbackChdir: Bool
         if let dir = currentDirectoryURL?.path {
-            try _throwIfPosixError(_CFPosixSpawnFileActionsChdir(fileActions, dir))
+            let chdirResult = _CFPosixSpawnFileActionsChdir(fileActions, dir)
+            useFallbackChdir = chdirResult == ENOSYS
+            if !useFallbackChdir {
+                try _throwIfPosixError(chdirResult)
+            }
+        } else {
+            useFallbackChdir = false
         }
 
 #if canImport(Darwin) || os(Android) || os(OpenBSD)
@@ -949,6 +956,27 @@ open class Process: NSObject, @unchecked Sendable {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 #endif
+
+        // Unsafe fallback for systems missing posix_spawn_file_actions_addchdir[_np]
+        // This includes Glibc versions older than 2.29 such as on Amazon Linux 2
+        let previousDirectoryPath: String?
+        if useFallbackChdir {
+            let fileManager = FileManager()
+            previousDirectoryPath = fileManager.currentDirectoryPath
+            if let dir = currentDirectoryURL?.path, !fileManager.changeCurrentDirectoryPath(dir) {
+                throw _NSErrorWithErrno(errno, reading: true, url: currentDirectoryURL)
+            }
+        } else {
+            previousDirectoryPath = nil
+        }
+
+        defer {
+            if let previousDirectoryPath {
+                // Reset the previous working directory path.
+                let fileManager = FileManager()
+                _ = fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
+            }
+        }
 
         // Launch
         var pid = pid_t()
