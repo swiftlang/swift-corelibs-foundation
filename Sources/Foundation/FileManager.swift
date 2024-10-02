@@ -151,7 +151,7 @@ extension FileManager {
             if attempt == 0 {
                 return "(A Document Being Saved By \(name))"
             } else {
-                return "(A Document Being Saved By \(name) \(attempt + 1)"
+                return "(A Document Being Saved By \(name) \(attempt + 1))"
             }
         }
         
