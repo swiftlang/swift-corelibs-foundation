@@ -57,6 +57,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
+option(BUILD_FULLY_STATIC "build fully static" NO)
 
 # Optionally build tools (on by default) but only when building shared libraries
 if(BUILD_SHARED_LIBS)
