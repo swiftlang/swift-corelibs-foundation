@@ -203,5 +203,22 @@ class TestURLProtectionSpace : XCTestCase {
         XCTAssertEqual(param8_2_2.name, "param")
         XCTAssertEqual(param8_2_2.value, "")
     }
+
+    func test_createWithInvalidAuth() throws {
+        let headerFields1 = [
+            "Server": "Microsoft-IIS/10.0",
+            "request-id": "c71c2202-4013-4d64-9319-d40aba6bbe5c",
+            "WWW-Authenticate": "fdsfds",
+            "X-Powered-By": "ASP.NET",
+            "X-FEServer": "AM6PR0502CA0062",
+            "Date": "Sat, 04 Apr 2020 16:19:39 GMT",
+            "Content-Length": "0",
+        ]
+        let response1 = try XCTUnwrap(HTTPURLResponse(url: URL(string: "https://outlook.office365.com/Microsoft-Server-ActiveSync")!,
+                                                      statusCode: 401,
+                                                      httpVersion: "HTTP/1.1",
+                                                      headerFields: headerFields1))
+        XCTAssertNil(URLProtectionSpace.create(with: response1))
+    }
     #endif
 }
