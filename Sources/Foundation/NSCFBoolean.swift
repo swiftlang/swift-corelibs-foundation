@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 internal class __NSCFBoolean : NSNumber, @unchecked Sendable {
     override var hash: Int {

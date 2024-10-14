@@ -14,7 +14,7 @@
 @_exported import Dispatch
 #endif
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
 ///

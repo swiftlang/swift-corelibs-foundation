@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 @_exported import FoundationInternationalization
 

@@ -12,7 +12,7 @@ import SwiftFoundation
 import _CFXMLInterface
 #else
 import Foundation
-@_implementationOnly import _CFXMLInterface
+internal import _CFXMLInterface
 #endif
 
 extension XMLParser {

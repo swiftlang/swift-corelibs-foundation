@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 internal import Synchronization
 
 public typealias unichar = UInt16

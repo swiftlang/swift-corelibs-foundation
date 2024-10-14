@@ -8,7 +8,7 @@
 //
 
 @_exported import FoundationEssentials
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 
 // This is a just used as an extensible struct, basically;

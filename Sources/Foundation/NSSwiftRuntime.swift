@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 internal import Synchronization
 
 // Re-export Darwin and Glibc by importing Foundation

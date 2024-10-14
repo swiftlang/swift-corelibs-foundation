@@ -7,7 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 #if os(Windows)
 import let WinSDK.INVALID_FILE_ATTRIBUTES

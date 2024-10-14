@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 extension DateComponents : ReferenceConvertible {
     public typealias ReferenceType = NSDateComponents

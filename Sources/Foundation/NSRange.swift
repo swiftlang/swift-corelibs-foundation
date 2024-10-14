@@ -9,7 +9,7 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 public struct _NSRange : Sendable {
     public var location: Int

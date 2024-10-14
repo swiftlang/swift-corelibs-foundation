@@ -8,7 +8,7 @@
 //
 
 #if canImport(Dispatch)
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 #if os(Windows)
 import WinSDK
 import let WinSDK.HANDLE_FLAG_INHERIT

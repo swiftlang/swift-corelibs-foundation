@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 @available(*, unavailable)
 extension NSSet : @unchecked Sendable { }

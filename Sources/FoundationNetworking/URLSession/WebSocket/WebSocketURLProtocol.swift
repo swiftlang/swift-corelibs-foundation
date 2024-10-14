@@ -13,7 +13,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-@_implementationOnly import _CFURLSessionInterface
+internal import _CFURLSessionInterface
 import Dispatch
 
 internal class _WebSocketURLProtocol: _HTTPURLProtocol {

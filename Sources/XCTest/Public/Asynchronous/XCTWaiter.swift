@@ -11,7 +11,7 @@
 //
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 #endif
 
 /// Events are reported to the waiter's delegate via these methods. XCTestCase conforms to this

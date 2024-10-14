@@ -18,7 +18,7 @@ import Glibc
 import CRT
 #endif
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 internal import Synchronization
 
 public typealias NSErrorDomain = NSString

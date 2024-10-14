@@ -17,7 +17,7 @@
 // -----------------------------------------------------------------------------
 
 
-@_implementationOnly import _CFURLSessionInterface
+internal import _CFURLSessionInterface
 
 //TODO: Move things in this file?
 
