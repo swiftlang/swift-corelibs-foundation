@@ -18,135 +18,48 @@ private func _utfRangeToNSRange(_ inRange : ClosedRange<UnicodeScalar>) -> NSRan
     return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
 }
 
-internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType {
-    internal typealias ImmutableType = NSCharacterSet
-    internal typealias MutableType = NSMutableCharacterSet
-    
-    fileprivate var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType>
-    
-    init(immutableObject: AnyObject) {
-        // Take ownership.
-        __wrapped = .Immutable(Unmanaged.passRetained(_unsafeReferenceCast(immutableObject, to: ImmutableType.self)))
-        super.init()
-    }
-    
-    init(mutableObject: AnyObject) {
-        // Take ownership.
-        __wrapped = .Mutable(Unmanaged.passRetained(_unsafeReferenceCast(mutableObject, to: MutableType.self)))
-        super.init()
-    }
-    
-    internal required init(unmanagedImmutableObject: Unmanaged<ImmutableType>) {
-        // Take ownership.
-        __wrapped = .Immutable(unmanagedImmutableObject)
-        
-        super.init()
-    }
-    
-    internal required init(unmanagedMutableObject: Unmanaged<MutableType>) {
-        // Take ownership.
-        __wrapped = .Mutable(unmanagedMutableObject)
-        
-        super.init()
-    }
-    
-    convenience required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    deinit {
-        releaseWrappedObject()
-    }
-    
-    
-    override func copy(with zone: NSZone? = nil) -> Any {
-        return _mapUnmanaged { $0.copy(with: zone) }
-    }
-    
-    override func mutableCopy(with zone: NSZone? = nil) -> Any {
-        return _mapUnmanaged { $0.mutableCopy(with: zone) }
-    }
-    
-    public override var classForCoder: AnyClass {
-        return NSCharacterSet.self
-    }
-    
-    override var bitmapRepresentation: Data {
-        return _mapUnmanaged { $0.bitmapRepresentation }
-    }
-    
-    override var inverted : CharacterSet {
-        return _mapUnmanaged { $0.inverted }
-    }
-    
-    override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
-        return _mapUnmanaged {$0.hasMemberInPlane(thePlane) }
-    }
-    
-    override func characterIsMember(_ member: unichar) -> Bool {
-        return _mapUnmanaged { $0.characterIsMember(member) }
-    }
-    
-    override func longCharacterIsMember(_ member: UInt32) -> Bool {
-        return _mapUnmanaged { $0.longCharacterIsMember(member) }
-    }
-    
-    override func isSuperset(of other: CharacterSet) -> Bool {
-        return _mapUnmanaged { $0.isSuperset(of: other) }
-    }
-
-    override var _cfObject: CFType {
-        // We cannot inherit super's unsafeBitCast(self, to: CFType.self) here, because layout of _SwiftNSCharacterSet
-        // is not compatible with CFCharacterSet. We need to bitcast the underlying NSCharacterSet instead.
-        return _mapUnmanaged { unsafeBitCast($0, to: CFType.self) }
-    }
-}
-
 /**
  A `CharacterSet` represents a set of Unicode-compliant characters. Foundation types use `CharacterSet` to group characters together for searching operations, so that they can find any of a particular set of characters during a search.
  
  This type provides "copy-on-write" behavior, and is also bridged to the Objective-C `NSCharacterSet` class.
  */
-public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgebra, Sendable, _MutablePairBoxing {
+public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgebra, Sendable {
     public typealias ReferenceType = NSCharacterSet
     
-    internal typealias SwiftNSWrapping = _SwiftNSCharacterSet
-    internal typealias ImmutableType = SwiftNSWrapping.ImmutableType
-    internal typealias MutableType = SwiftNSWrapping.MutableType
-    
-    internal nonisolated(unsafe) var _wrapped : _SwiftNSCharacterSet
+    // This may be either an NSCharacterSet or an NSMutableCharacterSet (dynamically)
+    internal nonisolated(unsafe) var _wrapped : NSCharacterSet
     
     // MARK: Init methods
     
     internal init(_bridged characterSet: NSCharacterSet) {
         // We must copy the input because it might be mutable; just like storing a value type in ObjC
-        _wrapped = _SwiftNSCharacterSet(immutableObject: characterSet.copy() as! NSObject)
+        _wrapped = characterSet.copy() as! NSCharacterSet
     }
     
     /// Initialize an empty instance.
     public init() {
-        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet())
+        _wrapped = NSCharacterSet()
     }
     
     /// Initialize with a range of integers.
     ///
     /// It is the caller's responsibility to ensure that the values represent valid `UnicodeScalar` values, if that is what is desired.
     public init(charactersIn range: Range<UnicodeScalar>) {
-        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(range: _utfRangeToNSRange(range)))
+        _wrapped = NSCharacterSet(range: _utfRangeToNSRange(range))
     }
     
     /// Initialize with a closed range of integers.
     ///
     /// It is the caller's responsibility to ensure that the values represent valid `UnicodeScalar` values, if that is what is desired.
     public init(charactersIn range: ClosedRange<UnicodeScalar>) {
-        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(range: _utfRangeToNSRange(range)))
+        _wrapped = NSCharacterSet(range: _utfRangeToNSRange(range))
     }
     
     /// Initialize with the characters in the given string.
     ///
     /// - parameter string: The string content to inspect for characters.
     public init(charactersIn string: String) {
-        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(charactersIn: string))
+        _wrapped = NSCharacterSet(charactersIn: string)
     }
     
     /// Initialize with a bitmap representation.
@@ -154,7 +67,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// This method is useful for creating a character set object with data from a file or other external data source.
     /// - parameter data: The bitmap representation.
     public init(bitmapRepresentation data: Data) {
-        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(bitmapRepresentation: data))
+        _wrapped = NSCharacterSet(bitmapRepresentation: data)
     }
     
 #if !os(WASI)
@@ -164,7 +77,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// - parameter file: The file to read.
     public init?(contentsOfFile file: String) {
         if let interior = NSCharacterSet(contentsOfFile: file) {
-            _wrapped = _SwiftNSCharacterSet(immutableObject: interior)
+            _wrapped = interior
         } else {
             return nil
         }
@@ -172,19 +85,15 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
 #endif
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_mapUnmanaged { $0 })
+        _wrapped.hash(into: &hasher)
     }
     
     public var description: String {
-        return _mapUnmanaged { $0.description }
+        _wrapped.description
     }
     
     public var debugDescription: String {
-        return _mapUnmanaged { $0.debugDescription }
-    }
-    
-    private init(reference: NSCharacterSet) {
-        _wrapped = _SwiftNSCharacterSet(immutableObject: reference)
+        _wrapped.debugDescription
     }
     
     // MARK: Static functions
@@ -300,31 +209,57 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns a representation of the `CharacterSet` in binary format.
     public var bitmapRepresentation: Data {
-        return _mapUnmanaged { $0.bitmapRepresentation }
+        _wrapped.bitmapRepresentation
     }
     
     /// Returns an inverted copy of the receiver.
     public var inverted : CharacterSet {
-        return _mapUnmanaged { $0.inverted }
+        _wrapped.inverted
     }
     
     /// Returns true if the `CharacterSet` has a member in the specified plane.
     ///
     /// This method makes it easier to find the plane containing the members of the current character set. The Basic Multilingual Plane (BMP) is plane 0.
     public func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged { $0.hasMemberInPlane(plane) }
+        _wrapped.hasMemberInPlane(plane)
     }
     
     // MARK: Mutable functions
+    
+    private mutating func _add(charactersIn nsRange: NSRange) {
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.addCharacters(in: nsRange)
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.addCharacters(in: nsRange)
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.addCharacters(in: nsRange)
+            _wrapped = copy
+        }
+    }
+    
+    private mutating func _remove(charactersIn nsRange: NSRange) {
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.removeCharacters(in: nsRange)
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.removeCharacters(in: nsRange)
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.removeCharacters(in: nsRange)
+            _wrapped = copy
+        }
+    }
     
     /// Insert a range of integer values in the `CharacterSet`.
     ///
     /// It is the caller's responsibility to ensure that the values represent valid `UnicodeScalar` values, if that is what is desired.
     public mutating func insert(charactersIn range: Range<UnicodeScalar>) {
         let nsRange = _utfRangeToNSRange(range)
-        _applyUnmanagedMutation {
-            $0.addCharacters(in: nsRange)
-        }
+        _add(charactersIn: nsRange)
     }
     
     /// Insert a closed range of integer values in the `CharacterSet`.
@@ -332,44 +267,64 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// It is the caller's responsibility to ensure that the values represent valid `UnicodeScalar` values, if that is what is desired.
     public mutating func insert(charactersIn range: ClosedRange<UnicodeScalar>) {
         let nsRange = _utfRangeToNSRange(range)
-        _applyUnmanagedMutation {
-            $0.addCharacters(in: nsRange)
-        }
+        _add(charactersIn: nsRange)
     }
     
     /// Remove a range of integer values from the `CharacterSet`.
     public mutating func remove(charactersIn range: Range<UnicodeScalar>) {
         let nsRange = _utfRangeToNSRange(range)
-        _applyUnmanagedMutation {
-            $0.removeCharacters(in: nsRange)
-        }
+        _remove(charactersIn: nsRange)
     }
     
     /// Remove a closed range of integer values from the `CharacterSet`.
     public mutating func remove(charactersIn range: ClosedRange<UnicodeScalar>) {
         let nsRange = _utfRangeToNSRange(range)
-        _applyUnmanagedMutation {
-            $0.removeCharacters(in: nsRange)
-        }
+        _remove(charactersIn: nsRange)
     }
     
     /// Insert the values from the specified string into the `CharacterSet`.
     public mutating func insert(charactersIn string: String) {
-        _applyUnmanagedMutation {
-            $0.addCharacters(in: string)
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.addCharacters(in: string)
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.addCharacters(in: string)
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.addCharacters(in: string)
+            _wrapped = copy
         }
     }
     
     /// Remove the values from the specified string from the `CharacterSet`.
     public mutating func remove(charactersIn string: String) {
-        _applyUnmanagedMutation {
-            $0.removeCharacters(in: string)
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.removeCharacters(in: string)
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.removeCharacters(in: string)
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.removeCharacters(in: string)
+            _wrapped = copy
         }
     }
     
     /// Invert the contents of the `CharacterSet`.
     public mutating func invert() {
-        _applyUnmanagedMutation { $0.invert() }
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.invert()
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.invert()
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.invert()
+            _wrapped = copy
+        }
     }
     
     // -----
@@ -382,9 +337,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     @discardableResult
     public mutating func insert(_ character: UnicodeScalar) -> (inserted: Bool, memberAfterInsert: UnicodeScalar) {
         let nsRange = NSRange(location: Int(character.value), length: 1)
-        _applyUnmanagedMutation {
-            $0.addCharacters(in: nsRange)
-        }
+        _add(charactersIn: nsRange)
         // TODO: This should probably return the truth, but figuring it out requires two calls into NSCharacterSet
         return (true, character)
     }
@@ -395,9 +348,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     @discardableResult
     public mutating func update(with character: UnicodeScalar) -> UnicodeScalar? {
         let nsRange = NSRange(location: Int(character.value), length: 1)
-        _applyUnmanagedMutation {
-            $0.addCharacters(in: nsRange)
-        }
+        _add(charactersIn: nsRange)
         // TODO: This should probably return the truth, but figuring it out requires two calls into NSCharacterSet
         return character
     }
@@ -411,15 +362,13 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
         // TODO: Add method to NSCharacterSet to do this in one call
         let result : UnicodeScalar? = contains(character) ? character : nil
         let r = NSRange(location: Int(character.value), length: 1)
-        _applyUnmanagedMutation {
-            $0.removeCharacters(in: r)
-        }
+        _remove(charactersIn: r)
         return result
     }
     
     /// Test for membership of a particular `UnicodeScalar` in the `CharacterSet`.
     public func contains(_ member: UnicodeScalar) -> Bool {
-        return _mapUnmanaged { $0.longCharacterIsMember(member.value) }
+        _wrapped.longCharacterIsMember(member.value)
     }
     
     /// Returns a union of the `CharacterSet` with another `CharacterSet`.
@@ -432,7 +381,17 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Sets the value to a union of the `CharacterSet` with another `CharacterSet`.
     public mutating func formUnion(_ other: CharacterSet) {
-        _applyUnmanagedMutation { $0.formUnion(with: other) }
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.formUnion(with: other)
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.formUnion(with: other)
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.formUnion(with: other)
+            _wrapped = copy
+        }
     }
     
     /// Returns an intersection of the `CharacterSet` with another `CharacterSet`.
@@ -445,8 +404,16 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Sets the value to an intersection of the `CharacterSet` with another `CharacterSet`.
     public mutating func formIntersection(_ other: CharacterSet) {
-        _applyUnmanagedMutation {
-            $0.formIntersection(with: other)
+        if !isKnownUniquelyReferenced(&_wrapped) {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.formIntersection(with: other)
+            _wrapped = copy
+        } else if let mutable = _wrapped as? NSMutableCharacterSet {
+            mutable.formIntersection(with: other)
+        } else {
+            let copy = _wrapped.mutableCopy() as! NSMutableCharacterSet
+            copy.formIntersection(with: other)
+            _wrapped = copy
         }
     }
     
@@ -472,12 +439,12 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns true if `self` is a superset of `other`.
     public func isSuperset(of other: CharacterSet) -> Bool {
-        return _mapUnmanaged { $0.isSuperset(of: other) }
+        _wrapped.isSuperset(of: other)
     }
     
     /// Returns true if the two `CharacterSet`s are equal.
     public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-        return lhs._mapUnmanaged { $0.isEqual(rhs) }
+        lhs._wrapped.isEqual(rhs._wrapped)
     }
 }
 
@@ -528,173 +495,3 @@ extension CharacterSet : Codable {
         try container.encode(self.bitmapRepresentation, forKey: .bitmap)
     }
 }
-
-// MARK: - Boxing protocols
-// Only used by CharacterSet at this time
-
-fileprivate enum _MutableUnmanagedWrapper<ImmutableType : NSObject, MutableType : NSObject> where MutableType : NSMutableCopying {
-    case Immutable(Unmanaged<ImmutableType>)
-    case Mutable(Unmanaged<MutableType>)
-}
-
-fileprivate protocol _SwiftNativeFoundationType: AnyObject {
-    associatedtype ImmutableType : NSObject
-    associatedtype MutableType : NSObject,  NSMutableCopying
-    var __wrapped : _MutableUnmanagedWrapper<ImmutableType, MutableType> { get }
-    
-    init(unmanagedImmutableObject: Unmanaged<ImmutableType>)
-    init(unmanagedMutableObject: Unmanaged<MutableType>)
-    
-    func mutableCopy(with zone : NSZone) -> Any
-    
-    func hash(into hasher: inout Hasher)
-    var hashValue: Int { get }
-
-    var description: String { get }
-    var debugDescription: String { get }
-    
-    func releaseWrappedObject()
-}
-
-extension _SwiftNativeFoundationType {
-    
-    @inline(__always)
-    func _mapUnmanaged<ReturnType>(_ whatToDo : (ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
-        defer { _fixLifetime(self) }
-        
-        switch __wrapped {
-        case .Immutable(let i):
-            return try i._withUnsafeGuaranteedRef {
-                _onFastPath()
-                return try whatToDo($0)
-            }
-        case .Mutable(let m):
-            return try m._withUnsafeGuaranteedRef {
-                _onFastPath()
-                return try whatToDo(_unsafeReferenceCast($0, to: ImmutableType.self))
-            }
-        }
-    }
-    
-    func releaseWrappedObject() {
-        switch __wrapped {
-        case .Immutable(let i):
-            i.release()
-        case .Mutable(let m):
-            m.release()
-        }
-    }
-    
-    func mutableCopy(with zone : NSZone) -> Any {
-        return _mapUnmanaged { ($0 as NSObject).mutableCopy() }
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        _mapUnmanaged { hasher.combine($0) }
-    }
-
-    var hashValue: Int {
-        return _mapUnmanaged { return $0.hashValue }
-    }
-    
-    var description: String {
-        return _mapUnmanaged { return $0.description }
-    }
-    
-    var debugDescription: String {
-        return _mapUnmanaged { return $0.debugDescription }
-    }
-    
-    func isEqual(_ other: AnyObject) -> Bool {
-        return _mapUnmanaged { return $0.isEqual(other) }
-    }
-}
-
-fileprivate protocol _MutablePairBoxing {
-    associatedtype WrappedSwiftNSType : _SwiftNativeFoundationType
-    var _wrapped :  WrappedSwiftNSType { get set }
-}
-
-extension _MutablePairBoxing {
-    @inline(__always)
-    func _mapUnmanaged<ReturnType>(_ whatToDo : (WrappedSwiftNSType.ImmutableType) throws -> ReturnType) rethrows -> ReturnType {
-        // We are using Unmanaged. Make sure that the owning container class
-        // 'self' is guaranteed to be alive by extending the lifetime of 'self'
-        // to the end of the scope of this function.
-        // Note: At the time of this writing using withExtendedLifetime here
-        // instead of _fixLifetime causes different ARC pair matching behavior
-        // foiling optimization. This is why we explicitly use _fixLifetime here
-        // instead.
-        defer { _fixLifetime(self) }
-        
-        let unmanagedHandle = Unmanaged.passUnretained(_wrapped)
-        let wrapper = unmanagedHandle._withUnsafeGuaranteedRef { $0.__wrapped }
-        switch (wrapper) {
-        case .Immutable(let i):
-            return try i._withUnsafeGuaranteedRef {
-                return try whatToDo($0)
-            }
-        case .Mutable(let m):
-            return try m._withUnsafeGuaranteedRef {
-                return try whatToDo(_unsafeReferenceCast($0, to: WrappedSwiftNSType.ImmutableType.self))
-            }
-        }
-    }
-    
-    @inline(__always)
-    mutating func _applyUnmanagedMutation<ReturnType>(_ whatToDo : (WrappedSwiftNSType.MutableType) throws -> ReturnType) rethrows -> ReturnType {
-        // We are using Unmanaged. Make sure that the owning container class
-        // 'self' is guaranteed to be alive by extending the lifetime of 'self'
-        // to the end of the scope of this function.
-        // Note: At the time of this writing using withExtendedLifetime here
-        // instead of _fixLifetime causes different ARC pair matching behavior
-        // foiling optimization. This is why we explicitly use _fixLifetime here
-        // instead.
-        defer { _fixLifetime(self) }
-        
-        var unique = true
-        let _unmanagedHandle = Unmanaged.passUnretained(_wrapped)
-        let wrapper = _unmanagedHandle._withUnsafeGuaranteedRef { $0.__wrapped }
-        
-        // This check is done twice because: <rdar://problem/24939065> Value kept live for too long causing uniqueness check to fail
-        switch (wrapper) {
-        case .Immutable:
-            break
-        case .Mutable:
-            unique = isKnownUniquelyReferenced(&_wrapped)
-        }
-        
-        switch (wrapper) {
-        case .Immutable(let i):
-            // We need to become mutable; by creating a new instance we also become unique
-            let copy = Unmanaged.passRetained(i._withUnsafeGuaranteedRef {
-                return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self) }
-            )
-            
-            // Be sure to set the var before calling out; otherwise references to the struct in the closure may be looking at the old value
-            _wrapped = WrappedSwiftNSType(unmanagedMutableObject: copy)
-            return try copy._withUnsafeGuaranteedRef {
-                _onFastPath()
-                return try whatToDo($0)
-            }
-        case .Mutable(let m):
-            // Only create a new box if we are not uniquely referenced
-            if !unique {
-                let copy = Unmanaged.passRetained(m._withUnsafeGuaranteedRef {
-                    return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self)
-                    })
-                _wrapped = WrappedSwiftNSType(unmanagedMutableObject: copy)
-                return try copy._withUnsafeGuaranteedRef {
-                    _onFastPath()
-                    return try whatToDo($0)
-                }
-            } else {
-                return try m._withUnsafeGuaranteedRef {
-                    _onFastPath()
-                    return try whatToDo($0)
-                }
-            }
-        }
-    }
-}
-
