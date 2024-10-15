@@ -23,7 +23,7 @@ import SwiftFoundation
 import Foundation
 #endif
 
-@_implementationOnly import _CFURLSessionInterface
+internal import _CFURLSessionInterface
 import Dispatch
 
 // These helper functions avoid warnings about "will never be executed" code which checks the availability of the underlying libcurl features.

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 internal import Synchronization
 
 private let registeredDefaults = Mutex<[String: (Any & Sendable)]>([:])

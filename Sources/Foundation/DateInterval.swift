@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 extension DateInterval : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {

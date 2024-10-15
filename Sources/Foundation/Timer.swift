@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 internal func __NSFireTimer(_ timer: CFRunLoopTimer?, info: UnsafeMutableRawPointer?) -> Void {
     let t: Timer = NSObject.unretainedReference(info!)

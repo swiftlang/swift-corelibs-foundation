@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 internal final class _NSCFSet : NSMutableSet {
     deinit {

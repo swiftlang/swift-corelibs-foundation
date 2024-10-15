@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 #if canImport(ObjectiveC)
 import ObjectiveC

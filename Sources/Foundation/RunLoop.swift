@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
 internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
