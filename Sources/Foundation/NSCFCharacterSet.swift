@@ -78,6 +78,10 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
     override func invert() {
         CFCharacterSetInvert(_cfMutableObject)
     }
+    
+    override var classForCoder: AnyClass {
+        return NSCharacterSet.self
+    }
 }
 
 internal  func _CFSwiftCharacterSetExpandedCFCharacterSet(_ cset: CFTypeRef) -> Unmanaged<CFCharacterSet>? {
