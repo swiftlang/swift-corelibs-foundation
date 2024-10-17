@@ -1830,10 +1830,10 @@ static bool __CFLocaleICUKeywordValueName(const char *locale, const char *value,
     // Need to make a fake locale ID
     char lid[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
     if (strlen(value) < ULOC_KEYWORD_AND_VALUES_CAPACITY) {
-	strlcpy(lid, "en_US@", sizeof(lid));
-	strlcat(lid, keyword, sizeof(lid));
-	strlcat(lid, "=", sizeof(lid));
-	strlcat(lid, value, sizeof(lid));
+	cf_strlcpy(lid, "en_US@", sizeof(lid));
+	cf_strlcat(lid, keyword, sizeof(lid));
+	cf_strlcat(lid, "=", sizeof(lid));
+	cf_strlcat(lid, value, sizeof(lid));
         size = uloc_getDisplayKeywordValue(lid, keyword, locale, name, kMaxICUNameSize, &icuStatus);
         if (U_SUCCESS(icuStatus) && size > 0 && icuStatus != U_USING_DEFAULT_WARNING) {
             *out = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar *)name, size);
@@ -1925,8 +1925,8 @@ static bool __CFLocaleCountryName(const char *locale, const char *value, CFStrin
     // Need to make a fake locale ID
     char lid[ULOC_FULLNAME_CAPACITY];
     if (strlen(value) < sizeof(lid) - 3) {
-	strlcpy(lid, "en_", sizeof(lid));
-	strlcat(lid, value, sizeof(lid));
+	cf_strlcpy(lid, "en_", sizeof(lid));
+	cf_strlcat(lid, value, sizeof(lid));
         return __CFLocaleICUName(locale, lid, out, uloc_getDisplayCountry);
     }
     return false;
@@ -1941,9 +1941,9 @@ static bool __CFLocaleScriptName(const char *locale, const char *value, CFString
     // Need to make a fake locale ID
     char lid[ULOC_FULLNAME_CAPACITY];
     if (strlen(value) == 4) {
-	strlcpy(lid, "en_", sizeof(lid));
-	strlcat(lid, value, sizeof(lid));
-	strlcat(lid, "_US", sizeof(lid));
+	cf_strlcpy(lid, "en_", sizeof(lid));
+	cf_strlcat(lid, value, sizeof(lid));
+	cf_strlcat(lid, "_US", sizeof(lid));
         return __CFLocaleICUName(locale, lid, out, uloc_getDisplayScript);
     }
     return false;
@@ -1958,8 +1958,8 @@ static bool __CFLocaleVariantName(const char *locale, const char *value, CFStrin
     // Need to make a fake locale ID
     char lid[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
     if (strlen(value) < sizeof(lid) - 6) {
-	strlcpy(lid, "en_US_", sizeof(lid));
-	strlcat(lid, value, sizeof(lid));
+	cf_strlcpy(lid, "en_US_", sizeof(lid));
+	cf_strlcat(lid, value, sizeof(lid));
         return __CFLocaleICUName(locale, lid, out, uloc_getDisplayVariant);
     }
     return false;

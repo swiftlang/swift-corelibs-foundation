@@ -1896,7 +1896,7 @@ CFStringRef __CFStringMakeConstantString(const char *cStr) {
                 CFIndex keySize = strlen(cStr) + 1;
                 key = (char *)CFAllocatorAllocate(kCFAllocatorSystemDefault, keySize, 0);
                 if (__CFOASafe) __CFSetLastAllocationEventName((void *)key, "CFString (CFSTR key)");
-                strlcpy(key, cStr, keySize);	// !!! We will leak this, if the string is removed from the table (or table is freed)
+                cf_strlcpy(key, cStr, keySize);	// !!! We will leak this, if the string is removed from the table (or table is freed)
             }
 
             {
@@ -2292,7 +2292,7 @@ Boolean CFStringGetPascalString(CFStringRef str, Str255 buffer, CFIndex bufferSi
 
 #if defined(DEBUG)
 	if (bufferSize > 0) {
-	    strlcpy((char *)buffer + 1, CONVERSIONFAILURESTR, bufferSize - 1);
+	    cf_strlcpy((char *)buffer + 1, CONVERSIONFAILURESTR, bufferSize - 1);
 	    buffer[0] = (unsigned char)((CFIndex)sizeof(CONVERSIONFAILURESTR) < (bufferSize - 1) ? (CFIndex)sizeof(CONVERSIONFAILURESTR) : (bufferSize - 1));
 	}
 #else
@@ -2334,7 +2334,7 @@ Boolean CFStringGetCString(CFStringRef str, char *buffer, CFIndex bufferSize, CF
             return true;
         } else {
 #if defined(DEBUG)
-            strlcpy(buffer, CONVERSIONFAILURESTR, bufferSize);
+            cf_strlcpy(buffer, CONVERSIONFAILURESTR, bufferSize);
 #else
 	    if (bufferSize > 0) buffer[0] = 0;
 #endif

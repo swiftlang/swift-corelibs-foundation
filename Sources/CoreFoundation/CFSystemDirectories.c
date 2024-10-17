@@ -42,7 +42,7 @@ CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumer
     if (pathSize < PATH_MAX) {
         uint8_t tempPath[PATH_MAX];
         result = sysdir_get_next_search_path_enumeration(state, (char *)tempPath);
-        strlcpy((char *)path, (char *)tempPath, pathSize);
+        cf_strlcpy((char *)path, (char *)tempPath, pathSize);
     } else {
         result = sysdir_get_next_search_path_enumeration(state, (char *)path);
     }
@@ -75,7 +75,7 @@ CFArrayRef CFCopySearchPathForDirectoriesInDomains(CFSearchPathDirectory directo
 	    }
             if (homeLen + strlen(cPath) < CFMaxPathSize) {
 		home[homeLen] = '\0';
-		strlcat(home, &cPath[1], sizeof(home));
+		cf_strlcat(home, &cPath[1], sizeof(home));
 		url = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (uint8_t *)home, strlen(home), true);
 	    }
 	} else {

@@ -135,11 +135,11 @@ static void initializeCFNetworkSupport(void) {
         // not loaded yet, try to load from the filesystem
         char path[MAX_PATH+1];
         if (!CFNetworkSupport.image) {
-            strlcpy(path, (const char *)_CFDLLPath(), sizeof(path));
+            cf_strlcpy(path, (const char *)_CFDLLPath(), sizeof(path));
 #if _DEBUG
-            strlcat(path, "\\CFNetwork_debug.dll", sizeof(path));
+            cf_strlcat(path, "\\CFNetwork_debug.dll", sizeof(path));
 #else
-            strlcat(path, "\\CFNetwork.dll", sizeof(path));
+            cf_strlcat(path, "\\CFNetwork.dll", sizeof(path));
 #endif
             CFNetworkSupport.image = LoadLibraryA(path);
         }

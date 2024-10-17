@@ -109,11 +109,6 @@ typedef char * Class;
 #include <pthread.h>
 #endif
 
-#if TARGET_OS_WASI
-#define HAVE_STRLCPY 1
-#define HAVE_STRLCAT 1
-#endif
-
 #if TARGET_OS_WIN32
 #define BOOL WINDOWS_BOOL
 
@@ -204,10 +199,20 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
     #endif
 #endif
 
-#if !TARGET_OS_MAC
-#if !HAVE_STRLCPY
+// We know some things (Darwin, WASI, Glibc >= 2.38) have strlcpy/strlcat
+#if TARGET_OS_MAC || TARGET_OS_WASI                     \
+  || (defined(__GLIBC__) &&                             \
+      ((__GLIBC_MAJOR__ == 2 && __GLIBC_MINOR__ >= 38)  \
+       || __GLIBC_MAJOR__ > 2))
+#define HAVE_STRLCPY 1
+#define HAVE_STRLCAT 1
+#endif
+
+#if HAVE_STRLCPY
+#define cf_strlcpy    strlcpy
+#else
 CF_INLINE size_t
-strlcpy(char * dst, const char * src, size_t maxlen) {
+cf_strlcpy(char *dst, const char *src, size_t maxlen) {
     const size_t srclen = strlen(src);
     if (srclen < maxlen) {
         memcpy(dst, src, srclen+1);
@@ -219,9 +224,11 @@ strlcpy(char * dst, const char * src, size_t maxlen) {
 }
 #endif
 
-#if !HAVE_STRLCAT
+#if HAVE_STRLCAT
+#define cf_strlcat    strlcat
+#else
 CF_INLINE size_t
-strlcat(char * dst, const char * src, size_t maxlen) {
+cf_strlcat(char *dst, const char *src, size_t maxlen) {
     const size_t srclen = strlen(src);
     const size_t dstlen = strnlen(dst, maxlen);
     if (dstlen == maxlen) return maxlen+srclen;
@@ -234,7 +241,6 @@ strlcat(char * dst, const char * src, size_t maxlen) {
     return dstlen + srclen;
 }
 #endif
-#endif // !TARGET_OS_MAC
 
 #if TARGET_OS_WIN32
 // Compatibility with boolean.h
