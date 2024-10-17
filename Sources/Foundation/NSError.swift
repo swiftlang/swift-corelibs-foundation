@@ -708,7 +708,9 @@ extension CocoaError: _ObjectiveCBridgeable {
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSError, result: inout CocoaError?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge \(NSError.self) to \(self)")
+        }
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSError, result: inout CocoaError?) -> Bool {
