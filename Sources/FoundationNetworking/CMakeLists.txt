@@ -61,7 +61,16 @@ if(NOT BUILD_SHARED_LIBS)
     target_compile_options(FoundationNetworking PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend curl>")
     target_compile_options(FoundationNetworking PRIVATE
-        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend swiftSynchronization>")
+      "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend swiftSynchronization>")
+
+    if(BUILD_FULLY_STATIC)
+      target_compile_options(FoundationNetworking
+        PRIVATE
+          "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend crypto>"
+          "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend ssl>"
+          "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend z>")
+    endif()
+
 endif()
 
 set_target_properties(FoundationNetworking PROPERTIES

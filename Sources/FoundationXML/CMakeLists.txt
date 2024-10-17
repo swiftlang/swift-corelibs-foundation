@@ -37,6 +37,13 @@ if(NOT BUILD_SHARED_LIBS)
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend xml2>")
     target_compile_options(FoundationXML PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend swiftSynchronization>")
+
+    if(BUILD_FULLY_STATIC)
+        target_compile_options(FoundationXML
+            PRIVATE
+              "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend z>")
+    endif()
+
 endif()
 
 set_target_properties(FoundationXML PROPERTIES
