@@ -1147,8 +1147,8 @@ void _CFStringGetUserDefaultEncoding(UInt32 *oScriptValue, UInt32 *oRegionValue)
 		path = passwdp->pw_dir;
 	    }
 
-            strlcpy(filename, path, sizeof(filename));
-            strlcat(filename, __kCFUserEncodingFileName, sizeof(filename));
+            cf_strlcpy(filename, path, sizeof(filename));
+            cf_strlcat(filename, __kCFUserEncodingFileName, sizeof(filename));
 
 	    int no_hang_fd = __CFProphylacticAutofsAccess ? open("/dev/autofs_nowait", 0) : -1;
             int fd = open(filename, O_RDONLY, 0);
@@ -1206,8 +1206,8 @@ void _CFStringGetInstallationEncodingAndRegion(uint32_t *encoding, uint32_t *reg
 	const char *path = passwdp->pw_dir;
 
         char filename[MAXPATHLEN + 1];
-        strlcpy(filename, path, sizeof(filename));
-        strlcat(filename, __kCFUserEncodingFileName, sizeof(filename));
+        cf_strlcpy(filename, path, sizeof(filename));
+        cf_strlcat(filename, __kCFUserEncodingFileName, sizeof(filename));
         
 	int no_hang_fd = __CFProphylacticAutofsAccess ? open("/dev/autofs_nowait", 0) : -1;
 	int fd = open(filename, O_RDONLY, 0);
@@ -1239,8 +1239,8 @@ Boolean _CFStringSaveUserDefaultEncoding(UInt32 iScriptValue, UInt32 iRegionValu
 	}
 
         char filename[MAXPATHLEN + 1];
-        strlcpy(filename, path, sizeof(filename));
-        strlcat(filename, __kCFUserEncodingFileName, sizeof(filename));
+        cf_strlcpy(filename, path, sizeof(filename));
+        cf_strlcat(filename, __kCFUserEncodingFileName, sizeof(filename));
 
 	int no_hang_fd = __CFProphylacticAutofsAccess ? open("/dev/autofs_nowait", 0) : -1;
         (void)unlink(filename);

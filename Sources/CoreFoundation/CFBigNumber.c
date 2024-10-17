@@ -508,7 +508,7 @@ void _CFBigNumToCString(const _CFBigNum *vp, Boolean leading_zeros, Boolean lead
         char *s = tmp;
         while (*s == '0') s++;
         if (*s == 0) s--; // if tmp is all zeros, copy out at least one zero
-        strlcpy(buffer, s, buflen);
+        cf_strlcpy(buffer, s, buflen);
     }
 }
 
