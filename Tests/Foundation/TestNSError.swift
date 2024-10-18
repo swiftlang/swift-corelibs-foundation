@@ -222,4 +222,10 @@ class TestCocoaError: XCTestCase {
         XCTAssertNotNil(e.underlying as? POSIXError)
         XCTAssertEqual(e.underlying as? POSIXError, POSIXError.init(.EACCES))
     }
+
+    func test_forceCast() {
+        let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderInvalidValue.rawValue)
+        let error = nsError as! CocoaError
+        XCTAssertEqual(error.errorCode, CocoaError.coderInvalidValue.rawValue)
+    }
 }
