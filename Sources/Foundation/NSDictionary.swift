@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 #if !os(WASI)
 import Dispatch

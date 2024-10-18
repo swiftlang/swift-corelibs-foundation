@@ -8,7 +8,7 @@
 //
 
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Sendable {
     internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)

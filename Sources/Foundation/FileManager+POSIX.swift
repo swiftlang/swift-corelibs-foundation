@@ -13,7 +13,7 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
 }
 #endif
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 internal import Synchronization
 
 #if os(WASI)
@@ -32,7 +32,7 @@ internal var O_WRONLY: Int32 { _getConst_O_WRONLY() }
 fileprivate let previousStatxFailed = Mutex(false)
 #endif
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 
 extension FileManager {
     internal func _mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {

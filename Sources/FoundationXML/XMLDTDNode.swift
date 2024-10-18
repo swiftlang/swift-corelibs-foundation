@@ -12,7 +12,7 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
-@_implementationOnly import _CFXMLInterface
+internal import _CFXMLInterface
 
 /*!
     @typedef XMLDTDNodeKind

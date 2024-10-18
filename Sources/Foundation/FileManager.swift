@@ -13,7 +13,7 @@ fileprivate let SF_IMMUTABLE: Int32 = 1
 fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
-@_implementationOnly import CoreFoundation
+internal import CoreFoundation
 #if os(Windows)
 import CRT
 import WinSDK
