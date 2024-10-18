@@ -1779,7 +1779,7 @@ CFStringRef CFLocaleCreateCanonicalLanguageIdentifierFromString(CFAllocatorRef a
         }
         if (foundEntry) {
             // It does match, so replace old string with new
-            strlcpy(inLocaleString, foundEntry->result, sizeof(inLocaleString));
+            cf_strlcpy(inLocaleString, foundEntry->result, sizeof(inLocaleString));
              varKeyValueString[0] = 0;
         } else {
             char *      langRegSubtag = NULL;
@@ -1812,7 +1812,7 @@ CFStringRef CFLocaleCreateCanonicalLanguageIdentifierFromString(CFAllocatorRef a
                                                         sizeof(KeyStringToResultString), _CompareTestEntryToTableEntryKey );
         if (foundEntry) {
             // it does match
-            strlcpy(inLocaleString, foundEntry->result, sizeof(inLocaleString));
+            cf_strlcpy(inLocaleString, foundEntry->result, sizeof(inLocaleString));
         } else {
             // skip to any region tag or java-type variant
             char *  inLocalePtr = inLocaleString;
@@ -1871,7 +1871,7 @@ CFStringRef CFLocaleCreateCanonicalLocaleIdentifierFromString(CFAllocatorRef all
                                                         sizeof(KeyStringToResultString), _CompareTestEntryToTableEntryKey );
         if (foundEntry) {
             // It does match, so replace old string with new                                // <1.10>
-            strlcpy(inLocaleString, foundEntry->result, sizeof(inLocaleString));
+            cf_strlcpy(inLocaleString, foundEntry->result, sizeof(inLocaleString));
             varKeyValueString[0] = 0;
         } else {
             char *      langRegSubtag = NULL;
@@ -1997,8 +1997,8 @@ Boolean CFLocaleGetLanguageRegionEncodingForLocaleIdentifier(CFStringRef localeI
 				
 				// Append whichever other component we first found
 				if (componentLength > 0) {
-					strlcat(searchString, "_", sizeof(searchString));
-					strlcat(searchString, componentString, sizeof(searchString));
+					cf_strlcat(searchString, "_", sizeof(searchString));
+					cf_strlcat(searchString, componentString, sizeof(searchString));
 				}
 				
 				// Search
@@ -2176,7 +2176,7 @@ CFStringRef CFLocaleCreateLocaleIdentifierFromComponents(CFAllocatorRef allocato
     asprintf(&buf1, "%s%s%s%s%s%s%s", language ? language : "", script ? "_" : "", script ? script : "", (country || variant ? "_" : ""), country ? country : "", variant ? "_" : "", variant ? variant : "");
 
     char cLocaleID[2 * ULOC_FULLNAME_CAPACITY + 2 * ULOC_KEYWORD_AND_VALUES_CAPACITY];
-    strlcpy(cLocaleID, buf1, sizeof(cLocaleID));
+    cf_strlcpy(cLocaleID, buf1, sizeof(cLocaleID));
     free(language);
     free(script);
     free(country);

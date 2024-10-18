@@ -458,9 +458,9 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
                 // Ugh; must stat.
                 char subdirPath[CFMaxPathLength];
                 struct statinfo statBuf;
-                strlcpy(subdirPath, dirPath, sizeof(subdirPath));
-                strlcat(subdirPath, "/", sizeof(subdirPath));
-                strlcat(subdirPath, dp->d_name, sizeof(subdirPath));
+                cf_strlcpy(subdirPath, dirPath, sizeof(subdirPath));
+                cf_strlcat(subdirPath, "/", sizeof(subdirPath));
+                cf_strlcat(subdirPath, dp->d_name, sizeof(subdirPath));
                 if (stat(subdirPath, &statBuf) == 0) {
                     isDir = ((statBuf.st_mode & S_IFMT) == S_IFDIR);
                 }
@@ -1040,7 +1040,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     // Make sure there is room for the additional space we need in the win32 api
     if (strlen(directoryPathBuf) > CFMaxPathSize - 2) return;
 
-    strlcat(directoryPathBuf, "\\*", CFMaxPathSize);
+    cf_strlcat(directoryPathBuf, "\\*", CFMaxPathSize);
 
     UniChar wideBuf[CFMaxPathSize];
 
@@ -1110,8 +1110,8 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 struct stat statBuf;
                 char pathToStat[sizeof(dent->d_name)];
                 strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
-                strlcat(pathToStat, "/", sizeof(pathToStat));
-                strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
+                cf_strlcat(pathToStat, "/", sizeof(pathToStat));
+                cf_strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
                 if (stat(pathToStat, &statBuf) == 0) {
                     if (S_ISDIR(statBuf.st_mode)) {
                         dent->d_type = DT_DIR;
@@ -1135,7 +1135,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             CFStringRef fileName = CFStringCreateWithFileSystemRepresentation(kCFAllocatorSystemDefault, dent->d_name);
             
             // This buffer has to be 1 bigger than the size of the one in the dirent so we can hold the extra '/' if it's required
-            // Be sure to initialize the first character to null, so that strlcat below works correctly
+            // Be sure to initialize the first character to null, so that cf_strlcat below works correctly
             #if TARGET_OS_WASI
             // wasi-libc's dirent.d_name is not a fixed-size array but a pointer, so we need to calculate
             // the size of buffer at first.
@@ -1199,8 +1199,8 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                     struct stat statBuf;
                     char pathToStat[sizeof(dent->d_name)];
                     strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
-                    strlcat(pathToStat, "/", sizeof(pathToStat));
-                    strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
+                    cf_strlcat(pathToStat, "/", sizeof(pathToStat));
+                    cf_strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
                     if (stat(pathToStat, &statBuf) == 0) {
                         isDirectory = S_ISDIR(statBuf.st_mode);
                     }
@@ -1210,11 +1210,11 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             
             if (isDirectory) {
                 // Append the file name and the trailing /
-                strlcat(fullPathToFile, dent->d_name, sizeof(fullPathToFile));
-                strlcat(fullPathToFile, "/", sizeof(fullPathToFile));
+                cf_strlcat(fullPathToFile, dent->d_name, sizeof(fullPathToFile));
+                cf_strlcat(fullPathToFile, "/", sizeof(fullPathToFile));
             } else if (stuffToPrefix) {
                 // Append just the file name to our previously-used buffer
-                strlcat(fullPathToFile, dent->d_name, sizeof(fullPathToFile));
+                cf_strlcat(fullPathToFile, dent->d_name, sizeof(fullPathToFile));
             }
             
             

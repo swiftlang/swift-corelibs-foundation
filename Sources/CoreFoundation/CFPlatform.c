@@ -534,8 +534,8 @@ CFURLRef CFCopyHomeDirectoryURL(void) {
         const char *cdrive = __CFgetenv("HOMEDRIVE");
         if (cdrive && cpath) {
             char fullPath[CFMaxPathSize];
-            strlcpy(fullPath, cdrive, sizeof(fullPath));
-            strlcat(fullPath, cpath, sizeof(fullPath));
+            cf_strlcpy(fullPath, cdrive, sizeof(fullPath));
+            cf_strlcat(fullPath, cpath, sizeof(fullPath));
             str = CFStringCreateWithCString(kCFAllocatorSystemDefault, fullPath, kCFPlatformInterfaceStringEncoding);
             retVal = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, str, kCFURLWindowsPathStyle, true);
             CFRelease(str);
