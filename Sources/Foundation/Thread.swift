@@ -15,8 +15,14 @@ import WinSDK
 
 #if canImport(Glibc)
 import Glibc
+
+// Favor the Glibc declarations over the CoreFoundation declarations to ensure that stored properties use types from publicly imported modules
+typealias pthread_t = Glibc.pthread_t
 #elseif canImport(Musl)
 import Musl
+
+// Favor the Musl declarations over the CoreFoundation declarations to ensure that stored properties use types from publicly imported modules
+typealias pthread_t = Musl.pthread_t
 #endif
 
 // WORKAROUND_SR9811

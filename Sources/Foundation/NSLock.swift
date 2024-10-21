@@ -11,6 +11,10 @@
 
 #if canImport(Glibc)
 import Glibc
+
+// Favor the Glibc declarations over the CoreFoundation declarations to ensure that stored properties use types from publicly imported modules
+typealias pthread_mutex_t = Glibc.pthread_mutex_t
+typealias pthread_cond_t = Glibc.pthread_cond_t
 #endif
 
 #if os(Windows)
