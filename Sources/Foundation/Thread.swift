@@ -15,14 +15,8 @@ import WinSDK
 
 #if canImport(Glibc)
 import Glibc
-
-// Favor the Glibc declarations over the CoreFoundation declarations to ensure that stored properties use types from publicly imported modules
-typealias pthread_t = Glibc.pthread_t
 #elseif canImport(Musl)
 import Musl
-
-// Favor the Musl declarations over the CoreFoundation declarations to ensure that stored properties use types from publicly imported modules
-typealias pthread_t = Musl.pthread_t
 #endif
 
 // WORKAROUND_SR9811
@@ -216,24 +210,51 @@ open class Thread : NSObject {
     }
 
     internal var _main: () -> Void = {}
-    private var _thread: _swift_CFThreadRef? = nil
+    private var __thread: Any? = nil
+    
+    private var _thread: _swift_CFThreadRef? {
+        get {
+            __thread as! _swift_CFThreadRef?
+        }
+        set {
+            __thread = newValue
+        }
+    }
 
 #if os(Windows) && !CYGWIN
     private class NonexportedAttrStorage {
-        var value = _CFThreadAttributes(dwSizeOfAttributes: DWORD(MemoryLayout<_CFThreadAttributes>.size),
+        var value: Any = _CFThreadAttributes(dwSizeOfAttributes: DWORD(MemoryLayout<_CFThreadAttributes>.size),
                             dwThreadStackReservation: 0)
     }
 
     private let _attrStorage = NonexportedAttrStorage()
 
     internal final var _attr: _CFThreadAttributes {
-        get { _attrStorage.value }
+        get { _attrStorage.value as! _CFThreadAttributes }
         set { _attrStorage.value = newValue }
     }
 #elseif CYGWIN || os(OpenBSD)
-    internal var _attr : pthread_attr_t? = nil
+    internal var __attr : Any? = nil
+    
+    internal var _attr: pthread_attr_t? {
+        get {
+            __attr as! pthread_attr_t?
+        }
+        set {
+            __attr = newValue
+        }
+    }
 #else
-    internal var _attr = pthread_attr_t()
+    internal var __attr : Any = pthread_attr_t()
+    
+    internal var _attr: pthread_attr_t {
+        get {
+            __attr as! pthread_attr_t
+        }
+        set {
+            __attr = newValue
+        }
+    }
 #endif
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
@@ -245,16 +266,22 @@ open class Thread : NSObject {
 
     internal init(thread: _swift_CFThreadRef) {
         // Note: even on Darwin this is a non-optional _CFThreadRef; this is only used for valid threads, which are never null pointers.
-        _thread = thread
+        __thread = thread
     }
 
     public override init() {
 #if !os(Windows)
-        let _ = withUnsafeMutablePointer(to: &_attr) { attr in
+        #if os(OpenBSD)
+        var attr: pthread_attr_t? = nil
+        #else
+        var attr = pthread_attr_t()
+        #endif
+        let _ = withUnsafeMutablePointer(to: &attr) { attr in
             pthread_attr_init(attr)
             pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
         }
+        __attr = attr
 #endif
     }
 

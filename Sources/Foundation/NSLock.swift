@@ -11,10 +11,6 @@
 
 #if canImport(Glibc)
 import Glibc
-
-// Favor the Glibc declarations over the CoreFoundation declarations to ensure that stored properties use types from publicly imported modules
-typealias pthread_mutex_t = Glibc.pthread_mutex_t
-typealias pthread_cond_t = Glibc.pthread_cond_t
 #endif
 
 #if os(Windows)
@@ -54,24 +50,37 @@ private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_
 #endif
 
 open class NSLock: NSObject, NSLocking, @unchecked Sendable {
-    internal var mutex = _MutexPointer.allocate(capacity: 1)
+    private let _mutex = UnsafeMutableRawPointer(_MutexPointer.allocate(capacity: 1))
+    
+    private var mutex: _MutexPointer {
+        _mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self)
+    }
+    
 #if os(macOS) || os(iOS) || os(Windows)
-    private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
-    private var timeoutMutex = _MutexPointer.allocate(capacity: 1)
+    private let _timeoutCond = UnsafeMutableRawPointer(_ConditionVariablePointer.allocate(capacity: 1))
+    private let _timeoutMutex = UnsafeMutableRawPointer(_MutexPointer.allocate(capacity: 1))
+    
+    private var timeoutCond: _ConditionVariablePointer {
+        _timeoutCond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self)
+    }
+    
+    private var timeoutMutex: _MutexPointer {
+        _timeoutMutex.assumingMemoryBound(to: _MutexPointer.Pointee.self)
+    }
 #endif
 
     public override init() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
 #elseif os(Windows)
-        InitializeSRWLock(mutex)
-        InitializeConditionVariable(timeoutCond)
-        InitializeSRWLock(timeoutMutex)
+        InitializeSRWLock(_mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self))
+        InitializeConditionVariable(_timeoutCond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self))
+        InitializeSRWLock(_timeoutMutex.assumingMemoryBound(to: _MutexPointer.Pointee.self))
 #else
-        pthread_mutex_init(mutex, nil)
+        pthread_mutex_init(_mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self), nil)
 #if os(macOS) || os(iOS)
-        pthread_cond_init(timeoutCond, nil)
-        pthread_mutex_init(timeoutMutex, nil)
+        pthread_cond_init(_timeoutCond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self), nil)
+        pthread_mutex_init(_timeoutMutex.assumingMemoryBound(to: _MutexPointer.Pointee.self), nil)
 #endif
 #endif
     }
@@ -176,7 +185,16 @@ extension NSLock {
 open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
     internal var _cond = NSCondition()
     internal var _value: Int
-    internal var _thread: _swift_CFThreadRef?
+    internal var __thread: Any?
+    
+    internal var _thread: _swift_CFThreadRef? {
+        get {
+            __thread as! _swift_CFThreadRef?
+        }
+        set {
+            __thread = newValue
+        }
+    }
     
     public convenience override init() {
         self.init(condition: 0)
@@ -276,10 +294,23 @@ open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
 #endif
 
 open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
-    internal var mutex = _RecursiveMutexPointer.allocate(capacity: 1)
+    private let _mutex = UnsafeMutableRawPointer(_MutexPointer.allocate(capacity: 1))
+    
+    private var mutex: _MutexPointer {
+        _mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self)
+    }
+    
 #if os(macOS) || os(iOS) || os(Windows)
-    private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
-    private var timeoutMutex = _MutexPointer.allocate(capacity: 1)
+    private let _timeoutCond = UnsafeMutableRawPointer(_ConditionVariablePointer.allocate(capacity: 1))
+    private let _timeoutMutex = UnsafeMutableRawPointer(_MutexPointer.allocate(capacity: 1))
+    
+    private var timeoutCond: _ConditionVariablePointer {
+        _timeoutCond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self)
+    }
+    
+    private var timeoutMutex: _MutexPointer {
+        _timeoutMutex.assumingMemoryBound(to: _MutexPointer.Pointee.self)
+    }
 #endif
 
     public override init() {
@@ -287,9 +318,9 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
 #elseif os(Windows)
-        InitializeCriticalSection(mutex)
-        InitializeConditionVariable(timeoutCond)
-        InitializeSRWLock(timeoutMutex)
+        InitializeCriticalSection(_mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self))
+        InitializeConditionVariable(_timeoutCond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self))
+        InitializeSRWLock(_timeoutMutex.assumingMemoryBound(to: _MutexPointer.Pointee.self))
 #else
 #if CYGWIN || os(OpenBSD)
         var attrib : pthread_mutexattr_t? = nil
@@ -304,11 +335,11 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
             let type = Int32(PTHREAD_MUTEX_RECURSIVE)
 #endif
             pthread_mutexattr_settype(attrs, type)
-            pthread_mutex_init(mutex, attrs)
+            pthread_mutex_init(_mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self), attrs)
         }
 #if os(macOS) || os(iOS)
-        pthread_cond_init(timeoutCond, nil)
-        pthread_mutex_init(timeoutMutex, nil)
+        pthread_cond_init(_timeoutCond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self), nil)
+        pthread_mutex_init(_timeoutMutex.assumingMemoryBound(to: _MutexPointer.Pointee.self), nil)
 #endif
 #endif
     }
@@ -402,18 +433,26 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 }
 
 open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
-    internal var mutex = _MutexPointer.allocate(capacity: 1)
-    internal var cond = _ConditionVariablePointer.allocate(capacity: 1)
+    private let _mutex = UnsafeMutableRawPointer(_MutexPointer.allocate(capacity: 1))
+    private let _cond = UnsafeMutableRawPointer(_ConditionVariablePointer.allocate(capacity: 1))
+    
+    private var mutex: _MutexPointer {
+        _mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self)
+    }
+    
+    private var cond: _ConditionVariablePointer {
+        _cond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self)
+    }
 
     public override init() {
 #if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
         // noop on no thread platforms
 #elseif os(Windows)
-        InitializeSRWLock(mutex)
-        InitializeConditionVariable(cond)
+        InitializeSRWLock(_mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self))
+        InitializeConditionVariable(_cond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self))
 #else
-        pthread_mutex_init(mutex, nil)
-        pthread_cond_init(cond, nil)
+        pthread_mutex_init(_mutex.assumingMemoryBound(to: _MutexPointer.Pointee.self), nil)
+        pthread_cond_init(_cond.assumingMemoryBound(to: _ConditionVariablePointer.Pointee.self), nil)
 #endif
     }
     
