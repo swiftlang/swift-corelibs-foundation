@@ -371,9 +371,9 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
     
     open func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
-            return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+            return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)._nsObject
         } else if type(of: self) == _NSCFCharacterSet.self {
-            return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject) as Any
+            return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)._nsObject
         } else {
             NSRequiresConcreteImplementation()
         }
