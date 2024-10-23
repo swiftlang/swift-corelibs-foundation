@@ -44,6 +44,10 @@
 #include <unistd.h>
 #endif
 #if _POSIX_THREADS
+#if __has_include(<SwiftGlibc.h>)
+// Import SwiftGlibc.h before pthread.h (when available) to ensure the compiler understands that pthread.h is not owned by CoreFoundation
+#include <SwiftGlibc.h>
+#endif
 #include <pthread.h>
 #endif
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__)

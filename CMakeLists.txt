@@ -120,15 +120,25 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 # Precompute module triple for installation
-if(NOT SwiftFoundation_MODULE_TRIPLE)
+if(NOT SwiftFoundation_MODULE_TRIPLE OR NOT SwiftFoundation_GLIBC_MODULE_PATHS)
     set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
     if(CMAKE_Swift_COMPILER_TARGET)
         list(APPEND module_triple_command -target ${CMAKE_Swift_COMPILER_TARGET})
     endif()
     execute_process(COMMAND ${module_triple_command} OUTPUT_VARIABLE target_info_json)
     string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
-    set(SwiftFoundation_MODULE_TRIPLE "${module_triple}" CACHE STRING "swift module triple used for installed swiftmodule and swiftinterface files")
-    mark_as_advanced(SwiftFoundation_MODULE_TRIPLE)
+    if (NOT SwiftFoundation_GLIBC_MODULE_PATHS)
+        string(JSON glibc_module_path_length LENGTH "${target_info_json}" "paths" "runtimeLibraryImportPaths")
+        MATH(EXPR glibc_module_path_length "${glibc_module_path_length} - 1")
+        foreach(i RANGE ${glibc_module_path_length})
+            string(JSON value GET "${target_info_json}" "paths" "runtimeLibraryImportPaths" ${i})
+            list(APPEND SwiftFoundation_GLIBC_MODULE_PATHS "${value}")
+        endforeach()
+    endif()
+    if(NOT SwiftFoundation_MODULE_TRIPLE)
+        set(SwiftFoundation_MODULE_TRIPLE "${module_triple}" CACHE STRING "swift module triple used for installed swiftmodule and swiftinterface files")
+        mark_as_advanced(SwiftFoundation_MODULE_TRIPLE)
+    endif()
 endif()
 
 # System dependencies
@@ -170,6 +180,10 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-int-conversion"
     "-Wno-switch"
     "-fblocks")
+
+foreach(path ${SwiftFoundation_GLIBC_MODULE_PATHS})
+    list(APPEND _Foundation_common_build_flags "-I${path}")
+endforeach()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
     list(APPEND _Foundation_common_build_flags
