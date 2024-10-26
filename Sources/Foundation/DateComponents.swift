@@ -38,7 +38,7 @@ extension DateComponents : _ObjectiveCBridgeable {
     
     public static func _forceBridgeFromObjectiveC(_ dateComponents: NSDateComponents, result: inout DateComponents?) {
         if !_conditionallyBridgeFromObjectiveC(dateComponents, result: &result) {
-            fatalError("Unable to bridge \(DateComponents.self) to \(self)")
+            fatalError("Unable to bridge \(NSDateComponents.self) to \(self)")
         }
     }
     
