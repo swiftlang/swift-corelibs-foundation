@@ -1057,6 +1057,8 @@ CF_INLINE CFAllocatorRef __CFGetAllocator(CFTypeRef cf) {	// !!! Use with CF typ
     return *(CFAllocatorRef *)((char *)cf - 16);
 }
 
+CF_PRIVATE Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef allocator);
+
 /* !!! Avoid #importing objc.h; e.g. converting this to a .m file */
 struct __objcFastEnumerationStateEquivalent {
     unsigned long state;
