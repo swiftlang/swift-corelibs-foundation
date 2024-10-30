@@ -70,8 +70,6 @@ CF_EXPORT void *_Nonnull __CFSafelyReallocate(void * _Nullable destination, size
 CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nullable, void * _Nullable destination, size_t newCapacity, CFOptionFlags options, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
 #endif
 
-Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef _Nullable allocator);
-
 typedef CF_ENUM(CFOptionFlags, _CFAllocatorHint) {
     _CFAllocatorHintZeroWhenAllocating = 1
 };

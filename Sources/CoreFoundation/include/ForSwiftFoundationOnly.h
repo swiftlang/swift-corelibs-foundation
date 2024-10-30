@@ -105,8 +105,6 @@
 
 _CF_EXPORT_SCOPE_BEGIN
 
-CF_PRIVATE Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef _Nullable allocator);
-
 struct __CFSwiftObject {
     uintptr_t isa;
 };
