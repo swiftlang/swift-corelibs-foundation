@@ -790,7 +790,7 @@ void *__CFSafelyReallocateWithAllocator(CFAllocatorRef allocator, void *destinat
     return _CLANG_ANALYZER_IGNORE_NONNULL(reallocated);;
 }
 
-Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef allocator) {
+CF_PRIVATE Boolean __CFAllocatorRespectsHintZeroWhenAllocating(CFAllocatorRef allocator) {
     return allocator == kCFAllocatorSystemDefault || allocator == kCFAllocatorMallocZone;
 }
 
