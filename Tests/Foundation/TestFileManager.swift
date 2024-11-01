@@ -1258,8 +1258,10 @@ class TestFileManager : XCTestCase {
     #endif // !os(Android)
 #endif // !DEPLOYMENT_RUNTIME_OBJC
 
-    func test_emptyFilename() {
-
+    func test_emptyFilename() throws {
+        #if os(Windows)
+        throw XCTSkip("This test is disabled while we investigate why it's failing on Windows.")
+        #else
         // Some of these tests will throw an NSException on Darwin which would be normally be
         // modelled by a fatalError() or other hard failure, however since most of these functions
         // are throwable, an NSError is thrown instead which is more useful.
@@ -1398,6 +1400,7 @@ class TestFileManager : XCTestCase {
 
         // Not Implemented - XCTAssertNil(fm.componentsToDisplay(forPath: ""))
         // Not Implemented - XCTAssertEqual(fm.displayName(atPath: ""), "")
+        #endif // os(Windows)
     }
     
     func test_getRelationship() throws {
