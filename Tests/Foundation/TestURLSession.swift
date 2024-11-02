@@ -2148,7 +2148,51 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         XCTAssertEqual(delegate.callbacks.count, callbacks.count)
         XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
     }
-    
+
+    func test_webSocketShared() async throws {
+        guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
+        guard URLSessionWebSocketTask.supportsWebSockets else {
+            print("libcurl lacks WebSockets support, skipping \(#function)")
+            return
+        }
+
+        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket"
+        let url = try XCTUnwrap(URL(string: urlString))
+
+        let task = URLSession.shared.webSocketTask(with: url)
+        task.resume()
+
+        // We interleave sending and receiving, as the test HTTPServer implementation is barebones, and can't handle receiving more than one frame at a time.  So, this back-and-forth acts as a gating mechanism
+        try await task.send(.string("Hello"))
+
+        let stringMessage = try await task.receive()
+        switch stringMessage {
+        case .string(let str):
+            XCTAssert(str == "Hello")
+        default:
+            XCTFail("Unexpected String Message")
+        }
+
+        try await task.send(.data(Data([0x20, 0x22, 0x10, 0x03])))
+
+        let dataMessage = try await task.receive()
+        switch dataMessage {
+        case .data(let data):
+            XCTAssert(data == Data([0x20, 0x22, 0x10, 0x03]))
+        default:
+            XCTFail("Unexpected Data Message")
+        }
+
+        do {
+            try await task.sendPing()
+            // Server hasn't closed the connection yet
+        } catch {
+            // Server closed the connection before we could process the pong
+            let urlError = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+        }
+    }
+
     func test_webSocketSpecificProtocol() async throws {
         guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
