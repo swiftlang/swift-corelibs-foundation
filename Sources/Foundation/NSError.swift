@@ -300,7 +300,7 @@ public protocol CustomNSError : Error {
 public extension CustomNSError {
     /// Default domain of the error.
     static var errorDomain: String {
-        return String(reflecting: self)
+        return _typeName(self, qualified: true)
     }
 
     /// The error code within the given domain.
