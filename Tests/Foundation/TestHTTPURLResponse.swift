@@ -236,7 +236,8 @@ class TestHTTPURLResponse: XCTestCase {
 
         //On macOS unarchived Archived then unarchived `URLResponse` is not equal.
         XCTAssertEqual(responseA.statusCode, responseB.statusCode, "Archived then unarchived http url response must be equal.")
-        XCTAssertEqual(Array(responseA.allHeaderFields.keys), Array(responseB.allHeaderFields.keys), "Archived then unarchived http url response must be equal.")
+        // Dictionary ordering is unpredictable after encoding/decoding because every Dictionary instance has its own hash table salt. Compare Sets of the keys instead.
+        XCTAssertEqual(Set(responseA.allHeaderFields.keys), Set(responseB.allHeaderFields.keys), "Archived then unarchived http url response must be equal.")
 
         for key in responseA.allHeaderFields.keys {
             XCTAssertEqual(responseA.allHeaderFields[key] as? String, responseB.allHeaderFields[key] as? String, "Archived then unarchived http url response must be equal.")
