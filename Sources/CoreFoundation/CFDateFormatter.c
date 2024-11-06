@@ -155,12 +155,12 @@ CFStringRef CFDateFormatterCreateDateFormatFromTemplate(CFAllocatorRef allocator
             }
             
             UChar pattern[BUFFER_SIZE] = {0}, skel[BUFFER_SIZE] = {0}, bpat[BUFFER_SIZE] = {0};
-            CFIndex tmpltLen = CFStringGetLength(tmplateString);
-            if (BUFFER_SIZE < tmpltLen) tmpltLen = BUFFER_SIZE;
-            CFStringGetCharacters(tmplateString, CFRangeMake(0, tmpltLen), (UniChar *)pattern);
+            CFIndex tmplateLen = CFStringGetLength(tmplateString);
+            if (BUFFER_SIZE < tmplateLen) tmplateLen = BUFFER_SIZE;
+            CFStringGetCharacters(tmplateString, CFRangeMake(0, tmplateLen), (UniChar *)pattern);
             CFRelease(tmplateString);
             
-            int32_t patlen = tmpltLen;
+            int32_t patlen = tmplateLen;
             UErrorCode status = U_ZERO_ERROR;
             int32_t skellen = __cficu_udatpg_getSkeleton(ptg, pattern, patlen, skel, sizeof(skel) / sizeof(skel[0]), &status);
             if (!U_FAILURE(status)) {
@@ -872,7 +872,7 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
             CFStringAppendCString(resultStr, "HH:mm:ss", kCFStringEncodingUTF8);
         }
 
-        // Add support for fracional seconds
+        // Add support for fractional seconds
         if (includeFractionalSecs) {
             CFStringAppendCString(resultStr, ".SSS", kCFStringEncodingUTF8);
         }
@@ -2174,8 +2174,8 @@ CFTypeRef CFDateFormatterCopyProperty(CFDateFormatterRef formatter, CFStringRef 
 }
 
 CFStringRef _CFDateFormatterCreateSkeletonFromTemplate(CFStringRef tmplateString, CFLocaleRef locale, UErrorCode *outErrorCode) {
-    CFIndex const tmpltLen = CFStringGetLength(tmplateString);
-    if (tmpltLen == 0) {
+    CFIndex const tmplateLen = CFStringGetLength(tmplateString);
+    if (tmplateLen == 0) {
         if (outErrorCode) {
             *outErrorCode = U_ILLEGAL_ARGUMENT_ERROR;
         }
@@ -2186,15 +2186,15 @@ CFStringRef _CFDateFormatterCreateSkeletonFromTemplate(CFStringRef tmplateString
     Boolean success = useTemplatePatternGenerator(locale, ^(UDateTimePatternGenerator *ptg) {
 #define BUFFER_SIZE 768
 
-        SAFE_STACK_BUFFER_DECL(UChar, ubuffer, tmpltLen, BUFFER_SIZE);
+        SAFE_STACK_BUFFER_DECL(UChar, ubuffer, tmplateLen, BUFFER_SIZE);
         UChar const *ustr = (UChar *)CFStringGetCharactersPtr(tmplateString);
         if (ustr == NULL) {
-            CFStringGetCharacters(tmplateString, CFRangeMake(0, tmpltLen), (UniChar *)ubuffer);
+            CFStringGetCharacters(tmplateString, CFRangeMake(0, tmplateLen), (UniChar *)ubuffer);
             ustr = ubuffer;
         }
 
         UChar skel[BUFFER_SIZE] = {0};
-        int32_t patlen = tmpltLen;
+        int32_t patlen = tmplateLen;
         UErrorCode status = U_ZERO_ERROR;
         int32_t skelLen = __cficu_udatpg_getSkeleton(ptg, ustr, patlen, skel, sizeof(skel) / sizeof(skel[0]), &status);
         if (U_SUCCESS(status)) {
