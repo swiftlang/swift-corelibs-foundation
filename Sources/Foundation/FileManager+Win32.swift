@@ -322,11 +322,11 @@ extension FileManager {
         override func nextObject() -> Any? {
             func firstValidItem() -> URL? {
                 while let url = _stack.popLast() {
-                    if !FileManager.default.fileExists(atPath: url.path) {
-                        guard let handler = _errorHandler else { return nil }
-                        if !handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [url.path])) {
+                    guard FileManager.default.fileExists(atPath: url.path) else {
+                        if let handler = _errorHandler, !handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [url.path])) {
                             return nil
                         }
+                        continue
                     }
                     _lastReturned = url
                     return _lastReturned
