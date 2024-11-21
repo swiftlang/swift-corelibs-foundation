@@ -39,7 +39,7 @@ extension CGPoint: Equatable {
     }
 }
 
-extension CGPoint: NSSpecialValueCoding {
+extension CGPoint: NSSpecialValueCoding, Hashable {
     init(bytes: UnsafeRawPointer) {
         self.x = bytes.load(as: CGFloat.self)
         self.y = bytes.load(fromByteOffset: MemoryLayout<CGFloat>.stride, as: CGFloat.self)
@@ -75,7 +75,7 @@ extension CGPoint: NSSpecialValueCoding {
         }
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(x)
         hasher.combine(y)
     }
@@ -132,7 +132,7 @@ extension CGSize: Equatable {
     }
 }
 
-extension CGSize: NSSpecialValueCoding {
+extension CGSize: NSSpecialValueCoding, Hashable {
     init(bytes: UnsafeRawPointer) {
         self.width = bytes.load(as: CGFloat.self)
         self.height = bytes.load(fromByteOffset: MemoryLayout<CGFloat>.stride, as: CGFloat.self)
@@ -168,7 +168,7 @@ extension CGSize: NSSpecialValueCoding {
         }
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(width)
         hasher.combine(height)
     }
@@ -451,7 +451,7 @@ public typealias NSRect = CGRect
 public typealias NSRectPointer = UnsafeMutablePointer<NSRect>
 public typealias NSRectArray = UnsafeMutablePointer<NSRect>
 
-extension CGRect: NSSpecialValueCoding {
+extension CGRect: NSSpecialValueCoding, Hashable {
     init(bytes: UnsafeRawPointer) {
         self.origin = CGPoint(
             x: bytes.load(as: CGFloat.self),
@@ -491,7 +491,7 @@ extension CGRect: NSSpecialValueCoding {
         }
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         origin.hash(into: &hasher)
         size.hash(into: &hasher)
     }
