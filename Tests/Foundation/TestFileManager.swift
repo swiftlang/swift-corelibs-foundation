@@ -929,8 +929,8 @@ class TestFileManager : XCTestCase {
 
     func test_homedirectoryForUser() {
         let filemanger = FileManager.default
-        XCTAssertNotNil(filemanger.homeDirectory(forUser: "someuser"))
-        XCTAssertNotNil(filemanger.homeDirectory(forUser: ""))
+        XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
+        XCTAssertNil(filemanger.homeDirectory(forUser: ""))
         XCTAssertNotNil(filemanger.homeDirectoryForCurrentUser)
     }
     
@@ -1268,15 +1268,13 @@ class TestFileManager : XCTestCase {
         let fm = FileManager.default
 
         #if os(Windows)
-        let defaultHomeDirectory = ProcessInfo.processInfo.environment["ALLUSERSPROFILE"]!
         let emptyFileNameError: CocoaError.Code? = .fileReadInvalidFileName
         #else
-        let defaultHomeDirectory = "/var/empty"
         let emptyFileNameError: CocoaError.Code? = nil
         #endif
 
-        XCTAssertEqual(fm.homeDirectory(forUser: ""), URL(filePath: defaultHomeDirectory, directoryHint: .isDirectory))
-        XCTAssertEqual(NSHomeDirectoryForUser(""), defaultHomeDirectory)
+        XCTAssertNil(fm.homeDirectory(forUser: ""))
+        XCTAssertNil(NSHomeDirectoryForUser(""))
 
         XCTAssertThrowsError(try fm.contentsOfDirectory(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
