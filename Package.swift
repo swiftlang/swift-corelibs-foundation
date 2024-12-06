@@ -26,7 +26,7 @@ if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
         .unsafeFlags([
             "-I/usr/lib/swift",
             "-I/usr/lib/swift/Block"
-        ], .when(platforms: [.linux, .android]))
+        ], .when(platforms: [.linux]))
     )
     if let sdkRoot = Context.environment["SDKROOT"] {
         dispatchIncludeFlags.append(.unsafeFlags([
@@ -245,7 +245,8 @@ let package = Package(
                 "BlockRuntime",
                 "CMakeLists.txt"
             ],
-            cSettings: coreFoundationBuildSettings
+            cSettings: coreFoundationBuildSettings,
+            linkerSettings: [.linkedLibrary("log", .when(platforms: [.android]))]
         ),
         .target(
             name: "BlocksRuntime",
@@ -262,7 +263,7 @@ let package = Package(
             name: "_CFXMLInterface",
             dependencies: [
                 "CoreFoundation",
-                .target(name: "Clibxml2", condition: .when(platforms: [.linux])),
+                .target(name: "Clibxml2", condition: .when(platforms: [.linux, .android])),
             ],
             path: "Sources/_CFXMLInterface",
             exclude: [
@@ -275,7 +276,7 @@ let package = Package(
             name: "_CFURLSessionInterface",
             dependencies: [
                 "CoreFoundation",
-                .target(name: "Clibcurl", condition: .when(platforms: [.linux])),
+                .target(name: "Clibcurl", condition: .when(platforms: [.linux, .android])),
             ],
             path: "Sources/_CFURLSessionInterface",
             exclude: [
@@ -348,7 +349,7 @@ let package = Package(
                 "FoundationNetworking",
                 "XCTest",
                 "Testing",
-                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux]))
+                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux, .android]))
             ],
             resources: [
                 .copy("Foundation/Resources")
