@@ -107,7 +107,7 @@ fileprivate let FOUNDATION_SOCK_STREAM = SOCK_STREAM
 fileprivate let FOUNDATION_IPPROTO_TCP = IPPROTO_TCP
 #endif
 
-#if canImport(Glibc) && !os(Android) && !os(OpenBSD)
+#if canImport(Glibc) && !os(Android) && !os(OpenBSD) && !os(FreeBSD)
 import Glibc
 fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM.rawValue)
 fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
@@ -119,7 +119,7 @@ fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM)
 fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
 #endif
 
-#if canImport(Glibc) && os(Android) || os(OpenBSD)
+#if canImport(Glibc) && os(Android) || os(OpenBSD) || os(FreeBSD)
 import Glibc
 fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM)
 fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
