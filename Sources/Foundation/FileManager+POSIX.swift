@@ -89,7 +89,7 @@ extension FileManager {
             }
             urls = mountPoints(statBuf, Int(fsCount))
         }
-#elseif os(OpenBSD)
+#elseif os(OpenBSD) || os(FreeBSD)
         func mountPoints(_ statBufs: UnsafePointer<statfs>, _ fsCount: Int) -> [URL] {
             var urls: [URL] = []
 
