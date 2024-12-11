@@ -464,7 +464,7 @@ uint8_t _CFBigNumAdd(_CFBigNum *r, const _CFBigNum *a, const _CFBigNum *b) {
             bigNum = a;
             smallNum = b;
         }
-        for (int i = 0; i < sizeof(a->digits) / sizeof(a->digits[0]); i++) {
+        for (CFIndex i = 0; i < sizeof(a->digits) / sizeof(a->digits[0]); i++) {
             int64_t result = (int64_t)bigNum->digits[i] - (int64_t)smallNum->digits[i] - carry;
             if (result < 0) {
                 carry = 1;
