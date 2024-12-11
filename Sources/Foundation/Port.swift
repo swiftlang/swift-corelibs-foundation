@@ -119,7 +119,7 @@ fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM)
 fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
 #endif
 
-#if canImport(Glibc) || os(OpenBSD)
+#if canImport(Glibc) && os(OpenBSD)
 import Glibc
 fileprivate let FOUNDATION_SOCK_STREAM = Int32(SOCK_STREAM)
 fileprivate let FOUNDATION_IPPROTO_TCP = Int32(IPPROTO_TCP)
