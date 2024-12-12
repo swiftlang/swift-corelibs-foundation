@@ -109,11 +109,6 @@ typedef char * Class;
 #include <pthread.h>
 #endif
 
-#if TARGET_OS_ANDROID
-#define HAVE_STRLCPY 1
-#define HAVE_STRLCAT 1
-#endif
-
 #if TARGET_OS_WIN32
 #define BOOL WINDOWS_BOOL
 
@@ -205,9 +200,9 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #endif
 
 // We know some things (Darwin, WASI, Glibc >= 2.38) have strlcpy/strlcat
-#if TARGET_OS_MAC || TARGET_OS_WASI                     \
-  || (defined(__GLIBC__) &&                             \
-      ((__GLIBC_MAJOR__ == 2 && __GLIBC_MINOR__ >= 38)  \
+#if TARGET_OS_MAC || TARGET_OS_WASI || TARGET_OS_ANDROID \
+  || (defined(__GLIBC__) &&                              \
+      ((__GLIBC_MAJOR__ == 2 && __GLIBC_MINOR__ >= 38)   \
        || __GLIBC_MAJOR__ > 2))
 #define HAVE_STRLCPY 1
 #define HAVE_STRLCAT 1
