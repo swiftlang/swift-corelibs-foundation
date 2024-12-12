@@ -281,7 +281,7 @@ const char *_CFProcessPath(void) {
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
-#if defined(__OpenBSD__)
+#if defined(__OpenBSD__) || defined(__FreeBSD__)
     return pthread_equal(pthread_self(), _CFMainPThread) != 0;
 #else
     return pthread_main_np() == 1;
@@ -928,9 +928,13 @@ static void __CFTSDFinalize(void *arg) {
 #if _POSIX_THREADS && !TARGET_OS_WASI
     if (table->destructorCount == PTHREAD_DESTRUCTOR_ITERATIONS - 1) {    // On PTHREAD_DESTRUCTOR_ITERATIONS-1 call, destroy our data
         free(table);
-        
+
+        // FreeBSD libthr emits debug message to stderr if there are leftover nonnull TSD after PTHREAD_DESTRUCTOR_ITERATIONS
+        // On this platform, the destructor will never be called again, therefore it is unneccessary to set the TSD to CF_TSD_BAD_PTR
+        #if !defined(__FreeBSD__)
         // Now if the destructor is called again we will take the shortcut at the beginning of this function.
         __CFTSDSetSpecific(CF_TSD_BAD_PTR);
+        #endif
         return;
     }
 #else

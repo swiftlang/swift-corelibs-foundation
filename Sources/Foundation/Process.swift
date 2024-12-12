@@ -779,7 +779,7 @@ open class Process: NSObject, @unchecked Sendable {
         }
 
         var taskSocketPair : [Int32] = [0, 0]
-#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD) || canImport(Musl)
+#if os(macOS) || os(iOS) || os(Android) || os(OpenBSD) || os(FreeBSD) || canImport(Musl)
         socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
 #else
         socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)
@@ -936,7 +936,7 @@ open class Process: NSObject, @unchecked Sendable {
             useFallbackChdir = false
         }
 
-#if canImport(Darwin) || os(Android) || os(OpenBSD)
+#if canImport(Darwin) || os(Android) || os(OpenBSD) || os(FreeBSD)
         var spawnAttrs: posix_spawnattr_t? = nil
 #else
         var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()
