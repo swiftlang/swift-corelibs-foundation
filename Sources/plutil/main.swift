@@ -15,6 +15,9 @@ import Glibc
 #elseif canImport(Musl)
 import Foundation
 import Musl
+#elseif canImport(Bionic)
+import Foundation
+import Bionic
 #elseif canImport(CRT)
 import Foundation
 import CRT

@@ -11,6 +11,8 @@
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(Bionic)
+import Bionic
 #endif
 
 #if os(Windows)

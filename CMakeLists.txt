@@ -42,7 +42,7 @@ if(NOT SWIFT_SYSTEM_NAME)
 endif()
 
 # Don't enable WMO on Windows due to linker failures
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows)
+if(NOT CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     # Enable whole module optimization for release builds & incremental for debug builds
     if(POLICY CMP0157)
         set(CMAKE_Swift_COMPILATION_MODE "$<IF:$<CONFIG:Release>,wholemodule,incremental>")
@@ -149,6 +149,12 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
             "-I${DISPATCH_INCLUDE_PATH}"
             "-I${DISPATCH_INCLUDE_PATH}/Block")
     endif()
+endif()
+if(ANDROID)
+  # LibXml2 looks for the Threads package, so
+  # ensure that it doesn't try to use the `-pthread`
+  # flag on Android.
+  set(CMAKE_HAVE_LIBC_PTHREAD YES)
 endif()
 find_package(LibXml2 REQUIRED)
 if(FOUNDATION_BUILD_NETWORKING)
