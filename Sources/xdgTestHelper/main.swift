@@ -19,7 +19,7 @@ import FoundationNetworking
 #endif
 #if os(Windows)
 import WinSDK
-#elseif os(Android)
+#elseif canImport(Android)
 import Android
 #endif
 
