@@ -226,7 +226,7 @@ open class Thread : NSObject {
         get { _attrStorage.value }
         set { _attrStorage.value = newValue }
     }
-#elseif CYGWIN || os(OpenBSD)
+#elseif CYGWIN || os(OpenBSD) || os(FreeBSD)
     internal var _attr : pthread_attr_t? = nil
 #else
     internal var _attr = pthread_attr_t()
@@ -266,7 +266,7 @@ open class Thread : NSObject {
             _status = .finished
             return
         }
-#if CYGWIN || os(OpenBSD)
+#if CYGWIN || os(OpenBSD) || os(FreeBSD)
         if let attr = self._attr {
             _thread = self.withRetainedReference {
               return _CFThreadCreate(attr, NSThreadStart, $0)
@@ -390,6 +390,8 @@ open class Thread : NSObject {
 #elseif os(Windows)
         let count = RtlCaptureStackBackTrace(0, DWORD(maxSupportedStackDepth),
                                              addrs, nil)
+#elseif os(FreeBSD)
+        let count = backtrace(addrs, maxSupportedStackDepth)
 #else
         let count = backtrace(addrs, Int32(maxSupportedStackDepth))
 #endif
@@ -451,7 +453,12 @@ open class Thread : NSObject {
 #else
         return backtraceAddresses({ (addrs, count) in
             var symbols: [String] = []
-            if let bs = backtrace_symbols(addrs, Int32(count)) {
+#if os(FreeBSD)
+            let bs = backtrace_symbols(addrs, count)
+#else
+            let bs = backtrace_symbols(addrs, Int32(count))
+#endif
+            if let bs {
                 symbols = UnsafeBufferPointer(start: bs, count: count).map {
                     guard let symbol = $0 else {
                         return "<null>"

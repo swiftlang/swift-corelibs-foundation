@@ -318,9 +318,15 @@ extension FileManager {
             flags |= flagsToSet
             flags &= ~flagsToUnset
             
-            guard chflags(fsRep, flags) == 0 else {
+#if os(FreeBSD)
+            guard chflags(path, UInt(flags)) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
+#else
+            guard chflags(path, flags) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            }
+#endif
 #endif
         }
         
