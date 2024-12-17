@@ -21,8 +21,8 @@ import WinSDK
 
 #if os(WASI)
 import WASILibc
-#elseif canImport(Android)
-import Android
+#elseif canImport(Bionic)
+import Bionic
 #endif
 
 #if os(Windows)

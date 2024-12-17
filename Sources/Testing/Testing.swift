@@ -11,6 +11,8 @@
 import Glibc
 #elseif canImport(Musl)
 import Musl
+#elseif canImport(Bionic)
+import Bionic
 #elseif os(WASI)
 import WASILibc
 #elseif canImport(CRT)
