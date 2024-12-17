@@ -67,6 +67,13 @@ open class HTTPCookieStorage: NSObject, @unchecked Sendable {
     private let syncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.syncQ")
 
     private let isEphemeral: Bool
+    
+    public init() {
+        _allCookies = [:]
+        cookieAcceptPolicy = .always
+        isEphemeral = true
+        super.init()
+    }
 
     private init(cookieStorageName: String, isEphemeral: Bool = false) {
         _allCookies = [:]
