@@ -15,9 +15,9 @@ import Glibc
 #elseif canImport(Musl)
 import Foundation
 import Musl
-#elseif canImport(Android)
+#elseif canImport(Bionic)
 import Foundation
-import Android
+import Bionic
 #elseif canImport(CRT)
 import Foundation
 import CRT
