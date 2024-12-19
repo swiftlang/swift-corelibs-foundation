@@ -22,6 +22,8 @@ import Darwin
 import Glibc
 #elseif canImport(Musl)
 import Musl
+#elseif canImport(Bionic)
+import Bionic
 #endif
 
 // NOTE: this represents PLATFORM_PATH_STYLE
