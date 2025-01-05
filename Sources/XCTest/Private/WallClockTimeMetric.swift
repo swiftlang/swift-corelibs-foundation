@@ -30,7 +30,7 @@ internal final class WallClockTimeMetric: PerformanceMetric {
         measurements.append(stopTime-startTime)
     }
 
-    private let maxRelativeStandardDeviation = 10.0
+    private let maxRelativeStandardDeviation = ProcessInfo.processInfo.environment["XCTEST_MEASURE_MAX_STDDEV"].flatMap({ Double($0) }) ?? 10.0
     private let standardDeviationNegligibilityThreshold = 0.1
 
     func calculateResults() -> String {
