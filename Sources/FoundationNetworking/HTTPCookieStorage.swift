@@ -69,7 +69,7 @@ open class HTTPCookieStorage: NSObject, @unchecked Sendable {
     private let isEphemeral: Bool
     private let isStorageDisabled: Bool
     
-    public init() {
+    public override init() {
         _allCookies = [:]
         cookieAcceptPolicy = .always
         isEphemeral = true
