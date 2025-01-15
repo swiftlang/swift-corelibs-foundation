@@ -287,8 +287,11 @@ CF_EXPORT CFStringEncoding __CFDefaultEightBitStringEncoding;
 CF_EXPORT CFStringEncoding __CFStringComputeEightBitStringEncoding(void);
 
 CF_INLINE CFStringEncoding __CFStringGetEightBitStringEncoding(void) {
-    if (__CFDefaultEightBitStringEncoding == kCFStringEncodingInvalidId) __CFStringComputeEightBitStringEncoding();
-    return __CFDefaultEightBitStringEncoding;
+    if (__CFDefaultEightBitStringEncoding == kCFStringEncodingInvalidId) {
+        return __CFStringComputeEightBitStringEncoding();
+    } else {
+        return __CFDefaultEightBitStringEncoding;
+    }
 }
 
 enum {
