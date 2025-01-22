@@ -204,6 +204,7 @@ open class URLSessionConfiguration : NSObject, NSCopying, @unchecked Sendable {
      */
     
     /* Allow the use of HTTP pipelining */
+    @available(swift, deprecated: 6.1, message: "HTTP/1 pipelining has known compatibility issues, please adopt HTTP/2 and HTTP/3 instead")
     open var httpShouldUsePipelining: Bool
     
     /* Allow the session to set cookies on requests */
@@ -229,9 +230,7 @@ open class URLSessionConfiguration : NSObject, NSCopying, @unchecked Sendable {
     /* The URL resource cache, or nil to indicate that no caching is to be performed */
     open var urlCache: URLCache?
     
-    /* Enable extended background idle mode for any tcp sockets created.    Enabling this mode asks the system to keep the socket open
-     *  and delay reclaiming it when the process moves to the background (see https://developer.apple.com/library/ios/technotes/tn2277/_index.html)
-     */
+    @available(swift, deprecated: 6.1, message: "Not supported")
     open var shouldUseExtendedBackgroundIdleMode: Bool
     
     /* An optional array of Class objects which subclass URLProtocol.
@@ -252,6 +251,10 @@ open class URLSessionConfiguration : NSObject, NSCopying, @unchecked Sendable {
      /* A service type that specifies the Multipath TCP connection policy for transmitting data over Wi-Fi and cellular interfaces*/
      @available(*, unavailable, message: "Not available on non-Darwin platforms")
      open var multipathServiceType: URLSessionConfiguration.MultipathServiceType { NSUnsupported() }
+
+    /* Uses the classic network loader */
+    @available(*, unavailable, message: "Not available on non-Darwin platforms")
+    open var usesClassicLoadingMode: Bool { NSUnsupported() }
 
 }
 
