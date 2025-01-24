@@ -20,6 +20,7 @@ public let NSURLErrorFailingURLErrorKey: String = "NSErrorFailingURLKey"
 
 /// The `NSError` userInfo dictionary key used to store and retrieve the NSString
 /// object for the URL which caused a load to fail.
+@available(swift, deprecated: 6.1, message: "Use NSURLErrorFailingURLErrorKey instead")
 public let NSURLErrorFailingURLStringErrorKey: String = "NSErrorFailingURLStringKey"
 
 /// The `NSError` userInfo dictionary key used to store and retrieve the

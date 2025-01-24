@@ -224,6 +224,7 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable, Sendable {
     /// `true` if the receiver should transmit before the previous response
     /// is received.  `false` if the receiver should wait for the previous response
     /// before transmitting.
+    @available(swift, deprecated: 6.1, message: "HTTP/1 pipelining has known compatibility issues, please adopt HTTP/2 and HTTP/3 instead")
     public var httpShouldUsePipelining: Bool {
         get {
             return _handle.map { $0.httpShouldUsePipelining }

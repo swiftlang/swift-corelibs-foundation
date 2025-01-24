@@ -373,6 +373,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     
     open internal(set) var httpShouldHandleCookies: Bool = true
     
+    @available(swift, deprecated: 6.1, message: "HTTP/1 pipelining has known compatibility issues, please adopt HTTP/2 and HTTP/3 instead")
     open internal(set) var httpShouldUsePipelining: Bool = true
 
     open override var description: String {
@@ -573,6 +574,7 @@ open class NSMutableURLRequest : NSURLRequest {
         set { super.httpShouldHandleCookies = newValue }
     }
     
+    @available(swift, deprecated: 6.1, message: "HTTP/1 pipelining has known compatibility issues, please adopt HTTP/2 and HTTP/3 instead")
     open override var httpShouldUsePipelining: Bool {
         get { return super.httpShouldUsePipelining }
         set { super.httpShouldUsePipelining = newValue }

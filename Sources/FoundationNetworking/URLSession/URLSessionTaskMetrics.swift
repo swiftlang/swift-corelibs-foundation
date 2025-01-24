@@ -29,6 +29,7 @@ open class URLSessionTaskMetrics : NSObject, @unchecked Sendable {
     public enum ResourceFetchType: Int, Sendable {
         case unknown = 0
         case networkLoad = 1
+        @available(swift, deprecated: 6.1, message: "Server push is not supported")
         case serverPush = 2
         case localCache = 3
     }
