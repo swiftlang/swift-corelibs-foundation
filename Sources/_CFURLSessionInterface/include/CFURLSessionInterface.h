@@ -34,6 +34,11 @@
 #if defined(_WIN32)
 #include <winsock2.h>
 #endif
+#include <curl/curlver.h>
+
+#if !defined(LIBCURL_VERSION_MAJOR)
+#error "LIBCURL_VERSION_MAJOR not defined, missing curlver.h"
+#endif
 
 // 7.84.0 or later
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR > 84) || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR == 84 && LIBCURL_VERSION_PATCH >= 0)
