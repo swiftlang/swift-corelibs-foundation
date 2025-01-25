@@ -221,22 +221,65 @@ extension _EasyHandle {
             }
             return
         } else {
-            // When no certificate file has been specified, check the default Android locations
-            // like at https://github.com/apple/swift-nio-ssl/blob/main/Sources/NIOSSL/AndroidCABundle.swift
+            // When no certificate file has been specified, assemble all the certificate files
+            // from the Android certificate store and writes them to a single `cacerts.pem` file
+            //
+            // See https://android.googlesource.com/platform/frameworks/base/+/8b192b19f264a8829eac2cfaf0b73f6fc188d933%5E%21/#F0
+
+            // See https://github.com/apple/swift-nio-ssl/blob/d1088ebe0789d9eea231b40741831f37ab654b61/Sources/NIOSSL/AndroidCABundle.swift#L30
             let certsFolders = [
                 "/apex/com.android.conscrypt/cacerts", // >= Android14
                 "/system/etc/security/cacerts" // < Android14
             ]
 
+            let aggregateCertPath = NSTemporaryDirectory() + "/cacerts-\(UUID().uuidString).pem"
+
+            if FileManager.default.createFile(atPath: aggregateCertPath, contents: nil) == false {
+                return
+            }
+
+            guard let fs = FileHandle(forWritingAtPath: aggregateCertPath) else {
+                return
+            }
+
+            // write a header
+            fs.write("""
+            ## Bundle of CA Root Certificates
+            ## Auto-generated on \(Date())
+            ## by aggregating certificates from: \(certsFolders)
+
+            """.data(using: .utf8)!)
+
+            // Go through each folder and load each certificate file (ending with ".0"),
+            // and append them together into a single aggreagate file tha curl can load.
+            // The .0 files will contain some extra metadata, but libcurl only cares about the
+            // -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- sections,
+            // so we can naïvely concatenate them all and libcurl will understand the bundle.
             for certsFolder in certsFolders {
-                var isDirectory: ObjCBool = false
-                if FileManager.default.fileExists(atPath: certsFolder, isDirectory: &isDirectory), isDirectory == true {
-                    certsFolder.withCString { pathPtr in
-                        try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAPATH, UnsafeMutablePointer(mutating: pathPtr)).asError()
+                let certsFolderURL = URL(fileURLWithPath: certsFolder)
+                if (try? certsFolderURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) != true { continue }
+                let certURLs = try! FileManager.default.contentsOfDirectory(at: certsFolderURL, includingPropertiesForKeys: [.isRegularFileKey, .isReadableKey])
+                for certURL in certURLs {
+                    // certificate files have names like "53a1b57a.0"
+                    if certURL.pathExtension != "0" { continue }
+                    do {
+                        if try certURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile != true { continue }
+                        if try certURL.resourceValues(forKeys: [.isReadableKey]).isReadable != true { continue }
+                        try fs.write(contentsOf: try Data(contentsOf: certURL))
+                    } catch {
+                        // ignore individual errors and soldier on…
+                        //logger.warning("bootstrapSSLCertificates: error reading certificate file \(certURL.path): \(error)")
+                        continue
                     }
-                    return
                 }
             }
+
+            try! fs.close()
+
+            aggregateCertPath.withCString { pathPtr in
+                try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, UnsafeMutablePointer(mutating: pathPtr)).asError()
+            }
+            return
         }
 #endif
 
