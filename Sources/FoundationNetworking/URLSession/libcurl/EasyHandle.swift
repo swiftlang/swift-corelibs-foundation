@@ -224,9 +224,7 @@ extension _EasyHandle {
             // When no certificate file has been specified, assemble all the certificate files
             // from the Android certificate store and writes them to a single `cacerts.pem` file
             //
-            // See https://android.googlesource.com/platform/frameworks/base/+/8b192b19f264a8829eac2cfaf0b73f6fc188d933%5E%21/#F0
-
-            // See https://github.com/apple/swift-nio-ssl/blob/d1088ebe0789d9eea231b40741831f37ab654b61/Sources/NIOSSL/AndroidCABundle.swift#L30
+            // See https://github.com/apple/swift-nio-ssl/blob/main/Sources/NIOSSL/AndroidCABundle.swift
             let certsFolders = [
                 "/apex/com.android.conscrypt/cacerts", // >= Android14
                 "/system/etc/security/cacerts" // < Android14
@@ -251,7 +249,7 @@ extension _EasyHandle {
             """.data(using: .utf8)!)
 
             // Go through each folder and load each certificate file (ending with ".0"),
-            // and append them together into a single aggreagate file tha curl can load.
+            // and append them together into a single aggreagate file that curl can load.
             // The .0 files will contain some extra metadata, but libcurl only cares about the
             // -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- sections,
             // so we can naïvely concatenate them all and libcurl will understand the bundle.
@@ -268,7 +266,6 @@ extension _EasyHandle {
                         try fs.write(contentsOf: try Data(contentsOf: certURL))
                     } catch {
                         // ignore individual errors and soldier on…
-                        //logger.warning("bootstrapSSLCertificates: error reading certificate file \(certURL.path): \(error)")
                         continue
                     }
                 }
@@ -277,6 +274,7 @@ extension _EasyHandle {
             try! fs.close()
 
             aggregateCertPath.withCString { pathPtr in
+                // note that it would be nice to use CFURLSessionOptionCAPATH instead (https://curl.se/libcurl/c/CURLOPT_CAPATH.html), but it requires a special command to hash the directory contents, which we cannot
                 try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, UnsafeMutablePointer(mutating: pathPtr)).asError()
             }
             return
