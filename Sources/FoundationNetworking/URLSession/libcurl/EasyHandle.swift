@@ -276,7 +276,9 @@ extension _EasyHandle {
 
             try! fs.close()
 
-            try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, aggregateCertPath).asError()
+            aggregateCertPath.withCString { pathPtr in
+                try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, UnsafeMutablePointer(mutating: pathPtr)).asError()
+            }
             return
         }
 #endif
