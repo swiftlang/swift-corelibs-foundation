@@ -223,7 +223,7 @@ extension _EasyHandle {
         } else {
             // When no certificate file has been specified, assemble all the certificate files
             // from the Android certificate store and writes them to a single `cacerts.pem` file
-            //
+
             // See https://github.com/apple/swift-nio-ssl/blob/main/Sources/NIOSSL/AndroidCABundle.swift
             let certsFolders = [
                 "/apex/com.android.conscrypt/cacerts", // >= Android14
@@ -274,7 +274,9 @@ extension _EasyHandle {
             try! fs.close()
 
             aggregateCertPath.withCString { pathPtr in
-                // note that it would be nice to use CFURLSessionOptionCAPATH instead (https://curl.se/libcurl/c/CURLOPT_CAPATH.html), but it requires a special command to hash the directory contents, which we cannot
+                // note that it would be nice to use CFURLSessionOptionCAPATH instead
+                // (see https://curl.se/libcurl/c/CURLOPT_CAPATH.html)
+                // but it requires `c_rehash` to be run on the folder, which Android doesn't do
                 try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, UnsafeMutablePointer(mutating: pathPtr)).asError()
             }
             return
