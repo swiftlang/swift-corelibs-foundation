@@ -230,7 +230,7 @@ extension _EasyHandle {
 
             for certsFolder in certsFolders {
                 var isDirectory: ObjCBool = false
-                if FileManager.default.fileExists(atPath: certsFolder, isDirectory: &isDirectory), isDirectory == true {
+                if FileManager.default.fileExists(atPath: certsFolder, isDirectory: &isDirectory), isDirectory.boolValue == true {
                     certsFolder.withCString { pathPtr in
                         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAPATH, UnsafeMutablePointer(mutating: pathPtr)).asError()
                     }
