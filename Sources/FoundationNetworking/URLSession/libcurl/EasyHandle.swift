@@ -261,9 +261,7 @@ extension _EasyHandle {
                     // certificate files have names like "53a1b57a.0"
                     if certURL.pathExtension != "0" { continue }
                     do {
-                        if try certURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile != true { continue }
-                        if try certURL.resourceValues(forKeys: [.isReadableKey]).isReadable != true { continue }
-                        try fs.write(contentsOf: try Data(contentsOf: certURL))
+                        try? fs.write(contentsOf: Data(contentsOf: certURL))
                     } catch {
                         // ignore individual errors and soldier on…
                         continue
