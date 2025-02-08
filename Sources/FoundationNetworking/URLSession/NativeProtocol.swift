@@ -224,7 +224,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
             failWith(error: error!, request: request)
             return
         }
-        guard case .transferInProgress(let ts) = internalState else {
+        guard case .transferInProgress(var ts) = internalState else {
             fatalError("Transfer completed, but it wasn't in progress.")
         }
         guard let request = task?.currentRequest else {
@@ -232,8 +232,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
 
         if let response = task?.response {
-            var transferState = ts
-            transferState.response = response
+            ts.response = response
         }
 
         guard let response = ts.response else {
