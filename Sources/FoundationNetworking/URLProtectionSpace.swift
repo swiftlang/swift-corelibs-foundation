@@ -29,6 +29,7 @@ public let NSURLProtectionSpaceHTTPS: String = "NSURLProtectionSpaceHTTPS"
    @const NSURLProtectionSpaceFTP
    @abstract The protocol for FTP
 */
+@available(swift, deprecated: 6.1, message: "FTP is deprecated")
 public let NSURLProtectionSpaceFTP: String = "NSURLProtectionSpaceFTP"
 
 /*!
@@ -47,6 +48,7 @@ public let NSURLProtectionSpaceHTTPSProxy: String = "NSURLProtectionSpaceHTTPSPr
     @const NSURLProtectionSpaceFTPProxy
     @abstract The proxy type for ftp proxies
 */
+@available(swift, deprecated: 6.1, message: "FTP is deprecated")
 public let NSURLProtectionSpaceFTPProxy: String = "NSURLProtectionSpaceFTPProxy"
 
 /*!
