@@ -803,6 +803,7 @@ extension URLError {
     }
 
     /// The string for the URL which caused a load to fail.
+    @available(swift, deprecated: 6.1, message: "Use failingURL instead")
     public var failureURLString: String? {
         return _nsUserInfo[NSURLErrorFailingURLStringErrorKey] as? String
     }
