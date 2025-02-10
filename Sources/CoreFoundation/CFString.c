@@ -1294,6 +1294,12 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
                         Boolean possiblyExternalFormat, Boolean tryToReduceUnicode, Boolean hasLengthByte, Boolean hasNullByte, Boolean noCopy,
                         CFAllocatorRef contentsDeallocator, UInt32 converterFlags) {
     
+    if (hasNullByte && !__CFStringEncodingIsSupersetOfASCII(encoding)) {
+        // Non-8bit encodings cannot be safely read as c-strings because they may contain many null bytes
+        // This was documented as invalid previously, but now we validate that eagerly here to prevent creating truncated strings or strings that incorrectly assume 8bit representation
+        HALT_MSG("CFStringCreateWithCString can only be called with an 8-bit encoding");
+    }
+    
     CFMutableStringRef str = NULL;
     CFVarWidthCharBuffer vBuf;
     CFIndex size;
@@ -2232,6 +2238,10 @@ static inline const char * _CFStringGetCStringPtrInternal(CFStringRef str, CFStr
         
     __CFAssertIsString(str);
     
+    // __CFStrHasNullByte(str) implies the string was created from a c-string
+    // All strings created from c-strings must be 8bit since c-strings are not possible with non-8bit encodings
+    // CFStringCreateWithCString validates that all strings created must have been created from bytes of an 8bit encoding, so __CFStrHasNullByte alone is sufficient here since it implies __CFStrIsEightBit
+    // For the non-null-terminated case, we must still validate that the underlying contents are an 8bit representation
     if ((!requiresNullTermination && __CFStrIsEightBit(str)) || __CFStrHasNullByte(str)) {
         // Note: this is called a lot, 27000 times to open a small xcode project with one file open.
         // Of these uses about 1500 are for cStrings/utf8strings.
