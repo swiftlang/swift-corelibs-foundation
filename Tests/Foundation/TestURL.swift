@@ -8,7 +8,7 @@
 //
 
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 let kURLTestParsingTestsKey = "ParsingTests"

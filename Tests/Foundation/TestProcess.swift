@@ -9,7 +9,7 @@
 
 import Synchronization
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 class TestProcess : XCTestCase {

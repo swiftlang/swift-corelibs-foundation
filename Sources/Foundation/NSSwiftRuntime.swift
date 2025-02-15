@@ -16,11 +16,11 @@ internal import Synchronization
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 @_exported import Darwin
 #elseif canImport(Glibc)
-@_exported import Glibc
+@_exported @preconcurrency import Glibc
 #elseif canImport(Musl)
-@_exported import Musl
+@_exported @preconcurrency import Musl
 #elseif canImport(Bionic)
-@_exported import Bionic
+@_exported @preconcurrency import Bionic
 #elseif os(WASI)
 @_exported import WASILibc
 #elseif os(Windows)

@@ -10,9 +10,9 @@
 @_implementationOnly import CoreFoundation
 
 #if canImport(Glibc)
-import Glibc
+@preconcurrency import Glibc
 #elseif canImport(Bionic)
-import Bionic
+@preconcurrency import Bionic
 #endif
 
 #if os(Windows)
