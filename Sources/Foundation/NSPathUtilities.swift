@@ -11,7 +11,7 @@
 #if os(Windows)
 import WinSDK
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #elseif os(WASI)
 import WASILibc
 #endif

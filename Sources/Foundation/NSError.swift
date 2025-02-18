@@ -13,11 +13,11 @@
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
-import Glibc
+@preconcurrency import Glibc
 #elseif canImport(CRT)
 import CRT
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 @_implementationOnly import CoreFoundation

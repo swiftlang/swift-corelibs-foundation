@@ -16,7 +16,7 @@ import Foundation
 #if os(Windows)
 import WinSDK
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable, Sendable {

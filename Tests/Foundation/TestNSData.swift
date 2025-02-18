@@ -11,7 +11,7 @@ import XCTest
 @testable import Foundation
 
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 class TestNSData: XCTestCase {
