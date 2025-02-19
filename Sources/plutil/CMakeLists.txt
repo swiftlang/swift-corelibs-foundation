@@ -13,7 +13,11 @@
 ##===----------------------------------------------------------------------===##
 
 add_executable(plutil
-	main.swift)
+	main.swift
+	PLUContext_Arguments.swift
+	PLUContext_KeyPaths.swift
+	PLUContext.swift
+	PLULiteralOutput.swift)
 
 target_link_libraries(plutil PRIVATE
 	Foundation)
