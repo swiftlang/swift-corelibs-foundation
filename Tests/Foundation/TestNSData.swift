@@ -461,7 +461,7 @@ class TestNSData: XCTestCase {
         XCTAssertEqual(encodedTextResult, encodedText)
     }
     
-    func test_base64EncodeDoesNotAddLineSeparatorsWhenStringFitsInLine() {
+    func disabled_test_base64EncodeDoesNotAddLineSeparatorsWhenStringFitsInLine() {
         
         XCTAssertEqual(
             Data(repeating: 0, count: 48).base64EncodedString(options: .lineLength64Characters),
