@@ -11,7 +11,6 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-import CoreFoundation
 
 func help(_ name: String) -> String {
     name +
@@ -1163,7 +1162,8 @@ extension String {
     }
 
     var stem: String {
-        String(self[_stemRange()])
+        guard let last = lastComponent else { return "" }
+        return String(last[last._stemRange()])
     }
     
     var lastComponent: String? {
