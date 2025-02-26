@@ -14,11 +14,11 @@ import WinSDK
 #endif
 
 #if canImport(Glibc)
-import Glibc
+@preconcurrency import Glibc
 #elseif canImport(Musl)
-import Musl
+@preconcurrency import Musl
 #elseif canImport(Bionic)
-import Bionic
+@preconcurrency import Bionic
 #endif
 
 // WORKAROUND_SR9811

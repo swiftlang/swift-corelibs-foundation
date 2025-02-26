@@ -12,7 +12,7 @@
 import Dispatch
 #endif
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 extension NSData {
