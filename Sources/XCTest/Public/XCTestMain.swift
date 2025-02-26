@@ -27,7 +27,7 @@
 #if canImport(Darwin)
     import Darwin
 #elseif canImport(Glibc)
-    import Glibc
+    @preconcurrency import Glibc
 #endif
 
 /// Starts a test run for the specified test cases.

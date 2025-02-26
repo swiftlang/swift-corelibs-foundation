@@ -13,7 +13,7 @@ import WinSDK
 #endif
 
 #if canImport(Android)
-    import Android
+    @preconcurrency import Android
     // Android Bionic differs a little with respect to the Linux Glibc.
 
     // IFF_LOOPBACK is part of the enumeration net_device_flags, which needs to

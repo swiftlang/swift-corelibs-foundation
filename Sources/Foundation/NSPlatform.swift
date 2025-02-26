@@ -11,7 +11,7 @@
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android) || os(OpenBSD)
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 fileprivate let _NSPageSize = Int(getpagesize())
 #elseif os(Windows)
