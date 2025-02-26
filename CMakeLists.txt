@@ -23,7 +23,7 @@ endif()
 
 if(POLICY CMP0157)
     # New Swift build model: improved incremental build performance and LSP support
-    cmake_policy(SET CMP0157 NEW)
+    cmake_policy(SET CMP0157 OLD)
 endif()
 
 if (NOT DEFINED CMAKE_C_COMPILER)
