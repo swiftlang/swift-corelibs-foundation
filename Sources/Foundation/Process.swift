@@ -19,7 +19,7 @@ import struct WinSDK.HANDLE
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 internal import Synchronization

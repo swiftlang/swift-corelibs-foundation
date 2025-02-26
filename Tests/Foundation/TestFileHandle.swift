@@ -20,7 +20,7 @@ import Dispatch
 #if os(Windows)
 import WinSDK
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 class TestFileHandle : XCTestCase {

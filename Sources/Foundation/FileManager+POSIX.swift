@@ -8,7 +8,7 @@
 #if !os(Windows)
 
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 #if os(Android) && (arch(i386) || arch(arm)) // struct stat.st_mode is UInt32

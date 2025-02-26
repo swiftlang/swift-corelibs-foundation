@@ -20,9 +20,9 @@ import Dispatch
 #elseif canImport(Darwin)
     import Darwin
 #elseif canImport(Glibc)
-    import Glibc
+    @preconcurrency import Glibc
 #elseif canImport(Android)
-    import Android
+    @preconcurrency import Android
 #endif
 
 #if !os(Windows)
