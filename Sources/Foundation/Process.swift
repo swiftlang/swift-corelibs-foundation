@@ -19,7 +19,7 @@ import struct WinSDK.HANDLE
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 internal import Synchronization
@@ -943,14 +943,13 @@ open class Process: NSObject, @unchecked Sendable {
 #else
         var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()
 #endif
+        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
 #if os(Android)
         guard var spawnAttrs else {
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: [
-                    NSURLErrorKey:self.executableURL!
-            ])
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno),
+                          userInfo: [NSURLErrorKey:self.executableURL!])
         }
 #endif
-        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
         try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
 #if canImport(Darwin)
         try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
