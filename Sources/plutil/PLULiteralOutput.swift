@@ -198,6 +198,7 @@ private func _swiftLiteralDataWithPropertyList(_ plist: Any, depth: Int, indent:
         // Previous implementation would attempt to determine dynamically if the type annotation was by checking if there was a collection of different types. For now, this just always adds it.
         result.append("let \(varName(from: originalFilename))")
         
+        // Dictionaries and Arrays need to check for specific type annotation, in case they contain different types. Other types do not.
         if let dictionary = plist as? [String: Any] {
             var lastType: PlutilExpectType?
             var needsAnnotation = false
@@ -232,8 +233,6 @@ private func _swiftLiteralDataWithPropertyList(_ plist: Any, depth: Int, indent:
             if needsAnnotation {
                 result.append(" : [Any]")
             }
-        } else {
-            throw PLUContextError.invalidPropertyListObject("Swift literal syntax does not support classes of type \(type(of: plist))")
         }
 
         result.append(" = ")
