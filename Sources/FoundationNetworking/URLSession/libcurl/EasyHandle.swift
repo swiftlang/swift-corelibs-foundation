@@ -29,15 +29,15 @@ import Dispatch
 // These helper functions avoid warnings about "will never be executed" code which checks the availability of the underlying libcurl features.
 
 internal func curlInfoCAInfoSupported() -> Bool {
-    NS_CURL_CURLINFO_CAINFO_SUPPORTED == 1
+    CFURLSessionInfoCAINFO.value != CFURLSessionInfoNONE.value
 }
 
 internal func maxHostConnectionsSupported() -> Bool {
-    NS_CURL_MAX_HOST_CONNECTIONS_SUPPORTED == 1
+    CFURLSessionMultiOptionMAX_HOST_CONNECTIONS.value != 0
 }
 
 internal func xferInfoFunctionSupported() -> Bool {
-    NS_CURL_XFERINFOFUNCTION_SUPPORTED == 1
+    CFURLSessionOptionXFERINFOFUNCTION.value != 0
 }
 
 /// Minimal wrapper around the [curl easy interface](https://curl.haxx.se/libcurl/c/)
