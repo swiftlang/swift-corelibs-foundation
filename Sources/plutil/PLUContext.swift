@@ -218,8 +218,8 @@ enum PLUCommand {
          
             self = .create(CreateCommand(output: outputFileHandle, errorOutput: errorFileHandle, arguments: arguments, format: format))
         default:
-            // No other command
-            self = .lint(LintCommand(output: outputFileHandle, errorOutput: errorFileHandle, arguments: arguments))
+            // Use lint by default. Restore the name of the file we popped off thinking it was the command name.
+            self = .lint(LintCommand(output: outputFileHandle, errorOutput: errorFileHandle, arguments: [specifiedCommand] + arguments))
         }
     }
 }
