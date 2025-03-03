@@ -45,6 +45,10 @@ OBJC_EXPORT void *objc_destructInstance(id obj);
 #include <pathcch.h>
 #endif
 
+#if __HAS_DISPATCH__ && !TARGET_OS_MAC
+#include <dispatch/dispatch.h>
+#endif
+
 enum {
 // retain/release recording constants -- must match values
 // used by OA for now; probably will change in the future
@@ -1165,8 +1169,8 @@ CF_EXPORT
 
 CF_PRIVATE os_unfair_recursive_lock CFPlugInGlobalDataLock;
 
-#if __HAS_DISPATCH__
-extern void libdispatch_init();
+#if __HAS_DISPATCH__ && !TARGET_OS_MAC
+DISPATCH_EXPORT void libdispatch_init();
 #endif
 
 void __CFInitialize(void) {
