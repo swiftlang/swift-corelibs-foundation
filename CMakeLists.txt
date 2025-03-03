@@ -22,8 +22,15 @@ if(POLICY CMP0156)
 endif()
 
 if(POLICY CMP0157)
-    # New Swift build model: improved incremental build performance and LSP support
-    cmake_policy(SET CMP0157 NEW)
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows AND CMAKE_SYSTEM_NAME STREQUAL Android)
+        # CMP0157 causes swift-collections to fail to compile when targetting
+        # Android on Windows due to swift-driver not being present during the
+        # toolchain build. Disable it for now.
+        cmake_policy(SET CMP0157 OLD)
+    else()
+        # New Swift build model: improved incremental build performance and LSP support
+        cmake_policy(SET CMP0157 NEW)
+    endif()
 endif()
 
 if (NOT DEFINED CMAKE_C_COMPILER)
