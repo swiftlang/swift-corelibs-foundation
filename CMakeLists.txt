@@ -22,7 +22,7 @@ if(POLICY CMP0156)
 endif()
 
 if(POLICY CMP0157)
-    if(CMAKE_SYSTEM_NAME STREQUAL Android)
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows AND CMAKE_SYSTEM_NAME STREQUAL Android)
         # CMP0157 causes swift-collections to fail to compile when targetting
         # Android on Windows due to swift-driver not being present during the
         # toolchain build. Disable it for now.
