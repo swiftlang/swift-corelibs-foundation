@@ -105,8 +105,6 @@ FetchContent_MakeAvailable(SwiftFoundationICU SwiftFoundation)
 include(CheckLinkerFlag)
 include(CheckSymbolExists)
 
-check_linker_flag(C "LINKER:--build-id=sha1" LINKER_SUPPORTS_BUILD_ID)
-
 # Detect if the system libc defines symbols for these functions.
 # If it is not availble, swift-corelibs-foundation has its own implementations
 # that will be used. If it is available, it should not redefine them.
