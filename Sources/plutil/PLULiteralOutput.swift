@@ -118,7 +118,7 @@ private func _objcLiteralDataWithPropertyList(_ plist: Any, depth: Int, indent: 
     }
     
     if let num = plist as? NSNumber {
-        return result.appending(try num.propertyListFormatted())
+        return result.appending(try num.propertyListFormatted(objCStyle: true))
     } else if let string = plist as? String {
         return result.appending("@\"\(string.escapedForQuotesAndEscapes)\"")
     } else if let array = plist as? [Any] {
@@ -243,7 +243,7 @@ private func _swiftLiteralDataWithPropertyList(_ plist: Any, depth: Int, indent:
     }
     
     if let num = plist as? NSNumber {
-        result.append(try num.propertyListFormatted())
+        result.append(try num.propertyListFormatted(objCStyle: false))
     } else if let string = plist as? String {
         // FEATURE: Support triple-quote when string is multi-line.
         // For now, do one simpler thing and replace newlines with literal \n

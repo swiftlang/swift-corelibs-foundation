@@ -294,14 +294,14 @@ extension NSNumber {
         }
     }
     
-    /// This number formatted for raw, Swift, or ObjC output (all are the same).
-    func propertyListFormatted() throws -> String {
+    /// This number formatted for raw, Swift, or ObjC output. Raw and Swift output are the same.
+    func propertyListFormatted(objCStyle: Bool) throws -> String {
         // For now, use the Objective-C based formatting API for consistency with pre-Swift plutil.
-        return switch betterSwiftType {
+        let formatted = switch betterSwiftType {
         case .true:
-            "true"
+            objCStyle ? "YES" : "true"
         case .false:
-            "false"
+            objCStyle ? "NO" : "false"
         case .signed:
             String(format: "%lld", int64Value)
         case .unsigned:
@@ -313,6 +313,12 @@ extension NSNumber {
             String(format: "%f", doubleValue)
         case .other:
             throw PLUContextError.invalidPropertyListObject("Incorrect numeric type for literal \(objCType)")
+        }
+        
+        if objCStyle {
+            return "@\(formatted)"
+        } else {
+            return formatted
         }
     }
 }
@@ -1097,7 +1103,7 @@ func propertyListIsValidForRawFormat(_ propertyList: Any) -> Bool {
 /// Output the property list in "raw" string format. Does not descend into collections like array or dictionary.
 func rawStringWithPropertyList(_ propertyList: Any) throws -> String {
     if let num = propertyList as? NSNumber {
-        return try num.propertyListFormatted()
+        return try num.propertyListFormatted(objCStyle: false)
     } else if let string = propertyList as? String {
         return string
     } else if let array = propertyList as? [Any] {
