@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
+import CoreFoundation
 
 func help(_ name: String) -> String {
     name +
