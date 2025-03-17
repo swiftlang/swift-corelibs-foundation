@@ -632,7 +632,7 @@ extension StringProtocol {
 
     /// Returns a representation of the string as a C string
     /// using a given encoding.
-    @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString instead")
+    @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString(encodedAs:_) instead")
     public func cString(using encoding: String.Encoding) -> [CChar]? {
         return withExtendedLifetime(_ns) {
             (s: NSString) -> [CChar]? in

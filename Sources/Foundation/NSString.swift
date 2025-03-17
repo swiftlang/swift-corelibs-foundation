@@ -903,6 +903,7 @@ extension NSString {
         }
     }
     
+    @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString instead")
     public var utf8String: UnsafePointer<Int8>? {
         return _bytesInEncoding(self, .utf8, false, false, false)
     }
@@ -961,7 +962,8 @@ extension NSString {
                                           0, nil, 0, nil) == length
     }
    
-    public func cString(using encoding: UInt) -> UnsafePointer<Int8>? { 
+    @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString(encodedAs:_) instead")
+    public func cString(using encoding: UInt) -> UnsafePointer<Int8>? {
         return _bytesInEncoding(self, String.Encoding(rawValue: encoding), false, false, false)
     }
     
