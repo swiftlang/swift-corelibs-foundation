@@ -20,6 +20,7 @@ add_executable(plutil
 	PLULiteralOutput.swift)
 
 target_link_libraries(plutil PRIVATE
+	CoreFoundation
 	Foundation)
 
 set_target_properties(plutil PROPERTIES
