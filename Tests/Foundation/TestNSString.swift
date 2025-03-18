@@ -316,6 +316,12 @@ class TestNSString: LoopbackServerTest {
         XCTAssertNil(string)
     }
 
+    func test_cStringArray() {
+        let str = "abc"
+        let encoded = str.cString(using: .ascii)
+        XCTAssertEqual(encoded, [97, 98, 99, 0])
+    }
+
     func test_FromContentsOfURL() throws {
         throw XCTSkip("Test is flaky in CI: https://bugs.swift.org/browse/SR-10514")
         #if false

@@ -160,32 +160,19 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
     return regex
 }
 
-internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8>? {
-    let theRange = NSRange(location: 0, length: str.length)
+// Caller must free, or leak, the pointer
+fileprivate func _allocateBytesInEncoding(_ str: NSString, _ encoding: String.Encoding) -> UnsafeMutableBufferPointer<Int8>? {
+    let theRange: NSRange = NSRange(location: 0, length: str.length)
     var cLength = 0
-    var used = 0
-    var options: NSString.EncodingConversionOptions = []
-    if externalRep {
-        options.formUnion(.externalRepresentation)
-    }
-    if lossy {
-        options.formUnion(.allowLossy)
-    }
-    if !str.getBytes(nil, maxLength: Int.max - 1, usedLength: &cLength, encoding: encoding.rawValue, options: options, range: theRange, remaining: nil) {
-        if fatalOnError {
-            fatalError("Conversion on encoding failed")
-        }
+    if !str.getBytes(nil, maxLength: Int.max - 1, usedLength: &cLength, encoding: encoding.rawValue, options: [], range: theRange, remaining: nil) {
         return nil
     }
     
-    let buffer = malloc(cLength + 1)!.bindMemory(to: Int8.self, capacity: cLength + 1)
-    if !str.getBytes(buffer, maxLength: cLength, usedLength: &used, encoding: encoding.rawValue, options: options, range: theRange, remaining: nil) {
-        fatalError("Internal inconsistency; previously claimed getBytes returned success but failed with similar invocation")
-    }
+    let buffer = UnsafeMutableBufferPointer<Int8>.allocate(capacity: cLength + 1)
+    buffer.initialize(repeating: 0)
+    _ = str.getBytes(buffer.baseAddress, maxLength: cLength, usedLength: nil, encoding: encoding.rawValue, options: [], range: theRange, remaining: nil)    
     
-    buffer.advanced(by: cLength).initialize(to: 0)
-    
-    return UnsafePointer(buffer) // leaked and should be autoreleased via a NSData backing but we cannot here
+    return buffer
 }
 
 internal func isALineSeparatorTypeCharacter(_ ch: unichar) -> Bool {
@@ -905,7 +892,11 @@ extension NSString {
     
     @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString instead")
     public var utf8String: UnsafePointer<Int8>? {
-        return _bytesInEncoding(self, .utf8, false, false, false)
+        guard let buffer = _allocateBytesInEncoding(self, .utf8) else {
+            return nil
+        }
+        // leaked. On Darwin, freed via an autorelease
+        return UnsafePointer<Int8>(buffer.baseAddress)
     }
     
     public var fastestEncoding: UInt {
@@ -964,7 +955,22 @@ extension NSString {
    
     @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString(encodedAs:_) instead")
     public func cString(using encoding: UInt) -> UnsafePointer<Int8>? {
-        return _bytesInEncoding(self, String.Encoding(rawValue: encoding), false, false, false)
+        // leaked. On Darwin, freed via an autorelease
+        guard let buffer = _allocateBytesInEncoding(self,  String.Encoding(rawValue: encoding)) else {
+            return nil
+        }
+        // leaked. On Darwin, freed via an autorelease
+        return UnsafePointer<Int8>(buffer.baseAddress)
+    }
+
+    internal func _withCString<T>(using encoding: UInt, closure: (UnsafePointer<Int8>?) -> T) -> T {
+        let buffer = _allocateBytesInEncoding(self, String.Encoding(rawValue: encoding))
+        let result = closure(buffer?.baseAddress)
+        if let buffer {
+            buffer.deinitialize()
+            buffer.deallocate()
+        }
+        return result
     }
     
     public func getCString(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
