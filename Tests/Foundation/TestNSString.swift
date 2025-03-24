@@ -1725,4 +1725,16 @@ class TestNSString: LoopbackServerTest {
         XCTAssertNotNil(str)
         XCTAssertEqual(str?.isEmpty, true)
     }
+    
+    func test_windows1252Encoding() {
+        // Define an array of CP1252 encoded bytes representing "Hallo " followed by the Euro sign
+        let cp1252Bytes: [UInt8] = [72, 97, 108, 108, 111, 32, 0x80]
+        let cp1252Data = Data(cp1252Bytes)
+
+        let nativeString = String(data: cp1252Data, encoding: .windowsCP1252)
+        XCTAssertEqual(nativeString, "Hallo €")
+        
+        let producedData = nativeString?.data(using: .windowsCP1252)
+        XCTAssertEqual(producedData, cp1252Data)
+    }
 }
