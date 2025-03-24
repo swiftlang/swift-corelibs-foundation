@@ -97,6 +97,7 @@ internal class NSSpecialValue : NSValue, @unchecked Sendable {
         _value.encodeWithCoder(aCoder)
     }
     
+    @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString instead")
     override var objCType : UnsafePointer<Int8> {
         let typeName = NSSpecialValue._objCTypeFromType(type(of: _value))
         return typeName!._bridgeToObjectiveC().utf8String! // leaky

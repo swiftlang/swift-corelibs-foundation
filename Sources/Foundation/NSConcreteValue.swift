@@ -97,6 +97,7 @@ internal class NSConcreteValue : NSValue, @unchecked Sendable {
         value.copyMemory(from: self._storage, byteCount: self._size)
     }
     
+    @available(*, deprecated, message: "On platforms without Objective-C autorelease pools, use withCString instead")
     override var objCType : UnsafePointer<Int8> {
         return NSString(self._typeInfo.name).utf8String! // XXX leaky
     }
