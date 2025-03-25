@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_spi(BooleanCheckingForPLUtil)
 import Foundation
-import CoreFoundation
 
 func help(_ name: String) -> String {
     name +
@@ -275,10 +275,12 @@ extension NSNumber {
     }
     
     var betterSwiftType: BetterSwiftType {
-        if self === kCFBooleanTrue {
-            return .true
-        } else if self === kCFBooleanFalse {
-            return .false
+        if let booleanValue = _exactBoolValue {
+            if booleanValue {
+                return .true
+            } else {
+                return .false
+            }
         }
         switch UInt8(self.objCType.pointee) {
         case UInt8(ascii: "c"), UInt8(ascii: "s"), UInt8(ascii: "i"), UInt8(ascii: "l"), UInt8(ascii: "q"):
