@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
+@_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
 @_implementationOnly import CoreFoundation
 internal import Synchronization
 
@@ -1677,3 +1677,14 @@ extension String : CVarArg, _CVarArgObject {
     }
 }
 #endif
+
+// Upcall from swift-foundation for conversion of less frequently-used encodings
+@_dynamicReplacement(for: _cfStringEncodingConvert(string:using:allowLossyConversion:))
+private func _cfStringEncodingConvert_corelibs_foundation(string: String, using encoding: UInt, allowLossyConversion: Bool) -> Data? {
+    return (string as NSString).data(using: encoding, allowLossyConversion: allowLossyConversion)
+}
+
+@_dynamicReplacement(for: _cfMakeStringFromBytes(_:encoding:))
+private func _cfMakeStringFromBytes_corelibs_foundation(_ bytes: UnsafeBufferPointer<UInt8>, encoding: UInt) -> String? {
+    return NSString(bytes: bytes.baseAddress!, length: bytes.count, encoding: encoding) as? String
+}
