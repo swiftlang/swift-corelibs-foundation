@@ -164,10 +164,6 @@ if(NOT BUILD_SHARED_LIBS)
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend swiftSynchronization>")
 endif()
 
-set_target_properties(Foundation PROPERTIES
-    INSTALL_RPATH "$ORIGIN"
-    INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
-
 if(dispatch_FOUND)
     set_target_properties(Foundation PROPERTIES
         BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>")

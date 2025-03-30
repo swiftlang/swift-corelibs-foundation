@@ -212,6 +212,12 @@ else()
         "/clang:-fcf-runtime-abi=swift")
 endif()
 
+set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
+if(CMAKE_SYSTEM_NAME MATCHES "OpenBSD|DragonFlyBSD")
+    add_link_options("LINKER:-z,origin")
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     list(APPEND _Foundation_common_build_flags
         "-DDEBUG")
