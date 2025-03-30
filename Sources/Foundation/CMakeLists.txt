@@ -168,6 +168,10 @@ set_target_properties(Foundation PROPERTIES
     INSTALL_RPATH "$ORIGIN"
     INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+  target_link_options(Foundation PRIVATE "LINKER:-z,origin")
+endif()
+
 if(dispatch_FOUND)
     set_target_properties(Foundation PROPERTIES
         BUILD_RPATH "$<TARGET_FILE_DIR:swiftDispatch>")
