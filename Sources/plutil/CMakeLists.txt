@@ -22,6 +22,10 @@ set_target_properties(plutil PROPERTIES
 	INSTALL_RPATH "$ORIGIN/../lib/swift/${SWIFT_SYSTEM_NAME}"
     INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+  target_link_options(Foundation PRIVATE "LINKER:-z,origin")
+endif()
+
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS plutil)
 install(TARGETS plutil
 	DESTINATION ${CMAKE_INSTALL_BINDIR})
