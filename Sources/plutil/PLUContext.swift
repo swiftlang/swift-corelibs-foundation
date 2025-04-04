@@ -882,18 +882,9 @@ struct CreateCommand {
                 }
                 
                 if path == "-" {
-                    // Write raw bytes. use `write` because FileDescriptor doesn't give us the count.
-                    let len = data.withUnsafeBytes { buffer in
-                        return write(output.fileDescriptor, buffer.baseAddress!, buffer.count)
-                    }
-                    let localErrno = errno
-                    let success = len == data.count
+                    try output.write(contentsOf: data)
                     if parsedArguments.terminatingNewline && (format == .raw || format == .type) {
                         output.write("\n")
-                    }
-                    
-                    if !success {
-                        throw POSIXError(POSIXError.Code(rawValue: localErrno) ?? .EIO)
                     }
                 } else {
                     try data.write(to: path.url)
