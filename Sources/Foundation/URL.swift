@@ -502,7 +502,7 @@ extension URL : ReferenceConvertible {
 extension URL : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURL {
-        return NSURL(string: self.absoluteString, relativeTo: self.baseURL)!
+        return NSURL(string: self.relativeString, relativeTo: self.baseURL)!
     }
     
     public static func _forceBridgeFromObjectiveC(_ source: NSURL, result: inout URL?) {
@@ -512,7 +512,7 @@ extension URL : _ObjectiveCBridgeable {
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ source: NSURL, result: inout URL?) -> Bool {
-        result = URL(string: source.absoluteString, relativeTo: source.baseURL)
+        result = URL(string: source.relativeString, relativeTo: source.baseURL)
         return true
     }
 
