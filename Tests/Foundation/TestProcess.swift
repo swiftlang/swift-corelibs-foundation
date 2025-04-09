@@ -563,7 +563,7 @@ class TestProcess : XCTestCase {
         task.arguments = []
         let stdoutPipe = Pipe()
         let stdoutData = Mutex(Data())
-        task.standardOutput = stdoutPipe
+        task.standardError = stdoutPipe
 
         stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
             stdoutData.withLock {
