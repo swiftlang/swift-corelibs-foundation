@@ -326,6 +326,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
     
     open var baseURL: URL? {
+        guard _baseURL != nil else { return nil }
         return CFURLGetBaseURL(_cfObject)?._swiftObject
     }
     
