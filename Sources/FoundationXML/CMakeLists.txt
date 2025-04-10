@@ -50,6 +50,10 @@ set_target_properties(FoundationXML PROPERTIES
     INSTALL_RPATH "$ORIGIN"
     INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+  target_link_options(Foundation PRIVATE "LINKER:-z,origin")
+endif()
+
 if(LINKER_SUPPORTS_BUILD_ID)
   target_link_options(FoundationXML PRIVATE "LINKER:--build-id=sha1")
 endif()
