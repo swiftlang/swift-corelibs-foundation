@@ -97,7 +97,10 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
         }
         case _kCFKnownLocationUserCurrent:
             username = CFGetUserName();
-            break;
+            if (!CFEqual(username, CFSTR(""))) {
+                break;
+            }
+            // fallthrough.
         case _kCFKnownLocationUserByName: {
             wchar_t* path = NULL;
             SHGetKnownFolderPath(&FOLDERID_LocalAppData, 0, NULL, &path);
