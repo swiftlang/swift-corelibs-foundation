@@ -97,6 +97,8 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
         }
         case _kCFKnownLocationUserCurrent:
             username = CFGetUserName();
+            // The above API returns a non-NULL CFStringRef. The failed result is an empty string.
+            // We need to check for that case and fall through to the next case.
             if (!CFEqual(username, CFSTR(""))) {
                 break;
             }
