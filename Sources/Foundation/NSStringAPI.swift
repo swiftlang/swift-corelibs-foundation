@@ -633,9 +633,8 @@ extension StringProtocol {
     /// Returns a representation of the string as a C string
     /// using a given encoding.
     public func cString(using encoding: String.Encoding) -> [CChar]? {
-        return withExtendedLifetime(_ns) {
-            (s: NSString) -> [CChar]? in
-            _persistCString(s.cString(using: encoding.rawValue))
+        return _ns._withCString(using: encoding.rawValue) {
+            _persistCString($0)
         }
     }
 

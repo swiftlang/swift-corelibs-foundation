@@ -1150,6 +1150,18 @@ open class NSNumber : NSValue, @unchecked Sendable {
     }
 
     open override var classForCoder: AnyClass { return NSNumber.self }
+    
+    /// Provides a way for `plutil` to know if `CFPropertyList` has returned a literal `true`/`false` value, as opposed to a number which happens to have a value of 1 or 0.
+    @_spi(BooleanCheckingForPLUtil)
+    public var _exactBoolValue: Bool? {
+        if self === kCFBooleanTrue {
+            return true
+        } else if self === kCFBooleanFalse {
+            return false
+        } else {
+            return nil
+        }
+    }
 }
 
 extension CFNumber : _NSBridgeable {
