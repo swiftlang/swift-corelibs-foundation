@@ -14,7 +14,8 @@ extension String {
     /// Key paths can contain a `.`, but it must be escaped with a backslash `\.`. This function splits up a keypath, honoring the ability to escape a `.`.
     internal func escapedKeyPathSplit() -> [String] {
         let escapesReplaced = self.replacing("\\.", with: "A_DOT_WAS_HERE")
-        let split = escapesReplaced.split(separator: ".", omittingEmptySubsequences: false)
+        // Explicitly specify Character(".") to avoid accidentally using an implicit RegexBuilder overload
+        let split = escapesReplaced.split(separator: Character("."), omittingEmptySubsequences: false)
         return split.map { $0.replacingOccurrences(of: "A_DOT_WAS_HERE", with: ".") }
     }
 }
