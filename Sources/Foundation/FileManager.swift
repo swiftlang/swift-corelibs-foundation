@@ -22,7 +22,7 @@ import WinSDK
 #if os(WASI)
 import WASILibc
 #elseif canImport(Bionic)
-import Bionic
+@preconcurrency import Bionic
 #endif
 
 #if os(Windows)

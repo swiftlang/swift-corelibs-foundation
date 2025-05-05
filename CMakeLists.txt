@@ -22,8 +22,15 @@ if(POLICY CMP0156)
 endif()
 
 if(POLICY CMP0157)
-    # New Swift build model: improved incremental build performance and LSP support
-    cmake_policy(SET CMP0157 NEW)
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows AND CMAKE_SYSTEM_NAME STREQUAL Android)
+        # CMP0157 causes swift-collections to fail to compile when targetting
+        # Android on Windows due to swift-driver not being present during the
+        # toolchain build. Disable it for now.
+        cmake_policy(SET CMP0157 OLD)
+    else()
+        # New Swift build model: improved incremental build performance and LSP support
+        cmake_policy(SET CMP0157 NEW)
+    endif()
 endif()
 
 if (NOT DEFINED CMAKE_C_COMPILER)
@@ -117,6 +124,11 @@ add_compile_definitions(
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
   add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_SCHED_GETAFFINITY>)
+
+  # Pass -fno-omit-frame-pointer while compiling for better backtraces
+  add_compile_options(
+    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fno-omit-frame-pointer>"
+    "$<$<COMPILE_LANGUAGE:C,CXX>:-fno-omit-frame-pointer>")
 endif()
 
 # Precompute module triple for installation
@@ -198,6 +210,12 @@ else()
     list(APPEND _Foundation_common_build_flags
         "/EHsc"
         "/clang:-fcf-runtime-abi=swift")
+endif()
+
+set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
+if(CMAKE_SYSTEM_NAME MATCHES "OpenBSD|DragonFlyBSD")
+    add_link_options("LINKER:-z,origin")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)

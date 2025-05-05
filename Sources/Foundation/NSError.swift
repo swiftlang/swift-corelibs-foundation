@@ -13,11 +13,11 @@
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
-import Glibc
+@preconcurrency import Glibc
 #elseif canImport(CRT)
 import CRT
 #elseif canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 @_implementationOnly import CoreFoundation
@@ -803,6 +803,7 @@ extension URLError {
     }
 
     /// The string for the URL which caused a load to fail.
+    @available(swift, deprecated: 6.1, message: "Use failingURL instead")
     public var failureURLString: String? {
         return _nsUserInfo[NSURLErrorFailingURLStringErrorKey] as? String
     }

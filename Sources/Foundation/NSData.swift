@@ -12,7 +12,7 @@
 import Dispatch
 #endif
 #if canImport(Android)
-import Android
+@preconcurrency import Android
 #endif
 
 extension NSData {
@@ -433,10 +433,13 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 #if os(WASI)
         // WASI does not have permission concept
         let permissions: Int? = nil
+        // ReadingOptions.atomic won't be specified on WASI as it's marked unavailable
+        var atomicWrite: Bool { false }
 #else
         let permissions = try? fm.attributesOfItem(atPath: path)[.posixPermissions] as? Int
+        let atomicWrite = writeOptionsMask.contains(.atomic)
 #endif
-        if writeOptionsMask.contains(.atomic) {
+        if atomicWrite {
             let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
             let fh = FileHandle(fileDescriptor: newFD, closeOnDealloc: true)
             do {
@@ -487,22 +490,38 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Writes the data object's bytes to the file specified by a given path.
     /// NOTE: the 'atomically' flag is ignored if the url is not of a type the supports atomic writes
+    #if os(WASI)
+    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #endif
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
+        #if os(WASI)
+        // WASI does not support atomic file-writing as it does not have temporary directories
+        return false
+        #else
         do {
             try write(toFile: path, options: useAuxiliaryFile ? .atomic : [])
         } catch {
             return false
         }
         return true
+        #endif
     }
 
     /// Writes the data object's bytes to the location specified by a given URL.
     /// NOTE: the 'atomically' flag is ignored if the url is not of a type the supports atomic writes
+    #if os(WASI)
+    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #endif
     open func write(to url: URL, atomically: Bool) -> Bool {
+        #if os(WASI)
+        // WASI does not support atomic file-writing as it does not have temporary directories
+        return false
+        #else
         if url.isFileURL {
             return write(toFile: url.path, atomically: atomically)
         }
         return false
+        #endif
     }
 
     ///    Writes the data object's bytes to the location specified by a given URL.

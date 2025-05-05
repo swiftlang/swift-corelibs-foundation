@@ -316,6 +316,12 @@ class TestNSString: LoopbackServerTest {
         XCTAssertNil(string)
     }
 
+    func test_cStringArray() {
+        let str = "abc"
+        let encoded = str.cString(using: .ascii)
+        XCTAssertEqual(encoded, [97, 98, 99, 0])
+    }
+
     func test_FromContentsOfURL() throws {
         throw XCTSkip("Test is flaky in CI: https://bugs.swift.org/browse/SR-10514")
         #if false
@@ -1724,5 +1730,17 @@ class TestNSString: LoopbackServerTest {
         // Any other value of `c` would violate the null-terminated precondition
         XCTAssertNotNil(str)
         XCTAssertEqual(str?.isEmpty, true)
+    }
+    
+    func test_windows1252Encoding() {
+        // Define an array of CP1252 encoded bytes representing "Hallo " followed by the Euro sign
+        let cp1252Bytes: [UInt8] = [72, 97, 108, 108, 111, 32, 0x80]
+        let cp1252Data = Data(cp1252Bytes)
+
+        let nativeString = String(data: cp1252Data, encoding: .windowsCP1252)
+        XCTAssertEqual(nativeString, "Hallo €")
+        
+        let producedData = nativeString?.data(using: .windowsCP1252)
+        XCTAssertEqual(producedData, cp1252Data)
     }
 }

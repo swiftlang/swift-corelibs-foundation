@@ -8,11 +8,11 @@
 //
 
 #if canImport(Glibc)
-import Glibc
+@preconcurrency import Glibc
 #elseif canImport(Musl)
-import Musl
+@preconcurrency import Musl
 #elseif canImport(Bionic)
-import Bionic
+@preconcurrency import Bionic
 #elseif os(WASI)
 import WASILibc
 #elseif canImport(CRT)
