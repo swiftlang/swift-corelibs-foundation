@@ -669,6 +669,8 @@ CF_IMPLICIT_BRIDGING_DISABLED
 CF_EXPORT
 CFTypeRef CFMakeCollectable(CFTypeRef cf) CF_AUTOMATED_REFCOUNT_UNAVAILABLE;
 
+CF_EXTERN_C_END
+
 #if DEPLOYMENT_RUNTIME_SWIFT
 
 #if TARGET_RT_64_BIT
@@ -695,8 +697,6 @@ CFTypeRef CFMakeCollectable(CFTypeRef cf) CF_AUTOMATED_REFCOUNT_UNAVAILABLE;
 #else
 #define __ptrauth_cf_objc_isa_pointer
 #endif
-
-CF_EXTERN_C_END
 
 #endif /* ! __COREFOUNDATION_CFBASE__ */
 
