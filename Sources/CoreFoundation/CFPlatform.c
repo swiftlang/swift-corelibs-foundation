@@ -1948,7 +1948,7 @@ CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
 #endif
 }
 
-#if TARGET_OS_ANDROID
+#if TARGET_OS_ANDROID && __ANDROID_API__ < 28
 
 #include <dlfcn.h>
 #include <spawn.h>
@@ -2277,6 +2277,10 @@ CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_
     return _CFPosixSpawnFileActionsAddCloseImpl(file_actions, filedes);
 }
 
+CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_actions, const char *path) {
+  return ENOSYS;
+}
+
 CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {
     _CFPosixSpawnInitialize();
     return _CFPosixSpawnImpl(pid, path, file_actions, attrp, argv, envp);
@@ -2317,12 +2321,13 @@ CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_act
   // Glibc versions prior to 2.29 don't support posix_spawn_file_actions_addchdir_np, impacting:
   //  - Amazon Linux 2 (EoL mid-2025)
   return ENOSYS;
-  #elif defined(__OpenBSD__) || defined(__QNX__)
+  #elif defined(__OpenBSD__) || defined(__QNX__) || (defined(__ANDROID__) && __ANDROID_API__ < 34)
   // Currently missing as of:
   //  - OpenBSD 7.5 (April 2024)
   //  - QNX 8 (December 2023)
+  //  - Android 13
   return ENOSYS;
-  #elif defined(__GLIBC__) || TARGET_OS_DARWIN || defined(__FreeBSD__) || (defined(__ANDROID__) && __ANDROID_API__ >= 34) || defined(__musl__)
+  #elif defined(__GLIBC__) || TARGET_OS_DARWIN || defined(__FreeBSD__) || defined(__ANDROID__) || defined(__musl__)
   // Pre-standard posix_spawn_file_actions_addchdir_np version available in:
   //  - Solaris 11.3 (October 2015)
   //  - Glibc 2.29 (February 2019)
