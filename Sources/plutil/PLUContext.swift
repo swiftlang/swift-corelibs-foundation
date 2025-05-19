@@ -772,7 +772,9 @@ struct PrintCommand {
             let description = number.description
             result.append("\(description)\n")
         } else {
-            throw PLUContextError.argument("Unknown property list type")
+            // Use a generic description
+            result.append(String(describing: value))
+            result.append("\n")
         }
         return result
     }
