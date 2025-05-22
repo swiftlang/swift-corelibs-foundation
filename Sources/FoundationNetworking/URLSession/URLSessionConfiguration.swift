@@ -256,6 +256,36 @@ open class URLSessionConfiguration : NSObject, NSCopying, @unchecked Sendable {
     @available(*, unavailable, message: "Not available on non-Darwin platforms")
     open var usesClassicLoadingMode: Bool { NSUnsupported() }
 
+    /* Enables HTTP/3 0-RTT early data transmission of safe requests (GET or HEAD
+     requests).
+
+     WARNING: Inclusion in TLS early data changes the security guarantees offered
+     by TLS.
+
+     Requests sent in early data are not covered by anti-replay security
+     protections. Early data must be idempotent and the impact of adversarial
+     replays must be carefully evaluated, as the data may be replayed. Early data
+     also does not provide full forward secrecy; data transmitted is more
+     susceptible to data breach and security compromise of the server, even if
+     the breach happens after the data was transmitted.
+
+     See Section 8 of RFC8446 for more details.
+
+     https://datatracker.ietf.org/doc/html/rfc8446#section-8
+
+     See RFC8470 for additional discussion and security considerations.
+
+     https://datatracker.ietf.org/doc/html/rfc8470
+
+     If these risks are acceptable for your use case, set this property to true.
+     If unsure, false is the safest option.
+
+     NOTE: Not supported in the classic loading mode.
+
+     Defaults to false.
+     */
+    @available(*, unavailable, message: "Not available on non-Darwin platforms")
+    open var enablesEarlyData: Bool { NSUnsupported() }
 }
 
 @available(*, unavailable, message: "Not available on non-Darwin platforms")
