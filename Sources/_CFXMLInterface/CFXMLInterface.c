@@ -1392,7 +1392,7 @@ _CFXMLNodePtr _Nonnull * _Nullable _CFXMLNamespaces(_CFXMLNodePtr node, CFIndex*
     
     _CFXMLNodePtr* result = calloc(*count, sizeof(_CFXMLNodePtr));
     ns = ((xmlNode*)node)->nsDef;
-    for (int i = 0; i < *count; i++) {
+    for (CFIndex i = 0; i < *count; i++) {
         xmlNode* temp = xmlNewNode(ns, (unsigned char *)"");
         
         temp->type = _kCFXMLTypeNamespace;
