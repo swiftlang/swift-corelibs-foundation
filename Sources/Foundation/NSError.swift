@@ -891,8 +891,8 @@ func _convertNSErrorToError(_ error: NSError?) -> Error {
 
 public // COMPILER_INTRINSIC
 func _convertErrorToNSError(_ error: Error) -> NSError {
-    if let object = _extractDynamicValue(error as Any) {
-        return unsafeDowncast(object, to: NSError.self)
+    if let object = _extractDynamicValue(error as Any), let asNS = object as? NSError {
+        return asNS
     } else {
         let domain: String
         let code: Int
