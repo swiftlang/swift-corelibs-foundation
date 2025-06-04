@@ -99,7 +99,8 @@ add_library(CoreFoundation STATIC
     CFWindowsUtilities.c
     CFXMLPreferencesDomain.c
     uuid.c)
-
+target_compile_definitions(CoreFoundation PRIVATE
+  $<$<AND:$<PLATFORM_ID:Windows>,$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>>:CF_WINDOWS_EXECUTABLE_INITIALIZER>)
 target_include_directories(CoreFoundation
     PUBLIC
         include
