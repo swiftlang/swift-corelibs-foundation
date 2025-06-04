@@ -2321,11 +2321,13 @@ CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_act
   // Glibc versions prior to 2.29 don't support posix_spawn_file_actions_addchdir_np, impacting:
   //  - Amazon Linux 2 (EoL mid-2025)
   return ENOSYS;
-  #elif defined(__OpenBSD__) || defined(__QNX__) || (defined(__ANDROID__) && __ANDROID_API__ < 34)
+  #elif defined(__ANDROID__) && __ANDROID_API__ < 34
+  // Android versions prior to 14 (API level 34) don't support posix_spawn_file_actions_addchdir_np
+  return ENOSYS;
+  #elif defined(__OpenBSD__) || defined(__QNX__)
   // Currently missing as of:
   //  - OpenBSD 7.5 (April 2024)
   //  - QNX 8 (December 2023)
-  //  - Android 13
   return ENOSYS;
   #elif defined(__GLIBC__) || TARGET_OS_DARWIN || defined(__FreeBSD__) || defined(__ANDROID__) || defined(__musl__)
   // Pre-standard posix_spawn_file_actions_addchdir_np version available in:
