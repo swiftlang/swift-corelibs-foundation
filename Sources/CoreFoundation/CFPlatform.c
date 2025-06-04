@@ -136,6 +136,10 @@ static inline void _CFSetProgramNameFromPath(const char *path) {
 #include <sys/exec.h>
 #endif
 
+#if TARGET_OS_BSD && defined(__FreeBSD__)
+#include <sys/sysctl.h>
+#endif
+
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 
@@ -229,6 +233,29 @@ const char *_CFProcessPath(void) {
         struct ps_strings *ps = _ps.val;
         char *res = realpath(ps->ps_argvstr[0], NULL);
         argv0 = res? res: strdup(ps->ps_argvstr[0]);
+    }
+#elif defined(__FreeBSD__)
+    // see sysctl(3), pid == -1 means current process
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    int sysctl_ret = 0;
+    size_t len = PATH_MAX + 1;
+    argv0 = calloc(len, 1);
+
+    sysctl_ret = sysctl(mib, 4, argv0, &len, NULL, 0);
+
+    // in case for whatever reason the path is > PATH_MAX
+    if (sysctl_ret == -1 && errno == ENOMEM) {
+        // get size needed
+        sysctl_ret = sysctl(mib, 4, NULL, &len, NULL, 0);
+        if (sysctl_ret != -1) {
+            argv0 = realloc(argv0, len);
+            sysctl_ret = sysctl(mib, 4, argv0, &len, NULL, 0);
+        }
+    }
+
+    if (sysctl_ret == -1) {
+        free(argv0);
+        argv0 = NULL;
     }
 #endif
 
@@ -908,6 +935,9 @@ static void __CFTSDFinalize(void *arg) {
 
     if (!arg || arg == CF_TSD_BAD_PTR) {
         // We've already been destroyed. The call above set the bad pointer again. Now we just return.
+#if defined(__FreeBSD__)
+        __CFTSDSetSpecific(NULL);
+#endif
         return;
     }
     
@@ -1918,7 +1948,7 @@ CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
 #endif
 }
 
-#if TARGET_OS_ANDROID
+#if TARGET_OS_ANDROID && __ANDROID_API__ < 28
 
 #include <dlfcn.h>
 #include <spawn.h>
@@ -2247,6 +2277,10 @@ CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_
     return _CFPosixSpawnFileActionsAddCloseImpl(file_actions, filedes);
 }
 
+CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_actions, const char *path) {
+  return ENOSYS;
+}
+
 CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {
     _CFPosixSpawnInitialize();
     return _CFPosixSpawnImpl(pid, path, file_actions, attrp, argv, envp);
@@ -2287,12 +2321,13 @@ CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_act
   // Glibc versions prior to 2.29 don't support posix_spawn_file_actions_addchdir_np, impacting:
   //  - Amazon Linux 2 (EoL mid-2025)
   return ENOSYS;
-  #elif defined(__OpenBSD__) || defined(__QNX__)
+  #elif defined(__OpenBSD__) || defined(__QNX__) || (defined(__ANDROID__) && __ANDROID_API__ < 34)
   // Currently missing as of:
   //  - OpenBSD 7.5 (April 2024)
   //  - QNX 8 (December 2023)
+  //  - Android 13
   return ENOSYS;
-  #elif defined(__GLIBC__) || TARGET_OS_DARWIN || defined(__FreeBSD__) || (defined(__ANDROID__) && __ANDROID_API__ >= 34) || defined(__musl__)
+  #elif defined(__GLIBC__) || TARGET_OS_DARWIN || defined(__FreeBSD__) || defined(__ANDROID__) || defined(__musl__)
   // Pre-standard posix_spawn_file_actions_addchdir_np version available in:
   //  - Solaris 11.3 (October 2015)
   //  - Glibc 2.29 (February 2019)
