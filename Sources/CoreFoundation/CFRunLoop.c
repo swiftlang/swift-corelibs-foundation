@@ -3145,8 +3145,12 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             } else {
                 MSG msg;
                 if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE | PM_NOYIELD)) {
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                    if (msg.message == WM_QUIT) {
+                        PostQuitMessage((int)msg.wParam);
+                    } else {
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
                 }
             }
             
