@@ -72,12 +72,14 @@ extern bool _dispatch_runloop_root_queue_perform_4CF(dispatch_queue_t queue);
 
 #if TARGET_OS_MAC
 typedef mach_port_t dispatch_runloop_handle_t;
-#elif defined(__linux__)
+#elif TARGET_OS_LINUX
 typedef int dispatch_runloop_handle_t;
+#elif TARGET_OS_BSD
+typedef uint64_t dispatch_runloop_handle_t;
 #elif TARGET_OS_WIN32
 typedef HANDLE dispatch_runloop_handle_t;
 #else
-typedef uint64_t dispatch_runloop_handle_t;
+#error "runloop support not implemented on this platform"
 #endif
 
 #if TARGET_OS_MAC
