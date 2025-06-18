@@ -18,6 +18,7 @@
 
 #if TARGET_OS_WIN32
 #include <userenv.h>
+#include <shlobj_core.h>
 #endif
 
 CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user, CFStringRef _Nullable username) {
@@ -96,30 +97,21 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
         }
         case _kCFKnownLocationUserCurrent:
             username = CFGetUserName();
-            // fallthrough
-        case _kCFKnownLocationUserByName: {
-            DWORD size = 0;
-            GetProfilesDirectoryW(NULL, &size);
-
-            wchar_t* path = (wchar_t*)malloc(size * sizeof(wchar_t));
-            GetProfilesDirectoryW(path, &size);
-
-            CFStringRef pathRef = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, size - 1);
-            free(path);
-
-            CFURLRef profilesDir = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, pathRef, kCFURLWindowsPathStyle, true);
-            CFRelease(pathRef);
-
-            CFURLRef usernameDir = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, profilesDir, username, true);
-            CFURLRef appdataDir = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, usernameDir, CFSTR("AppData"), true);
-            location = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, appdataDir, CFSTR("Local"), true);
-            CFRelease(usernameDir);
-            CFRelease(appdataDir);
-
-            CFRelease(profilesDir);
-            if (user == _kCFKnownLocationUserCurrent) {
-                CFRelease(username);
+            // The above API returns a non-NULL CFStringRef. The failed result is an empty string.
+            // We need to check for that case and fall through to the next case.
+            if (!CFEqual(username, CFSTR(""))) {
+                break;
             }
+            // fallthrough.
+        case _kCFKnownLocationUserByName: {
+            wchar_t* path = NULL;
+            SHGetKnownFolderPath(&FOLDERID_LocalAppData, 0, NULL, &path);
+            
+            CFStringRef userPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, wcslen(path));
+            CoTaskMemFree(path);
+
+            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, userPath, kCFURLWindowsPathStyle, true);
+            CFRelease(userPath);
             break;
         }
     }
