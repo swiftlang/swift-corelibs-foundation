@@ -120,7 +120,7 @@ open class RunLoop: NSObject {
     // Make sure we honor the override -- var currentCFRunLoop will do so on platforms where overrides are available.
 
     // TODO: This has been removed as public API in port to the package, because CoreFoundation cannot be available as both toolchain "CoreFoundation" and package "_CoreFoundation"
-    #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(OpenBSD)
+    #if os(Linux) || os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(OpenBSD) || os(FreeBSD)
     internal var currentCFRunLoop: CFRunLoop { getCFRunLoop() }
 
     internal func getCFRunLoop() -> CFRunLoop {
