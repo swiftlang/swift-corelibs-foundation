@@ -30,6 +30,12 @@ extension TimeInterval {
 #else
 extension timeval {
     internal init(_timeIntervalSince1970: TimeInterval) {
+        #if canImport(Glibc)
+        // support for 64-bit timestamps on 32-bit platforms; unfortunately
+        // suseconds_t is not an alias of the appropriate type, but time_t is
+        typealias suseconds_t = time_t
+        #endif
+
         let (integral, fractional) = modf(_timeIntervalSince1970)
         self.init(tv_sec: time_t(integral), tv_usec: suseconds_t(1.0e6 * fractional))
     }
