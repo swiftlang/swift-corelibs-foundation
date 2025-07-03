@@ -30,6 +30,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
     GIT_TAG           v1.3.1
     CMAKE_ARGS		   
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/zlib
+      -DCMAKE_C_COMPILER=cl
       -DBUILD_SHARED_LIBS=NO
       -DCMAKE_POSITION_INDEPENDENT_CODE=YES
       -DCMAKE_BUILD_TYPE=Release
@@ -41,6 +42,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
     GIT_TAG           v2.11.5
     CMAKE_ARGS		    
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/libxml
+      -DCMAKE_C_COMPILER=cl
       -DBUILD_SHARED_LIBS=NO
       -DLIBXML2_WITH_ICONV=NO
       -DLIBXML2_WITH_ICU=NO
@@ -66,6 +68,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
     GIT_TAG           curl-8_9_1
     CMAKE_ARGS		    
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/curl
+      -DCMAKE_C_COMPILER=cl
       -DBUILD_SHARED_LIBS=NO
       -DBUILD_TESTING=NO
       -DBUILD_CURL_EXE=NO
