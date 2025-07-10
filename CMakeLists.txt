@@ -40,6 +40,13 @@ endif()
 project(Foundation
     LANGUAGES C Swift)
 
+option(FOUNDATION_SWIFTPM_DEPS "build Windows SwiftPM dependencies via CMake" NO)
+if(FOUNDATION_SWIFTPM_DEPS)
+    include(WindowsSwiftPMDependencies)
+    _foundation_setup_windows_swiftpm_dependencies_target()
+    return()
+endif()
+
 if(NOT SWIFT_SYSTEM_NAME)
   if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     set(SWIFT_SYSTEM_NAME macosx)
