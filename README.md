@@ -72,6 +72,17 @@ swift-corelibs-foundation builds as a standalone project using Swift Package Man
 
 swift-corelibs-foundation also builds as part of the toolchain for non-Darwin platforms. Instructions on building the toolchain are available in the [Swift project](https://github.com/swiftlang/swift?tab=readme-ov-file#building).
 
+### Building swift-corelibs-foundation on Windows
+
+When building Foundation as a standalone project, it requires you to provide some dependencies that it will link during the build. SwiftPM already fetches most of these dependencies and on Linux the remaining dependencies (dispatch, zlib, curl, libxml) are found in the Swift toolchain or on the host OS. However, Windows does not ship with zlib/curl/libxml on the host OS. In order to build swift-corelibs-foundation as a package on Windows, you must first checkout and build these dependenies before running `swift build` as recommended above. To do this, you can build the provided CMake target which (instead of building Foundation via CMake) will checkout and build these 3 dependencies via CMake and provide environment variables that will connect the SwiftPM build to these dependencies. To build these targets, run the following commands:
+
+```
+cmake -G Ninja -B <build folder> -DFOUNDATION_SWIFTPM_DEPS=YES
+cmake --build <build folder> --target --target WindowsSwiftPMDependencies
+```
+
+After running these commands, the output will include a list of environment variables to set. After setting these environment variables, you can run `swift test`/`swift build` just like on Linux in order to build swift-corelibs-foundation with an existing Swift toolchain.
+
 ## Contributions
 
 We welcome contributions to Foundation! Please see the [known issues](Docs/Issues.md) page if you are looking for an area where we need help. We are also standing by on the [mailing lists](https://swift.org/community/#communication) to answer questions about what is most important to do and what we will accept into the project.
