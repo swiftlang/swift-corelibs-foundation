@@ -652,17 +652,17 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
     
     func test_repeatedRequestsStress() async throws {
-        #if os(Windows)
-        throw XCTSkip("This test is currently disabled on Windows")
-        #else
-        // TODO: try disabling curl connection cache to force socket close early. Or create several url sessions (they have cleanup in deinit)
+        // This test mostly covers the issue described in
+        // https://github.com/swiftlang/swift-corelibs-libdispatch/issues/887
+        // If the test becomes unstable on CI, mark it as disabled and increase
+        // requestsLeft to a larger value (~3000) for local regression testing.
         
         let config = URLSessionConfiguration.default
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let req = URLRequest(url: URL(string: urlString)!)
         
-        nonisolated(unsafe) var requestsLeft = 3000
+        nonisolated(unsafe) var requestsLeft = 500
         let expect = expectation(description: "\(requestsLeft) x GET \(urlString)")
         
         @Sendable func doRequests(completion: @Sendable @escaping () -> Void) {
@@ -695,7 +695,6 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         checkCountAndRunNext()
 
         waitForExpectations(timeout: 30)
-        #endif
     }
 
     func test_httpRedirectionWithCode300() async throws {
