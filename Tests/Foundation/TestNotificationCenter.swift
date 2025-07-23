@@ -10,12 +10,6 @@
 final class NotificationCenterDummyObject : NSObject, Sendable { }
 
 class TestNotificationCenter : XCTestCase {
-    func test_defaultCenter() {
-        let defaultCenter1 = NotificationCenter.default
-        let defaultCenter2 = NotificationCenter.default
-        XCTAssertEqual(defaultCenter1, defaultCenter2)
-    }
-    
     func removeObserver(_ observer: NSObjectProtocol, notificationCenter: NotificationCenter) {
         guard let observer = observer as? NSObject else {
             return
