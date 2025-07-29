@@ -31,6 +31,21 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
+    func test_dataTaskWithAcceptEncoding() async {
+        #if !os(Windows)
+        throw XCTSkip("This test is currently only enabled on Windows")
+        #else
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/accept-encoding"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        if !d.error {
+            XCTAssertEqual(d.capital, "deflate, gzip, br", "test_dataTaskWithURLRequest returned an unexpected result")
+        }
+        #endif
+    }
+
     func test_dataTaskWithURLCompletionHandler() async {
         //shared session
         await dataTaskWithURLCompletionHandler(with: URLSession.shared)
@@ -254,6 +269,21 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         if !d.error {
             XCTAssertEqual(d.capital, "Hello World!")
         }
+    }
+
+    func test_brotliDataTask() async {
+        #if !os(Windows)
+        throw XCTSkip("This test is currently only enabled on Windows")
+        #else
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/brotli-response"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): brotli response"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        if !d.error {
+            XCTAssertEqual(d.capital, "Hello World!")
+        }
+        #endif
     }
 
     func test_downloadTaskWithURL() async {
