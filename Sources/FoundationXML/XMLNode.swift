@@ -357,6 +357,8 @@ open class XMLNode: NSObject, NSCopying {
                 _CFXMLNodeForceSetName(_xmlNode, newValue)
             case .namespace:
                 _CFXMLNamespaceSetPrefix(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
+            case .DTDKind:
+                _CFXMLNodeForceSetName(_xmlNode, newValue)
             default:
                 if let newName = newValue {
                     _CFXMLNodeSetName(_xmlNode, newName)
