@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@_spi(SwiftCorelibsFoundation) import FoundationEssentials
+
 @available(*, unavailable)
 extension NSNotification : @unchecked Sendable { }
 
@@ -87,116 +89,67 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
 
 #if canImport(Dispatch)
 
-private class NSNotificationReceiver : NSObject {
-    fileprivate var name: Notification.Name?
-    fileprivate var block: (@Sendable (Notification) -> Void)?
-    fileprivate var sender: AnyObject?
-    fileprivate var queue: OperationQueue?
-}
-
-private let _defaultCenter: NotificationCenter = NotificationCenter()
-
-open class NotificationCenter: NSObject, @unchecked Sendable {
-    private lazy var _nilIdentifier: ObjectIdentifier = ObjectIdentifier(_observersLock)
-    private lazy var _nilHashable: AnyHashable = AnyHashable(_nilIdentifier)
-    
-    private var _observers: [AnyHashable /* Notification.Name */ : [ObjectIdentifier /* object */ : [ObjectIdentifier /* notification receiver */ : NSNotificationReceiver]]]
-    private let _observersLock = NSLock()
-    
-    public required override init() {
-        _observers = [AnyHashable: [ObjectIdentifier: [ObjectIdentifier: NSNotificationReceiver]]]()
-    }
-    
-    open class var `default`: NotificationCenter {
-        return _defaultCenter
-    }
-    
-    open func post(_ notification: Notification) {
-        let notificationNameIdentifier: AnyHashable = AnyHashable(notification.name)
-        let senderIdentifier: ObjectIdentifier? = notification.object.map({ ObjectIdentifier(__SwiftValue.store($0)) })
-        
-
-        let sendTo: [Dictionary<ObjectIdentifier, NSNotificationReceiver>.Values] = _observersLock.synchronized({
-            var retVal = [Dictionary<ObjectIdentifier, NSNotificationReceiver>.Values]()
-            (_observers[_nilHashable]?[_nilIdentifier]?.values).map({ retVal.append($0) })
-            senderIdentifier.flatMap({ _observers[_nilHashable]?[$0]?.values }).map({ retVal.append($0) })
-            (_observers[notificationNameIdentifier]?[_nilIdentifier]?.values).map({ retVal.append($0) })
-            senderIdentifier.flatMap({ _observers[notificationNameIdentifier]?[$0]?.values}).map({ retVal.append($0) })
-            
-            return retVal
-        })
-
-        sendTo.forEach { observers in
-            observers.forEach { observer in
-                guard let block = observer.block else {
-                    return
-                }
-                
-                if let queue = observer.queue, queue != OperationQueue.current {
-                    // Not entirely safe, but maintained for compatibility
-                    nonisolated(unsafe) let unsafeNotification = notification
-                    queue.addOperation { block(unsafeNotification) }
-                    queue.waitUntilAllOperationsAreFinished()
-                } else {
-                    block(notification)
-                }
-            }
-        }
+extension NotificationCenter {
+    public func post(_ notification: Notification) {
+        _post(notification.name.rawValue, subject: notification.object, message: notification)
     }
 
-    open func post(name aName: NSNotification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
-        let notification = Notification(name: aName, object: anObject, userInfo: aUserInfo)
-        post(notification)
+    public func post(name aName: NSNotification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
+        post(Notification(name: aName, object: anObject, userInfo: aUserInfo))
     }
 
-    open func removeObserver(_ observer: Any) {
+    public func removeObserver(_ observer: Any) {
         removeObserver(observer, name: nil, object: nil)
     }
 
-    open func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
-        guard let observer = observer as? NSNotificationReceiver,
+    public func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
+        let objectId = object != nil ? object.map { ObjectIdentifier($0 as AnyObject) } : nil
+        
+        guard let observer = observer as? _NSNotificationObserverToken,
             // These 2 parameters would only be useful for removing notifications added by `addObserver:selector:name:object:`
-            aName == nil || observer.name == aName,
-            object == nil || observer.sender === __SwiftValue.store(object)
+              aName == nil || observer.token.name == aName?.rawValue,
+              objectId == nil || observer.token.objectId == objectId
         else {
             return
         }
-
-        let notificationNameIdentifier: AnyHashable = observer.name.map { AnyHashable($0) } ?? _nilHashable
-        let senderIdentifier: ObjectIdentifier = observer.sender.map { ObjectIdentifier($0) } ?? _nilIdentifier
-        let receiverIdentifier: ObjectIdentifier = ObjectIdentifier(observer)
         
-        _observersLock.synchronized({
-            _observers[notificationNameIdentifier]?[senderIdentifier]?.removeValue(forKey: receiverIdentifier)
-            if _observers[notificationNameIdentifier]?[senderIdentifier]?.count == 0 {
-                _observers[notificationNameIdentifier]?.removeValue(forKey: senderIdentifier)
-            }
-        })
+        _removeObserver(observer.token)
     }
 
     @available(*, unavailable, renamed: "addObserver(forName:object:queue:using:)")
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    public func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         fatalError()
     }
 
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @Sendable @escaping (Notification) -> Void) -> NSObjectProtocol {
-        let newObserver = NSNotificationReceiver()
-        newObserver.name = name
-        newObserver.block = block
-        newObserver.sender = __SwiftValue.store(obj)
-        newObserver.queue = queue
-        
-        let notificationNameIdentifier: AnyHashable = name.map({ AnyHashable($0) }) ?? _nilHashable
-        let senderIdentifier: ObjectIdentifier = newObserver.sender.map({ ObjectIdentifier($0) }) ?? _nilIdentifier
-        let receiverIdentifier: ObjectIdentifier = ObjectIdentifier(newObserver)
-
-        _observersLock.synchronized({
-            _observers[notificationNameIdentifier, default: [:]][senderIdentifier, default: [:]][receiverIdentifier] = newObserver
-        })
-        
-        return newObserver
+    public func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @Sendable @escaping (Notification) -> Void) -> NSObjectProtocol {
+        if let queue = queue {
+            return _NSNotificationObserverToken(token: _addObserver(name?.rawValue, object: obj) { [weak queue] (notification: Notification) in
+                if let queue = queue {
+                    if queue != OperationQueue.current {
+                        // Not entirely safe, but maintained for compatibility
+                        nonisolated(unsafe) let notification = notification
+                        queue.addOperation { block(notification) }
+                        queue.waitUntilAllOperationsAreFinished()
+                    } else {
+                        block(notification)
+                    }
+                }
+            })
+        } else {
+            return _NSNotificationObserverToken(token: _addObserver(name?.rawValue, object: obj, using: block))
+        }
     }
+}
 
+extension NotificationCenter {
+    // Provides NSObjectProtocol conformance for addObserver()
+    final class _NSNotificationObserverToken: NSObject {
+        internal let token: NotificationCenter._NotificationObserverToken
+        
+        init(token: NotificationCenter._NotificationObserverToken) {
+            self.token = token
+        }
+    }
 }
 
 #endif // canImport(Dispatch)
