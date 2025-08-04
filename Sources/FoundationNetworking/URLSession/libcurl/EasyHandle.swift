@@ -375,10 +375,10 @@ extension _EasyHandle {
     }
     
     // Only valid to call within a didReceive(data:size:nmemb:) call
-    func getWebSocketFlags() -> WebSocketFlags {
+    func getWebSocketMeta() -> (Int64, Int64, WebSocketFlags) {
         let metadataPointer = CFURLSessionEasyHandleWebSocketsMetadata(rawHandle)
         let flags = WebSocketFlags(rawValue: metadataPointer.pointee.flags)
-        return flags
+        return (metadataPointer.pointee.offset, metadataPointer.pointee.bytesLeft, flags)
     }
     
     func receiveWebSocketsData() throws -> (Data, WebSocketFlags) {
