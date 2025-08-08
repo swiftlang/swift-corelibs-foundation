@@ -37,6 +37,18 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
     EXCLUDE_FROM_ALL  YES
   )
 
+  ExternalProject_Add(brotli
+    GIT_REPOSITORY    https://github.com/google/brotli
+    GIT_TAG           v1.1.0
+    CMAKE_ARGS
+      -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/brotli
+      -DCMAKE_C_COMPILER=cl
+      -DBUILD_SHARED_LIBS=NO
+      -DCMAKE_POSITION_INDEPENDENT_CODE=YES
+      -DCMAKE_BUILD_TYPE=Release
+    EXCLUDE_FROM_ALL  YES
+  )
+
   ExternalProject_Add(libxml
     GIT_REPOSITORY    https://github.com/gnome/libxml2.git
     GIT_TAG           v2.11.5
@@ -63,6 +75,15 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
   # Add a custom target for zlib's install step that curl can depend on
   ExternalProject_Add_StepTargets(zlib install)
 
+  set(BROTLI_ROOT "${DEST_DIR}/brotli")
+  set(BROTLI_LIBRARY_DIR "${BROTLI_ROOT}/lib")
+  set(BROTLI_INCLUDE_DIR "${BROTLI_ROOT}/include")
+  set(BROTLICOMMON_LIBRARY_PATH "${BROTLI_LIBRARY_DIR}/brotlicommon.lib")
+  set(BROTLIDEC_LIBRARY_PATH "${BROTLI_LIBRARY_DIR}/brotlidec.lib")
+
+  # Add a custom target for brotli's install step that curl can depend on
+  ExternalProject_Add_StepTargets(brotli install)
+
   ExternalProject_Add(curl
     GIT_REPOSITORY    https://github.com/curl/curl.git
     GIT_TAG           curl-8_9_1
@@ -75,7 +96,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
       -DCURL_CA_BUNDLE=none
       -DCURL_CA_FALLBACK=NO
       -DCURL_CA_PATH=none
-      -DCURL_BROTLI=NO
+      -DCURL_BROTLI=YES
       -DCURL_DISABLE_ALTSVC=NO
       -DCURL_DISABLE_AWS=YES
       -DCURL_DISABLE_BASIC_AUTH=NO
@@ -150,7 +171,10 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
       -DZLIB_ROOT=${ZLIB_ROOT}
       -DZLIB_LIBRARY=${ZLIB_LIBRARY_PATH}
       -DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIR}
-    DEPENDS           zlib-install
+      -DBROTLIDEC_LIBRARY=${BROTLIDEC_LIBRARY_PATH}
+      -DBROTLICOMMON_LIBRARY=${BROTLICOMMON_LIBRARY_PATH}
+      -DBROTLI_INCLUDE_DIR=${BROTLI_INCLUDE_DIR}
+    DEPENDS           zlib-install brotli-install
     EXCLUDE_FROM_ALL  YES
   )
 
@@ -166,6 +190,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
   message(STATUS "CURL_INCLUDE_PATH=${CURL_INCLUDE_DIR}")
   message(STATUS "CURL_LIBRARY_PATH=${CURL_LIBRARY_DIR}")
   message(STATUS "ZLIB_LIBRARY_PATH=${ZLIB_LIBRARY_DIR}")
+  message(STATUS "BROTLI_LIBRARY_PATH=${BROTLI_LIBRARY_DIR}")
 
   ExternalProject_Add_StepTargets(libxml install)
   ExternalProject_Add_StepTargets(curl install)
@@ -186,5 +211,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
     COMMAND echo CURL_LIBRARY_PATH=${CURL_LIBRARY_DIR})
   add_custom_command(TARGET WindowsSwiftPMDependencies POST_BUILD
     COMMAND echo ZLIB_LIBRARY_PATH=${ZLIB_LIBRARY_DIR})
+  add_custom_command(TARGET WindowsSwiftPMDependencies POST_BUILD
+    COMMAND echo BROTLI_LIBRARY_PATH=${BROTLI_LIBRARY_DIR})
 
 endfunction()
