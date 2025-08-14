@@ -39,10 +39,6 @@ extension Decimal : _ObjectiveCBridgeable {
 
 // MARK: - C Functions
 
-public func pow(_ x: Decimal, _ y: Int) -> Decimal {
-    _pow(x, y)
-}
-
 public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ lhs: UnsafePointer<Decimal>, _ rhs: UnsafePointer<Decimal>, _ roundingMode: Decimal.RoundingMode) -> Decimal.CalculationError {
     _NSDecimalAdd(result, lhs, rhs, roundingMode)
 }
