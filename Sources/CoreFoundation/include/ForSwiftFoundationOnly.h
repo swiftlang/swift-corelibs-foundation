@@ -40,9 +40,15 @@
 #elif !TARGET_OS_WASI
 #include <fts.h>
 #endif
+
 #if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
+
+#if __has_include(<alloca.h>)
+#include <alloca.h>
+#endif
+
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
