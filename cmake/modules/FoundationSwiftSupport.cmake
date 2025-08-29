@@ -29,32 +29,16 @@ if(NOT SwiftFoundation_MODULE_TRIPLE)
 endif()
 
 if(NOT SwiftFoundation_ARCH)
-  if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
-    # For newer compilers, we can use the -print-target-info command to get the architecture.
-    string(JSON module_arch GET "${target_info_json}" "target" "arch")
-  else()
-    # For older compilers, extract the value from `SwiftFoundation_MODULE_TRIPLE`.
-    string(REGEX MATCH "^[^-]+" module_arch "${SwiftFoundation_MODULE_TRIPLE}")
-  endif()
-
+  # Use the -print-target-info command to get the architecture.
+  string(JSON module_arch GET "${target_info_json}" "target" "arch")
   set(SwiftFoundation_ARCH "${module_arch}" CACHE STRING "Arch folder name used to install libraries")
   mark_as_advanced(SwiftFoundation_ARCH)
   message(CONFIGURE_LOG "Swift arch: ${SwiftFoundation_ARCH}")
 endif()
 
 if(NOT SwiftFoundation_PLATFORM)
-  if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
-    # For newer compilers, we can use the -print-target-info command to get the platform.
-    string(JSON swift_platform GET "${target_info_json}" "target" "platform")
-  else()
-    # For older compilers, compile the value from `CMAKE_SYSTEM_NAME`.
-    if(APPLE)
-      set(swift_platform macosx)
-    else()
-      set(swift_platform "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
-    endif()
-  endif()
-
+  # Use the -print-target-info command to get the platform.
+  string(JSON swift_platform GET "${target_info_json}" "target" "platform")
   set(SwiftFoundation_PLATFORM "${swift_platform}" CACHE STRING "Platform folder name used to install libraries")
   mark_as_advanced(SwiftFoundation_PLATFORM)
   message(CONFIGURE_LOG "Swift platform: ${SwiftFoundation_PLATFORM}")

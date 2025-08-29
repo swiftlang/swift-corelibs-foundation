@@ -39,7 +39,7 @@ endif()
 if(NOT BUILD_SHARED_LIBS)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS _CFXMLInterface)
     install(TARGETS _CFXMLInterface
-        ARCHIVE DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}
-        LIBRARY DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}
+        ARCHIVE DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>
+        LIBRARY DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>
         RUNTIME DESTINATION bin)
 endif()
