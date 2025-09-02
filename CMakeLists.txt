@@ -89,7 +89,7 @@ if (_SwiftFoundationICU_SourceDIR)
 else()
     FetchContent_Declare(SwiftFoundationICU
         GIT_REPOSITORY https://github.com/apple/swift-foundation-icu.git
-        GIT_TAG 0.0.9)
+        GIT_TAG release/6.2)
 endif()
 
 if (_SwiftFoundation_SourceDIR)
@@ -98,7 +98,7 @@ if (_SwiftFoundation_SourceDIR)
 else()
     FetchContent_Declare(SwiftFoundation
         GIT_REPOSITORY https://github.com/apple/swift-foundation.git
-        GIT_TAG main)
+        GIT_TAG release/6.2)
 endif()
 FetchContent_MakeAvailable(SwiftFoundationICU SwiftFoundation)
 
