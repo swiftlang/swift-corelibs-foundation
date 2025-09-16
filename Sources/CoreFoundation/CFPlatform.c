@@ -35,6 +35,7 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
+#include <pathcch.h>
 #include <WinIoCtl.h>
 #include <direct.h>
 #include <process.h>
@@ -1140,9 +1141,22 @@ CF_EXPORT char *_NS_getcwd(char *dstbuf, size_t size) {
     if (!buf) {
         return NULL;
     }
+    
+    // Strip UNC long path prefixe (\\?\) from the wide character buffer using PathCchStripPrefix
+    wchar_t *pathToConvert = buf;
+    size_t pathLen = wcslen(buf);
+    
+    // Use PathCchStripPrefix to remove UNC long path prefixes
+    HRESULT hr = PathCchStripPrefix(buf, pathLen + 1);
+    if (SUCCEEDED(hr)) {
+        pathToConvert = buf;
+    } else {
+        // If PathCchStripPrefix fails, fall back to the original buffer
+        pathToConvert = buf;
+    }
         
     // Convert result to UTF8
-    copyToNarrowFileSystemRepresentation(buf, (CFIndex)size, dstbuf);
+    copyToNarrowFileSystemRepresentation(pathToConvert, (CFIndex)size, dstbuf);
     free(buf);
     return dstbuf;
 }
