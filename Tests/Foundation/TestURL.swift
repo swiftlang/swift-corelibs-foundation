@@ -335,6 +335,7 @@ class TestURL : XCTestCase {
     }
     static nonisolated(unsafe) var gSavedPath = ""
     static nonisolated(unsafe) var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
+    static nonisolated(unsafe) var gCWDURLPath: String = ""
     static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
     static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
     static let gDirectoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo.globallyUniqueString)"
@@ -396,6 +397,12 @@ class TestURL : XCTestCase {
         cwdURL.withUnsafeFileSystemRepresentation {
             gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0!) + 1)
         }
+        gCWDURLPath = cwdURL.path
+        print("cwd: \(cwd)")
+        print("cwdURL: \(cwdURL)")
+        print("gCWDURLPath: \(gCWDURLPath)")
+        print("gRelativeOffsetFromBaseCurrentWorkingDirectory: \(gRelativeOffsetFromBaseCurrentWorkingDirectory)")
+        print("gBaseCurrentWorkingDirectoryPath: \(gBaseCurrentWorkingDirectoryPath)")
 
         return true
     }
@@ -439,20 +446,20 @@ class TestURL : XCTestCase {
         let actualLength = strlen(fileSystemRep)
         // 1 for path separator
         let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
-        XCTAssertEqual(UInt(actualLength), expectedLength, "fileSystemRepresentation was too short")
+        XCTAssertEqual(UInt(actualLength), expectedLength, "fileSystemRepresentation was too short: \(url.path) vs. \(TestURL.gCWDURLPath)")
 #if os(Windows)
         // On Windows, the URL path should have `/` separators and the
         // fileSystemRepresentation should have `\` separators.
         XCTAssertTrue(strncmp(String(TestURL.gBaseCurrentWorkingDirectoryPath.map { $0 == "/" ? "\\" : $0 }),
                               fileSystemRep,
                               Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0,
-                      "fileSystemRepresentation of base path is wrong")
+                      "fileSystemRepresentation of base path is wrong: expected: \(String(TestURL.gBaseCurrentWorkingDirectoryPath.map { $0 == "/" ? "\\" : $0 })), got: \(String(cString: fileSystemRep))")
 #else
         XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
 #endif
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
-        XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
+        XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong: expected: \(TestURL.gFileDoesNotExistName), got relativePath: \(String(cString: relativePath))")
 
         // SR-12366
         let url1 = URL(fileURLWithPath: "/path/to/b/folder", isDirectory: true).standardizedFileURL.absoluteString
