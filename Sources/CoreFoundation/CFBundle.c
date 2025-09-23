@@ -255,22 +255,26 @@ CF_PRIVATE CFURLRef _CFURLCreateResolvedDirectoryWithString(CFAllocatorRef alloc
 #pragma mark -
 #pragma mark Bundle Tables
 
+static void __CFBundleCreateAllBundlesArrayLocked() {
+    CFArrayCallBacks callbacks = kCFTypeArrayCallBacks;
+#if TARGET_OS_OSX
+    if (_useUnsafeUnretainedTables()) {
+        callbacks.retain = NULL;
+        callbacks.release = NULL;
+    }
+#endif
+    // The _allBundles array holds a strong reference on the bundle.
+    // It does this to prevent a race on bundle deallocation / creation. See: <rdar://problem/6606482> CFBundle isn't thread-safe in RR mode
+    // Also, the existence of the CFBundleGetBundleWithIdentifier / CFBundleGetAllBundles API means that any bundle we hand out from there must be permanently retained, or callers will potentially have an object that can be deallocated out from underneath them.
+    _allBundles = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &callbacks);
+}
+
 static void _CFBundleAddToTablesLocked(CFBundleRef bundle, CFStringRef bundleID) {
     if (bundle->_isUnique) return;
 
     // Add to the _allBundles list
     if (!_allBundles) {
-        CFArrayCallBacks callbacks = kCFTypeArrayCallBacks;
-#if TARGET_OS_OSX
-        if (_useUnsafeUnretainedTables()) {
-            callbacks.retain = NULL;
-            callbacks.release = NULL;
-        }
-#endif
-        // The _allBundles array holds a strong reference on the bundle.
-        // It does this to prevent a race on bundle deallocation / creation. See: <rdar://problem/6606482> CFBundle isn't thread-safe in RR mode
-        // Also, the existence of the CFBundleGetBundleWithIdentifier / CFBundleGetAllBundles API means that any bundle we hand out from there must be permanently retained, or callers will potentially have an object that can be deallocated out from underneath them.
-        _allBundles = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &callbacks);
+        __CFBundleCreateAllBundlesArrayLocked();
     }
     CFArrayAppendValue(_allBundles, bundle);
     
@@ -1795,6 +1799,11 @@ CF_EXPORT CFArrayRef _CFBundleCopyAllBundles(void) {
     _CFBundleEnsureAllBundlesUpToDate();
     CFBundleRef main = CFBundleGetMainBundle();
     _CFMutexLock(&CFBundleGlobalDataLock);
+    // There is a chance that `_allBundles` haven't been initiated
+    // if no one called `CFBundleCreate()` yet
+    if (!_allBundles) {
+        __CFBundleCreateAllBundlesArrayLocked();
+    }
     // _allBundles does not include the main bundle, so insert it here.
     CFMutableArrayRef bundles = CFArrayCreateMutableCopy(kCFAllocatorSystemDefault, CFArrayGetCount(_allBundles) + 1, _allBundles);
     _CFMutexUnlock(&CFBundleGlobalDataLock);
