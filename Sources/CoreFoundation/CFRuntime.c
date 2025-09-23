@@ -1810,6 +1810,9 @@ CF_CROSS_PLATFORM_EXPORT void _CFDeinit(CFTypeRef cf) {
 }
 
 bool _CFIsSwift(CFTypeID type, CFSwiftRef obj) {
+    if (obj == NULL) {
+        return false;
+    }
     if (type == _kCFRuntimeNotATypeID) {
         return false;
     }

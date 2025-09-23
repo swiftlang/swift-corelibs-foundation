@@ -110,6 +110,9 @@ CF_INLINE struct __CFArrayBucket *__CFArrayGetBucketAtIndex(CFArrayRef array, CF
 
 CF_PRIVATE CFArrayCallBacks *__CFArrayGetCallBacks(CFArrayRef array) {
     CFArrayCallBacks *result = NULL;
+    if (array == NULL) {
+        return NULL;
+    }
     switch (__CFRuntimeGetValue(array, 3, 2)) {
         case __kCFArrayHasNullCallBacks:
             return (CFArrayCallBacks *)&__kCFNullArrayCallBacks;
@@ -420,22 +423,24 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
 }
 
 CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocator, CFIndex capacity, CFArrayRef array) {
-    CFMutableArrayRef result;
     const CFArrayCallBacks *cb;
-    CFIndex idx, numValues = CFArrayGetCount(array);
-    UInt32 flags;
+
     if (CF_IS_OBJC(_kCFRuntimeIDCFArray, array) || CF_IS_SWIFT(_kCFRuntimeIDCFArray, array)) {
-	cb = &kCFTypeArrayCallBacks;
+        cb = &kCFTypeArrayCallBacks;
     }
     else {
-	cb = __CFArrayGetCallBacks(array);
+        cb = __CFArrayGetCallBacks(array);
     }
-    flags = __kCFArrayDeque;
-    result = (CFMutableArrayRef)__CFArrayCreateInit(allocator, flags, capacity, cb);
+    UInt32 flags = __kCFArrayDeque;
+    CFMutableArrayRef result = (CFMutableArrayRef)__CFArrayCreateInit(allocator, flags, capacity, cb);
+    if (array == NULL) {
+        return result;
+    }
+    CFIndex idx, numValues = CFArrayGetCount(array);
     if (0 == capacity) _CFArraySetCapacity(result, numValues);
     for (idx = 0; idx < numValues; idx++) {
-	const void *value = CFArrayGetValueAtIndex(array, idx);
-	CFArrayAppendValue(result, value);
+        const void *value = CFArrayGetValueAtIndex(array, idx);
+        CFArrayAppendValue(result, value);
     }
     return result;
 }
