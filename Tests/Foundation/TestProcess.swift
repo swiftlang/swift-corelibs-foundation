@@ -363,11 +363,11 @@ class TestProcess : XCTestCase {
         process.arguments = ["--cat"]
         _ = try? process.run()
         XCTAssertTrue(process.isRunning)
-        XCTAssertTrue(process.processIdentifier > 0)
+        XCTAssertGreaterThan(process.processIdentifier, 0)
         process.terminate()
         process.waitUntilExit()
         XCTAssertFalse(process.isRunning)
-        XCTAssertTrue(process.processIdentifier > 0)
+        XCTAssertGreaterThan(process.processIdentifier, 0)
         XCTAssertEqual(process.terminationReason, .uncaughtSignal)
         XCTAssertEqual(process.terminationStatus, SIGTERM)
     }
@@ -635,7 +635,7 @@ class TestProcess : XCTestCase {
             let one: String.Index = directory.index(zero, offsetBy: 1)
             XCTAssertTrue(directory[zero].isLetter)
             XCTAssertEqual(directory[one], ":")
-            directory = "/" + String(directory.dropFirst(2))
+            directory = String(directory.dropFirst(2))
 #endif
             XCTAssertEqual(URL(fileURLWithPath: directory).absoluteURL,
                            URL(fileURLWithPath: "/").absoluteURL)
