@@ -961,7 +961,9 @@ static void __CFTSDFinalize(void *arg) {
 
         // FreeBSD libthr emits debug message to stderr if there are leftover nonnull TSD after PTHREAD_DESTRUCTOR_ITERATIONS
         // On this platform, the destructor will never be called again, therefore it is unneccessary to set the TSD to CF_TSD_BAD_PTR
-        #if !defined(__FreeBSD__)
+        #if defined(__FreeBSD__)
+        __CFTSDSetSpecific(NULL);
+        #else
         // Now if the destructor is called again we will take the shortcut at the beginning of this function.
         __CFTSDSetSpecific(CF_TSD_BAD_PTR);
         #endif
