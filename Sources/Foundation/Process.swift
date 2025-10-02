@@ -281,6 +281,14 @@ open class Process: NSObject, @unchecked Sendable {
 
     }
 
+#if os(Windows)
+    deinit {       
+        if hasStarted { 
+            CloseHandle(self.processHandle)
+        }
+    }
+#endif
+
     // These properties can only be set before a launch.
     private var _executable: URL?
     open var executableURL: URL? {
