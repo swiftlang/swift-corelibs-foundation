@@ -481,6 +481,18 @@ class _HTTPServer: CustomStringConvertible {
                 "\r\n").data(using: .utf8)!
         try tcpSocket.writeRawData(responseData)
     }
+
+    func respondWithAcceptEncoding(request: _HTTPRequest) throws {
+        var responseData: Data
+        if let acceptEncoding = request.getHeader(for: "Accept-Encoding") {
+            let content = acceptEncoding.data(using: .utf8)!
+            responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .utf8)!
+            responseData.append(content)
+        } else {
+            responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: 0\r\n\r\n".data(using: .utf8)!
+        }
+        try tcpSocket.writeRawData(responseData)
+    }
 }
 
 struct _HTTPRequest: CustomStringConvertible {
@@ -690,6 +702,8 @@ public class TestURLSessionServer: CustomStringConvertible {
             try httpServer.respondWithUnauthorizedHeader()
         } else if req.uri.hasPrefix("/web-socket") {
             try handleWebSocketRequest(req)
+        } else if req.uri.hasPrefix("/accept-encoding") {
+            try httpServer.respondWithAcceptEncoding(request: req)
         } else {
             let response = try getResponse(request: req)
             try httpServer.respond(with: response)
@@ -850,6 +864,16 @@ public class TestURLSessionServer: CustomStringConvertible {
             return _HTTPResponse(response: .OK,
                                  headers: ["Content-Length: \(helloWorld.count)",
                                            "Content-Encoding: gzip"].joined(separator: _HTTPUtils.CRLF),
+                                 bodyData: helloWorld)
+        }
+
+        if uri == "/brotli-response" {
+            // This is "Hello World!" brotli encoded.
+            let helloWorld = Data([0x8B, 0x05, 0x80, 0x48, 0x65, 0x6C, 0x6C, 0x6F,
+                                   0x20, 0x57, 0x6F, 0x72, 0x6C, 0x64, 0x21, 0x03])
+            return _HTTPResponse(response: .OK,
+                                 headers: ["Content-Length: \(helloWorld.count)",
+                                           "Content-Encoding: br"].joined(separator: _HTTPUtils.CRLF),
                                  bodyData: helloWorld)
         }
         
