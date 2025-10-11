@@ -1,6 +1,8 @@
 name: Create PR to merge main into release branch
 # In the first period after branching the release branch, we typically want to include many changes from `main` in the release branch. This workflow automatically creates a PR every Monday to merge main into the release branch.
 # Later in the release cycle we should stop this practice to avoid landing risky changes by disabling this workflow. To do so, disable the workflow as described in https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow
+permissions:
+  contents: read
 on:
   schedule:
     - cron: '0 9 * * MON'
