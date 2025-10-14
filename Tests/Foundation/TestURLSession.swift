@@ -31,9 +31,10 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
+// rdar://162419667
+// Fails on Amazon Linux 2 and UBI 9 (test_dataTaskWithURLRequest returned an unexpected result)
+#if !os(Linux)
     func test_dataTaskWithAcceptEncoding() async {
-        throw XCTSkip("rdar://162419667")
-
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/accept-encoding"
         let url = URL(string: urlString)!
         let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
@@ -44,6 +45,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
             XCTAssert(supportedEncodings.contains("br"), "test_dataTaskWithURLRequest returned an unexpected result")
         }
     }
+#endif
 
     func test_dataTaskWithURLCompletionHandler() async {
         //shared session
