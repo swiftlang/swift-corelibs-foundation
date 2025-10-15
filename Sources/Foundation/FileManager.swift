@@ -681,3 +681,28 @@ extension FileManager {
         }
     }
 }
+
+// Used in CFURL.c (use FileManager API so that platform specifics like long path prefix strip can be handled in a single place)
+@_cdecl("_CFGetCurrentDirectory")
+internal func _CFGetCurrentDirectory(_ buffer: UnsafeMutablePointer<CChar>?, _ size: Int) -> Bool {
+    guard let buffer = buffer, size > 0 else {
+        return false // Invalid parameters
+    }
+    
+    let currentPath = FileManager.default.currentDirectoryPath
+    
+    // Convert to C string representation
+    let cString = currentPath.utf8CString
+    let requiredSize = cString.count // includes null terminator
+    
+    if requiredSize > size {
+        return false // Buffer too small
+    }
+    
+    // Copy the string to the buffer
+    cString.withUnsafeBufferPointer { sourceBuffer in
+        buffer.initialize(from: sourceBuffer.baseAddress!, count: requiredSize)
+    }
+    
+    return true // Success
+}
