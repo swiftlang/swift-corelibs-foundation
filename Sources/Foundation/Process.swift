@@ -690,6 +690,7 @@ open class Process: NSObject, @unchecked Sendable {
         if !CloseHandle(piProcessInfo.hThread) {
           throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
+        self.processIdentifier = Int32(GetProcessId(self.processHandle))
 
         if let pipe = standardInput as? Pipe {
           pipe.fileHandleForReading.closeFile()
@@ -1102,26 +1103,11 @@ open class Process: NSObject, @unchecked Sendable {
     // status
 #if os(Windows)
     open private(set) var processHandle: HANDLE = INVALID_HANDLE_VALUE
-    open var processIdentifier: Int32 {
-      guard processHandle != INVALID_HANDLE_VALUE else {
-          return 0
-      }
-      return Int32(GetProcessId(processHandle))
-    }
-    open private(set) var isRunning: Bool = false
-
-    private var hasStarted: Bool {
-      return processHandle != INVALID_HANDLE_VALUE
-    }
-    private var hasFinished: Bool {
-      return hasStarted && !isRunning
-    }
-#else
+#endif
     open private(set) var processIdentifier: Int32 = 0
     open private(set) var isRunning: Bool = false
     private var hasStarted: Bool { return processIdentifier > 0 }
     private var hasFinished: Bool { return !isRunning && processIdentifier > 0 }
-#endif
 
     private var _terminationStatus: Int32 = 0
     public var terminationStatus: Int32 {
@@ -1200,6 +1186,17 @@ open class Process: NSObject, @unchecked Sendable {
         if let handler = self.terminationHandler {
             let thread: Thread = Thread { handler(self) }
             thread.start()
+            closeHandler()
+        } else {
+            closeHandler()
+        }
+
+        // This closeHandler is called as late as possible 
+        // so the processHandle (on Windows) is valid for as long as possible. 
+        func closeHandler() {
+#if os(Windows)
+            CloseHandle(self.processHandle)
+#endif
         }
     }
 }

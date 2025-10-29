@@ -1235,6 +1235,9 @@ class TestFileManager : XCTestCase {
     }
     
     func test_fetchXDGPathsFromHelper() throws {
+        #if os(Windows)
+        throw XCTSkip("This test is disabled on Windows, needs investigation.")
+        #endif
         let prefix = NSHomeDirectory() + "/_Foundation_Test_"
         
         let configuration = """

@@ -356,7 +356,7 @@ let package = Package(
                 "FoundationNetworking",
                 "XCTest",
                 "Testing",
-                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux, .android]))
+                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux, .android, .windows]))
             ],
             resources: [
                 .copy("Foundation/Resources")
