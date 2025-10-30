@@ -47,14 +47,6 @@ if(FOUNDATION_SWIFTPM_DEPS)
     return()
 endif()
 
-if(NOT SWIFT_SYSTEM_NAME)
-  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    set(SWIFT_SYSTEM_NAME macosx)
-  else()
-    set(SWIFT_SYSTEM_NAME "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
-  endif()
-endif()
-
 # Don't enable WMO on Windows due to linker failures
 if(NOT CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     # Enable whole module optimization for release builds & incremental for debug builds
@@ -136,18 +128,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   add_compile_options(
     "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fno-omit-frame-pointer>"
     "$<$<COMPILE_LANGUAGE:C,CXX>:-fno-omit-frame-pointer>")
-endif()
-
-# Precompute module triple for installation
-if(NOT SwiftFoundation_MODULE_TRIPLE)
-    set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
-    if(CMAKE_Swift_COMPILER_TARGET)
-        list(APPEND module_triple_command -target ${CMAKE_Swift_COMPILER_TARGET})
-    endif()
-    execute_process(COMMAND ${module_triple_command} OUTPUT_VARIABLE target_info_json)
-    string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
-    set(SwiftFoundation_MODULE_TRIPLE "${module_triple}" CACHE STRING "swift module triple used for installed swiftmodule and swiftinterface files")
-    mark_as_advanced(SwiftFoundation_MODULE_TRIPLE)
 endif()
 
 # System dependencies
@@ -255,6 +235,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND _Foundation_common_build_flags
         "-D_GNU_SOURCE")
 endif()
+
+option(SwiftFoundation_INSTALL_ARCH_SUBDIR "Install libraries under an architecture subdirectory" NO)
 
 include(GNUInstallDirs)
 include(FoundationSwiftSupport)

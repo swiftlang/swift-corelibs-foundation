@@ -148,7 +148,7 @@ install(DIRECTORY
 
 if(NOT BUILD_SHARED_LIBS)
     install(TARGETS CoreFoundation
-        ARCHIVE DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
-        LIBRARY DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        ARCHIVE DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>
+        LIBRARY DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>
         RUNTIME DESTINATION bin)
 endif()
