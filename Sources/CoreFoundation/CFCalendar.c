@@ -33,8 +33,8 @@ enum {
 
 #define ICU_LOG(FMT, ...) do { } while (0)
 
-#define MIN_CALENDAR_TIME -211845067200.0 // Julian day 0 (-4713-01-01 12:00:00 +0000) in CFAbsoluteTime.
-#define MAX_CALENDAR_TIME 15927175497600.0 // 50000-01-01 00:00:00 +0000, smaller than the max time ICU supported.
+#define MIN_CALENDAR_TIME -211845067200.0 // Julian day 0 (-4712-01-01 12:00:00 +0000) in CFAbsoluteTime.
+#define MAX_CALENDAR_TIME 15927175497600.0 // 506713-02-07 00:00:00 +0000, smaller than the max time ICU supported.
 #define __CFCalendarValidateAndCapTimeRange(at) do { \
     if (at < MIN_CALENDAR_TIME || at > MAX_CALENDAR_TIME) { \
         os_log_error(_CFOSLog(), "CFAbsoluteTime %lf exceeds calendar calculation range.", at); \
