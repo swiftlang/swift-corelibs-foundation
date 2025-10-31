@@ -220,6 +220,25 @@ extension _EasyHandle {
                 try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, caInfo).asError()
             }
             return
+        } else {
+            // default to the standard Android folders, like how it is done at:
+            // https://github.com/apple/swift-nio-ssl/blob/main/Sources/NIOSSL/AndroidCABundle.swift
+            let paths = [
+                "/apex/com.android.conscrypt/cacerts",  // >= Android14
+                "/system/etc/security/cacerts",  // < Android14
+            ]
+
+            for path in paths {
+                var isDirectory: ObjCBool = false
+                if FileManager.default.fileExists(atPath: path,
+                                                  isDirectory: &isDirectory)
+                    && isDirectory.boolValue {
+                    path.withCString { pathPtr in
+                        try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAPATH, UnsafeMutablePointer(mutating: pathPtr)).asError()
+                    }
+                    return
+                }
+            }
         }
 #endif
 
