@@ -1,6 +1,8 @@
 name: Create PR to merge release branch into the main branch
 # At the end of a release cycle, we may want to automatically include all changes to release branches on the main branch to avoid the need for cherry-picking changes back to release branches
 # This workflow can be disabled earlier in the release cycle in the GitHub UI as described in https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow
+permissions:
+  contents: read
 on:
   schedule:
     - cron: '0 9 * * *'
