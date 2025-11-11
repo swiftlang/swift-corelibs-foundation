@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 class TestPropertyListSerialization : XCTestCase {
     func test_BasicConstruction() {
         let dict = NSMutableDictionary(capacity: 0)
@@ -78,6 +80,35 @@ class TestPropertyListSerialization : XCTestCase {
             XCTAssertEqual(nserror.domain, NSCocoaErrorDomain)
             XCTAssertEqual(CocoaError(_nsError: nserror).code, .propertyListReadCorrupt)
             XCTAssertEqual(nserror.userInfo[NSDebugDescriptionErrorKey] as? String, "Cannot parse a NULL or zero-length data")
+        }
+    }
+    
+    func test_decodeOverflowUnicodeString() throws {
+        var native = "ФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФ"
+        let ns = native.withCString {
+            NSString(utf8String: $0)!
+        }
+        do {
+            var buffer = Array<UInt8>(repeating: 1, count: native.utf8.count)
+            buffer.withUnsafeMutableBufferPointer { bufferPtr in
+                var used: CFIndex = 0
+                CFStringGetBytes(unsafeBitCast(ns, to: CFString.self), CFRangeMake(0, ns.length), CFStringBuiltInEncodings.UTF8.rawValue, 0xF, false, bufferPtr.baseAddress!, 10, &used)
+                XCTAssertEqual(used, 10)
+            }
+            for i in 10 ..< buffer.count {
+                XCTAssertEqual(buffer[i], 1)
+            }
+        }
+        do {
+            var buffer = Array<UInt16>(repeating: 1, count: native.utf8.count)
+            buffer.withUnsafeMutableBufferPointer { bufferPtr in
+                var used: CFIndex = 0
+                CFStringGetBytes(unsafeBitCast(ns, to: CFString.self), CFRangeMake(0, ns.length), CFStringBuiltInEncodings.UTF16.rawValue, 0xF, false, bufferPtr.baseAddress!, 10, &used)
+                XCTAssertEqual(used, 10)
+            }
+            for i in 10 ..< buffer.count {
+                XCTAssertEqual(buffer[i], 1)
+            }
         }
     }
 }
