@@ -239,7 +239,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         guard let response = ts.response else {
             internalState = .transferFailed
             let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNetworkConnectionLost,
-                              userInfo: [NSLocalizedDescriptionKey: "The network connection was lost."])
+                                userInfo: [NSLocalizedDescriptionKey: "The network connection was lost."])
             failWith(error: error, request: request)
             return
         }
