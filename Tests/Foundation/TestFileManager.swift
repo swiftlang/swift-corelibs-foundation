@@ -86,9 +86,9 @@ class TestFileManager : XCTestCase {
         let attributes = [FileAttributeKey.posixPermissions: permissions]
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(),
                                     attributes: attributes))
-        let retrievedAtributes = try fm.attributesOfItem(atPath: path)
+        let retrievedAttributes = try fm.attributesOfItem(atPath: path)
 
-        let retrievedPermissions = try XCTUnwrap(retrievedAtributes[.posixPermissions] as? NSNumber)
+        let retrievedPermissions = try XCTUnwrap(retrievedAttributes[.posixPermissions] as? NSNumber)
         XCTAssertEqual(retrievedPermissions, permissions)
 
         try fm.removeItem(atPath: path)
@@ -386,14 +386,14 @@ class TestFileManager : XCTestCase {
         if let size = item1FileAttributes[.size] as? NSNumber {
             XCTAssertEqual(size.int64Value, 123)
         } else {
-            XCTFail("Cant get file size for 'item'")
+            XCTFail("Can't get file size for 'item'")
         }
 
         XCTAssertNotNil(item2FileAttributes)
         if let size = item2FileAttributes[.size] as? NSNumber {
             XCTAssertEqual(size.int64Value, 456)
         } else {
-            XCTFail("Cant get file size for 'path2/item'")
+            XCTFail("Can't get file size for 'path2/item'")
         }
 
         if let e2 = FileManager.default.enumerator(atPath: basePath) {
@@ -481,13 +481,13 @@ class TestFileManager : XCTestCase {
         XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs1, withIntermediateDirectories: true, attributes: nil))
         XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs2, withIntermediateDirectories: true, attributes: nil))
         for filename in [itemPath1, itemPath2, itemPath3] {
-            XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Cant create file '\(filename)'")
+            XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Can't create file '\(filename)'")
         }
 
         var resourceValues = URLResourceValues()
         resourceValues.isHidden = true
         for filename in [ hiddenItem1, hiddenItem2, hiddenItem3, hiddenItem4] {
-            XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Cant create file '\(filename)'")
+            XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Can't create file '\(filename)'")
 #if os(Windows)
             do {
                 var url = URL(fileURLWithPath: filename)
@@ -515,25 +515,25 @@ class TestFileManager : XCTestCase {
                 XCTAssertEqual(fileLevels[name], level, "File level for \(name) is wrong")
             }
         } else {
-            XCTFail("Cant enumerate directory at \(basePath) with options: []")
+            XCTFail("Can't enumerate directory at \(basePath) with options: []")
         }
 
         if let foundItems = directoryItems(options: [.skipsHiddenFiles]) {
             XCTAssertEqual(foundItems.count, 5)
         } else {
-            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles]")
+            XCTFail("Can't enumerate directory at \(basePath) with options: [.skipsHiddenFiles]")
         }
 
         if let foundItems = directoryItems(options: [.skipsSubdirectoryDescendants]) {
             XCTAssertEqual(foundItems.count, 3)
         } else {
-            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsSubdirectoryDescendants]")
+            XCTFail("Can't enumerate directory at \(basePath) with options: [.skipsSubdirectoryDescendants]")
         }
 
         if let foundItems = directoryItems(options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]) {
             XCTAssertEqual(foundItems.count, 2)
         } else {
-            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")
+            XCTFail("Can't enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")
         }
 
         if let foundItems = directoryItems(options: [.skipsPackageDescendants]) {
@@ -543,7 +543,7 @@ class TestFileManager : XCTestCase {
             XCTAssertEqual(foundItems.count, 15)
 #endif
         } else {
-            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")
+            XCTFail("Can't enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")
         }
 
         var didGetError = false
@@ -786,7 +786,7 @@ class TestFileManager : XCTestCase {
 
         func getFileInfo(atPath path: String, _ body: (String, Bool, UInt64, UInt64) -> ()) {
             guard let enumerator = fm.enumerator(atPath: path) else {
-                XCTFail("Cant enumerate \(path)")
+                XCTFail("Can't enumerate \(path)")
                 return
             }
             while let item = enumerator.nextObject() as? String {
@@ -827,7 +827,7 @@ class TestFileManager : XCTestCase {
 
         getFileInfo(atPath: destPath, { name, isDir, inode, linkCount in
             guard let srcFileInfo = fileInfos.removeValue(forKey: name) else {
-                XCTFail("Cant find \(name) in \(destPath)")
+                XCTFail("Can't find \(name) in \(destPath)")
                 return
             }
             let (srcIsDir, srcInode, srcLinkCount) = srcFileInfo
@@ -914,7 +914,7 @@ class TestFileManager : XCTestCase {
             try FileManager.default.removeItem(at: baseURL)
 
             #if !os(Windows)
-            // D) Check infinite recursion loops are stopped and the function returns the intial symlink
+            // D) Check infinite recursion loops are stopped and the function returns the initial symlink
             //
             // Note: This cannot be tested on platforms which only support creating symlinks pointing to existing targets.
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
@@ -928,27 +928,27 @@ class TestFileManager : XCTestCase {
     }
 
     func test_homedirectoryForUser() {
-        let filemanger = FileManager.default
-        XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
-        XCTAssertNil(filemanger.homeDirectory(forUser: ""))
-        XCTAssertNotNil(filemanger.homeDirectoryForCurrentUser)
+        let filemanager = FileManager.default
+        XCTAssertNil(filemanager.homeDirectory(forUser: "someuser"))
+        XCTAssertNil(filemanager.homeDirectory(forUser: ""))
+        XCTAssertNotNil(filemanager.homeDirectoryForCurrentUser)
     }
     
     func test_temporaryDirectoryForUser() {
-        let filemanger = FileManager.default
-        let tmpDir = filemanger.temporaryDirectory
+        let filemanager = FileManager.default
+        let tmpDir = filemanager.temporaryDirectory
         let tmpFileUrl = tmpDir.appendingPathComponent("test.bin")
         let tmpFilePath = tmpFileUrl.path
         
         do {
-            if filemanger.fileExists(atPath: tmpFilePath) {
-                try filemanger.removeItem(at: tmpFileUrl)
+            if filemanager.fileExists(atPath: tmpFilePath) {
+                try filemanager.removeItem(at: tmpFileUrl)
             }
             
             try "hello world".write(to: tmpFileUrl, atomically: false, encoding: .utf8)
-            XCTAssert(filemanger.fileExists(atPath: tmpFilePath))
+            XCTAssert(filemanager.fileExists(atPath: tmpFilePath))
 
-            try filemanger.removeItem(at: tmpFileUrl)
+            try filemanager.removeItem(at: tmpFileUrl)
         } catch {
             XCTFail("Unable to write a file to the temporary directory: \(tmpDir), err: \(error)")
         }
@@ -994,7 +994,7 @@ class TestFileManager : XCTestCase {
 
         func testFileURL(_ name: String, _ ext: String) -> URL? {
             guard let url = testBundle().url(forResource: name, withExtension: ext) else {
-                XCTFail("Cant open \(name).\(ext)")
+                XCTFail("Can't open \(name).\(ext)")
                 return nil
             }
             return url
@@ -1174,7 +1174,7 @@ class TestFileManager : XCTestCase {
                 let destPerms = (try fm.attributesOfItem(atPath: destFile.path)[.posixPermissions] as? NSNumber)?.intValue {
                 XCTAssertEqual(srcPerms, destPerms)
             } else {
-                XCTFail("Cant get file permissions")
+                XCTFail("Can't get file permissions")
             }
         }
 

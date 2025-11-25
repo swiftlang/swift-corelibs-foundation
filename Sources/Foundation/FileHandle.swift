@@ -615,7 +615,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
             // console output is not buffered.
             if dwError == ERROR_INVALID_HANDLE &&
                     GetFileType(self._handle) == FILE_TYPE_CHAR {
-                // Simlar to the Linux, macOS, BSD cases below, ignore the error
+                // Similar to the Linux, macOS, BSD cases below, ignore the error
                 // on the special file type.
                 return
             }

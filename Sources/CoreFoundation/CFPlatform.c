@@ -925,7 +925,7 @@ static void __CFTSDFinalize(void *arg) {
     __CFMainThreadHasExited = true;
 #else
     if (_CFIsMainThread()) {
-        // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
+        // Important: we need to be sure that the only time we set this flag to true is when we actually can guarantee we ARE the main thread.
         __CFMainThreadHasExited = true;
     }
 #endif
@@ -960,7 +960,7 @@ static void __CFTSDFinalize(void *arg) {
         free(table);
 
         // FreeBSD libthr emits debug message to stderr if there are leftover nonnull TSD after PTHREAD_DESTRUCTOR_ITERATIONS
-        // On this platform, the destructor will never be called again, therefore it is unneccessary to set the TSD to CF_TSD_BAD_PTR
+        // On this platform, the destructor will never be called again, therefore it is unnecessary to set the TSD to CF_TSD_BAD_PTR
         #if defined(__FreeBSD__)
         __CFTSDSetSpecific(NULL);
         #else

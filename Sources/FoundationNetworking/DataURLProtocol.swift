@@ -114,7 +114,7 @@ internal class _DataURLProtocol: URLProtocol {
         var charSet: String?
         var base64 = false
 
-        // Simple validation that the mime type has only one '/' and its not at the start or end.
+        // Simple validation that the mime type has only one '/' and it's not at the start or end.
         func validate(mimeType: String) -> Bool {
             if mimeType.hasPrefix("/") { return false }
             var count = 0

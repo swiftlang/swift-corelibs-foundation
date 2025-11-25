@@ -793,7 +793,7 @@ UInt32 CFStringConvertEncodingToWindowsCodepage(CFStringEncoding encoding);
 CF_EXPORT
 CFStringEncoding CFStringConvertWindowsCodepageToEncoding(UInt32 codepage);
 
-/* ID mapping functions from/to IANA registery charset names.  Returns kCFStringEncodingInvalidId if no mapping exists.
+/* ID mapping functions from/to IANA registry charset names.  Returns kCFStringEncodingInvalidId if no mapping exists.
 */
 CF_EXPORT
 CFStringEncoding CFStringConvertIANACharSetNameToEncoding(CFStringRef theString);

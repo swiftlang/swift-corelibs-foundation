@@ -596,7 +596,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	controlBMP = CFUniCharGetBitmapPtrForPlane(kCFUniCharControlAndFormatterCharacterSet, 0);
     }
     
-    // Determine the range of characters surrodiing the current index significant for localized comparison. The range is extended backward and forward as long as they are contextual. Contextual characters include all letters and punctuations. Since most control/format characters are ignorable in localized comparison, we also include them extending forward.
+    // Determine the range of characters surrounding the current index significant for localized comparison. The range is extended backward and forward as long as they are contextual. Contextual characters include all letters and punctuations. Since most control/format characters are ignorable in localized comparison, we also include them extending forward.
     
     range1.location = str1Range.location;
     range2.location = str2Range.location;

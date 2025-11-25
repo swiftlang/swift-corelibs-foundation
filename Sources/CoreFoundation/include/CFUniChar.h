@@ -169,7 +169,7 @@ CF_EXPORT bool CFUniCharFillDestinationBuffer(const UTF32Char *src, CFIndex srcL
 
 // UTF32 support
 
-CF_INLINE bool CFUniCharToUTF32(const UTF16Char *src, CFIndex length, UTF32Char *dst, bool allowLossy, bool isBigEndien) {
+CF_INLINE bool CFUniCharToUTF32(const UTF16Char *src, CFIndex length, UTF32Char *dst, bool allowLossy, bool isBigEndian) {
     const UTF16Char *limit = src + length;
     UTF32Char character;
 
@@ -188,18 +188,18 @@ CF_INLINE bool CFUniCharToUTF32(const UTF16Char *src, CFIndex length, UTF32Char 
             character = 0xFFFD; // replacement character
         }
 
-        *(dst++) = (isBigEndien ? CFSwapInt32HostToBig(character) : CFSwapInt32HostToLittle(character));
+        *(dst++) = (isBigEndian ? CFSwapInt32HostToBig(character) : CFSwapInt32HostToLittle(character));
     }
 
     return true;
 }
 
-CF_INLINE bool CFUniCharFromUTF32(const UTF32Char *src, CFIndex length, UTF16Char *dst, bool allowLossy, bool isBigEndien) {
+CF_INLINE bool CFUniCharFromUTF32(const UTF32Char *src, CFIndex length, UTF16Char *dst, bool allowLossy, bool isBigEndian) {
     const UTF32Char *limit = src + length;
     UTF32Char character;
 
     while (src < limit) {
-        character = (isBigEndien ? CFSwapInt32BigToHost(*(src++)) : CFSwapInt32LittleToHost(*(src++)));
+        character = (isBigEndian ? CFSwapInt32BigToHost(*(src++)) : CFSwapInt32LittleToHost(*(src++)));
 
         if (character < 0x10000) { // BMP
             if (allowLossy) {
@@ -207,7 +207,7 @@ CF_INLINE bool CFUniCharFromUTF32(const UTF32Char *src, CFIndex length, UTF16Cha
                     UTF32Char otherCharacter = 0xFFFD; // replacement character
 
                     if (src < limit) {
-                        otherCharacter = (isBigEndien ? CFSwapInt32BigToHost(*src) : CFSwapInt32LittleToHost(*src));
+                        otherCharacter = (isBigEndian ? CFSwapInt32BigToHost(*src) : CFSwapInt32LittleToHost(*src));
 
                         
                         if ((otherCharacter < 0x10000) && CFUniCharIsSurrogateLowCharacter(otherCharacter)) {

@@ -2195,9 +2195,9 @@ CFStringRef CFLocaleCreateLocaleIdentifierFromComponents(CFAllocatorRef allocato
                 CFCalendarRef cal = (CFCalendarRef)values[idx];
                 CFStringRef ident = CFCalendarGetIdentifier(cal);
                 value = __CStringFromString(ident);
-                char *oldkey = key;
+                char *oldKey = key;
                 key = strdup("calendar");
-                free(oldkey);
+                free(oldKey);
             } else {
                 value = __CStringFromString(values[idx]);
             }

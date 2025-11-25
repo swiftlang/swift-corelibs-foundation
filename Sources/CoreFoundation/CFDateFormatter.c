@@ -955,7 +955,7 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
                     } else {
                         CFStringAppendCString(resultStr, "HH:mm:ss", kCFStringEncodingUTF8);
                     }
-                    // Add support for fracional seconds
+                    // Add support for fractional seconds
                     if (includeFractionalSecs) {
                         CFStringAppendCString(resultStr, ".SSS", kCFStringEncodingUTF8);
                     }

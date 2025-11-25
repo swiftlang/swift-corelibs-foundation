@@ -470,7 +470,7 @@ CFAllocatorRef CFAllocatorGetDefault(void) {
 
 void CFAllocatorSetDefault(CFAllocatorRef allocator) {
 #ifndef __clang_analyzer__
-    // clang doesn't like complexity of staticly laid out instances like the black magic we do here and  __CFGetDefaultAllocator
+    // clang doesn't like complexity of statically laid out instances like the black magic we do here and __CFGetDefaultAllocator
     CFAllocatorRef current = __CFGetDefaultAllocator();
 #if defined(DEBUG) 
     if (NULL != allocator) {
