@@ -306,9 +306,9 @@ const char *_CFProcessPath(void) {
 #endif
 }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD || TARGET_OS_WASI
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
-#if defined(__OpenBSD__) || defined(__FreeBSD__)
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || TARGET_OS_WASI
     return pthread_equal(pthread_self(), _CFMainPThread) != 0;
 #else
     return pthread_main_np() == 1;
