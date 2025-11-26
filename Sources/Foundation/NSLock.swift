@@ -59,7 +59,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 #endif
 
     public override init() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         InitializeSRWLock(mutex)
@@ -75,7 +75,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
     }
     
     deinit {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         // SRWLocks do not need to be explicitly destroyed
@@ -91,7 +91,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         AcquireSRWLockExclusive(mutex)
@@ -102,7 +102,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         ReleaseSRWLockExclusive(mutex)
@@ -122,7 +122,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
 
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func `try`() -> Bool {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
         return true
 #elseif os(Windows)
@@ -134,7 +134,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(before limit: Date) -> Bool {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         if TryAcquireSRWLockExclusive(mutex) != 0 {
@@ -146,7 +146,7 @@ open class NSLock: NSObject, NSLocking, @unchecked Sendable {
         }
 #endif
 
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
         return true
 #elseif os(macOS) || os(iOS) || os(Windows)
@@ -170,7 +170,7 @@ extension NSLock {
     }
 }
 
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if _runtime(_multithreaded)
 open class NSConditionLock : NSObject, NSLocking, @unchecked Sendable {
     internal var _cond = NSCondition()
     internal var _value: Int
@@ -282,7 +282,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
 
     public override init() {
         super.init()
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         InitializeCriticalSection(mutex)
@@ -312,7 +312,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
     }
     
     deinit {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         DeleteCriticalSection(mutex)
@@ -328,7 +328,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         EnterCriticalSection(mutex)
@@ -339,7 +339,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         LeaveCriticalSection(mutex)
@@ -359,7 +359,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func `try`() -> Bool {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
         return true
 #elseif os(Windows)
@@ -371,7 +371,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock(before limit: Date) -> Bool {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         if TryEnterCriticalSection(mutex) {
@@ -383,7 +383,7 @@ open class NSRecursiveLock: NSObject, NSLocking, @unchecked Sendable {
         }
 #endif
 
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
         return true
 #elseif os(macOS) || os(iOS) || os(Windows)
@@ -404,7 +404,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     internal var cond = _ConditionVariablePointer.allocate(capacity: 1)
 
     public override init() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         InitializeSRWLock(mutex)
@@ -416,7 +416,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     }
     
     deinit {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         // SRWLock do not need to be explicitly destroyed
@@ -432,7 +432,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func lock() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         AcquireSRWLockExclusive(mutex)
@@ -443,7 +443,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func unlock() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         ReleaseSRWLockExclusive(mutex)
@@ -454,7 +454,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func wait() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         SleepConditionVariableSRW(cond, mutex, WinSDK.INFINITE, 0)
@@ -465,7 +465,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
 
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func wait(until limit: Date) -> Bool {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
         return true
 #elseif os(Windows)
@@ -480,7 +480,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     
     @available(*, noasync, message: "Use async-safe scoped locking instead")
     open func signal() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         WakeConditionVariable(cond)
@@ -490,7 +490,7 @@ open class NSCondition: NSObject, NSLocking, @unchecked Sendable {
     }
     
     open func broadcast() {
-#if !SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
+#if !_runtime(_multithreaded)
         // noop on no thread platforms
 #elseif os(Windows)
         WakeAllConditionVariable(cond)
