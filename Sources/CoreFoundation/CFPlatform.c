@@ -42,7 +42,6 @@
 #define SECURITY_WIN32
 #include <Security.h>
 
-#define getcwd _NS_getcwd
 #define open _NS_open
 
 #endif
@@ -68,11 +67,6 @@ extern void __CFGetUGIDs(uid_t *euid, gid_t *egid);
 char **_CFArgv(void) { return *_NSGetArgv(); }
 int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
-
-
-CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
-    return getcwd(path, maxlen) != NULL;
-}
 
 #if TARGET_OS_WIN32
 // Returns the path to the CF DLL, which we can then use to find resources like char sets
@@ -1133,24 +1127,6 @@ CF_EXPORT int _NS_unlink(const char *name) {
     int res = _wunlink(wide);
     free(wide);
     return res;
-}
-
-// Warning: this doesn't support dstbuf as null even though 'getcwd' does
-CF_EXPORT char *_NS_getcwd(char *dstbuf, size_t size) {
-    if (!dstbuf) {
-	CFLog(kCFLogLevelWarning, CFSTR("CFPlatform: getcwd called with null buffer"));
-	return 0;
-    }
-    
-    wchar_t *buf = _wgetcwd(NULL, 0);
-    if (!buf) {
-        return NULL;
-    }
-        
-    // Convert result to UTF8
-    copyToNarrowFileSystemRepresentation(buf, (CFIndex)size, dstbuf);
-    free(buf);
-    return dstbuf;
 }
 
 CF_EXPORT char *_NS_getenv(const char *name) {
