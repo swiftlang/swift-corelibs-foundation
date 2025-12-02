@@ -266,10 +266,12 @@ const char *_CFProcessPath(void) {
     }
 
     // Search PATH.
-    if (argv0) {
-        char *paths = getenv("PATH");
+    char *path = getenv("PATH");
+    if (argv0 && path) {
+        char *paths = strdup(path);
+        char *remaining = paths;
         char *p = NULL;
-        while ((p = strsep(&paths, ":")) != NULL) {
+        while ((p = strsep(&remaining, ":")) != NULL) {
             char pp[PATH_MAX];
             int l = snprintf(pp, PATH_MAX, "%s/%s", p, argv0);
             if (l >= PATH_MAX) {
@@ -283,11 +285,13 @@ const char *_CFProcessPath(void) {
                 _CFSetProgramNameFromPath(res);
                 free(argv0);
                 free(res);
+                free(paths);
                 return __CFProcessPath;
             }
             free(res);
         }
         free(argv0);
+        free(paths);
     }
 
     // See if the shell will help.
