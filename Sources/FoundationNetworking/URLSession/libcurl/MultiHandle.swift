@@ -552,7 +552,7 @@ fileprivate class _SocketSources {
         handle.cancelWorkItem(for: socket) // There could be pending register action which needs to be cancelled
         
         guard readSource != nil || writeSource != nil else {
-            // This means that we have posponed (and already abandoned)
+            // This means that we have postponed (and already abandoned)
             // sources creation.
             return
         }

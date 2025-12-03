@@ -492,7 +492,7 @@ open class Process: NSObject, @unchecked Sendable {
         // Dispatch the manager thread if it isn't already running
         Process.setup()
 
-        // Check that the process isnt run more than once
+        // Check that the process isn't run more than once
         guard hasStarted == false && hasFinished == false else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSExecutableLoadError)
         }

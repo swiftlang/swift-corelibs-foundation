@@ -197,7 +197,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion4 CF_AVAILABLE(1
  *  kCFStreamSocketSOCKSVersion5
  *
  *  Discussion:
- *    CFDictionary value for SOCKS proxy information.  Indcates that
+ *    CFDictionary value for SOCKS proxy information.  Indicates that
  *    SOCKS will or is using version 5 of the SOCKS protocol.
  *
  */
@@ -246,7 +246,7 @@ CF_EXPORT const int kCFStreamErrorDomainSSL CF_AVAILABLE(10_2, 2_0);
  *  Discussion:
  *    Stream property key, for both set and copy operations. To set a
  *    stream to be secure, call CFReadStreamSetProperty or
- *    CFWriteStreamSetPropertywith the property name set to
+ *    CFWriteStreamSetProperty with the property name set to
  *    kCFStreamPropertySocketSecurityLevel and the value being one of
  *    the following values.  Streams may set a security level after
  *    open in order to allow on-the-fly securing of a stream.

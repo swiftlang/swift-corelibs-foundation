@@ -297,7 +297,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         // We will reset the body source and seek forward.
         guard let session = task?.session as? URLSession else { fatalError() }
         
-        // TODO: InputStream is not Sendable, but it seems safe here beacuse of the wait on the dispatch group. It would be nice to prove this to the compiler.
+        // TODO: InputStream is not Sendable, but it seems safe here because of the wait on the dispatch group. It would be nice to prove this to the compiler.
         nonisolated(unsafe) var currentInputStream: InputStream?
         
         if let delegate = task?.delegate {

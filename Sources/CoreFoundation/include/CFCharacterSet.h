@@ -303,7 +303,7 @@ void CFCharacterSetAddCharactersInRange(CFMutableCharacterSetRef theSet, CFRange
 
 /*!
 	@function CFCharacterSetRemoveCharactersInRange
-	Removes the given range from the charaacter set.
+	Removes the given range from the character set.
 	@param theSet The character set from which the range is to be
                 removed.  If this parameter is not a valid mutable
                 CFCharacterSet, the behavior is undefined.

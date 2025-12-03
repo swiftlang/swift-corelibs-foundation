@@ -204,7 +204,7 @@ CF_EXPORT const CFStringRef _kCFURLLocalizedNameDictionaryKey API_AVAILABLE(maco
     /* For items with localized display names, the dictionary of all available localizations. The keys are the canonical locale strings for the available localizations. (CFDictionary) */
 
 CF_EXPORT const CFStringRef _kCFURLLocalizedNameWithExtensionsHiddenDictionaryKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
-    /* For items with localized display names, the dictionary of all available localizations with extensions hidden if safe. The keys are the cannonical locale strings for the available localizations. (CFDictionary) */
+    /* For items with localized display names, the dictionary of all available localizations with extensions hidden if safe. The keys are the canonical locale strings for the available localizations. (CFDictionary) */
 
 CF_EXPORT const CFStringRef _kCFURLLocalizedTypeDescriptionDictionaryKey API_AVAILABLE(macos(10.7), ios(9.0), watchos(2.0), tvos(9.0));
     /* The dictionary of all available localizations of the item kind string. The keys are the canonical locale strings for the available localizations. (CFDictionary) */

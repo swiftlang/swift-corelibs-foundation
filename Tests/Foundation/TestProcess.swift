@@ -91,7 +91,7 @@ class TestProcess : XCTestCase {
         do {
             try inputPipe.fileHandleForWriting.write(contentsOf: msg)
         } catch {
-            XCTFail("Cant write to pipe: \(error)")
+            XCTFail("Can't write to pipe: \(error)")
             return
         }
 
@@ -380,11 +380,11 @@ class TestProcess : XCTestCase {
         do {
             try helper.start()
         }  catch {
-            XCTFail("Cant run xdgTestHelper: \(error)")
+            XCTFail("Can't run xdgTestHelper: \(error)")
             return
         }
         if !helper.waitForReady() {
-            XCTFail("Didnt receive Ready from sub-process")
+            XCTFail("Didn't receive Ready from sub-process")
             return
         }
 
@@ -434,11 +434,11 @@ class TestProcess : XCTestCase {
         do {
             try helper.start()
         }  catch {
-            XCTFail("Cant run xdgTestHelper: \(error)")
+            XCTFail("Can't run xdgTestHelper: \(error)")
             return
         }
         if !helper.waitForReady() {
-            XCTFail("Didnt receive Ready from sub-process")
+            XCTFail("Didn't receive Ready from sub-process")
             return
         }
         let now = DispatchTime.now().uptimeNanoseconds

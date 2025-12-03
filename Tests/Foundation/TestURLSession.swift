@@ -531,9 +531,9 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         XCTAssertEqual(task.state, .suspended)
 
         task.resume()                           // 2
-        XCTAssertEqual(task.state, .suspended)  // Darwin reports this as .running even though the task hasnt actually resumed
+        XCTAssertEqual(task.state, .suspended)  // Darwin reports this as .running even though the task hasn't actually resumed
         task.resume()                           // 1
-        XCTAssertEqual(task.state, .suspended)  // Darwin reports this as .running even though the task hasnt actually resumed
+        XCTAssertEqual(task.state, .suspended)  // Darwin reports this as .running even though the task hasn't actually resumed
 
         task.resume()                           // 0 - Task can run
         XCTAssertEqual(task.state, .running)
@@ -572,7 +572,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
     
     // Verify httpAdditionalHeaders from session configuration are added to the request
-    // and whether it is overriden by Request.allHTTPHeaderFields.
+    // and whether it is overridden by Request.allHTTPHeaderFields.
     
     func test_verifyHttpAdditionalHeaders() async {
         let config = URLSessionConfiguration.default
@@ -730,7 +730,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
             var request = URLRequest(url: url)
             request.httpMethod = method
             let d = HTTPRedirectionDataTask(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
@@ -772,7 +772,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
             for method in httpMethods {
                 let testMethod = "\(method) request with statusCode \(statusCode)"
                 let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-                let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+                let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
                 var request = URLRequest(url: url)
                 request.httpMethod = method
                 let d = HTTPRedirectionDataTask(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
@@ -819,7 +819,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
             var request = URLRequest(url: url)
             request.httpMethod = method
             let d = HTTPRedirectionDataTask(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
@@ -853,7 +853,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
             var request = URLRequest(url: url)
             request.httpMethod = method
             let d = HTTPRedirectionDataTask(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
@@ -883,7 +883,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
             for method in httpMethods {
                 let testMethod = "\(method) request with statusCode \(statusCode)"
                 let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-                let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+                let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
                 var request = URLRequest(url: url)
                 request.httpMethod = method
                 let d = HTTPRedirectionDataTask(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
@@ -928,7 +928,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
             var request = URLRequest(url: url)
             request.httpMethod = method
             let delegate = SessionDelegate(with: expectation(description: "\(method) \(urlString): with HTTP redirection"))
@@ -987,7 +987,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         for method in httpMethods {
             let testMethod = "\(method) request with statusCode \(statusCode)"
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=jsonBody"
-            let url = try XCTUnwrap(URL(string: urlString), "Cant create URL for \(testMethod)")
+            let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
             var request = URLRequest(url: url)
             request.httpMethod = method
             let expect = expectation(description: "\(method) \(urlString): with HTTP redirection")

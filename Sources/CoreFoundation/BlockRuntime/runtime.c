@@ -374,7 +374,7 @@ static void *_Block_copy_internal(const void *arg, const bool wantsOne) {
         return aBlock;
     }
 
-    // Its a stack block.  Make a copy.
+    // It's a stack block.  Make a copy.
     if (!isGC) {
         struct Block_layout *result = malloc(aBlock->descriptor->size);
         if (!result) return NULL;
@@ -433,7 +433,7 @@ static void _Block_byref_assign_copy(void *dest, const void *arg, const int flag
     else if ((src->forwarding->flags & BLOCK_REFCOUNT_MASK) == 0) {
         // src points to stack
         bool isWeak = ((flags & (BLOCK_FIELD_IS_BYREF|BLOCK_FIELD_IS_WEAK)) == (BLOCK_FIELD_IS_BYREF|BLOCK_FIELD_IS_WEAK));
-        // if its weak ask for an object (only matters under GC)
+        // if it's weak ask for an object (only matters under GC)
         struct Block_byref *copy = (struct Block_byref *)_Block_allocator(src->size, false, isWeak);
         copy->flags = src->flags | _Byref_flag_initial_value; // non-GC one for caller, one for stack
         copy->forwarding = copy; // patch heap copy to point to itself (skip write-barrier)

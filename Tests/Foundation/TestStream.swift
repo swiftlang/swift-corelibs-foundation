@@ -257,7 +257,7 @@ class TestStream : XCTestCase {
         XCTAssertFalse(outputStream.hasSpaceAvailable)
     }
     
-    func test_ouputStreamWithInvalidPath(){
+    func test_outputStreamWithInvalidPath(){
         let outputStream = OutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
         XCTAssertEqual(.notOpen, outputStream!.streamStatus)
         outputStream?.open()

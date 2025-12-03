@@ -411,7 +411,7 @@ open class XMLNode: NSObject, NSCopying {
                 return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
                 
             case .element:
-                // As with Darwin, children's string values are just concanated without spaces.
+                // As with Darwin, children's string values are just concatenated without spaces.
                 return children?.compactMap({ $0.stringValue }).joined() ?? ""
                 
             default:

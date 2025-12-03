@@ -34,7 +34,7 @@
 #endif
 
 #if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
-#error Do not know the endianess of this architecture
+#error Do not know the endianness of this architecture
 #endif
 
 #if !__BIG_ENDIAN__ && !__LITTLE_ENDIAN__

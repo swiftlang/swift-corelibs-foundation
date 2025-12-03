@@ -86,7 +86,7 @@ static Boolean advanceToNonSpace(_CFStringsFileParseInfo *pInfo) {
         if (ch2 == ' ' || ch2 == 0x2028 || ch2 == 0x2029) continue;	// space and Unicode line sep, para sep
         if (ch2 == '/') {
             if (pInfo->curr >= pInfo->end) {
-                // TODO: this could possibly be made more robust (imagine if pInfo->curr is stomped; pInfo->end - 1 might be safer.  Unless its smashed too :-/
+                // TODO: this could possibly be made more robust (imagine if pInfo->curr is stomped; pInfo->end - 1 might be safer.  Unless it's smashed too :-/
                 // whoops; back up and return
                 pInfo->curr --;
                 return true;

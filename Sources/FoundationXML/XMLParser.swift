@@ -403,7 +403,7 @@ open class XMLParser : NSObject {
 
     internal var _chunkSize = Int(4096 * 32) // a suitably large number for a decent chunk size
     // This chunk of data stores the head of the stream. We know we have enough information for encoding
-    // when there are atleast 4 bytes in here.
+    // when there are at least 4 bytes in here.
     internal var _bomChunk: Data?
     fileprivate var _parserContext: _CFXMLInterfaceParserContext?
     internal var _delegateAborted = false

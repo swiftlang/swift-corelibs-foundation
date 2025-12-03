@@ -189,7 +189,7 @@ static void __CFTimeZoneGetOffset(CFStringRef timezone, int32_t *offset) {
  * structure, and the files with the same name as the time zone.
  * Instead all the information is in one file, where all the time zone
  * information for all the zones is held. Also, to allow upgrades to the time
- * zone database without an update to the system, the database can be overriden
+ * zone database without an update to the system, the database can be overridden
  * by a secondary location.
  * - /data/misc/zoneinfo/current/tzdata overrides for the time zone information
  *   from the system.

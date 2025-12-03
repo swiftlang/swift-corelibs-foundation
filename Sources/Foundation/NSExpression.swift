@@ -117,7 +117,7 @@ open class NSExpression : NSObject, NSCopying {
     public convenience init(forMinusSet left: NSExpression, with right: NSExpression) { NSUnsupported() } // return an expression that will return the disjunction of the collections expressed by left and right
 
     @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
-    public convenience init(forSubquery expression: NSExpression, usingIteratorVariable variable: String, predicate: Any) { NSUnsupported() } // Expression that filters a collection by storing elements in the collection in the variable variable and keeping the elements for which qualifer returns true; variable is used as a local variable, and will shadow any instances of variable in the bindings dictionary, the variable is removed or the old value replaced once evaluation completes
+    public convenience init(forSubquery expression: NSExpression, usingIteratorVariable variable: String, predicate: Any) { NSUnsupported() } // Expression that filters a collection by storing elements in the collection in the variable variable and keeping the elements for which qualifier returns true; variable is used as a local variable, and will shadow any instances of variable in the bindings dictionary, the variable is removed or the old value replaced once evaluation completes
 
     @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
     public convenience init(forFunction target: NSExpression, selectorName name: String, arguments parameters: [Any]?) { NSUnsupported() } // Expression that invokes the selector on target with parameters. Will throw at runtime if target does not implement selector or if parameters are wrong.

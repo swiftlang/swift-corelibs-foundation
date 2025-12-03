@@ -10,9 +10,9 @@
 extension NSCoder {
 
     /// Describes the action an `NSCoder` should take when it encounters decode
-    /// failures (e.g. corrupt data) for non-TopLevel decodes. Darwin platfrom
+    /// failures (e.g. corrupt data) for non-TopLevel decodes. Darwin platform
     /// supports exceptions here, and there may be other approaches supported
-    /// in the future, so its included for completeness.
+    /// in the future, so it's included for completeness.
     public enum DecodingFailurePolicy : Int, Sendable {
         case raiseException
         case setErrorAndReturn

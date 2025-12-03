@@ -343,8 +343,7 @@ open class Operation : NSObject, @unchecked Sendable {
             fatalError("\(self): receiver is not yet ready to execute")
         }
         
-        let isCanc = _isCancelled
-        if !isCanc {
+        if !_isCancelled {
             _state = .executing
             Operation.observeValue(forKeyPath: _NSOperationIsExecuting, ofObject: self)
             
@@ -438,27 +437,27 @@ open class Operation : NSObject, @unchecked Sendable {
     open func removeDependency(_ op: Operation) {
         withExtendedLifetime(self) {
             withExtendedLifetime(op) {
-                var up_canidate: Operation?
+                var up_candidate: Operation?
                 _lock()
-                let idxCanidate = __dependencies.firstIndex { $0 === op }
-                if idxCanidate != nil {
-                    up_canidate = op
+                let idxCandidate = __dependencies.firstIndex { $0 === op }
+                if idxCandidate != nil {
+                    up_candidate = op
                 }
                 _unlock()
                 
-                if let canidate = up_canidate {
-                    canidate._lock()
+                if let candidate = up_candidate {
+                    candidate._lock()
                     _lock()
                     if let idx = __dependencies.firstIndex(where: { $0 === op }) {
-                        if canidate._state == .finished && _isCancelled {
+                        if candidate._state == .finished && _isCancelled {
                             _decrementUnfinishedDependencyCount()
                         }
-                        canidate._removeParent(self)
+                        candidate._removeParent(self)
                         __dependencies.remove(at: idx)
                     }
                     
                     _unlock()
-                    canidate._unlock()
+                    candidate._unlock()
                 }
                 Operation.observeValue(forKeyPath: _NSOperationIsReady, ofObject: self)
             }

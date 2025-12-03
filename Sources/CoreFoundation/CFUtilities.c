@@ -849,7 +849,7 @@ static bool also_do_stderr(const _cf_logging_style style) {
         //
         // Otherwise, we check for the force flag as we always have.
         //
-        // That failing, we'll stat STDERR and see if its sxomething we like.
+        // That failing, we'll stat STDERR and see if it's something we like.
         //
         // NOTE: As nice as it would be to dispatch_once this, all of these things
         // can and do change at runtime under certain circumstances, so we need to

@@ -907,7 +907,7 @@ class TestJSONEncoder : XCTestCase {
         encoder.dateEncodingStrategy = .iso8601
         let encodedData = try encoder.encode(data)
         guard let jsonObject = try JSONSerialization.jsonObject(with: encodedData) as? [String: Any] else {
-            XCTFail("Cant decode json object")
+            XCTFail("Can't decode json object")
             return
         }
         XCTAssertEqual(jsonObject["this_is_a_string"] as? String, "Hello")
@@ -956,7 +956,7 @@ class TestJSONEncoder : XCTestCase {
         let camelCaseDictionary = ["camelCaseKey": ["nested_dictionary": 1]]
         let encodedData = try encoder.encode(camelCaseDictionary)
         guard let jsonObject = try JSONSerialization.jsonObject(with: encodedData) as? [String: [String: Int]] else {
-            XCTFail("Cant decode json object")
+            XCTFail("Can't decode json object")
             return
         }
         XCTAssertEqual(jsonObject, camelCaseDictionary)

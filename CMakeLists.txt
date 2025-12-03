@@ -115,7 +115,7 @@ include(CheckSymbolExists)
 check_linker_flag(C "LINKER:--build-id=sha1" LINKER_SUPPORTS_BUILD_ID)
 
 # Detect if the system libc defines symbols for these functions.
-# If it is not availble, swift-corelibs-foundation has its own implementations
+# If it is not available, swift-corelibs-foundation has its own implementations
 # that will be used. If it is available, it should not redefine them.
 # Note: SwiftPM does not have the ability to introspect the contents of the SDK
 #       and therefore will always include these functions in the build and will

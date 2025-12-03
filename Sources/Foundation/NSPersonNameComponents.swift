@@ -77,7 +77,7 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         _pnc == other._pnc
     }
     
-    // Internal for ObjectiveCBridgable access
+    // Internal for ObjectiveCBridgeable access
     internal var _pnc = PersonNameComponents()
     
     /// Assuming the full name is: Dr. Johnathan Maple Appleseed Esq., nickname "Johnny", pre-nominal letters denoting title, salutation, or honorific, e.g. Dr., Mr.

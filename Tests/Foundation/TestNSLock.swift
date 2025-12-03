@@ -127,7 +127,7 @@ class TestNSLock: XCTestCase {
             let thread = Thread {
                 
                 // Some dummy work on countdown.
-                // Add/substract operations are balanced to decrease countdown
+                // Add/subtract operations are balanced to decrease countdown
                 // exactly by countdownPerThread
                 
                 for _ in 0..<countdownPerThread {
@@ -175,7 +175,7 @@ class TestNSLock: XCTestCase {
         countdownValueLock.unlock()
         
         XCTAssertEqual(completedThreadCount, threadCount, "Some threads are still not finished, could be hung")
-        XCTAssertEqual(resultCountdownValue, 0, "Wrong coundtdown means unresolved race conditions, locks broken")
+        XCTAssertEqual(resultCountdownValue, 0, "Wrong countdown means unresolved race conditions, locks broken")
         
         threadCompletedCondition.unlock()
     }
