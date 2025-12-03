@@ -483,69 +483,6 @@ typedef struct {
     bool onStack;
 } _ConditionalAllocationBuffer;
 
-static inline bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
-#if TARGET_OS_MAC
-    size_t amount = malloc_good_size(amt);
-#else
-    size_t amount = amt;
-#endif
-    if (amount <= buffer->capacity) { return true; }
-    void *newMemory;
-    if (buffer->onStack) {
-        newMemory = malloc(amount);
-        if (newMemory == NULL) { return false; }
-        memcpy(newMemory, buffer->memory, buffer->capacity);
-        buffer->onStack = false;
-    } else {
-        newMemory = realloc(buffer->memory, amount);
-        if (newMemory == NULL) { return false; }
-    }
-    if (newMemory == NULL) { return false; }
-    buffer->memory = newMemory;
-    buffer->capacity = amount;
-    return true;
-}
-
-#if TARGET_OS_WASI
-static inline bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
-    _ConditionalAllocationBuffer buffer;
-    buffer.capacity = amount;
-    buffer.onStack = false;
-    buffer.memory = malloc(buffer.capacity);
-    if (buffer.memory == NULL) { return false; }
-    applier(&buffer);
-    free(buffer.memory);
-    return true;
-}
-#else
-static inline bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
-    _ConditionalAllocationBuffer buffer;
-#if TARGET_OS_MAC
-    buffer.capacity = malloc_good_size(amount);
-#else
-    buffer.capacity = amount;
-#endif
-    buffer.onStack = (_CFIsMainThread() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);
-#if TARGET_OS_WIN32
-    buffer.memory = buffer.onStack ? _alloca(buffer.capacity) : malloc(buffer.capacity);
-#else
-    buffer.memory = buffer.onStack ? alloca(buffer.capacity) : malloc(buffer.capacity);
-#endif
-    if (buffer.memory == NULL) { return false; }
-    applier(&buffer);
-    if (!buffer.onStack) {
-        free(buffer.memory);
-    }
-    return true;
-}
-#endif
-
-static inline bool _withStackOrHeapBufferWithResultInArguments(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(void *_Nonnull memory, size_t capacity, bool onStack)) {
-    return _withStackOrHeapBuffer(amount, ^(_ConditionalAllocationBuffer *buffer) {
-        applier(buffer->memory, buffer->capacity, buffer->onStack);
-    });
-}
-
 #pragma mark - Character Set
 
 CF_CROSS_PLATFORM_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
