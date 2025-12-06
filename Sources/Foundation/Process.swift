@@ -939,21 +939,17 @@ open class Process: NSObject, @unchecked Sendable {
             useFallbackChdir = false
         }
 
-#if canImport(Darwin) || os(Android) || os(OpenBSD) || os(FreeBSD)
-        var spawnAttrs: posix_spawnattr_t? = nil
-#else
-        var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()
-#endif
-        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
+        let spawnAttrs = _CFPosixSpawnAttrAlloc()
+        try _throwIfPosixError(_CFPosixSpawnAttrInit(spawnAttrs))
 #if os(Android)
         guard var spawnAttrs else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno),
                           userInfo: [NSURLErrorKey:self.executableURL!])
         }
 #endif
-        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
+        var flags = Int16(POSIX_SPAWN_SETPGROUP)
 #if canImport(Darwin)
-        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
+        flags |= Int16(POSIX_SPAWN_CLOEXEC_DEFAULT)
 #else
         // POSIX_SPAWN_CLOEXEC_DEFAULT is an Apple extension so emulate it.
         for fd in 3 ... findMaximumOpenFD() {
@@ -965,6 +961,7 @@ open class Process: NSObject, @unchecked Sendable {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 #endif
+        try _throwIfPosixError(_CFPosixSpawnAttrSetFlags(spawnAttrs, flags))
 
         // Unsafe fallback for systems missing posix_spawn_file_actions_addchdir[_np]
         // This includes Glibc versions older than 2.29 such as on Amazon Linux 2
@@ -991,11 +988,12 @@ open class Process: NSObject, @unchecked Sendable {
         var pid = pid_t()
         
         try FileManager.default._fileSystemRepresentation(withPath: launchPath, { fsRep in
-            guard _CFPosixSpawn(&pid, fsRep, fileActions, &spawnAttrs, argv, envp) == 0 else {
+            guard _CFPosixSpawn(&pid, fsRep, fileActions, spawnAttrs, argv, envp) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
         })
-        posix_spawnattr_destroy(&spawnAttrs)
+        _CFPosixSpawnAttrDestroy(spawnAttrs)
+        _CFPosixSpawnAttrDealloc(spawnAttrs)
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
