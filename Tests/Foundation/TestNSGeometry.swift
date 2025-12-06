@@ -982,6 +982,23 @@ class TestNSGeometry : XCTestCase {
         XCTAssertTrue(NSMouseInRect(p3, r1, true))
     }
 
+    func test_NSMouseInRect_FlippedUsesMinY() {
+        // Regression: in flipped coordinates the Y checks must use minY/maxY, not minX.
+        let r = NSMakeRect(CGFloat(10.0), CGFloat(1.0), CGFloat(2.0), CGFloat(4.0)) // y ∈ [1,5)
+
+        let topEdge = NSMakePoint(CGFloat(10.0), CGFloat(1.0))
+        XCTAssertTrue(NSMouseInRect(topEdge, r, true))
+
+        let bottomEdge = NSMakePoint(CGFloat(10.0), CGFloat(5.0))
+        XCTAssertFalse(NSMouseInRect(bottomEdge, r, true))
+
+        let inside = NSMakePoint(CGFloat(11.0), CGFloat(3.0))
+        XCTAssertTrue(NSMouseInRect(inside, r, true))
+
+        let outsideX = NSMakePoint(CGFloat(13.0), CGFloat(3.0))
+        XCTAssertFalse(NSMouseInRect(outsideX, r, true))
+    }
+
     func test_NSContainsRect() {
         let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
         let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
