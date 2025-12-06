@@ -133,7 +133,7 @@ private func runloopIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) ->
         return false
     }
     
-    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(a!)
+    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(b!)
     guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? RunLoop else {
         return false
     }
@@ -154,7 +154,7 @@ private func processIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) ->
         return false
     }
     
-    let unmanagedProcessB = Unmanaged<AnyObject>.fromOpaque(a!)
+    let unmanagedProcessB = Unmanaged<AnyObject>.fromOpaque(b!)
     guard let processB = unmanagedProcessB.takeUnretainedValue() as? Process else {
         return false
     }
