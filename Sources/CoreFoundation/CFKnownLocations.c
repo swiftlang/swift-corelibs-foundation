@@ -18,6 +18,7 @@
 
 #if TARGET_OS_WIN32
 #include <userenv.h>
+#include <shlobj_core.h>
 #endif
 
 CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user, CFStringRef _Nullable username) {
@@ -81,44 +82,67 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
 
     switch (user) {
         case _kCFKnownLocationUserAny: {
-            DWORD size = 0;
-            GetAllUsersProfileDirectoryW(NULL, &size);
-
-            wchar_t* path = (wchar_t*)malloc(size * sizeof(wchar_t));
-            GetAllUsersProfileDirectoryW(path, &size);
-
-            CFStringRef allUsersPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, size - 1);
-            free(path);
-
-            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, allUsersPath, kCFURLWindowsPathStyle, true);
-            CFRelease(allUsersPath);
+            // Try SHGetKnownFolderPath first (preferred method)
+            wchar_t* path = NULL;
+            HRESULT hr = SHGetKnownFolderPath(&FOLDERID_ProgramData, 0, NULL, &path);
+            
+            if (SUCCEEDED(hr) && path != NULL) {
+                CFStringRef allUsersPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, wcslen(path));
+                CoTaskMemFree(path);
+                
+                location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, allUsersPath, kCFURLWindowsPathStyle, true);
+                CFRelease(allUsersPath);
+            } else {
+                // Fallback to environment variable
+                if (path != NULL) {
+                    CoTaskMemFree(path);
+                }
+                
+                const char* programData = __CFgetenv("ProgramData");
+                if (programData == NULL) {
+                    programData = __CFgetenv("ALLUSERSPROFILE");
+                }
+                
+                if (programData != NULL) {
+                    CFStringRef envPath = CFStringCreateWithCString(kCFAllocatorSystemDefault, programData, kCFStringEncodingUTF8);
+                    if (envPath != NULL) {
+                        location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, envPath, kCFURLWindowsPathStyle, true);
+                        CFRelease(envPath);
+                    }
+                }
+            }
             break;
         }
         case _kCFKnownLocationUserCurrent:
-            username = CFGetUserName();
-            // fallthrough
+            // Leaving this case unhandled (fallthrough) on WinNT.
+            // Reason (according to `./include/CFKnownLocations.h`):
+            // The username parameter is ignored for any user constant other than …ByName.
+            // …ByName with a NULL username is the same as …Current.
         case _kCFKnownLocationUserByName: {
-            DWORD size = 0;
-            GetProfilesDirectoryW(NULL, &size);
-
-            wchar_t* path = (wchar_t*)malloc(size * sizeof(wchar_t));
-            GetProfilesDirectoryW(path, &size);
-
-            CFStringRef pathRef = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, size - 1);
-            free(path);
-
-            CFURLRef profilesDir = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, pathRef, kCFURLWindowsPathStyle, true);
-            CFRelease(pathRef);
-
-            CFURLRef usernameDir = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, profilesDir, username, true);
-            CFURLRef appdataDir = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, usernameDir, CFSTR("AppData"), true);
-            location = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, appdataDir, CFSTR("Local"), true);
-            CFRelease(usernameDir);
-            CFRelease(appdataDir);
-
-            CFRelease(profilesDir);
-            if (user == _kCFKnownLocationUserCurrent) {
-                CFRelease(username);
+            // Try SHGetKnownFolderPath first (preferred method)
+            wchar_t* path = NULL;
+            HRESULT hr = SHGetKnownFolderPath(&FOLDERID_LocalAppData, 0, NULL, &path);
+            
+            if (SUCCEEDED(hr) && path != NULL) {
+                CFStringRef userPath = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, path, wcslen(path));
+                CoTaskMemFree(path);
+                
+                location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, userPath, kCFURLWindowsPathStyle, true);
+                CFRelease(userPath);
+            } else {
+                // Fallback to environment variable
+                if (path != NULL) {
+                    CoTaskMemFree(path);
+                }
+                
+                const char* localAppData = __CFgetenv("LOCALAPPDATA");
+                if (localAppData != NULL) {
+                    CFStringRef envPath = CFStringCreateWithCString(kCFAllocatorSystemDefault, localAppData, kCFStringEncodingUTF8);
+                    if (envPath != NULL) {
+                        location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, envPath, kCFURLWindowsPathStyle, true);
+                        CFRelease(envPath);
+                    }
+                }
             }
             break;
         }
