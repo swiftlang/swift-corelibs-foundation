@@ -80,7 +80,7 @@ CF_EXPORT int64_t OSAtomicAdd64( int64_t __theAmount, volatile int64_t *__theVal
 }
 
 CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *__theValue ) {
-    retun (InterlockedExchangeAdd64((volatile LONGLONG *)__theValue, __theAmount) + __theAmount);
+    return (InterlockedExchangeAdd64((volatile LONGLONG *)__theValue, __theAmount) + __theAmount);
 }
  */
 

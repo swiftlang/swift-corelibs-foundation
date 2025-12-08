@@ -184,7 +184,7 @@ class TestNotificationQueue : XCTestCase {
     }
 
     func test_notificationQueueLifecycle() {
-        // check that notificationqueue is associated with current thread. when the thread is destroyed, the queue should be deallocated as well
+        // check that notificationQueue is associated with current thread. when the thread is destroyed, the queue should be deallocated as well
         nonisolated(unsafe) weak var notificationQueue: NotificationQueue?
 
         self.executeInBackgroundThread() {

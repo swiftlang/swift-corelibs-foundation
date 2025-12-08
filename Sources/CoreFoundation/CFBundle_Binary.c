@@ -123,7 +123,7 @@ static char *_cleanedPathForPath(const char *curName) {
 }
 
 CF_PRIVATE CFArrayRef _CFBundleDYLDCopyLoadedImagePathsIfChanged(void) {
-    // This returns an array of the paths of all the dyld images in the process.  These paths may not be absolute, they may point at things that are not bundles, they may be staticly linked bundles or dynamically loaded bundles, they may be NULL.
+    // This returns an array of the paths of all the dyld images in the process.  These paths may not be absolute, they may point at things that are not bundles, they may be statically linked bundles or dynamically loaded bundles, they may be NULL.
     uint32_t i, numImages = _dyld_image_count();
     CFMutableArrayRef result = NULL;
     static uint32_t _cachedDYLDImageCount = -1;
@@ -442,7 +442,7 @@ static void *_CFBundleDYLDGetSymbolByNameWithSearch(CFBundleRef bundle, CFString
                 if (!CFStringGetCString(executableName, hintBuff, 1024, kCFStringEncodingUTF8)) hintBuff[0] = '\0';
                 CFRelease(executableName);
             }
-            // Nowdays, NSIsSymbolNameDefinedWithHint() and NSLookupAndBindSymbolWithHint()
+            // Nowadays, NSIsSymbolNameDefinedWithHint() and NSLookupAndBindSymbolWithHint()
             // are identical, except the first just returns a bool, so checking with the
             // Is function first just causes a redundant lookup.
             // This returns NULL on failure.

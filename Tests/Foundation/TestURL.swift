@@ -296,7 +296,7 @@ class TestURL : XCTestCase {
             }
 
 #if os(Windows)
-            // On Windows, pipes are valid charcters which can be used
+            // On Windows, pipes are valid characters which can be used
             // to replace a ':'. See RFC 8089 Section E.2.2 for
             // details.
             //

@@ -262,7 +262,7 @@ CF_EXPORT void _CFRuntimeSetInstanceTypeID(CFTypeRef cf, CFTypeID typeID);
 #else
 CF_EXPORT void _CFRuntimeInitStaticInstance(void *memory, CFTypeID typeID);
 	/* This function initializes a memory block to be a constant
-	 * (unreleaseable) CF object of the given typeID.
+	 * (unreleasable) CF object of the given typeID.
 	 * If the specified CFTypeID is unknown to the CF runtime,
 	 * this function does nothing.  The memory block should
 	 * be a chunk of in-binary writeable static memory, and at

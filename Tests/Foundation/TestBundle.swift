@@ -22,7 +22,7 @@ internal func testBundle(executable: Bool = false) -> Bundle {
             return bundle
         }
     }
-    fatalError("Cant find test bundle")
+    fatalError("Can't find test bundle")
     #else
     return executable ? Bundle.main : Bundle.module
     #endif

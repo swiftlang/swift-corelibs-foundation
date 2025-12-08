@@ -481,7 +481,7 @@ static void _appendEscapedString(CFStringRef origStr, CFMutableDataRef mStr) {
 /* Base-64 encoding/decoding */
 
 /* The base-64 encoding packs three 8-bit bytes into four 7-bit ASCII
- * characters.  If the number of bytes in the original data isn't divisable
+ * characters.  If the number of bytes in the original data isn't divisible
  * by three, "=" characters are used to pad the encoded data.  The complete
  * set of characters used in base-64 are:
  *

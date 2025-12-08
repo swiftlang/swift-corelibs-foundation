@@ -156,7 +156,7 @@ static void __CFCalendarSetToFirstInstant(CFCalendarRef calendar, CFCalendarUnit
             __cficu_ucal_set(calendar->_cal, UCAL_YEAR, __cficu_ucal_getLimit(calendar->_cal, UCAL_YEAR, UCAL_ACTUAL_MINIMUM, &status));
         case kCFCalendarUnitYear:
             __cficu_ucal_set(calendar->_cal, UCAL_MONTH, __cficu_ucal_getLimit(calendar->_cal, UCAL_MONTH, UCAL_ACTUAL_MINIMUM, &status));
-            // #warning if there is a lunar leap month of the same number *preceeding* month N,
+            // #warning if there is a lunar leap month of the same number *preceding* month N,
             // then we should set the calendar to the leap month, not the regular month.
             __cficu_ucal_set(calendar->_cal, UCAL_IS_LEAP_MONTH, 0);
         case kCFCalendarUnitMonth:

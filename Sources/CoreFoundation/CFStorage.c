@@ -449,7 +449,7 @@ static void __CFStorageDeallocateNode(CFStorageRef storage, CFStorageNode *node)
  
  The only acceptable time to directly call the Unfrozen variant is for the root node of a CFStorage, because root nodes may never be frozen.  The isRootNode parameter determines whether we are in this case.
  
- The Insertion functions return two nodes.  As an awful performance hack, if the first node returned from __CFStorageInsert* is the same as the node passed in, that node is *not* retained, so should not be relased.  If it is a different node, it is retained.
+ The Insertion functions return two nodes.  As an awful performance hack, if the first node returned from __CFStorageInsert* is the same as the node passed in, that node is *not* retained, so should not be released.  If it is a different node, it is retained.
  */
 static CFStorageDoubleNodeReturn __CFStorageInsert(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFIndex byteNum, CFIndex size, CFIndex absoluteByteNum);
 static CFStorageNode *__CFStorageDelete(CFAllocatorRef allocator, CFStorageRef storage, CFStorageNode * _Nonnull node, CFRange range, bool compact);
@@ -1253,7 +1253,7 @@ void CFStorageDeleteValues(CFStorageRef storage, CFRange range) {
     CFRange byteRange = __CFStorageConvertValuesToByteRange(storage, range.location, range.length);
     const CFIndex expectedByteCount = storage->rootNode.numBytes - byteRange.length;
     
-    /* We don't try to mantain the cache across deletion */
+    /* We don't try to maintain the cache across deletion */
     __CFStorageSetCache(storage, NULL, 0);
     
     /* The root node can never be frozen, so it's always OK to modify it */

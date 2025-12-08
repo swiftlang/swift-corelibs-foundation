@@ -252,7 +252,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     open var bytes: UnsafeRawPointer {
         requireFunnelOverridden()
         guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
-            //This could occure on empty data being encoded.
+            //This could occur on empty data being encoded.
             //TODO: switch with nil when signature is fixed
             return UnsafeRawPointer(bitPattern: 0x7f00dead)! //would not result in 'nil unwrapped optional'
         }
@@ -463,7 +463,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
 
             // NOTE: Each flag such as `S_IRUSR` may be literal depends on the system.
-            // Without explicity type them as `Int`, type inference will not complete in reasonable time
+            // Without explicitly type them as `Int`, type inference will not complete in reasonable time
             // and the compiler will throw an error.
 #if os(Windows)
             let createMode = Int(ucrt.S_IREAD) | Int(ucrt.S_IWRITE)
@@ -888,7 +888,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 inputIndex += 3
             } else {
                 // This runs once at the end of there were 1 or 2 bytes left, byte1 having already been read.
-                // Read byte2 or 0 if there isnt another byte
+                // Read byte2 or 0 if there isn't another byte
                 let byte2 = bytesLeft == 1 ? 0 : dataBuffer[inputIndex + 1]
                 var value = UInt16(byte1 & 0x3) << 8
                 value |= UInt16(byte2)

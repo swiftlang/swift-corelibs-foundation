@@ -1070,7 +1070,7 @@ public class TestURLSessionServer: CustomStringConvertible {
     
     private func statusCodeResponse(forRequest request: _HTTPRequest, statusCode: Int) throws -> _HTTPResponse {
         guard let bodyData = try? request.headersAsJSON() else {
-            return try _HTTPResponse(response: .SERVER_ERROR, body: "Cant convert headers to JSON object")
+            return try _HTTPResponse(response: .SERVER_ERROR, body: "Cannot convert headers to JSON object")
         }
 
         var response: _HTTPResponse

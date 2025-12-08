@@ -188,7 +188,7 @@ class TestTimeZone: XCTestCase {
         let timeZones = TimeZone.knownTimeZoneIdentifiers.sorted()
         XCTAssertTrue(timeZones.count > 0, "No known timezones")
         for tz in timeZones {
-            XCTAssertNotNil(TimeZone(identifier: tz), "Cant instantiate valid timeZone: \(tz)")
+            XCTAssertNotNil(TimeZone(identifier: tz), "Can't instantiate valid timeZone: \(tz)")
         }
     }
 

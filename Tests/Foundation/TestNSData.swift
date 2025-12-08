@@ -466,13 +466,13 @@ class TestNSData: XCTestCase {
         XCTAssertEqual(
             Data(repeating: 0, count: 48).base64EncodedString(options: .lineLength64Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "each 3 byte is converted into 4 characterss. 48 / 3 * 4 <= 64, therefore result should not have line separator."
+            "each 3 byte is converted into 4 characters. 48 / 3 * 4 <= 64, therefore result should not have line separator."
         )
         
         XCTAssertEqual(
             Data(repeating: 0, count: 57).base64EncodedString(options: .lineLength76Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "each 3 byte is converted into 4 characterss. 57 / 3 * 4 <= 76, therefore result should not have line separator."
+            "each 3 byte is converted into 4 characters. 57 / 3 * 4 <= 76, therefore result should not have line separator."
         )
     }
     
@@ -481,13 +481,13 @@ class TestNSData: XCTestCase {
         XCTAssertEqual(
             Data(repeating: 0, count: 49).base64EncodedString(options: .lineLength64Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAA==",
-            "each 3 byte is converted into 4 characterss. 49 / 3 * 4 > 64, therefore result should have lines with separator."
+            "each 3 byte is converted into 4 characters. 49 / 3 * 4 > 64, therefore result should have lines with separator."
         )
         
         XCTAssertEqual(
             Data(repeating: 0, count: 58).base64EncodedString(options: .lineLength76Characters),
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAA==",
-            "each 3 byte is converted into 4 characterss. 58 / 3 * 4 > 76, therefore result should have lines with separator."
+            "each 3 byte is converted into 4 characters. 58 / 3 * 4 > 76, therefore result should have lines with separator."
         )
     }
     
@@ -743,7 +743,7 @@ class TestNSData: XCTestCase {
             if let txt = String(data: Data(referencing: mData), encoding: .ascii) {
                 XCTAssertEqual(txt, "swift-corelibs-foundation")
             } else {
-                XCTFail("Cant convert to string")
+                XCTFail("Can't convert to string")
             }
         }
 
@@ -812,7 +812,7 @@ class TestNSData: XCTestCase {
         }
 
         guard let mData = NSMutableData(length: 5) else {
-            XCTFail("Cant create NSMutableData")
+            XCTFail("Can't create NSMutableData")
             return
         }
 
@@ -1365,7 +1365,7 @@ extension TestNSData {
                 if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
                     XCTAssertTrue(str.hasSuffix(".xctest"))
                 } else {
-                    XCTFail("Cant create String")
+                    XCTFail("Can't create String")
                 }
             }
         }
@@ -1386,7 +1386,7 @@ extension TestNSData {
         }
         // Some files in /sys report a non-zero st_size often bigger than the contents
         guard let data = NSData.init(contentsOfFile: "/sys/kernel/profiling") else {
-            XCTFail("Cant read /sys/kernel/profiling")
+            XCTFail("Can't read /sys/kernel/profiling")
             return
         }
         XCTAssert(data.length > 0)
