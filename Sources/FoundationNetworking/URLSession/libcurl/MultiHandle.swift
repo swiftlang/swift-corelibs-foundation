@@ -48,6 +48,15 @@ extension URLSession {
         fileprivate var timeoutSource: _TimeoutSource? = nil
         private var reentrantInUpdateTimeoutTimer = false
         
+        // Only use serialization for OpenSSL < 1.1.0 which has race conditions during cleanup
+        private static let _needsCleanupSerialization: Bool = {
+            let version = CFURLSessionSSLVersionInfo()
+            return version.major < 1 || (version.major == 1 && version.minor < 1)
+        }()
+
+        // Process-wide cleanup lock
+        private static let _cleanupLock = NSLock()
+
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
             setupCallbacks()
@@ -58,7 +67,14 @@ extension URLSession {
             easyHandles.forEach {
                 try! CFURLSessionMultiHandleRemoveHandle(rawHandle, $0.rawHandle).asError()
             }
-            try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
+
+            if Self._needsCleanupSerialization {
+                Self._cleanupLock.lock()
+                try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
+                Self._cleanupLock.unlock()
+            } else {
+                try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
+            }
         }
     }
 }
