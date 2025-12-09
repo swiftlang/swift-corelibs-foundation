@@ -195,7 +195,7 @@ private extension URLSession._MultiHandle {
     }
 
     /// Removes socket reference from the shared store. If there is work item scheduled,
-    /// executes it on the current thread.
+    /// executes it on the current thread. Then, schedules the socket for closure.
     func endOperation(for socketReference: _SocketReference) {
         precondition(socketReferences.removeValue(forKey: socketReference.socket) != nil, "No operation associated with the socket")
         if let workItem = socketReference.workItem, !workItem.isCancelled {
@@ -204,6 +204,8 @@ private extension URLSession._MultiHandle {
             precondition(!socketReference.shouldClose, "Socket close was scheduled, but there is some pending work left")
             workItem.perform()
         }
+
+        self.scheduleClose(for: socketReference.socket)
     }
 
     /// Marks this reference to close socket on deinit. This allows us
@@ -253,10 +255,9 @@ internal extension URLSession._MultiHandle {
         // the connection cache is managed by CURL multi_handle, and sockets can actually
         // outlive easy_handle (even after curl_easy_cleanup call). That's why
         // socket management lives in _MultiHandle.
-        try! CFURLSession_easy_setopt_ptr(handle.rawHandle, CFURLSessionOptionCLOSESOCKETDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_scl(handle.rawHandle, CFURLSessionOptionCLOSESOCKETFUNCTION) {  (clientp: UnsafeMutableRawPointer?, item: CFURLSession_socket_t) in
-            guard let handle = URLSession._MultiHandle.from(callbackUserData: clientp) else { fatalError() }
-            handle.scheduleClose(for: item)
+            // Override close(3)/closesocket(3) to keep socket open.
+            // CFURLSession_socket_t will be scheduled for closure when endOperation(: _SocketReference) is called.
             return 0
         }.asError()
         
