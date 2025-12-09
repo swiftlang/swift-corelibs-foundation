@@ -158,6 +158,7 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
         if let buffer = buffer {
             for (idx, character) in encodingView.enumerated() {
                 if idx >= maxBufLen { break }
+                if encoding == CFStringEncoding(kCFStringEncodingASCII) && !Unicode.ASCII.isASCII(character) { break }
                 buffer.advanced(by: idx).initialize(to: character)
                 converted += 1
             }
