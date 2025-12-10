@@ -323,10 +323,16 @@ open class Thread : NSObject {
 #if os(Windows)
     open var stackSize: Int {
       get {
+        // If we set a stack size for this thread.
+        // Otherwise, query the actual limits.
+        if _attr.dwThreadStackReservation != 0 {
+            return Int(_attr.dwThreadStackReservation)
+        }
         var ulLowLimit: ULONG_PTR = 0
         var ulHighLimit: ULONG_PTR = 0
         GetCurrentThreadStackLimits(&ulLowLimit, &ulHighLimit)
-        return Int(ulLowLimit)
+        // Return the reserved stack span.
+        return Int(ulHighLimit &- ulLowLimit)
       }
       set {
         _attr.dwThreadStackReservation = DWORD(newValue)
