@@ -332,7 +332,7 @@ open class Thread : NSObject {
         var ulHighLimit: ULONG_PTR = 0
         GetCurrentThreadStackLimits(&ulLowLimit, &ulHighLimit)
         // Return the reserved stack span.
-        return Int(ulHighLimit &- ulLowLimit)
+        return Int(ulHighLimit - ulLowLimit)
       }
       set {
         _attr.dwThreadStackReservation = DWORD(newValue)
