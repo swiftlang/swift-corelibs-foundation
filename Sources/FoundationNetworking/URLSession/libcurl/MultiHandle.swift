@@ -203,16 +203,11 @@ private extension URLSession._MultiHandle {
             // we should cancel pending work when unregister action is requested.
             precondition(!socketReference.shouldClose, "Socket close was scheduled, but there is some pending work left")
             workItem.perform()
+
+            /// Marks this reference to close socket on deinit. This allows us
+            /// to extend socket lifecycle by keeping the reference alive.
+            socketReference.shouldClose = true
         }
-
-        self.scheduleClose(for: socketReference.socket)
-    }
-
-    /// Marks this reference to close socket on deinit. This allows us
-    /// to extend socket lifecycle by keeping the reference alive.
-    func scheduleClose(for socket: CFURLSession_socket_t) {
-        let reference = socketReferences[socket] ?? _SocketReference(socket: socket)
-        reference.shouldClose = true
     }
 
     /// Schedules work to be performed when an operation ends for the socket,
