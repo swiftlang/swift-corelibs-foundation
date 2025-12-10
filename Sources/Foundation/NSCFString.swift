@@ -155,13 +155,13 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
     case CFStringEncoding(kCFStringEncodingUTF8), CFStringEncoding(kCFStringEncodingISOLatin1), CFStringEncoding(kCFStringEncodingMacRoman), CFStringEncoding(kCFStringEncodingASCII), CFStringEncoding(kCFStringEncodingNonLossyASCII):
         let encodingView = (str as! NSString).substring(with: NSRange(range)).utf8
         var converted = 0
-        if let buffer = buffer {
-            for (idx, character) in encodingView.enumerated() {
+        for (idx, character) in encodingView.enumerated() {
+            if encoding == CFStringEncoding(kCFStringEncodingASCII) && !Unicode.ASCII.isASCII(character) { break }
+            if let buffer, maxBufLen > 0 {
                 if idx >= maxBufLen { break }
-                if encoding == CFStringEncoding(kCFStringEncodingASCII) && !Unicode.ASCII.isASCII(character) { break }
                 buffer.advanced(by: idx).initialize(to: character)
-                converted += 1
             }
+            converted += 1
         }
         usedBufLen?.pointee = converted
         convertedLength = converted
