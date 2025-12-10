@@ -325,7 +325,7 @@ open class Thread : NSObject {
       get {
         // If we set a stack size for this thread.
         // Otherwise, query the actual limits.
-        if _attr.dwThreadStackReservation != 0 {
+        guard _attr.dwThreadStackReservation == 0 else {
             return Int(_attr.dwThreadStackReservation)
         }
         var ulLowLimit: ULONG_PTR = 0
