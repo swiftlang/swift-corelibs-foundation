@@ -58,7 +58,16 @@ extension URLSession {
             easyHandles.forEach {
                 try! CFURLSessionMultiHandleRemoveHandle(rawHandle, $0.rawHandle).asError()
             }
-            try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
+
+            let rawHandleSendable = Int(bitPattern: rawHandle)
+
+            // To avoid intermittent crashes due to multi-threading issues in OpenSSL (<1.1.0) when calling curl_multi_cleanup,
+            // run all curl_multi_cleanup calls on the same thread.
+            // See https://curl.se/libcurl/c/threadsafe.html.
+            queue.async {
+                let rawHandleCopy = UnsafeMutableRawPointer(bitPattern: rawHandleSendable)!
+                try! CFURLSessionMultiHandleDeinit(rawHandleCopy).asError()
+            }
         }
     }
 }
