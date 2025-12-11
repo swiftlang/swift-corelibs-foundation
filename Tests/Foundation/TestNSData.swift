@@ -4481,6 +4481,26 @@ extension TestNSData {
         }
     }
 
+    func test_dispatchDataRegionSubscriptBounds() {
+        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
+            let bytes: [UInt8] = [0xAA, 0xBB, 0xCC]
+            var data = DispatchData.empty
+            bytes.withUnsafeBytes { data.append($0) }
+
+            guard let region = data.regions.first else {
+                XCTFail("Expected a single region")
+                return
+            }
+
+            XCTAssertEqual(region.startIndex, 0)
+            XCTAssertEqual(region.endIndex, bytes.count)
+
+            for (offset, expected) in bytes.enumerated() {
+                XCTAssertEqual(region[region.startIndex + offset], expected)
+            }
+        }
+    }
+
     func test_Data_increaseCount() {
          guard #available(macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, *) else { return }
          let initials: [Range<UInt8>] = [
