@@ -34,7 +34,7 @@ extension DispatchData : DataProtocol {
         }
         
         public subscript(position: DispatchData.Index) -> UInt8 {
-            precondition(index <= position && position <= index + bytes.count)
+            precondition(index <= position && position < index + bytes.count)
             return bytes[position - index]
         }
         
