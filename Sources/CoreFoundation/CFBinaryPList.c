@@ -1055,7 +1055,7 @@ bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, u
     const uint8_t *ptr = NULL;
     uint8_t marker = 0;
     const uint8_t *extent = NULL;
-    if (!__CFBinaryPList_beginDictionaryParse(databytes, datalen, startOffset, trailer, &cnt, &ptr, &marker, &extent)) FAIL_NULL;
+    if (!__CFBinaryPList_beginDictionaryParse(databytes, datalen, startOffset, trailer, &cnt, &ptr, &marker, &extent)) FAIL_FALSE;
     
     // For short keys (15 bytes or less) in ASCII form, we can do a quick comparison check
     // We get the pointer or copy the buffer here, outside of the loop
