@@ -455,15 +455,22 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
 #endif
             Boolean isDir = (dp->d_type == DT_DIR);
             if (!isDir) {
-                // Ugh; must stat.
-                char subdirPath[CFMaxPathLength];
                 struct statinfo statBuf;
+#if TARGET_OS_WASI
+                // WASI doesn't support dirfd/fstatat, fall back to stat
+                char subdirPath[CFMaxPathLength];
                 cf_strlcpy(subdirPath, dirPath, sizeof(subdirPath));
                 cf_strlcat(subdirPath, "/", sizeof(subdirPath));
                 cf_strlcat(subdirPath, dp->d_name, sizeof(subdirPath));
                 if (stat(subdirPath, &statBuf) == 0) {
                     isDir = ((statBuf.st_mode & S_IFMT) == S_IFDIR);
                 }
+#else
+                int dirfd_fd = dirfd(dirp);
+                if (dirfd_fd >= 0 && fstatat(dirfd_fd, dp->d_name, &statBuf, 0) == 0) {
+                    isDir = ((statBuf.st_mode & S_IFMT) == S_IFDIR);
+                }
+#endif
             }
 #if TARGET_OS_LINUX || TARGET_OS_WASI
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, namelen, isDir, dirURL);
