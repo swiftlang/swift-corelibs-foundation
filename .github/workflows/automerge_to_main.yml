@@ -13,7 +13,7 @@ jobs:
     uses: swiftlang/github-workflows/.github/workflows/create_automerge_pr.yml@main
     with:
       base_branch: main
-      head_branch: release/6.2
+      head_branch: release/6.3
     permissions:
       contents: write
       pull-requests: write
