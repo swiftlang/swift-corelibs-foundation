@@ -12,7 +12,7 @@ jobs:
     name: Create PR to merge main into release branch
     uses: swiftlang/github-workflows/.github/workflows/create_automerge_pr.yml@main
     with:
-      base_branch: release/6.2
+      base_branch: release/6.3
     permissions:
       contents: write
       pull-requests: write
