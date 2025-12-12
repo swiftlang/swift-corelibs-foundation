@@ -154,19 +154,25 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
         // TODO: Don't treat many encodings like they are UTF8
     case CFStringEncoding(kCFStringEncodingUTF8), CFStringEncoding(kCFStringEncodingISOLatin1), CFStringEncoding(kCFStringEncodingMacRoman), CFStringEncoding(kCFStringEncodingASCII), CFStringEncoding(kCFStringEncodingNonLossyASCII):
         let encodingView = (str as! NSString).substring(with: NSRange(range)).utf8
-        if let buffer = buffer {
-            for (idx, character) in encodingView.enumerated() {
+        var converted = 0
+        for (idx, character) in encodingView.enumerated() {
+            if encoding == CFStringEncoding(kCFStringEncodingASCII) && !Unicode.ASCII.isASCII(character) { break }
+            if let buffer, maxBufLen > 0 {
+                if idx >= maxBufLen { break }
                 buffer.advanced(by: idx).initialize(to: character)
             }
+            converted += 1
         }
-        usedBufLen?.pointee = encodingView.count
-        convertedLength = encodingView.count
+        usedBufLen?.pointee = converted
+        convertedLength = converted
         
     case CFStringEncoding(kCFStringEncodingUTF16):
         let encodingView = (str as! NSString)._swiftObject.utf16
         let start = encodingView.startIndex
+        var converted = 0
         if let buffer = buffer {
             for idx in 0..<range.length {
+                if idx * 2 >= maxBufLen { break }
                 // Since character is 2 bytes but the buffer is in term of 1 byte values, we have to split it up
                 let character = encodingView[encodingView.index(start, offsetBy: idx + range.location)]
 #if _endian(big)
@@ -178,11 +184,12 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
 #endif
                 buffer.advanced(by: idx * 2).initialize(to: byte0)
                 buffer.advanced(by: (idx * 2) + 1).initialize(to: byte1)
+                converted += 1
             }
         }
         // Every character was 2 bytes
-        usedBufLen?.pointee = range.length * 2
-        convertedLength = range.length
+        usedBufLen?.pointee = converted * 2
+        convertedLength = converted
 
     default:
         fatalError("Attempted to get bytes of a Swift string using an unsupported encoding")
