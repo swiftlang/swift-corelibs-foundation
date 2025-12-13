@@ -3,18 +3,6 @@
 
 import PackageDescription
 
-let platformsWithThreads: [Platform] = [
-    .iOS,
-    .macOS,
-    .tvOS,
-    .watchOS,
-    .macCatalyst,
-    .driverKit,
-    .android,
-    .linux,
-    .windows,
-]
-
 var dispatchIncludeFlags: [CSetting] = []
 if let environmentPath = Context.environment["DISPATCH_INCLUDE_PATH"] {
     dispatchIncludeFlags.append(.unsafeFlags([
@@ -92,10 +80,8 @@ let coreFoundationBuildSettings: [CSetting] = [
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
     .define("CF_WINDOWS_EXECUTABLE_INITIALIZER", .when(platforms: [.windows])), // Ensure __CFInitialize is run even when statically linked into an executable
-    .define("DEPLOYMENT_ENABLE_LIBDISPATCH", .when(platforms: platformsWithThreads)),
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("HAVE_STRUCT_TIMESPEC"),
-    .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS", .when(platforms: platformsWithThreads)),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
     .define("_WASI_EMULATED_SIGNAL", .when(platforms: [.wasi])),
     .unsafeFlags([
@@ -124,9 +110,7 @@ let interfaceBuildSettings: [CSetting] = [
     .headerSearchPath("../CoreFoundation/internalInclude"),
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
-    .define("DEPLOYMENT_ENABLE_LIBDISPATCH"),
     .define("HAVE_STRUCT_TIMESPEC"),
-    .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS", .when(platforms: platformsWithThreads)),
     .define("_GNU_SOURCE", .when(platforms: [.linux, .android])),
     .define("_WASI_EMULATED_SIGNAL", .when(platforms: [.wasi])),
     .unsafeFlags([
@@ -149,7 +133,6 @@ let interfaceBuildSettings: [CSetting] = [
 
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
-    .define("SWIFT_CORELIBS_FOUNDATION_HAS_THREADS"),
     .swiftLanguageMode(.v6),
     .unsafeFlags([
         "-Xfrontend",
