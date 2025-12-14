@@ -58,7 +58,9 @@ if let environmentPath = Context.environment["CURL_INCLUDE_PATH"] {
 
 var curlLinkFlags: [LinkerSetting] = [
     .linkedLibrary("libcurl.lib", .when(platforms: [.windows])),
-    .linkedLibrary("zlibstatic.lib", .when(platforms: [.windows]))
+    .linkedLibrary("zlibstatic.lib", .when(platforms: [.windows])),
+    .linkedLibrary("brotlicommon.lib", .when(platforms: [.windows])),
+    .linkedLibrary("brotlidec.lib", .when(platforms: [.windows]))
 ]
 if let environmentPath = Context.environment["CURL_LIBRARY_PATH"] {
     curlLinkFlags.append(.unsafeFlags([
@@ -66,6 +68,11 @@ if let environmentPath = Context.environment["CURL_LIBRARY_PATH"] {
     ]))
 }
 if let environmentPath = Context.environment["ZLIB_LIBRARY_PATH"] {
+    curlLinkFlags.append(.unsafeFlags([
+        "-L\(environmentPath)"
+    ]))
+}
+if let environmentPath = Context.environment["BROTLI_LIBRARY_PATH"] {
     curlLinkFlags.append(.unsafeFlags([
         "-L\(environmentPath)"
     ]))

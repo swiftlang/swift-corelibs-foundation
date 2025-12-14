@@ -31,6 +31,22 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
+// rdar://162419667
+// Fails on Amazon Linux 2 and UBI 9 (test_dataTaskWithURLRequest returned an unexpected result)
+#if !os(Linux)
+    func test_dataTaskWithAcceptEncoding() async {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/accept-encoding"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        if !d.error {
+            let supportedEncodings = d.capital.split(separator: ",").map { $0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines ) }
+            XCTAssert(supportedEncodings.contains("br"), "test_dataTaskWithURLRequest returned an unexpected result")
+        }
+    }
+#endif
+
     func test_dataTaskWithURLCompletionHandler() async {
         //shared session
         await dataTaskWithURLCompletionHandler(with: URLSession.shared)
@@ -249,6 +265,17 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
         let url = URL(string: urlString)!
         let d = DataTask(with: expectation(description: "GET \(urlString): gzipped response"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        if !d.error {
+            XCTAssertEqual(d.capital, "Hello World!")
+        }
+    }
+
+    func test_brotliDataTask() async {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/brotli-response"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): brotli response"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
         if !d.error {
