@@ -941,12 +941,6 @@ open class Process: NSObject, @unchecked Sendable {
 
         let spawnAttrs = _CFPosixSpawnAttrAlloc()
         try _throwIfPosixError(_CFPosixSpawnAttrInit(spawnAttrs))
-#if os(Android)
-        guard var spawnAttrs else {
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno),
-                          userInfo: [NSURLErrorKey:self.executableURL!])
-        }
-#endif
         var flags = Int16(POSIX_SPAWN_SETPGROUP)
 #if canImport(Darwin)
         flags |= Int16(POSIX_SPAWN_CLOEXEC_DEFAULT)

@@ -48,6 +48,7 @@
 
 #if TARGET_OS_ANDROID
 #include <sys/prctl.h>
+#include <fcntl.h>
 #endif
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32
@@ -2094,12 +2095,13 @@ static int _CFPosixSpawnFileActionsAddDup2ImplPre28(_CFPosixSpawnFileActionsRef 
     }
 
     if (actions->actionsCount == actions->actionsCapacity) {
-        struct _CFPosixSpawnFileActionPre28 *newActions = realloc(actions->actions, actions->actionsCapacity * 2);
+        size_t newCapacity = actions->actionsCapacity * 2;
+        struct _CFPosixSpawnFileActionPre28 *newActions = realloc(actions->actions, newCapacity * sizeof(struct _CFPosixSpawnFileActionPre28));
         if (newActions == NULL) {
             return ENOMEM;
         }
         actions->actions = newActions;
-        actions->actionsCapacity *= 2;
+        actions->actionsCapacity = newCapacity;
     }
 
     actions->actions[actions->actionsCount++] = (struct _CFPosixSpawnFileActionPre28) {
@@ -2128,12 +2130,13 @@ static int _CFPosixSpawnFileActionsAddCloseImplPre28(_CFPosixSpawnFileActionsRef
     }
 
     if (actions->actionsCount == actions->actionsCapacity) {
-        struct _CFPosixSpawnFileActionPre28 *newActions = realloc(actions->actions, actions->actionsCapacity * 2);
+        size_t newCapacity = actions->actionsCapacity * 2;
+        struct _CFPosixSpawnFileActionPre28 *newActions = realloc(actions->actions, newCapacity * sizeof(struct _CFPosixSpawnFileActionPre28));
         if (newActions == NULL) {
             return ENOMEM;
         }
         actions->actions = newActions;
-        actions->actionsCapacity *= 2;
+        actions->actionsCapacity = newCapacity;
     }
 
     actions->actions[actions->actionsCount++] = (struct _CFPosixSpawnFileActionPre28) {
@@ -2214,13 +2217,23 @@ static int _CFPosixSpawnImplPre28(pid_t *_CF_RESTRICT pid, const char *_CF_RESTR
         for (size_t idx = 0; idx < actions->actionsCount; idx++) {
             struct _CFPosixSpawnFileActionPre28 *action = &(actions->actions[idx]);
             if (action->type == _CFPosixSpawnFileActionDup2Pre28) {
-                if (dup2(action->dup2Action.filedes, action->dup2Action.newfiledes) < 0) {
-                    exit(127);
+                int fd = action->dup2Action.filedes;
+                int new_fd = action->dup2Action.newfiledes;
+
+                if (fd == new_fd) {
+                    // MATCHING BIONIC:
+                    // dup2(2) is a no-op if fd == new_fd, but POSIX suggests that we should
+                    // manually remove the O_CLOEXEC flag in that case (because otherwise
+                    // what use is the dup?).
+                    int fdflags = fcntl(fd, F_GETFD, 0);
+                    if (fdflags == -1 || fcntl(fd, F_SETFD, fdflags & ~FD_CLOEXEC) == -1) _exit(127);
+                } else {
+                    if (dup2(fd, new_fd) == -1) _exit(127);
                 }
             } else if (actions->actions[idx].type == _CFPosixSpawnFileActionClosePre28) {
-                if (close(action->closeAction.filedes) != 0) {
-                    exit(127);
-                }
+                // MATCHING BIONIC:
+                // Failure to close is ignored (e.g. EBADF if already closed).
+                close(action->closeAction.filedes);
             }
         }
     }
@@ -2307,7 +2320,7 @@ static void _CFPosixSpawnInitializeCallback() {
 
         _CFPosixSpawnAttrAllocImpl = _CFPosixSpawnAttrAllocImplPre28;
         _CFPosixSpawnAttrDeallocImpl = _CFPosixSpawnAttrDeallocImplBoth;
-        _CFPosixSpawnAttrInitImpl = _CFPosixSpawnFileActionsInitImplPre28;
+        _CFPosixSpawnAttrInitImpl = _CFPosixSpawnAttrInitImplPre28;
         _CFPosixSpawnAttrDestroyImpl = _CFPosixSpawnAttrDestroyImplPre28;
         _CFPosixSpawnAttrSetFlagsImpl = _CFPosixSpawnAttrSetFlagsImplPre28;
     }
