@@ -676,20 +676,21 @@ CFURLSessionCurlVersion CFURLSessionCurlVersionInfo(void) {
     return v;
 }
 
-CFURLSessionSSLVersion CFURLSessionSSLVersionInfo(void) {
+// Get version info for OpenSSL (not other SSL libraries.)
+CFURLSessionOpenSSLVersion * _Nullable CFURLSessionOpenSSLVersionInfo(void) {
     curl_version_info_data *info = curl_version_info(CURLVERSION_NOW);
-    CFURLSessionSSLVersion version = {0, 0, 0};
-
     if (info && info->ssl_version) {
-        // Parse OpenSSL version string like "OpenSSL/1.0.2k-fips" or "OpenSSL/1.1.1"
         const char *ssl_str = info->ssl_version;
         if (strncmp(ssl_str, "OpenSSL/", 8) == 0) {
+            // Parse OpenSSL version string like "OpenSSL/1.0.2k-fips" or "OpenSSL/1.1.1"
+            static CFURLSessionOpenSSLVersion version = {0, 0, 0};
             ssl_str += 8;  // Skip "OpenSSL/"
             sscanf(ssl_str, "%d.%d.%d", &version.major, &version.minor, &version.patch);
+            return &version;
         }
     }
 
-    return version;
+    return NULL;
 }
 
 
