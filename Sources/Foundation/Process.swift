@@ -940,7 +940,9 @@ open class Process: NSObject, @unchecked Sendable {
         }
 
         let spawnAttrs = _CFPosixSpawnAttrAlloc()
+        defer { _CFPosixSpawnAttrDealloc(spawnAttrs) }
         try _throwIfPosixError(_CFPosixSpawnAttrInit(spawnAttrs))
+        defer { _CFPosixSpawnAttrDestroy(spawnAttrs) }
         var flags = Int16(POSIX_SPAWN_SETPGROUP)
 #if canImport(Darwin)
         flags |= Int16(POSIX_SPAWN_CLOEXEC_DEFAULT)
@@ -986,8 +988,6 @@ open class Process: NSObject, @unchecked Sendable {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
         })
-        _CFPosixSpawnAttrDestroy(spawnAttrs)
-        _CFPosixSpawnAttrDealloc(spawnAttrs)
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
