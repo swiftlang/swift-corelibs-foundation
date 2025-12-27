@@ -139,7 +139,7 @@ CFStringRef _CFListFormatterCreateStringByJoiningStrings(CFAllocatorRef allocato
     int32_t length = __cficu_ulistfmt_format(fmt, (const UChar **)ucharStrings, uStringLengths, count, resultBuffer, RESULT_BUFFER_SIZE, &status);
     if (U_SUCCESS(status)) {
         result = CFStringCreateWithCharacters(allocator, resultBuffer, length);
-    } else if (status == U_BUFFER_OVERFLOW_ERROR || length > count) {
+    } else if (status == U_BUFFER_OVERFLOW_ERROR || length > RESULT_BUFFER_SIZE) {
         status = U_ZERO_ERROR;
         UChar *largeBuffer = malloc(sizeof(UChar) * (length + 1));
         length = __cficu_ulistfmt_format(fmt, (const UChar **)ucharStrings, uStringLengths, count, largeBuffer, length + 1, &status);
