@@ -1113,9 +1113,9 @@ CF_EXPORT int _NS_chmod(const char *name, int mode) {
     
     // Convert mode
     int newMode = 0;
-    if (mode | 0400) newMode |= _S_IREAD;
-    if (mode | 0200) newMode |= _S_IWRITE;
-    if (mode | 0100) newMode |= _S_IEXEC;
+    if (mode & 0400) newMode |= _S_IREAD;
+    if (mode & 0200) newMode |= _S_IWRITE;
+    if (mode & 0100) newMode |= _S_IEXEC;
     
     int res = _wchmod(wide, newMode);
     free(wide);
