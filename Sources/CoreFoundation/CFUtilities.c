@@ -1703,8 +1703,8 @@ CFDictionaryRef __CFGetEnvironment() {
                 key = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)*envp, (eqp - *envp), CFStringGetSystemEncoding(), false);
             }
             CFStringRef value = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)(eqp + 1), (endp - (eqp + 1)), kCFStringEncodingUTF8, false);
-            if (key == NULL) {
-                key = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)(eqp + 1), (endp - (eqp + 1)), CFStringGetSystemEncoding(), false);
+            if (value == NULL) {
+                value = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)(eqp + 1), (endp - (eqp + 1)), CFStringGetSystemEncoding(), false);
             }
             if (NULL == key || NULL == value) {
                 if (key != NULL) CFRelease(key);
