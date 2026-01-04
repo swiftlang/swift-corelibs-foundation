@@ -1676,7 +1676,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif TARGET_OS_BSD || TARGET_OS_CYGWIN || TARGET_OS_WASI
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
         extern char **environ;
         char **envp = environ;
 #elif TARGET_OS_LINUX
