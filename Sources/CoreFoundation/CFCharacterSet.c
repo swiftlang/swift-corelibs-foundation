@@ -2571,11 +2571,12 @@ void CFCharacterSetRemoveCharactersInString(CFMutableCharacterSetRef theSet, CFS
 		
 		while (characters < charactersLimit) {
 		    if (CFStringIsSurrogateHighCharacter(*characters) || CFStringIsSurrogateLowCharacter(*characters)) {
-			memmove(characters, characters + 1, charactersLimit - (characters + 1));
+			memmove(characters, characters + 1, (charactersLimit - (characters + 1)) * sizeof(*characters));
 			--charactersLimit;
 			hasSurrogate = YES;
+		    } else {
+			++characters;
 		    }
-		    ++characters;
 		}
 		
 		newLength -= (length - (charactersLimit - buffer));
