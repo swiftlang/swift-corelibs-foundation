@@ -646,7 +646,7 @@ void CFDataReplaceBytes(CFMutableDataRef data, CFRange range, const uint8_t *new
             if (originalCapacity < newLength) {
 
                 // We need to grow the CFData, but if the buffer we're inserting overlaps with the current buffer, we need to copy it out so it can survive a realloc, which may change the pointers, making newBytes invalid.
-                Boolean const buffersOverlap = dstBuf && srcBuf && (srcBuf < dstBuf + originalCapacity) && (srcBuf < newBytes + newBytesLength);
+                Boolean const buffersOverlap = dstBuf && srcBuf && (srcBuf < dstBuf + originalCapacity) && (dstBuf < newBytes + newBytesLength);
                 if (buffersOverlap) {
                     size_t const allocationSize = newBytesLength * sizeof(uint8_t);
                     srcBuf = (uint8_t *)malloc(allocationSize);
