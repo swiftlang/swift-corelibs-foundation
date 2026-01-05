@@ -452,6 +452,7 @@ static CFDataRef percentEscapeDecodeBuffer(CFAllocatorRef alloc, const UInt8* sr
     CFDataRef result;
     if (dstBuffer != staticDstBuffer) {
         result = CFDataCreateWithBytesNoCopy(alloc, dstBuffer, j, kCFAllocatorMalloc);
+        if (!result) free(dstBuffer);
     } else {
         result = CFDataCreate(alloc, dstBuffer, j);
     }
@@ -532,6 +533,7 @@ static CFDataRef _createBase64DecodedData(CFAllocatorRef alloc, CFDataRef data)
 
     if (dstBuffer != staticDstBuffer) {
         result = CFDataCreateWithBytesNoCopy(alloc, dstBuffer, j, kCFAllocatorMalloc);
+        if (!result) free(dstBuffer);
     } else {
         result = CFDataCreate(alloc, dstBuffer, j);
     }
