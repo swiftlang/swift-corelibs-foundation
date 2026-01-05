@@ -787,7 +787,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStrin
         case 0x0100: return kCFStringEncodingUnicode; break; // Unicode
 
         case 0x200: // ISO 8859
-            return (((encoding & 0xFF) <= (sizeof(__CFISO8859SimilarScriptList) / sizeof(*__CFISO8859SimilarScriptList))) ? __CFISO8859SimilarScriptList[(encoding & 0xFF) - 1] : kCFStringEncodingInvalidId);
+            return ((((encoding & 0xFF) > 0) && ((encoding & 0xFF) <= (sizeof(__CFISO8859SimilarScriptList) / sizeof(*__CFISO8859SimilarScriptList)))) ? __CFISO8859SimilarScriptList[(encoding & 0xFF) - 1] : kCFStringEncodingInvalidId);
             break;
 
         default: {
@@ -821,7 +821,7 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
     if (0x0200 == (encoding & 0x0F00)) {
         encoding &= 0x00FF;
 
-        if (encoding <= (sizeof(__CFISONameList) / sizeof(*__CFISONameList))) return __CFISONameList[encoding - 1];
+        if ((encoding > 0) && (encoding <= (sizeof(__CFISONameList) / sizeof(*__CFISONameList)))) return __CFISONameList[encoding - 1];
     } else {
         CFIndex index = __CFGetEncodingIndex(encoding);
 
