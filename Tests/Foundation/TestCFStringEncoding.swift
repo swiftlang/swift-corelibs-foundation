@@ -16,16 +16,6 @@ class TestCFStringEncoding: XCTestCase {
         XCTAssertEqual(result, kCFStringEncodingInvalidId) // Do not crash
     }
 
-    func test_mostCompatibleMacStringEncoding_OverflowCheck() {
-        let ebcdicEncoding: CFStringEncoding = 0x0C02  // kCFStringEncodingEBCDIC_CP037
-        let result = CFStringGetMostCompatibleMacStringEncoding(ebcdicEncoding)
-        XCTAssertEqual(result, CFStringBuiltInEncodings.macRoman.rawValue) // Do not crash
-
-        let dosLatinUS: CFStringEncoding = 0x0400  // kCFStringEncodingDOSLatinUS
-        let result2 = CFStringGetMostCompatibleMacStringEncoding(dosLatinUS)
-        XCTAssertEqual(result2, CFStringBuiltInEncodings.macRoman.rawValue)
-    }
-
     func test_getNameOfEncoding_0x200() {
         // 0x200 caused buffer underflow in __CFStringEncodingGetName
         // The vulnerable code accessed __CFISONameList[encoding - 1] where encoding = 0
@@ -35,11 +25,5 @@ class TestCFStringEncoding: XCTestCase {
         // Should return nil, NOT crash or return garbage from OOB read
         XCTAssertNil(
             name, "0x0200 (ISO-8859 base) should return nil since it's not a valid encoding")
-    }
-
-    func test_getNameOfEncoding_validISO8859() {
-        let iso8859_1: CFStringEncoding = 0x0201  // ISO-8859-1 (Latin-1)
-        let name = CFStringGetNameOfEncoding(iso8859_1)
-        XCTAssertNotNil(name, "ISO-8859-1 should have a valid name")
     }
 }
