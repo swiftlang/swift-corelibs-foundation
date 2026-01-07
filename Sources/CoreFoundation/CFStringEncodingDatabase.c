@@ -823,7 +823,9 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
     if (0x0200 == (encoding & 0x0F00)) {
         encoding &= 0x00FF;
 
-        if ((encoding > 0) && (encoding <= (sizeof(__CFISONameList) / sizeof(*__CFISONameList)))) return __CFISONameList[encoding - 1];
+        if ((encoding > 0) && (encoding <= (sizeof(__CFISONameList) / sizeof(*__CFISONameList)))) {
+            return __CFISONameList[encoding - 1];
+        }
     } else {
         CFIndex index = __CFGetEncodingIndex(encoding);
 
