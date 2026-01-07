@@ -13,17 +13,13 @@ class TestCFStringEncoding: XCTestCase {
         // Regression Test: 0x200 caused buffer underflow
         let encoding: CFStringEncoding = 0x0200
         let result = CFStringGetMostCompatibleMacStringEncoding(encoding)
-        // Should return kCFStringEncodingInvalidId (0xFFFFFFFF) or a safe default, NOT crash
-        XCTAssertEqual(
-            result, kCFStringEncodingInvalidId,
-            "0x200 encoding should return kCFStringEncodingInvalidId and not crash")
+        XCTAssertEqual(result, kCFStringEncodingInvalidId) // Do not crash
     }
 
     func test_mostCompatibleMacStringEncoding_OverflowCheck() {
         let ebcdicEncoding: CFStringEncoding = 0x0C02  // kCFStringEncodingEBCDIC_CP037
         let result = CFStringGetMostCompatibleMacStringEncoding(ebcdicEncoding)
-        // Should map to MacRoman (0) or similar, but definitely no crash
-        XCTAssertEqual(result, CFStringBuiltInEncodings.macRoman.rawValue)
+        XCTAssertEqual(result, CFStringBuiltInEncodings.macRoman.rawValue) // Do not crash
 
         let dosLatinUS: CFStringEncoding = 0x0400  // kCFStringEncodingDOSLatinUS
         let result2 = CFStringGetMostCompatibleMacStringEncoding(dosLatinUS)
@@ -36,13 +32,12 @@ class TestCFStringEncoding: XCTestCase {
         // This resulted in accessing index -1 (out-of-bounds read)
         let encoding: CFStringEncoding = 0x0200
         let name = CFStringGetNameOfEncoding(encoding)
-        // Should return nil safely, NOT crash or return garbage from OOB read
+        // Should return nil, NOT crash or return garbage from OOB read
         XCTAssertNil(
             name, "0x0200 (ISO-8859 base) should return nil since it's not a valid encoding")
     }
 
     func test_getNameOfEncoding_validISO8859() {
-        // Verify that valid ISO-8859 encodings still work correctly
         let iso8859_1: CFStringEncoding = 0x0201  // ISO-8859-1 (Latin-1)
         let name = CFStringGetNameOfEncoding(iso8859_1)
         XCTAssertNotNil(name, "ISO-8859-1 should have a valid name")
