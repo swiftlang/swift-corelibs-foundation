@@ -788,6 +788,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStrin
 
         case 0x200: // ISO 8859
             encoding &= 0xFF;
+
             return (((encoding > 0) && (encoding <= (sizeof(__CFISO8859SimilarScriptList) / sizeof(*__CFISO8859SimilarScriptList)))) ? __CFISO8859SimilarScriptList[encoding - 1] : kCFStringEncodingInvalidId);
             break;
 
