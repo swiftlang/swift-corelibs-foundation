@@ -370,7 +370,7 @@ class TestCharacterSet : XCTestCase {
         let rangeAZ = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x5A)!) // A-Z (length 26)
         let rangeABCopy = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
 
-        XCTAssertNotEqual(rangeAB, rangeAZ, "Range(A-B) incorrectly equals Range(A-Z)")
+        XCTAssertNotEqual(rangeAB, rangeAZ)
         XCTAssertEqual(rangeAB, rangeABCopy)
     }
 }
