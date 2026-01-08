@@ -780,7 +780,7 @@ static const char * const __CFOtherNameList[] = {
 #endif /* TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD */
 
 CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStringEncoding encoding) {
-#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
+#if TARGET_OS_OSX || TARGET_OS_LINUX
     switch (encoding & 0x0F00) {
         case 0: return encoding & 0xFF; break; // Mac scripts
 
@@ -803,7 +803,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStrin
             }
         }
     }
-#endif /* TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32 */
+#endif /* TARGET_OS_OSX || TARGET_OS_LINUX */
 
     return kCFStringEncodingInvalidId;
 }
