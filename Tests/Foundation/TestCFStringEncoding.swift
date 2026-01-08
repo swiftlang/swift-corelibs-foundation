@@ -21,4 +21,5 @@ class TestCFStringEncoding: XCTestCase {
         let encoding: CFStringEncoding = 0x0200
         let name = CFStringGetNameOfEncoding(encoding) // Do not crash
         XCTAssertNil(name)
+    }
 }
