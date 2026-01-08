@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
 class TestCFStringEncoding: XCTestCase {
 
     func test_mostCompatibleMacStringEncoding_0x200() {
