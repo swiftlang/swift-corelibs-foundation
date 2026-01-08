@@ -8,6 +8,7 @@
 //
 
 import CoreFoundation
+
 class TestCFStringEncoding: XCTestCase {
 
     func test_mostCompatibleMacStringEncoding_0x200() {
