@@ -232,7 +232,7 @@ extension _EasyHandle {
                 var isDirectory: ObjCBool = false
                 if FileManager.default.fileExists(atPath: path,
                                                   isDirectory: &isDirectory)
-                    && isDirectory.boolValue {
+                        && isDirectory.boolValue {
                     path.withCString { pathPtr in
                         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAPATH, UnsafeMutablePointer(mutating: pathPtr)).asError()
                     }
