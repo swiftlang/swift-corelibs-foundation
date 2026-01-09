@@ -50,11 +50,9 @@ extension URLSession {
         
         // Only use serialization for OpenSSL < 1.1.0 which has race conditions during cleanup
         private static let _needsCleanupSerialization: Bool = {
-            guard let version = CFURLSessionOpenSSLVersionInfo()?.pointee else {
-                // Not OpenSSL, assume thread-safe
-                return false
-            }
-            return version.major < 1 || (version.major == 1 && version.minor < 1)
+            let version = CFURLSessionSSLVersionInfo();
+            let versionNotThreadSafe = version.major < 1 || (version.major == 1 && version.minor < 1)
+            return version.isOpenSSL && versionNotThreadSafe
         }()
 
         // Process-wide cleanup lock

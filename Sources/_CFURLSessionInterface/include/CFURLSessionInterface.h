@@ -580,12 +580,14 @@ typedef struct CFURLSessionCurlVersion {
 } CFURLSessionCurlVersion;
 CF_EXPORT CFURLSessionCurlVersion CFURLSessionCurlVersionInfo(void);
 
-typedef struct CFURLSessionOpenSSLVersion {
+typedef struct CFURLSessionSSLVersion {
     int major;
     int minor;
     int patch;
-} CFURLSessionOpenSSLVersion;
-CF_EXPORT CFURLSessionOpenSSLVersion * _Nullable CFURLSessionOpenSSLVersionInfo(void);
+    bool isOpenSSL;
+} CFURLSessionSSLVersion;
+
+CF_EXPORT CFURLSessionSSLVersion CFURLSessionSSLVersionInfo(void);
 
 
 CF_EXPORT int const CFURLSessionWriteFuncPause;
