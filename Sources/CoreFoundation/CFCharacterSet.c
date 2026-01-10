@@ -989,7 +989,7 @@ static Boolean __CFCharacterSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
                 return (__CFCSetBuiltinType((CFCharacterSetRef)cf1) == __CFCSetBuiltinType((CFCharacterSetRef)cf2) && isInvertStateIdentical ? true : false);
 
             case __kCFCharSetClassRange:
-                return (__CFCSetRangeFirstChar((CFCharacterSetRef)cf1) == __CFCSetRangeFirstChar((CFCharacterSetRef)cf2) && __CFCSetRangeLength((CFCharacterSetRef)cf1) && __CFCSetRangeLength((CFCharacterSetRef)cf2) && isInvertStateIdentical ? true : false);
+                return (__CFCSetRangeFirstChar((CFCharacterSetRef)cf1) == __CFCSetRangeFirstChar((CFCharacterSetRef)cf2) && __CFCSetRangeLength((CFCharacterSetRef)cf1) == __CFCSetRangeLength((CFCharacterSetRef)cf2) && isInvertStateIdentical ? true : false);
 
             case __kCFCharSetClassString:
                 if (!isInvertStateIdentical) {
