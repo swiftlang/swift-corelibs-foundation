@@ -4487,10 +4487,7 @@ extension TestNSData {
             var data = DispatchData.empty
             bytes.withUnsafeBytes { data.append($0) }
 
-            guard let region = data.regions.first else {
-                XCTFail("Expected a single region")
-                return
-            }
+            let region = try XCTUnwrap(data.regions.first)
 
             XCTAssertEqual(region.startIndex, 0)
             XCTAssertEqual(region.endIndex, bytes.count)
