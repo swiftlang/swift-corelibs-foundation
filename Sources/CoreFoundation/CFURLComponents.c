@@ -189,6 +189,7 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateCopy(CFAllocatorRef alloc, CF
     
     memory->_schemeComponentValid = components->_schemeComponentValid;
     memory->_userComponentValid = components->_userComponentValid;
+    memory->_passwordComponentValid = components->_passwordComponentValid;
     memory->_hostComponentValid = components->_hostComponentValid;
     memory->_portComponentValid = components->_portComponentValid;
     memory->_pathComponentValid = components->_pathComponentValid;
