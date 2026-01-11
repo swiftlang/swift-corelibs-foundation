@@ -397,6 +397,7 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
     CFArrayRef result;
     const CFArrayCallBacks *cb;
     struct __CFArrayBucket *buckets;
+    CFAssert1(array, __kCFLogAssertion, "%s(): array cannot be NULL", __PRETTY_FUNCTION__);
     CFIndex numValues = CFArrayGetCount(array);
     CFIndex idx;
     if (CF_IS_OBJC(_kCFRuntimeIDCFArray, array) || CF_IS_SWIFT(_kCFRuntimeIDCFArray, array)) {
@@ -422,6 +423,7 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
 CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocator, CFIndex capacity, CFArrayRef array) {
     CFMutableArrayRef result;
     const CFArrayCallBacks *cb;
+    CFAssert1(array, __kCFLogAssertion, "%s(): array cannot be NULL", __PRETTY_FUNCTION__);
     CFIndex idx, numValues = CFArrayGetCount(array);
     UInt32 flags;
     if (CF_IS_OBJC(_kCFRuntimeIDCFArray, array) || CF_IS_SWIFT(_kCFRuntimeIDCFArray, array)) {
