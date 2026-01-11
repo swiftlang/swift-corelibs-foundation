@@ -82,7 +82,7 @@ bool CFUniCharIsMemberOf(UTF32Char theChar, uint32_t charset) {
                         theChar &= 0xFF;
                         return (((theChar == 0x01) || ((theChar > 0x1F) && (theChar < 0x80))) ? false : true);
                     } else if (planeNo == 0x0F || planeNo == 0x10) { // Plane 15 & 16
-                        return ((theChar & 0xFF) > 0xFFFD ? true : false);
+                        return ((theChar & 0xFFFF) > 0xFFFD ? true : false);
                     } else {
                         return (planeNo < data->_numPlanes && data->_planes[planeNo] ? !CFUniCharIsMemberOfBitmap(theChar, data->_planes[planeNo]) : true);
                     }

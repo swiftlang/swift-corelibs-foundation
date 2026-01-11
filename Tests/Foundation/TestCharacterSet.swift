@@ -373,4 +373,31 @@ class TestCharacterSet : XCTestCase {
         XCTAssertNotEqual(rangeAB, rangeAZ)
         XCTAssertEqual(rangeAB, rangeABCopy)
     }
+    func test_IllegalCharacters_Planes15and16() {
+        let illegal = CharacterSet.illegalCharacters
+        
+        // Plane 15 (Private Use Area - B)
+        // Range: U+F0000..U+FFFFD are legal (private use)
+        // U+FFFFE, U+FFFFF are noncharacters (illegal)
+        
+        let validPlane15 = UnicodeScalar(0xF0000)!
+        let invalidPlane15_1 = UnicodeScalar(0xFFFFE)!
+        let invalidPlane15_2 = UnicodeScalar(0xFFFFF)!
+        
+        XCTAssertFalse(illegal.contains(validPlane15), "U+F0000 should not be in illegal set")
+        XCTAssertTrue(illegal.contains(invalidPlane15_1), "U+FFFFE should be in illegal set")
+        XCTAssertTrue(illegal.contains(invalidPlane15_2), "U+FFFFF should be in illegal set")
+        
+        // Plane 16 (Private Use Area - A)
+        // Range: U+100000..U+10FFFD are legal (private use)
+        // U+10FFFE, U+10FFFF are noncharacters (illegal)
+        
+        let validPlane16 = UnicodeScalar(0x100000)!
+        let invalidPlane16_1 = UnicodeScalar(0x10FFFE)!
+        let invalidPlane16_2 = UnicodeScalar(0x10FFFF)!
+        
+        XCTAssertFalse(illegal.contains(validPlane16), "U+100000 should not be in illegal set")
+        XCTAssertTrue(illegal.contains(invalidPlane16_1), "U+10FFFE should be in illegal set")
+        XCTAssertTrue(illegal.contains(invalidPlane16_2), "U+10FFFF should be in illegal set")
+    }
 }
