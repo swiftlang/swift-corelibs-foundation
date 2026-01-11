@@ -155,7 +155,7 @@ CF_INLINE void _CFStreamSetStreamError(struct _CFStream *stream, CFStreamError *
     if (!stream->error) {
         stream->error = (CFErrorRef)CFAllocatorAllocate(CFGetAllocator(stream), sizeof(CFStreamError), 0);
     }
-    memmove((void *)stream->error, err, sizeof(CFStreamError));
+    memcpy((void *)stream->error, err, sizeof(CFStreamError));
 }
 
 static CFStringRef __CFStreamCopyDescription(CFTypeRef cf) {

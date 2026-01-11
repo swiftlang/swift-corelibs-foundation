@@ -147,7 +147,7 @@ CFUUIDRef CFUUIDCreate(CFAllocatorRef alloc) {
         UUID u;
         long rStatus = UuidCreate(&u);
         if (RPC_S_OK != rStatus && RPC_S_UUID_LOCAL_ONLY != rStatus) retval = 1;
-        memmove(&bytes, &u, sizeof(bytes));
+        memcpy(&bytes, &u, sizeof(bytes));
 #elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
         static int8_t useV1UUIDs = -1;
         uuid_t uuid;
