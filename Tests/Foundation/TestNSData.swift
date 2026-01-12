@@ -4481,7 +4481,7 @@ extension TestNSData {
         }
     }
 
-    func test_dispatchDataRegionSubscriptBounds() {
+    func test_dispatchDataRegionSubscriptBounds() throws {
         let bytes: [UInt8] = [0xAA, 0xBB, 0xCC]
         var data = DispatchData.empty
         bytes.withUnsafeBytes { data.append($0) }
