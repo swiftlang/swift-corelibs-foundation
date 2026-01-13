@@ -28,15 +28,10 @@
 
 #define CF_CROSS_PLATFORM_EXPORT extern
 
-#if TARGET_OS_WIN32
-  // No C99 support
-  #define _CF_RESTRICT
-#else
-  #if defined(__cplusplus)
+#if defined(__cplusplus)
     #define _CF_RESTRICT __restrict__
-  #else
+#else
     #define _CF_RESTRICT restrict
-  #endif
 #endif
 
 
