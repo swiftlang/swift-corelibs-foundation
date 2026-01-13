@@ -373,6 +373,7 @@ class TestCharacterSet : XCTestCase {
         XCTAssertNotEqual(rangeAB, rangeAZ)
         XCTAssertEqual(rangeAB, rangeABCopy)
     }
+
     func test_IllegalCharacters_Planes15and16() {
         let illegal = CharacterSet.illegalCharacters
         
