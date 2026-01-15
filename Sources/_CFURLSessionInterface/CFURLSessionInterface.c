@@ -676,22 +676,6 @@ CFURLSessionCurlVersion CFURLSessionCurlVersionInfo(void) {
     return v;
 }
 
-CFURLSessionSSLVersion CFURLSessionSSLVersionInfo(void) {
-    CFURLSessionSSLVersion version = {.major = 0, .minor = 0, .patch = 0, .isOpenSSL = false};
-    curl_version_info_data *info = curl_version_info(CURLVERSION_NOW);
-    if (info && info->ssl_version) {
-        // Parse OpenSSL version string like "OpenSSL/1.0.2k-fips" or "OpenSSL/1.1.1"
-        const char *ssl_str = info->ssl_version;
-        if (strncmp(ssl_str, "OpenSSL/", 8) == 0) {
-            version.isOpenSSL = true;
-            ssl_str += 8;  // Skip "OpenSSL/"
-            sscanf(ssl_str, "%d.%d.%d", &version.major, &version.minor, &version.patch);
-        }
-    }
-
-    return version;
-}
-
 
 int const CFURLSessionWriteFuncPause = CURL_WRITEFUNC_PAUSE;
 int const CFURLSessionReadFuncPause = CURL_READFUNC_PAUSE;
