@@ -1822,7 +1822,7 @@ Boolean CFCharacterSetIsCharacterMember(CFCharacterSetRef theSet, UniChar theCha
             break;
             
         case __kCFCharSetClassBitmap:
-            result = (__CFCSetCompactBitmapBits(theSet) ? (__CFCSetIsMemberBitmap(__CFCSetBitmapBits(theSet), theChar) ? true : false) : isInverted);
+            result = (__CFCSetBitmapBits(theSet) ? (__CFCSetIsMemberBitmap(__CFCSetBitmapBits(theSet), theChar) ? true : false) : isInverted);
             break;
             
         case __kCFCharSetClassCompactBitmap:
@@ -1885,7 +1885,7 @@ CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacte
             break;
 
         case __kCFCharSetClassBitmap:
-            result = (__CFCSetCompactBitmapBits(theSet) ? (__CFCSetIsMemberBitmap(__CFCSetBitmapBits(theSet), theChar) ? true : false) : isInverted);
+            result = (__CFCSetBitmapBits(theSet) ? (__CFCSetIsMemberBitmap(__CFCSetBitmapBits(theSet), theChar) ? true : false) : isInverted);
             break;
 
         case __kCFCharSetClassCompactBitmap:
@@ -2571,11 +2571,12 @@ void CFCharacterSetRemoveCharactersInString(CFMutableCharacterSetRef theSet, CFS
 		
 		while (characters < charactersLimit) {
 		    if (CFStringIsSurrogateHighCharacter(*characters) || CFStringIsSurrogateLowCharacter(*characters)) {
-			memmove(characters, characters + 1, charactersLimit - (characters + 1));
+			memmove(characters, characters + 1, (charactersLimit - (characters + 1)) * sizeof(*characters));
 			--charactersLimit;
 			hasSurrogate = YES;
+		    } else {
+			++characters;
 		    }
-		    ++characters;
 		}
 		
 		newLength -= (length - (charactersLimit - buffer));
