@@ -783,10 +783,21 @@ open class Process: NSObject, @unchecked Sendable {
 
         var taskSocketPair : [Int32] = [0, 0]
 #if os(macOS) || os(iOS) || os(Android) || os(OpenBSD) || os(FreeBSD) || canImport(Musl)
-        socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
+        let creationResult = socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, &taskSocketPair)
 #else
-        socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)
+        let creationResult = socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue) | Int32(SOCK_CLOEXEC.rawValue), 0, &taskSocketPair)
 #endif
+        guard creationResult == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+        }
+
+        // The parent needs the child to inherit taskSocketPair[1] so the socket remains open
+        // until the child exits. SOCK_CLOEXEC sets FD_CLOEXEC on both ends, so we must 
+        // clear it on the child's end to allow inheritance.
+        let fcntlResult = fcntl(taskSocketPair[1], F_SETFD, 0)
+        guard fcntlResult != -1 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+        }
         var context = CFSocketContext()
         context.version = 0
         context.retain = runLoopSourceRetain
