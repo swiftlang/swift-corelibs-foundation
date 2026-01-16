@@ -425,7 +425,7 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyString(CFURLComponentsRef components) 
                 num = 0;
             }
             char numStr[LONG_LONG_MAX_DIGITS + 1] = {0};
-            snprintf(numStr, LONG_LONG_MAX_DIGITS, "%lld", num);
+            snprintf(numStr, LONG_LONG_MAX_DIGITS + 1, "%lld", num);
             CFStringRef portStr = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const UInt8 *)numStr, strlen(numStr), kCFStringEncodingASCII, false);
             CFStringAppendStringToAppendBuffer(&buf, (CFStringRef)portStr);
             CFRelease(portStr);
