@@ -33,7 +33,7 @@ static void __CFICUThreadDataDestructor(void *context) {
         UConverter **limit = converter + data->_numSlots;
         
         while (converter < limit) {
-            if (NULL != converter) ucnv_close(*converter);
+            if (NULL != *converter) ucnv_close(*converter);
             ++converter;
         }
         CFAllocatorDeallocate(NULL, data->_converters);
