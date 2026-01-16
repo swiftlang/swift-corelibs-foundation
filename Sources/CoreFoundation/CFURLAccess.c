@@ -783,8 +783,8 @@ Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef data, CFDi
             if (!_CFFileURLWritePropertiesToResource(url, propertyDict, errorCode))
                 success = false;
         }
-        return success;
 #endif
+        return success;
     } else {
         CFRelease(scheme);
 #if TARGET_OS_MAC
