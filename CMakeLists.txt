@@ -130,7 +130,8 @@ add_compile_definitions(
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
-  add_compile_definitions($<$<COMPILE_LANGUAGE:C>:HAVE_SCHED_GETAFFINITY>)
+  add_compile_definitions(
+    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_SCHED_GETAFFINITY}>>:HAVE_SCHED_GETAFFINITY>)
 
   # Pass -fno-omit-frame-pointer while compiling for better backtraces
   add_compile_options(
