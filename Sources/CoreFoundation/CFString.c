@@ -93,7 +93,7 @@ static void __CFRecordStringAllocationEvent(const char *encoding, const char *by
         } else {
             snprintf(path, sizeof(path), "%s/CFSharedStringInstrumentation_%s_%d.txt", temp_dir, name, getpid());
             fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0666);
-            if (fd <= 0) {
+            if (fd < 0) {
                 int error = errno;
                 const char *errString = strerror(error);
                 fprintf(stderr, "open() failed with error %d (%s)\n", error, errString);
