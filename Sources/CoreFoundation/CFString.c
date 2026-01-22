@@ -6781,15 +6781,15 @@ reswtch:switch (ch) {
     TYPE value = (TYPE) WHAT;				\
     if (-1 != specs[curSpec].widthArgNum) {		\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, width, precision, value); \
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, width, precision, value); \
 	} else {					\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, width, value); \
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, width, value); \
 	}						\
     } else {						\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, precision, value); \
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, precision, value); \
         } else {					\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, value);	\
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, value);	\
 	}						\
     }}
 #else
@@ -6797,15 +6797,15 @@ reswtch:switch (ch) {
     TYPE value = (TYPE) WHAT;				\
     if (-1 != specs[curSpec].widthArgNum) {		\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    sprintf(buffer, formatBuffer, width, precision, value); \
+	    snprintf(buffer, bufferSize, formatBuffer, width, precision, value); \
 	} else {					\
-	    sprintf(buffer, formatBuffer, width, value); \
+	    snprintf(buffer, bufferSize, formatBuffer, width, value); \
 	}						\
     } else {						\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    sprintf(buffer, formatBuffer, precision, value); \
+	    snprintf(buffer, bufferSize, formatBuffer, precision, value); \
         } else {					\
-	    sprintf(buffer, formatBuffer, value);	\
+	    snprintf(buffer, bufferSize, formatBuffer, value);	\
 	}						\
     }}
 #endif
