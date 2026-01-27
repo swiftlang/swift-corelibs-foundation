@@ -1,0 +1,23 @@
+# Lines starting with '#' are comments.
+#
+# File patterns are case-sensitive and follow most of the same rules used in
+# .gitignore files. Start patterns that are meant to be relative to the root
+# with a forward slash to prevent the matching from occurring at an arbitraty
+# level. End patterns that are meant to match directories with a forward slash
+# to make it visually apparent.
+#
+# Each file pattern should be followed by one or more GitHub usernames or team
+# names using the standard @username or @swiftlang/team-name format. Please
+# order these names lexicographically.
+#
+# Line order is important. The last matching pattern in this file takes
+# precedence.
+# More information: https://docs.github.com/en/articles/about-code-owners
+#
+# Please list patterns by mirroring the repository's file hierarchy in
+# case-sensitive lexicographic order. This approach follows a well-established
+# and familiar order for navigation, helps to avoid inadvertent ownership
+# overrides, and makes uncharted parts of the repository easier to pin down.
+
+# Default code owner of everything.
+* @swiftlang/swift-foundation-codeowners
