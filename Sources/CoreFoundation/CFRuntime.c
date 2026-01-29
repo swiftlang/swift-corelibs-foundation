@@ -1588,12 +1588,12 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
             }
             if (1 == rc) {
                 CFRuntimeClass const *cfClass = __CFRuntimeClassTable[typeID];
-                if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
-                    cfClass->reclaim(cf);
-                }
                 newInfo = info | RC_DEALLOCATING_BIT;
                 if (!atomic_compare_exchange_strong(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo)) {
                     goto again;
+                }
+                if ((cfClass->version & _kCFRuntimeResourcefulObject) && cfClass->reclaim != NULL) {
+                    cfClass->reclaim(cf);
                 }
                 void (*func)(CFTypeRef) = __CFRuntimeClassTable[typeID]->finalize;
                 if (NULL != func) {
