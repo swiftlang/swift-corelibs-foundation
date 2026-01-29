@@ -33,10 +33,6 @@ if(POLICY CMP0157)
     endif()
 endif()
 
-if (NOT DEFINED CMAKE_C_COMPILER)
-    set(CMAKE_C_COMPILER clang)
-endif()
-
 project(Foundation
     LANGUAGES C Swift)
 
