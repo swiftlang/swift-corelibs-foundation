@@ -545,7 +545,7 @@ static void __CFDataGrow(CFMutableDataRef data, CFIndex numNewValues, Boolean cl
 	// If the length that needs to be zeroed is significantly greater than the length of the data, then calloc/memmove is probably more efficient than realloc/memset.
 	bytes = __CFDataAllocate(data, capacity * sizeof(uint8_t), true);
 	if (NULL != bytes) {
-	    memmove(bytes, oldBytes, oldLength);
+	    memcpy(bytes, oldBytes, oldLength);
 	    __CFDataDeallocate(data);
 	}
     }
@@ -653,7 +653,7 @@ void CFDataReplaceBytes(CFMutableDataRef data, CFRange range, const uint8_t *new
                     if (srcBuf == NULL) {
                         __CFDataHandleOutOfMemory(data, allocationSize);
                     }
-                    memmove(srcBuf, newBytes, allocationSize);
+                    memcpy(srcBuf, newBytes, allocationSize);
                 }
 
                 __CFDataGrow(data, newLength - originalLength, false);
@@ -769,7 +769,7 @@ static const uint8_t * __CFDataSearchBoyerMoore(const CFDataRef data, const uint
 	if (!needleCopy) {
 	    __CFDataHandleOutOfMemory(data, needleLength * sizeof(uint8_t));
 	}
-	memmove(needleCopy, needle, needleLength);
+	memcpy(needleCopy, needle, needleLength);
 	REVERSE_BUFFER(uint8_t, needleCopy, needleLength);
 	_computeGoodSubstringShift(needleCopy, needleLength, goodSubstringShift, suffixLengths);
 	REVERSE_BUFFER(unsigned long, goodSubstringShift, needleLength);
