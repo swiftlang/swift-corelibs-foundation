@@ -46,7 +46,7 @@ protocol Listable {
 }
 
 private func moduleName(value: Any) -> String {
-    let moduleAndType = String(reflecting: type(of: value))
+    let moduleAndType = _typeName(type(of: value), qualified: true)
     return String(moduleAndType.split(separator: ".").first!)
 }
 

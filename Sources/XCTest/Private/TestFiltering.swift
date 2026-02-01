@@ -67,6 +67,6 @@ private extension SelectedTest {
     }
 
     init(testCaseClass: XCTestCase.Type, testCaseMethodName: String?) {
-        self.init(testCaseClassName: String(reflecting: testCaseClass), testCaseMethodName: testCaseMethodName)
+        self.init(testCaseClassName: _typeName(testCaseClass, qualified: true), testCaseMethodName: testCaseMethodName)
     }
 }
