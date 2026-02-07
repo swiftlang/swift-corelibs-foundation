@@ -939,10 +939,25 @@ open class Process: NSObject, @unchecked Sendable {
             useFallbackChdir = false
         }
 
+        // Allocation of spawnattrs
+#if canImport(Darwin) || os(OpenBSD) || os(FreeBSD)
+        var spawnAttrs: posix_spawnattr_t? = nil
+#elseif os(Android)
         let spawnAttrs = _CFPosixSpawnAttrAlloc()
         defer { _CFPosixSpawnAttrDealloc(spawnAttrs) }
+#else
+        var spawnAttrs: posix_spawnattr_t = posix_spawnattr_t()
+#endif
+
+        // Initialization of spawnattrs
+#if os(Android)
         try _throwIfPosixError(_CFPosixSpawnAttrInit(spawnAttrs))
         defer { _CFPosixSpawnAttrDestroy(spawnAttrs) }
+#else
+        try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
+        defer { posix_spawnattr_destroy(&spawnAttrs) }
+#endif
+
         var flags = Int16(POSIX_SPAWN_SETPGROUP)
 #if canImport(Darwin)
         flags |= Int16(POSIX_SPAWN_CLOEXEC_DEFAULT)
@@ -957,7 +972,13 @@ open class Process: NSObject, @unchecked Sendable {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 #endif
+
+        // Set flags
+#if os(Android)
         try _throwIfPosixError(_CFPosixSpawnAttrSetFlags(spawnAttrs, flags))
+#else
+        try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, flags))
+#endif
 
         // Unsafe fallback for systems missing posix_spawn_file_actions_addchdir[_np]
         // This includes Glibc versions older than 2.29 such as on Amazon Linux 2
