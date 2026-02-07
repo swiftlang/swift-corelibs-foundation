@@ -1005,9 +1005,15 @@ open class Process: NSObject, @unchecked Sendable {
         var pid = pid_t()
         
         try FileManager.default._fileSystemRepresentation(withPath: launchPath, { fsRep in
+            #if os(Android)
             guard _CFPosixSpawn(&pid, fsRep, fileActions, spawnAttrs, argv, envp) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
+            #else
+            guard _CFPosixSpawn(&pid, fsRep, fileActions, &spawnAttrs, argv, envp) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+            }
+            #endif
         })
 
         // Close the write end of the input and output pipes.
