@@ -1061,12 +1061,17 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int option
 
 CFStringRef _CFXMLNodeCopyLocalName(_CFXMLNodePtr node) {
     xmlChar* prefix = NULL;
-    const xmlChar* result = xmlSplitQName2(_getQName((xmlNodePtr)node), &prefix);
-    if (result == NULL) {
-        result = ((xmlNodePtr)node)->name;
-    }
+    const xmlChar* localName = xmlSplitQName2(_getQName((xmlNodePtr)node), &prefix);
+    const xmlChar* result = localName ? localName : ((xmlNodePtr)node)->name;
     
-    return __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
+    CFStringRef nameString = __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
+    if (localName) {
+        xmlFree((xmlChar*)localName);
+    }
+    if (prefix) {
+        xmlFree(prefix);
+    }
+    return nameString;
 }
 
 CFStringRef _CFXMLNodeCopyPrefix(_CFXMLNodePtr node) {
