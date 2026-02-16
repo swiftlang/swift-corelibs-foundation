@@ -22,8 +22,13 @@
 //TODO: Move things in this file?
 
 
-internal func initializeLibcurl() {
+private let _initializeLibcurl: Void = {
     try! CFURLSessionInit().asError()
+}()
+
+/// Initializes libcurl idempontently.
+internal func ensureLibcurlIsInitialized() {
+    _ = _initializeLibcurl // The lazy global is computed on only first access.
 }
 
 
