@@ -16,6 +16,11 @@
 ///
 // -----------------------------------------------------------------------------
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 
 @_implementationOnly import _CFURLSessionInterface
 
@@ -31,6 +36,31 @@ internal func ensureLibcurlIsInitialized() {
     _ = _initializeLibcurl // The lazy global is computed on only first access.
 }
 
+/// OpenSSL < 1.1.0 is not thread-safe.
+/// https://curl.se/libcurl/c/threadsafe.html
+internal let isThreadSafeOpenSSL: Bool = {
+    // curl_version_info is not thread-safe until curl_global_init has been called.
+    // https://curl.se/libcurl/c/curl_version_info.html
+    ensureLibcurlIsInitialized()
+
+    let version = CFURLSessionSSLVersionInfo();
+    guard version.isOpenSSL else { return true }
+
+    return (version.major == 1 && version.minor >= 1) || version.major > 1
+}()
+
+private let _openSSLOperationLock = NSLock()
+
+/// Executes the given function, locking only if OpenSSL is not thread-safe.
+internal func lockingForOpenSSLIfNeeded<T, E: Error>(_ body: () throws(E) -> T) throws(E) -> T {
+    if isThreadSafeOpenSSL {
+        return try body()
+    }
+
+    _openSSLOperationLock.lock()
+    defer { _openSSLOperationLock.unlock() }
+    return try body()
+}
 
 internal extension String {
     /// Create a string by a buffer of UTF 8 code points that is not zero
