@@ -1087,11 +1087,12 @@ CFStringRef _CFXMLNodeCopyPrefix(_CFXMLNodePtr node) {
 
 void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...);
 void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...) {
-    char* formattedMessage = calloc(1, 1024);
+    size_t formattedMessageSize = 1024;
+    char* formattedMessage = calloc(1, formattedMessageSize);
 
     va_list args;
     va_start(args, msg);
-    vsprintf(formattedMessage, msg, args);
+    vsnprintf(formattedMessage, formattedMessageSize, msg, args);
     va_end(args);
 
     CFStringRef message = __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, formattedMessage, kCFStringEncodingUTF8);
