@@ -298,16 +298,10 @@ class TestCharacterSet : XCTestCase {
             ("12345", "12345")
         ]
         
-        /*
-         Tests disabled due to CoreFoundation bug?
-         These NSCharacterSet pairs are (wrongly?) evaluated to be equal. Same behaviour can be observed on macOS 10.12.
-         Interestingly, on iOS 11 Simulator, they are evaluated to be _not_ equal,
-         while on iOS 10.3.1 Simulator, they are evaluated to be equal.
-         */
         let notEqualPairs = [
             ("abc", "123"),
-//            ("ab", "abc"),
-//            ("abc", "")
+            ("ab", "abc"),
+            ("abc", "")
         ]
         
         for pair in equalPairs {
@@ -369,5 +363,14 @@ class TestCharacterSet : XCTestCase {
         for fixture in fixtures {
             try fixture.assertValueRoundtripsInCoder()
         }
+    }
+    
+    func test_RangeEquality() {
+        let rangeAB = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
+        let rangeAZ = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x5A)!) // A-Z (length 26)
+        let rangeABCopy = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
+
+        XCTAssertNotEqual(rangeAB, rangeAZ)
+        XCTAssertEqual(rangeAB, rangeABCopy)
     }
 }
