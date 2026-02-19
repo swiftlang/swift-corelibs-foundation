@@ -2255,9 +2255,11 @@ static int _CFPosixSpawnImplPre28(pid_t *_CF_RESTRICT pid, const char *_CF_RESTR
                     if (dup2(fd, new_fd) == -1) _exit(127);
                 }
             } else if (actions->actions[idx].type == _CFPosixSpawnFileActionClosePre28) {
-                // MATCHING BIONIC:
-                // Failure to close is ignored (e.g. EBADF if already closed).
-                close(action->closeAction.filedes);
+                if (close(action->closeAction.filedes) == -1) {
+                    if (errno == EBADF) {
+                        _exit(127);
+                    }
+                }
             }
         }
     }
@@ -2278,6 +2280,7 @@ static int _CFPosixSpawnAttrSetFlagsImplPre28(_CFPosixSpawnAttrRef spawn_attr, s
         return EINVAL;
     }
 
+    // Validate the flags set against known valid flags.
     if ((flags & ~(POSIX_SPAWN_RESETIDS | POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF |
                    POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSCHEDPARAM | POSIX_SPAWN_SETSCHEDULER |
                    POSIX_SPAWN_USEVFORK | POSIX_SPAWN_SETSID)) != 0) {
@@ -2483,6 +2486,7 @@ CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT pa
   return posix_spawn(pid, path, (posix_spawn_file_actions_t *)file_actions, (posix_spawnattr_t *)attrp, argv, envp);
 }
 
+#if TARGET_OS_ANDROID
 CF_EXPORT _CFPosixSpawnAttrRef _CFPosixSpawnAttrAlloc() {
     _CFPosixSpawnAttrRef attr = malloc(sizeof(posix_spawnattr_t));
     CFAssert(attr != NULL, __kCFLogAssertion, "malloc failed");
@@ -2504,6 +2508,7 @@ CF_EXPORT void _CFPosixSpawnAttrDealloc(_CFPosixSpawnAttrRef spawn_attr) {
 CF_EXPORT int _CFPosixSpawnAttrSetFlags(_CFPosixSpawnAttrRef spawn_attr, short flags) {
     return posix_spawnattr_setflags((posix_spawnattr_t *)spawn_attr, flags);
 }
+#endif
 
 #endif
 
