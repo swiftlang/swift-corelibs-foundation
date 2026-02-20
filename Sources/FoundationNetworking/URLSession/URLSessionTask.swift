@@ -379,7 +379,10 @@ open class URLSessionTask : NSObject, NSCopying, @unchecked Sendable {
      * cancellation.  -cancel may be sent to a task that has been suspended.
      */
     open func cancel() {
-        workQueue.sync {
+        // We must asynchronously perform the cancellation on the dispatch
+        // queue to avoid a deadlock. See the full explanation for why in
+        // https://github.com/swiftlang/swift-corelibs-foundation/issues/5412
+        workQueue.async {
             let canceled = self.syncQ.sync { () -> Bool in
                 guard self._state == .running || self._state == .suspended else { return true }
                 self._state = .canceling
