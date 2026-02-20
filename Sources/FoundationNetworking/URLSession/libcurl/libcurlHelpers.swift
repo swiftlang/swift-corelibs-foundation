@@ -16,13 +16,8 @@
 ///
 // -----------------------------------------------------------------------------
 
-#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-import SwiftFoundation
-#else
-import Foundation
-#endif
-
 @_implementationOnly import _CFURLSessionInterface
+internal import Synchronization
 
 //TODO: Move things in this file?
 
@@ -36,9 +31,7 @@ internal func ensureLibcurlIsInitialized() {
     _ = _initializeLibcurl // The lazy global is computed on only first access.
 }
 
-/// OpenSSL < 1.1.0 is not thread-safe.
-/// https://curl.se/libcurl/c/threadsafe.html
-internal let isThreadSafeOpenSSL: Bool = {
+internal let usingThreadSafeSSLLibrary: Bool = {
     // curl_version_info is not thread-safe until curl_global_init has been called.
     // https://curl.se/libcurl/c/curl_version_info.html
     ensureLibcurlIsInitialized()
@@ -46,20 +39,22 @@ internal let isThreadSafeOpenSSL: Bool = {
     let version = CFURLSessionSSLVersionInfo();
     guard version.isOpenSSL else { return true }
 
+    // OpenSSL <1.1.0 is not thread-safe.
+    // https://curl.se/libcurl/c/threadsafe.html
     return (version.major == 1 && version.minor >= 1) || version.major > 1
 }()
 
-private let _openSSLOperationLock = NSLock()
+private let _sslOperationLock = Mutex(())
 
-/// Executes the given function, locking only if OpenSSL is not thread-safe.
-internal func lockingForOpenSSLIfNeeded<T, E: Error>(_ body: () throws(E) -> T) throws(E) -> T {
-    if isThreadSafeOpenSSL {
+/// Executes the given function, locking only if the SSL library is not thread-safe.
+internal func lockingForSSLLibraryIfNeeded<T, E: Error>(_ body: () throws(E) -> T) throws(E) -> T {
+    if usingThreadSafeSSLLibrary {
         return try body()
     }
 
-    _openSSLOperationLock.lock()
-    defer { _openSSLOperationLock.unlock() }
-    return try body()
+    return try _sslOperationLock.withLock { _ throws(E) in
+        return try body()
+    }
 }
 
 internal extension String {

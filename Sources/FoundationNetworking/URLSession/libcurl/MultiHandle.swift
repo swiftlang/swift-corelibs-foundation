@@ -59,7 +59,7 @@ extension URLSession {
                 try! CFURLSessionMultiHandleRemoveHandle(rawHandle, $0.rawHandle).asError()
             }
 
-            lockingForOpenSSLIfNeeded {
+            lockingForSSLLibraryIfNeeded {
                 // curl_multi_cleanup affects OpenSSL internal state.
                 try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
             }
@@ -301,7 +301,7 @@ fileprivate extension URLSession._MultiHandle {
     /// reads/writes available data given an action
     func readAndWriteAvailableData(on socket: CFURLSession_socket_t) throws {
         var runningHandlesCount = Int32(0)
-        try lockingForOpenSSLIfNeeded {
+        try lockingForSSLLibraryIfNeeded {
             // Triggers certificate loading, SSL handshake, etc.
             try CFURLSessionMultiHandleAction(rawHandle, socket, 0, &runningHandlesCount).asError()
         }
