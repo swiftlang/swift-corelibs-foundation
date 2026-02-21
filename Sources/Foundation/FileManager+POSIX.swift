@@ -311,26 +311,6 @@ extension FileManager {
         return temp._bridgeToObjectiveC().appendingPathComponent(dest)
     }
 
-    #if os(WASI)
-    // For platforms that don't support FTS, we just throw an error for now.
-    // TODO: Provide readdir(2) based implementation here or FTS in wasi-libc?
-    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
-        var _url : URL
-        var _errorHandler : ((URL, Error) -> Bool)?
-
-        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ((URL, Error) -> Bool)?) {
-            _url = url
-            _errorHandler = errorHandler
-        }
-
-        override func nextObject() -> Any? {
-            if let handler = _errorHandler {
-                _ = handler(_url, _NSErrorWithErrno(ENOTSUP, reading: true, url: _url))
-            }
-            return nil
-        }
-    }
-    #else
     internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
         var _url : URL
         var _options : FileManager.DirectoryEnumerationOptions
@@ -464,7 +444,6 @@ extension FileManager {
             return nil
         }
     }
-    #endif
 
     internal func _updateTimes(atPath path: String, withFileSystemRepresentation fsr: UnsafePointer<Int8>, creationTime: Date? = nil, accessTime: Date? = nil, modificationTime: Date? = nil) throws {
         let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsr)
