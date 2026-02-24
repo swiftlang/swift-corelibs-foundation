@@ -48,16 +48,6 @@ extension URLSession {
         fileprivate var timeoutSource: _TimeoutSource? = nil
         private var reentrantInUpdateTimeoutTimer = false
         
-        // Only use serialization for OpenSSL < 1.1.0 which has race conditions during cleanup
-        private static let _needsCleanupSerialization: Bool = {
-            let version = CFURLSessionSSLVersionInfo();
-            let versionNotThreadSafe = version.major < 1 || (version.major == 1 && version.minor < 1)
-            return version.isOpenSSL && versionNotThreadSafe
-        }()
-
-        // Process-wide cleanup lock
-        private static let _cleanupLock = NSLock()
-
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
             setupCallbacks()
@@ -69,11 +59,8 @@ extension URLSession {
                 try! CFURLSessionMultiHandleRemoveHandle(rawHandle, $0.rawHandle).asError()
             }
 
-            if Self._needsCleanupSerialization {
-                Self._cleanupLock.lock()
-                try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
-                Self._cleanupLock.unlock()
-            } else {
+            lockingForSSLLibraryIfNeeded {
+                // curl_multi_cleanup affects OpenSSL internal state.
                 try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
             }
         }
@@ -314,7 +301,10 @@ fileprivate extension URLSession._MultiHandle {
     /// reads/writes available data given an action
     func readAndWriteAvailableData(on socket: CFURLSession_socket_t) throws {
         var runningHandlesCount = Int32(0)
-        try CFURLSessionMultiHandleAction(rawHandle, socket, 0, &runningHandlesCount).asError()
+        try lockingForSSLLibraryIfNeeded {
+            // Triggers certificate loading, SSL handshake, etc.
+            try CFURLSessionMultiHandleAction(rawHandle, socket, 0, &runningHandlesCount).asError()
+        }
         //TODO: Do we remove the timeout timer here if / when runningHandles == 0 ?
         readMessages()
     }

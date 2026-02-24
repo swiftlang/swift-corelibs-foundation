@@ -227,7 +227,7 @@ open class URLSession : NSObject, @unchecked Sendable {
      * the delegate has been sent the URLSession:didBecomeInvalidWithError: message.
      */
     public /*not inherited*/ init(configuration: URLSessionConfiguration) {
-        initializeLibcurl()
+        ensureLibcurlIsInitialized()
         identifier = nextSessionIdentifier()
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>", target: Self.sharedQueue)
         self.delegateQueue = OperationQueue()
@@ -249,7 +249,7 @@ open class URLSession : NSObject, @unchecked Sendable {
      * However, if user supplies a concurrent delegateQueue it is not converted to serial.
      */
     public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) {
-        initializeLibcurl()
+        ensureLibcurlIsInitialized()
         identifier = nextSessionIdentifier()
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>", target: Self.sharedQueue)
         if let _queue = queue {
