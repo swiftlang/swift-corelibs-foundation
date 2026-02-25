@@ -76,7 +76,7 @@ func signalTest() {
     sigaddset(&signalSet, SIGINT)
     sigaddset(&signalSet, SIGALRM)
     guard sigprocmask(SIG_BLOCK, &signalSet, nil) == 0 else {
-        fatalError("Cant block signals")
+        fatalError("Can't block signals")
     }
     // Timeout
     alarm(3)

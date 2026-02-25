@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if canImport(Dispatch)
 @_implementationOnly import CoreFoundation
 #if os(Windows)
 import WinSDK
@@ -19,6 +18,8 @@ import WinSDK
 @preconcurrency import Musl
 #elseif canImport(Bionic)
 @preconcurrency import Bionic
+#elseif canImport(WASILibc) && _runtime(_multithreaded)
+import wasi_pthread
 #endif
 
 // WORKAROUND_SR9811
@@ -124,7 +125,11 @@ open class Thread : NSObject {
     }
 
     open class func isMultiThreaded() -> Bool {
+#if _runtime(_multithreaded)
         return true
+#else
+        return false
+#endif
     }
 
     @available(*, noasync)
@@ -201,13 +206,18 @@ open class Thread : NSObject {
 #endif
     }
 
+    #if os(WASI)
+    @available(*, unavailable, message: "exit() is not available on WASI")
+    #endif
     @available(*, noasync)
     open class func exit() {
+#if !os(WASI)
         Thread.current._status = .finished
 #if os(Windows)
         ExitThread(0)
 #else
         pthread_exit(nil)
+#endif
 #endif
     }
 
@@ -248,7 +258,9 @@ open class Thread : NSObject {
 #if !os(Windows)
         let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
+            #if !os(WASI) // WASI does not support scheduling contention scope
             pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
+            #endif
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
         }
 #endif
@@ -323,10 +335,16 @@ open class Thread : NSObject {
 #if os(Windows)
     open var stackSize: Int {
       get {
+        // If we set a stack size for this thread.
+        // Otherwise, query the actual limits.
+        guard _attr.dwThreadStackReservation == 0 else {
+            return Int(_attr.dwThreadStackReservation)
+        }
         var ulLowLimit: ULONG_PTR = 0
         var ulHighLimit: ULONG_PTR = 0
         GetCurrentThreadStackLimits(&ulLowLimit, &ulHighLimit)
-        return Int(ulLowLimit)
+        // Return the reserved stack span.
+        return Int(ulHighLimit - ulLowLimit)
       }
       set {
         _attr.dwThreadStackReservation = DWORD(newValue)
@@ -385,7 +403,7 @@ open class Thread : NSObject {
         let maxSupportedStackDepth = 128;
         let addrs = UnsafeMutablePointer<UnsafeMutableRawPointer?>.allocate(capacity: maxSupportedStackDepth)
         defer { addrs.deallocate() }
-#if os(Android) || os(OpenBSD) || canImport(Musl)
+#if os(Android) || os(OpenBSD) || canImport(Musl) || os(WASI)
         let count = 0
 #elseif os(Windows)
         let count = RtlCaptureStackBackTrace(0, DWORD(maxSupportedStackDepth),
@@ -408,7 +426,7 @@ open class Thread : NSObject {
     }
 
     open class var callStackSymbols: [String] {
-#if os(Android) || os(OpenBSD) || canImport(Musl)
+#if os(Android) || os(OpenBSD) || canImport(Musl) || os(WASI)
         return []
 #elseif os(Windows)
         let hProcess: HANDLE = GetCurrentProcess()
@@ -478,4 +496,3 @@ extension NSNotification.Name {
     public static let NSDidBecomeSingleThreaded = NSNotification.Name(rawValue: "NSDidBecomeSingleThreadedNotification")
     public static let NSThreadWillExit = NSNotification.Name(rawValue: "NSThreadWillExitNotification")
 }
-#endif

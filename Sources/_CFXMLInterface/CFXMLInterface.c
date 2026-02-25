@@ -1061,12 +1061,17 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int option
 
 CFStringRef _CFXMLNodeCopyLocalName(_CFXMLNodePtr node) {
     xmlChar* prefix = NULL;
-    const xmlChar* result = xmlSplitQName2(_getQName((xmlNodePtr)node), &prefix);
-    if (result == NULL) {
-        result = ((xmlNodePtr)node)->name;
-    }
+    const xmlChar* localName = xmlSplitQName2(_getQName((xmlNodePtr)node), &prefix);
+    const xmlChar* result = localName ? localName : ((xmlNodePtr)node)->name;
     
-    return __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
+    CFStringRef nameString = __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
+    if (localName) {
+        xmlFree((xmlChar*)localName);
+    }
+    if (prefix) {
+        xmlFree(prefix);
+    }
+    return nameString;
 }
 
 CFStringRef _CFXMLNodeCopyPrefix(_CFXMLNodePtr node) {
@@ -1082,11 +1087,12 @@ CFStringRef _CFXMLNodeCopyPrefix(_CFXMLNodePtr node) {
 
 void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...);
 void _CFXMLValidityErrorHandler(void* ctxt, const char* msg, ...) {
-    char* formattedMessage = calloc(1, 1024);
+    size_t formattedMessageSize = 1024;
+    char* formattedMessage = calloc(1, formattedMessageSize);
 
     va_list args;
     va_start(args, msg);
-    vsprintf(formattedMessage, msg, args);
+    vsnprintf(formattedMessage, formattedMessageSize, msg, args);
     va_end(args);
 
     CFStringRef message = __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, formattedMessage, kCFStringEncodingUTF8);

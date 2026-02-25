@@ -139,7 +139,7 @@ class TestScanner : XCTestCase {
             expectEqual($0.scanString("x"), "x", "Consume non-hex-digit")
             expectEqual($0.scanDouble(representation: .hexadecimal), 0x1E00, "E is not for exponent")
             expectEqual($0.scanDouble(), nil, "Dont parse '.' as a Double")
-            expectEqual($0.scanString("."), ".", "Consue '.'")
+            expectEqual($0.scanString("."), ".", "Consume '.'")
             expectEqual($0.scanDouble(representation: .hexadecimal), -11259375.0078125, "negative decimal")
         }
     }
@@ -195,7 +195,7 @@ class TestScanner : XCTestCase {
             expectEqual($0.scanInt32(), -1 as Int32, "Minus one")
             expectEqual($0.scanInt32(), -1 as Int32, "Minus one after whitespace")
             expectEqual($0.scanInt32(), Int32.min, "Min")
-            expectEqual($0.scanInt32(), Int32.max, "Max again after min (no joining it with preceding min even with ignroed whitespace)")
+            expectEqual($0.scanInt32(), Int32.max, "Max again after min (no joining it with preceding min even with ignored whitespace)")
         }
         
         // Overflow:

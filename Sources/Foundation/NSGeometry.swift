@@ -997,7 +997,7 @@ public func NSPointInRect(_ aPoint: NSPoint, _ aRect: NSRect) -> Bool {
 
 public func NSMouseInRect(_ aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool {
     if flipped {
-        return aPoint.x >= aRect.minX && aPoint.y >= aRect.minX && aPoint.x < aRect.maxX && aPoint.y < aRect.maxY
+        return aPoint.x >= aRect.minX && aPoint.y >= aRect.minY && aPoint.x < aRect.maxX && aPoint.y < aRect.maxY
     }
     return aPoint.x >= aRect.minX && aPoint.y > aRect.minY && aPoint.x < aRect.maxX && aPoint.y <= aRect.maxY
 }

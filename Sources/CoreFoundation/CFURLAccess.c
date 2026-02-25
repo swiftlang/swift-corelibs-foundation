@@ -111,7 +111,7 @@ static CFDictionaryRef _CFFileURLCreatePropertiesFromResource(CFAllocatorRef all
     if (!desiredProperties) {
         // Cheap and dirty hack to make this work for the moment; ultimately we need to do something more sophisticated.  This will result in an error return whenever a property key is defined which isn't applicable to all file URLs.  REW, 3/2/99
         if (!_allProps) {
-            const void *values[9];
+            const void *values[6];
             values[0] = kCFURLFileExists;
             values[1] = kCFURLFilePOSIXMode;
             values[2] = kCFURLFileDirectoryContents;
@@ -783,8 +783,8 @@ Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef data, CFDi
             if (!_CFFileURLWritePropertiesToResource(url, propertyDict, errorCode))
                 success = false;
         }
-        return success;
 #endif
+        return success;
     } else {
         CFRelease(scheme);
 #if TARGET_OS_MAC

@@ -27,7 +27,7 @@ internal func objcLiteralDataWithPropertyList(_ plist: Any, originalFileName: St
 }
 
 internal func objcLiteralHeaderDataWithPropertyList(_ plist: Any, originalFileName: String, newFileName: String) throws -> Data {
-    let result = try _objCLiteralVaribleWithPropertyList(plist, forHeader: true, originalFilename: originalFileName, outputFilename: newFileName)
+    let result = try _objCLiteralVariableWithPropertyList(plist, forHeader: true, originalFilename: originalFileName, outputFilename: newFileName)
     
     // Add final semi-colon
     let withNewline = result.appending(";\n")
@@ -110,7 +110,7 @@ extension String {
 private func _objcLiteralDataWithPropertyList(_ plist: Any, depth: Int, indent: Bool, originalFilename: String, outputFilename: String) throws -> String {
     var result = ""
     if depth == 0 {
-        result.append(try _objCLiteralVaribleWithPropertyList(plist, forHeader: false, originalFilename: originalFilename, outputFilename: outputFilename))
+        result.append(try _objCLiteralVariableWithPropertyList(plist, forHeader: false, originalFilename: originalFilename, outputFilename: outputFilename))
     }
     
     if indent {
@@ -148,7 +148,7 @@ private func _objcLiteralDataWithPropertyList(_ plist: Any, depth: Int, indent: 
     return result
 }
 
-private func _objCLiteralVaribleWithPropertyList(_ plist: Any, forHeader: Bool, originalFilename: String, outputFilename: String) throws -> String {
+private func _objCLiteralVariableWithPropertyList(_ plist: Any, forHeader: Bool, originalFilename: String, outputFilename: String) throws -> String {
     let objCName: String
     if let _ = plist as? NSNumber {
         objCName = "NSNumber"

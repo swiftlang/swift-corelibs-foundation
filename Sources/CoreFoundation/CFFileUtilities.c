@@ -127,7 +127,7 @@ static Boolean _CFReadBytesFromPathAndGetFD(CFAllocatorRef alloc, const char *pa
             desiredLength = maxLength;
         }
         *bytes = CFAllocatorAllocate(alloc, desiredLength, 0);
-        if (!bytes) {
+        if (!*bytes) {
             close(*fd);
             *fd = -1;
             closeAutoFSNoWait(no_hang_fd);

@@ -1360,13 +1360,13 @@ const CFRuntimeClass __CFCharacterSetClass = {
     __CFCharacterSetCopyDescription
 };
 
-static bool __CFCheckForExapendedSet = false;
+static bool __CFDebugExpandedSet = false;
 
 CF_PRIVATE void __CFCharacterSetInitialize(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         const char *checkForExpandedSet = getenv("__CF_DEBUG_EXPANDED_SET");
-        if (checkForExpandedSet && (*checkForExpandedSet == 'Y')) __CFCheckForExapendedSet = true;
+        if (checkForExpandedSet && (*checkForExpandedSet == 'Y')) __CFDebugExpandedSet = true;
     });
 }
 
@@ -1378,7 +1378,7 @@ CFTypeID CFCharacterSetGetTypeID(void) {
 }
 
 /*** CharacterSet creation ***/
-/* Functions to create basic immutable characterset.
+/* Functions to create basic immutable character set.
 */
 CFCharacterSetRef CFCharacterSetGetPredefined(CFCharacterSetPredefinedSet theSetIdentifier) {
     CFCharacterSetRef cset;
@@ -2362,7 +2362,7 @@ void CFCharacterSetAddCharactersInRange(CFMutableCharacterSetRef theSet, CFRange
     }
     __CFCSetPutHasHashValue(theSet, false);
 
-    if (__CFCheckForExapendedSet) __CFCheckForExpandedSet(theSet);
+    if (__CFDebugExpandedSet) __CFCheckForExpandedSet(theSet);
 }
 
 void CFCharacterSetRemoveCharactersInRange(CFMutableCharacterSetRef theSet, CFRange theRange) {
@@ -2436,7 +2436,7 @@ void CFCharacterSetRemoveCharactersInRange(CFMutableCharacterSetRef theSet, CFRa
     }
 
     __CFCSetPutHasHashValue(theSet, false);
-    if (__CFCheckForExapendedSet) __CFCheckForExpandedSet(theSet);
+    if (__CFDebugExpandedSet) __CFCheckForExpandedSet(theSet);
 }
 
 void CFCharacterSetAddCharactersInString(CFMutableCharacterSetRef theSet,  CFStringRef theString) {
@@ -2527,7 +2527,7 @@ void CFCharacterSetAddCharactersInString(CFMutableCharacterSetRef theSet,  CFStr
 
     __CFCSetPutHasHashValue(theSet, false);
 
-    if (__CFCheckForExapendedSet) __CFCheckForExpandedSet(theSet);
+    if (__CFDebugExpandedSet) __CFCheckForExpandedSet(theSet);
 
     if (hasSurrogate) __CFApplySurrogatesInString(theSet, theString, &CFCharacterSetAddCharactersInRange);
 }
@@ -2614,7 +2614,7 @@ void CFCharacterSetRemoveCharactersInString(CFMutableCharacterSetRef theSet, CFS
     }
     
     __CFCSetPutHasHashValue(theSet, false);
-    if (__CFCheckForExapendedSet) __CFCheckForExpandedSet(theSet);
+    if (__CFDebugExpandedSet) __CFCheckForExpandedSet(theSet);
 
     if (hasSurrogate) __CFApplySurrogatesInString(theSet, theString, &CFCharacterSetRemoveCharactersInRange);
 }
@@ -2740,7 +2740,7 @@ void CFCharacterSetUnion(CFMutableCharacterSetRef theSet, CFCharacterSetRef theO
                 }
             }
         }
-        if (__CFCheckForExapendedSet) __CFCheckForExpandedSet(theSet);
+        if (__CFDebugExpandedSet) __CFCheckForExpandedSet(theSet);
     } else { // It's NSCharacterSet
         CFDataRef bitmapRep = CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, theOtherSet);
         const UInt32 *bitmap2 = (bitmapRep && CFDataGetLength(bitmapRep) ? (const UInt32 *)CFDataGetBytePtr(bitmapRep) : NULL);
@@ -2984,7 +2984,7 @@ void CFCharacterSetIntersect(CFMutableCharacterSetRef theSet, CFCharacterSetRef 
                 __CFCSetDeallocateAnnexPlane(theSet);
             }
         }
-        if (__CFCheckForExapendedSet) __CFCheckForExpandedSet(theSet);
+        if (__CFDebugExpandedSet) __CFCheckForExpandedSet(theSet);
     } else { // It's NSCharacterSet
         CFDataRef bitmapRep = CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, theOtherSet);
         const UInt32 *bitmap2 = (bitmapRep && CFDataGetLength(bitmapRep) ? (const UInt32 *)CFDataGetBytePtr(bitmapRep) : NULL);

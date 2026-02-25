@@ -390,8 +390,8 @@ open class NSDateInterval : NSObject, NSCopying, NSSecureCoding, @unchecked Send
     open func contains(_ date: Date) -> Bool {
         let timeIntervalForGivenDate = date.timeIntervalSinceReferenceDate
         let timeIntervalForSelfStart = startDate.timeIntervalSinceReferenceDate
-        let timeIntervalforSelfEnd = endDate.timeIntervalSinceReferenceDate
-        if (timeIntervalForGivenDate >= timeIntervalForSelfStart) && (timeIntervalForGivenDate <= timeIntervalforSelfEnd) {
+        let timeIntervalForSelfEnd = endDate.timeIntervalSinceReferenceDate
+        if (timeIntervalForGivenDate >= timeIntervalForSelfStart) && (timeIntervalForGivenDate <= timeIntervalForSelfEnd) {
             return true
         }
         return false

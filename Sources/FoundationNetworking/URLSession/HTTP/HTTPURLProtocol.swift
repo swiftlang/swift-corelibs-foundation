@@ -687,6 +687,10 @@ internal class _HTTPURLProtocol: _NativeProtocol {
 }
 
 fileprivate let userAgentString: String = {
+    // curl_version_info is not thread-safe until curl_global_init has been called.
+    // https://curl.se/libcurl/c/curl_version_info.html
+    ensureLibcurlIsInitialized()
+
     // Darwin uses something like this: "xctest (unknown version) CFNetwork/760.4.2 Darwin/15.4.0 (x86_64)"
     let info = ProcessInfo.processInfo
     let name = info.processName

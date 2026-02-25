@@ -31,7 +31,7 @@ internal struct TestListing {
         }
     }
 
-    /// Prints a JSON representation of the tests in the suite, mirring the internal
+    /// Prints a JSON representation of the tests in the suite, mirroring the internal
     /// tree representation of test suites and test cases. This output is intended
     /// to be consumed by other tools.
     func printTestJSON() {

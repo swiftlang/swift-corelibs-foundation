@@ -135,7 +135,7 @@ internal protocol _EasyHandleDelegate: AnyObject {
     /// Seek the input stream to the given position
     func seekInputStream(to position: UInt64) throws
     /// Gets called during the transfer to update progress.
-    func updateProgressMeter(with propgress: _EasyHandle._Progress)
+    func updateProgressMeter(with progress: _EasyHandle._Progress)
 }
 extension _EasyHandle {
     func set(verboseModeOn flag: Bool) {
@@ -764,8 +764,8 @@ fileprivate extension _EasyHandle {
         //     <https://en.wikipedia.org/wiki/Type_of_service>
         //     <https://en.wikipedia.org/wiki/Quality_of_service>
     }
-    func updateProgressMeter(with propgress: _Progress) {
-        delegate?.updateProgressMeter(with: propgress)
+    func updateProgressMeter(with progress: _Progress) {
+        delegate?.updateProgressMeter(with: progress)
     }
     
     func seekInputStream(offset: Int64, origin: CInt) -> CInt {

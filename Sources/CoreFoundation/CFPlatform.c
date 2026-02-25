@@ -42,7 +42,6 @@
 #define SECURITY_WIN32
 #include <Security.h>
 
-#define getcwd _NS_getcwd
 #define open _NS_open
 
 #endif
@@ -69,11 +68,6 @@ extern void __CFGetUGIDs(uid_t *euid, gid_t *egid);
 char **_CFArgv(void) { return *_NSGetArgv(); }
 int _CFArgc(void) { return *_NSGetArgc(); }
 #endif
-
-
-CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
-    return getcwd(path, maxlen) != NULL;
-}
 
 #if TARGET_OS_WIN32
 // Returns the path to the CF DLL, which we can then use to find resources like char sets
@@ -311,9 +305,9 @@ const char *_CFProcessPath(void) {
 #endif
 }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_BSD || TARGET_OS_WASI
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
-#if defined(__OpenBSD__) || defined(__FreeBSD__)
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || TARGET_OS_WASI
     return pthread_equal(pthread_self(), _CFMainPThread) != 0;
 #else
     return pthread_main_np() == 1;
@@ -930,7 +924,7 @@ static void __CFTSDFinalize(void *arg) {
     __CFMainThreadHasExited = true;
 #else
     if (_CFIsMainThread()) {
-        // Important: we need to be sure that the only time we set this flag to true is when we actually can guarentee we ARE the main thread. 
+        // Important: we need to be sure that the only time we set this flag to true is when we actually can guarantee we ARE the main thread.
         __CFMainThreadHasExited = true;
     }
 #endif
@@ -965,7 +959,7 @@ static void __CFTSDFinalize(void *arg) {
         free(table);
 
         // FreeBSD libthr emits debug message to stderr if there are leftover nonnull TSD after PTHREAD_DESTRUCTOR_ITERATIONS
-        // On this platform, the destructor will never be called again, therefore it is unneccessary to set the TSD to CF_TSD_BAD_PTR
+        // On this platform, the destructor will never be called again, therefore it is unnecessary to set the TSD to CF_TSD_BAD_PTR
         #if defined(__FreeBSD__)
         __CFTSDSetSpecific(NULL);
         #else
@@ -1120,9 +1114,9 @@ CF_EXPORT int _NS_chmod(const char *name, int mode) {
     
     // Convert mode
     int newMode = 0;
-    if (mode | 0400) newMode |= _S_IREAD;
-    if (mode | 0200) newMode |= _S_IWRITE;
-    if (mode | 0100) newMode |= _S_IEXEC;
+    if (mode & 0400) newMode |= _S_IREAD;
+    if (mode & 0200) newMode |= _S_IWRITE;
+    if (mode & 0100) newMode |= _S_IEXEC;
     
     int res = _wchmod(wide, newMode);
     free(wide);
@@ -1134,24 +1128,6 @@ CF_EXPORT int _NS_unlink(const char *name) {
     int res = _wunlink(wide);
     free(wide);
     return res;
-}
-
-// Warning: this doesn't support dstbuf as null even though 'getcwd' does
-CF_EXPORT char *_NS_getcwd(char *dstbuf, size_t size) {
-    if (!dstbuf) {
-	CFLog(kCFLogLevelWarning, CFSTR("CFPlatform: getcwd called with null buffer"));
-	return 0;
-    }
-    
-    wchar_t *buf = _wgetcwd(NULL, 0);
-    if (!buf) {
-        return NULL;
-    }
-        
-    // Convert result to UTF8
-    copyToNarrowFileSystemRepresentation(buf, (CFIndex)size, dstbuf);
-    free(buf);
-    return dstbuf;
 }
 
 CF_EXPORT char *_NS_getenv(const char *name) {
@@ -1720,43 +1696,37 @@ typedef struct _CFThreadSpecificData {
 __stdcall
 #endif
 static void _CFThreadSpecificDestructor(void *ctx) {
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     _CFThreadSpecificData *data = (_CFThreadSpecificData *)ctx;
     FlsSetValue(data->key, NULL);
     swift_release(data->value);
     free(data);
-#else
+#elif !TARGET_OS_WASI || defined(_REENTRANT)
     swift_release(ctx);
-#endif
 #endif
 }
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
     _CFThreadSpecificKey key;
 #if TARGET_OS_WIN32
     key = FlsAlloc(_CFThreadSpecificDestructor);
-#else
+#elif !TARGET_OS_WASI || defined(_REENTRANT)
     pthread_key_create(&key, &_CFThreadSpecificDestructor);
+#else
+    key = 0;
 #endif
     return key;
-#else
-    return 0;
-#endif
 }
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     _CFThreadSpecificData *data = (_CFThreadSpecificData *)FlsGetValue(key);
     if (data == NULL) {
         return NULL;
     }
     return data->value;
-#else
+#elif !TARGET_OS_WASI || defined(_REENTRANT)
     return (CFTypeRef)pthread_getspecific(key);
-#endif
 #else
     return NULL;
 #endif
@@ -1766,7 +1736,6 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
     // Intentionally not calling `swift_release` for previous value.
     // OperationQueue uses these API (through NSThreadSpecific), and balances
     // retain count manually.
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     free(FlsGetValue(key));
 
@@ -1783,7 +1752,7 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
     }
 
     FlsSetValue(key, data);
-#else
+#elif !TARGET_OS_WASI || defined(_REENTRANT)
     if (value != NULL) {
         swift_retain((void *)value);
         pthread_setspecific(key, value);
@@ -1791,12 +1760,9 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
         pthread_setspecific(key, NULL);
     }
 #endif
-#else
-#endif
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_WIN32
     DWORD dwCreationFlags = 0;
     DWORD dwStackSize = 0;
@@ -1812,18 +1778,16 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
     return (_CFThreadRef)_beginthreadex(NULL, dwStackSize,
                                         (_beginthreadex_proc_type)startfn,
                                         context, dwCreationFlags, NULL);
-#else
+#elif !TARGET_OS_WASI || defined(_REENTRANT)
     _CFThreadRef thread;
     pthread_create(&thread, &attrs, startfn, context);
     return thread;
-#endif
 #else
     return NULL;
 #endif
 }
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_MAC
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
@@ -1853,15 +1817,14 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
 #elif TARGET_OS_BSD
     pthread_set_name_np(thread, name);
     return 0;
-#endif
-#else
+#elif TARGET_OS_WASI
+    // No thread naming support in WASI
     return -1;
 #endif
 }
 
 // `buf` must be null-terminated
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
-#if SWIFT_CORELIBS_FOUNDATION_HAS_THREADS
 #if TARGET_OS_MAC
     return pthread_getname_np(pthread_self(), buf, length);
 #elif TARGET_OS_ANDROID
@@ -1907,11 +1870,11 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
     LocalFree(pszThreadDescription);
 
     return 0;
+#elif TARGET_OS_WASI
+    // No thread naming support in WASI
+    return -1;
 #endif
     return -1;
-#else
-    return -1;
-#endif
 }
 
 CF_EXPORT char **_CFEnviron(void) {
@@ -2280,7 +2243,6 @@ static int _CFPosixSpawnAttrSetFlagsImplPre28(_CFPosixSpawnAttrRef spawn_attr, s
         return EINVAL;
     }
 
-    // Validate the flags set against known valid flags.
     if ((flags & ~(POSIX_SPAWN_RESETIDS | POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF |
                    POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSCHEDPARAM | POSIX_SPAWN_SETSCHEDULER |
                    POSIX_SPAWN_USEVFORK | POSIX_SPAWN_SETSID)) != 0) {

@@ -187,7 +187,7 @@ class TestHTTPURLResponse: XCTestCase {
 
         ]
         guard let sut = HTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1", headerFields: f) else {
-            XCTFail("Cant create HTTPURLResponse")
+            XCTFail("Can't create HTTPURLResponse")
             return
         }
         XCTAssertEqual(sut.statusCode, 302)
@@ -196,7 +196,7 @@ class TestHTTPURLResponse: XCTestCase {
         XCTAssertEqual(sut.textEncodingName, "iso-8891-1")
 
         guard let ahf = sut.allHeaderFields as? [String: String] else {
-            XCTFail("Cant read .allheaderFields")
+            XCTFail("Can't read .allheaderFields")
             return
         }
 

@@ -36,7 +36,7 @@ class TestNSString: LoopbackServerTest {
                 XCTAssertEqual(text1.length, data.count)
                 XCTAssertEqual(text1, testString as NSString)
             } else {
-                XCTFail("Cant convert Data to NSString")
+                XCTFail("Can't convert Data to NSString")
             }
         }
 
@@ -44,7 +44,7 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(text2.count, data.count)
             XCTAssertEqual(text2, testString)
         } else {
-            XCTFail("Cant convert Data to String")
+            XCTFail("Can't convert Data to String")
         }
 
         // Test multibyte UTF8 and UTF16
@@ -61,7 +61,7 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(kra.utf16.count, 1)
             XCTAssertEqual(kra, utf8kra as String)
         } else {
-            XCTFail("Cant create UTF8 kra")
+            XCTFail("Can't create UTF8 kra")
         }
 
         let utf16KraData = Data([0x1, 0x38])
@@ -73,7 +73,7 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(kra.utf16.count, 1)
             XCTAssertEqual(kra, utf16kra as String)
         } else {
-            XCTFail("Cant create UTF16 kra")
+            XCTFail("Can't create UTF16 kra")
         }
 
         // Test a large string > 255 characters
@@ -87,7 +87,7 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(largeText.length, largeData.count)
             XCTAssertEqual(largeString, largeText as String)
         } else {
-            XCTFail("Cant convert large Data string to String")
+            XCTFail("Can't convert large Data string to String")
         }
     }
 
@@ -354,11 +354,11 @@ class TestNSString: LoopbackServerTest {
         }
 
         guard let zeroFileURL = testBundle().url(forResource: "TestFileWithZeros", withExtension: "txt") else {
-            XCTFail("Cant get URL for TestFileWithZeros.txt")
+            XCTFail("Can't get URL for TestFileWithZeros.txt")
            return
         }
         guard let zeroString = try? String(contentsOf: zeroFileURL, encoding: .utf8) else {
-            XCTFail("Cant create string from \(zeroFileURL)")
+            XCTFail("Can't create string from \(zeroFileURL)")
             return
         }
         XCTAssertEqual(zeroString, "Some\u{00}text\u{00}with\u{00}NUL\u{00}bytes\u{00}instead\u{00}of\u{00}spaces.\u{00}\n")
@@ -1161,10 +1161,10 @@ class TestNSString: LoopbackServerTest {
     }
     
     func test_addingPercentEncodingAndBack() {
-        let latingString = "a b"
-        let escapedLatingString = latingString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
-        let returnedLatingString = escapedLatingString?.removingPercentEncoding
-        XCTAssertEqual(returnedLatingString, latingString)
+        let latinString = "a b"
+        let escapedLatinString = latinString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        let returnedLatinString = escapedLatinString?.removingPercentEncoding
+        XCTAssertEqual(returnedLatinString, latinString)
         
         let cyrillicString = "\u{0434}\u{043E}\u{043C}"
         let escapedCyrillicString = cyrillicString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
@@ -1569,8 +1569,8 @@ class TestNSString: LoopbackServerTest {
         // Simplest check. Whole string is one or more
         // paragraphs, so result range should cover it completely.
         let wholeStringRange = NSRange(location: 0, length: nsText.length)
-        let allParagrapsRange = nsText.paragraphRange(for: wholeStringRange)
-        XCTAssertEqual(wholeStringRange, allParagrapsRange)
+        let allParagraphsRange = nsText.paragraphRange(for: wholeStringRange)
+        XCTAssertEqual(wholeStringRange, allParagraphsRange)
 
         // Every paragraph is checked against all possible subranges in it.
         for expectedRange in paragraphRanges {

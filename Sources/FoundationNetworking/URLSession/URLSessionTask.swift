@@ -379,7 +379,10 @@ open class URLSessionTask : NSObject, NSCopying, @unchecked Sendable {
      * cancellation.  -cancel may be sent to a task that has been suspended.
      */
     open func cancel() {
-        workQueue.sync {
+        // We must asynchronously perform the cancellation on the dispatch
+        // queue to avoid a deadlock. See the full explanation for why in
+        // https://github.com/swiftlang/swift-corelibs-foundation/issues/5412
+        workQueue.async {
             let canceled = self.syncQ.sync { () -> Bool in
                 guard self._state == .running || self._state == .suspended else { return true }
                 self._state = .canceling
@@ -436,7 +439,7 @@ open class URLSessionTask : NSObject, NSCopying, @unchecked Sendable {
     /// nestable.
     open func suspend() {
         // suspend / resume is implemented simply by adding / removing the task's
-        // easy handle fromt he session's multi-handle.
+        // easy handle from the session's multi-handle.
         //
         // This might result in slightly different behaviour than the Darwin Foundation
         // implementation, but it'll be difficult to get complete parity anyhow.
@@ -975,7 +978,7 @@ extension URLSessionWebSocketDelegate {
  * -URLSession:dataTask:didReceiveResponse: delegate message.
  *
  * URLSessionStreamTask can be used to perform asynchronous reads
- * and writes.  Reads and writes are enquened and executed serially,
+ * and writes.  Reads and writes are enqueued and executed serially,
  * with the completion handler being invoked on the sessions delegate
  * queuee.  If an error occurs, or the task is canceled, all
  * outstanding read and write calls will have their completion
@@ -983,7 +986,7 @@ extension URLSessionWebSocketDelegate {
  *
  * It is also possible to create InputStream and OutputStream
  * instances from an URLSessionTask by sending
- * -captureStreams to the task.  All outstanding read and writess are
+ * -captureStreams to the task.  All outstanding reads and writes are
  * completed before the streams are created.  Once the streams are
  * delivered to the session delegate, the task is considered complete
  * and will receive no more messages.  These streams are

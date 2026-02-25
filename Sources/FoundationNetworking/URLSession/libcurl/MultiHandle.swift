@@ -58,7 +58,11 @@ extension URLSession {
             easyHandles.forEach {
                 try! CFURLSessionMultiHandleRemoveHandle(rawHandle, $0.rawHandle).asError()
             }
-            try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
+
+            lockingForSSLLibraryIfNeeded {
+                // curl_multi_cleanup affects OpenSSL internal state.
+                try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
+            }
         }
     }
 }
@@ -297,7 +301,10 @@ fileprivate extension URLSession._MultiHandle {
     /// reads/writes available data given an action
     func readAndWriteAvailableData(on socket: CFURLSession_socket_t) throws {
         var runningHandlesCount = Int32(0)
-        try CFURLSessionMultiHandleAction(rawHandle, socket, 0, &runningHandlesCount).asError()
+        try lockingForSSLLibraryIfNeeded {
+            // Triggers certificate loading, SSL handshake, etc.
+            try CFURLSessionMultiHandleAction(rawHandle, socket, 0, &runningHandlesCount).asError()
+        }
         //TODO: Do we remove the timeout timer here if / when runningHandles == 0 ?
         readMessages()
     }
@@ -552,7 +559,7 @@ fileprivate class _SocketSources {
         handle.cancelWorkItem(for: socket) // There could be pending register action which needs to be cancelled
         
         guard readSource != nil || writeSource != nil else {
-            // This means that we have posponed (and already abandoned)
+            // This means that we have postponed (and already abandoned)
             // sources creation.
             return
         }

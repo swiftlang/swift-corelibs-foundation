@@ -93,7 +93,7 @@ static void __CFRecordStringAllocationEvent(const char *encoding, const char *by
         } else {
             snprintf(path, sizeof(path), "%s/CFSharedStringInstrumentation_%s_%d.txt", temp_dir, name, getpid());
             fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0666);
-            if (fd <= 0) {
+            if (fd < 0) {
                 int error = errno;
                 const char *errString = strerror(error);
                 fprintf(stderr, "open() failed with error %d (%s)\n", error, errString);
@@ -1375,7 +1375,7 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
             numBytes = vBuf.isASCII ? vBuf.numChars : (vBuf.numChars * sizeof(UniChar));
             hasLengthByte = hasNullByte = false;
 
-            // Get rid of the original buffer if its not being used
+            // Get rid of the original buffer if it's not being used
             if (noCopy && (contentsDeallocator != kCFAllocatorNull)) {
                 CFAllocatorDeallocate(contentsDeallocator, (void *)bytes);
             }
@@ -2363,7 +2363,7 @@ extern void __CFLocaleSetDoesNotRequireSpecialCaseHandling(struct __CFLocale *lo
 // - "tr": Turkish
 // - "nl": Dutch
 // - "el": Greek
-// For all other locales such as en_US, this function returs NULL.
+// For all other locales such as en_US, this function returns NULL.
 // See `CFUniCharMapCaseTo`
 // See https://www.unicode.org/Public/UNIDATA/SpecialCasing.txt
 static const char *_CFStrGetSpecialCaseHandlingLanguageIdentifierForLocale(CFLocaleRef locale, bool collatorOnly) {
@@ -2451,7 +2451,7 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
     if (0 != character) {
         UTF16Char lowSurrogate;
         CFIndex planeNo = (character >> 16);
-        bool isTurkikCapitalI = false;
+        bool isTurkicCapitalI = false;
         static const uint8_t *decompBMP = NULL;
         static const uint8_t *graphemeBMP = NULL;
 
@@ -2514,21 +2514,21 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
                     caseFoldBMP = CFUniCharGetBitmapPtrForPlane(kCFUniCharHasNonSelfCaseFoldingCharacterSet, 0);
                 }
 
-                if ((NULL != langCode) && ('I' == character) && ((0 == strcmp((const char *)langCode, "tr")) || (0 == strcmp((const char *)langCode, "az")))) { // do Turkik special-casing
+                if ((NULL != langCode) && ('I' == character) && ((0 == strcmp((const char *)langCode, "tr")) || (0 == strcmp((const char *)langCode, "az")))) { // do Turkic special-casing
                     if (filledLength > 1) {
                         if (0x0307 == outCharacters[1]) {
                             if (--filledLength > 1) memmove((outCharacters + 1), (outCharacters + 2), sizeof(UTF32Char) * (filledLength - 1));
                             character = *outCharacters = 'i';
-                            isTurkikCapitalI = true;
+                            isTurkicCapitalI = true;
                         }
                     } else if (0x0307 == CFStringGetCharacterFromInlineBuffer(buffer, currentIndex)) {
                         character = *outCharacters = 'i';
                         filledLength = 1;
                         ++currentIndex;
-                        isTurkikCapitalI = true;
+                        isTurkicCapitalI = true;
                     }
                 }
-                if (!isTurkikCapitalI && (CFUniCharIsMemberOfBitmap(character, ((0 == planeNo) ? lowerBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharHasNonSelfLowercaseCharacterSet, planeNo))) || CFUniCharIsMemberOfBitmap(character, ((0 == planeNo) ? caseFoldBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharHasNonSelfCaseFoldingCharacterSet, planeNo))))) {
+                if (!isTurkicCapitalI && (CFUniCharIsMemberOfBitmap(character, ((0 == planeNo) ? lowerBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharHasNonSelfLowercaseCharacterSet, planeNo))) || CFUniCharIsMemberOfBitmap(character, ((0 == planeNo) ? caseFoldBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharHasNonSelfCaseFoldingCharacterSet, planeNo))))) {
                     UTF16Char caseFoldBuffer[MAX_CASE_MAPPING_BUF];
                     const UTF16Char *bufferP = caseFoldBuffer, *bufferLimit;
                     UTF32Char *outCharactersP = outCharacters;
@@ -2623,8 +2623,8 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
                     nonBaseBitmap = graphemeBMP;
                     decompBitmap = decompBMP;
                 }
-                if (isTurkikCapitalI) {
-                    isTurkikCapitalI = false;
+                if (isTurkicCapitalI) {
+                    isTurkicCapitalI = false;
                 } else if (CFUniCharIsMemberOfBitmap(character, nonBaseBitmap)) {
                     if (doFill) {
                         if (CFUniCharIsMemberOfBitmap(character, decompBitmap)) {
@@ -4776,7 +4776,7 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
     CFIndex separatorNumByte;
     CFIndex stringCount = CFArrayGetCount(array);
     Boolean isSepCFString = !CF_IS_OBJC(_kCFRuntimeIDCFString, separatorString) && !CF_IS_SWIFT(_kCFRuntimeIDCFString, separatorString);
-    Boolean canBeEightbit = isSepCFString && __CFStrIsEightBit(separatorString);
+    Boolean canBeEightBit = isSepCFString && __CFStrIsEightBit(separatorString);
     CFIndex idx;
     CFStringRef otherString;
     void *buffer;
@@ -4795,11 +4795,11 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
     for (idx = 0; idx < stringCount; idx++) {
         otherString = (CFStringRef)CFArrayGetValueAtIndex(array, idx);
         numChars += CFStringGetLength(otherString);
-	// canBeEightbit is already false if the separator is an NSString...
-        if (CF_IS_OBJC(_kCFRuntimeIDCFString, otherString) || CF_IS_SWIFT(_kCFRuntimeIDCFString, otherString) || ! __CFStrIsEightBit(otherString)) canBeEightbit = false;
+	// canBeEightBit is already false if the separator is an NSString...
+        if (CF_IS_OBJC(_kCFRuntimeIDCFString, otherString) || CF_IS_SWIFT(_kCFRuntimeIDCFString, otherString) || ! __CFStrIsEightBit(otherString)) canBeEightBit = false;
     }
 
-    buffer = (uint8_t *)CFAllocatorAllocate(alloc, canBeEightbit ? ((numChars + 1) * sizeof(uint8_t)) : (numChars * sizeof(UniChar)), 0);
+    buffer = (uint8_t *)CFAllocatorAllocate(alloc, canBeEightBit ? ((numChars + 1) * sizeof(uint8_t)) : (numChars * sizeof(UniChar)), 0);
 	bufPtr = (uint8_t *)buffer;
 
     // check that bufPtr actually got allocated
@@ -4808,7 +4808,7 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
     }
     
     if (__CFOASafe) __CFSetLastAllocationEventName(buffer, "CFString (store)");
-    separatorNumByte = CFStringGetLength(separatorString) * (canBeEightbit ? sizeof(uint8_t) : sizeof(UniChar));
+    separatorNumByte = CFStringGetLength(separatorString) * (canBeEightBit ? sizeof(uint8_t) : sizeof(UniChar));
 
     for (idx = 0; idx < stringCount; idx++) {
         if (idx) { // add separator here unless first string
@@ -4817,7 +4817,7 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
             } else {
                 if (!isSepCFString) { // NSString
                     CFStringGetCharacters(separatorString, CFRangeMake(0, CFStringGetLength(separatorString)), (UniChar *)bufPtr);
-                } else if (canBeEightbit || __CFStrIsUnicode(separatorString)) {
+                } else if (canBeEightBit || __CFStrIsUnicode(separatorString)) {
                     memmove(bufPtr, (const uint8_t *)__CFStrContents(separatorString) + __CFStrSkipAnyLengthByte(separatorString), separatorNumByte);
                 } else {	
                     __CFStrConvertBytesToUnicode((uint8_t *)__CFStrContents(separatorString) + __CFStrSkipAnyLengthByte(separatorString), (UniChar *)bufPtr, __CFStrLength(separatorString));
@@ -4834,9 +4834,9 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
             bufPtr += otherLength * sizeof(UniChar);
         } else {
             const uint8_t * otherContents = (const uint8_t *)__CFStrContents(otherString);
-            CFIndex otherNumByte = __CFStrLength2(otherString, otherContents) * (canBeEightbit ? sizeof(uint8_t) : sizeof(UniChar));
+            CFIndex otherNumByte = __CFStrLength2(otherString, otherContents) * (canBeEightBit ? sizeof(uint8_t) : sizeof(UniChar));
 
-            if (canBeEightbit || __CFStrIsUnicode(otherString)) {
+            if (canBeEightBit || __CFStrIsUnicode(otherString)) {
                 memmove(bufPtr, otherContents + __CFStrSkipAnyLengthByte(otherString), otherNumByte);
             } else {
                 __CFStrConvertBytesToUnicode(otherContents + __CFStrSkipAnyLengthByte(otherString), (UniChar *)bufPtr, __CFStrLength2(otherString, otherContents));
@@ -4844,9 +4844,9 @@ CFStringRef CFStringCreateByCombiningStrings(CFAllocatorRef alloc, CFArrayRef ar
             bufPtr += otherNumByte;
         }
     }
-    if (canBeEightbit) *bufPtr = 0; // NULL byte;
+    if (canBeEightBit) *bufPtr = 0; // NULL byte;
 
-    return canBeEightbit ? 
+    return canBeEightBit ?
 		CFStringCreateWithCStringNoCopy(alloc, (const char*)buffer, __CFStringGetEightBitStringEncoding(), alloc) : 
 		CFStringCreateWithCharactersNoCopy(alloc, (UniChar *)buffer, numChars, alloc);
 }
@@ -6781,15 +6781,15 @@ reswtch:switch (ch) {
     TYPE value = (TYPE) WHAT;				\
     if (-1 != specs[curSpec].widthArgNum) {		\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, width, precision, value); \
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, width, precision, value); \
 	} else {					\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, width, value); \
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, width, value); \
 	}						\
     } else {						\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, precision, value); \
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, precision, value); \
         } else {					\
-	    snprintf_l(buffer, BUFFER_LEN-1, NULL, formatBuffer, value);	\
+	    snprintf_l(buffer, bufferSize, NULL, formatBuffer, value);	\
 	}						\
     }}
 #else
@@ -6797,15 +6797,15 @@ reswtch:switch (ch) {
     TYPE value = (TYPE) WHAT;				\
     if (-1 != specs[curSpec].widthArgNum) {		\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    sprintf(buffer, formatBuffer, width, precision, value); \
+	    snprintf(buffer, bufferSize, formatBuffer, width, precision, value); \
 	} else {					\
-	    sprintf(buffer, formatBuffer, width, value); \
+	    snprintf(buffer, bufferSize, formatBuffer, width, value); \
 	}						\
     } else {						\
 	if (-1 != specs[curSpec].precArgNum) {		\
-	    sprintf(buffer, formatBuffer, precision, value); \
+	    snprintf(buffer, bufferSize, formatBuffer, precision, value); \
         } else {					\
-	    sprintf(buffer, formatBuffer, value);	\
+	    snprintf(buffer, bufferSize, formatBuffer, value);	\
 	}						\
     }}
 #endif
@@ -7160,7 +7160,7 @@ static CFIndex __CFStringValidateFormat(CFStringRef expected, CFStringRef untrus
  originalValuesSize: Only used for recursive calls when doing stringsDict formatting. Otherwise 0. <<!!! Confirm>>
  args: The arguments to be formatted.
  outReplacementMetadata: On return, contains information on the replacements applied for the specifiers. If NULL, no metadata is generated.
- errorPtr: Only used when validating the formatString against valid format specfiers. Nil unless the validation fails. If error is set, return value is false.
+ errorPtr: Only used when validating the formatString against valid format specifiers. Nil unless the validation fails. If error is set, return value is false.
  
  ??? %s depends on handling of encodings by __CFStringAppendBytes
 */
@@ -7284,7 +7284,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
         }
     }
     
-    /* The code following this point makes multiple integer calcuations based off sizeSpecs, which is an upper-bound of the number of tokens in the string based on the number of '%' characters found. In order to avoid integer overflow at multiple points throughout this function, we will cap sizeSpec to an amount that won't overflow, but is still plenty large enough to support any reasonable format strings */
+    /* The code following this point makes multiple integer calculations based off sizeSpecs, which is an upper-bound of the number of tokens in the string based on the number of '%' characters found. In order to avoid integer overflow at multiple points throughout this function, we will cap sizeSpec to an amount that won't overflow, but is still plenty large enough to support any reasonable format strings */
 #define MAX_SIZE_SPECS (0xfffff) /* Won't overflow a 32-bit integer up to and including a multiplicative factor of 256 */
     if (sizeSpecs > MAX_SIZE_SPECS) {
         if (errorPtr) *errorPtr = __CFCreateOverflowError();

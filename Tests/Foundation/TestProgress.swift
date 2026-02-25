@@ -274,7 +274,7 @@ class TestProgress : XCTestCase {
         child2.completedUnitCount = 5
         XCTAssertEqual(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 2.0, accuracy: 0.01)
         
-        // add an implict child
+        // add an implicit child
         parent.becomeCurrent(withPendingUnitCount: 1)
         let child3 = Progress(totalUnitCount: 10)
         parent.resignCurrent()

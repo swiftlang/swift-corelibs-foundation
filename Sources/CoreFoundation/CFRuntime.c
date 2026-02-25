@@ -1195,8 +1195,6 @@ void __CFInitialize(void) {
 #elif _POSIX_THREADS
         // move this next line up into the #if above after Foundation gets off this symbol. Also: <rdar://problem/39622745> Stop using _CFMainPThread
         _CFMainPThread = pthread_self();
-#elif TARGET_OS_WASI
-        _CFMainPThread = kNilPthreadT;
 #else
 #error Dont know how to get the main thread on this platform
 #endif

@@ -221,7 +221,7 @@ typedef CF_ENUM(CFIndex, CFSearchPathDirectory) {
 typedef CF_OPTIONS(CFOptionFlags, CFSearchPathDomainMask) {
     kCFUserDomainMask = 1,	/* user's home directory --- place to install user's personal items (~) */
     kCFLocalDomainMask = 2,	/* local to the current machine --- place to install items available to everyone on this machine (/Local) */
-    kCFNetworkDomainMask = 4, 	/* publically available location in the local area network --- place to install items available on the network (/Network) */
+    kCFNetworkDomainMask = 4, 	/* publicly available location in the local area network --- place to install items available on the network (/Network) */
     kCFSystemDomainMask = 8,	/* provided by Apple, unmodifiable (/System) */
     kCFAllDomainsMask = 0x0ffff	/* all domains: all of the above and more, future items */
 };

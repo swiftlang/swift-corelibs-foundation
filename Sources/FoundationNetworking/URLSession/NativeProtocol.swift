@@ -237,7 +237,11 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
 
         guard let response = ts.response else {
-            fatalError("Transfer completed, but there's no response.")
+            internalState = .transferFailed
+            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNetworkConnectionLost,
+                                userInfo: [NSLocalizedDescriptionKey: "Transfer completed, but there's no response."])
+            failWith(error: error, request: request)
+            return
         }
         internalState = .transferCompleted(response: response, bodyDataDrain: ts.bodyDataDrain)
         let action = completionAction(forCompletedRequest: request, response: response)
@@ -297,7 +301,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         // We will reset the body source and seek forward.
         guard let session = task?.session as? URLSession else { fatalError() }
         
-        // TODO: InputStream is not Sendable, but it seems safe here beacuse of the wait on the dispatch group. It would be nice to prove this to the compiler.
+        // TODO: InputStream is not Sendable, but it seems safe here because of the wait on the dispatch group. It would be nice to prove this to the compiler.
         nonisolated(unsafe) var currentInputStream: InputStream?
         
         if let delegate = task?.delegate {

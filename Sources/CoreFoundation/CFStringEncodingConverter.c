@@ -600,7 +600,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
     switch (encoding) {
 	case kCFStringEncodingUTF8: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[0]); break;
 
-	    /* the swith here should avoid possible bootstrap issues in the default: case below when invoked from CFStringGetSystemEncoding() */
+	    /* the switch here should avoid possible bootstrap issues in the default: case below when invoked from CFStringGetSystemEncoding() */
 #if TARGET_OS_MAC || TARGET_OS_LINUX
 	case kCFStringEncodingMacRoman: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[1]); break;
 #elif TARGET_OS_WIN32
@@ -997,7 +997,7 @@ static CFComparisonResult __CFStringEncodingComparator(const void *v1, const voi
     return ((val1 == val2) ? ((CFComparisonResult)(*(const CFStringEncoding *)v1) - (CFComparisonResult)(*(const CFStringEncoding *)v2)) : val1 - val2);
 }
 
-static void __CFStringEncodingFliterDupes(CFStringEncoding *encodings, CFIndex numSlots) {
+static void __CFStringEncodingFilterDupes(CFStringEncoding *encodings, CFIndex numSlots) {
     CFStringEncoding last = kCFStringEncodingInvalidId;
     const CFStringEncoding *limitEncodings = encodings + numSlots;
 
@@ -1042,7 +1042,7 @@ CF_PRIVATE const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void
             }
 
             CFQSortArray(list, numSlots, sizeof(CFStringEncoding), (CFComparatorFunction)__CFStringEncodingComparator, NULL);
-            __CFStringEncodingFliterDupes(list, numSlots);
+            __CFStringEncodingFilterDupes(list, numSlots);
         }
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"

@@ -123,7 +123,7 @@ class TestDataURLProtocol: XCTestCase {
                 if let data = delegate.data, let string = String(data: data, encoding: encoding) {
                     XCTAssertEqual(body, string, "\(urlString) has wrong body string")
                 } else {
-                    XCTFail("Cant convert data to string for \(urlString)")
+                    XCTFail("Can't convert data to string for \(urlString)")
                 }
 
             } else {

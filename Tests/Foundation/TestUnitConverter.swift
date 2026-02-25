@@ -142,7 +142,8 @@ class TestUnitConverter: XCTestCase {
         XCTAssertEqual(testIdentity(UnitFrequency.millihertz), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitFrequency.microhertz), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitFrequency.nanohertz), 1, accuracy: delta)
-        
+        XCTAssertEqual(testIdentity(UnitFrequency.framesPerSecond), 1, accuracy: delta)
+
         XCTAssertEqual(testIdentity(UnitFuelEfficiency.litersPer100Kilometers), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitFuelEfficiency.milesPerImperialGallon), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitFuelEfficiency.milesPerGallon), 1, accuracy: delta)

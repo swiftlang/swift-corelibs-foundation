@@ -133,7 +133,7 @@ private func runloopIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) ->
         return false
     }
     
-    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(a!)
+    let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(b!)
     guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? RunLoop else {
         return false
     }
@@ -154,7 +154,7 @@ private func processIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) ->
         return false
     }
     
-    let unmanagedProcessB = Unmanaged<AnyObject>.fromOpaque(a!)
+    let unmanagedProcessB = Unmanaged<AnyObject>.fromOpaque(b!)
     guard let processB = unmanagedProcessB.takeUnretainedValue() as? Process else {
         return false
     }
@@ -492,7 +492,7 @@ open class Process: NSObject, @unchecked Sendable {
         // Dispatch the manager thread if it isn't already running
         Process.setup()
 
-        // Check that the process isnt run more than once
+        // Check that the process isn't run more than once
         guard hasStarted == false && hasFinished == false else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSExecutableLoadError)
         }
@@ -972,6 +972,7 @@ open class Process: NSObject, @unchecked Sendable {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 #endif
+        try _throwIfPosixError(_CFPosixSpawnAttrSetFlags(spawnAttrs, flags))
 
         // Set flags
 #if os(Android)

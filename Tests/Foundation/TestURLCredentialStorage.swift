@@ -276,7 +276,7 @@ class TestURLCredentialStorage : XCTestCase {
         let storage = URLCredentialStorage.shared
 
         let credential1 = URLCredential(user: "user1", password: "password1", persistence: .forSession)
-        let credential2 = URLCredential(user: "user1", password: "password1", persistence: .forSession) // intentially equal
+        let credential2 = URLCredential(user: "user1", password: "password1", persistence: .forSession) // intentionally equal
         let space = URLProtectionSpace(host: "example.com", port: 0, protocol: NSURLProtectionSpaceHTTP, realm: nil, authenticationMethod: NSURLAuthenticationMethodDefault)
 
         storage.set(credential1, for: space)

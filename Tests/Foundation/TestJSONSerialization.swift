@@ -1025,8 +1025,8 @@ extension TestJSONSerialization {
                 XCTAssertEqual(str!, "{\"\(param.0)\":\(param.1)}", "serialized value should  have a decimal places and leading zero")
             }
         }
-        //test serialize values grater than 1 with maxFractionDigits = 15
-        func execute_testSetGraterThanOne() {
+        //test serialize values greater than 1 with maxFractionDigits = 15
+        func execute_testSetGreaterThanOne() {
             let paramsBove1 = [
                 ("1.1",1.1),
                 ("1.2",1.2),
@@ -1066,7 +1066,7 @@ extension TestJSONSerialization {
             }
         }
         execute_testSetLessThanOne()
-        execute_testSetGraterThanOne()
+        execute_testSetGreaterThanOne()
         execute_testWholeNumbersWithDoubleAsInput()
         execute_testWholeNumbersWithIntInput()
     }
