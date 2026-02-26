@@ -972,7 +972,6 @@ open class Process: NSObject, @unchecked Sendable {
             try _throwIfPosixError(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 #endif
-        try _throwIfPosixError(_CFPosixSpawnAttrSetFlags(spawnAttrs, flags))
 
         // Set flags
 #if os(Android)
