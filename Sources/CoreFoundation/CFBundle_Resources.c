@@ -405,7 +405,7 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
                 int resolvedBundlePathFd = open(bundlePathCString, O_RDONLY);
 #endif
                 
-                if (resolvedWrappedBundleFd > 0 && resolvedBundlePathFd > 0) {
+                if (resolvedWrappedBundleFd >= 0 && resolvedBundlePathFd >= 0) {
                     char resolvedWrappedBundlePath[PATH_MAX];
                     char resolvedBundlePath[PATH_MAX];
                     
@@ -420,8 +420,8 @@ CF_PRIVATE _CFBundleVersion _CFBundleGetBundleVersionForURL(CFURLRef url) {
                     
                 }
                 
-                if (resolvedWrappedBundleFd > 0) close(resolvedWrappedBundleFd);
-                if (resolvedBundlePathFd > 0) close(resolvedBundlePathFd);
+                if (resolvedWrappedBundleFd >= 0) close(resolvedWrappedBundleFd);
+                if (resolvedBundlePathFd >= 0) close(resolvedBundlePathFd);
                 
                 if (!subdirectoryCheckOk) {
                     os_log_error(_CFBundleResourceLogger(), "`WrappedBundle` link invalid or pointed outside bundle at %{public}@", url);
