@@ -754,6 +754,7 @@ CF_PRIVATE CFTypeRef __CFCreateOldStylePropertyListOrStringsFile(CFAllocatorRef 
         CFRelease(plistString);
     }
     if (stringsPInfo.stringSet) { CFRelease(stringsPInfo.stringSet); }
+    if (stringsPInfo.error) { CFRelease(stringsPInfo.error); }
     return result;
 }
 
