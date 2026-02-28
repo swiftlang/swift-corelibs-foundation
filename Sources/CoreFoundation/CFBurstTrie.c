@@ -347,24 +347,28 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
     
     /* Check valid path name */
     if (!CFStringGetCString(path, filename, PATH_MAX, kCFStringEncodingUTF8)) return NULL;
-    
-    /* Check if file exists */
-    if (stat(filename, &sb) != 0) return NULL;
 
     /* Check if file can be opened */
     if ((fd = open(filename, CF_OPENFLGS|O_RDONLY, 0)) < 0) return NULL;
+
+	/* Get file info */
+	if (fstat(fd, &sb) != 0) goto error;
     
 #if TARGET_OS_WIN32
     HANDLE mappedFileHandle = (HANDLE)_get_osfhandle(fd);   
-    if (!mappedFileHandle) return NULL;
+    if (!mappedFileHandle) goto error;
     
     HANDLE mapHandle = CreateFileMapping(mappedFileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-    if (!mapHandle) return NULL;
+    if (!mapHandle) goto error;
     
     char *map = (char *)MapViewOfFile(mapHandle, FILE_MAP_READ, 0, 0, sb.st_size);
-    if (!map) return NULL;
+    if (!map) {
+		CloseHandle(mapHandle);
+        goto error;
+	}
 #else            
     char *map = mmap(0, sb.st_size, PROT_READ, MAP_FILE|MAP_SHARED, fd, 0);
+	if (map == MAP_FAILED) goto error;
 #endif
     
     CFBurstTrieRef trie = NULL;
@@ -386,6 +390,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
         // On Windows, the file being mapped must stay open as long as the map exists. Don't close it early. Other platforms close it here.
         close(fd);
 #endif
+		return trie;
     } else if (header->signature == 0xcafebabe || header->signature == 0x0ddba11) {
         trie = (CFBurstTrieRef) calloc(1, sizeof(struct _CFBurstTrie));
         trie->mapBase = map;
@@ -400,11 +405,20 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
 #else
         // On Windows, the file being mapped must stay open as long as the map exists. Don't close it early. Other platforms close it here.
         close(fd);
+		return trie;
 #endif
-    } else {
-        close(fd);
     }
-    return trie;
+
+#if TARGET_OS_WIN32
+    UnmapViewOfFile(map);
+    CloseHandle(mapHandle);
+#else
+    munmap(map, sb.st_size);
+#endif
+
+error:
+    close(fd);
+    return NULL;
 }
 
 CFBurstTrieRef CFBurstTrieCreateFromMapBytes(char *mapBase) {
@@ -633,7 +647,6 @@ Boolean CFBurstTrieSerialize(CFBurstTrieRef trie, CFStringRef path, CFBurstTrieO
 }
 
 Boolean CFBurstTrieSerializeWithFileDescriptor(CFBurstTrieRef trie, int fd, CFBurstTrieOpts opts) {
-    Boolean success = false;
     if (!trie->mapBase && fd >= 0) {
         off_t start_offset = lseek(fd, 0, SEEK_END);
 
@@ -643,21 +656,29 @@ Boolean CFBurstTrieSerializeWithFileDescriptor(CFBurstTrieRef trie, int fd, CFBu
 #if TARGET_OS_WIN32
         HANDLE mappedFileHandle = (HANDLE)_get_osfhandle(fd);
         // We need to make sure we have our own handle to keep this file open as long as the mmap lasts
-        DuplicateHandle(GetCurrentProcess(), mappedFileHandle, GetCurrentProcess(), &mappedFileHandle, 0, 0, DUPLICATE_SAME_ACCESS);
+        if (!DuplicateHandle(GetCurrentProcess(), mappedFileHandle, GetCurrentProcess(), &mappedFileHandle, 0, 0, DUPLICATE_SAME_ACCESS)) return false;
         HANDLE mapHandle = CreateFileMapping(mappedFileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-        if (!mapHandle) return NULL;
+		if (!mapHandle) {
+            CloseHandle(mappedFileHandle);
+            return false;
+        }
         char *map = (char *)MapViewOfFile(mapHandle, FILE_MAP_READ, 0, start_offset, trie->mapSize);
-        if (!map) return NULL;
+        if (!map) {
+            CloseHandle(mapHandle);
+            CloseHandle(mappedFileHandle);
+            return false;
+        }
         trie->mapBase = map;
         trie->mapHandle = mapHandle;
         trie->mappedFileHandle = mappedFileHandle;
 #else
-        trie->mapBase = mmap(0, trie->mapSize, PROT_READ, MAP_FILE|MAP_SHARED, fd, start_offset);
+        char *map = (char *)mmap(0, trie->mapSize, PROT_READ, MAP_FILE | MAP_SHARED, fd, start_offset);
+        if (map == MAP_FAILED) return false;
+        trie->mapBase = map;
 #endif
-        success = true;
     }
     
-    return success;
+    return true;
 }
 
 void CFBurstTrieTraverse(CFBurstTrieRef trie, void *ctx, void (*callback)(void*, const UInt8*, uint32_t, uint32_t)) {
