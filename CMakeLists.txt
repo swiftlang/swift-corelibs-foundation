@@ -193,7 +193,12 @@ list(APPEND _Foundation_common_build_flags
     "-Wno-switch"
     "-fblocks")
 
-if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+if(CMAKE_C_COMPILER_ID MATCHES Clang)
+  if(CMAKE_C_COMPILER_FRONTEND_VARIANT STREQUAL MSVC)
+    list(APPEND _Foundation_common_build_flags
+        "/EHsc"
+        "/clang:-fcf-runtime-abi=swift")
+  else()
     list(APPEND _Foundation_common_build_flags
         "-fconstant-cfstrings"
         "-fdollars-in-identifiers"
@@ -204,10 +209,7 @@ if(NOT "${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
         list(APPEND _Foundation_common_build_flags
             "-fexceptions")
     endif()
-else()
-    list(APPEND _Foundation_common_build_flags
-        "/EHsc"
-        "/clang:-fcf-runtime-abi=swift")
+  endif()
 endif()
 
 set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH ON)
