@@ -1560,7 +1560,7 @@ CF_INLINE Boolean __CFCharacterSetInitWithBitmapRepresentation(CFAllocatorRef al
         
         if (length < __kCFBitmapSize) {
             bitmap = (uint8_t *)CFAllocatorAllocate(allocator, __kCFBitmapSize, 0);
-            memmove(bitmap, CFDataGetBytePtr(theData), length);
+            memcpy(bitmap, CFDataGetBytePtr(theData), length);
             memset(bitmap + length, 0, __kCFBitmapSize - length);
             
             cBitmap = __CFCreateCompactBitmap(allocator, bitmap);
@@ -1577,7 +1577,7 @@ CF_INLINE Boolean __CFCharacterSetInitWithBitmapRepresentation(CFAllocatorRef al
             
             if (cBitmap == NULL) {
                 bitmap = (uint8_t *)CFAllocatorAllocate(allocator, __kCFBitmapSize, 0);
-                memmove(bitmap, CFDataGetBytePtr(theData), __kCFBitmapSize);
+                memcpy(bitmap, CFDataGetBytePtr(theData), __kCFBitmapSize);
                 
                 __CFCSetPutBitmapBits(cset, bitmap);
             } else {
@@ -1597,7 +1597,7 @@ CF_INLINE Boolean __CFCharacterSetInitWithBitmapRepresentation(CFAllocatorRef al
                     
                     if (length < __kCFBitmapSize) {
                         bitmap = (uint8_t *)CFAllocatorAllocate(allocator, __kCFBitmapSize, 0);
-                        memmove(bitmap, bytes, length);
+                        memcpy(bitmap, bytes, length);
                         memset(bitmap + length, 0, __kCFBitmapSize - length);
                         
                         cBitmap = __CFCreateCompactBitmap(allocator, bitmap);
@@ -1614,7 +1614,7 @@ CF_INLINE Boolean __CFCharacterSetInitWithBitmapRepresentation(CFAllocatorRef al
                         
                         if (cBitmap == NULL) {
                             bitmap = (uint8_t *)CFAllocatorAllocate(allocator, __kCFBitmapSize, 0);
-                            memmove(bitmap, bytes, __kCFBitmapSize);
+                            memcpy(bitmap, bytes, __kCFBitmapSize);
                             
                             __CFCSetPutBitmapBits(annexSet, bitmap);
                         } else {
@@ -1725,7 +1725,7 @@ CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc
 			__CFCSetPutStringBuffer(cset, (UniChar *)CFAllocatorAllocate(alloc, __kCFStringCharSetMax * sizeof(UniChar), 0));
 
             __CFCSetPutStringLength(cset, __CFCSetStringLength(theSet));
-            memmove(__CFCSetStringBuffer(cset), __CFCSetStringBuffer(theSet), __CFCSetStringLength(theSet) * sizeof(UniChar));
+            memcpy(__CFCSetStringBuffer(cset), __CFCSetStringBuffer(theSet), __CFCSetStringLength(theSet) * sizeof(UniChar));
             break;
 
         case __kCFCharSetClassBitmap:
@@ -1734,7 +1734,7 @@ CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc
 
                 if (bitmap == NULL) {
                     bitmap = (uint8_t *)CFAllocatorAllocate(alloc, sizeof(uint8_t) * __kCFBitmapSize, 0);
-                    memmove(bitmap, __CFCSetBitmapBits(theSet), __kCFBitmapSize);
+                    memcpy(bitmap, __CFCSetBitmapBits(theSet), __kCFBitmapSize);
                     __CFCSetPutBitmapBits(cset, bitmap);
                 } else {
                     __CFCSetPutCompactBitmapBits(cset, bitmap);
@@ -1752,7 +1752,7 @@ CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc
                 uint32_t size = __CFCSetGetCompactBitmapSize(compactBitmap);
                 uint8_t *newBitmap = (uint8_t *)CFAllocatorAllocate(alloc, size, 0);
 
-                memmove(newBitmap, compactBitmap, size);
+                memcpy(newBitmap, compactBitmap, size);
                 __CFCSetPutCompactBitmapBits(cset, newBitmap);
             }
         }
@@ -2823,12 +2823,12 @@ void CFCharacterSetIntersect(CFMutableCharacterSetRef theSet, CFCharacterSetRef 
                 case __kCFCharSetClassString:
                     __CFCSetPutStringLength(theSet, __CFCSetStringLength(theOtherSet));
                     if (!__CFCSetStringBuffer(theSet)) __CFCSetPutStringBuffer(theSet, (UniChar *)CFAllocatorAllocate(CFGetAllocator(theSet), __kCFStringCharSetMax * sizeof(UniChar), 0));
-                    memmove(__CFCSetStringBuffer(theSet), __CFCSetStringBuffer(theOtherSet), __CFCSetStringLength(theSet) * sizeof(UniChar));
+                    memcpy(__CFCSetStringBuffer(theSet), __CFCSetStringBuffer(theOtherSet), __CFCSetStringLength(theSet) * sizeof(UniChar));
                     break;
 
                 case __kCFCharSetClassBitmap:
                     __CFCSetPutBitmapBits(theSet, (uint8_t *)CFAllocatorAllocate(CFGetAllocator(theSet), sizeof(uint8_t) * __kCFBitmapSize, 0));
-                    memmove(__CFCSetBitmapBits(theSet), __CFCSetBitmapBits(theOtherSet), __kCFBitmapSize);
+                    memcpy(__CFCSetBitmapBits(theSet), __CFCSetBitmapBits(theOtherSet), __kCFBitmapSize);
                     break;
 
                 case __kCFCharSetClassCompactBitmap: {
@@ -2837,7 +2837,7 @@ void CFCharacterSetIntersect(CFMutableCharacterSetRef theSet, CFCharacterSetRef 
                     uint32_t size = __CFCSetGetCompactBitmapSize(cBitmap);
                     newBitmap = (uint8_t *)CFAllocatorAllocate(CFGetAllocator(theSet), sizeof(uint8_t) * size, 0);
                     __CFCSetPutBitmapBits(theSet, newBitmap);
-                    memmove(newBitmap, cBitmap, size);
+                    memcpy(newBitmap, cBitmap, size);
                     }
                     break;
 
