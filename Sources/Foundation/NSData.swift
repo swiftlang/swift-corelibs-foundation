@@ -8,7 +8,7 @@
 //
 
 @_implementationOnly import CoreFoundation
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
 import Dispatch
 #endif
 #if canImport(Android)
@@ -272,7 +272,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return isEqual(to: data._swiftObject)
         }
 
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
         if let data = value as? DispatchData {
             if data.count != length {
                 return false

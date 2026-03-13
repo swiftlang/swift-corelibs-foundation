@@ -145,6 +145,9 @@ extension FileManager {
             }
             fd += 1
         }
+#elseif os(Emscripten)
+        // Emscripten doesn't have WASI preopens or getfsstat
+        return nil
 #else
 #error("Requires a platform-specific implementation")
 #endif

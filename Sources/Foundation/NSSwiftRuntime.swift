@@ -23,11 +23,13 @@ internal import Synchronization
 @_exported @preconcurrency import Bionic
 #elseif os(WASI)
 @_exported import WASILibc
+#elseif os(Emscripten)
+@_exported @preconcurrency import EmscriptenLibc
 #elseif os(Windows)
 @_exported import CRT
 #endif
 
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
 @_exported import Dispatch
 #endif
 
