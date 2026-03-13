@@ -430,10 +430,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         let fm = FileManager.default
-#if os(WASI)
-        // WASI does not have permission concept
+#if os(WASI) || os(Emscripten)
+        // WASI/Emscripten do not have permission concept
         let permissions: Int? = nil
-        // ReadingOptions.atomic won't be specified on WASI as it's marked unavailable
+        // ReadingOptions.atomic won't be specified as it's marked unavailable
         var atomicWrite: Bool { false }
 #else
         let permissions = try? fm.attributesOfItem(atPath: path)[.posixPermissions] as? Int
@@ -475,6 +475,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             let createMode = Int(Musl.S_IRUSR) | Int(Musl.S_IWUSR) | Int(Musl.S_IRGRP) | Int(Musl.S_IWGRP) | Int(Musl.S_IROTH) | Int(Musl.S_IWOTH)
 #elseif canImport(WASILibc)
             let createMode = Int(WASILibc.S_IRUSR) | Int(WASILibc.S_IWUSR) | Int(WASILibc.S_IRGRP) | Int(WASILibc.S_IWGRP) | Int(WASILibc.S_IROTH) | Int(WASILibc.S_IWOTH)
+#elseif canImport(EmscriptenLibc)
+            let createMode = Int(EmscriptenLibc.S_IRUSR) | Int(EmscriptenLibc.S_IWUSR) | Int(EmscriptenLibc.S_IRGRP) | Int(EmscriptenLibc.S_IWGRP) | Int(EmscriptenLibc.S_IROTH) | Int(EmscriptenLibc.S_IWOTH)
 #elseif canImport(Android)
             let createMode = Int(Android.S_IRUSR) | Int(Android.S_IWUSR) | Int(Android.S_IRGRP) | Int(Android.S_IWGRP) | Int(Android.S_IROTH) | Int(Android.S_IWOTH)
 #endif
@@ -490,11 +492,11 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Writes the data object's bytes to the file specified by a given path.
     /// NOTE: the 'atomically' flag is ignored if the url is not of a type the supports atomic writes
-    #if os(WASI)
-    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #if os(WASI) || os(Emscripten)
+    @available(*, unavailable, message: "Atomic file-writing is not available on this platform")
     #endif
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
-        #if os(WASI)
+        #if os(WASI) || os(Emscripten)
         // WASI does not support atomic file-writing as it does not have temporary directories
         return false
         #else
@@ -509,11 +511,11 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Writes the data object's bytes to the location specified by a given URL.
     /// NOTE: the 'atomically' flag is ignored if the url is not of a type the supports atomic writes
-    #if os(WASI)
-    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #if os(WASI) || os(Emscripten)
+    @available(*, unavailable, message: "Atomic file-writing is not available on this platform")
     #endif
     open func write(to url: URL, atomically: Bool) -> Bool {
-        #if os(WASI)
+        #if os(WASI) || os(Emscripten)
         // WASI does not support atomic file-writing as it does not have temporary directories
         return false
         #else
