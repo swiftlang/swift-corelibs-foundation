@@ -75,8 +75,8 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 set(FOUNDATION_BUILD_NETWORKING_default ON)
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
-    # Networking is not supported on WASI
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # Networking is not supported on WASI/Emscripten
     set(FOUNDATION_BUILD_NETWORKING_default OFF)
 endif()
 option(FOUNDATION_BUILD_NETWORKING "build FoundationNetworking"
@@ -149,8 +149,8 @@ endif()
 
 # System dependencies
 
-# We know libdispatch is always unavailable on WASI
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+# We know libdispatch is always unavailable on WASI and Emscripten
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     find_package(LibRT)
     find_package(dispatch CONFIG)
     if(NOT dispatch_FOUND)

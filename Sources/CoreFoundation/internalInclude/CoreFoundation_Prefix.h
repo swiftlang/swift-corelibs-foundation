@@ -17,7 +17,7 @@
 #include "CFTargetConditionals.h"
 #include "CFAvailability.h"
 
-#if TARGET_OS_WASI
+#if TARGET_OS_WASI || defined(__EMSCRIPTEN__)
 #define __HAS_DISPATCH__ 0
 #else
 #define __HAS_DISPATCH__ 1
