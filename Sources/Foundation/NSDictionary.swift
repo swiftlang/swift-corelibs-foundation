@@ -505,7 +505,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return objects
     }
     
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
     }

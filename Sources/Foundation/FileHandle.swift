@@ -34,6 +34,11 @@ import WASILibc
 fileprivate let _read = WASILibc.read(_:_:_:)
 fileprivate let _write = WASILibc.write(_:_:_:)
 fileprivate let _close = WASILibc.close(_:)
+#elseif canImport(EmscriptenLibc)
+@preconcurrency import EmscriptenLibc
+fileprivate let _read = EmscriptenLibc.read(_:_:_:)
+fileprivate let _write = EmscriptenLibc.write(_:_:_:)
+fileprivate let _close = EmscriptenLibc.close(_:)
 #elseif canImport(Android)
 @preconcurrency import Android
 fileprivate let _read = Android.read(_:_:_:)
@@ -1074,7 +1079,7 @@ open class Pipe: NSObject, @unchecked Sendable {
                                                closeOnDealloc: true)
         self.fileHandleForWriting = FileHandle(handle: hWritePipe!,
                                                closeOnDealloc: true)
-#elseif os(WASI)
+#elseif os(WASI) || os(Emscripten)
         NSUnsupported()
 #else
         /// the `pipe` system call creates two `fd` in a malloc'ed area

@@ -446,7 +446,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return objects
     }
 
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
     open func write(to url: URL) throws {
         let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
         try pListData.write(to: url, options: .atomic)

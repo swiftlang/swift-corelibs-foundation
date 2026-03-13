@@ -269,7 +269,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSMutableString.appendCharacters = _CFSwiftStringAppendCharacters
     __CFSwiftBridge.NSMutableString._cfAppendCString = _CFSwiftStringAppendCString
 
-#if !os(WASI)    
+#if !os(WASI) && !os(Emscripten)
     __CFSwiftBridge.NSRunLoop._new = _NSRunLoopNew
 #endif
     
@@ -305,7 +305,7 @@ internal func __CFInitializeSwift() {
         
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
     
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
     __CFSwiftBridge.NSURL.copyResourcePropertyForKey = _CFSwiftURLCopyResourcePropertyForKey
     __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys = _CFSwiftURLCopyResourcePropertiesForKeys
     __CFSwiftBridge.NSURL.setResourcePropertyForKey = _CFSwiftURLSetResourcePropertyForKey

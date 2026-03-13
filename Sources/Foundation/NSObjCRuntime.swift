@@ -310,10 +310,10 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (UnitVolume.self, "NSUnitVolume"),
         (UnitTemperature.self, "NSUnitTemperature"),
     ]
-#if !(os(iOS) || os(Android) || os(WASI))
+#if !(os(iOS) || os(Android) || os(WASI) || os(Emscripten))
     map.append((Process.self, "NSTask"))
 #endif
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
     map += [
         (NotificationQueue.self, "NSNotificationQueue"),
         (Operation.self, "NSOperation"),
