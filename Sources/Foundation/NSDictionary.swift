@@ -10,7 +10,7 @@
 
 @_implementationOnly import CoreFoundation
 
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
 import Dispatch
 #endif
 

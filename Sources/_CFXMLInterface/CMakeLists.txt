@@ -29,10 +29,13 @@ target_compile_options(_CFXMLInterface PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:C>:${_Foundation_common_build_flags}>")
 
 target_link_libraries(_CFXMLInterface PRIVATE
-    dispatch
     LibXml2::LibXml2)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    target_link_libraries(_CFXMLInterface PRIVATE dispatch)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     target_link_libraries(_CFXMLInterface PRIVATE BlocksRuntime)
 endif()
 
