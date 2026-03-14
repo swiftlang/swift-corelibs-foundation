@@ -435,8 +435,8 @@ open class Thread : NSObject {
                     if SymFromAddr(hProcess, DWORD64(UInt(bitPattern: address)),
                                    &dwDisplacement, &pSymbolInfo.pointee) {
                         symbols.append(String(unsafeUninitializedCapacity: Int(pSymbolInfo.pointee.NameLen) + 1) {
-                            strncpy_s($0.baseAddress, $0.count, &pSymbolInfo.pointee.Name, $0.count)
-                            return $0.count
+                            strncpy_s($0.baseAddress, $0.count, &pSymbolInfo.pointee.Name, Int(pSymbolInfo.pointee.NameLen))
+                            return Int(pSymbolInfo.pointee.NameLen)
                         })
                     } else {
                         if let address {
