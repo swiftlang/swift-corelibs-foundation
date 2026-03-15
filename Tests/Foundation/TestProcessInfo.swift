@@ -47,7 +47,13 @@ class TestProcessInfo : XCTestCase {
     func test_processName() {
         let processInfo = ProcessInfo.processInfo
         let originalProcessName = processInfo.processName
-        XCTAssertEqual(originalProcessName, "swift-corelibs-foundationPackageTests.xctest")
+        XCTAssertTrue(
+            // Executable name when the package is built with --build-system native
+            originalProcessName == "swift-corelibs-foundationPackageTests.xctest" ||
+            // Executable name when the package is built with --build-system swiftbuild
+            originalProcessName == "TestFoundation-test-runner" ||
+            originalProcessName == "TestFoundation-test-runner.exe"
+        )
         
         // Try assigning a new process name.
         let newProcessName = "TestProcessName"

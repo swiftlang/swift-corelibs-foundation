@@ -1363,7 +1363,8 @@ extension TestNSData {
                 var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
                 if zeroIdx == NSNotFound { zeroIdx = contents.length }
                 if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
-                    XCTAssertTrue(str.hasSuffix(".xctest"))
+                    // Match the executable names produced by both --build-system native and --build-system swiftbuild
+                    XCTAssertTrue(str.hasSuffix(".xctest") || str.hasSuffix("-test-runner"))
                 } else {
                     XCTFail("Can't create String")
                 }
