@@ -50,8 +50,15 @@ class TestThread : XCTestCase {
         }
 
 #if os(Linux) || os(Android) // Linux sets the initial thread name to the process name.
-        XCTAssertEqual(Thread.current.name, "swift-corelibs-")
-        testInternalThreadName("swift-corelibs-")
+        let initialThreadName = Thread.current.name
+        XCTAssertTrue(
+            // Thread name when built with --build-system native
+            initialThreadName == "swift-corelibs-" ||
+            // Thread name when built with --build-system swiftbuild
+            initialThreadName == "TestFoundation-",
+            "Unexpected initial thread name: \(initialThreadName ?? "<nil>")"
+        )
+        testInternalThreadName(initialThreadName)
 #elseif os(OpenBSD) // OpenBSD sets the initial thread name to this.
         XCTAssertEqual(Thread.current.name, "Original thread")
         testInternalThreadName("Original thread")
