@@ -24,6 +24,7 @@
 
 #if TARGET_OS_WASI
 #include <wasi/libc-environ.h>
+#include <wasi/api.h>
 #endif
 
 #define _CFEmitInternalDiagnostics 0
