@@ -36,6 +36,13 @@ endif()
 project(Foundation
     LANGUAGES C Swift)
 
+if(CMAKE_VERSION VERSION_LESS 3.31)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Generic" AND CMAKE_SYSTEM_PROCESSOR MATCHES "wasm32")
+    set(CMAKE_SYSTEM_NAME WASI)
+    set(WASI 1)
+  endif()
+endif()
+
 option(FOUNDATION_SWIFTPM_DEPS "build Windows SwiftPM dependencies via CMake" NO)
 if(FOUNDATION_SWIFTPM_DEPS)
     include(WindowsSwiftPMDependencies)
@@ -75,7 +82,7 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 set(FOUNDATION_BUILD_NETWORKING_default ON)
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
+if(WASI)
     # Networking is not supported on WASI
     set(FOUNDATION_BUILD_NETWORKING_default OFF)
 endif()
@@ -150,7 +157,7 @@ endif()
 # System dependencies
 
 # We know libdispatch is always unavailable on WASI
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+if(NOT WASI)
     find_package(LibRT)
     find_package(dispatch CONFIG)
     if(NOT dispatch_FOUND)
@@ -229,7 +236,7 @@ list(APPEND _Foundation_swift_build_flags
     "-Xfrontend"
     "-require-explicit-sendable")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
+  if(WASI)
     # Enable wasi-libc emulation features
     set(WASI_EMULATION_DEFS _WASI_EMULATED_MMAN _WASI_EMULATED_SIGNAL _WASI_EMULATED_PROCESS_CLOCKS)
     foreach(def ${WASI_EMULATION_DEFS})
