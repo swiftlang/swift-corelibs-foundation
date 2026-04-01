@@ -226,8 +226,10 @@ set(_Foundation_swift_build_flags)
 list(APPEND _Foundation_swift_build_flags
     "-swift-version 6"
     "-DDEPLOYMENT_RUNTIME_SWIFT"
-    "-Xfrontend"
-    "-require-explicit-sendable")
+    "-Werror"
+    "ExplicitSendable"
+    "-enable-experimental-feature"
+    "TildeSendable")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     # Enable wasi-libc emulation features

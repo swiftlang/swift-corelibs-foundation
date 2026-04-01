@@ -55,8 +55,7 @@ extension Stream {
 
 // Stream is an abstract class encapsulating the common API to InputStream and OutputStream.
 // Subclassers of InputStream and OutputStream must also implement these methods.
-//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
-open class Stream: NSObject {
+open class Stream: NSObject, ~Sendable {
 
     public override init() {
         if type(of: self) == Stream.self {
