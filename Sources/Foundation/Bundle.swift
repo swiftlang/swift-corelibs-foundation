@@ -108,28 +108,28 @@ open class Bundle: NSObject, @unchecked Sendable {
     
     public init(for aClass: AnyClass) {
         let pointerInImageOfClass = _getTypeContextDescriptor(of: aClass)
-        guard let imagePath = _CFBundleCopyLoadedImagePathForAddress(pointerInImageOfClass)?._swiftObject else {
-            _bundleStorage = CFBundleGetMainBundle()
-            return
+        _bundleStorage = Self.cfBundle(forImageContaining: pointerInImageOfClass) ?? CFBundleGetMainBundle()
+    }
+
+    internal static func cfBundle(forImageContaining pointer: UnsafeRawPointer) -> CFBundle? {
+        guard let imagePath = _CFBundleCopyLoadedImagePathForAddress(pointer)?._swiftObject else {
+            return nil
         }
         
         let path = (try? FileManager.default._canonicalizedPath(toFileAtPath: imagePath)) ?? imagePath
         
         let url = URL(fileURLWithPath: path)
         if Bundle.main.executableURL == url {
-            _bundleStorage = CFBundleGetMainBundle()
-            return
+            return nil
         }
         
         for bundle in Bundle.allBundlesRegardlessOfType {
             if bundle.executableURL == url {
-                _bundleStorage = bundle._bundle
-                return
+                return bundle._bundle
             }
         }
         
-        let bundle = _CFBundleCreateWithExecutableURLIfMightBeBundle(kCFAllocatorSystemDefault, url._cfObject)?.takeRetainedValue()
-        _bundleStorage = bundle ?? CFBundleGetMainBundle()
+        return _CFBundleCreateWithExecutableURLIfMightBeBundle(kCFAllocatorSystemDefault, url._cfObject)?.takeRetainedValue()
     }
 
     public init?(identifier: String) {
