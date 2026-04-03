@@ -43,8 +43,7 @@ extension Formatter {
     }
 }
 
-//@_nonSendable - TODO: Mark with attribute to indicate this pure abstract class defers Sendable annotation to its subclasses.
-open class Formatter : NSObject, NSCopying, NSCoding {
+open class Formatter : NSObject, NSCopying, NSCoding, ~Sendable {
     
     public override init() {
         

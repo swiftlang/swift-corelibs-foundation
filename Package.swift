@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -134,10 +134,8 @@ let interfaceBuildSettings: [CSetting] = [
 let swiftBuildSettings: [SwiftSetting] = [
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .swiftLanguageMode(.v6),
-    .unsafeFlags([
-        "-Xfrontend",
-        "-require-explicit-sendable",
-    ])
+    .treatWarning("ExplicitSendable", as: .error),
+    .enableExperimentalFeature("TildeSendable")
 ]
 
 var dependencies: [Package.Dependency] = []
