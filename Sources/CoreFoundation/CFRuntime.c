@@ -1462,11 +1462,12 @@ static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR) {
             
             if (__builtin_expect(__CFHighRCFromInfo(info) == ~0U, false)) {
                 // Overflow will occur upon add. Turn into constant CFTypeRef (rc == 0). Retain will do nothing, but neither will release.
+                newInfo = info;
                 __CFBitfield64SetValue(newInfo, HIGH_RC_END, HIGH_RC_START, 0);
+            } else {
+                // Increment the retain count and swap into place
+                newInfo = info + RC_INCREMENT;
             }
-            
-            // Increment the retain count and swap into place
-            newInfo = info + RC_INCREMENT;
         } while (!atomic_compare_exchange_strong(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo));
 #else
         CFIndex rc = __CFLowRCFromInfo(info);
