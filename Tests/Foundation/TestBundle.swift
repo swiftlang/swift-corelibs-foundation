@@ -598,4 +598,8 @@ class TestBundle : XCTestCase {
     func test_bundleForClass() {
         XCTAssertEqual(testBundle(executable: true), Bundle(for: type(of: self)))
     }
+
+    func test_bundleMacro() {
+        XCTAssert(#bundle === testBundle())
+    }
 }
