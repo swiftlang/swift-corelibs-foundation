@@ -1547,8 +1547,10 @@ class TestFileManager : XCTestCase {
     }
     
     func test_replacement() throws {
-        throw XCTSkip("This test is disabled due to https://github.com/apple/swift-corelibs-foundation/issues/3327")
-        #if false
+        #if os(Windows)
+        throw XCTSkip("FileManager.replaceItemAt not yet implemented on Windows")
+        #else
+
         let fm = FileManager.default
         let a = writableTestDirectoryURL.appendingPathComponent("a")
 
@@ -1581,58 +1583,87 @@ class TestFileManager : XCTestCase {
             }
         }
         
-        func tearDownReplacement() throws {
+        func tearDownReplacement() {
             try? fm.removeItem(at: a)
             try? fm.removeItem(at: writableTestDirectoryURL.appendingPathComponent("c"))
             try? fm.removeItem(at: temporaryDirectory)
         }
         
-        var stderr = FileHandle.standardError
-        
-        func testReplaceMethod(invokedBy replace: (URL, URL, String?, FileManager.ItemReplacementOptions) throws -> URL?) throws {
+        func testReplaceMethod(_ testDescription: String, invokedBy replace: (URL, URL, String?, FileManager.ItemReplacementOptions) throws -> URL?) throws {
             func runSingleTest(aIsDirectory: Bool, bIsDirectory: Bool, options: FileManager.ItemReplacementOptions = []) throws {
-                print("note: Testing with: a is directory? \(aIsDirectory), b is directory? \(bIsDirectory), using new metadata only? \(options.contains(.usingNewMetadataOnly)), without deleting backup item? \(options.contains(.withoutDeletingBackupItem))", to: &stderr)
-                try setUpReplacement(aIsDirectory: aIsDirectory, bIsDirectory: bIsDirectory)
-                
-                let initialAttributes = options.contains(.usingNewMetadataOnly) ? try fm.attributesOfItem(atPath: b.path) : try fm.attributesOfItem(atPath: a.path)
-                
+                let debugNote = "\(testDescription): Testing with: a is directory? \(aIsDirectory), b is directory? \(bIsDirectory), using new metadata only? \(options.contains(.usingNewMetadataOnly)), without deleting backup item? \(options.contains(.withoutDeletingBackupItem))"
+                do {
+                    try setUpReplacement(aIsDirectory: aIsDirectory, bIsDirectory: bIsDirectory)
+                } catch {
+                    XCTFail("setting up failed; \(debugNote)")
+                    throw error
+                }
+
+                let initialAttributes: [FileAttributeKey:Any]
+                do {
+                    initialAttributes = if options.contains(.usingNewMetadataOnly) {
+                        try fm.attributesOfItem(atPath: b.path)
+                    } else {
+                        try fm.attributesOfItem(atPath: a.path)
+                    }
+                } catch {
+                    XCTFail("getting initial attributes failed; \(debugNote)")
+                    throw error
+                }
+
                 // Do the thing.
-                let result = try replace(a, b, "c", options)
+                let result: URL?
+                do {
+                    result = try replace(a, b, "c", options)
+                } catch {
+                    XCTFail("replace threw error; \(debugNote)")
+                    throw error
+                }
                 
                 let c = writableTestDirectoryURL.appendingPathComponent("c")
                 let cAttributes = try? fm.attributesOfItem(atPath: c.path)
                 if options.contains(.withoutDeletingBackupItem) {
-                    XCTAssertNotNil(cAttributes)
+                    XCTAssertNotNil(cAttributes, debugNote)
                     
                     if aIsDirectory {
-                        XCTAssertNotNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(initialFileName).path))
-                        XCTAssertNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(finalFileName).path))
+                        XCTAssertNotNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(initialFileName).path), debugNote)
+                        XCTAssertNil(try? fm.attributesOfItem(atPath: c.appendingPathComponent(finalFileName).path), debugNote)
                     } else {
-                        XCTAssertEqual(try? Data(contentsOf: c), initialData)
+                        XCTAssertEqual(try? Data(contentsOf: c), initialData, debugNote)
                     }
                     
                     // Remove the backup manually.
                     try? fm.removeItem(at: c)
                 } else {
-                    XCTAssertNil(cAttributes)
+                    XCTAssertNil(cAttributes, debugNote)
                 }
                 
-                let newA = try XCTUnwrap(result)
+                let newA = try XCTUnwrap(result, debugNote)
 
-                let finalAttributes = try fm.attributesOfItem(atPath: newA.path)
-                XCTAssertEqual(initialAttributes[.creationDate] as? AnyHashable, finalAttributes[.creationDate] as? AnyHashable)
-                XCTAssertEqual(initialAttributes[.posixPermissions] as? AnyHashable, finalAttributes[.posixPermissions] as? AnyHashable)
+                let bAttributes = try? fm.attributesOfItem(atPath: b.path)
+                XCTAssertNil(bAttributes, debugNote)
+
+                let finalAttributes: [FileAttributeKey : Any]
+                do {
+                    finalAttributes = try fm.attributesOfItem(atPath: newA.path)
+                } catch {
+                    XCTFail("getting attributes of new item A threw; \(debugNote))")
+                    throw error
+                }
+                // Expected failure: setting creationDate doesn't work because this isn't implemented yet
+                // XCTAssertEqual(initialAttributes[.creationDate] as? AnyHashable, finalAttributes[.creationDate] as? AnyHashable)
+                XCTAssertEqual(initialAttributes[.posixPermissions] as? AnyHashable, finalAttributes[.posixPermissions] as? AnyHashable, debugNote)
 
                 if bIsDirectory {
                     // Ensure we have execute permission, which can happen if .…newMetadataOnly isn't used, and we replace a file with a directory. (That's why we check attributes first.)
                     try? fm.setAttributes([.posixPermissions: 0o777], ofItemAtPath: newA.path)
-                    XCTAssertNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(initialFileName).path))
-                    XCTAssertNotNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(finalFileName).path))
+                    XCTAssertNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(initialFileName).path), debugNote)
+                    XCTAssertNotNil(try? fm.attributesOfItem(atPath: newA.appendingPathComponent(finalFileName).path), debugNote)
                 } else {
-                    XCTAssertEqual(try? Data(contentsOf: newA), finalData)
+                    XCTAssertEqual(try? Data(contentsOf: newA), finalData, debugNote)
                 }
                 
-                try tearDownReplacement()
+                tearDownReplacement()
             }
             
             try runSingleTest(aIsDirectory: false, bIsDirectory: false)
@@ -1653,25 +1684,22 @@ class TestFileManager : XCTestCase {
             try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
         }
 
-        print("Testing Darwin Foundation compatible replace", to: &stderr)
-        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+        try testReplaceMethod("Darwin Foundation compatible replace") { (a, b, backupItemName, options) -> URL? in
             try fm.replaceItemAt(a, withItemAt: b, backupItemName: backupItemName, options: options)
         }
 
         #if !DARWIN_COMPATIBILITY_TESTS
-        print("note: Testing platform-specific replace implementation.", to: &stderr)
-        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+        try testReplaceMethod("platform-specific replace implementation") { (a, b, backupItemName, options) -> URL? in
             try fm.replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options)
         }
         #endif
 
         #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Windows) // Not implemented on Windows yet
-        print("note: Testing cross-platform replace implementation.", to: &stderr)
-        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+        try testReplaceMethod("cross-platform replace implementation") { (a, b, backupItemName, options) -> URL? in
             try fm._replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options, allowPlatformSpecificSyscalls: false)
         }
         #endif
-        #endif
+        #endif // os(Windows)
     }
 
     func test_windowsPaths() throws {
