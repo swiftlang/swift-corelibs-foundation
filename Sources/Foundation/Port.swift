@@ -90,7 +90,7 @@ public protocol PortDelegate: AnyObject {
     func handle(_ message: PortMessage)
 }
 
-#if os(WASI)
+#if os(WASI) || os(Emscripten)
 
 @available(*, unavailable, message: "SocketPort is not available on this platform.")
 open class SocketPort: Port {}

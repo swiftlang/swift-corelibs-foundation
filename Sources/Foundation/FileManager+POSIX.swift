@@ -145,6 +145,9 @@ extension FileManager {
             }
             fd += 1
         }
+#elseif os(Emscripten)
+        // Emscripten doesn't have WASI preopens or getfsstat
+        return nil
 #else
 #error("Requires a platform-specific implementation")
 #endif
@@ -153,8 +156,11 @@ extension FileManager {
     
     internal func _attributesOfFileSystemIncludingBlockSize(forPath path: String) throws -> (attributes: [FileAttributeKey : Any], blockSize: UInt64?) {
     #if os(WASI)
-        // WASI doesn't have statvfs
+        // WASI does not have statvfs
         throw _NSErrorWithErrno(ENOTSUP, reading: true, path: path)
+    #elseif os(Emscripten)
+        // Emscripten does not have statvfs
+        throw _NSErrorWithErrno(EmscriptenLibc.ENOTSUP, reading: true, path: path)
     #else
         var result: [FileAttributeKey:Any] = [:]
         var finalBlockSize: UInt64?
@@ -315,8 +321,10 @@ extension FileManager {
         var _url : URL
         var _options : FileManager.DirectoryEnumerationOptions
         var _errorHandler : ((URL, Error) -> Bool)?
+#if !os(Emscripten) // Emscripten doesn't have fts.h
         var _stream : UnsafeMutablePointer<FTS>? = nil
         var _current : UnsafeMutablePointer<FTSENT>? = nil
+#endif
         var _rootError : Error? = nil
         var _gotRoot : Bool = false
 
@@ -327,6 +335,9 @@ extension FileManager {
             _options = options
             _errorHandler = errorHandler
 
+#if os(Emscripten)
+            _rootError = _NSErrorWithErrno(ENOSYS, reading: true, url: url)
+#else
             let fm = FileManager.default
             do {
                 guard fm.fileExists(atPath: _url.path) else { throw _NSErrorWithErrno(ENOENT, reading: true, url: url) }
@@ -343,15 +354,26 @@ extension FileManager {
             } catch {
                 _rootError = error
             }
+#endif
         }
 
         deinit {
+#if !os(Emscripten)
             if let stream = _stream {
                 fts_close(stream)
             }
+#endif
         }
 
         override func nextObject() -> Any? {
+#if os(Emscripten)
+            if let error = _rootError {
+                if let handler = _errorHandler {
+                    let _ = handler(_url, error)
+                }
+            }
+            return nil
+#else
             func match(filename: String, to options: DirectoryEnumerationOptions, isDir: Bool) -> (Bool, Bool) {
                 var showFile = true
                 var skipDescendants = false
@@ -424,16 +446,23 @@ extension FileManager {
                 }
             }
             return nil
+#endif // !os(Emscripten)
         }
 
         override var level: Int {
+#if os(Emscripten)
+            return 0
+#else
             return Int(_current?.pointee.fts_level ?? 0)
+#endif
         }
 
         override func skipDescendants() {
+#if !os(Emscripten)
             if let stream = _stream, let current = _current {
                 fts_set(stream, current, FTS_SKIP)
             }
+#endif
         }
 
         override var directoryAttributes : [FileAttributeKey : Any]? {
