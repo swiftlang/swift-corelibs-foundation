@@ -517,26 +517,28 @@ extension FileManager {
             
             #if canImport(Glibc)
             do {
-                let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
-                    return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
+                let (finalErrno, performedSwap) = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> (Int32?, Bool) in
+                    return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> (Int32?, Bool) in
                         if let originalFS = originalFS,
                            let newItemFS = newItemFS {
                                 #if os(Linux)
                                 if _CFHasRenameat2 && kernelSupportsRenameat2 {
+                                    // Use RENAME_EXCHANGE when possible because it can support more combinations of renames when the type of the item at the old location and the type of the pre-existing item at the new location don't match
+                                    // If the swap is successful, we will remove the item at originalFS (the pre-existing item) below
                                     if _CF_renameat2(AT_FDCWD, newItemFS, AT_FDCWD, originalFS, _CF_renameat2_RENAME_EXCHANGE) == 0 {
-                                        return nil
+                                        return (nil, true)
                                     } else {
-                                        return errno
+                                        return (errno, false)
                                     }
                                 }
                                 #endif
                                 if renameat(AT_FDCWD, newItemFS, AT_FDCWD, originalFS) == 0 {
-                                    return nil
+                                    return (nil, false)
                                 } else {
-                                    return errno
+                                    return (errno, false)
                                 }
                         } else {
-                            return Int32(EINVAL)
+                            return (Int32(EINVAL), false)
                         }
                     }
                 }
@@ -550,6 +552,11 @@ extension FileManager {
                 if let finalErrno = finalErrno, !nonFatalErrors.contains(finalErrno) {
                     throw _NSErrorWithErrno(finalErrno, reading: false, url: originalItemURL)
                 } else if finalErrno == nil {
+                    if performedSwap {
+                        // If we performed an atomic swap instead of an atomic move, remove the file at the new item URL
+                        // If there was already a file at the destination of the move, it will now exist at the source of the move (when swapping) and we should clean that up
+                        try? removeItem(at: newItemURL)
+                    }
                     try applyPostprocessingRequiredByOptions()
                     return originalItemURL
                 }
