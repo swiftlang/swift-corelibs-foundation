@@ -555,7 +555,7 @@ extension FileManager {
                     if performedSwap {
                         // If we performed an atomic swap instead of an atomic move, remove the file at the new item URL
                         // If there was already a file at the destination of the move, it will now exist at the source of the move (when swapping) and we should clean that up
-                        try? removeItem(at: newItemURL)
+                        try removeItem(at: newItemURL)
                     }
                     try applyPostprocessingRequiredByOptions()
                     return originalItemURL
