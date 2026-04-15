@@ -1142,6 +1142,10 @@ extension _ProtocolClient : URLProtocolClient {
             }
         }
         
+        completeTask(urlProtocol: urlProtocol, task: task, session: session)
+    }
+
+    private func completeTask(urlProtocol: URLProtocol, task: URLSessionTask, session: URLSession) {
         if let storage = session.configuration.urlCredentialStorage,
            let last = task._protocolLock.performLocked({ task._lastCredentialUsedFromStorageDuringAuthentication }) {
             storage.set(last.credential, for: last.protectionSpace, task: task)
@@ -1267,6 +1271,7 @@ extension _ProtocolClient : URLProtocolClient {
             task.resume()
         }
         
+        nonisolated(unsafe) let nonisolatedURLProtocol = `protocol`
         @Sendable func attemptProceedingWithDefaultCredential() {
             if let credential = challenge.proposedCredential {
                 let last = task._protocolLock.performLocked { task._lastCredentialUsedFromStorageDuringAuthentication }
@@ -1274,8 +1279,10 @@ extension _ProtocolClient : URLProtocolClient {
                 if last?.credential != credential {
                     proceed(using: credential)
                 } else {
-                    task.cancel()
+                    self.completeTask(urlProtocol: nonisolatedURLProtocol, task: task, session: session)
                 }
+            } else {
+                self.completeTask(urlProtocol: nonisolatedURLProtocol, task: task, session: session)
             }
         }
         
