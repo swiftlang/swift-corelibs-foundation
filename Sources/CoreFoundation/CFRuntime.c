@@ -1243,7 +1243,9 @@ void __CFInitialize(void) {
                 if (0 == strcmp(args[idx], "-AppleLanguages") && args[idx + 1]) {
                     CFIndex length = strlen(args[idx + 1]);
                     __CFAppleLanguages = malloc(length + 1);
-                    memmove(__CFAppleLanguages, args[idx + 1], length + 1);
+                    if (__CFAppleLanguages) {
+                        memcpy(__CFAppleLanguages, args[idx + 1], length + 1);
+                    }
                     break;
                 }
             }
