@@ -388,7 +388,9 @@ CF_PRIVATE uint16_t __CFStringEncodingGetWindowsCodePage(CFStringEncoding encodi
             case kCFStringEncodingUTF32BE: return 65006;
         }        
     } else if (0x0200 == encodingBase) { // ISO 8859 range
-        return ISO8859CODEPAGE_BASE + (encoding & 0xFF);
+        encoding &= 0xFF;
+
+        if (encoding != 0) return ISO8859CODEPAGE_BASE + encoding;
     } else { // others
         CFIndex index = __CFGetEncodingIndex(encoding);
 
