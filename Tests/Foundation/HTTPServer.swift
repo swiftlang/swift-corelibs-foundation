@@ -938,6 +938,8 @@ public class TestURLSessionServer: CustomStringConvertible {
                                "Connection: Upgrade"]
         
         let expectFullRequestResponseTests: Bool
+        let bufferedSendingTests: Bool
+        let fragmentedTests: Bool
         let sendClosePacket: Bool
         let completeUpgrade: Bool
         
@@ -945,14 +947,32 @@ public class TestURLSessionServer: CustomStringConvertible {
         switch uri {
         case "/web-socket":
             expectFullRequestResponseTests = true
+            bufferedSendingTests = false
+            fragmentedTests = false
+            completeUpgrade = true
+            sendClosePacket = true
+        case "/web-socket/buffered-sending":
+            expectFullRequestResponseTests = true
+            bufferedSendingTests = true
+            fragmentedTests = false
+            completeUpgrade = true
+            sendClosePacket = true
+        case "/web-socket/fragmented":
+            expectFullRequestResponseTests = true
+            bufferedSendingTests = false
+            fragmentedTests = true
             completeUpgrade = true
             sendClosePacket = true
         case "/web-socket/semi-abrupt-close":
             expectFullRequestResponseTests = false
+            bufferedSendingTests = false
+            fragmentedTests = false
             completeUpgrade = true
             sendClosePacket = false
         case "/web-socket/abrupt-close":
             expectFullRequestResponseTests = false
+            bufferedSendingTests = false
+            fragmentedTests = false
             completeUpgrade = false
             sendClosePacket = false
         default:
@@ -968,6 +988,8 @@ public class TestURLSessionServer: CustomStringConvertible {
             }
             responseHeaders.append("Sec-WebSocket-Protocol: \(expectedProtocol)")
             expectFullRequestResponseTests = false
+            bufferedSendingTests = false
+            fragmentedTests = false
             completeUpgrade = true
             sendClosePacket = true
         }
@@ -1002,10 +1024,41 @@ public class TestURLSessionServer: CustomStringConvertible {
                     NSLog("Invalid string frame")
                     throw InternalServerError.badBody
                 }
-                
-                // Send a string message
-                let sendStringFrame = Data([0x81, UInt8(stringPayload.count)]) + stringPayload
-                try httpServer.tcpSocket.writeRawData(sendStringFrame)
+
+                if bufferedSendingTests {
+                    // Send a string message in chunks of 2 bytes
+                    let sendStringFrame = Data([0x81, UInt8(stringPayload.count)]) + stringPayload
+                    let bufferSize = 2 // Let's assume the server has a buffer size of 2 bytes
+                    for i in stride(from: 0, to: sendStringFrame.count, by: bufferSize) {
+                        let end = min(i + bufferSize, sendStringFrame.count)
+                        let chunk = sendStringFrame.subdata(in: i..<end)
+                        try httpServer.tcpSocket.writeRawData(chunk)
+                        Thread.sleep(forTimeInterval: 0.1) // Sleep to simulate buffered sending
+                    }
+                }
+                else if fragmentedTests {
+                    // Send a string message fragmented by 1 byte
+                    for (i, byte) in stringPayload.enumerated() {
+                        var frame = Data()
+                        let isFirst = i == 0
+                        let isLast = i == stringPayload.count - 1
+
+                        let finBit: UInt8 = isLast ? 0x80 : 0x00
+                        let opcode: UInt8 = isFirst ? 0x1 : 0x0 // 0x1 = text, 0x0 = continuation
+                        let header: UInt8 = finBit | opcode
+
+                        frame.append(header)
+                        frame.append(0x01) // payload length 1, unmasked
+                        frame.append(byte)
+
+                        try httpServer.tcpSocket.writeRawData(frame)
+                    }
+                }
+                else {
+                    // Send a string message
+                    let sendStringFrame = Data([0x81, UInt8(stringPayload.count)]) + stringPayload
+                    try httpServer.tcpSocket.writeRawData(sendStringFrame)
+                }
                 
                 // Receive a data message
                 guard let dataFrame = try httpServer.tcpSocket.readData(),
@@ -1015,10 +1068,40 @@ public class TestURLSessionServer: CustomStringConvertible {
                     NSLog("Invalid data frame")
                     throw InternalServerError.badBody
                 }
-                
-                // Send a data message
-                let sendDataFrame = Data([0x82, UInt8(dataPayload.count)]) + dataPayload
-                try httpServer.tcpSocket.writeRawData(sendDataFrame)
+
+                if bufferedSendingTests {
+                    let sendDataFrame = Data([0x82, UInt8(dataPayload.count)]) + dataPayload
+                    let bufferSize = 2 // Let's assume the server has a buffer size of 2 bytes
+                    for i in stride(from: 0, to: sendDataFrame.count, by: bufferSize) {
+                        let end = min(i + bufferSize, sendDataFrame.count)
+                        let chunk = sendDataFrame.subdata(in: i..<end)
+                        try httpServer.tcpSocket.writeRawData(chunk)
+                        Thread.sleep(forTimeInterval: 0.1) // Sleep to simulate buffered sending
+                    }
+                }
+                else if fragmentedTests {
+                    // Send a data message fragmented by 1 byte
+                    for (i, byte) in dataPayload.enumerated() {
+                        var frame = Data()
+                        let isFirst = i == 0
+                        let isLast = i == dataPayload.count - 1
+
+                        let finBit: UInt8 = isLast ? 0x80 : 0x00
+                        let opcode: UInt8 = isFirst ? 0x2 : 0x0 // 0x2 = text, 0x0 = continuation
+                        let header: UInt8 = finBit | opcode
+
+                        frame.append(header)
+                        frame.append(0x01) // payload length 1, unmasked
+                        frame.append(byte)
+
+                        try httpServer.tcpSocket.writeRawData(frame)
+                    }
+                }
+                else {
+                    // Send a data message
+                    let sendDataFrame = Data([0x82, UInt8(dataPayload.count)]) + dataPayload
+                    try httpServer.tcpSocket.writeRawData(sendDataFrame)
+                }
                 
                 // Receive a ping
                 guard let pingFrame = try httpServer.tcpSocket.readData(),

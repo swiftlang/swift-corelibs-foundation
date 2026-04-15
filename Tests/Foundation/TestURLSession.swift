@@ -2128,59 +2128,64 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
             print("libcurl lacks WebSockets support, skipping \(#function)")
             return
         }
-        
-        let urlString = "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket"
-        let url = try XCTUnwrap(URL(string: urlString))
-        let request = URLRequest(url: url)
-        
-        let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
-        let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
-        
-        // We interleave sending and receiving, as the test HTTPServer implementation is barebones, and can't handle receiving more than one frame at a time.  So, this back-and-forth acts as a gating mechanism
-        try await task.send(.string("Hello"))
-        
-        let stringMessage = try await task.receive()
-        switch stringMessage {
-        case .string(let str):
-            XCTAssert(str == "Hello")
-        default:
-            XCTFail("Unexpected String Message")
-        }
-        
-        try await task.send(.data(Data([0x20, 0x22, 0x10, 0x03])))
-        
-        let dataMessage = try await task.receive()
-        switch dataMessage {
-        case .data(let data):
-            XCTAssert(data == Data([0x20, 0x22, 0x10, 0x03]))
-        default:
-            XCTFail("Unexpected Data Message")
-        }
-        
-        do {
-            try await task.sendPing()
-            // Server hasn't closed the connection yet
-        } catch {
-            // Server closed the connection before we could process the pong
-            let urlError = try XCTUnwrap(error as? URLError)
-            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+
+        func testWebSocket(withURL urlString: String) async throws -> Void {
+            let url = try XCTUnwrap(URL(string: urlString))
+            let request = URLRequest(url: url)
+
+            let delegate = SessionDelegate(with: expectation(description: "\(urlString): Connect"))
+            let task = delegate.runWebSocketTask(with: request, timeoutInterval: 4)
+
+            // We interleave sending and receiving, as the test HTTPServer implementation is barebones, and can't handle receiving more than one frame at a time.  So, this back-and-forth acts as a gating mechanism
+            try await task.send(.string("Hello"))
+
+            let stringMessage = try await task.receive()
+            switch stringMessage {
+            case .string(let str):
+                XCTAssert(str == "Hello")
+            default:
+                XCTFail("Unexpected String Message")
+            }
+
+            try await task.send(.data(Data([0x20, 0x22, 0x10, 0x03])))
+
+            let dataMessage = try await task.receive()
+            switch dataMessage {
+            case .data(let data):
+                XCTAssert(data == Data([0x20, 0x22, 0x10, 0x03]))
+            default:
+                XCTFail("Unexpected Data Message")
+            }
+
+            do {
+                try await task.sendPing()
+                // Server hasn't closed the connection yet
+            } catch {
+                // Server closed the connection before we could process the pong
+                let urlError = try XCTUnwrap(error as? URLError)
+                XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+            }
+
+            await fulfillment(of: [delegate.expectation], timeout: 50)
+
+            do {
+                _ = try await task.receive()
+                XCTFail("Expected to throw when receiving on closed task")
+            } catch {
+                let urlError = try XCTUnwrap(error as? URLError)
+                XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
+            }
+
+            let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
+                              "urlSession(_:webSocketTask:didCloseWith:reason:)",
+                              "urlSession(_:task:didCompleteWithError:)" ]
+            XCTAssertEqual(delegate.callbacks.count, callbacks.count)
+            XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
         }
 
-        await fulfillment(of: [delegate.expectation], timeout: 50)
-        
-        do {
-            _ = try await task.receive()
-            XCTFail("Expected to throw when receiving on closed task")
-        } catch {
-            let urlError = try XCTUnwrap(error as? URLError)
-            XCTAssertEqual(urlError._nsError.code, NSURLErrorNetworkConnectionLost)
-        }
-        
-        let callbacks = [ "urlSession(_:webSocketTask:didOpenWithProtocol:)",
-                          "urlSession(_:webSocketTask:didCloseWith:reason:)",
-                          "urlSession(_:task:didCompleteWithError:)" ]
-        XCTAssertEqual(delegate.callbacks.count, callbacks.count)
-        XCTAssertEqual(delegate.callbacks, callbacks, "Callbacks for \(#function)")
+        try await testWebSocket(withURL: "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket")
+        try await testWebSocket(withURL: "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket/buffered-sending")
+        try await testWebSocket(withURL: "ws://127.0.0.1:\(TestURLSession.serverPort)/web-socket/fragmented")
     }
 
     func test_webSocketShared() async throws {
