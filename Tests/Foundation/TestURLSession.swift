@@ -1781,6 +1781,25 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 12, handler: nil)
     }
 
+    // Regression test: when a server returns 401 with a WWW-Authenticate challenge header and
+    // the client has no credentials to offer, the task should complete with the 401 response
+    // rather than hanging indefinitely.
+    func test_basicAuthChallenge_whenNoCredentialsAvailable_completesWithResponse() async {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/auth/basic"
+        let url = URL(string: urlString)!
+        let config = URLSessionConfiguration.default
+        config.urlCredentialStorage = nil
+        let expect = expectation(description: "GET \(urlString): 401 with no credentials should complete")
+        let session = URLSession(configuration: config)
+        let task = session.dataTask(with: url) { _, response, error in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+            XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 401)
+        }
+        task.resume()
+        waitForExpectations(timeout: 12, handler: nil)
+    }
+
     func test_checkErrorTypeAfterInvalidateAndCancel() async throws {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = try XCTUnwrap(URL(string: urlString))
