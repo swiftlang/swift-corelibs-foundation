@@ -90,10 +90,12 @@
 #include <termios.h>
 #include <fcntl.h>
 
+// Required for statx + renameat2 wrappers
+#include <sys/syscall.h>
+
 #ifdef __GLIBC_PREREQ
 #if __GLIBC_PREREQ(2, 28) == 0
 // required for statx() system call, glibc >=2.28 wraps the kernel function
-#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/stat.h>
@@ -536,7 +538,7 @@ static inline unsigned int _dev_minor(dev_t rdev) {
 
 
 #if TARGET_OS_LINUX
-#ifdef __NR_statx
+#if defined(__NR_statx) && defined(_GNU_SOURCE)
 
 // There is no glibc statx() function, it must be called using syscall().
 
