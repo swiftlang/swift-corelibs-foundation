@@ -292,7 +292,14 @@ extension Range where Bound == String.Index {
             let lowerBound = String.Index(start, within: string),
             let upperBound = String.Index(end, within: string)
             else { return nil }
-        
+
+        // Verify the bounds were not snapped or transcoded to a different
+        // position. If either UTF-16 offset fell mid-scalar or mid-grapheme
+        // (e.g. inside a surrogate pair or combining sequence), the round-trip
+        // produces a different index and we must reject the range. (rdar://112643333)
+        guard start == lowerBound, end == upperBound
+            else { return nil }
+
         self = lowerBound..<upperBound
     }
 }

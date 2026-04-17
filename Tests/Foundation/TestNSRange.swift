@@ -162,6 +162,62 @@ class TestNSRange : XCTestCase {
         _assertNSRangeInit(..<unicodeSubstring.firstIndex(of: "╯")!, in: unicodeString, is: "{0, 31}")
     }
 
+    func test_init_range_stringIndex_misaligned_utf16() {
+        // rdar://112643333: Range<String.Index>(NSRange, in:) should return nil
+        // when the NSRange points to misaligned UTF-16 offsets (e.g. mid-surrogate).
+
+        // "😀" is U+1F600, encoded as a surrogate pair (2 UTF-16 code units).
+        // UTF-16 offsets: 0=D83D(hi), 1=DE00(lo), 2='a', 3='b', 4='c'
+        let emoji = "😀abc"
+
+        // Mid-surrogate start: location 1 is the low surrogate — not a character boundary
+        XCTAssertNil(Range<String.Index>(NSRange(location: 1, length: 1), in: emoji),
+                     "NSRange starting mid-surrogate should return nil")
+
+        // Mid-surrogate end: length 1 from start lands on low surrogate
+        XCTAssertNil(Range<String.Index>(NSRange(location: 0, length: 1), in: emoji),
+                     "NSRange ending mid-surrogate should return nil")
+
+        // Valid: full surrogate pair
+        XCTAssertNotNil(Range<String.Index>(NSRange(location: 0, length: 2), in: emoji),
+                        "NSRange covering full surrogate pair should succeed")
+
+        // Valid: full string
+        XCTAssertNotNil(Range<String.Index>(NSRange(location: 0, length: 5), in: emoji),
+                        "NSRange covering full string should succeed")
+
+        // "𓀀" is U+13000, also a surrogate pair in UTF-16.
+        // UTF-16 offsets: 0='a', 1='b', 2=D80C(hi), 3=DC00(lo), 4='c', 5='d'
+        let hieroglyph = "ab𓀀cd"
+
+        // Mid-surrogate: location 3 is the low surrogate
+        XCTAssertNil(Range<String.Index>(NSRange(location: 3, length: 1), in: hieroglyph),
+                     "NSRange starting at low surrogate should return nil")
+
+        // Ends mid-surrogate: location 1, length 2 ends at offset 3 (low surrogate)
+        XCTAssertNil(Range<String.Index>(NSRange(location: 1, length: 2), in: hieroglyph),
+                     "NSRange ending mid-surrogate should return nil")
+
+        // Valid: covers full surrogate pair
+        XCTAssertNotNil(Range<String.Index>(NSRange(location: 2, length: 2), in: hieroglyph),
+                        "NSRange covering full surrogate pair should succeed")
+
+        // Pure ASCII: all offsets are valid character boundaries
+        let ascii = "abcdef"
+        XCTAssertNotNil(Range<String.Index>(NSRange(location: 1, length: 3), in: ascii),
+                        "NSRange in ASCII string should always succeed")
+        XCTAssertNotNil(Range<String.Index>(NSRange(location: 0, length: 6), in: ascii),
+                        "NSRange covering full ASCII string should succeed")
+
+        // Out of bounds should return nil
+        XCTAssertNil(Range<String.Index>(NSRange(location: 0, length: 10), in: ascii),
+                     "NSRange beyond string length should return nil")
+
+        // NSNotFound should return nil
+        XCTAssertNil(Range<String.Index>(NSRange(location: NSNotFound, length: 0), in: ascii),
+                     "NSRange with NSNotFound location should return nil")
+    }
+
     func test_hashing() {
         let large = Int.max >> 2
         let samples: [NSRange] = [
