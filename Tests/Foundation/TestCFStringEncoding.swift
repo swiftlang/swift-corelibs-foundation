@@ -24,4 +24,11 @@ class TestCFStringEncoding: XCTestCase {
         let name = CFStringGetNameOfEncoding(encoding) // Do not crash
         XCTAssertNil(name)
     }
+
+    func test_convertEncodingToWindowsCodepage_0x200() {
+        // Regression Test: 0x200 returned garbage Windows Code Page (28590)
+        let encoding: CFStringEncoding = 0x0200
+        let codepage = CFStringConvertEncodingToWindowsCodepage(encoding) // Do not crash
+        XCTAssertEqual(codepage, kCFStringEncodingInvalidId)
+    }
 }
