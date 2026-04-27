@@ -315,6 +315,15 @@ class TestCharacterSet : XCTestCase {
         XCTAssertNotEqual(Box.alphanumerics, Box.decimalDigits)
     }
 
+    func test_RangeEquality() {
+        let rangeAB = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
+        let rangeAZ = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x5A)!) // A-Z (length 26)
+        let rangeABCopy = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
+
+        XCTAssertNotEqual(rangeAB, rangeAZ)
+        XCTAssertEqual(rangeAB, rangeABCopy)
+    }
+
     func test_formUnion() {
         var charset = CharacterSet(charactersIn: "a")
         charset.formUnion(CharacterSet(charactersIn: "A"))
@@ -363,14 +372,5 @@ class TestCharacterSet : XCTestCase {
         for fixture in fixtures {
             try fixture.assertValueRoundtripsInCoder()
         }
-    }
-    
-    func test_RangeEquality() {
-        let rangeAB = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
-        let rangeAZ = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x5A)!) // A-Z (length 26)
-        let rangeABCopy = CharacterSet(charactersIn: Unicode.Scalar(0x41)!...Unicode.Scalar(0x42)!) // A-B (length 2)
-
-        XCTAssertNotEqual(rangeAB, rangeAZ)
-        XCTAssertEqual(rangeAB, rangeABCopy)
     }
 }
