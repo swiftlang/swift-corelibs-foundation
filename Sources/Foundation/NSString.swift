@@ -1266,11 +1266,11 @@ extension NSString {
         data = mData
     }
     
-    #if os(WASI)
-    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #if os(WASI) || os(Emscripten)
+    @available(*, unavailable, message: "Atomic file-writing is not available on this platform")
     #endif
     internal func _writeTo(_ url: URL, _ useAuxiliaryFile: Bool, _ enc: UInt) throws {
-        #if os(WASI)
+        #if os(WASI) || os(Emscripten)
         throw CocoaError(.featureUnsupported)
         #else
         var data = Data()
@@ -1279,15 +1279,15 @@ extension NSString {
         #endif
     }
     
-    #if os(WASI)
-    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #if os(WASI) || os(Emscripten)
+    @available(*, unavailable, message: "Atomic file-writing is not available on this platform")
     #endif
     public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(url, useAuxiliaryFile, enc)
     }
     
-    #if os(WASI)
-    @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
+    #if os(WASI) || os(Emscripten)
+    @available(*, unavailable, message: "Atomic file-writing is not available on this platform")
     #endif
     public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
         try _writeTo(URL(fileURLWithPath: path), useAuxiliaryFile, enc)

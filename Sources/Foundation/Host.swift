@@ -95,7 +95,7 @@ open class Host: NSObject {
             return "localhost"
         }
         return String(cString: hostname)
-#elseif os(WASI) // WASI does not have uname
+#elseif os(WASI) || os(Emscripten) // WASI/Emscripten do not have uname
         return "localhost"
 #else
         let hname = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
@@ -176,7 +176,7 @@ open class Host: NSObject {
         }
         _names = [info]
         _resolved = true
-#elseif os(WASI) // WASI does not have getifaddrs
+#elseif os(WASI) || os(Emscripten) // WASI/Emscripten do not have getifaddrs
         _names = [info]
         _resolved = true
 #else
@@ -276,7 +276,7 @@ open class Host: NSObject {
 
           _resolved = true
         }
-#elseif os(WASI) // WASI does not have getaddrinfo
+#elseif os(WASI) || os(Emscripten) // WASI/Emscripten do not have getaddrinfo
         if let info = _info {
             _names = [info]
             _resolved = true
