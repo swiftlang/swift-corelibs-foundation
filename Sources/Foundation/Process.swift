@@ -83,10 +83,21 @@ private func findMaximumOpenFromProcSelfFD() -> CInt? {
     var highestFDSoFar = CInt(0)
 
     while let dirEntPtr = readdir(dirPtr) {
-        var entryName = dirEntPtr.pointee.d_name
-        let thisFD = withUnsafeBytes(of: &entryName) { entryNamePtr -> CInt? in
-            CInt(String(decoding: entryNamePtr.prefix(while: { $0 != 0 }), as: Unicode.UTF8.self))
-        }
+        // Read d_name via the bounded `_direntName` / `_direntNameLength`
+        // helpers rather than `dirEntPtr.pointee.d_name`. The latter
+        // performs a 256-byte struct copy of the declared
+        // `char d_name[256]` field, but glibc's `readdir(3)` returns
+        // dirent records sized to `d_reclen` (typically 24-32 bytes
+        // for short filenames like /proc/self/fd entries). When a
+        // record sits near the end of glibc's internal read buffer
+        // and the following page is unmapped, the bulk copy faults
+        // with SIGSEGV. PR #4892 already converted the
+        // `FileManager+POSIX` dirent walks for the same reason; this
+        // was the last remaining instance of the antipattern.
+        let length = Int(_direntNameLength(dirEntPtr))
+        let namePtr = UnsafeRawPointer(_direntName(dirEntPtr)).assumingMemoryBound(to: UInt8.self)
+        let nameBuffer = UnsafeBufferPointer(start: namePtr, count: length)
+        let thisFD = CInt(String(decoding: nameBuffer, as: Unicode.UTF8.self))
         highestFDSoFar = max(thisFD ?? -1, highestFDSoFar)
     }
 
