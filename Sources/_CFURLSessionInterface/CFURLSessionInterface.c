@@ -22,7 +22,10 @@
 #include "CFURLSessionInterface.h"
 #include "CFString.h"
 #include <curl/curl.h>
+
+#if !defined(_WIN32)
 #include <dlfcn.h>
+#endif
 
 #if !defined(LIBCURL_VERSION_MAJOR)
 #error "LIBCURL_VERSION_MAJOR not defined, missing curlver.h"
@@ -167,6 +170,7 @@ CFURLSessionMultiCode CFURLSession_multi_setopt_tf(CFURLSessionMultiHandle _Nonn
 }
 
 CFURLSessionEasyCode CFURLSessionInit(void) {
+    #if !defined(_WIN32)
     // Call OPENSSL_init_crypto with OPENSSL_INIT_NO_ATEXIT (0x00080000) before
     // libcurl does, preventing OpenSSL from registering an atexit handler.
     //
@@ -181,11 +185,14 @@ CFURLSessionEasyCode CFURLSessionInit(void) {
     //
     // OpenSSL is in the process of disabling the atexit handler by default from
     // version 4.0 onwards: https://openssl-library.org/post/2026-03-10-remove-atexit/
+    //
+    // TODO: This works for Linux. Investigate how to achieve parity with Windows.
     typedef int (*openssl_init_crypto_fn)(uint64_t, const void *);
     openssl_init_crypto_fn openssl_init_crypto = (openssl_init_crypto_fn)dlsym(RTLD_DEFAULT, "OPENSSL_init_crypto");
     if (openssl_init_crypto != NULL) {
         openssl_init_crypto(0x00080000L, NULL);
     }
+    #endif
     return MakeEasyCode(curl_global_init(CURL_GLOBAL_SSL));
 }
 
