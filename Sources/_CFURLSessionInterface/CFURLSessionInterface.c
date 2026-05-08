@@ -170,7 +170,7 @@ CFURLSessionMultiCode CFURLSession_multi_setopt_tf(CFURLSessionMultiHandle _Nonn
 }
 
 CFURLSessionEasyCode CFURLSessionInit(void) {
-    #if !defined(_WIN32)
+#if !defined(_WIN32)
     // Call OPENSSL_init_crypto with OPENSSL_INIT_NO_ATEXIT (0x00080000) before
     // libcurl does, preventing OpenSSL from registering an atexit handler.
     //
@@ -192,7 +192,7 @@ CFURLSessionEasyCode CFURLSessionInit(void) {
     if (openssl_init_crypto != NULL) {
         openssl_init_crypto(0x00080000L, NULL);
     }
-    #endif
+#endif
     return MakeEasyCode(curl_global_init(CURL_GLOBAL_SSL));
 }
 
