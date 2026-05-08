@@ -22,6 +22,7 @@
 #include "CFURLSessionInterface.h"
 #include "CFString.h"
 #include <curl/curl.h>
+#include <dlfcn.h>
 
 #if !defined(LIBCURL_VERSION_MAJOR)
 #error "LIBCURL_VERSION_MAJOR not defined, missing curlver.h"
@@ -166,6 +167,25 @@ CFURLSessionMultiCode CFURLSession_multi_setopt_tf(CFURLSessionMultiHandle _Nonn
 }
 
 CFURLSessionEasyCode CFURLSessionInit(void) {
+    // Call OPENSSL_init_crypto with OPENSSL_INIT_NO_ATEXIT (0x00080000) before
+    // libcurl does, preventing OpenSSL from registering an atexit handler.
+    //
+    // We do not want an atexit handler, because that races with Swift's object
+    // cleanup on libdispatch threads, leading to a situation where OpenSSL could
+    // have been cleaned up before Swift cleaned up CURL handles, causing a
+    // double-free crash.
+    //
+    // This issue has been documented in:
+    // * https://github.com/swiftlang/swift-corelibs-foundation/issues/5469
+    // * https://github.com/swiftlang/swift-package-manager/issues/8171
+    //
+    // OpenSSL is in the process of disabling the atexit handler by default from
+    // version 4.0 onwards: https://openssl-library.org/post/2026-03-10-remove-atexit/
+    typedef int (*openssl_init_crypto_fn)(uint64_t, const void *);
+    openssl_init_crypto_fn openssl_init_crypto = (openssl_init_crypto_fn)dlsym(RTLD_DEFAULT, "OPENSSL_init_crypto");
+    if (openssl_init_crypto != NULL) {
+        openssl_init_crypto(0x00080000L, NULL);
+    }
     return MakeEasyCode(curl_global_init(CURL_GLOBAL_SSL));
 }
 
