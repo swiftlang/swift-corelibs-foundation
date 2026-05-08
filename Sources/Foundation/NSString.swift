@@ -1283,14 +1283,22 @@ extension NSString {
     @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
     #endif
     public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+        #if os(WASI)
+        throw CocoaError(.featureUnsupported)
+        #else
         try _writeTo(url, useAuxiliaryFile, enc)
+        #endif
     }
-    
+
     #if os(WASI)
     @available(*, unavailable, message: "WASI does not support atomic file-writing as it does not have temporary directories")
     #endif
     public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: UInt) throws {
+        #if os(WASI)
+        throw CocoaError(.featureUnsupported)
+        #else
         try _writeTo(URL(fileURLWithPath: path), useAuxiliaryFile, enc)
+        #endif
     }
     
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
