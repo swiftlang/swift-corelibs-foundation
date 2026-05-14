@@ -223,7 +223,9 @@ extension NSTimeZone: _SwiftBridgeable {
     
     var _cfObject : CFTimeZone {
         let name = self.name
-        let tz = CFTimeZoneCreateWithName(nil, name._cfObject, true)!
+        guard let tz = CFTimeZoneCreateWithName(nil, name._cfObject, true) else {
+            preconditionFailure("CFTimeZoneCreateWithName failed for identifier: \(name)")
+        }
         return tz
     }
 }
