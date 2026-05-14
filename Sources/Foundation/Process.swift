@@ -83,10 +83,14 @@ private func findMaximumOpenFromProcSelfFD() -> CInt? {
     var highestFDSoFar = CInt(0)
 
     while let dirEntPtr = readdir(dirPtr) {
-        var entryName = dirEntPtr.pointee.d_name
-        let thisFD = withUnsafeBytes(of: &entryName) { entryNamePtr -> CInt? in
-            CInt(String(decoding: entryNamePtr.prefix(while: { $0 != 0 }), as: Unicode.UTF8.self))
-        }
+        // Don't bulk-copy `pointee.d_name`: `readdir(3)` returns dirent
+        // records sized to `d_reclen`, not the declared 256 bytes, so
+        // a struct copy can read past the end of glibc's readdir
+        // buffer and SIGSEGV on the next page.
+        let length = Int(_direntNameLength(dirEntPtr))
+        let namePtr = UnsafeRawPointer(_direntName(dirEntPtr)).assumingMemoryBound(to: UInt8.self)
+        let nameBuffer = UnsafeBufferPointer(start: namePtr, count: length)
+        let thisFD = CInt(String(decoding: nameBuffer, as: Unicode.UTF8.self))
         highestFDSoFar = max(thisFD ?? -1, highestFDSoFar)
     }
 
