@@ -662,9 +662,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     /// These will only be set if not already part of the request.
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
     var curlHeadersToSet: [(String,String)] {
-        var result = [("Connection", "keep-alive"),
-                      ("User-Agent", userAgentString),
-                      ]
+        var result = [("User-Agent", userAgentString)]
         if let language = NSLocale.current.languageCode {
             result.append(("Accept-Language", language))
         }
