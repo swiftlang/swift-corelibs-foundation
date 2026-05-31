@@ -862,6 +862,13 @@ class TestNSString: LoopbackServerTest {
         }
     }
 
+    func test_initializeWithFormatNSAttributedStringCVarArg() {
+        let value = NSAttributedString(string: "hello")
+        let result = NSString(format: "%@", value)
+        XCTAssertTrue(result.hasPrefix("hello "))
+        XCTAssertTrue(result.hasSuffix("{} Len 5\n"))
+    }
+
     func test_appendingPathComponent() {
         do {
             let path: NSString = "/tmp"
