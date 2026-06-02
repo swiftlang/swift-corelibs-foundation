@@ -540,4 +540,22 @@ class TestDateFormatter: XCTestCase {
         XCTAssertEqual(original.string(from: date), "2001-01-01 00:00:00 GMT")
         XCTAssertEqual(copied.string(from: date), "2001/01/01 09:00:00+09:00")
     }
+
+    // Regression test for https://github.com/swiftlang/swift-corelibs-foundation/issues/5463
+    func test_stringFromDate_asianSubminuteZones() {
+        let date = Date(timeIntervalSince1970: 0)
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "Z"
+
+        for identifier in ["Asia/Kolkata", "Asia/Kathmandu", "Asia/Yangon"] {
+            guard let tz = TimeZone(identifier: identifier) else {
+                XCTFail("Could not create TimeZone for \(identifier)")
+                continue
+            }
+            f.timeZone = tz
+            let result = f.string(from: date)
+            XCTAssertFalse(result.isEmpty, "string(from:) returned empty string for \(identifier)")
+        }
+    }
 }
