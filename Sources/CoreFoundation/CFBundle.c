@@ -861,12 +861,6 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     CFDictionaryRef infoDict = CFBundleGetInfoDictionary(bundle);
     CFStringRef bundleID = CFBundleGetIdentifier(bundle);
 
-    // Do this so that we can use the dispatch_once on the ivar of this bundle safely
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-    OSMemoryBarrier();
-#pragma GCC diagnostic pop
-
     // We cannot add to tables for unique bundles. Return unique bundle results here without heading into the section below where we take a lock.
     if (unique) {
         assert(!addToTables);
