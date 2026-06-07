@@ -422,13 +422,6 @@ extension NSAttributedString {
     internal var _cfObject: CFAttributedString { return unsafeBitCast(self, to: CFAttributedString.self) }
 }
 
-extension NSAttributedString : CVarArg {
-    @inlinable // c-abi
-    public var _cVarArgEncoding: [Int] {
-        return _encodeBitsAsWords(self)
-    }
-}
-
 extension NSAttributedString {
 
     public struct EnumerationOptions: OptionSet, Sendable {

@@ -24,6 +24,11 @@ internal let kCFStringEncodingUTF32BE =  CFStringBuiltInEncodings.UTF32BE.rawVal
 internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawValue
 #endif
 
+private final class NSObjectWithCustomDescription: NSObject {
+    override var description: String {
+        return "custom object description"
+    }
+}
 
 class TestNSString: LoopbackServerTest {
 
@@ -865,8 +870,21 @@ class TestNSString: LoopbackServerTest {
     func test_initializeWithFormatNSAttributedStringCVarArg() {
         let value = NSAttributedString(string: "hello")
         let result = NSString(format: "%@", value)
-        XCTAssertTrue(result.hasPrefix("hello "))
-        XCTAssertTrue(result.hasSuffix("{} Len 5\n"))
+        XCTAssertEqual(result, "hello{\n}")
+    }
+
+    func test_initializeWithFormatNSObjectCVarArg() {
+        let value = NSObjectWithCustomDescription()
+        let result = NSString(format: "%@", value)
+        XCTAssertEqual(result, "custom object description")
+    }
+
+    func test_initializeWithFormatNSObjectCVarArgWithLocale() {
+        let argument: [CVarArg] = [NSNumber(value: 1000)]
+        withVaList(argument) { pointer in
+            let string = NSString(format: "%@", locale: Locale(identifier: "en_GB") as AnyObject, arguments: pointer)
+            XCTAssertEqual(string, "1,000")
+        }
     }
 
     func test_appendingPathComponent() {

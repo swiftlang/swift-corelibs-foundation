@@ -410,3 +410,10 @@ extension NSObject : CustomDebugStringConvertible {
 
 extension NSObject : CustomStringConvertible {
 }
+
+extension NSObject : CVarArg {
+    @inlinable // c-abi
+    public var _cVarArgEncoding: [Int] {
+        return _encodeBitsAsWords(self)
+    }
+}
