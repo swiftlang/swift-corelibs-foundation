@@ -24,6 +24,11 @@ internal let kCFStringEncodingUTF32BE =  CFStringBuiltInEncodings.UTF32BE.rawVal
 internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawValue
 #endif
 
+private final class NSObjectWithCustomDescription: NSObject {
+    override var description: String {
+        return "custom object description"
+    }
+}
 
 class TestNSString: LoopbackServerTest {
 
@@ -859,6 +864,32 @@ class TestNSString: LoopbackServerTest {
             pointer in
             let string = NSString(format: "Testing %@ %@ %@", arguments: pointer)
             XCTAssertEqual(string, "Testing One Two Three")
+        }
+    }
+
+    func test_initializeWithFormatNSAttributedStringCVarArg() {
+        let value = NSAttributedString(string: "hello")
+        let result = NSString(format: "%@", value)
+        XCTAssertEqual(result, "hello{\n}")
+    }
+
+    func test_initializeWithFormatNSObjectCVarArg() {
+        let value = NSObjectWithCustomDescription()
+        let result = NSString(format: "%@", value)
+        XCTAssertEqual(result, "custom object description")
+    }
+
+    func test_initializeWithFormatNilObjectCVarArg() {
+        let value = unsafeBitCast(0, to: NSObject.self)
+        let result = NSString(format: "%@", value)
+        XCTAssertEqual(result, "(null)")
+    }
+
+    func test_initializeWithFormatNSObjectCVarArgWithLocale() {
+        let argument: [CVarArg] = [NSNumber(value: 1000)]
+        withVaList(argument) { pointer in
+            let string = NSString(format: "%@", locale: Locale(identifier: "en_GB") as AnyObject, arguments: pointer)
+            XCTAssertEqual(string, "1,000")
         }
     }
 

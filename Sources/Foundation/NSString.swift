@@ -1315,32 +1315,18 @@ extension NSString {
     }
     
     public convenience init(format: String, arguments argList: CVaListPointer) {
-        let str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, argList)!
+        let str = _NSCreateStringWithFormatAndArguments(format._cfObject, nil, argList)
         self.init(str._swiftObject)
     }
     
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
-        let str: CFString
-        if let loc = locale {
-            if type(of: loc) === NSLocale.self {
-                // Create a CFLocaleRef
-                let cf = (loc as! NSLocale)._cfObject
-                str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, unsafeBitCast(cf, to: CFDictionary.self), format._cfObject, argList)
-            } else if type(of: loc) === NSDictionary.self {
-                let dict = (loc as! NSDictionary)._cfObject
-                str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, dict, format._cfObject, argList)
-            } else {
-                fatalError("locale parameter must be a NSLocale or a NSDictionary")
-            }
-        } else {
-            str = CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, argList)
-        }
+        let str = _NSCreateStringWithFormatAndArguments(format._cfObject, locale, argList)
         self.init(str._swiftObject)
     }
-    
+
     public convenience init(format: NSString, _ args: CVarArg...) {
         let str = withVaList(args) { (vaPtr) -> CFString? in
-            CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, vaPtr)
+            _NSCreateStringWithFormatAndArguments(format._cfObject, nil, vaPtr)
         }!
         self.init(str._swiftObject)
     }
@@ -1475,6 +1461,61 @@ extension NSString {
     
     public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path), usedEncoding: enc)
+    }
+}
+
+private func _NSCreateStringWithFormatAndArguments(_ format: CFString, _ locale: AnyObject?, _ arguments: CVaListPointer) -> CFString {
+    let formatOptions: CFDictionary?
+    if let loc = locale {
+        if type(of: loc) === NSLocale.self {
+            let cf = (loc as! NSLocale)._cfObject
+            formatOptions = unsafeBitCast(cf, to: CFDictionary.self)
+        } else if type(of: loc) === NSDictionary.self {
+            formatOptions = (loc as! NSDictionary)._cfObject
+        } else {
+            fatalError("locale parameter must be a NSLocale or a NSDictionary")
+        }
+    } else {
+        formatOptions = nil
+    }
+
+    return _CFStringCreateWithFormatAndArgumentsAux(kCFAllocatorSystemDefault, _NSCopyFormattingDescription, formatOptions, format, arguments)
+}
+
+private func _NSCopyFormattingDescription(_ object: UnsafeMutableRawPointer, _ formatOptions: UnsafeRawPointer) -> Unmanaged<CFString> {
+    let nsObject = Unmanaged<NSObject>.fromOpaque(UnsafeRawPointer(object)).takeUnretainedValue()
+    return Unmanaged.passRetained(_NSFormattingDescription(nsObject, locale: _NSFormattingLocale(formatOptions))._cfObject)
+}
+
+private func _NSFormattingLocale(_ formatOptions: UnsafeRawPointer) -> Locale? {
+    guard Int(bitPattern: formatOptions) != 0 else {
+        return nil
+    }
+
+    let cfObject = unsafeBitCast(formatOptions, to: CFTypeRef.self)
+    guard CFGetTypeID(cfObject) == CFLocaleGetTypeID() else {
+        return nil
+    }
+
+    return unsafeBitCast(cfObject, to: CFLocale.self)._swiftObject
+}
+
+private func _NSFormattingDescription(_ object: NSObject, locale: Locale?) -> String {
+    switch object {
+    case let array as NSArray:
+        return array.description(withLocale: locale)
+    case let dictionary as NSDictionary:
+        return dictionary.description(withLocale: locale)
+    case let orderedSet as NSOrderedSet:
+        return orderedSet.description(withLocale: locale)
+    case let set as NSSet:
+        return set.description(withLocale: locale)
+    case let number as NSNumber:
+        return number.description(withLocale: locale)
+    case let date as NSDate:
+        return date.description(with: locale)
+    default:
+        return object.description
     }
 }
 
@@ -1675,13 +1716,6 @@ extension NSString : _StructTypeBridgeable {
     
     public func _bridgeToSwift() -> _StructType {
         return _StructType._unconditionallyBridgeFromObjectiveC(self)
-    }
-}
-
-extension NSString : CVarArg {
-    @inlinable // c-abi
-    public var _cVarArgEncoding: [Int] {
-        return _encodeBitsAsWords(unsafeBitCast(self, to: AnyObject.self))
     }
 }
 
