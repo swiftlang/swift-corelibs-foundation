@@ -355,7 +355,7 @@ fileprivate let mapFromObjCNameToClass: [String: AnyClass] = {
 fileprivate let mapFromSwiftClassNameToObjCName: [String: String] = {
     var map: [String: String] = [:]
     for entry in _NSClassesRenamedByObjCAPINotes {
-        map[String(reflecting: entry.class)] = entry.objCName
+        map[_typeName(entry.class, qualified: true)] = entry.objCName
     }
     return map
 }()
@@ -378,7 +378,7 @@ internal let _SwiftFoundationXMLModuleName = _SwiftFoundationModuleName + "XML"
     neither stable nor human-readable.
  */
 public func NSStringFromClass(_ aClass: AnyClass) -> String {
-    let classNameString = String(reflecting: aClass)
+    let classNameString = _typeName(aClass, qualified: true)
     if let renamed = mapFromSwiftClassNameToObjCName[classNameString] {
         return renamed
     }
