@@ -548,6 +548,18 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
 
     
+
+    func test_multiHandleDeallocation() async throws {
+        throw XCTSkip("This test is disabled because it hits an external HTTPS URL.")
+        let url = URL(string: "https://www.apple.com")!
+        for _ in 1...20 {
+            let session = URLSession(configuration: .ephemeral)
+            let _ = try? await session.data(for: URLRequest(url: url))
+            // session is deallocated here immediately
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
+    }
+
     func test_verifyRequestHeaders() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
