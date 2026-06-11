@@ -1483,13 +1483,8 @@ private func _NSCreateStringWithFormatAndArguments(_ format: CFString, _ locale:
 }
 
 private func _NSCopyFormattingDescription(_ object: UnsafeMutableRawPointer, _ formatOptions: UnsafeRawPointer) -> Unmanaged<CFString> {
-    let value = Unmanaged<AnyObject>.fromOpaque(object).takeUnretainedValue()
-    if let nsObject = value as? NSObject {
-        return Unmanaged.passRetained(_NSFormattingDescription(nsObject, locale: _NSFormattingLocale(formatOptions))._cfObject)
-    }
-
-    let cfObject = unsafeBitCast(object, to: CFTypeRef.self)
-    return Unmanaged.passRetained(CFCopyDescription(cfObject))
+    let nsObject = Unmanaged<NSObject>.fromOpaque(UnsafeRawPointer(object)).takeUnretainedValue()
+    return Unmanaged.passRetained(_NSFormattingDescription(nsObject, locale: _NSFormattingLocale(formatOptions))._cfObject)
 }
 
 private func _NSFormattingLocale(_ formatOptions: UnsafeRawPointer) -> Locale? {
