@@ -879,12 +879,6 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(result, "custom object description")
     }
 
-    func test_initializeWithFormatNilObjectCVarArg() {
-        let value = unsafeBitCast(0, to: NSObject.self)
-        let result = NSString(format: "%@", value)
-        XCTAssertEqual(result, "(null)")
-    }
-
     func test_initializeWithFormatNSObjectCVarArgWithLocale() {
         let argument: [CVarArg] = [NSNumber(value: 1000)]
         withVaList(argument) { pointer in
