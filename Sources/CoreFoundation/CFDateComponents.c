@@ -36,14 +36,7 @@ static Boolean __CFDateComponentsEqual(CFTypeRef cf1, CFTypeRef cf2) {
     if (dc1->_yearForWeekOfYear != dc2->_yearForWeekOfYear) return false;
     if (dc1->_weekday != dc2->_weekday) return false;
     if (dc1->_weekdayOrdinal != dc2->_weekdayOrdinal) return false;
-    // TODO: NSDateComponents would compare leapMonth, not checking isLeapMonthSet first. 'isLeapMonth' returns NO in the case where 'isLeapMonthSet' returns NO.
-    // This also manifested as a bug where setting leapMonth -> NO meant that the 'isLeapMonthSet' was false after decoding the archive, because the value was only set on the decoded NSDateComponents if 'leapMonth' was YES.
-    // For now, we will use the same logic as before, and look into seeing if we can change that behavior for encoding later.
-    if (!((dc1->_leapMonth == 0 && dc2->_leapMonth == CFDateComponentUndefined) ||
-          (dc1->_leapMonth == CFDateComponentUndefined && dc2->_leapMonth == 0) ||
-          (dc1->_leapMonth == dc2->_leapMonth))) {
-        return false;
-    }
+    if (dc1->_leapMonth != dc2->_leapMonth) return false;
     if ((dc1->_calendar && !dc2->_calendar) || (!dc1->_calendar && dc2->_calendar)) return false;
     if (dc1->_calendar && dc2->_calendar && !CFEqual(dc1->_calendar, dc2->_calendar)) return false;
     if ((dc1->_timeZone && !dc2->_timeZone) || (!dc1->_timeZone && dc2->_timeZone)) return false;
