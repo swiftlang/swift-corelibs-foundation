@@ -449,12 +449,14 @@ static CFDataRef percentEscapeDecodeBuffer(CFAllocatorRef alloc, const UInt8* sr
 		}
     }
 	
-    CFDataRef result = CFDataCreate(alloc, dstBuffer, j);
-	
+    CFDataRef result;
     if (dstBuffer != staticDstBuffer) {
-		free(dstBuffer);
+        result = CFDataCreateWithBytesNoCopy(alloc, dstBuffer, j, kCFAllocatorMalloc);
+        if (!result) free(dstBuffer);
+    } else {
+        result = CFDataCreate(alloc, dstBuffer, j);
     }
-	
+
     return result;
 }
 
@@ -498,7 +500,7 @@ static CFDataRef _createBase64DecodedData(CFAllocatorRef alloc, CFDataRef data)
 	
     // base64 encoded data length must be multiple of 4
     if (length % 4 != 0) {
-		goto done;
+		return NULL;
     }
 	
     if (length > STATIC_BUFFER_SIZE) {
@@ -528,14 +530,13 @@ static CFDataRef _createBase64DecodedData(CFAllocatorRef alloc, CFDataRef data)
 			dstBuffer[j++] = ((base64DigitValue(srcBuffer[i+2]) & 0x3) << 6) + (base64DigitValue(srcBuffer[i+3]));
 		}
     }
-    
-    result = CFDataCreate(alloc, dstBuffer, j);
-	
-done:
+
     if (dstBuffer != staticDstBuffer) {
-		free(dstBuffer);
+        result = CFDataCreateWithBytesNoCopy(alloc, dstBuffer, j, kCFAllocatorMalloc);
+        if (!result) free(dstBuffer);
+    } else {
+        result = CFDataCreate(alloc, dstBuffer, j);
     }
-	
     return result;
 }
 
