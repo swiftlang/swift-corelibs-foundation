@@ -268,4 +268,18 @@ class TestTimeZone: XCTestCase {
         XCTAssertFalse(eukv.isDaylightSavingTime(for: dateNoDST))
         XCTAssertTrue(eukv.isDaylightSavingTime(for: dateDST))
     }
+
+    func test_modernIANANameBridgesToCFTimeZone() {
+        func offset(_ identifier: String) -> String? {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: identifier)
+            formatter.dateFormat = "XXXXX"
+            return formatter.string(from: Date(timeIntervalSince1970: 0))
+        }
+        // An alias that isn't even in knownTimeZoneIdentifiers, and an enumerated zone
+        // that shares a Windows zone with another (so it's absent from the static table).
+        XCTAssertEqual(offset("Asia/Kolkata"), "+05:30")
+        XCTAssertEqual(offset("America/Argentina/Buenos_Aires"), "-03:00")
+    }
 }
