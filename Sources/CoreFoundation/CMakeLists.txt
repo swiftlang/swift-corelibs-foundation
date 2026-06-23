@@ -117,13 +117,16 @@ target_precompile_headers(CoreFoundation PRIVATE internalInclude/CoreFoundation_
 
 target_link_libraries(CoreFoundation
     PRIVATE
-        _FoundationICU
-        dispatch)
+        _FoundationICU)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
-    # On WASI, we use vendored BlocksRuntime instead of the one from libdispatch
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    target_link_libraries(CoreFoundation PRIVATE dispatch)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # On WASI/Emscripten, we use vendored BlocksRuntime instead of the one
+    # from libdispatch.
     add_subdirectory(BlockRuntime)
-    # Add BlocksRuntime object library to CoreFoundation static archive
     target_link_libraries(CoreFoundation PRIVATE BlocksRuntime)
 endif()
 
