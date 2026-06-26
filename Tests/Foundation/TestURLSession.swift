@@ -298,6 +298,21 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
     }
+
+    func test_downloadTaskWithIPv6URLRequest() async {
+        let urlString = "http://[::1]:\(TestURLSession.serverPort)/country.txt"
+        let urlRequest = URLRequest(url: URL(string: urlString)!, timeoutInterval: 2)
+        let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
+        d.run(with: urlRequest)
+        // { (session) -> DownloadTask.Configuration in
+        //     return DownloadTask.Configuration(errorExpectation:
+        //         { (error) in
+        //             XCTAssert(error is URLError)
+        //             XCTAssertEqual((error as? URLError)?.errorCode, URLError.unsupportedURL.rawValue)
+        //     })
+        // }
+        waitForExpectations(timeout: 4)
+    }
     
     func test_downloadTaskWithRequestAndHandler() async {
         //shared session
