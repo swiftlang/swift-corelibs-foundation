@@ -34,6 +34,8 @@ Returns the type identifier of all CFAttributedString instances.
 CF_EXPORT CFTypeID CFRunArrayGetTypeID(void);
 
 CF_EXPORT CFRunArrayRef CFRunArrayCreate(CFAllocatorRef allocator);
+CF_EXPORT CFRunArrayRef CFRunArrayRetain(CFRunArrayRef array);
+CF_EXPORT void CFRunArrayRelease(CFRunArrayRef array);
 
 CF_EXPORT CFIndex CFRunArrayGetCount(CFRunArrayRef array);
 CF_EXPORT CFTypeRef CFRunArrayGetValueAtIndex(CFRunArrayRef array, CFIndex loc, CFRange *effectiveRange, CFIndex *runArrayIndexPtr);
