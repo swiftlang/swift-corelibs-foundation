@@ -311,7 +311,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
                     XCTAssert(error is URLError)
                     if let urlError = error as? URLError {
                         let code = URLError.Code(rawValue: urlError.errorCode)
-                        XCTAssertEqual(code, .cannotConnectToHost)
+                        XCTAssertEqual(code, .cannotConnectToHost, "unexpected error: \(urlError.errorCode)")
                     }
             })
         }
