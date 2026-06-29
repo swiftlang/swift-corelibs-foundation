@@ -303,14 +303,18 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         let urlString = "http://[::1]:\(TestURLSession.serverPort)/country.txt"
         let urlRequest = URLRequest(url: URL(string: urlString)!, timeoutInterval: 2)
         let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
-        d.run(with: urlRequest)
-        // { (session) -> DownloadTask.Configuration in
-        //     return DownloadTask.Configuration(errorExpectation:
-        //         { (error) in
-        //             XCTAssert(error is URLError)
-        //             XCTAssertEqual((error as? URLError)?.errorCode, URLError.unsupportedURL.rawValue)
-        //     })
-        // }
+        d.run { (session) -> DownloadTask.Configuration in
+            return DownloadTask.Configuration(
+                task: session.downloadTask(with: urlRequest),
+                errorExpectation:
+                { (error) in
+                    XCTAssert(error is URLError)
+                    if let urlError = error as? URLError {
+                        let code = URLError.Code(rawValue: urlError.errorCode)
+                        XCTAssertEqual(code, .cannotConnectToHost)
+                    }
+            })
+        }
         waitForExpectations(timeout: 4)
     }
     
