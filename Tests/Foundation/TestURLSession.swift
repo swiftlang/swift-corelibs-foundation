@@ -303,7 +303,9 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         let urlString = "http://[::1]:\(TestURLSession.serverPort)/country.txt"
         let urlRequest = URLRequest(url: URL(string: urlString)!, timeoutInterval: 2)
         let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
-        d.run { (session) -> DownloadTask.Configuration in
+        // Check that literal IPv6 addresses pass without throwing a .badURL error
+        // which happened on Linux/Windows (see GitHub issue #5496).
+        d.run(requestTimeout: 2) { (session) -> DownloadTask.Configuration in
             return DownloadTask.Configuration(
                 task: session.downloadTask(with: urlRequest),
                 errorExpectation:
@@ -315,7 +317,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
                     }
             })
         }
-        waitForExpectations(timeout: 4)
+        waitForExpectations(timeout: 5)
     }
     
     func test_downloadTaskWithRequestAndHandler() async {
@@ -2847,9 +2849,9 @@ class DownloadTask : NSObject, @unchecked Sendable {
         var errorExpectation: ((Error) -> Void)?
     }
     
-    func run(configuration: (URLSession) -> Configuration) {
+    func run(requestTimeout: TimeInterval = 8, configuration: (URLSession) -> Configuration) {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
+        config.timeoutIntervalForRequest = requestTimeout
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
         let taskConfiguration = configuration(session)
         
