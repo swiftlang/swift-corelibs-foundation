@@ -550,6 +550,9 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     
 
     func test_multiHandleDeallocation() async throws {
+        // This test explicitly targets an HTTPS endpoint because local HTTP loopback servers
+        // lack the OpenSSL context required to trigger the libcurl `SSL_shutdown` callback
+        // recursion that historically caused the ARC resurrection trap in `_MultiHandle.deinit`.
         throw XCTSkip("This test is disabled because it hits an external HTTPS URL.")
         let url = URL(string: "https://www.apple.com")!
         for _ in 1...20 {
