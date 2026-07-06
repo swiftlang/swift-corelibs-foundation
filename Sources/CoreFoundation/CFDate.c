@@ -168,11 +168,15 @@ CF_PRIVATE void __CFDateInitialize(void) {
     __CFTSRRate = 1.0e7;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
 #elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
-    struct timespec res;
-    if (clock_getres(CLOCK_MONOTONIC, &res) != 0) {
-        HALT;
-    }
-    __CFTSRRate = res.tv_sec + (1000000000 * res.tv_nsec);
+    // On these platforms the monotonic time source is
+    // clock_gettime(CLOCK_MONOTONIC), which always reports nanoseconds, so
+    // __CFTSRRate (TSR-units per second) is fixed at NSEC_PER_SEC regardless
+    // of the clock's reported resolution. The previous `clock_getres`-based
+    // formula coincidentally produced 1e9 only when tv_nsec==1; on hosts
+    // where CLOCK_MONOTONIC resolution is coarser (e.g. 1ms under some
+    // virtualized kernels) it produced wildly wrong values, breaking every
+    // CFRunLoop timeout.
+    __CFTSRRate = (double)NSEC_PER_SEC;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
 #else
 #error Unable to initialize date
