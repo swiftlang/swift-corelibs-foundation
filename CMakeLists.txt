@@ -36,6 +36,8 @@ endif()
 project(Foundation
     LANGUAGES C Swift)
 
+include(CTest)
+
 option(FOUNDATION_SWIFTPM_DEPS "build Windows SwiftPM dependencies via CMake" NO)
 if(FOUNDATION_SWIFTPM_DEPS)
     include(WindowsSwiftPMDependencies)
@@ -249,4 +251,7 @@ include(GNUInstallDirs)
 include(FoundationSwiftSupport)
 
 add_subdirectory(Sources)
+if(BUILD_TESTING)
+    add_subdirectory(Tests)
+endif()
 add_subdirectory(cmake/modules)

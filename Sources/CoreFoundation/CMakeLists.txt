@@ -120,6 +120,32 @@ target_link_libraries(CoreFoundation
         _FoundationICU
         dispatch)
 
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    add_library(CoreFoundationOverlay OBJECT
+        CoreFoundation.swift)
+    # The Clang importer looks specifically for the compiler-known protocol
+    # CoreFoundation._CFObject. The CMake target may have a distinct name, but
+    # the emitted Swift module must remain CoreFoundation for imported CF
+    # reference types to receive their synthesized conformance.
+    set_target_properties(CoreFoundationOverlay PROPERTIES
+        Swift_MODULE_NAME CoreFoundation)
+    target_include_directories(CoreFoundationOverlay INTERFACE
+        include)
+    target_compile_options(CoreFoundationOverlay
+        PRIVATE
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-swift-version 6>"
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -module-link-name -Xfrontend Foundation>"
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/include/module.modulemap>"
+        INTERFACE
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xcc -fmodule-map-file=${CMAKE_CURRENT_SOURCE_DIR}/include/module.modulemap>")
+    set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS
+        CoreFoundationOverlay)
+    if(NOT BUILD_SHARED_LIBS)
+        target_compile_options(CoreFoundationOverlay PRIVATE
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend CoreFoundation>")
+    endif()
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     # On WASI, we use vendored BlocksRuntime instead of the one from libdispatch
     add_subdirectory(BlockRuntime)
@@ -145,6 +171,21 @@ install(DIRECTORY
             include/
         DESTINATION
             lib/${swift}/CoreFoundation)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    install(FILES
+                $<TARGET_PROPERTY:CoreFoundationOverlay,Swift_MODULE_DIRECTORY>/CoreFoundation.swiftdoc
+            DESTINATION
+                lib/${swift}/${SWIFT_SYSTEM_NAME}/CoreFoundation.swiftmodule
+            RENAME
+                ${SwiftFoundation_MODULE_TRIPLE}.swiftdoc)
+    install(FILES
+                $<TARGET_PROPERTY:CoreFoundationOverlay,Swift_MODULE_DIRECTORY>/CoreFoundation.swiftmodule
+            DESTINATION
+                lib/${swift}/${SWIFT_SYSTEM_NAME}/CoreFoundation.swiftmodule
+            RENAME
+                ${SwiftFoundation_MODULE_TRIPLE}.swiftmodule)
+endif()
 
 if(NOT BUILD_SHARED_LIBS)
     install(TARGETS CoreFoundation
