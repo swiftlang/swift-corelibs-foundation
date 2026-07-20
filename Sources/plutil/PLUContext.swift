@@ -10,7 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if FOUNDATION_FRAMEWORK
+#else
+// Avoid importing CoreFoundation
 @_spi(BooleanCheckingForPLUtil)
+#endif
+
 import Foundation
 
 func help(_ name: String) -> String {
@@ -275,6 +280,14 @@ extension NSNumber {
     }
     
     var betterSwiftType: BetterSwiftType {
+#if FOUNDATION_FRAMEWORK
+        if self === kCFBooleanTrue {
+            return .true
+        } else if self === kCFBooleanFalse {
+            return .false
+        }
+#else
+        // Avoid the import of CoreFoundation from Swift code
         if let booleanValue = _exactBoolValue {
             if booleanValue {
                 return .true
@@ -282,6 +295,7 @@ extension NSNumber {
                 return .false
             }
         }
+#endif
         switch UInt8(self.objCType.pointee) {
         case UInt8(ascii: "c"), UInt8(ascii: "s"), UInt8(ascii: "i"), UInt8(ascii: "l"), UInt8(ascii: "q"):
             return .signed
@@ -403,7 +417,7 @@ extension Array {
 // This should be Foundation API, but it's not yet. Since this is an executable and not a framework we can use the retroactive conformance until it is ready.
 extension FileHandle : @retroactive TextOutputStream {
     public func write(_ string: String) {
-        write(string.data(using: .utf8)!)
+        try? write(contentsOf: string.data(using: .utf8)!)
     }
 }
 #else
@@ -594,7 +608,12 @@ struct InsertCommand {
             }
             
             do {
+#if FOUNDATION_FRAMEWORK
+                value = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!, options: [.allowFragments, .mutableLeaves, .mutableContainers, .json5Allowed])
+#else
+                // JSON5 is unimplemented in swift-corelibs-foundation's JSONSerialization
                 value = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!, options: [.allowFragments, .mutableLeaves, .mutableContainers])
+#endif
             } catch {
                 throw PLUContextError.argument("Unable to parse JSON: \(error)")
             }
@@ -748,16 +767,16 @@ struct PrintCommand {
             let count = data.count
             result.append("{length = \(count), bytes = 0x")
             if count > 24 {
-                for i in stride(from: 0, to: 16, by: 2) {
-                    result.append(String(data[i], radix: 16))
+                for i in stride(from: 0, to: 16, by: 1) {
+                    result.append(data[i].paddedHex)
                 }
-                result.append("... ")
+                result.append(" ... ")
                 for i in (count - 8)..<count {
-                    result.append(String(data[i], radix: 16))
+                    result.append(data[i].paddedHex)
                 }
             } else {
                 for i in 0..<count {
-                    result.append(String(data[i], radix: 16))
+                    result.append(data[i].paddedHex)
                 }
             }
             result.append("}\n")
@@ -917,7 +936,7 @@ func readPath(_ path: String) throws -> Data {
             throw PLUContextError.argument("Empty path specified")
         }
         
-        return try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
+        return try Data(contentsOf: URL(fileURLWithPath: path), options: [])
     }
 }
 
@@ -940,8 +959,13 @@ func readPropertyList(_ fileData: Data) throws -> (Any, PlutilEmissionFormat) {
     } catch let plistError as NSError {
         // Try JSON
         do {
+#if FOUNDATION_FRAMEWORK
+            plist = try JSONSerialization.jsonObject(with: fileData, options: [.mutableContainers, .mutableLeaves, .json5Allowed])
+#else
+            // JSON5 is unimplemented in swift-corelibs-foundation's JSONSerialization
             plist = try JSONSerialization.jsonObject(with: fileData, options: [.mutableContainers, .mutableLeaves])
-            
+#endif
+
             format = .json
         } catch let jsonError as NSError {
             throw PLUContextError.invalidPropertyList(plistError: plistError, jsonError: jsonError)
@@ -953,16 +977,13 @@ func readPropertyList(_ fileData: Data) throws -> (Any, PlutilEmissionFormat) {
 
 func writePropertyList(_ plist: Any, path: String, standardOutput: FileHandle, outputFormat: PlutilEmissionFormat, outputName: String?, extensionName: String?, originalKeyPath: String?, readable: Bool, terminatingNewline: Bool, outputObjCHeader: Bool) throws {
     
-    // Verify that we have string keys in all dictionaries
-    guard validatePropertyListKeyType(plist) else {
-        throw PLUContextError.invalidPropertyListObject("Dictionaries are required to have string keys in property lists")
-    }
-
     let newPath = fixPath(path, format: outputFormat, outputName: outputName, extensionName: extensionName)
     var outputData: Data?
 
     switch outputFormat {
     case .xml, .binary:
+        // Validate that the contents of the property list are valid.
+        // NOTE: On Darwin, PropertyListSerialization supports the special "keyed archiver UID" type in binary and XML property lists.
         guard PropertyListSerialization.propertyList(plist, isValidFor: outputFormat.propertyListFormat) else {
             throw PLUContextError.invalidPropertyListObject("Invalid object in plist for property list format")
         }
@@ -1056,27 +1077,6 @@ func fixPath(_ path: String, format: PlutilEmissionFormat, outputName: String?, 
 
 // MARK: - Type Output
 
-func validatePropertyListKeyType(_ plist: Any) -> Bool {
-    if plist is NSNumber { return true }
-    else if plist is Date { return true }
-    else if plist is Data { return true }
-    else if plist is String { return true }
-    else if let sub = plist as? [Any] {
-        for subPlist in sub {
-            if !validatePropertyListKeyType(subPlist) { return false }
-        }
-        return true
-    } else if let sub = plist as? [String: Any] {
-        for (_, v) in sub {
-            if !validatePropertyListKeyType(v) { return false }
-        }
-        return true
-    } else {
-        // Unknown property list type?
-        return false
-    }
-}
-
 func propertyListIsValidForRawFormat(_ propertyList: Any) -> Bool {
     if propertyList is NSNumber {
         // Here, allow any number
@@ -1124,6 +1124,18 @@ func sortDictionaryKeys(key1: String, key2: String) -> Bool {
     let locale = Locale(identifier: "")
     let order = key1.compare(key2, options: [.numeric, .caseInsensitive, .forcedOrdering], range: nil, locale: locale)
     return order == .orderedAscending
+}
+
+// MARK: - More correct byte to hex
+
+extension UInt8 {
+    var paddedHex: String {
+        if self < 16 {
+            "0" + String(self, radix: 16)
+        } else {
+            String(self, radix: 16)
+        }
+    }
 }
 
 // MARK: -
