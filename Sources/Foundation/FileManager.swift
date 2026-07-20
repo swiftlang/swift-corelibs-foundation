@@ -21,6 +21,8 @@ import WinSDK
 
 #if os(WASI)
 import WASILibc
+#elseif os(Emscripten)
+@preconcurrency import EmscriptenLibc
 #elseif canImport(Bionic)
 @preconcurrency import Bionic
 #endif

@@ -10,7 +10,7 @@
 // @_exported import of Dispatch here makes it available to all
 // classes in Foundation and all sources that import Foundation.
 // This brings it into line with Darwin usage for compatibility.
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
 @_exported import Dispatch
 #endif
 

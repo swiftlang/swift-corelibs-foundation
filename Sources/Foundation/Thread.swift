@@ -206,12 +206,12 @@ open class Thread : NSObject {
 #endif
     }
 
-    #if os(WASI)
-    @available(*, unavailable, message: "exit() is not available on WASI")
+    #if os(WASI) || os(Emscripten)
+    @available(*, unavailable, message: "exit() is not available on this platform")
     #endif
     @available(*, noasync)
     open class func exit() {
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
         Thread.current._status = .finished
 #if os(Windows)
         ExitThread(0)
@@ -258,7 +258,7 @@ open class Thread : NSObject {
 #if !os(Windows)
         let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
-            #if !os(WASI) // WASI does not support scheduling contention scope
+            #if !os(WASI) && !os(Emscripten) // WASI/Emscripten do not support scheduling contention scope
             pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
             #endif
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
@@ -403,7 +403,7 @@ open class Thread : NSObject {
         let maxSupportedStackDepth = 128;
         let addrs = UnsafeMutablePointer<UnsafeMutableRawPointer?>.allocate(capacity: maxSupportedStackDepth)
         defer { addrs.deallocate() }
-#if os(Android) || os(OpenBSD) || canImport(Musl) || os(WASI)
+#if os(Android) || os(OpenBSD) || canImport(Musl) || os(WASI) || os(Emscripten)
         let count = 0
 #elseif os(Windows)
         let count = RtlCaptureStackBackTrace(0, DWORD(maxSupportedStackDepth),
@@ -426,7 +426,7 @@ open class Thread : NSObject {
     }
 
     open class var callStackSymbols: [String] {
-#if os(Android) || os(OpenBSD) || canImport(Musl) || os(WASI)
+#if os(Android) || os(OpenBSD) || canImport(Musl) || os(WASI) || os(Emscripten)
         return []
 #elseif os(Windows)
         let hProcess: HANDLE = GetCurrentProcess()
