@@ -744,45 +744,19 @@ open class Process: NSObject, @unchecked Sendable {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
         })
+
         // Convert the arguments array into a posix_spawn-friendly format
-        
-        var args = [launchPath]
-        if let arguments = self.arguments {
-            args.append(contentsOf: arguments)
-        }
-        
-        let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> = args.withUnsafeBufferPointer {
-            let array : UnsafeBufferPointer<String> = $0
-            let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: array.count + 1)
-            buffer.initialize(from: array.map { $0.withCString(strdup) }, count: array.count)
-            buffer[array.count] = nil
-            return buffer
-        }
-        
-        defer {
-            for arg in argv ..< argv + args.count {
-                free(UnsafeMutableRawPointer(arg.pointee))
-            }
-            argv.deallocate()
-        }
+        let args: [String] = [launchPath] + (self.arguments ?? [])
+        var argv: [UnsafeMutablePointer<Int8>?] = args.map { strdup($0) }
+        argv.append(nil)
 
-        var env: [String: String]
-        if let e = environment {
-            env = e
-        } else {
-            env = ProcessInfo.processInfo.environment
-        }
-
-        let nenv = env.count
-        let envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1 + nenv)
-        envp.initialize(from: env.map { strdup("\($0)=\($1)") }, count: nenv)
-        envp[env.count] = nil
+        let env: [String: String] = self.environment ?? ProcessInfo.processInfo.environment
+        var envp: [UnsafeMutablePointer<Int8>?] = env.map { strdup("\($0)=\($1)") }
+        envp.append(nil)
 
         defer {
-            for pair in envp ..< envp + env.count {
-                free(UnsafeMutableRawPointer(pair.pointee))
-            }
-            envp.deallocate()
+            argv.dropLast().forEach { free($0) }
+            envp.dropLast().forEach { free($0) }
         }
 
         var taskSocketPair : [Int32] = [0, 0]
