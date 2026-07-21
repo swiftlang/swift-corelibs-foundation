@@ -231,7 +231,11 @@ let package = Package(
             path: "Sources/CoreFoundation",
             exclude: [
                 "BlockRuntime",
-                "CMakeLists.txt"
+                "CMakeLists.txt",
+                // SwiftPM does not support mixed C and Swift targets. The
+                // CoreFoundation Swift overlay is built by CMake as part of
+                // the toolchain build.
+                "CoreFoundation.swift"
             ],
             cSettings: coreFoundationBuildSettings,
             linkerSettings: [.linkedLibrary("log", .when(platforms: [.android]))]
@@ -338,6 +342,12 @@ let package = Package(
                 "XCTest",
                 "Testing",
                 .target(name: "xdgTestHelper", condition: .when(platforms: [.linux, .android, .windows]))
+            ],
+            exclude: [
+                "CMakeLists.txt",
+                // The CoreFoundation Swift overlay is built and tested by
+                // CMake because SwiftPM cannot build mixed C/Swift targets.
+                "CoreFoundation"
             ],
             resources: [
                 .copy("Foundation/Resources")

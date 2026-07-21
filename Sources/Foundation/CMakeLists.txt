@@ -155,6 +155,11 @@ target_link_libraries(Foundation
         FoundationEssentials
         FoundationInternationalization)
 
+if(TARGET CoreFoundationOverlay)
+    target_link_libraries(Foundation PRIVATE
+        CoreFoundationOverlay)
+endif()
+
 if(NOT BUILD_SHARED_LIBS)
     target_compile_options(Foundation PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend CoreFoundation>")
