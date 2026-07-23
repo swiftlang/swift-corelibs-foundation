@@ -329,7 +329,6 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         let _config = session._configuration
         easyHandle.set(sessionConfig: _config)
         easyHandle.setAllowedProtocolsToHTTPAndHTTPS()
-        easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
             switch (body, try body.getBodyLength()) {
             case (.none, _):

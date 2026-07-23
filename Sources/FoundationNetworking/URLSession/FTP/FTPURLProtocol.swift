@@ -70,7 +70,6 @@ internal class _FTPURLProtocol: _NativeProtocol {
             failWith(error: nsError, request: request)
             return
         }
-        easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
             switch (body, try body.getBodyLength()) {
             case (.none, _):
