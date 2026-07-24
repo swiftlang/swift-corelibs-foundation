@@ -300,6 +300,42 @@ class TestNSAttributedString : XCTestCase {
             XCTAssertEqual(string, unarchived, "Object loaded from \(variant) didn't match fixture.")
         }
     }
+
+    func test_attributeValueDeallocation() throws {
+
+        class AttributeValueTracker {
+            let id: UUID
+            let deinitExpectation: XCTestExpectation
+
+            init(expectation: XCTestExpectation) {
+                self.id = UUID()
+                self.deinitExpectation = expectation
+            }
+
+            deinit {
+                deinitExpectation.fulfill()
+            }
+        }
+
+        let deinitExpectation = self.expectation(description: "AttributeValueTracker should be deallocated")
+        var trackedObject: AttributeValueTracker? = AttributeValueTracker(expectation: deinitExpectation)
+        weak var weakTrackedObject = trackedObject
+
+        // Use a 'do' block for scoping instead of 'autoreleasepool'
+        // This ensures 'attributedString' goes out of scope at the end of the block
+        do {
+            let strongTrackedObject = try XCTUnwrap(trackedObject)
+            let attributes: [NSAttributedString.Key: Any] = [
+                NSAttributedString.Key(rawValue: "KEY"): strongTrackedObject
+            ]
+            let attributedString = NSAttributedString(string: "Test string for lifecycle", attributes: attributes)
+            _ = attributedString.length
+        } // <-- attributedString scope ends here, ARC should release it
+
+        trackedObject = nil
+        wait(for: [deinitExpectation], timeout: 1.0)
+        XCTAssertNil(weakTrackedObject, "Weak reference should be nil after object deallocation.")
+    }
 }
 
 fileprivate extension TestNSAttributedString {
