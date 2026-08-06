@@ -58,7 +58,7 @@ target_link_libraries(FoundationNetworking
 if(NOT BUILD_SHARED_LIBS)
     target_compile_options(FoundationNetworking PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFURLSessionInterface>")
-    if(WIN32)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_compile_options(FoundationNetworking PRIVATE
             "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend libcurl>"
             "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend zlibstatic>"
