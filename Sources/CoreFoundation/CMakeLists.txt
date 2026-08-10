@@ -120,7 +120,7 @@ target_link_libraries(CoreFoundation
         _FoundationICU
         dispatch)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
+if(WASI)
     # On WASI, we use vendored BlocksRuntime instead of the one from libdispatch
     add_subdirectory(BlockRuntime)
     # Add BlocksRuntime object library to CoreFoundation static archive
