@@ -38,7 +38,9 @@
 #define _CRT_NONSTDC_NO_DEPRECATE
 #include <Windows.h>
 #else
+#if __has_include(<fts.h>)
 #include <fts.h>
+#endif
 #endif
 #if __has_include(<unistd.h>)
 #include <unistd.h>
@@ -46,7 +48,7 @@
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__)
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__wasi__) || defined(__EMSCRIPTEN__)
 #include <dirent.h>
 #endif
 

@@ -73,7 +73,7 @@ open class PropertyListSerialization : NSObject {
         }
     }
     
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
     internal final class func propertyList(with stream: CFReadStream, options opt: ReadOptions, format: UnsafeMutablePointer <PropertyListFormat>?) throws -> Any {
         var fmt = kCFPropertyListBinaryFormat_v1_0
         var error: Unmanaged<CFError>? = nil

@@ -866,7 +866,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
 }
 
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
 // This notification is posted through [NSNotificationCenter defaultCenter]
 // when the system day changes. Register with "nil" as the object of this
 // notification. If the computer/device is asleep when the day changed,

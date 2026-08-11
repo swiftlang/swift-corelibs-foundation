@@ -14,6 +14,8 @@ import WinSDK
 @preconcurrency import Android
 #elseif os(WASI)
 import WASILibc
+#elseif os(Emscripten)
+@preconcurrency import EmscriptenLibc
 #endif
 
 #if os(Windows)
@@ -664,6 +666,9 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 #elseif os(WASI)
     // WASI does not have temp directories
     throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
+#elseif os(Emscripten)
+    // Emscripten does not have temp directories
+    throw NSError(domain: NSPOSIXErrorDomain, code: Int(EmscriptenLibc.ENOTSUP))
 #else
     var template = URL(fileURLWithPath: filePath)
     

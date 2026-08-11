@@ -375,7 +375,7 @@ extension NSLocale {
 }
 
 
-#if !os(WASI)
+#if !os(WASI) && !os(Emscripten)
 extension NSLocale {
     public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
 }

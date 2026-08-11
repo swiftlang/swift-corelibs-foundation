@@ -22,7 +22,7 @@
     #include <mach-o/dyld.h>
 #endif
 
-#if TARGET_OS_WASI
+#if TARGET_OS_WASI && !defined(__EMSCRIPTEN__)
 #include <wasi/libc-environ.h>
 #include <wasi/api.h>
 #endif
@@ -191,7 +191,7 @@ const char *_CFProcessPath(void) {
         __CFprogname = __CFProcessPath;
     }
     return __CFProcessPath;
-#elif TARGET_OS_WASI
+#elif TARGET_OS_WASI && !defined(__EMSCRIPTEN__)
     __wasi_errno_t err;
     size_t argc;
     size_t argv_buf_size;
@@ -214,6 +214,11 @@ const char *_CFProcessPath(void) {
     _CFSetProgramNameFromPath(argv[0]);
     free(argv_buf);
     free(argv);
+    return __CFProcessPath;
+
+#elif defined(__EMSCRIPTEN__)
+    __CFProcessPath = "";
+    __CFprogname = __CFProcessPath;
     return __CFProcessPath;
 
 #else // TARGET_OS_BSD
@@ -1883,10 +1888,10 @@ CF_EXPORT char **_CFEnviron(void) {
     return *_NSGetEnviron();
 #elif TARGET_OS_WIN32
     return _environ;
-#elif TARGET_OS_WASI
+#elif TARGET_OS_WASI && !defined(__EMSCRIPTEN__)
     return __wasilibc_get_environ();
 #else
-#if TARGET_OS_BSD
+#if TARGET_OS_BSD || defined(__EMSCRIPTEN__)
     extern char **environ;
 #endif
     return environ;

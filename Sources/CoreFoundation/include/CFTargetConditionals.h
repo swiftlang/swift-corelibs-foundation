@@ -18,7 +18,10 @@
   
 */
 
-#if __has_include(<TargetConditionals.h>)
+// When cross-compiling for Emscripten or WASI on a macOS host, the system
+// TargetConditionals.h may be found via __has_include even with --sysroot set.
+// Exclude these targets so our custom definitions below are used instead.
+#if __has_include(<TargetConditionals.h>) && !defined(__EMSCRIPTEN__) && !defined(__wasi__)
 #include <TargetConditionals.h>
 #else
 
@@ -118,6 +121,16 @@
 #define TARGET_OS_ANDROID      0
 #define TARGET_OS_CYGWIN       0
 #define TARGET_OS_WASI         0
+#elif __EMSCRIPTEN__
+#define TARGET_OS_DARWIN       0
+#define TARGET_OS_LINUX        0
+#define TARGET_OS_WINDOWS      0
+#define TARGET_OS_BSD          0
+#define TARGET_OS_ANDROID      0
+#define TARGET_OS_CYGWIN       0
+// Emscripten shares the same CoreFoundation constraints as WASI
+// (no dispatch, no pthread, single-threaded, wasm32).
+#define TARGET_OS_WASI         1
 #elif __unix__
 #define TARGET_OS_DARWIN       0
 #define TARGET_OS_LINUX        0
