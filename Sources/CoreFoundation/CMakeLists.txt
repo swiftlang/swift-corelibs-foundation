@@ -120,6 +120,11 @@ target_link_libraries(CoreFoundation
         _FoundationICU
         dispatch)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    # CFLog calls __android_log_print, which lives in liblog.
+    target_link_libraries(CoreFoundation PRIVATE log)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     # On WASI, we use vendored BlocksRuntime instead of the one from libdispatch
     add_subdirectory(BlockRuntime)
