@@ -58,8 +58,19 @@ target_link_libraries(FoundationNetworking
 if(NOT BUILD_SHARED_LIBS)
     target_compile_options(FoundationNetworking PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend _CFURLSessionInterface>")
-    target_compile_options(FoundationNetworking PRIVATE
-        "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend curl>")
+
+    # The Windows SDK's curl uses Schannel, zlib, and Brotli. The static Linux
+    # SDK's curl uses OpenSSL and zlib, which BUILD_FULLY_STATIC supplies below.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        target_compile_options(FoundationNetworking PRIVATE
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend libcurl>"
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend zlibstatic>"
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend brotlicommon>"
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend brotlidec>")
+    else()
+        target_compile_options(FoundationNetworking PRIVATE
+            "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend curl>")
+    endif()
     target_compile_options(FoundationNetworking PRIVATE
         "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -public-autolink-library -Xfrontend $<$<PLATFORM_ID:Windows>:${CMAKE_STATIC_LIBRARY_PREFIX_Swift}>swiftSynchronization>")
 
