@@ -956,7 +956,7 @@ static void _logToStderr(char *banner, const char *message, size_t length) {
     writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
     os_unfair_lock_unlock(&lock);
 #elif TARGET_OS_WIN32
-    size_t bannerLen = strlen(banner);
+    size_t bannerLen = banner ? strlen(banner) : 0;
     size_t bufLen = bannerLen + length + 1;
     char *buf = (char *)malloc(sizeof(char) * bufLen);
     if (banner) {
@@ -974,7 +974,7 @@ static void _logToStderr(char *banner, const char *message, size_t length) {
     // OutputDebugStringA(buf);
     free(buf);
 #else
-    size_t bannerLen = strlen(banner);
+    size_t bannerLen = banner ? strlen(banner) : 0;
     size_t bufLen = bannerLen + length + 1;
     char *buf = (char *)malloc(sizeof(char) * bufLen);
     if (banner) {
@@ -1029,7 +1029,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
 #pragma GCC diagnostic ignored "-Wdeprecated"
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
-    asprintf(&uid, "%d", euid);
+    if (asprintf(&uid, "%d", euid) < 0) uid = NULL;
     aslclient asl = asl_open(NULL, (__CFBundleMainID && __CFBundleMainID[0]) ? __CFBundleMainID : "com.apple.console", ASL_OPT_NO_DELAY);
     aslmsg msg = asl_new(ASL_TYPE_MSG);
     asl_set(msg, "CFLog Local Time", time); // not to be documented, not public API
