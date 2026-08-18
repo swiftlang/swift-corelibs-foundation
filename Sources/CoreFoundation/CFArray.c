@@ -355,7 +355,7 @@ CF_PRIVATE CFArrayRef __CFArrayCreateTransfer(CFAllocatorRef allocator, const vo
     }
     __CFRuntimeSetValue(memory, 6, 0, flags);
     __CFArraySetCount(memory, numValues);
-    memmove(__CFArrayGetBucketsPtr(memory), values, sizeof(void *) * numValues);
+    memcpy(__CFArrayGetBucketsPtr(memory), values, sizeof(void *) * numValues);
     if (__CFOASafe) __CFSetLastAllocationEventName(memory, "CFArray (immutable)");
     return (CFArrayRef)memory;
 }
@@ -740,8 +740,8 @@ static void __CFArrayRepositionDequeRegions(CFMutableArrayRef array, CFRange ran
 	CFIndex newC0 = newL + A + newCount;
 	newDeque->_leftIdx = newL;
 	newDeque->_capacity = capacity;
-	if (0 < A) memmove(newBuckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
-	if (0 < C) memmove(newBuckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
+	if (0 < A) memcpy(newBuckets + newL, buckets + oldL, A * sizeof(struct __CFArrayBucket));
+	if (0 < C) memcpy(newBuckets + newC0, buckets + oldC0, C * sizeof(struct __CFArrayBucket));
         array->_store = newDeque;
         if (deque) CFAllocatorDeallocate(allocator, deque);
 //printf("3:  array %p store is now %p (%lx)\n", array, array->_store, *(unsigned long *)(array->_store));
