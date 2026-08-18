@@ -664,7 +664,7 @@ void _CFApplicationPreferencesRemoveDomain(_CFApplicationPreferences *self, CFPr
     while ((idx = CFArrayGetFirstIndexOfValue(self->_search, range, domain)) != kCFNotFound) {
         CFArrayRemoveValueAtIndex(self->_search, idx);
         range.location = idx;
-        range.length  = range.length - idx - 1;
+        range.length = CFArrayGetCount(self->_search) - idx;
     }
     updateDictRep(self);
     __CFUnlock(&__CFApplicationPreferencesLock);
