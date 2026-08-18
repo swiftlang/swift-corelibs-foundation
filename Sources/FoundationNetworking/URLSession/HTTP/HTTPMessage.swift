@@ -398,14 +398,10 @@ private extension _HTTPURLProtocol._HTTPMessage._Header {
         let name = String(headView[nameRange])
         var value: String?
         let line = headView[headView.index(after: nameRange.upperBound)..<headView.endIndex]
-        if !line.isEmpty {
-            if line.hasSPHTPrefix && line.count == 1 {
-                // to handle empty headers i.e header without value
-                value = ""
-            } else {
-                guard let v = line.trimSPHTPrefix else { return nil }
-                value = String(v)
-            }
+        if line.hasSPHTPrefix {
+            value = line.trimSPHTPrefix.map { String($0) } ?? ""
+        } else {
+            value = String(line)
         }
         do {
             var t = tail
