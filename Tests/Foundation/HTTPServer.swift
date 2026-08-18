@@ -772,6 +772,15 @@ public class TestURLSessionServer: CustomStringConvertible {
             return try _HTTPResponse(response: .OK, body: text)
         }
 
+        if uri == "/response-header-without-whitespace" {
+            let body = "Hello, world!"
+            return try _HTTPResponse(
+                response: .OK,
+                headers: "Content-Length:\(body.utf8.count)\r\nContent-Type:text/plain",
+                body: body
+            )
+        }
+
         if uri == "/requestHeaders" {
             let text = request.getCommaSeparatedHeaders()
             return try _HTTPResponse(response: .OK, body: text)

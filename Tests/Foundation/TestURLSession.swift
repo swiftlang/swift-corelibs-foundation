@@ -58,6 +58,16 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         await dataTaskWithURLCompletionHandler(with: session)
     }
 
+    func test_dataTaskAcceptsResponseHeaderValueWithoutWhitespace() async throws {
+        let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/response-header-without-whitespace"))
+        let (data, response) = try await URLSession.shared.data(from: url)
+        let httpResponse = try XCTUnwrap(response as? HTTPURLResponse)
+
+        XCTAssertEqual(String(decoding: data, as: UTF8.self), "Hello, world!")
+        XCTAssertEqual(httpResponse.value(forHTTPHeaderField: "Content-Length"), "13")
+        XCTAssertEqual(httpResponse.value(forHTTPHeaderField: "Content-Type"), "text/plain")
+    }
+
     func dataTaskWithURLCompletionHandler(with session: URLSession) async {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/USA"
         let url = URL(string: urlString)!
