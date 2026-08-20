@@ -68,7 +68,7 @@ open class URLSessionTask : NSObject, NSCopying, @unchecked Sendable {
                 
                 let toBeReceived: Int64?
                 if self.countOfBytesExpectedToReceive > 0 {
-                    toBeReceived = Int64(clamping: self.countOfBytesClientExpectsToReceive)
+                    toBeReceived = Int64(clamping: self.countOfBytesExpectedToReceive)
                 } else if self.countOfBytesClientExpectsToReceive != NSURLSessionTransferSizeUnknown && self.countOfBytesClientExpectsToReceive > 0 {
                     toBeReceived = Int64(clamping: self.countOfBytesClientExpectsToReceive)
                 } else {
