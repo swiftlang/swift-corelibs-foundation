@@ -43,7 +43,7 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
             // passthrough to:
         case _kCFKnownLocationUserByName: {
             CFURLRef home = CFCopyHomeDirectoryURLForUser(username);
-            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Library/Preferences"), kCFURLPOSIXPathStyle, true, home);
+            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("Library/Preferences"), kCFURLPOSIXPathStyle, true, home);
             CFRelease(home);
             
             break;
@@ -133,16 +133,16 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
     CFURLRef userdir = CFCopyHomeDirectoryURL();
     switch (user) {
         case _kCFKnownLocationUserAny:
-            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Apple/Library/Preferences/AnyUser"), kCFURLPOSIXPathStyle, true, userdir);
+            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("Apple/Library/Preferences/AnyUser"), kCFURLPOSIXPathStyle, true, userdir);
             break;
         case _kCFKnownLocationUserByName: {
-            CFURLRef tmp = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Apple/Library/Preferences/ByUser"), kCFURLPOSIXPathStyle, true, userdir);
+            CFURLRef tmp = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("Apple/Library/Preferences/ByUser"), kCFURLPOSIXPathStyle, true, userdir);
             location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, username, kCFURLPOSIXPathStyle, true, tmp);
             CFRelease(tmp);
             break;
         }
         case _kCFKnownLocationUserCurrent:
-            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Apple/Library/Preferences"), kCFURLPOSIXPathStyle, true, userdir);
+            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("Apple/Library/Preferences"), kCFURLPOSIXPathStyle, true, userdir);
             break;
     }
     CFRelease(userdir);
