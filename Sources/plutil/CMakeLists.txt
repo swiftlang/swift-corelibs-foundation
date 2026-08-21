@@ -23,7 +23,7 @@ target_link_libraries(plutil PRIVATE
 	Foundation)
 
 set_target_properties(plutil PROPERTIES
-	INSTALL_RPATH "$ORIGIN/../lib/swift/${SWIFT_SYSTEM_NAME}")
+	INSTALL_RPATH "$ORIGIN/../lib/swift/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>")
 
 set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS plutil)
 install(TARGETS plutil
