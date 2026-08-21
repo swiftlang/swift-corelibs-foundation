@@ -334,7 +334,7 @@ struct __CFBasicHash {
         uint64_t __khas:10;
         uint64_t __kget:10;
     } bits;
-    void *pointers[1];
+    void *pointers[];
 };
 
 #define CFBasicHashSmallSize  (1<<8)
@@ -1469,7 +1469,7 @@ CF_PRIVATE void CFBasicHashRemoveIntValueAndDec(CFBasicHashRef ht, uintptr_t int
 }
 
 CF_PRIVATE size_t CFBasicHashGetSize(CFConstBasicHashRef ht, Boolean total) {
-    size_t size = sizeof(struct __CFBasicHash);
+    size_t size = sizeof(struct __CFBasicHash) + sizeof(void *);
     if (ht->bits.keys_offset) size += sizeof(CFBasicHashValue *);
     if (ht->bits.counts_offset) size += sizeof(void *);
     if (__CFBasicHashHasHashCache(ht)) size += sizeof(uintptr_t *);
@@ -1585,7 +1585,7 @@ CF_PRIVATE CFTypeID CFBasicHashGetTypeID(void) {
 }
 
 CF_PRIVATE CFBasicHashRef CFBasicHashCreate(CFAllocatorRef allocator, CFOptionFlags flags, const CFBasicHashCallbacks *cb) {
-    size_t size = sizeof(struct __CFBasicHash) - sizeof(CFRuntimeBase);
+    size_t size = sizeof(struct __CFBasicHash) + sizeof(void *) - sizeof(CFRuntimeBase); // values
     if (flags & kCFBasicHashHasKeys) size += sizeof(CFBasicHashValue *); // keys
     if (flags & kCFBasicHashHasCounts) size += sizeof(void *); // counts
     if (flags & kCFBasicHashHasHashCache) size += sizeof(uintptr_t *); // hashes
