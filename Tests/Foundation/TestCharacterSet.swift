@@ -373,4 +373,41 @@ class TestCharacterSet : XCTestCase {
         XCTAssertNotEqual(rangeAB, rangeAZ)
         XCTAssertEqual(rangeAB, rangeABCopy)
     }
+
+    func test_SurrogatePairsChecking() {
+        let set = NSMutableCharacterSet()
+
+        set.addCharacters(in: "AB😀C")
+
+        set.removeCharacters(in: "😀")
+
+        XCTAssertTrue(set.characterIsMember(0x41), "Set should still contain 'A'")
+        XCTAssertTrue(set.characterIsMember(0x42), "Set should still contain 'B'")
+        XCTAssertTrue(set.characterIsMember(0x43), "Set should still contain 'C' - regression: trailing char lost after surrogate removal")
+        XCTAssertFalse(set.longCharacterIsMember(0x1F600), "Emoji should have been removed")
+    }
+
+    func test_ConsecutiveSurrogateRemovalOnInvertedSet() {
+        // This tests the "inverted set + string optimization" path in
+        // CFCharacterSetRemoveCharactersInString (lines 2554-2597).
+        // When removing characters from an inverted set, consecutive
+        // surrogates in the removal string must all be processed correctly.
+        
+        // Create an inverted set (starts containing all characters)
+        let set = NSMutableCharacterSet()
+        set.invert()  // Now it's inverted and contains everything
+        
+        // Remove multiple consecutive emoji (each is a surrogate pair)
+        // "😀" = U+1F600 = surrogate pair D83D DE00
+        // "😁" = U+1F601 = surrogate pair D83D DE01
+        set.removeCharacters(in: "😀😁")
+        
+        // After removal, these emoji should NOT be in the set
+        XCTAssertFalse(set.longCharacterIsMember(0x1F600), "Emoji '😀' should have been removed")
+        XCTAssertFalse(set.longCharacterIsMember(0x1F601), "Emoji '😁' should have been removed - regression: second consecutive surrogate was skipped")
+        
+        // Other characters should still be present (it was inverted)
+        XCTAssertTrue(set.characterIsMember(0x41), "Set should still contain 'A'")
+    }
 }
+
