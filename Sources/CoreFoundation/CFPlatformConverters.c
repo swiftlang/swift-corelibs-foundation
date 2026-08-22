@@ -187,7 +187,7 @@ CF_PRIVATE CFIndex __CFStringEncodingPlatformBytesToUnicode(uint32_t encoding, u
             CPINFO cpInfo;
 
             if (!GetCPInfo(CFStringConvertEncodingToWindowsCodepage(encoding), &cpInfo)) {
-                cpInfo.MaxCharSize = 1; // Is this right ???
+                cpInfo.MaxCharSize = 4; // Is this right ???
             }
             if (cpInfo.MaxCharSize == 1) {
                 numBytes = maxCharLen;
