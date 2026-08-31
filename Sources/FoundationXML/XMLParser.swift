@@ -40,8 +40,17 @@ private func UTF8STRING(_ bytes: UnsafePointer<UInt8>?) -> String? {
     guard let bytes = bytes else {
         return nil
     }
+    // The parser runs libxml2 with XML_PARSE_RECOVER (see parseData(_:lastChunkOfData:)), so after
+    // libxml2 reports a fatal encoding error it carries on and can hand back a name whose bytes are
+    // not valid UTF-8. Callers force-unwrap this result for names, which turns a malformed document
+    // into a crash rather than a parse error. Repairing what cannot be decoded matches how attribute
+    // values are already decoded in _NSXMLParserStartElementNs, and leaves the outcome of the parse
+    // unchanged: it still fails, with the error libxml2 raised.
+    //
+    // nil continues to mean "there was no string here" - an absent prefix, publicId, systemId - which
+    // is what every optional caller of this function tests for.
     if let (str, _) = String.decodeCString(bytes, as: UTF8.self,
-                                           repairingInvalidCodeUnits: false) {
+                                           repairingInvalidCodeUnits: true) {
         return str
     }
     return nil
