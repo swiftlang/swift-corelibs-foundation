@@ -90,6 +90,23 @@ class TestXMLParser : XCTestCase {
     }
 
 
+    func test_malformedUTF8InNamesDoesNotTrap() {
+        // libxml2 runs with XML_PARSE_RECOVER, so it keeps going after a fatal encoding error and
+        // still reports the element - with a name whose bytes are not valid UTF-8. Turning that name
+        // into a String must not take the process down. A delegate is required to reach the SAX
+        // callbacks at all, which is where the decode happens.
+        //
+        // The error code is deliberately not asserted: it is 9 here and 111 on Darwin.
+        var bytes = Array("<?xml version=\"1.0\" encoding=\"UTF-8\"?><doc><De".utf8)
+        bytes += [0xFF, 0xFF, 0xFF, 0xFF]
+        bytes += Array("t/></doc>".utf8)
+        let parser = XMLParser(data: Data(bytes))
+        let stream = XMLParserDelegateEventStream()
+        parser.delegate = stream
+        XCTAssertFalse(parser.parse())
+        XCTAssertNotNil(parser.parserError)
+    }
+
     func test_withData() {
         let xml = Array(TestXMLParser.xmlUnderTest().utf8CString)
         let data = xml.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) -> Data in
