@@ -81,6 +81,23 @@ class TestHTTPCookieStorage: XCTestCase {
         checkCookieDomainMatching(for: .shared)
         checkCookieDomainMatching(for: .groupContainer("test"))
     }
+    
+    func test_emptyInitializer() {
+        let storage = HTTPCookieStorage()
+        let url = URL(string: "https://swift.org")
+        let simpleCookie = HTTPCookie(properties: [
+            .name: "TestCookie1",
+            .value: "Test @#$%^$&*99",
+            .path: "/",
+            .domain: "swift.org",
+        ])!
+        
+        storage.setCookie(simpleCookie)
+        XCTAssertEqual(storage.cookies!.count, 0)
+
+        storage.setCookies([simpleCookie], for: url, mainDocumentURL: nil)
+        XCTAssertEqual(storage.cookies!.count, 0)
+    }
 
     func cookieStorage(for type: StorageType) -> HTTPCookieStorage {
         switch type {
