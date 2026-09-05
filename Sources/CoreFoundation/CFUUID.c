@@ -258,7 +258,7 @@ CFUUIDRef CFUUIDCreateFromString(CFAllocatorRef alloc, CFStringRef uuidStr) {
     memset((void *)&bytes, 0, sizeof(bytes));
 
     /* Skip initial random stuff */
-    while (!_isHexChar(chars[i]) && i < len) i++;
+    while (i < len && !_isHexChar(chars[i])) i++;
 
     READ_A_BYTE(bytes.byte0);
     READ_A_BYTE(bytes.byte1);
