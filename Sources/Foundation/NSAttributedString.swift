@@ -63,7 +63,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         
         // use the resulting _string and _attributeArray to initialize a new instance, just like init
         _string = mutableAttributedString._string
-        _attributeArray = mutableAttributedString._attributeArray
+        _attributeArray = CFRunArrayRetain(mutableAttributedString._attributeArray)
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -223,7 +223,12 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         
         // use the resulting _string and _attributeArray to initialize a new instance
         _string = mutableAttributedString._string
-        _attributeArray = mutableAttributedString._attributeArray
+        _attributeArray = CFRunArrayRetain(mutableAttributedString._attributeArray)
+    }
+
+    deinit {
+        // Release the CFRunArray created in init methods
+        CFRunArrayRelease(_attributeArray)
     }
 
     /// Executes the block for each attribute in the range.
