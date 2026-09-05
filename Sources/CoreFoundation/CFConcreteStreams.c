@@ -42,7 +42,7 @@ typedef struct {
     union {
         CFFileDescriptorRef cffd;	// ref created once we open and have an fd
         CFMutableArrayRef rlArray;	// scheduling information prior to open
-    } rlInfo; // If fd > 0, cffd exists.  Otherwise, rlArray.
+    } rlInfo; // If fd >= 0, cffd exists.  Otherwise, rlArray.
 #else
     uint16_t scheduled;	// ref count of how many times we've been scheduled
 #endif
@@ -387,7 +387,7 @@ static void fileSchedule(struct _CFStream *stream, CFRunLoopRef runLoop, CFStrin
     }
 #else
     fileStream->scheduled++;
-    if (fileStream->scheduled == 1 && fileStream->fd > 0 && status == kCFStreamStatusOpen) {
+    if (fileStream->scheduled == 1 && fileStream->fd >= 0 && status == kCFStreamStatusOpen) {
         if (isReadStream)
             CFReadStreamSignalEvent((CFReadStreamRef)stream, kCFStreamEventHasBytesAvailable, NULL);
         else
@@ -520,7 +520,7 @@ static void *fileCreate(struct _CFStream *stream, void *info) {
 
 static void	fileFinalize(struct _CFStream *stream, void *info) {
     _CFFileStreamContext *ctxt = (_CFFileStreamContext *)info;
-    if (ctxt->fd > 0) {
+    if (ctxt->fd >= 0) {
 #ifdef REAL_FILE_SCHEDULING
         if (ctxt->rlInfo.cffd) {
             CFFileDescriptorInvalidate(ctxt->rlInfo.cffd); 
