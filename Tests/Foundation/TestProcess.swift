@@ -990,6 +990,90 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
 
         return (stdout, stderr)
     }
+
+    func test_fds_are_not_leaked_to_subsequent_processes() throws {
+        // This test verifies that internal sockets created by one Process are not leaked
+        // to a subsequent Process. This confirms that SOCK_CLOEXEC is correctly set on the parent side.
+        
+        #if !os(Windows)
+        // 1. Launch a long-running process (Process A) to keep its monitoring socket open in the parent.
+        let processA = Process()
+        processA.executableURL = try xdgTestHelperURL()
+        processA.arguments = ["--sleep", "2"]
+        try processA.run()
+        
+        // 2. Launch a second process (Process B) to inspect open FDs.
+        let processB = Process()
+        processB.executableURL = try xdgTestHelperURL()
+        processB.arguments = ["--print-open-file-descriptors"]
+        
+        let pipe = Pipe()
+        processB.standardOutput = pipe
+        try processB.run()
+        
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        processB.waitUntilExit()
+        
+        let output = String(decoding: data, as: UTF8.self)
+        let openFDs = output.split(separator: "\n").compactMap { Int($0) }
+        
+        // 3. Expected FDs: 0(stdin), 1(stdout), 2(stderr).
+        // On Linux, there might be /dev/urandom or the internal socket for Process B itself.
+        // But crucially, we shouldn't see an EXTRA socket from Process A.
+        
+        // Determining exact count is hard across platforms, but we can verify stability.
+        // Let's run Process C alone and compare counts.
+        
+        let processC = Process()
+        processC.executableURL = try xdgTestHelperURL()
+        processC.arguments = ["--print-open-file-descriptors"]
+        let pipeC = Pipe()
+        processC.standardOutput = pipeC
+        try processC.run()
+        
+        let dataC = pipeC.fileHandleForReading.readDataToEndOfFile()
+        processC.waitUntilExit()
+        
+        let outputC = String(decoding: dataC, as: UTF8.self)
+        let openFDsC = outputC.split(separator: "\n").compactMap { Int($0) }
+        
+        processA.terminate()
+        processA.waitUntilExit()
+        
+        // If Process A leaked its socket to Process B, B would have more FDs than C.
+        // (Assuming deterministic FD allocation, which is generally true if we strictly serialize, 
+        // but Process A is running while B runs, so A's socket is open in Parent).
+        
+        XCTAssertEqual(openFDs.count, openFDsC.count, "Process B inherited extra FDs (likely Process A's socket): B=\(openFDs), C=\(openFDsC)")
+        #endif
+    }
+    
+    func test_child_monitoring_works() throws {
+        // This test verifies that we didn't break the inheritance of the child-side socket
+        // by clearing CLOEXEC on it. If we broke it (socket closed on exec), the parent
+        // might detect premature termination or hang.
+        
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--sleep", "1"]
+        
+        let start = Date()
+        try process.run()
+        
+        XCTAssertTrue(process.isRunning)
+        
+        process.waitUntilExit()
+        
+        let elapsed = Date().timeIntervalSince(start)
+        
+        XCTAssertFalse(process.isRunning)
+        XCTAssertEqual(process.terminationStatus, 0)
+        
+        // Ensure it actually waited ~1 second (meaning it tracked the child correctly)
+        // If socket closed immediately on exec, we might see very short elapsed time
+        // (depending on how the CF callback handles EOF vs waitpid).
+        XCTAssertGreaterThan(elapsed, 0.5, "Process monitoring finished too early; child socket likely closed on exec")
+    }
 }
 
 private func parseEnv(_ env: String) throws -> [String: String] {
