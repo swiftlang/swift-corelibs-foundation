@@ -68,7 +68,7 @@ CF_PRIVATE void _CFBundleSplitFileName(CFStringRef fileName, CFStringRef *noProd
         // Search for the type from the end (type defined as everything after the last '.')
         // e.g., a file name like foo.jpg has a type of 'jpg'
         Boolean foundDot = false;
-        uint16_t dotLocation = 0;
+        CFIndex dotLocation = 0;
         for (CFIndex i = fileNameLen; i > 0; i--) {
             if (CFStringGetCharacterAtIndex(fileName, i - 1) == '.') {
                 foundDot = true;
