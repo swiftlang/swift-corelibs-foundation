@@ -234,12 +234,7 @@ let package = Package(
                 "CMakeLists.txt"
             ],
             cSettings: coreFoundationBuildSettings,
-            linkerSettings: [
-                .linkedLibrary("log", .when(platforms: [.android])),
-                .linkedLibrary("shell32", .when(platforms: [.windows])),
-                .linkedLibrary("ole32", .when(platforms: [.windows])),
-                .linkedLibrary("uuid", .when(platforms: [.windows]))
-            ]
+            linkerSettings: [.linkedLibrary("log", .when(platforms: [.android]))]
         ),
         .target(
             name: "BlocksRuntime",

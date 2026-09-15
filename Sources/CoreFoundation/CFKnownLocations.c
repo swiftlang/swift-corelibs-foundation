@@ -99,7 +99,7 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
             PWSTR path = NULL;
             HRESULT result = SHGetKnownFolderPath(&FOLDERID_LocalAppData, 0, NULL, &path);
             if (SUCCEEDED(result) && path) {
-                CFStringRef pathRef = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)path, wcslen(path));
+                CFStringRef pathRef = CFStringCreateWithCharactersNoCopy(kCFAllocatorSystemDefault, (const UniChar *)path, wcslen(path), kCFAllocatorNull);
                 if (pathRef) {
                     location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, pathRef, kCFURLWindowsPathStyle, true);
                     CFRelease(pathRef);
