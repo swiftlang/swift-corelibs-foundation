@@ -121,7 +121,8 @@ target_link_libraries(CoreFoundation
         dispatch)
 
 if(WIN32)
-    target_link_libraries(CoreFoundation PRIVATE shell32 ole32 uuid)
+    # SHGetKnownFolderPath requires shell32; CoTaskMemFree requires ole32.
+    target_link_libraries(CoreFoundation PRIVATE shell32 ole32)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")

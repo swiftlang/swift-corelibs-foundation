@@ -7,20 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(Windows)
-import WinSDK
-#endif
-
 class TestUserDefaults : XCTestCase {
 
 #if os(Windows)
     func test_currentUserPreferencesUseLocalAppData() throws {
-        var folderID = FOLDERID_LocalAppData
-        var path: UnsafeMutablePointer<WCHAR>?
-        let result = SHGetKnownFolderPath(&folderID, 0, nil, &path)
-        defer { CoTaskMemFree(path) }
-        XCTAssertGreaterThanOrEqual(result, 0)
-        let directory = URL(fileURLWithPath: String(decodingCString: try XCTUnwrap(path), as: UTF16.self), isDirectory: true)
+        let directory = try XCTUnwrap(FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first)
         let suite = "org.swift.TestUserDefaults.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer {
