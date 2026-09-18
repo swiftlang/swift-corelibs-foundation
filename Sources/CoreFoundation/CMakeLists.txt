@@ -120,6 +120,11 @@ target_link_libraries(CoreFoundation
         _FoundationICU
         dispatch)
 
+if(WIN32)
+    # SHGetKnownFolderPath requires shell32; CoTaskMemFree requires ole32.
+    target_link_libraries(CoreFoundation PRIVATE shell32 ole32)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     # CFLog calls __android_log_print, which lives in liblog.
     target_link_libraries(CoreFoundation PRIVATE log)
