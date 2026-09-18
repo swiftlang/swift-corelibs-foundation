@@ -11,6 +11,9 @@
 
 #if TARGET_OS_WIN32
 #define bzero(dst, size)    ZeroMemory(dst, size)
+
+// The two `_CFMultiplyBufferSizeWithoutOverflow` calls in this file pass a `CFIndex *`. On Windows the helper is a function taking `size_t *`, so the calls are a pointer type mismatch. Clang now errors on this by default, breaking the Windows build. `CFIndex` and `size_t` differ in signedness but not in width, so the calls are benign; keep this a warning until the callers switch to 'size_t'.
+#pragma clang diagnostic warning "-Wincompatible-pointer-types"
 #endif
 
 typedef CF_ENUM(CFIndex, URLPredefinedCharacterSet) {
