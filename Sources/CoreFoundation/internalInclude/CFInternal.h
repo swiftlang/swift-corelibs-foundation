@@ -282,7 +282,9 @@ extern void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char *fu
 #define __CFBitfield64GetValue(V, N1, N2)	(((V) & __CFBitfield64Mask(N1, N2)) >> (N2))
 #define __CFBitfield64SetValue(V, N1, N2, X)	((V) = ((V) & ~__CFBitfield64Mask(N1, N2)) | ((((uint64_t)X) << (N2)) & __CFBitfield64Mask(N1, N2)))
 
-#if TARGET_RT_64_BIT || TARGET_OS_ANDROID
+// This has to match the width of CFRuntimeBase's _cfinfoa, which the Swift
+// runtime layout fixes at 64 bits on every architecture.
+#if TARGET_RT_64_BIT || TARGET_OS_ANDROID || DEPLOYMENT_RUNTIME_SWIFT
 typedef uint64_t __CFInfoType;
 #define __CFInfoMask(N1, N2) __CFBitfield64Mask(N1, N2)
 #else
