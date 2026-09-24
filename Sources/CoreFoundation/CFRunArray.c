@@ -200,6 +200,14 @@ CFRunArrayRef CFRunArrayCreate(CFAllocatorRef allocator) {
     return array;
 }
 
+CFRunArrayRef CFRunArrayRetain(CFRunArrayRef array) {
+    return COPY(array);
+}
+
+void CFRunArrayRelease(CFRunArrayRef array) {
+    FREE(array);
+}
+
 CFIndex CFRunArrayGetCount(CFRunArrayRef array) {
     return array->guts->length;
 }
