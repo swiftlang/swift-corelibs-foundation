@@ -101,7 +101,7 @@ static void __CFRecordStringAllocationEvent(const char *encoding, const char *by
         }
     });
 
-    if (fd > 0) {
+    if (fd >= 0) {
 	char *buffer = NULL;
 	char formatString[256];
 	snprintf(formatString, sizeof(formatString), "%%-8d\t%%-16s\t%%.%lds\n", byteCount);
