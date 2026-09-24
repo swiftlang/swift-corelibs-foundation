@@ -461,15 +461,9 @@ CF_INLINE Boolean __CFSocketFdClr(CFSocketNativeHandle sock, CFMutableDataRef fd
 }
 
 static SInt32 __CFSocketCreateWakeupSocketPair(void) {
-#if TARGET_OS_MAC
-    SInt32 error;
-
-    error = socketpair(PF_LOCAL, SOCK_DGRAM, 0, __CFWakeupSocketPair);
-    if (0 <= error) error = fcntl(__CFWakeupSocketPair[0], F_SETFD, FD_CLOEXEC);
-    if (0 <= error) error = fcntl(__CFWakeupSocketPair[1], F_SETFD, FD_CLOEXEC);
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+    SInt32 error = socketpair(PF_LOCAL, SOCK_DGRAM | SOCK_CLOEXEC, 0, __CFWakeupSocketPair);
     if (0 > error) {
-        closesocket(__CFWakeupSocketPair[0]);
-        closesocket(__CFWakeupSocketPair[1]);
         __CFWakeupSocketPair[0] = INVALID_SOCKET;
         __CFWakeupSocketPair[1] = INVALID_SOCKET;
     }
