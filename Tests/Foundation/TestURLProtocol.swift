@@ -28,6 +28,35 @@ class TestURLProtocol : LoopbackServerTest {
         waitForExpectations(timeout: 5)
     }
 
+    func test_configuredRequestIsSeparateFromOriginalRequest() {
+        let url = URL(string: "https://example.invalid/configured-request")!
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [ConfiguredRequestProtocol.self]
+        let cookie = HTTPCookie(properties: [
+            .domain: "example.invalid", .path: "/", .name: "DioramaProbe", .value: "cookie-value"
+        ])!
+        configuration.httpCookieStorage?.setCookie(cookie)
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+
+        var request = URLRequest(url: url)
+        request.setValue("caller", forHTTPHeaderField: "X-Caller")
+        let expect = expectation(description: "The protocol receives the configured request")
+        let task = session.dataTask(with: request) { data, _, error in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+            XCTAssertEqual(String(data: data ?? Data(), encoding: .utf8), "DioramaProbe=cookie-value")
+        }
+
+        XCTAssertEqual(task.originalRequest?.allHTTPHeaderFields, request.allHTTPHeaderFields)
+        XCTAssertNil(task.originalRequest?.value(forHTTPHeaderField: "Cookie"))
+        XCTAssertEqual(task.currentRequest?.value(forHTTPHeaderField: "X-Caller"), "caller")
+        XCTAssertEqual(task.currentRequest?.value(forHTTPHeaderField: "Cookie"), "DioramaProbe=cookie-value")
+
+        task.resume()
+        waitForExpectations(timeout: 5)
+    }
+
     func test_interceptResponse() {
         let urlString = "http://127.0.0.1:\(TestURLProtocol.serverPort)/USA"
         let url = URL(string: urlString)!
@@ -144,6 +173,21 @@ private class PropertyEchoProtocol: URLProtocol {
         let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: Data(value.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
+private class ConfiguredRequestProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data((request.value(forHTTPHeaderField: "Cookie") ?? "<missing>").utf8))
         client?.urlProtocolDidFinishLoading(self)
     }
 

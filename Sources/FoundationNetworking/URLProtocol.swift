@@ -427,7 +427,7 @@ open class URLProtocol : NSObject {
         return canInit(with: request)
     }
     public required convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
-        let urlRequest = task.originalRequest
+        let urlRequest = task.currentRequest
         self.init(request: urlRequest!, cachedResponse: cachedResponse, client: client)
         self.task = task
     }
