@@ -411,7 +411,7 @@ void CFTreeSortChildren(CFTreeRef tree, CFComparatorFunction comparator, void *c
         CFTreeRef *list, buffer[128];
 
         list = (children < 128) ? buffer : (CFTreeRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, children * sizeof(CFTreeRef), 0); // XXX_PCB GC OK
-	if (__CFOASafe && list != buffer) __CFSetLastAllocationEventName(tree->_callbacks, "CFTree (temp)");
+	if (__CFOASafe && list != buffer) __CFSetLastAllocationEventName(list, "CFTree (temp)");
         nextChild = tree->_child;
         for (idx = 0; NULL != nextChild; idx++) {
             list[idx] = nextChild;
