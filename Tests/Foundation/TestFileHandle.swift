@@ -21,6 +21,12 @@ import Dispatch
 import WinSDK
 #elseif canImport(Android)
 @preconcurrency import Android
+#else
+#if canImport(Darwin)
+import Darwin
+#else
+import Glibc
+#endif
 #endif
 
 class TestFileHandle : XCTestCase {
@@ -538,6 +544,69 @@ class TestFileHandle : XCTestCase {
         
         wait(for: [done], timeout: 10)
     }
+
+#if !os(Windows)
+    func test_acceptConnectionInBackgroundAndNotify_userInfo() {
+        let listenFD = socket(AF_INET, SOCK_STREAM, 0)
+        XCTAssertGreaterThanOrEqual(listenFD, 0, "Failed to create listening socket")
+
+        var addr = sockaddr_in()
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_addr = in_addr(s_addr: htonl(INADDR_LOOPBACK))
+        addr.sin_port = in_port_t(0)
+
+        let bindResult = withUnsafePointer(to: &addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                bind(listenFD, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        XCTAssertEqual(bindResult, 0, "Bind failed")
+
+        var boundAddr = addr
+        var len = socklen_t(MemoryLayout<sockaddr_in>.size)
+        let nameResult = withUnsafeMutablePointer(to: &boundAddr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                getsockname(listenFD, $0, &len)
+            }
+        }
+        XCTAssertEqual(nameResult, 0, "getsockname failed")
+
+        XCTAssertEqual(listen(listenFD, 1), 0, "listen failed")
+
+        let handle = FileHandle(fileDescriptor: listenFD, closeOnDealloc: true)
+        allHandles.append(handle)
+
+        let done = expectation(forNotification: .NSFileHandleConnectionAccepted, object: handle, notificationCenter: .default) { notification in
+            guard let accepted = notification.userInfo?[NSFileHandleNotificationFileHandleItem] as? FileHandle else {
+                XCTFail("Missing accepted file handle in userInfo")
+                return true
+            }
+            XCTAssertTrue(accepted._isPlatformHandleValid, "Accepted handle should be valid")
+            accepted.closeFile()
+            return true
+        }
+
+        handle.acceptConnectionInBackgroundAndNotify(forModes: [.default])
+
+        let clientFD = socket(AF_INET, SOCK_STREAM, 0)
+        XCTAssertGreaterThanOrEqual(clientFD, 0, "Failed to create client socket")
+
+        var connectAddr = sockaddr_in()
+        connectAddr.sin_family = sa_family_t(AF_INET)
+        connectAddr.sin_addr = in_addr(s_addr: htonl(INADDR_LOOPBACK))
+        connectAddr.sin_port = boundAddr.sin_port
+
+        let connectResult = withUnsafePointer(to: &connectAddr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                connect(clientFD, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        XCTAssertEqual(connectResult, 0, "connect failed")
+        close(clientFD)
+
+        wait(for: [done], timeout: 5)
+    }
+#endif
     
     func test_readWriteHandlers() throws {
         throw XCTSkip("<rdar://problem/50860781> sporadically times out")
@@ -624,5 +693,50 @@ class TestFileHandle : XCTestCase {
         let fh = try XCTUnwrap(FileHandle(forWritingAtPath: "/dev/stdout"))
 #endif
         XCTAssertNoThrow(try fh.synchronize())
+    }
+
+    static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
+        var tests: [(String, (TestFileHandle) -> () throws -> ())] = [
+            ("testReadUpToCount", testReadUpToCount),
+            ("testReadToEnd", testReadToEnd),
+            ("testWritingWithData", testWritingWithData),
+            ("testWritingWithBuffer", testWritingWithBuffer),
+            ("testWritingWithMultiregionData", testWritingWithMultiregionData),
+            ("test_constants", test_constants),
+            ("test_truncateFile", test_truncateFile),
+            ("test_truncate", test_truncate),
+            ("test_readabilityHandlerCloseFileRace", test_readabilityHandlerCloseFileRace),
+            ("test_readabilityHandlerCloseFileRaceWithError", test_readabilityHandlerCloseFileRaceWithError),
+            ("test_availableData", test_availableData),
+            ("test_readToEndOfFileInBackgroundAndNotify", test_readToEndOfFileInBackgroundAndNotify),
+            ("test_readToEndOfFileAndNotify", test_readToEndOfFileAndNotify),
+            ("test_readToEndOfFileAndNotify_readError", test_readToEndOfFileAndNotify_readError),
+            ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
+            /* ⚠️ */ ("test_readWriteHandlers", testExpectedToFail(test_readWriteHandlers,
+            /* ⚠️ */     "<rdar://problem/50860781> sporadically times out")),
+            ("testSynchronizeOnSpecialFile", testSynchronizeOnSpecialFile),
+        ]
+
+#if !os(Windows)
+        tests.append(("test_acceptConnectionInBackgroundAndNotify_userInfo", test_acceptConnectionInBackgroundAndNotify_userInfo))
+#endif
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_fileDescriptor", test_fileDescriptor),
+            ("test_nullDevice", test_nullDevice),
+            ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
+            ("testOffset", testOffset),
+        ])
+
+#if !os(Windows)
+        tests.append(contentsOf: [
+            /* ⚠️  SR-13822 - closeOnDealloc doesnt work on Windows and so this test is disabled there. */
+            ("test_closeOnDealloc", test_closeOnDealloc),
+        ])
+#endif
+#endif
+
+        return tests
     }
 }
