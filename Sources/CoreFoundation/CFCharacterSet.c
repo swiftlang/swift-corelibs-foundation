@@ -1048,7 +1048,7 @@ static Boolean __CFCharacterSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
             }
 
             // Annex set has to be CFRangeMake(0x10000, 0xfffff)
-            for (idx = 1;idx < MAX_ANNEX_PLANE;idx++) {
+            for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
                 if (__CFCSetIsBitmap(nonEmptySet)) {
                     if (!__CFCSetIsEqualBitmap((__CFCSetAnnexIsInverted(nonEmptySet) ? NULL : (const UInt32 *)-1), (const UInt32 *)bitsBuf)) return false;
                 } else {
@@ -1072,7 +1072,7 @@ static Boolean __CFCharacterSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
             uint8_t lastPlane = (lastChar >> 16) & 0xFF;
             uint8_t result;
 
-            for (idx = 0;idx < MAX_ANNEX_PLANE;idx++) {
+            for (idx = 0;idx <= MAX_ANNEX_PLANE;idx++) {
                 result = CFUniCharGetBitmapForPlane(__CFCSetBuiltinType(builtinSet), idx, bitsBuf, (isInvertStateIdentical != 0));
 
                 if (idx < firstPlane || idx > lastPlane) {
@@ -1132,7 +1132,7 @@ static Boolean __CFCharacterSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
 
             isInvertStateIdentical = (__CFCSetIsInverted(builtinSet) == __CFCSetAnnexIsInverted(nonBuiltinSet) ? true : false);
 
-            for (idx = 1;idx < MAX_ANNEX_PLANE;idx++) {
+            for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
                 result = CFUniCharGetBitmapForPlane(__CFCSetBuiltinType(builtinSet), idx, bitsBuf, !isInvertStateIdentical);
                 subSet1 = __CFCSetGetAnnexPlaneCharacterSetNoAlloc(nonBuiltinSet, idx);
 
@@ -1199,7 +1199,7 @@ static Boolean __CFCharacterSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
 
         isAnnexInvertStateIdentical = (isRangeSetInverted == __CFCSetAnnexIsInverted(nonRangeSet) ? true : false);
 
-        for (idx = 1;idx < MAX_ANNEX_PLANE;idx++) {
+        for (idx = 1;idx <= MAX_ANNEX_PLANE;idx++) {
             subSet1 = __CFCSetGetAnnexPlaneCharacterSetNoAlloc(nonRangeSet, idx);
             if (NULL == subSet1) {
                 if (idx < firstPlane || idx > lastPlane) {
