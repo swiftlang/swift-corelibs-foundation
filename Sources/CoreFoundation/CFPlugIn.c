@@ -693,7 +693,7 @@ static void _CFPFactoryAddToTableLocked(_CFPFactoryRef factory) {
 
 static void _CFPFactoryRemoveFromTableLocked(_CFPFactoryRef factory) {
     CFUUIDRef uuid = factory->_uuid;
-    if (uuid && _factoriesByTypeID) CFDictionaryRemoveValue(_factoriesByFactoryID, uuid);
+    if (uuid && _factoriesByFactoryID) CFDictionaryRemoveValue(_factoriesByFactoryID, uuid);
     
     os_log_debug(_CFBundlePluginLogger(), "Unregistered factory %{public}@ (%{public}@)", factory, uuid);
 }
