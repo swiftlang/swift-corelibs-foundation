@@ -167,6 +167,9 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
         let c = NSMutableURLRequest(url: url!)
         c.setValues(from: self)
+        if let mutableRequest = self as? NSMutableURLRequest {
+            c.protocolProperties = mutableRequest.protocolProperties
+        }
         return c
     }
     
