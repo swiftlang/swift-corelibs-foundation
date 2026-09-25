@@ -8,6 +8,26 @@
 //
 
 class TestURLProtocol : LoopbackServerTest {
+    func test_protocolPropertiesReachCustomProtocol() {
+        let url = URL(string: "https://example.invalid/protocol-properties")!
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PropertyEchoProtocol.self]
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+
+        let request = NSMutableURLRequest(url: url)
+        URLProtocol.setProperty("present", forKey: "marker", in: request)
+        let expect = expectation(description: "The protocol receives the request property")
+        let task = session.dataTask(with: request as URLRequest) { data, _, error in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+            XCTAssertEqual(String(data: data ?? Data(), encoding: .utf8), "present")
+        }
+
+        task.resume()
+        waitForExpectations(timeout: 5)
+    }
+
     func test_interceptResponse() {
         let urlString = "http://127.0.0.1:\(TestURLProtocol.serverPort)/USA"
         let url = URL(string: urlString)!
@@ -110,6 +130,24 @@ class TestURLProtocol : LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 2)
     }
+}
+
+private class PropertyEchoProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool {
+        request.url?.host == "example.invalid"
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        let value = URLProtocol.property(forKey: "marker", in: request) as? String ?? "<missing>"
+        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(value.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
 }
 
 class InterceptableRequest : URLProtocol {
