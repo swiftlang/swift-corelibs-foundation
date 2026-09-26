@@ -1060,16 +1060,18 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy) {
         guard let task = `protocol`.task else { fatalError("Received response, but there's no task.") }
         task.response = response
+        // A new response must not include bytes from an earlier attempt.
+        bodyChunks = []
         let session = task.session as! URLSession
         
         // Only cache data tasks:
         self.cachePolicy = policy
+        cacheableResponse = nil
         
         if session.configuration.urlCache != nil {
             switch policy {
             case .allowed: fallthrough
             case .allowedInMemoryOnly:
-                bodyChunks = []
                 cacheableResponse = response
                 
             case .notAllowed:
@@ -1146,6 +1148,7 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     private func completeTask(urlProtocol: URLProtocol, task: URLSessionTask, session: URLSession) {
+        let data = takeBodyData()
         if let storage = session.configuration.urlCredentialStorage,
            let last = task._protocolLock.performLocked({ task._lastCredentialUsedFromStorageDuringAuthentication }) {
             storage.set(last.credential, for: last.protectionSpace, task: task)
@@ -1154,7 +1157,7 @@ extension _ProtocolClient : URLProtocolClient {
         if let cache = session.configuration.urlCache,
            let response = cacheableResponse,
            let task = task as? URLSessionDataTask {
-            let data = takeBodyData()
+
             let cacheable = CachedURLResponse(response: response, data: data, storagePolicy: cachePolicy)
             let protocolAllows = (urlProtocol as? _NativeProtocol)?.canCache(cacheable) ?? false
             if protocolAllows {
@@ -1199,10 +1202,9 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .dataCompletionHandler(let completion),
              .dataCompletionHandlerWithTaskDelegate(let completion, _):
-            nonisolated(unsafe) let nonisolatedURLProtocol = urlProtocol
             let dataCompletion : @Sendable () -> () = {
                 guard task.state != .completed else { return }
-                completion(nonisolatedURLProtocol.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
+                completion(data, task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -1311,22 +1313,22 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
-        `protocol`.properties[.responseData] = data
         guard let task = `protocol`.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
-        
-        switch cachePolicy {
-        case .allowed: fallthrough
-        case .allowedInMemoryOnly:
-            if session.configuration.urlCache != nil {
-                bodyChunks.append(data)
-            }
 
-        case .notAllowed:
-            break
+        let behaviour = session.behaviour(for: task)
+        let returnsData: Bool
+        switch behaviour {
+        case .dataCompletionHandler, .dataCompletionHandlerWithTaskDelegate:
+            returnsData = true
+        default:
+            returnsData = false
         }
-        
-        switch session.behaviour(for: task) {
+        if !data.isEmpty && (returnsData || cacheableResponse != nil) {
+            bodyChunks.append(data)
+        }
+
+        switch behaviour {
         case .taskDelegate(let delegate):
             let dataDelegate = delegate as? URLSessionDataDelegate
             let dataTask = task as? URLSessionDataTask
@@ -1344,6 +1346,8 @@ extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(task: URLSessionTask, didFailWithError error: Error) {
         guard let session = task.session as? URLSession else { fatalError() }
+        bodyChunks = []
+        cacheableResponse = nil
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
@@ -1432,7 +1436,6 @@ extension URLSessionTask {
 
 extension URLProtocol {
     enum _PropertyKey: String, Sendable {
-        case responseData
         case temporaryFileURL
     }
 }
