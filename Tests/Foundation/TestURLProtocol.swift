@@ -32,6 +32,7 @@ class TestURLProtocol : LoopbackServerTest {
         let url = URL(string: "https://example.invalid/configured-request")!
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [ConfiguredRequestProtocol.self]
+        configuration.httpAdditionalHeaders = ["X-Session": "configured", "x-caller": "configuration"]
         let cookie = HTTPCookie(properties: [
             .domain: "example.invalid", .path: "/", .name: "DioramaProbe", .value: "cookie-value"
         ])!
@@ -45,12 +46,13 @@ class TestURLProtocol : LoopbackServerTest {
         let task = session.dataTask(with: request) { data, _, error in
             defer { expect.fulfill() }
             XCTAssertNil(error)
-            XCTAssertEqual(String(data: data ?? Data(), encoding: .utf8), "DioramaProbe=cookie-value")
+            XCTAssertEqual(String(data: data ?? Data(), encoding: .utf8), "DioramaProbe=cookie-value|configured|caller")
         }
 
         XCTAssertEqual(task.originalRequest?.allHTTPHeaderFields, request.allHTTPHeaderFields)
         XCTAssertNil(task.originalRequest?.value(forHTTPHeaderField: "Cookie"))
         XCTAssertEqual(task.currentRequest?.value(forHTTPHeaderField: "X-Caller"), "caller")
+        XCTAssertEqual(task.currentRequest?.value(forHTTPHeaderField: "X-Session"), "configured")
         XCTAssertEqual(task.currentRequest?.value(forHTTPHeaderField: "Cookie"), "DioramaProbe=cookie-value")
 
         task.resume()
@@ -187,7 +189,8 @@ private class ConfiguredRequestProtocol: URLProtocol {
     override func startLoading() {
         let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data((request.value(forHTTPHeaderField: "Cookie") ?? "<missing>").utf8))
+        let fields = ["Cookie", "X-Session", "X-Caller"].map { request.value(forHTTPHeaderField: $0) ?? "<missing>" }
+        client?.urlProtocol(self, didLoad: Data(fields.joined(separator: "|").utf8))
         client?.urlProtocolDidFinishLoading(self)
     }
 
