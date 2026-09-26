@@ -671,6 +671,40 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 30)
     }
     
+    func test_httpAdditionalHeadersOnRedirects() async {
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders")!
+
+        for delegateSuppliesRequest in [false, true] {
+            let config = URLSessionConfiguration.ephemeral
+            config.httpAdditionalHeaders = ["X-Session": "configured", "x-override": "configuration"]
+            let delegate = SessionDelegate()
+            if delegateSuppliesRequest {
+                delegate.redirectionHandler = { _, request, completionHandler in
+                    var replacement = URLRequest(url: request.url!)
+                    replacement.setValue("delegate", forHTTPHeaderField: "X-Override")
+                    completionHandler(replacement)
+                }
+            }
+            let session = URLSession(configuration: config, delegate: delegateSuppliesRequest ? delegate : nil, delegateQueue: nil)
+            let expect = expectation(description: "Redirect with delegate-supplied request: \(delegateSuppliesRequest)")
+            var request = URLRequest(url: url)
+            request.setValue("caller", forHTTPHeaderField: "X-Override")
+            let task = session.dataTask(with: request) { data, _, error in
+                defer { expect.fulfill() }
+                XCTAssertNil(error)
+                let headers = String(decoding: data ?? Data(), as: UTF8.self).lowercased()
+                XCTAssertTrue(headers.contains("x-session: configured"))
+                let expectedOverride = delegateSuppliesRequest ? "delegate" : "caller"
+                XCTAssertTrue(headers.contains("x-override: \(expectedOverride)"))
+                XCTAssertFalse(headers.contains("x-override: configuration"))
+                XCTAssertTrue(headers.contains("cookie: redirect=true"))
+            }
+            task.resume()
+            waitForExpectations(timeout: 5)
+            session.invalidateAndCancel()
+        }
+    }
+
     func test_taskTimeout() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
