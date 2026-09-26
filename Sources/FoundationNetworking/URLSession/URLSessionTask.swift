@@ -1069,7 +1069,7 @@ extension _ProtocolClient : URLProtocolClient {
             switch policy {
             case .allowed: fallthrough
             case .allowedInMemoryOnly:
-                cacheableData = []
+                bodyChunks = []
                 cacheableResponse = response
                 
             case .notAllowed:
@@ -1152,11 +1152,10 @@ extension _ProtocolClient : URLProtocolClient {
         }
         
         if let cache = session.configuration.urlCache,
-           let data = cacheableData,
            let response = cacheableResponse,
            let task = task as? URLSessionDataTask {
-            
-            let cacheable = CachedURLResponse(response: response, data: Data(data.joined()), storagePolicy: cachePolicy)
+            let data = takeBodyData()
+            let cacheable = CachedURLResponse(response: response, data: data, storagePolicy: cachePolicy)
             let protocolAllows = (urlProtocol as? _NativeProtocol)?.canCache(cacheable) ?? false
             if protocolAllows {
                 if let delegate = task.delegate as? URLSessionDataDelegate {
@@ -1319,7 +1318,9 @@ extension _ProtocolClient : URLProtocolClient {
         switch cachePolicy {
         case .allowed: fallthrough
         case .allowedInMemoryOnly:
-            cacheableData?.append(data)
+            if session.configuration.urlCache != nil {
+                bodyChunks.append(data)
+            }
 
         case .notAllowed:
             break

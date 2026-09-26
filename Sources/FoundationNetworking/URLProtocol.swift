@@ -152,8 +152,25 @@ public protocol URLProtocolClient : NSObjectProtocol, Sendable {
 
 internal class _ProtocolClient : NSObject, @unchecked Sendable {
     var cachePolicy: URLCache.StoragePolicy = .notAllowed
-    var cacheableData: [Data]?
     var cacheableResponse: URLResponse?
+    var bodyChunks: [Data] = []
+
+    func takeBodyData() -> Data {
+        defer { bodyChunks = [] }
+        switch bodyChunks.count {
+        case 0:
+            return Data()
+        case 1:
+            return bodyChunks[0]
+        default:
+            var data = Data()
+            data.reserveCapacity(bodyChunks.reduce(0) { $0 + $1.count })
+            for chunk in bodyChunks {
+                data.append(chunk)
+            }
+            return data
+        }
+    }
 }
 
 @available(*, unavailable)
