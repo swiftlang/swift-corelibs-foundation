@@ -37,7 +37,7 @@ target_link_libraries(_CFURLSessionInterface PRIVATE
 if(NOT BUILD_SHARED_LIBS)
     set_property(GLOBAL APPEND PROPERTY Foundation_EXPORTS _CFURLSessionInterface)
     install(TARGETS _CFURLSessionInterface
-        ARCHIVE DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
-        LIBRARY DESTINATION lib/swift_static/${SWIFT_SYSTEM_NAME}
+        ARCHIVE DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>
+        LIBRARY DESTINATION lib/swift_static/${SwiftFoundation_PLATFORM}$<$<BOOL:${SwiftFoundation_INSTALL_ARCH_SUBDIR}>:/${SwiftFoundation_ARCH}>
         RUNTIME DESTINATION bin)
 endif()
