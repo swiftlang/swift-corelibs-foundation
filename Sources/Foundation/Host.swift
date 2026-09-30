@@ -261,7 +261,7 @@ open class Host: NSObject {
 
             let lookup = { (content: inout [String], flags: Int32) in
               if GetNameInfoW(aiInfo.ai_addr, sa_len, &wszHostName,
-                              DWORD(NI_MAXHOST), nil, 0, flags) == 0 {
+                              NI_MAXHOST, nil, 0, flags) == 0 {
                 content.append(String(decodingCString: &wszHostName,
                                       as: UTF16.self))
               }

@@ -201,10 +201,10 @@ extension FileManager {
         }
         defer { CloseHandle(hFile) }
 
-        let dwLength: DWORD = GetFinalPathNameByHandleW(hFile, nil, 0, DWORD(FILE_NAME_NORMALIZED))
+        let dwLength: DWORD = GetFinalPathNameByHandleW(hFile, nil, 0, FILE_NAME_NORMALIZED)
         var szPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
 
-        GetFinalPathNameByHandleW(hFile, &szPath, dwLength, DWORD(FILE_NAME_NORMALIZED))
+        GetFinalPathNameByHandleW(hFile, &szPath, dwLength, FILE_NAME_NORMALIZED)
         return String(decodingCString: &szPath, as: UTF16.self)
     }
 
