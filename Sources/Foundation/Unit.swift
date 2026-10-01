@@ -410,10 +410,10 @@ public final class UnitArea : Dimension, @unchecked Sendable {
         static let squareMicrometers    = 1e-12
         static let squareNanometers     = 1e-18
         static let squareInches         = 0.00064516
-        static let squareFeet           = 0.092903
-        static let squareYards          = 0.836127
-        static let squareMiles          = 2.59e+6
-        static let acres                = 4046.86
+        static let squareFeet           = 0.09290304
+        static let squareYards          = 0.83612736
+        static let squareMiles          = 2589988.110336
+        static let acres                = 4046.8564224
         static let ares                 = 100.0
         static let hectares             = 10000.0
     }
@@ -1292,14 +1292,14 @@ public final class UnitLength : Dimension, @unchecked Sendable {
         static let inches               = 0.0254
         static let feet                 = 0.3048
         static let yards                = 0.9144
-        static let miles                = 1609.34
+        static let miles                = 1609.344
         static let scandinavianMiles    = 10000.0
-        static let lightyears           = 9.461e+15
+        static let lightyears           = 9460730472580800.0
         static let nauticalMiles        = 1852.0
         static let fathoms              = 1.8288
         static let furlongs             = 201.168
-        static let astronomicalUnits    = 1.496e+11
-        static let parsecs              = 3.086e+16
+        static let astronomicalUnits    = 149597870700.0
+        static let parsecs              = 3.085677581491367e16
     }
     
     private convenience init(symbol: String, coefficient: Double) {
