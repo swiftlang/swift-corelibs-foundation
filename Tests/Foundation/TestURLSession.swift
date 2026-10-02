@@ -1602,6 +1602,47 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 30)
     }
 
+    func test_sessionDelegateRedirectAppliesCookiesToFreshRequest() async {
+        let config = URLSessionConfiguration.ephemeral
+        let delegate = SessionDelegate()
+        delegate.redirectionHandler = { _, request, completionHandler in
+            completionHandler(URLRequest(url: request.url!))
+        }
+        let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders")!
+        let expect = expectation(description: "Delegate redirect applies the cookie from the response")
+        let task = session.dataTask(with: url) { data, _, error in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+            let headers = String(decoding: data ?? Data(), as: UTF8.self)
+            XCTAssertTrue(headers.contains("Cookie: redirect=true"))
+        }
+        task.resume()
+        waitForExpectations(timeout: 5)
+    }
+
+    func test_taskDelegateRedirectAppliesCookies() async {
+        final class EmptyTaskDelegate: NSObject, URLSessionTaskDelegate, Sendable { }
+
+        let config = URLSessionConfiguration.ephemeral
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders")!
+        let expect = expectation(description: "Task delegate redirect applies the cookie from the response")
+        let task = session.dataTask(with: url) { data, _, error in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+            let headers = String(decoding: data ?? Data(), as: UTF8.self)
+            XCTAssertTrue(headers.contains("Cookie: redirect=true"))
+        }
+        task.delegate = EmptyTaskDelegate()
+        task.resume()
+        waitForExpectations(timeout: 5)
+    }
+
     func test_previouslySetCookiesAreSentInLaterRequests() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
