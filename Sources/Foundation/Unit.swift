@@ -1299,7 +1299,7 @@ public final class UnitLength : Dimension, @unchecked Sendable {
         static let fathoms              = 1.8288
         static let furlongs             = 201.168
         static let astronomicalUnits    = 149597870700.0
-        static let parsecs              = 3.085677581491367e16
+        static let parsecs              = 30856775814913673.0
     }
     
     private convenience init(symbol: String, coefficient: Double) {
