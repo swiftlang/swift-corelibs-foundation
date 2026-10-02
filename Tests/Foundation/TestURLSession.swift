@@ -1980,10 +1980,20 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
 
     func test_noDoubleCallbackWhenCancellingAndProtocolFailsFast() async throws {
-        throw XCTSkip("This test is disabled (Crashes nondeterministically: https://bugs.swift.org/browse/SR-11310)")
-        #if false
         let urlString = "failfast://bogus"
-        var callbackCount = 0
+        final class CallbackCounter: @unchecked Sendable {
+            private let lock = NSLock()
+            private var count = 0
+
+            /// Increments the count and returns the new value.
+            func increment() -> Int {
+                lock.lock()
+                defer { lock.unlock() }
+                count += 1
+                return count
+            }
+        }
+        let counter = CallbackCounter()
         let callback1 = expectation(description: "Callback call #1")
         let callback2 = expectation(description: "Callback call #2")
         callback2.isInverted = true
@@ -1993,7 +2003,7 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         configuration.protocolClasses = [FailFastProtocol.self]
         let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
         let task = session.dataTask(with: url) { (_, _, error) in
-            callbackCount += 1
+            let callbackCount = counter.increment()
             XCTAssertNotNil(error)
             if let urlError = error as? URLError {
                 XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
@@ -2008,7 +2018,6 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         task.resume()
         session.invalidateAndCancel()
         waitForExpectations(timeout: 1)
-        #endif
     }
 
     func test_cancelledTasksCannotBeResumed() async throws {
