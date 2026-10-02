@@ -191,7 +191,10 @@ let package = Package(
             exclude: [
                 "CMakeLists.txt"
             ],
-            swiftSettings: swiftBuildSettings
+            swiftSettings: swiftBuildSettings,
+            linkerSettings: [
+                .linkedLibrary("execinfo", .when(platforms: [.custom("freebsd")]))
+            ]
         ),
         .target(
             name: "FoundationXML",
@@ -251,7 +254,7 @@ let package = Package(
             name: "_CFXMLInterface",
             dependencies: [
                 "CoreFoundation",
-                .target(name: "Clibxml2", condition: .when(platforms: [.linux, .android])),
+                .target(name: "Clibxml2", condition: .when(platforms: [.linux, .android, .custom("freebsd")])),
             ],
             path: "Sources/_CFXMLInterface",
             exclude: [
@@ -264,7 +267,7 @@ let package = Package(
             name: "_CFURLSessionInterface",
             dependencies: [
                 "CoreFoundation",
-                .target(name: "Clibcurl", condition: .when(platforms: [.linux, .android])),
+                .target(name: "Clibcurl", condition: .when(platforms: [.linux, .android, .custom("freebsd")])),
             ],
             path: "Sources/_CFURLSessionInterface",
             exclude: [
@@ -337,7 +340,7 @@ let package = Package(
                 "FoundationNetworking",
                 "XCTest",
                 "Testing",
-                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux, .android, .windows]))
+                .target(name: "xdgTestHelper", condition: .when(platforms: [.linux, .android, .windows, .custom("freebsd")]))
             ],
             resources: [
                 .copy("Foundation/Resources")
