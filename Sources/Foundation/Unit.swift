@@ -1207,13 +1207,17 @@ public final class UnitFuelEfficiency : Dimension, @unchecked Sendable {
         static let milesPerGallon           = 235.215
     }
     
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    }
+    
     private convenience init(symbol: String, reciprocal: Double) {
         self.init(symbol: symbol, converter: NSUnitConverterReciprocal(reciprocal: reciprocal))
     }
     
     public class var litersPer100Kilometers: UnitFuelEfficiency {
         get {
-            return UnitFuelEfficiency(symbol: Symbol.litersPer100Kilometers, reciprocal: Coefficient.litersPer100Kilometers)
+            return UnitFuelEfficiency(symbol: Symbol.litersPer100Kilometers, coefficient: Coefficient.litersPer100Kilometers)
         }
     }
     
