@@ -145,7 +145,7 @@ open class Thread : NSObject {
         if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
-        WaitForSingleObject(hTimer, WinSDK.INFINITE)
+        WaitForSingleObject(hTimer, INFINITE)
 #else
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
@@ -183,7 +183,7 @@ open class Thread : NSObject {
         if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
-        WaitForSingleObject(hTimer, WinSDK.INFINITE)
+        WaitForSingleObject(hTimer, INFINITE)
 #else
         var ti = interval
         let start_ut = CFGetSystemUptime()
@@ -430,7 +430,7 @@ open class Thread : NSObject {
         return []
 #elseif os(Windows)
         let hProcess: HANDLE = GetCurrentProcess()
-        SymSetOptions(DWORD(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS))
+        SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS)
         if !SymInitializeW(hProcess, nil, true) {
             return []
         }

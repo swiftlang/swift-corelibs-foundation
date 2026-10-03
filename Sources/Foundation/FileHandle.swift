@@ -133,7 +133,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
         #if os(Windows)
         var dupHandle: HANDLE?
         if !DuplicateHandle(GetCurrentProcess(), self._handle, GetCurrentProcess(), &dupHandle,
-                        /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DWORD(DUPLICATE_SAME_ACCESS)) {
+                        /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS) {
             fatalError("DuplicateHandleFailed: \(GetLastError())")
         }
 
@@ -249,7 +249,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
 
           if options.contains(.alwaysMapped) {
             let hMapping: HANDLE =
-                CreateFileMappingA(self._handle, nil, DWORD(PAGE_READONLY), 0, 0, nil)
+                CreateFileMappingA(self._handle, nil, PAGE_READONLY, 0, 0, nil)
             if hMapping == HANDLE(bitPattern: 0) {
               fatalError("CreateFileMappingA failed")
             }
@@ -257,7 +257,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
             let szFileSize: UInt64 = (UInt64(fiFileInfo.nFileSizeHigh) << 32) | UInt64(fiFileInfo.nFileSizeLow << 0)
             let szMapSize: UInt64 = Swift.min(UInt64(length), szFileSize)
             let pData: UnsafeMutableRawPointer =
-                MapViewOfFile(hMapping, DWORD(FILE_MAP_READ), 0, 0, SIZE_T(szMapSize))
+                MapViewOfFile(hMapping, FILE_MAP_READ, 0, 0, SIZE_T(szMapSize))
 
             return NSData.NSDataReadResult(bytes: pData, length: Int(szMapSize)) { buffer, length in
               if !UnmapViewOfFile(buffer) {
@@ -433,7 +433,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
     public init(fileDescriptor fd: Int32, closeOnDealloc closeopt: Bool) {
       if (closeopt) {
         var handle: HANDLE?
-        if !DuplicateHandle(GetCurrentProcess(), HANDLE(bitPattern: _get_osfhandle(fd))!, GetCurrentProcess(), &handle, 0, false, DWORD(DUPLICATE_SAME_ACCESS)) {
+        if !DuplicateHandle(GetCurrentProcess(), HANDLE(bitPattern: _get_osfhandle(fd))!, GetCurrentProcess(), &handle, 0, false, DUPLICATE_SAME_ACCESS) {
           fatalError("DuplicateHandle() failed: \(GetLastError())")
         }
         _close(fd)
@@ -538,7 +538,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
 
         #if os(Windows)
         var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
-        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_CURRENT)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: 0), &liPointer, FILE_CURRENT) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         return UInt64(liPointer.QuadPart)
@@ -558,7 +558,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
 
         #if os(Windows)
         var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
-        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_END)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: 0), &liPointer, FILE_END) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         return UInt64(liPointer.QuadPart)
@@ -576,7 +576,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
 
         #if os(Windows)
-        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, FILE_BEGIN) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
         #else
@@ -591,7 +591,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
 
         #if os(Windows)
-        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) else {
+        guard SetFilePointerEx(self._handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, FILE_BEGIN) else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
         guard SetEndOfFile(self._handle) else {
