@@ -660,8 +660,18 @@ internal extension URLSession {
         case downloadCompletionHandlerWithTaskDelegate(URLSession._TaskRegistry.DownloadTaskCompletion, URLSessionTaskDelegate)
     }
 
+    /// The behaviour for a task that is expected to be registered. It is a programming error to pass a task that isn't.
     func behaviour(for task: URLSessionTask) -> _TaskBehaviour {
-        switch taskRegistry.behaviour(for: task) {
+        guard let behaviour = registeredBehaviour(for: task) else {
+            fatalError("Trying to access a behaviour for a task that in not in the registry.")
+        }
+        return behaviour
+    }
+
+    /// The behaviour for a task, or `nil` if it is no longer in the registry.
+    func registeredBehaviour(for task: URLSessionTask) -> _TaskBehaviour? {
+        guard let registered = taskRegistry.behaviour(for: task) else { return nil }
+        switch registered {
         case .dataCompletionHandler(let c): return .dataCompletionHandler(c)
         case .dataCompletionHandlerWithTaskDelegate(let c, let d):
             guard let d else {
