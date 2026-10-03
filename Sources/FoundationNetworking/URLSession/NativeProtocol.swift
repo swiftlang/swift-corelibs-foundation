@@ -42,7 +42,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
 
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = .initial
-        super.init(request: task.originalRequest!, cachedResponse: cachedResponse, client: client)
+        super.init(request: task.currentRequest!, cachedResponse: cachedResponse, client: client)
         self.task = task
         self.easyHandle = _EasyHandle(delegate: self)
     }
@@ -411,8 +411,8 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
 
     func resume() {
         if case .initial = self.internalState {
-            guard let r = task?.originalRequest else {
-                fatalError("Task has no original request.")
+            guard let r = task?.currentRequest else {
+                fatalError("Task has no current request.")
             }
             
             // Check if the cached response is good to use:

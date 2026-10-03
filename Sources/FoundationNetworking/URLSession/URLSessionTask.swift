@@ -260,25 +260,25 @@ open class URLSessionTask : NSObject, NSCopying, @unchecked Sendable {
         super.init()
     }
     /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
-    internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
-        if let bodyData = request.httpBody, !bodyData.isEmpty {
-            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
-        } else if let bodyStream = request.httpBodyStream {
-            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.stream(bodyStream))
+    internal convenience init(session: URLSession, originalRequest: URLRequest, currentRequest: URLRequest, taskIdentifier: Int) {
+        if let bodyData = currentRequest.httpBody, !bodyData.isEmpty {
+            self.init(session: session, originalRequest: originalRequest, currentRequest: currentRequest, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
+        } else if let bodyStream = currentRequest.httpBodyStream {
+            self.init(session: session, originalRequest: originalRequest, currentRequest: currentRequest, taskIdentifier: taskIdentifier, body: _Body.stream(bodyStream))
         } else {
-            self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.none)
+            self.init(session: session, originalRequest: originalRequest, currentRequest: currentRequest, taskIdentifier: taskIdentifier, body: _Body.none)
         }
     }
 
-    internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body?) {
+    internal init(session: URLSession, originalRequest: URLRequest, currentRequest: URLRequest, taskIdentifier: Int, body: _Body?) {
         self.session = session
         /* make sure we're actually having a serial queue as it's used for synchronization */
         self.workQueue = DispatchQueue.init(label: "org.swift.URLSessionTask.WorkQueue", target: session.workQueue)
         self.taskIdentifier = taskIdentifier
-        self.originalRequest = request
+        self.originalRequest = originalRequest
         self.knownBody = body
         super.init()
-        self.currentRequest = request
+        self.currentRequest = currentRequest
         self.progress.cancellationHandler = { [weak self] in
             self?.cancel()
         }
@@ -1420,7 +1420,7 @@ extension URLSessionTask {
         let user = credential?.user ?? ""
         let password = credential?.password ?? ""
         let encodedString = "\(user):\(password)".data(using: .utf8)?.base64EncodedString()
-        task.authRequest = task.originalRequest
+        task.authRequest = task.currentRequest
         task.authRequest?.setValue("Basic \(encodedString!)", forHTTPHeaderField: "Authorization")
     }
 
