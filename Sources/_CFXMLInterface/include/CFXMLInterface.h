@@ -117,13 +117,13 @@ void _CFXMLInterfaceDestroyContext(_CFXMLInterfaceParserContext _Nullable ctx);
 int _CFXMLInterfaceSAX2GetColumnNumber(_CFXMLInterfaceParserContext _Nullable ctx);
 int _CFXMLInterfaceSAX2GetLineNumber(_CFXMLInterfaceParserContext _Nullable ctx);
 void _CFXMLInterfaceSAX2InternalSubset(_CFXMLInterfaceParserContext _Nullable ctx,
-                                       const unsigned char * name,
-                                       const unsigned char * ExternalID,
-                                       const unsigned char * SystemID);
+                                       const unsigned char *_Nullable name,
+                                       const unsigned char *_Nullable ExternalID,
+                                       const unsigned char *_Nullable SystemID);
 void _CFXMLInterfaceSAX2ExternalSubset(_CFXMLInterfaceParserContext _Nullable ctx,
-                                       const unsigned char * name,
-                                       const unsigned char * ExternalID,
-                                       const unsigned char * SystemID);
+                                       const unsigned char *_Nullable name,
+                                       const unsigned char *_Nullable ExternalID,
+                                       const unsigned char *_Nullable SystemID);
 int _CFXMLInterfaceIsStandalone(_CFXMLInterfaceParserContext _Nullable ctx);
 int _CFXMLInterfaceHasInternalSubset(_CFXMLInterfaceParserContext _Nullable ctx);
 int _CFXMLInterfaceHasExternalSubset(_CFXMLInterfaceParserContext _Nullable ctx);
@@ -271,31 +271,31 @@ struct _NSXMLParserBridge {
     
     _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
     
-    void (*internalSubset)(_CFXMLInterface ctx, const unsigned char *name, const unsigned char *ExternalID, const unsigned char *SystemID);
+    void (*internalSubset)(_CFXMLInterface ctx, const unsigned char *_Nullable name, const unsigned char *_Nullable ExternalID, const unsigned char *_Nullable SystemID);
     int (*isStandalone)(_CFXMLInterface ctx);
     int (*hasInternalSubset)(_CFXMLInterface ctx);
     int (*hasExternalSubset)(_CFXMLInterface ctx);
     _CFXMLInterfaceEntity _Nullable (*_Nonnull getEntity)(_CFXMLInterface ctx, const unsigned char *name);
     void (*notationDecl)(_CFXMLInterface ctx,
                          const unsigned char *name,
-                         const unsigned char *publicId,
-                         const unsigned char *systemId);
+                         const unsigned char *_Nullable publicId,
+                         const unsigned char *_Nullable systemId);
     void (*attributeDecl)(_CFXMLInterface ctx,
                           const unsigned char *elem,
                           const unsigned char *fullname,
                           int type,
                           int def,
-                          const unsigned char *defaultValue,
-                          _CFXMLInterfaceEnumeration tree);
+                          const unsigned char *_Nullable defaultValue,
+                          _CFXMLInterfaceEnumeration _Nullable tree);
     void (*elementDecl)(_CFXMLInterface ctx,
                         const unsigned char *name,
                         int type,
-                        _CFXMLInterfaceElementContent content);
+                        _CFXMLInterfaceElementContent _Nullable content);
     void (*unparsedEntityDecl)(_CFXMLInterface ctx,
                                const unsigned char *name,
-                               const unsigned char *publicId,
-                               const unsigned char *systemId,
-                               const unsigned char *notationName);
+                               const unsigned char *_Nullable publicId,
+                               const unsigned char *_Nullable systemId,
+                               const unsigned char *_Nullable notationName);
     void (*startDocument)(_CFXMLInterface ctx);
     void (*endDocument)(_CFXMLInterface ctx);
     void (*startElementNs)(_CFXMLInterface ctx,
@@ -316,15 +316,15 @@ struct _NSXMLParserBridge {
                        int len);
     void (*processingInstruction)(_CFXMLInterface ctx,
                                   const unsigned char *target,
-                                  const unsigned char *data);
+                                  const unsigned char *_Nullable data);
     void (*cdataBlock)(_CFXMLInterface ctx,
                        const unsigned char *value,
                        int len);
     void (*comment)(_CFXMLInterface ctx, const unsigned char *value);
     void (*externalSubset)(_CFXMLInterface ctx,
-                           const unsigned char *name,
-                           const unsigned char *ExternalID,
-                           const unsigned char *SystemID);
+                           const unsigned char *_Nullable name,
+                           const unsigned char *_Nullable ExternalID,
+                           const unsigned char *_Nullable SystemID);
 };
 
 CF_EXPORT struct _NSXMLParserBridge __CFSwiftXMLParserBridge __attribute__((swift_attr("nonisolated(unsafe)")));
