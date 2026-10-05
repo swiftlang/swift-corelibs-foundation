@@ -106,7 +106,7 @@ class _TCPSocket: CustomStringConvertible {
         self.port = 0
 
 #if os(Windows)
-        _socket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, DWORD(WSA_FLAG_OVERLAPPED)))
+        _socket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, WSA_FLAG_OVERLAPPED))
 
         var value: Int8 = 1
         _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
