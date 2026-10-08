@@ -33,6 +33,12 @@ typealias SOCKET = Int32
 let INADDR_LOOPBACK = 0x7f000001
 #endif
 
+#if os(FreeBSD)
+// on FreeBSD 15, SHUT_RDWR is a enum, but on FreeBSD 14, it was a macro.
+// Defining this so the source is compatible with both version
+let SHUT_RDWR: CInt = 2
+#endif
+
 private let serverDebug = (ProcessInfo.processInfo.environment["SCLF_HTTP_SERVER_DEBUG"] == "YES")
 
 private func debugLog(_ msg: String) {
