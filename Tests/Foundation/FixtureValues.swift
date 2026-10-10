@@ -311,7 +311,9 @@ enum Fixtures {
     }
     
     static nonisolated(unsafe) let lengthMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Length") {
-        return NSMeasurement(doubleValue: 45, unit: UnitLength.miles)
+        // The macOS 10.14 archive stores the mile coefficient of that release, which is not the coefficient of UnitLength.miles.
+        let miles = UnitLength(symbol: "mi", converter: UnitConverterLinear(coefficient: 1609.34))
+        return NSMeasurement(doubleValue: 45, unit: miles)
     }
     
     static nonisolated(unsafe) let frequencyMeasurement = TypedFixture<NSMeasurement>("NSMeasurement-Frequency") {
