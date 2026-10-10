@@ -1851,7 +1851,7 @@ public final class UnitMass : Dimension, @unchecked Sendable {
         static let picograms    = 1e-15
         static let ounces       = 0.0283495
         static let pounds       = 0.453592
-        static let stones       = 0.157473
+        static let stones       = 6.35029
         static let metricTons   = 1000.0
         static let shortTons    = 907.185
         static let carats       = 0.0002
