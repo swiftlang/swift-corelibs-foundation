@@ -105,6 +105,56 @@ class TestXMLParser : XCTestCase {
         XCTAssertTrue(res)
     }
 
+    // The slice size XMLParser(data:) shares with XMLParser(stream:) (`_chunkSize`, 128 KiB).
+    private static let chunkSize = 131_072
+
+    // Concatenates foundCharacters payloads; libxml2 may split text anywhere.
+    private static func characters(in events: [XMLParserDelegateEvent]) -> String {
+        return events.reduce(into: "") { if case .foundCharacters(let string) = $1 { $0 += string } }
+    }
+
+    // Regression: Data above libxml2's 10,000,000-byte per-call limit failed when fed in one call.
+    func test_withLargeData() {
+        let text = String(repeating: "x", count: 1_000)
+        let data = Data(("<root>" + String(repeating: "<item>\(text)</item>", count: 10_000) + "</root>").utf8)
+        XCTAssertGreaterThan(data.count, 10_000_000)
+
+        let parser = XMLParser(data: data)
+        let delegate = XMLParserDelegateEventStream()
+        parser.delegate = delegate
+        XCTAssertTrue(parser.parse(), String(describing: parser.parserError))
+        XCTAssertEqual(delegate.events.filter { $0 == .didStartElement("item", nil, nil, [:]) }.count, 10_000)
+        XCTAssertEqual(TestXMLParser.characters(in: delegate.events).utf8.count, 10_000_000)
+        XCTAssertEqual(delegate.events.last, .endDocument)
+    }
+
+    // The loop must slice by the Data's own indices and mark a full final slice terminal.
+    func test_dataSliceOfExactChunkMultiple() {
+        let text = String(repeating: "x", count: 2 * TestXMLParser.chunkSize - "<root></root>".utf8.count)
+        let padded = Data(repeating: 0x20, count: 1_234) + Data("<root>\(text)</root>".utf8)
+        let slice = padded[1_234...]
+        XCTAssertEqual(slice.startIndex, 1_234)
+        XCTAssertEqual(slice.count, 2 * TestXMLParser.chunkSize)
+
+        let parser = XMLParser(data: slice)
+        let delegate = XMLParserDelegateEventStream()
+        parser.delegate = delegate
+        XCTAssertTrue(parser.parse())
+        XCTAssertTrue(TestXMLParser.characters(in: delegate.events) == text)
+        XCTAssertEqual(delegate.events.last, .endDocument)
+    }
+
+    // After a failed call no further slice is fed: <late/> starts in the slice after the error.
+    func test_dataErrorStopsLaterSlices() {
+        let document = "<root>&undeclared;" + String(repeating: "<a/>", count: TestXMLParser.chunkSize / 4) + "<late/></root>"
+        let parser = XMLParser(data: Data(document.utf8))
+        let delegate = XMLParserDelegateEventStream()
+        parser.delegate = delegate
+        XCTAssertFalse(parser.parse())
+        XCTAssertNotNil(parser.parserError)
+        XCTAssertFalse(delegate.events.contains(.didStartElement("late", nil, nil, [:])))
+    }
+
     func test_withDataEncodings() {
         // If th <?xml header isn't present, any non-UTF8 encodings fail. This appears to be libxml2 behavior.
         // These don't work, it may just be an issue with the `encoding=xxx`.
