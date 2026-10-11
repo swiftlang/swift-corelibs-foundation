@@ -172,6 +172,24 @@ internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<
     return entity
 }
 
+internal func _NSXMLParserEntityDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, type: Int32, publicId: UnsafePointer<UInt8>?, systemId: UnsafePointer<UInt8>?, content: UnsafeMutablePointer<UInt8>?) -> Void {
+    let parser = ctx.parser
+    guard let delegate = parser.delegate else { return }
+    guard let nameString = UTF8STRING(name) else { return }
+
+    switch CFIndex(type) {
+    case _kCFXMLDTDNodeEntityTypeInternalGeneral, _kCFXMLDTDNodeEntityTypeInternalParameter:
+        delegate.parser(parser, foundInternalEntityDeclarationWithName: nameString, value: UTF8STRING(content))
+    case _kCFXMLDTDNodeEntityTypeExternalGeneralParsed, _kCFXMLDTDNodeEntityTypeExternalParameter:
+        // Darwin gates parsed external declaration reporting on this flag.
+        if parser.shouldResolveExternalEntities {
+            delegate.parser(parser, foundExternalEntityDeclarationWithName: nameString, publicID: UTF8STRING(publicId), systemID: UTF8STRING(systemId))
+        }
+    default:
+        break
+    }
+}
+
 internal func _NSXMLParserNotationDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, publicId: UnsafePointer<UInt8>, systemId: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
@@ -1016,6 +1034,7 @@ func setupXMLParsing() {
         __CFSwiftXMLParserBridge.hasInternalSubset = _NSXMLParserHasInternalSubset
         __CFSwiftXMLParserBridge.hasExternalSubset = _NSXMLParserHasExternalSubset
         __CFSwiftXMLParserBridge.getEntity = _NSXMLParserGetEntity
+        __CFSwiftXMLParserBridge.entityDecl = _NSXMLParserEntityDecl
         __CFSwiftXMLParserBridge.notationDecl = _NSXMLParserNotationDecl
         __CFSwiftXMLParserBridge.attributeDecl = _NSXMLParserAttributeDecl
         __CFSwiftXMLParserBridge.elementDecl = _NSXMLParserElementDecl
