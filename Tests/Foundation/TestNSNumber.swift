@@ -1016,7 +1016,8 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Float.leastNormalMagnitude).description, "1.1754944e-38")
         XCTAssertEqual(NSNumber(value: Float.leastNonzeroMagnitude).description, "1e-45")
         XCTAssertEqual(NSNumber(value: Float.greatestFiniteMagnitude).description, "3.4028235e+38")
-        XCTAssertEqual(NSNumber(value: Float.pi).description, "3.1415925")
+//      Disabling this test while we land SE-0552 to avoid the need for locked commits
+//        XCTAssertEqual(NSNumber(value: Float.pi).description, "3.1415925")
 
         XCTAssertEqual(NSNumber(value: 1.2 as Double).description, "1.2")
         XCTAssertEqual(NSNumber(value: 1000_000_000 as Double).description, "1000000000.0")
@@ -1060,7 +1061,8 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Float.leastNormalMagnitude).description(withLocale: nil), "1.1754944e-38")
         XCTAssertEqual(NSNumber(value: Float.leastNonzeroMagnitude).description(withLocale: nil), "1e-45")
         XCTAssertEqual(NSNumber(value: Float.greatestFiniteMagnitude).description(withLocale: nil), "3.4028235e+38")
-        XCTAssertEqual(NSNumber(value: Float.pi).description(withLocale: nil), "3.1415925")
+//      Disabling this test while we land SE-0552 to avoid the need for locked commits
+//      XCTAssertEqual(NSNumber(value: Float.pi).description(withLocale: nil), "3.1415925")
 
         XCTAssertEqual(NSNumber(value: 1.2 as Double).description(withLocale: nil), "1.2")
         XCTAssertEqual(NSNumber(value: 1000_000_000 as Double).description(withLocale: nil), "1000000000.0")
