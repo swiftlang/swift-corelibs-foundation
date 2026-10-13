@@ -708,10 +708,12 @@ extension _HTTPURLProtocol {
         // If the request is `nil`, we're supposed to treat the current response
         // as the final response, i.e. not do any redirection.
         // Otherwise, we'll start a new transfer with the passed in request.
-        if let r = request {
+        if let request {
+            let session = task?.session as! URLSession
+            let configuredRequest = session._configuration.configure(request: request)
             lastRedirectBody = nil
             task?.knownBody = URLSessionTask._Body.none
-            startNewTransfer(with: r)
+            startNewTransfer(with: configuredRequest)
         } else {
             // If the redirect is not followed, return the redirect itself as the response
             self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)

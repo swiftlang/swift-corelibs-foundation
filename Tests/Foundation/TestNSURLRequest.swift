@@ -138,6 +138,34 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(requestCopy.allHTTPHeaderFields?["Accept"], "application/json")
     }
 
+    func test_protocolPropertiesSurviveMutableCopy() {
+        let original = NSMutableURLRequest(url: url)
+        URLProtocol.setProperty("original", forKey: "marker", in: original)
+
+        let copied = original.mutableCopy() as! NSMutableURLRequest
+        XCTAssertEqual(URLProtocol.property(forKey: "marker", in: copied as URLRequest) as? String, "original")
+
+        URLProtocol.setProperty("updated", forKey: "marker", in: original)
+        XCTAssertEqual(URLProtocol.property(forKey: "marker", in: copied as URLRequest) as? String, "original")
+
+        URLProtocol.removeProperty(forKey: "marker", in: original)
+        XCTAssertNil(URLProtocol.property(forKey: "marker", in: original as URLRequest))
+        XCTAssertEqual(URLProtocol.property(forKey: "marker", in: copied as URLRequest) as? String, "original")
+    }
+
+    func test_protocolPropertiesSurviveBridgeAndValueCopy() {
+        let original = NSMutableURLRequest(url: url)
+        URLProtocol.setProperty("original", forKey: "marker", in: original)
+
+        let bridged = original as URLRequest
+        XCTAssertEqual(URLProtocol.property(forKey: "marker", in: bridged) as? String, "original")
+
+        var valueCopy = bridged
+        valueCopy.httpMethod = "POST"
+        XCTAssertEqual(URLProtocol.property(forKey: "marker", in: valueCopy) as? String, "original")
+        XCTAssertEqual(URLProtocol.property(forKey: "marker", in: bridged) as? String, "original")
+    }
+
     func test_mutableCopy_2() {
         let originalRequest = NSMutableURLRequest(url: url)
         
