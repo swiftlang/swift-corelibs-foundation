@@ -90,7 +90,14 @@ open class UserDefaults: NSObject {
     }
     
     open class func resetStandardUserDefaults() {}
-    
+
+    #if os(Android)
+    /// Provide a custom implementation of `UserDefaults.standard` for platform integration.
+    open class func setStandardUserDefaults(_ defaults: UserDefaults) {
+        sharedDefaults = defaults
+    }
+    #endif
+
     public convenience override init() {
         self.init(suiteName: nil)!
     }
