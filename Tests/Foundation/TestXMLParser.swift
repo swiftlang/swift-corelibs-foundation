@@ -138,6 +138,48 @@ class TestXMLParser : XCTestCase {
         XCTAssertTrue(res)
     }
 
+    func test_CDATAFallbackToFoundCharacters() {
+        class Delegate: NSObject, XMLParserDelegate {
+            var characters = ""
+
+            func parser(_ parser: XMLParser, foundCharacters string: String) {
+                characters += string
+            }
+        }
+
+        for cdata in ["y", "é漢😀"] {
+            let parser = XMLParser(data: Data("<a>x<![CDATA[\(cdata)]]>z</a>".utf8))
+            let delegate = Delegate()
+            parser.delegate = delegate
+            XCTAssertTrue(parser.parse())
+            XCTAssertEqual(delegate.characters, "x\(cdata)z")
+        }
+    }
+
+    func test_CDATAWithExplicitHandler() {
+        class Delegate: NSObject, XMLParserDelegate {
+            var characters = ""
+            var cdata: [Data] = []
+
+            func parser(_ parser: XMLParser, foundCharacters string: String) {
+                characters += string
+            }
+
+            func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+                cdata.append(CDATABlock)
+            }
+        }
+
+        for cdata in ["y", "é漢😀"] {
+            let parser = XMLParser(data: Data("<a>x<![CDATA[\(cdata)]]>z</a>".utf8))
+            let delegate = Delegate()
+            parser.delegate = delegate
+            XCTAssertTrue(parser.parse())
+            XCTAssertEqual(delegate.cdata, [Data(cdata.utf8)])
+            XCTAssertEqual(delegate.characters, "xz")
+        }
+    }
+
     func test_sr9758_abortParsing() {
         class Delegate: NSObject, XMLParserDelegate {
             func parserDidStartDocument(_ parser: XMLParser) { parser.abortParsing() }
