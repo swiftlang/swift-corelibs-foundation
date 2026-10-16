@@ -1343,7 +1343,10 @@ extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(task: URLSessionTask, didFailWithError error: Error) {
         guard let session = task.session as? URLSession else { fatalError() }
-        switch session.behaviour(for: task) {
+        // The task may already have completed and been removed from the registry, e.g. when cancel() and the protocol
+        // both report a failure. The first report completed the task, so there is nothing left to deliver.
+        guard let behaviour = session.registeredBehaviour(for: task) else { return }
+        switch behaviour {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
                 guard task.state != .completed else { return }

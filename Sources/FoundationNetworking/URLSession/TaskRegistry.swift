@@ -111,12 +111,10 @@ extension URLSession._TaskRegistry {
 extension URLSession._TaskRegistry {
     /// The behaviour that's registered for the given task.
     ///
-    /// - Note: It is a programming error to pass a task that isn't registered.
+    /// Returns `nil` if the task isn't registered, e.g. because it has already completed and been removed.
+    ///
     /// - Note: This must **only** be accessed on the owning session's work queue.
-    func behaviour(for task: URLSessionTask) -> _Behaviour {
-        guard let b = behaviours[task.taskIdentifier] else {
-            fatalError("Trying to access a behaviour for a task that in not in the registry.")
-        }
-        return b
+    func behaviour(for task: URLSessionTask) -> _Behaviour? {
+        return behaviours[task.taskIdentifier]
     }
 }
