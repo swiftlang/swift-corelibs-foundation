@@ -276,6 +276,12 @@ struct _NSXMLParserBridge {
     int (*hasInternalSubset)(_CFXMLInterface ctx);
     int (*hasExternalSubset)(_CFXMLInterface ctx);
     _CFXMLInterfaceEntity _Nullable (*_Nonnull getEntity)(_CFXMLInterface ctx, const unsigned char *name);
+    void (*entityDecl)(_CFXMLInterface ctx,
+                       const unsigned char *name,
+                       int type,
+                       const unsigned char *_Nullable publicId,
+                       const unsigned char *_Nullable systemId,
+                       unsigned char *_Nullable content);
     void (*notationDecl)(_CFXMLInterface ctx,
                          const unsigned char *name,
                          const unsigned char *publicId,
