@@ -1138,17 +1138,15 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
             // Be sure to initialize the first character to null, so that cf_strlcat below works correctly
             #if TARGET_OS_WASI
             // wasi-libc's dirent.d_name is not a fixed-size array but a pointer, so we need to calculate
-            // the size of buffer at first.
-            size_t d_name_size = nameLen;
+            // the size of buffer at first: each prefix in the file system encoding followed by a '/',
+            // the name, and the '/' appended to a directory's name.
+            size_t d_name_size = nameLen + 1;
             if (stuffToPrefix) {
                 for (CFIndex i = 0; i < CFArrayGetCount(stuffToPrefix); i++) {
                     CFStringRef onePrefix = CFArrayGetValueAtIndex(stuffToPrefix, i);
-                    size_t prefixLen = CFStringGetLength(onePrefix);
-                    // Add 1 for concatenating '/'
-                    if (d_name_size > nameLen) {
-                        d_name_size += 1;
-                    }
-                    d_name_size += prefixLen;
+                    CFIndex prefixLen = 0;
+                    CFStringGetBytes(onePrefix, CFRangeMake(0, CFStringGetLength(onePrefix)), CFStringFileSystemEncoding(), 0, false, NULL, 0, &prefixLen);
+                    d_name_size += prefixLen + 1;
                 }
             }
             #else
