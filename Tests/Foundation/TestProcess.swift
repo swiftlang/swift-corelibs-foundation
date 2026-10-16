@@ -494,6 +494,20 @@ class TestProcess : XCTestCase {
         task.waitUntilExit()
     }
 
+    func test_redirect_stdin_using_null_reads_eof() throws {
+        let task = Process()
+        task.executableURL = try xdgTestHelperURL()
+        task.arguments = ["--cat"]
+        task.standardInput = FileHandle.nullDevice
+        let stdout = Pipe()
+        task.standardOutput = stdout
+        try task.run()
+        task.waitUntilExit()
+        XCTAssertEqual(task.terminationStatus, 0)
+        let output = try stdout.fileHandleForReading.readToEnd()
+        XCTAssertNil(output, String(decoding: output ?? Data(), as: UTF8.self))
+    }
+
 
     func test_redirect_stdout_using_null() throws {
         let task = Process()
@@ -794,6 +808,64 @@ class TestProcess : XCTestCase {
         } catch {
             XCTFail("\(error)")
         }
+    }
+
+    func test_pipeNotInheritedByUnrelatedProcess() throws {
+        let pipe = Pipe()
+
+        let unrelated = Process()
+        unrelated.executableURL = try xdgTestHelperURL()
+        unrelated.arguments = ["--cat"]
+        let unrelatedInput = Pipe()
+        unrelated.standardInput = unrelatedInput
+        unrelated.standardOutput = FileHandle.nullDevice
+        try unrelated.run()
+        defer {
+            unrelatedInput.fileHandleForWriting.closeFile()
+            unrelated.waitUntilExit()
+        }
+
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--getcwd"]
+        process.standardOutput = pipe
+        try process.run()
+        process.waitUntilExit()
+
+        let eof = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            _ = try? pipe.fileHandleForReading.readToEnd()
+            eof.signal()
+        }
+        XCTAssertEqual(eof.wait(timeout: .now() + 10), .success, "Pipe did not reach EOF while an unrelated process was running")
+    }
+
+    func test_pipeStdinNotInheritedByUnrelatedProcess() throws {
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--cat"]
+        let input = Pipe()
+        process.standardInput = input
+        process.standardOutput = FileHandle.nullDevice
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
+        try process.run()
+        defer { process.waitUntilExit() }
+
+        let unrelated = Process()
+        unrelated.executableURL = try xdgTestHelperURL()
+        unrelated.arguments = ["--cat"]
+        let unrelatedInput = Pipe()
+        unrelated.standardInput = unrelatedInput
+        unrelated.standardOutput = FileHandle.nullDevice
+        try unrelated.run()
+        defer {
+            unrelatedInput.fileHandleForWriting.closeFile()
+            unrelated.waitUntilExit()
+        }
+
+        input.fileHandleForWriting.closeFile()
+        XCTAssertEqual(exited.wait(timeout: .now() + 10), .success, "Process did not exit after its standard input was closed")
     }
 
 #if !os(Windows)

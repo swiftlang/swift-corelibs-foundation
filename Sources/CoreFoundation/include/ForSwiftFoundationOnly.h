@@ -624,6 +624,10 @@ static inline int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
 #if TARGET_OS_WIN32
 CF_EXPORT void __CFSocketInitializeWinSock(void);
 
+static inline DWORD_PTR _getConst_PROC_THREAD_ATTRIBUTE_HANDLE_LIST(void) {
+    return PROC_THREAD_ATTRIBUTE_HANDLE_LIST;
+}
+
 typedef struct _REPARSE_DATA_BUFFER {
     unsigned long  ReparseTag;
     unsigned short ReparseDataLength;

@@ -11,7 +11,6 @@
 @_implementationOnly import CoreFoundation
 #if os(Windows)
 import WinSDK
-import let WinSDK.HANDLE_FLAG_INHERIT
 import let WinSDK.STARTF_USESTDHANDLES
 import struct WinSDK.HANDLE
 #endif
@@ -228,6 +227,37 @@ private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
         return quoted
     }
     return commandLine.map(quoteWindowsCommandArg).joined(separator: " ")
+}
+
+private func withInheritedHandles<Result>(_ handles: [HANDLE], _ siStartupInfo: inout STARTUPINFOEXW,
+                                          _ body: (LPSTARTUPINFOW) throws -> Result) throws -> Result {
+    // The attribute list refers to the handles until it is deleted.
+    let lpHandles = UnsafeMutableBufferPointer<HANDLE>.allocate(capacity: handles.count)
+    defer { lpHandles.deallocate() }
+    _ = lpHandles.initialize(fromContentsOf: handles)
+
+    var dwSize: SIZE_T = 0
+    _ = InitializeProcThreadAttributeList(nil, 1, 0, &dwSize)
+    let pAttributeList = UnsafeMutableRawPointer.allocate(byteCount: Int(dwSize), alignment: 16)
+    defer { pAttributeList.deallocate() }
+    let lpAttributeList = LPPROC_THREAD_ATTRIBUTE_LIST(pAttributeList)
+    guard InitializeProcThreadAttributeList(lpAttributeList, 1, 0, &dwSize) else {
+        throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+    }
+    defer { DeleteProcThreadAttributeList(lpAttributeList) }
+
+    guard UpdateProcThreadAttribute(lpAttributeList, 0,
+                                    _getConst_PROC_THREAD_ATTRIBUTE_HANDLE_LIST(),
+                                    lpHandles.baseAddress,
+                                    SIZE_T(MemoryLayout<HANDLE>.stride * lpHandles.count),
+                                    nil, nil) else {
+        throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+    }
+
+    siStartupInfo.lpAttributeList = lpAttributeList
+    return try withUnsafeMutablePointer(to: &siStartupInfo) {
+        try body($0.pointer(to: \.StartupInfo)!)
+    }
 }
 #endif
 
@@ -512,9 +542,9 @@ open class Process: NSObject, @unchecked Sendable {
           command.append(contentsOf: arguments)
         }
 
-        var siStartupInfo: STARTUPINFOW = STARTUPINFOW()
-        siStartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOW>.size)
-        siStartupInfo.dwFlags = STARTF_USESTDHANDLES
+        var siStartupInfo: STARTUPINFOEXW = STARTUPINFOEXW()
+        siStartupInfo.StartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOEXW>.size)
+        siStartupInfo.StartupInfo.dwFlags = STARTF_USESTDHANDLES
 
         var _devNull: FileHandle?
         func devNullFd() throws -> HANDLE {
@@ -522,68 +552,65 @@ open class Process: NSObject, @unchecked Sendable {
             return _devNull!._handle
         }
 
-        var modifiedPipes: [(handle: HANDLE, prevValue: DWORD)] = []
-        defer { modifiedPipes.forEach { SetHandleInformation($0.handle, HANDLE_FLAG_INHERIT, $0.prevValue) } }
+        var inheritedHandles: [HANDLE: HANDLE] = [:]
+        defer { inheritedHandles.values.forEach { CloseHandle($0) } }
 
-        func deferReset(handle: HANDLE) throws {
-            var handleInfo: DWORD = 0
-            guard GetHandleInformation(handle, &handleInfo) else {
+        func inheritable(_ handle: HANDLE) throws -> HANDLE? {
+            // _get_osfhandle's "no handle" values, which DuplicateHandle reads as pseudo-handles.
+            if handle == INVALID_HANDLE_VALUE || Int(bitPattern: handle) == -2 {
+                return nil
+            }
+            if let hDuplicate = inheritedHandles[handle] {
+                return hDuplicate
+            }
+            var hDuplicate: HANDLE?
+            guard DuplicateHandle(GetCurrentProcess(), handle, GetCurrentProcess(), &hDuplicate,
+                                  /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
-            modifiedPipes.append((handle: handle, prevValue: handleInfo & HANDLE_FLAG_INHERIT))
+            inheritedHandles[handle] = hDuplicate!
+            return hDuplicate
         }
 
         switch standardInput {
         case let pipe as Pipe:
-            siStartupInfo.hStdInput = pipe.fileHandleForReading._handle
-            try deferReset(handle: pipe.fileHandleForWriting._handle)
-            SetHandleInformation(pipe.fileHandleForWriting._handle, HANDLE_FLAG_INHERIT, 0)
+            siStartupInfo.StartupInfo.hStdInput = try inheritable(pipe.fileHandleForReading._handle)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            siStartupInfo.hStdInput = try devNullFd()
+            siStartupInfo.StartupInfo.hStdInput = try inheritable(devNullFd())
 
         case let handle as FileHandle:
-            siStartupInfo.hStdInput = handle._handle
-            try deferReset(handle: handle._handle)
-            SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 1)
+            siStartupInfo.StartupInfo.hStdInput = try inheritable(handle._handle)
         default: break
         }
 
         switch standardOutput {
         case let pipe as Pipe:
-            siStartupInfo.hStdOutput = pipe.fileHandleForWriting._handle
-            try deferReset(handle: pipe.fileHandleForReading._handle)
-            SetHandleInformation(pipe.fileHandleForReading._handle, HANDLE_FLAG_INHERIT, 0)
+            siStartupInfo.StartupInfo.hStdOutput = try inheritable(pipe.fileHandleForWriting._handle)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            siStartupInfo.hStdOutput = try devNullFd()
+            siStartupInfo.StartupInfo.hStdOutput = try inheritable(devNullFd())
 
         case let handle as FileHandle:
-            siStartupInfo.hStdOutput = handle._handle
-            try deferReset(handle: handle._handle)
-            SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 1)
+            siStartupInfo.StartupInfo.hStdOutput = try inheritable(handle._handle)
         default: break
         }
 
         switch standardError {
         case let pipe as Pipe:
-            siStartupInfo.hStdError = pipe.fileHandleForWriting._handle
-            try deferReset(handle: pipe.fileHandleForReading._handle)
-            SetHandleInformation(pipe.fileHandleForReading._handle, HANDLE_FLAG_INHERIT, 0)
+            siStartupInfo.StartupInfo.hStdError = try inheritable(pipe.fileHandleForWriting._handle)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            siStartupInfo.hStdError = try devNullFd()
+            siStartupInfo.StartupInfo.hStdError = try inheritable(devNullFd())
 
         case let handle as FileHandle:
-            siStartupInfo.hStdError = handle._handle
-            try deferReset(handle: handle._handle)
-            SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 1)
+            siStartupInfo.StartupInfo.hStdError = try inheritable(handle._handle)
         default: break
         }
 
@@ -667,24 +694,30 @@ open class Process: NSObject, @unchecked Sendable {
         let source: CFRunLoopSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
+        // The child's exit closes its copy of this socket, which notifies the manager thread.
+        let hSocket: HANDLE = HANDLE(bitPattern: UInt(sockets.second))!
+
         let workingDirectory = currentDirectoryURL?.path ?? FileManager.default.currentDirectoryPath
         try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
           try FileManager.default._fileSystemRepresentation(withPath: workingDirectory) { wszCurrentDirectory in
             try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
-              if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
-                                 nil, nil, true,
-                                 CREATE_UNICODE_ENVIRONMENT, UnsafeMutableRawPointer(mutating: wszEnvironment),
-                                 wszCurrentDirectory,
-                                 &siStartupInfo, &piProcessInfo) {
-                let error = GetLastError()
-                // If the current directory doesn't exist, Windows
-                // throws an ERROR_DIRECTORY. Since POSIX gives an
-                // ENOENT, we intercept the error to match the POSIX
-                // behaviour
-                if error == ERROR_DIRECTORY {
-                    throw _NSErrorWithWindowsError(ERROR_FILE_NOT_FOUND, reading: true)
+              try withInheritedHandles(Array(inheritedHandles.values) + [hSocket], &siStartupInfo) { lpStartupInfo in
+                if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
+                                   nil, nil, true,
+                                   CREATE_UNICODE_ENVIRONMENT | EXTENDED_STARTUPINFO_PRESENT,
+                                   UnsafeMutableRawPointer(mutating: wszEnvironment),
+                                   wszCurrentDirectory,
+                                   lpStartupInfo, &piProcessInfo) {
+                  let error = GetLastError()
+                  // If the current directory doesn't exist, Windows
+                  // throws an ERROR_DIRECTORY. Since POSIX gives an
+                  // ENOENT, we intercept the error to match the POSIX
+                  // behaviour
+                  if error == ERROR_DIRECTORY {
+                      throw _NSErrorWithWindowsError(ERROR_FILE_NOT_FOUND, reading: true)
+                  }
+                  throw _NSErrorWithWindowsError(GetLastError(), reading: true)
                 }
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
               }
             }
           }
