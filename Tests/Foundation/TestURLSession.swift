@@ -1599,6 +1599,63 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         XCTAssertEqual(cookies?.count, 1)
     }
 
+    func test_cookiesWithNonCanonicalSetCookieHeaderCasing() async throws {
+        let routes = [
+            ("/requestCookiesWithLowercaseHeader", "lowercase"),
+            ("/requestCookiesWithMixedCaseHeader", "mixedcase"),
+            ("/requestCookiesWithUppercaseHeader", "uppercase"),
+        ]
+
+        for (route, name) in routes {
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = 5
+            let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+            defer { session.invalidateAndCancel() }
+
+            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)\(route)"))
+            _ = try await session.data(from: url)
+
+            let cookies = config.httpCookieStorage?.cookies ?? []
+            XCTAssertTrue(
+                cookies.contains { $0.name == name && $0.value == "1" },
+                "The cookie set by \(route) was not stored; cookies = \(cookies.map { "\($0.name)=\($0.value)" })"
+            )
+        }
+    }
+
+    func test_cookiesWithMixedSetCookieHeaderCasingsInOneResponse() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookiesWithMixedCasings"))
+        _ = try await session.data(from: url)
+
+        let cookies = config.httpCookieStorage?.cookies ?? []
+        XCTAssertEqual(
+            Set(cookies.map { $0.name }), ["canonical", "lowercase", "mixedcase"],
+            "Not all mixed-cased Set-Cookie headers were stored; cookies = \(cookies.map { "\($0.name)=\($0.value)" })"
+        )
+    }
+
+    func test_nonCanonicalSetCookieHeaderCasingIsReplayedInLaterRequests() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let baseURL = "http://127.0.0.1:\(TestURLSession.serverPort)"
+        _ = try await session.data(from: try XCTUnwrap(URL(string: baseURL + "/requestCookiesWithLowercaseHeader")))
+        let (data, _) = try await session.data(from: try XCTUnwrap(URL(string: baseURL + "/echoHeaders")))
+
+        let headers = String(decoding: data, as: UTF8.self)
+        XCTAssertTrue(
+            headers.contains("Cookie: lowercase=1"),
+            "The cookie set by a lowercase set-cookie header was not sent in a later request; headers = \(headers)"
+        )
+    }
+
     func test_redirectionWithSetCookies() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
