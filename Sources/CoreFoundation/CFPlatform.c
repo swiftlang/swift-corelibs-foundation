@@ -351,7 +351,9 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
 #include <pwd.h>
+#include <stdlib.h>
 #include <sys/param.h>
+#include <unistd.h>
 
 // Set the fallBackToHome parameter to true if we should fall back to the HOME environment variable if all else fails. Otherwise return NULL.
 static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHome) {
@@ -469,7 +471,39 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
-    struct passwd *upwd = getpwuid(euid ? euid : getuid());
+    struct passwd pwd;
+    struct passwd *upwd = NULL;
+    char *buffer = NULL;
+    long bufSize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufSize <= 0) {
+        bufSize = 1024;
+    }
+    buffer = (char *)malloc((size_t)bufSize);
+    if (buffer != NULL) {
+        int err;
+        do {
+            err = getpwuid_r(euid ? euid : getuid(), &pwd, buffer, (size_t)bufSize, &upwd);
+            if (err != ERANGE) {
+                break;
+            }
+            size_t newSize = (size_t)bufSize * 2;
+            if (newSize <= (size_t)bufSize) {
+                upwd = NULL;
+                break;
+            }
+            char *grown = (char *)realloc(buffer, newSize);
+            if (grown == NULL) {
+                upwd = NULL;
+                break;
+            }
+            buffer = grown;
+            bufSize = (long)newSize;
+            upwd = NULL;
+        } while (1);
+        if (err != 0) {
+            upwd = NULL;
+        }
+    }
     if (upwd && upwd->pw_name) {
         result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_name, kCFPlatformInterfaceStringEncoding);
     } else {
@@ -478,6 +512,7 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
             result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cuser, kCFPlatformInterfaceStringEncoding);
         }
     }
+    free(buffer);
 #elif TARGET_OS_WIN32
 	wchar_t username[1040];
 	DWORD size = 1040;
