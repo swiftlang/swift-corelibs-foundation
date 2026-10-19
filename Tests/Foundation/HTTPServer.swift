@@ -803,6 +803,28 @@ public class TestURLSessionServer: CustomStringConvertible {
             return try _HTTPResponse(response: .OK, headers: "Set-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: "")
         }
 
+        if uri == "/requestCookiesWithLowercaseHeader" {
+            return try _HTTPResponse(response: .OK, headers: "set-cookie: lowercase=1; Max-Age=7776000; path=/\r\n", body: "")
+        }
+
+        if uri == "/requestCookiesWithMixedCaseHeader" {
+            return try _HTTPResponse(response: .OK, headers: "SeT-coOkIE: mixedcase=1; Max-Age=7776000; path=/\r\n", body: "")
+        }
+
+        if uri == "/requestCookiesWithUppercaseHeader" {
+            return try _HTTPResponse(response: .OK, headers: "SET-COOKIE: uppercase=1; Max-Age=7776000; path=/\r\n", body: "")
+        }
+
+        if uri == "/requestCookiesWithMixedCasings" {
+            return try _HTTPResponse(
+                response: .OK,
+                headers: "Set-Cookie: canonical=1; Max-Age=7776000; path=/\r\n"
+                    + "set-cookie: lowercase=1; Max-Age=7776000; path=/\r\n"
+                    + "SeT-coOkIE: mixedcase=1; Max-Age=7776000; path=/\r\n",
+                body: ""
+            )
+        }
+
         if uri == "/echoHeaders" {
             let text = request.getCommaSeparatedHeaders()
             return try _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)

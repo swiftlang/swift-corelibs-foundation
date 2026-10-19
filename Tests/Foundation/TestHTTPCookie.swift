@@ -114,6 +114,17 @@ class TestHTTPCookie: XCTestCase {
         XCTAssertEqual(cookies.count, 0)
     }
 
+    func test_cookiesWithResponseHeaderNonCanonicalCasing() throws {
+        let url = try XCTUnwrap(URL(string: "https://example.com"))
+
+        for headerName in ["Set-Cookie", "set-cookie", "SeT-coOkIE", "SET-COOKIE"] {
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: [headerName: "name=value"], for: url)
+            XCTAssertEqual(cookies.count, 1, "header name: " + headerName)
+            XCTAssertEqual(cookies.first?.name, "name")
+            XCTAssertEqual(cookies.first?.value, "value")
+        }
+    }
+
     func test_cookiesWithResponseHeader2cookies() {
         let header = ["header1":"value1",
                       "Set-Cookie": "fr=a&2@#; Max-Age=1186000; path=/; domain=.example.com; secure, xd=plm!@#;path=/;domain=.example2.com", 
