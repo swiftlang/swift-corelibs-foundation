@@ -10,6 +10,8 @@
 import Synchronization
 #if canImport(Android)
 @preconcurrency import Android
+#elseif os(Windows)
+import WinSDK
 #endif
 
 class TestProcess : XCTestCase {
@@ -867,6 +869,29 @@ class TestProcess : XCTestCase {
         input.fileHandleForWriting.closeFile()
         XCTAssertEqual(exited.wait(timeout: .now() + 10), .success, "Process did not exit after its standard input was closed")
     }
+
+#if os(Windows)
+    func test_nonInheritablePipeIsPassedToChild() throws {
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--cat"]
+        let input = Pipe()
+        process.standardInput = input
+        let output = Pipe()
+        process.standardOutput = output
+        for handle in [input.fileHandleForReading, output.fileHandleForWriting] {
+            XCTAssertTrue(SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 0))
+        }
+        try process.run()
+
+        try input.fileHandleForWriting.write(contentsOf: Data("Hello, World".utf8))
+        try input.fileHandleForWriting.close()
+        let data = try output.fileHandleForReading.readToEnd()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(String(decoding: data ?? Data(), as: UTF8.self), "Hello, World")
+    }
+#endif
 
 #if !os(Windows)
     func test_processGroup() throws {

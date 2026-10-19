@@ -229,34 +229,39 @@ private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
     return commandLine.map(quoteWindowsCommandArg).joined(separator: " ")
 }
 
+// ProcThreadAttributeHandleList | PROC_THREAD_ATTRIBUTE_INPUT. The C macro is built with the
+// function-like ProcThreadAttributeValue macro, which Swift does not import.
+internal var PROC_THREAD_ATTRIBUTE_HANDLE_LIST: DWORD_PTR {
+    0x00020002
+}
+
 private func withInheritedHandles<Result>(_ handles: [HANDLE], _ siStartupInfo: inout STARTUPINFOEXW,
                                           _ body: (LPSTARTUPINFOW) throws -> Result) throws -> Result {
     // The attribute list refers to the handles until it is deleted.
-    let lpHandles = UnsafeMutableBufferPointer<HANDLE>.allocate(capacity: handles.count)
-    defer { lpHandles.deallocate() }
-    _ = lpHandles.initialize(fromContentsOf: handles)
+    return try withUnsafeTemporaryAllocation(of: HANDLE.self, capacity: handles.count) { lpHandles in
+        _ = lpHandles.initialize(fromContentsOf: handles)
 
-    var dwSize: SIZE_T = 0
-    _ = InitializeProcThreadAttributeList(nil, 1, 0, &dwSize)
-    let pAttributeList = UnsafeMutableRawPointer.allocate(byteCount: Int(dwSize), alignment: 16)
-    defer { pAttributeList.deallocate() }
-    let lpAttributeList = LPPROC_THREAD_ATTRIBUTE_LIST(pAttributeList)
-    guard InitializeProcThreadAttributeList(lpAttributeList, 1, 0, &dwSize) else {
-        throw _NSErrorWithWindowsError(GetLastError(), reading: false)
-    }
-    defer { DeleteProcThreadAttributeList(lpAttributeList) }
+        var dwSize: SIZE_T = 0
+        _ = InitializeProcThreadAttributeList(nil, 1, 0, &dwSize)
+        return try withUnsafeTemporaryAllocation(byteCount: Int(dwSize), alignment: 16) { pAttributeList in
+            let lpAttributeList = LPPROC_THREAD_ATTRIBUTE_LIST(pAttributeList.baseAddress)
+            guard InitializeProcThreadAttributeList(lpAttributeList, 1, 0, &dwSize) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
+            defer { DeleteProcThreadAttributeList(lpAttributeList) }
 
-    guard UpdateProcThreadAttribute(lpAttributeList, 0,
-                                    _getConst_PROC_THREAD_ATTRIBUTE_HANDLE_LIST(),
-                                    lpHandles.baseAddress,
-                                    SIZE_T(MemoryLayout<HANDLE>.stride * lpHandles.count),
-                                    nil, nil) else {
-        throw _NSErrorWithWindowsError(GetLastError(), reading: false)
-    }
+            guard UpdateProcThreadAttribute(lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+                                            lpHandles.baseAddress,
+                                            SIZE_T(MemoryLayout<HANDLE>.stride * lpHandles.count),
+                                            nil, nil) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
 
-    siStartupInfo.lpAttributeList = lpAttributeList
-    return try withUnsafeMutablePointer(to: &siStartupInfo) {
-        try body($0.pointer(to: \.StartupInfo)!)
+            siStartupInfo.lpAttributeList = lpAttributeList
+            return try withUnsafeMutablePointer(to: &siStartupInfo) {
+                try body($0.pointer(to: \.StartupInfo)!)
+            }
+        }
     }
 }
 #endif
@@ -555,7 +560,7 @@ open class Process: NSObject, @unchecked Sendable {
         var inheritedHandles: [HANDLE: HANDLE] = [:]
         defer { inheritedHandles.values.forEach { CloseHandle($0) } }
 
-        func inheritable(_ handle: HANDLE) throws -> HANDLE? {
+        func inheritableDuplicate(of handle: HANDLE) throws -> HANDLE? {
             // _get_osfhandle's "no handle" values, which DuplicateHandle reads as pseudo-handles.
             if handle == INVALID_HANDLE_VALUE || Int(bitPattern: handle) == -2 {
                 return nil
@@ -565,54 +570,34 @@ open class Process: NSObject, @unchecked Sendable {
             }
             var hDuplicate: HANDLE?
             guard DuplicateHandle(GetCurrentProcess(), handle, GetCurrentProcess(), &hDuplicate,
-                                  /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS) else {
+                                  /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS),
+                  let hDuplicate else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
-            inheritedHandles[handle] = hDuplicate!
+            inheritedHandles[handle] = hDuplicate
             return hDuplicate
         }
 
-        switch standardInput {
-        case let pipe as Pipe:
-            siStartupInfo.StartupInfo.hStdInput = try inheritable(pipe.fileHandleForReading._handle)
+        func childHandle(for stream: Any?, _ pipeEnd: KeyPath<Pipe, FileHandle>) throws -> HANDLE? {
+            switch stream {
+            case let pipe as Pipe:
+                return try inheritableDuplicate(of: pipe[keyPath: pipeEnd]._handle)
 
-        // nil or NullDevice maps to NUL
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
-        case .none:
-            siStartupInfo.StartupInfo.hStdInput = try inheritable(devNullFd())
+            // nil or NullDevice maps to NUL
+            case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+            case .none:
+                return try inheritableDuplicate(of: devNullFd())
 
-        case let handle as FileHandle:
-            siStartupInfo.StartupInfo.hStdInput = try inheritable(handle._handle)
-        default: break
+            case let handle as FileHandle:
+                return try inheritableDuplicate(of: handle._handle)
+            default:
+                return nil
+            }
         }
 
-        switch standardOutput {
-        case let pipe as Pipe:
-            siStartupInfo.StartupInfo.hStdOutput = try inheritable(pipe.fileHandleForWriting._handle)
-
-        // nil or NullDevice maps to NUL
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
-        case .none:
-            siStartupInfo.StartupInfo.hStdOutput = try inheritable(devNullFd())
-
-        case let handle as FileHandle:
-            siStartupInfo.StartupInfo.hStdOutput = try inheritable(handle._handle)
-        default: break
-        }
-
-        switch standardError {
-        case let pipe as Pipe:
-            siStartupInfo.StartupInfo.hStdError = try inheritable(pipe.fileHandleForWriting._handle)
-
-        // nil or NullDevice maps to NUL
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
-        case .none:
-            siStartupInfo.StartupInfo.hStdError = try inheritable(devNullFd())
-
-        case let handle as FileHandle:
-            siStartupInfo.StartupInfo.hStdError = try inheritable(handle._handle)
-        default: break
-        }
+        siStartupInfo.StartupInfo.hStdInput = try childHandle(for: standardInput, \.fileHandleForReading)
+        siStartupInfo.StartupInfo.hStdOutput = try childHandle(for: standardOutput, \.fileHandleForWriting)
+        siStartupInfo.StartupInfo.hStdError = try childHandle(for: standardError, \.fileHandleForWriting)
 
         var piProcessInfo: PROCESS_INFORMATION = PROCESS_INFORMATION()
 
