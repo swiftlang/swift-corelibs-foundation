@@ -612,9 +612,8 @@ open class FileHandle : NSObject, @unchecked Sendable {
             let dwError: DWORD = GetLastError()
             // If the handle is a handle to the console output,
             // `FlushFileBuffers` will fail and return `ERROR_INVALID_HANDLE` as
-            // console output is not buffered. Without an attached console, as
-            // in a Windows container, it returns `ERROR_GEN_FAILURE` instead.
-            if (dwError == ERROR_INVALID_HANDLE || dwError == ERROR_GEN_FAILURE) &&
+            // console output is not buffered.
+            if dwError == ERROR_INVALID_HANDLE &&
                     GetFileType(self._handle) == FILE_TYPE_CHAR {
                 // Similar to the Linux, macOS, BSD cases below, ignore the error
                 // on the special file type.
