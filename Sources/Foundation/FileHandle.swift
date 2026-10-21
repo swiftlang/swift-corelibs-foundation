@@ -133,7 +133,7 @@ open class FileHandle : NSObject, @unchecked Sendable {
         #if os(Windows)
         var dupHandle: HANDLE?
         if !DuplicateHandle(GetCurrentProcess(), self._handle, GetCurrentProcess(), &dupHandle,
-                        /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS) {
+                        /*dwDesiredAccess:*/0, /*bInheritHandle:*/false, DUPLICATE_SAME_ACCESS) {
             fatalError("DuplicateHandleFailed: \(GetLastError())")
         }
 
@@ -1063,12 +1063,10 @@ open class Pipe: NSObject, @unchecked Sendable {
 
     public override init() {
 #if os(Windows)
-        var saAttr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES(nLength: DWORD(MemoryLayout<SECURITY_ATTRIBUTES>.size), lpSecurityDescriptor: nil, bInheritHandle: true)
-
         var hReadPipe: HANDLE?
         var hWritePipe: HANDLE?
 
-        if !CreatePipe(&hReadPipe, &hWritePipe, &saAttr, 0) {
+        if !CreatePipe(&hReadPipe, &hWritePipe, nil, 0) {
           fatalError("CreatePipe failed")
         }
         self.fileHandleForReading = FileHandle(handle: hReadPipe!,

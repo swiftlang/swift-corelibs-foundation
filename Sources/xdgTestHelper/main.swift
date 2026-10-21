@@ -272,6 +272,16 @@ case "--nspathfor":
     test.run()
 #endif
 
+#if os(Windows)
+case "--write-handle":
+    guard let value = arguments.next(), let hFile = HANDLE(bitPattern: UInt(value, radix: 16) ?? 0) else {
+        exit(1)
+    }
+    var bytes = Array("Hello, World".utf8)
+    var dwWritten: DWORD = 0
+    exit(WriteFile(hFile, &bytes, DWORD(bytes.count), &dwWritten, nil) ? 0 : 1)
+#endif
+
 #if !os(Windows)
 case "--signal-test":
     signalTest()
