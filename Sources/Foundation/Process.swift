@@ -612,15 +612,15 @@ open class Process: NSObject, @unchecked Sendable {
 
         let workingDirectory = currentDirectoryURL?.path ?? FileManager.default.currentDirectoryPath
         try Process.launchLock.withLock {
-          var inheritedHandles: [HANDLE: HANDLE] = [:]
-          defer { inheritedHandles.values.forEach { CloseHandle($0) } }
+          var duplicates: [HANDLE: HANDLE] = [:]
+          defer { duplicates.values.forEach { CloseHandle($0) } }
 
-          func inheritableDuplicate(of handle: HANDLE) throws -> HANDLE? {
+          func duplicate(inheriting handle: HANDLE) throws -> HANDLE? {
               // _get_osfhandle's "no handle" values, which DuplicateHandle reads as pseudo-handles.
               if handle == INVALID_HANDLE_VALUE || Int(bitPattern: handle) == -2 {
                   return nil
               }
-              if let hDuplicate = inheritedHandles[handle] {
+              if let hDuplicate = duplicates[handle] {
                   return hDuplicate
               }
               var hDuplicate: HANDLE?
@@ -629,33 +629,33 @@ open class Process: NSObject, @unchecked Sendable {
                     let hDuplicate else {
                   throw _NSErrorWithWindowsError(GetLastError(), reading: false)
               }
-              inheritedHandles[handle] = hDuplicate
+              duplicates[handle] = hDuplicate
               return hDuplicate
           }
 
-          func childHandle(for stream: Any?, _ pipeEnd: KeyPath<Pipe, FileHandle>) throws -> HANDLE? {
+          func handle(for stream: Any?, _ pipeEnd: KeyPath<Pipe, FileHandle>) throws -> HANDLE? {
               switch stream {
               case let pipe as Pipe:
-                  return try inheritableDuplicate(of: pipe[keyPath: pipeEnd]._handle)
+                  return try duplicate(inheriting: pipe[keyPath: pipeEnd]._handle)
 
               // nil or NullDevice maps to NUL
               case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
               case .none:
-                  return try inheritableDuplicate(of: devNullFd())
+                  return try duplicate(inheriting: devNullFd())
 
               case let handle as FileHandle:
-                  return try inheritableDuplicate(of: handle._handle)
+                  return try duplicate(inheriting: handle._handle)
               default:
                   return nil
               }
           }
 
-          siStartupInfo.hStdInput = try childHandle(for: standardInput, \.fileHandleForReading)
-          siStartupInfo.hStdOutput = try childHandle(for: standardOutput, \.fileHandleForWriting)
-          siStartupInfo.hStdError = try childHandle(for: standardError, \.fileHandleForWriting)
+          siStartupInfo.hStdInput = try handle(for: standardInput, \.fileHandleForReading)
+          siStartupInfo.hStdOutput = try handle(for: standardOutput, \.fileHandleForWriting)
+          siStartupInfo.hStdError = try handle(for: standardError, \.fileHandleForWriting)
 
           // The child's exit closes its copy of this socket, which notifies the manager thread.
-          let hSocket: HANDLE = HANDLE(bitPattern: UInt(sockets.second))!
+          let hSocket = HANDLE(bitPattern: UInt(sockets.second))!
           SetHandleInformation(hSocket, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)
           defer { SetHandleInformation(hSocket, HANDLE_FLAG_INHERIT, 0) }
 
