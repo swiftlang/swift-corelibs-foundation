@@ -608,19 +608,25 @@ open class FileHandle : NSObject, @unchecked Sendable {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         
         #if os(Windows)
+        // Console handles are not buffered, so there is nothing to flush.
+        // Similar to the Linux, macOS, BSD cases below, skip the special file.
+        var dwMode: DWORD = 0
+        if GetConsoleMode(self._handle, &dwMode) { return }
+        switch GetLastError() {
+        case ERROR_ACCESS_DENIED:
+            // Console handle opened without `GENERIC_READ`.
+            return
+        case DWORD(ERROR_GEN_FAILURE):
+            // Console handle with a detached or dead console, e.g. in a
+            // Windows container started without a TTY.
+            return
+        default:
+            // Not a console handle.
+            break
+        }
+
         guard FlushFileBuffers(self._handle) else {
-            let dwError: DWORD = GetLastError()
-            // If the handle is a handle to the console output,
-            // `FlushFileBuffers` will fail and return `ERROR_INVALID_HANDLE` as
-            // console output is not buffered. Without an attached console, as
-            // in a Windows container, it returns `ERROR_GEN_FAILURE` instead.
-            if (dwError == ERROR_INVALID_HANDLE || dwError == ERROR_GEN_FAILURE) &&
-                    GetFileType(self._handle) == FILE_TYPE_CHAR {
-                // Similar to the Linux, macOS, BSD cases below, ignore the error
-                // on the special file type.
-                return
-            }
-            throw _NSErrorWithWindowsError(dwError, reading: false)
+            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
         #else
         // Linux, macOS, OpenBSD return -1 and errno == EINVAL if trying to sync a special file,
