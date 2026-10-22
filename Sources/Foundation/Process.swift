@@ -233,6 +233,10 @@ private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
 
 open class Process: NSObject, @unchecked Sendable {
     static let once = Mutex(false)
+
+#if os(Windows)
+    private static let launchLock = NSLock()
+#endif
     
     private static func setup() {
         once.withLock {
@@ -473,6 +477,10 @@ open class Process: NSObject, @unchecked Sendable {
         return (first: INVALID_SOCKET, second: INVALID_SOCKET)
       }
 
+      for socket in [first, second] {
+        SetHandleInformation(HANDLE(bitPattern: UInt(socket)), HANDLE_FLAG_INHERIT, 0)
+      }
+
       return (first: first, second: second)
     }
     #endif
@@ -522,71 +530,6 @@ open class Process: NSObject, @unchecked Sendable {
             return _devNull!._handle
         }
 
-        var modifiedPipes: [(handle: HANDLE, prevValue: DWORD)] = []
-        defer { modifiedPipes.forEach { SetHandleInformation($0.handle, HANDLE_FLAG_INHERIT, $0.prevValue) } }
-
-        func deferReset(handle: HANDLE) throws {
-            var handleInfo: DWORD = 0
-            guard GetHandleInformation(handle, &handleInfo) else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
-            }
-            modifiedPipes.append((handle: handle, prevValue: handleInfo & HANDLE_FLAG_INHERIT))
-        }
-
-        switch standardInput {
-        case let pipe as Pipe:
-            siStartupInfo.hStdInput = pipe.fileHandleForReading._handle
-            try deferReset(handle: pipe.fileHandleForWriting._handle)
-            SetHandleInformation(pipe.fileHandleForWriting._handle, HANDLE_FLAG_INHERIT, 0)
-
-        // nil or NullDevice maps to NUL
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
-        case .none:
-            siStartupInfo.hStdInput = try devNullFd()
-
-        case let handle as FileHandle:
-            siStartupInfo.hStdInput = handle._handle
-            try deferReset(handle: handle._handle)
-            SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 1)
-        default: break
-        }
-
-        switch standardOutput {
-        case let pipe as Pipe:
-            siStartupInfo.hStdOutput = pipe.fileHandleForWriting._handle
-            try deferReset(handle: pipe.fileHandleForReading._handle)
-            SetHandleInformation(pipe.fileHandleForReading._handle, HANDLE_FLAG_INHERIT, 0)
-
-        // nil or NullDevice maps to NUL
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
-        case .none:
-            siStartupInfo.hStdOutput = try devNullFd()
-
-        case let handle as FileHandle:
-            siStartupInfo.hStdOutput = handle._handle
-            try deferReset(handle: handle._handle)
-            SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 1)
-        default: break
-        }
-
-        switch standardError {
-        case let pipe as Pipe:
-            siStartupInfo.hStdError = pipe.fileHandleForWriting._handle
-            try deferReset(handle: pipe.fileHandleForReading._handle)
-            SetHandleInformation(pipe.fileHandleForReading._handle, HANDLE_FLAG_INHERIT, 0)
-
-        // nil or NullDevice maps to NUL
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
-        case .none:
-            siStartupInfo.hStdError = try devNullFd()
-
-        case let handle as FileHandle:
-            siStartupInfo.hStdError = handle._handle
-            try deferReset(handle: handle._handle)
-            SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 1)
-        default: break
-        }
-
         var piProcessInfo: PROCESS_INFORMATION = PROCESS_INFORMATION()
 
         var environment: [String:String] = [:]
@@ -607,7 +550,7 @@ open class Process: NSObject, @unchecked Sendable {
         // INVALID_PARMETER.
         let szEnvironment: String = environment.map { $0.key + "=" + $0.value }.joined(separator: "\0") + "\0\0"
 
-        let sockets: (first: SOCKET, second: SOCKET) = _socketpair()
+        let sockets: (first: SOCKET, second: SOCKET) = Process.launchLock.withLock { _socketpair() }
 
         var context: CFSocketContext = CFSocketContext()
         context.version = 0
@@ -668,23 +611,72 @@ open class Process: NSObject, @unchecked Sendable {
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
         let workingDirectory = currentDirectoryURL?.path ?? FileManager.default.currentDirectoryPath
-        try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
-          try FileManager.default._fileSystemRepresentation(withPath: workingDirectory) { wszCurrentDirectory in
-            try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
-              if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
-                                 nil, nil, true,
-                                 CREATE_UNICODE_ENVIRONMENT, UnsafeMutableRawPointer(mutating: wszEnvironment),
-                                 wszCurrentDirectory,
-                                 &siStartupInfo, &piProcessInfo) {
-                let error = GetLastError()
-                // If the current directory doesn't exist, Windows
-                // throws an ERROR_DIRECTORY. Since POSIX gives an
-                // ENOENT, we intercept the error to match the POSIX
-                // behaviour
-                if error == ERROR_DIRECTORY {
-                    throw _NSErrorWithWindowsError(ERROR_FILE_NOT_FOUND, reading: true)
+        try Process.launchLock.withLock {
+          var duplicates: [HANDLE: HANDLE] = [:]
+          defer { duplicates.values.forEach { CloseHandle($0) } }
+
+          func duplicate(inheriting handle: HANDLE) throws -> HANDLE? {
+              // _get_osfhandle's "no handle" values, which DuplicateHandle reads as pseudo-handles.
+              if handle == INVALID_HANDLE_VALUE || Int(bitPattern: handle) == -2 {
+                  return nil
+              }
+              if let hDuplicate = duplicates[handle] {
+                  return hDuplicate
+              }
+              var hDuplicate: HANDLE?
+              guard DuplicateHandle(GetCurrentProcess(), handle, GetCurrentProcess(), &hDuplicate,
+                                    /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS),
+                    let hDuplicate else {
+                  throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+              }
+              duplicates[handle] = hDuplicate
+              return hDuplicate
+          }
+
+          func handle(for stream: Any?, _ pipeEnd: KeyPath<Pipe, FileHandle>) throws -> HANDLE? {
+              switch stream {
+              case let pipe as Pipe:
+                  return try duplicate(inheriting: pipe[keyPath: pipeEnd]._handle)
+
+              // nil or NullDevice maps to NUL
+              case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+              case .none:
+                  return try duplicate(inheriting: devNullFd())
+
+              case let handle as FileHandle:
+                  return try duplicate(inheriting: handle._handle)
+              default:
+                  return nil
+              }
+          }
+
+          siStartupInfo.hStdInput = try handle(for: standardInput, \.fileHandleForReading)
+          siStartupInfo.hStdOutput = try handle(for: standardOutput, \.fileHandleForWriting)
+          siStartupInfo.hStdError = try handle(for: standardError, \.fileHandleForWriting)
+
+          // The child's exit closes its copy of this socket, which notifies the manager thread.
+          let hSocket = HANDLE(bitPattern: UInt(sockets.second))!
+          SetHandleInformation(hSocket, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)
+          defer { SetHandleInformation(hSocket, HANDLE_FLAG_INHERIT, 0) }
+
+          try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
+            try FileManager.default._fileSystemRepresentation(withPath: workingDirectory) { wszCurrentDirectory in
+              try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
+                if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
+                                   nil, nil, true,
+                                   CREATE_UNICODE_ENVIRONMENT, UnsafeMutableRawPointer(mutating: wszEnvironment),
+                                   wszCurrentDirectory,
+                                   &siStartupInfo, &piProcessInfo) {
+                  let error = GetLastError()
+                  // If the current directory doesn't exist, Windows
+                  // throws an ERROR_DIRECTORY. Since POSIX gives an
+                  // ENOENT, we intercept the error to match the POSIX
+                  // behaviour
+                  if error == ERROR_DIRECTORY {
+                      throw _NSErrorWithWindowsError(ERROR_FILE_NOT_FOUND, reading: true)
+                  }
+                  throw _NSErrorWithWindowsError(GetLastError(), reading: true)
                 }
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
               }
             }
           }
