@@ -129,7 +129,7 @@ internal func _NSXMLParserGetContext(_ ctx: _CFXMLInterface) -> _CFXMLInterfaceP
     return ctx.parser._parserContext!
 }
 
-internal func _NSXMLParserInternalSubset(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, ExternalID: UnsafePointer<UInt8>, SystemID: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserInternalSubset(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>?, ExternalID: UnsafePointer<UInt8>?, SystemID: UnsafePointer<UInt8>?) -> Void {
     _CFXMLInterfaceSAX2InternalSubset(ctx.parser._parserContext, name, ExternalID, SystemID)
 }
 
@@ -172,7 +172,7 @@ internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<
     return entity
 }
 
-internal func _NSXMLParserNotationDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, publicId: UnsafePointer<UInt8>, systemId: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserNotationDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, publicId: UnsafePointer<UInt8>?, systemId: UnsafePointer<UInt8>?) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
         let notationName = UTF8STRING(name)!
@@ -182,7 +182,7 @@ internal func _NSXMLParserNotationDecl(_ ctx: _CFXMLInterface, name: UnsafePoint
     }
 }
 
-internal func _NSXMLParserAttributeDecl(_ ctx: _CFXMLInterface, elem: UnsafePointer<UInt8>, fullname: UnsafePointer<UInt8>, type: Int32, def: Int32, defaultValue: UnsafePointer<UInt8>, tree: _CFXMLInterfaceEnumeration) -> Void {
+internal func _NSXMLParserAttributeDecl(_ ctx: _CFXMLInterface, elem: UnsafePointer<UInt8>, fullname: UnsafePointer<UInt8>, type: Int32, def: Int32, defaultValue: UnsafePointer<UInt8>?, tree: _CFXMLInterfaceEnumeration?) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
         let elementString = UTF8STRING(elem)!
@@ -195,7 +195,7 @@ internal func _NSXMLParserAttributeDecl(_ ctx: _CFXMLInterface, elem: UnsafePoin
     _CFXMLInterfaceFreeEnumeration(tree)
 }
 
-internal func _NSXMLParserElementDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, type: Int32, content: _CFXMLInterfaceElementContent) -> Void {
+internal func _NSXMLParserElementDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, type: Int32, content: _CFXMLInterfaceElementContent?) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
         let nameString = UTF8STRING(name)!
@@ -204,7 +204,7 @@ internal func _NSXMLParserElementDecl(_ ctx: _CFXMLInterface, name: UnsafePointe
     }
 }
 
-internal func _NSXMLParserUnparsedEntityDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, publicId: UnsafePointer<UInt8>, systemId: UnsafePointer<UInt8>, notationName: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserUnparsedEntityDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, publicId: UnsafePointer<UInt8>?, systemId: UnsafePointer<UInt8>?, notationName: UnsafePointer<UInt8>?) -> Void {
     let parser = ctx.parser
     let context = _NSXMLParserGetContext(ctx)
     
@@ -355,7 +355,7 @@ internal func _NSXMLParserCharacters(_ ctx: _CFXMLInterface, ch: UnsafePointer<U
     }
 }
 
-internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: UnsafePointer<UInt8>, data: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: UnsafePointer<UInt8>, data: UnsafePointer<UInt8>?) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
         let targetString = UTF8STRING(target)!
@@ -379,7 +379,7 @@ internal func _NSXMLParserComment(_ ctx: _CFXMLInterface, value: UnsafePointer<U
     }
 }
 
-internal func _NSXMLParserExternalSubset(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, ExternalID: UnsafePointer<UInt8>, SystemID: UnsafePointer<UInt8>) -> Void {
+internal func _NSXMLParserExternalSubset(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>?, ExternalID: UnsafePointer<UInt8>?, SystemID: UnsafePointer<UInt8>?) -> Void {
     _CFXMLInterfaceSAX2ExternalSubset(ctx.parser._parserContext, name, ExternalID, SystemID)
 }
 
