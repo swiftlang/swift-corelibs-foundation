@@ -300,6 +300,42 @@ class TestNSAttributedString : XCTestCase {
             XCTAssertEqual(string, unarchived, "Object loaded from \(variant) didn't match fixture.")
         }
     }
+
+    func test_unarchivingInconsistentAttributeRunLength() throws {
+        // An archive whose NSAttributeInfo describes an attribute run longer than the string it applies to should decode to nil rather than applying a range that runs past the end of the string.
+        func writeVarInt(_ v: Int, into d: inout Data) {
+            var i = v
+            while i > 127 {
+                d.append(UInt8(128 + i % 128))
+                i /= 128
+            }
+            d.append(UInt8(i))
+        }
+
+        // Builds the NSAttributedString archive payload directly so the encoded run length can be set independently of the string it describes.
+        final class ArchivePayload: NSObject, NSCoding {
+            override init() { super.init() }
+            required init?(coder: NSCoder) { return nil }
+            override var classForKeyedArchiver: AnyClass? { NSAttributedString.self }
+            func encode(with coder: NSCoder) {
+                coder.encode("AB" as NSString, forKey: "NSString")
+                coder.encode(NSArray(array: [NSDictionary(dictionary: ["NSKern": "x"])]), forKey: "NSAttributes")
+                var info = Data()
+                writeVarInt(1 << 62, into: &info) // run length: longer than the 2-unit string
+                writeVarInt(0, into: &info)        // attribute slot: 0 (in range)
+                coder.encode(info as NSData, forKey: "NSAttributeInfo")
+            }
+        }
+
+        let archiver = NSKeyedArchiver(requiringSecureCoding: false)
+        archiver.encode(ArchivePayload(), forKey: NSKeyedArchiveRootObjectKey)
+        archiver.finishEncoding()
+
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: archiver.encodedData)
+        unarchiver.requiresSecureCoding = true
+        let decoded = unarchiver.decodeObject(of: NSAttributedString.self, forKey: NSKeyedArchiveRootObjectKey)
+        XCTAssertNil(decoded, "An attribute run length that exceeds the string should fail to decode")
+    }
 }
 
 fileprivate extension TestNSAttributedString {

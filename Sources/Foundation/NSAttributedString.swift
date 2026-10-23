@@ -648,6 +648,7 @@ internal func _NSReadMutableAttributedStringWithCoder(_ decoder: NSCoder, mutabl
             offset = intResult2.newOffset
             
             guard arraySlot < attributes.count else { return false }
+            guard rangeLen > 0 && rangeLen <= length - loc else { return false }
             mutableAttributedString.setAttributes(attributes[arraySlot], range: NSMakeRange(loc, rangeLen))
             
             loc += rangeLen
