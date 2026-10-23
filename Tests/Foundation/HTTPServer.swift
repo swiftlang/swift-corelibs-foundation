@@ -1115,7 +1115,7 @@ public class TestURLSessionServer: CustomStringConvertible {
             case 300...303, 305...308:
                 let location = request.parameters["location"] ?? "/" + request.method.rawValue.lowercased()
                 let body = "Redirecting to \(request.method) \(location)"
-                let headers = ["Content-Type: test/plain", "Location: \(location)"]
+                let headers = ["Content-Type: test/plain", "Location: \(location)", "Connection: close"]
                 response = try _HTTPResponse(responseCode: statusCode, headers: headers, body: body)
 
             case 401:

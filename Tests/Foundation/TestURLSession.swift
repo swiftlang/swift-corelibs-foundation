@@ -845,6 +845,56 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
+    func test_httpRedirectionWithCode307_308PreservesBody() async throws {
+        let bodyData = try XCTUnwrap("payload=body".data(using: .utf8))
+
+        for statusCode in [307, 308] {
+            for method in ["POST", "PUT"] {
+                let testMethod = "\(method) request with statusCode \(statusCode)"
+                let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=/jsonBody"
+                let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
+                var request = URLRequest(url: url)
+                request.httpMethod = method
+                request.httpBody = bodyData
+
+                let d = HTTPRedirectionDataTask(with: expectation(description: testMethod))
+                d.run(with: request)
+
+                waitForExpectations(timeout: 12)
+
+                XCTAssertNil(d.error, testMethod)
+                XCTAssertEqual(d.redirectionResponse?.statusCode, statusCode, testMethod)
+
+                let json = try JSONSerialization.jsonObject(with: d.receivedData) as? [String: String]
+                XCTAssertEqual(json?["uri"], "\(method) /jsonBody HTTP/1.1", "Method changed for \(testMethod)")
+                XCTAssertEqual(json?["x-base64-body"], bodyData.base64EncodedString(), "Body was not resent for \(testMethod)")
+            }
+        }
+    }
+
+    func test_httpRedirectionWithCode301_302DropsBodyForPOST() async throws {
+        let bodyData = try XCTUnwrap("payload=body".data(using: .utf8))
+
+        for statusCode in [301, 302] {
+            let testMethod = "POST request with statusCode \(statusCode)"
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/\(statusCode)?location=/jsonBody"
+            let url = try XCTUnwrap(URL(string: urlString), "Can't create URL for \(testMethod)")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = bodyData
+
+            let d = HTTPRedirectionDataTask(with: expectation(description: testMethod))
+            d.run(with: request)
+
+            waitForExpectations(timeout: 12)
+
+            XCTAssertNil(d.error, testMethod)
+            let json = try JSONSerialization.jsonObject(with: d.receivedData) as? [String: String]
+            XCTAssertEqual(json?["uri"], "GET /jsonBody HTTP/1.1", "Method not changed for \(testMethod)")
+            XCTAssertNil(json?["x-base64-body"], "Body should not be resent for \(testMethod)")
+        }
+    }
+
     func test_httpRedirectionWithCode303() async throws {
         let statusCode = 303
         for method in httpMethods {
