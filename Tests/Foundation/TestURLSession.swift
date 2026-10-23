@@ -1080,6 +1080,49 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
+    func test_httpRedirectionResolvesRelativeLocation() throws {
+        let base = "http://127.0.0.1:\(TestURLSession.serverPort)"
+        let prefix = "\(base)/redirect-relative-path"
+        let cases: [(basePath: String, location: String, fragment: String?, expectedURL: String)] = [
+            ("/redirect-relative-path/deep/base/page", "a/", nil, "\(prefix)/deep/base/a/"),
+            ("/redirect-relative-path/deep/base/page", "a", nil, "\(prefix)/deep/base/a"),
+            ("/redirect-relative-path/deep/base/page", "./a/", nil, "\(prefix)/deep/base/a/"),
+            ("/redirect-relative-path/deep/base/page", "../a/", nil, "\(prefix)/deep/a/"),
+            ("/redirect-relative-path/deep/base/page", "../../a/", nil, "\(prefix)/a/"),
+            ("/redirect-relative-path/deep/base/page", "/redirect-relative-path/abs/a/", nil, "\(prefix)/abs/a/"),
+            ("/redirect-relative-path/deep/base/page", "?q=1", nil, "\(prefix)/deep/base/page?q=1"),
+            ("/redirect-relative-path/page", "a/", nil, "\(prefix)/a/"),
+            ("/redirect-relative-path/deep/base/page", "a%2Fb/", nil, "\(prefix)/deep/base/a%2Fb/"),
+            ("/redirect-relative-path/deep/base/page", "//127.0.0.1:\(TestURLSession.serverPort)/redirect-relative-path/net/a/", nil, "\(prefix)/net/a/"),
+            ("/redirect-relative-path/deep/base/page", "\(base)/redirect-relative-path/abs/x/", nil, "\(prefix)/abs/x/"),
+            ("/redirect-relative-path/deep/base/page", "a/", "original", "\(prefix)/deep/base/a/#original"),
+            ("/redirect-relative-path/deep/base/page", "?q=1", "original", "\(prefix)/deep/base/page?q=1#original"),
+            ("/redirect-relative-path/deep/base/page", "/redirect-relative-path/abs/a/", "original", "\(prefix)/abs/a/#original"),
+            ("/redirect-relative-path/deep/base/page", "a/#new", "original", "\(prefix)/deep/base/a/#new"),
+        ]
+
+        for testCase in cases {
+            var components = URLComponents()
+            components.scheme = "http"
+            components.host = "127.0.0.1"
+            components.port = TestURLSession.serverPort
+            components.path = testCase.basePath
+            components.queryItems = [URLQueryItem(name: "location", value: testCase.location)]
+            components.fragment = testCase.fragment
+
+            let url = try XCTUnwrap(components.url, "Invalid URL for \(testCase.basePath) + \(testCase.location)")
+            let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(url.absoluteString): with HTTP redirection"))
+            d.run(with: URLRequest(url: url))
+            waitForExpectations(timeout: 12)
+
+            XCTAssertNil(d.error, "Unexpected error for \(url.absoluteString): \(String(describing: d.error))")
+            XCTAssertEqual(d.redirectionResponse?.statusCode, 302, "Missing redirect response for \(url.absoluteString)")
+            XCTAssertEqual(d.redirectionRequest?.url?.absoluteString, testCase.expectedURL, "Unexpected redirected request for \(url.absoluteString)")
+            XCTAssertEqual(d.response?.url?.absoluteString, testCase.expectedURL, "Unexpected final URL for \(url.absoluteString)")
+            XCTAssertEqual((d.response as? HTTPURLResponse)?.statusCode, 200, "Unexpected final status for \(url.absoluteString)")
+        }
+    }
+
     func test_httpRedirectionTimeout() async throws {
         #if os(Windows)
         throw XCTSkip("temporarily disabled (https://bugs.swift.org/browse/SR-5751)")
@@ -3050,6 +3093,7 @@ class HTTPRedirectionDataTask: NSObject, @unchecked Sendable {
     private(set) var error: Error?
     private(set) var response: URLResponse?
     private(set) var redirectionResponse: HTTPURLResponse?
+    private(set) var redirectionRequest: URLRequest?
     private var callbacks: [String] = []
 
     init(with expectation: XCTestExpectation) {
@@ -3115,6 +3159,7 @@ extension HTTPRedirectionDataTask: URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         callbacks.append(#function)
         redirectionResponse = response
+        redirectionRequest = request
 
         if let url = response.url, url.path.hasSuffix("/redirect-with-default-port") {
             XCTAssertEqual(request.url?.absoluteString, "http://127.0.0.1/redirected-with-default-port")

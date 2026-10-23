@@ -552,12 +552,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     func redirectRequest(for response: HTTPURLResponse, fromRequest: URLRequest) -> URLRequest? {
         //TODO: Do we ever want to redirect for HEAD requests?
         
-        guard
-            let location = response.value(forHeaderField: .location),
-            let targetURL = URL(string: location)
-            else {
-                // Can't redirect when there's no location to redirect to.
-                return nil
+        guard let location = response.value(forHeaderField: .location) else {
+            // Can't redirect when there's no location to redirect to.
+            return nil
         }
         
         var request = fromRequest
@@ -577,39 +574,26 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                 return nil
         }
 
-        // If targetURL has only relative path of url, create a new valid url with relative path
-        // Otherwise, return request with targetURL ie.url from location field
-        guard targetURL.scheme == nil || targetURL.host == nil else {
-            request.url = targetURL
-            return request
-        }
-
-        guard
-            let fromUrl = fromRequest.url,
-            var components = URLComponents(url: fromUrl, resolvingAgainstBaseURL: false)
+        // The Location header is a URI-reference and must be resolved against the
+        // request URL, as described in RFC 3986 section 5.2 (see also RFC 9110 section 10.2.2).
+        guard let fromURL = fromRequest.url,
+            let resolvedURL = URL(string: location, relativeTo: fromURL)
             else { return nil }
 
-        // If the new URL contains a host, use the host and port from the new URL.
-        // Otherwise, the host and port from the original URL are used.
-        if targetURL.host != nil {
-            components.host = targetURL.host
-            components.port = targetURL.port
-        }
-        
-        // The path must either begin with "/" or be an empty string.
-        if targetURL.path.hasPrefix("/") {
-            components.path = targetURL.path
-        } else {
-            components.path = "/" + targetURL.path
-        }
-        
-        // The query and fragment components are set separately to prevent them from being
-        // percent encoded again.
-        components.percentEncodedQuery = targetURL.query
-        components.percentEncodedFragment = targetURL.fragment
+        var targetURL = resolvedURL.absoluteURL
 
-        guard let url = components.url else { fatalError("Invalid URL") }
-        request.url = url
+        // RFC 9110 section 10.2.2: a redirect whose Location has no fragment component
+        // inherits the fragment of the URI reference used to generate the request.
+        if targetURL.fragment == nil,
+            let baseFragment = URLComponents(url: fromURL.absoluteURL, resolvingAgainstBaseURL: false)?.percentEncodedFragment,
+            var components = URLComponents(url: targetURL, resolvingAgainstBaseURL: false) {
+            components.percentEncodedFragment = baseFragment
+            if let url = components.url {
+                targetURL = url
+            }
+        }
+
+        request.url = targetURL
 
         return request
     }
