@@ -974,6 +974,10 @@ extension NSString {
     }
     
     public func getCString(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
+        // maxBufferCount is the size of the whole buffer, so it must have room for the NUL terminator
+        guard maxBufferCount > 0 else {
+            return false
+        }
         var used = 0
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
@@ -991,7 +995,7 @@ extension NSString {
                 return true
             }
         }
-        if getBytes(UnsafeMutableRawPointer(buffer), maxLength: maxBufferCount, usedLength: &used, encoding: encoding, options: [], range: NSRange(location: 0, length: self.length), remaining: nil) {
+        if getBytes(UnsafeMutableRawPointer(buffer), maxLength: maxBufferCount - 1, usedLength: &used, encoding: encoding, options: [], range: NSRange(location: 0, length: self.length), remaining: nil) {
             buffer.advanced(by: used).initialize(to: 0)
             return true
         }
