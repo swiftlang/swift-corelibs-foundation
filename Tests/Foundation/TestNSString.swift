@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 #if os(macOS) || os(iOS)
 internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
 internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
@@ -1034,7 +1036,68 @@ class TestNSString: LoopbackServerTest {
         XCTAssertTrue(res, "getCString should work on UTF8 encoding")
         XCTAssertEqual(chars, expected, "getCString on \(str) should have resulted in \(expected) but got \(chars)")
     }
-    
+
+    func test_getCString_maxLength() {
+        // The number of bytes each string needs before the NUL terminator, or nil if it can't be represented in the encoding
+        let cases: [(NSString, String.Encoding, Int?)] = [
+            ("éé", .utf8, 4),
+            ("éé", .utf16LittleEndian, 4),
+            ("éé", .isoLatin1, 2),
+            (NSMutableString(string: "ééé"), .utf8, 6),
+            ("abcd", .utf8, 4),                        // Small string (15 bytes or fewer), which skips the ASCII fast path
+            ("abcdefghijklmnopqrstuvwxyz", .utf8, 26), // Large ASCII string, which takes the ASCII fast path
+            ("", .utf8, 0),
+            ("aéb", .ascii, nil),
+        ]
+        let sentinel: Int8 = 0x55
+        for (str, encoding, needed) in cases {
+            for maxLength in 0...((needed ?? 3) + 2) {
+                var chars = [Int8](repeating: sentinel, count: maxLength + 1)
+                let res = chars.withUnsafeMutableBufferPointer {
+                    str.getCString($0.baseAddress!, maxLength: maxLength, encoding: encoding.rawValue)
+                }
+                let fits = needed.map { $0 < maxLength } ?? false
+                XCTAssertEqual(res, fits, "getCString on \"\(str)\" with maxLength \(maxLength) in \(encoding) should succeed only if the string and NUL terminator fit")
+                XCTAssertEqual(chars[maxLength], sentinel, "getCString on \"\(str)\" wrote past maxLength \(maxLength) in \(encoding)")
+                if let needed, fits {
+                    XCTAssertEqual(chars[needed], 0, "getCString on \"\(str)\" with maxLength \(maxLength) in \(encoding) should NUL-terminate the string")
+                }
+                if !fits && maxLength > 0 {
+                    XCTAssertEqual(chars[0], 0, "getCString on \"\(str)\" with maxLength \(maxLength) in \(encoding) should leave an empty C string on failure")
+                }
+            }
+        }
+
+        let str: NSString = "éé"
+        var chars = [Int8](repeating: sentinel, count: 5)
+        let res = chars.withUnsafeMutableBufferPointer {
+            str.getCString($0.baseAddress!, maxLength: 5, encoding: String.Encoding.utf8.rawValue)
+        }
+        XCTAssertTrue(res, "getCString should succeed when the string and NUL terminator exactly fill maxLength")
+        XCTAssertEqual(chars, [-61, -87, -61, -87, 0])
+    }
+
+    func test_CFStringGetCString_bufferSize() {
+        for string in ["éé", "abcd", "abcdefghijklmnopqrstuvwxyz"] {
+            let str = unsafeBitCast(NSString(string: string), to: CFString.self)
+            let expected = Array(string.utf8CString)
+            var chars = [CChar](repeating: 0x55, count: expected.count + 1)
+            var res = chars.withUnsafeMutableBufferPointer {
+                CFStringGetCString(str, $0.baseAddress!, expected.count, CFStringBuiltInEncodings.UTF8.rawValue)
+            }
+            XCTAssertTrue(res, "CFStringGetCString on \"\(string)\" should succeed when the string and NUL terminator exactly fill the buffer")
+            XCTAssertEqual(Array(chars[..<expected.count]), expected)
+            XCTAssertEqual(chars[expected.count], 0x55, "CFStringGetCString on \"\(string)\" wrote past the end of the buffer")
+
+            chars = [CChar](repeating: 0x55, count: expected.count)
+            res = chars.withUnsafeMutableBufferPointer {
+                CFStringGetCString(str, $0.baseAddress!, expected.count - 1, CFStringBuiltInEncodings.UTF8.rawValue)
+            }
+            XCTAssertFalse(res, "CFStringGetCString on \"\(string)\" should fail when the buffer has no room for the NUL terminator")
+            XCTAssertEqual(chars[expected.count - 1], 0x55, "CFStringGetCString on \"\(string)\" wrote past the end of the buffer")
+        }
+    }
+
     func test_NSHomeDirectoryForUser() {
         let homeDir = NSHomeDirectoryForUser(nil)
         let userName = NSUserName()
