@@ -470,13 +470,16 @@ static Boolean _appendObject(__CFBinaryPlistWriteBuffer *buf, CFTypeRef obj, CFD
 }
 
 static void _flattenPlist(CFPropertyListRef plist, CFMutableArrayRef objlist, CFMutableDictionaryRef objtable, CFMutableSetRef uniquingset) {
+    if (CFDictionaryContainsKey(objtable, plist)) return;
     uint32_t refnum;
     CFTypeID type = CFGetTypeID(plist);
 
     // Do not unique dictionaries or arrays, because: they
     // are slow to compare, and have poor hash codes.
-    // Uniquing bools is unnecessary.
-    if (_kCFRuntimeIDCFString == type || _kCFRuntimeIDCFNumber == type || _kCFRuntimeIDCFDate == type || _kCFRuntimeIDCFData == type) {
+    // Uniquing bools is unnecessary (they are singletons, caught by the
+    // objtable pointer check above). Keyed-archiver UIDs are a single
+    // uint32_t and are uniqued by value like the other scalar leaves.
+    if (_kCFRuntimeIDCFString == type || _kCFRuntimeIDCFNumber == type || _kCFRuntimeIDCFDate == type || _kCFRuntimeIDCFData == type || _kCFRuntimeIDCFKeyedArchiverUID == type) {
 	CFIndex before = CFSetGetCount(uniquingset);
 	CFSetAddValue(uniquingset, plist);
 	CFIndex after = CFSetGetCount(uniquingset);
@@ -534,6 +537,165 @@ CF_INLINE uint8_t _byteCount(uint64_t count) {
     return size;
 }
 
+CF_PRIVATE Boolean _CFStringEqual(CFStringRef cf1, CFStringRef cf2);
+
+static Boolean _uniquingSetEqual(const void *v1, const void *v2) {
+    if (v1 == v2) return true;
+    if (!v1 || !v2) return false;
+    CFTypeRef cf1 = (CFTypeRef)v1;
+    CFTypeRef cf2 = (CFTypeRef)v2;
+    CFTypeID type1 = CFGetTypeID(cf1);
+    if (type1 != CFGetTypeID(cf2)) return false;
+
+    switch (type1) {
+    case _kCFRuntimeIDCFString: {
+        CFStringRef str1 = (CFStringRef)cf1;
+        CFStringRef str2 = (CFStringRef)cf2;
+#if DEPLOYMENT_RUNTIME_SWIFT
+        if (!CF_IS_SWIFT(_kCFRuntimeIDCFString, str1) && !CF_IS_SWIFT(_kCFRuntimeIDCFString, str2)) {
+            return _CFStringEqual(str1, str2);
+        }
+        CFIndex len = CFStringGetLength(str1);
+        if (len != CFStringGetLength(str2)) return false;
+        if (len == 0) return true;
+        return CFStringCompareWithOptions(str1, str2, CFRangeMake(0, len), 0) == kCFCompareEqualTo;
+#else
+        return _CFStringEqual(str1, str2);
+#endif
+    }
+    case _kCFRuntimeIDCFNumber: {
+        CFNumberRef num1 = (CFNumberRef)cf1;
+        CFNumberRef num2 = (CFNumberRef)cf2;
+        Boolean isFloat1 = CFNumberIsFloatType(num1);
+        if (isFloat1 != CFNumberIsFloatType(num2)) return false;
+        if (isFloat1) {
+            Boolean isFloat32_1 = CFNumberGetByteSize(num1) <= (CFIndex)sizeof(float);
+            Boolean isFloat32_2 = CFNumberGetByteSize(num2) <= (CFIndex)sizeof(float);
+            if (isFloat32_1 != isFloat32_2) return false;
+            if (isFloat32_1) {
+                float f1 = 0, f2 = 0;
+                CFNumberGetValue(num1, kCFNumberFloat32Type, &f1);
+                CFNumberGetValue(num2, kCFNumberFloat32Type, &f2);
+                return CFConvertFloat32HostToSwapped(f1).v == CFConvertFloat32HostToSwapped(f2).v;
+            } else {
+                double d1 = 0, d2 = 0;
+                CFNumberGetValue(num1, kCFNumberFloat64Type, &d1);
+                CFNumberGetValue(num2, kCFNumberFloat64Type, &d2);
+                return CFConvertFloat64HostToSwapped(d1).v == CFConvertFloat64HostToSwapped(d2).v;
+            }
+        } else {
+            Boolean is128_1 = (_CFNumberGetType2(num1) == kCFNumberSInt128Type);
+            Boolean is128_2 = (_CFNumberGetType2(num2) == kCFNumberSInt128Type);
+            if (is128_1 != is128_2) return false;
+            if (is128_1) {
+                CFSInt128Struct s1 = {0, 0}, s2 = {0, 0};
+                CFNumberGetValue(num1, kCFNumberSInt128Type, &s1);
+                CFNumberGetValue(num2, kCFNumberSInt128Type, &s2);
+                return s1.high == s2.high && s1.low == s2.low;
+            } else {
+                uint64_t i1 = 0, i2 = 0;
+                CFNumberGetValue(num1, kCFNumberSInt64Type, &i1);
+                CFNumberGetValue(num2, kCFNumberSInt64Type, &i2);
+                return i1 == i2;
+            }
+        }
+    }
+    case _kCFRuntimeIDCFDate: {
+        CFSwappedFloat64 s1 = CFConvertFloat64HostToSwapped(CFDateGetAbsoluteTime((CFDateRef)cf1));
+        CFSwappedFloat64 s2 = CFConvertFloat64HostToSwapped(CFDateGetAbsoluteTime((CFDateRef)cf2));
+        return s1.v == s2.v;
+    }
+    case _kCFRuntimeIDCFData: {
+        CFDataRef data1 = (CFDataRef)cf1;
+        CFDataRef data2 = (CFDataRef)cf2;
+        CFIndex len = CFDataGetLength(data1);
+        if (len != CFDataGetLength(data2)) return false;
+        if (len == 0) return true;
+        return memcmp(CFDataGetBytePtr(data1), CFDataGetBytePtr(data2), len) == 0;
+    }
+    case _kCFRuntimeIDCFKeyedArchiverUID:
+        return _CFKeyedArchiverUIDGetValue((CFKeyedArchiverUIDRef)cf1) == _CFKeyedArchiverUIDGetValue((CFKeyedArchiverUIDRef)cf2);
+    default:
+        return CFEqual(cf1, cf2);
+    }
+}
+
+// Hash strings with CFStringHashNSString / __CFStringHash, and hash non-string
+// scalars by their serialized binary plist representation XORed with the
+// corresponding kCFBinaryPlistMarker* tag rather than calling CFHash(cf).
+//
+// Correctness and undefined-behavior requirements:
+// 1. CFKeyedArchiverUID leaves __CFKeyedArchiverUIDClass.hash as NULL, so CFHash
+//    hashes the pointer address rather than the 32-bit UID value.
+// 2. __CFDateHash casts (float)floor(date->_time) to unsigned CFHashCode, which
+//    is C undefined behavior for pre-2001 dates (_time < 0) and discards
+//    sub-second precision.
+// 3. __CFNumberHash converts SInt64/SInt128 to 53-bit double and calls
+//    _CFHashDouble, which triggers float-cast-overflow undefined behavior on
+//    NaN/+-Infinity, loses precision for 64-bit integers > 2^53, and conflates
+//    Int, Float, and Double representations.
+//
+// Hash-quality improvements:
+// 4. __CFDataHash hashes only the first 80 bytes without mixing in the length;
+//    mixing CFDataGetLength prevents all-zero buffers (<= 80 bytes) of different
+//    lengths and buffers sharing an 80-byte prefix with different lengths from
+//    colliding.
+// 5. XORing the kCFBinaryPlistMarker* tag domain-separates non-string scalars
+//    that share identical 64-bit payloads across types or widths (such as
+//    Int64(-1) vs UInt64.max, or Double vs CFDate) and prevents zero/empty
+//    values from hashing to 0 (which CFBasicHash treats as an uncached hash
+//    sentinel during rehashing).
+static CFHashCode _uniquingSetHash(const void *v) {
+    if (!v) return 0;
+    CFTypeRef cf = (CFTypeRef)v;
+    CFTypeID type = CFGetTypeID(cf);
+    switch (type) {
+    case _kCFRuntimeIDCFString:
+#if DEPLOYMENT_RUNTIME_SWIFT
+        return CF_IS_SWIFT(_kCFRuntimeIDCFString, cf) ? CFStringHashNSString((CFStringRef)cf) : __CFStringHash(cf);
+#else
+        return __CFStringHash(cf);
+#endif
+    case _kCFRuntimeIDCFNumber: {
+        CFNumberRef num = (CFNumberRef)cf;
+        if (CFNumberIsFloatType(num)) {
+            if (CFNumberGetByteSize(num) <= (CFIndex)sizeof(float)) {
+                float f = 0;
+                CFNumberGetValue(num, kCFNumberFloat32Type, &f);
+                return ((CFHashCode)CFConvertFloat32HostToSwapped(f).v ^ (kCFBinaryPlistMarkerReal | 2)) * HASHFACTOR;
+            } else {
+                double d = 0;
+                CFNumberGetValue(num, kCFNumberFloat64Type, &d);
+                uint64_t bits = CFConvertFloat64HostToSwapped(d).v;
+                return ((CFHashCode)(bits ^ (bits >> 32)) ^ (kCFBinaryPlistMarkerReal | 3)) * HASHFACTOR;
+            }
+        } else if (_CFNumberGetType2(num) == kCFNumberSInt128Type) {
+            CFSInt128Struct s = {0, 0};
+            CFNumberGetValue(num, kCFNumberSInt128Type, &s);
+            uint64_t bits = (uint64_t)s.high ^ s.low;
+            return ((CFHashCode)(bits ^ (bits >> 32)) ^ (kCFBinaryPlistMarkerInt | 4)) * HASHFACTOR;
+        } else {
+            uint64_t bits = 0;
+            CFNumberGetValue(num, kCFNumberSInt64Type, &bits);
+            return ((CFHashCode)(bits ^ (bits >> 32)) ^ (kCFBinaryPlistMarkerInt | 3)) * HASHFACTOR;
+        }
+    }
+    case _kCFRuntimeIDCFDate: {
+        uint64_t bits = CFConvertFloat64HostToSwapped(CFDateGetAbsoluteTime((CFDateRef)cf)).v;
+        return ((CFHashCode)(bits ^ (bits >> 32)) ^ kCFBinaryPlistMarkerDate) * HASHFACTOR;
+    }
+    case _kCFRuntimeIDCFData: {
+        CFDataRef data = (CFDataRef)cf;
+        CFIndex len = CFDataGetLength(data);
+        return (((CFHashCode)len ^ (len == 0 ? 0 : CFHashBytes((uint8_t *)CFDataGetBytePtr(data), __CFMin(len, 80)))) ^ kCFBinaryPlistMarkerData) * HASHFACTOR;
+    }
+    case _kCFRuntimeIDCFKeyedArchiverUID:
+        return ((CFHashCode)_CFKeyedArchiverUIDGetValue((CFKeyedArchiverUIDRef)cf) ^ kCFBinaryPlistMarkerUID) * HASHFACTOR;
+    default:
+        return CFHash(cf);
+    }
+}
+
 // stream can be a CFWriteStreamRef (on supported platforms) or a CFMutableDataRef
 /* Write a property list to a stream, in binary format. plist is the property list to write (one of the basic property list types), stream is the destination of the property list, and estimate is a best-guess at the total number of objects in the property list. The estimate parameter is for efficiency in pre-allocating memory for the uniquing step. Pass in a 0 if no estimate is available. The options flag specifies sort options. If sizeOnly is true, then no actual buffer allocations will be done, but the necessary buffer size will be calculated and return. If the error parameter is non-NULL and an error occurs, it will be used to return a CFError explaining the problem. It is the callers responsibility to release the error. */
 CF_PRIVATE CFIndex __CFBinaryPlistWriteOrPresize(CFPropertyListRef plist, CFTypeRef stream, uint64_t estimate, CFOptionFlags options, Boolean sizeOnly, CFErrorRef *error) {
@@ -558,7 +720,7 @@ CF_PRIVATE CFIndex __CFBinaryPlistWriteOrPresize(CFPropertyListRef plist, CFType
     const CFArrayCallBacks arrayCallbacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, 0, 0};
     objlist = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &arrayCallbacks);
     
-    const CFSetCallBacks setCallbacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, 0, 0, 0};
+    const CFSetCallBacks setCallbacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, 0, _uniquingSetEqual, _uniquingSetHash};
     uniquingset = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &setCallbacks);
 
 #if TARGET_OS_OSX
