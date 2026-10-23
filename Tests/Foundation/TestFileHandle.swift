@@ -447,6 +447,78 @@ class TestFileHandle : XCTestCase {
         }
     }
 
+    // Repro attempt for a libdispatch use-after-free seen intermittently in Linux CI: a crash in
+    // `_dispatch_event_loop_drain` dereferencing a freed epoll muxnote while tearing down a subprocess's
+    // stderr pipe. This mirrors how SourceKit-LSP reads a child process's (clangd's) stderr: the stderr
+    // `Pipe`'s read end has a `readabilityHandler` that reads `availableData` and clears itself on EOF,
+    // and the process/pipe are then torn down. The dispatch read source watching the pipe fd is torn
+    // down asynchronously; if that races with the fd being closed, the epoll muxnote can dangle. Running
+    // many iterations exercises that teardown race; if the bug is present this loop crashes.
+    func test_pipeReadabilityHandlerSubprocessTeardownStress() throws {
+        #if os(Windows)
+        throw XCTSkip("Test uses a POSIX shell to write to stderr")
+        #else
+        for iteration in 0..<500 {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/bin/sh")
+            process.arguments = ["-c", "echo stderr-output-\(iteration) 1>&2"]
+
+            let stderrPipe = Pipe()
+            // Same pattern SourceKit-LSP uses for clangd's stderr: read available data and, on EOF, clear
+            // the handler (which asynchronously cancels the underlying dispatch read source).
+            stderrPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+                let data = fileHandle.availableData
+                if data.isEmpty {
+                    fileHandle.readabilityHandler = nil
+                }
+            }
+            process.standardError = stderrPipe
+
+            try process.run()
+            process.waitUntilExit()
+            // Dropping `stderrPipe` at the end of the iteration closes the read fd, which may race the
+            // asynchronous cancellation of its dispatch read source.
+        }
+        #endif
+    }
+
+    // More aggressive variant of the above. Two extra sources of pressure on the dispatch manager
+    // thread that drains the epoll event loop:
+    //   1. Iterations run concurrently, so many pipe read sources are created and cancelled at once.
+    //   2. The read end is closed immediately after the process starts, without waiting for EOF, so the
+    //      close races an in-flight readability event / the source's asynchronous cancellation instead
+    //      of happening after the source has already gone quiet.
+    // If the epoll muxnote can dangle during that teardown, this crashes in `_dispatch_event_loop_drain`.
+    func test_pipeReadabilityHandlerConcurrentTeardownStress() throws {
+        #if os(Windows)
+        throw XCTSkip("Test uses a POSIX shell to write to stderr")
+        #else
+        DispatchQueue.concurrentPerform(iterations: 500) { iteration in
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/bin/sh")
+            process.arguments = ["-c", "echo stderr-output-\(iteration) 1>&2"]
+
+            let stderrPipe = Pipe()
+            let readHandle = stderrPipe.fileHandleForReading
+            readHandle.readabilityHandler = { fileHandle in
+                let data = fileHandle.availableData
+                if data.isEmpty {
+                    fileHandle.readabilityHandler = nil
+                }
+            }
+            process.standardError = stderrPipe
+
+            guard (try? process.run()) != nil else {
+                return
+            }
+            // Close the read end right away, while its dispatch read source may still be armed / an event
+            // may be in flight, rather than waiting for the EOF-driven handler teardown.
+            readHandle.closeFile()
+            process.waitUntilExit()
+        }
+        #endif
+    }
+
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_fileDescriptor() throws {
         let handle = createFileHandle()
