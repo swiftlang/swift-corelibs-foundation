@@ -15,6 +15,10 @@
     #endif
 #endif
 
+#if os(Windows)
+import WinSDK
+#endif
+
 class TestThread : XCTestCase {
 
     func test_currentThread() {
@@ -106,6 +110,30 @@ class TestThread : XCTestCase {
         let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
         XCTAssertTrue(ok, "NSCondition wait timed out")
+    }
+
+    func test_startedThreadsCloseTheirHandles() throws {
+        #if os(Windows)
+        func handleCount() -> Int {
+            var count: DWORD = 0
+            GetProcessHandleCount(GetCurrentProcess(), &count)
+            return Int(count)
+        }
+        func runThreads(_ count: Int) {
+            for _ in 0..<count {
+                let thread = Thread {}
+                thread.start()
+                while !thread.isFinished { Thread.sleep(forTimeInterval: 0.001) }
+            }
+        }
+        runThreads(10)
+        let before = handleCount()
+        runThreads(100)
+        // Some slack for handles opened by other work in the process.
+        XCTAssertLessThan(handleCount() - before, 50, "started threads left their handles open")
+        #else
+        throw XCTSkip("Thread handles are Windows-only")
+        #endif
     }
 
     func test_callStackSymbols() throws {
