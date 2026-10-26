@@ -351,9 +351,7 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
 #include <pwd.h>
-#include <stdlib.h>
 #include <sys/param.h>
-#include <unistd.h>
 
 // Set the fallBackToHome parameter to true if we should fall back to the HOME environment variable if all else fails. Otherwise return NULL.
 static CFURLRef _CFCopyHomeDirURLForUser(const char *username, bool fallBackToHome) {
@@ -466,75 +464,7 @@ CF_EXPORT CFStringRef CFGetUserName(void) CF_RETURNS_RETAINED {
     return CFCopyUserName();
 }
 
-CF_EXPORT CFStringRef CFCopyUserName(void) {
-    CFStringRef result = NULL;
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
-    uid_t euid;
-    __CFGetUGIDs(&euid, NULL);
-    struct passwd pwd;
-    struct passwd *upwd = NULL;
-    char *buffer = NULL;
-    long bufSize = sysconf(_SC_GETPW_R_SIZE_MAX);
-    if (bufSize <= 0) {
-        bufSize = 1024;
-    }
-    buffer = (char *)malloc((size_t)bufSize);
-    if (buffer != NULL) {
-        int err;
-        do {
-            err = getpwuid_r(euid ? euid : getuid(), &pwd, buffer, (size_t)bufSize, &upwd);
-            if (err != ERANGE) {
-                break;
-            }
-            size_t newSize = (size_t)bufSize * 2;
-            if (newSize <= (size_t)bufSize) {
-                upwd = NULL;
-                break;
-            }
-            char *grown = (char *)realloc(buffer, newSize);
-            if (grown == NULL) {
-                upwd = NULL;
-                break;
-            }
-            buffer = grown;
-            bufSize = (long)newSize;
-            upwd = NULL;
-        } while (1);
-        if (err != 0) {
-            upwd = NULL;
-        }
-    }
-    if (upwd && upwd->pw_name) {
-        result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_name, kCFPlatformInterfaceStringEncoding);
-    } else {
-        const char *cuser = __CFgetenv("USER");
-        if (cuser) {
-            result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cuser, kCFPlatformInterfaceStringEncoding);
-        }
-    }
-    free(buffer);
-#elif TARGET_OS_WIN32
-	wchar_t username[1040];
-	DWORD size = 1040;
-	username[0] = 0;
-	if (GetUserNameW(username, &size)) {
-	    // discount the extra NULL by decrementing the size
-	    result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)username, size - 1);
-	} else {
-	    const char *cname = __CFgetenv("USERNAME");
-	    if (cname) {
-                result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cname, kCFPlatformInterfaceStringEncoding);
-            }
-	}
-#elif TARGET_OS_WASI
-    // WASI does not have user concept
-#else
-#error "Please add an implementation for CFCopyUserName() that copies the account username"
-#endif
-    if (!result)
-        result = (CFStringRef)CFRetain(CFSTR(""));
-    return result;
-}
+// CFCopyUserName() is implemented in Swift (NSPathUtilities.swift) with ProcessInfo.processInfo.userName.
 
 #if TARGET_OS_ANDROID
 #define pw_gecos pw_name
