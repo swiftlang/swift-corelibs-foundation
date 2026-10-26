@@ -805,7 +805,7 @@ CFIndex _CFXMLNodeGetElementChildCount(_CFXMLNodePtr node) {
 }
 
 void _CFXMLNodeAddChild(_CFXMLNodePtr node, _CFXMLNodePtr child) {
-    if (((xmlNodePtr)node)->type == XML_NOTATION_NODE) {// the "artificial" node we created
+    if (((xmlNodePtr)child)->type == XML_NOTATION_NODE) {// the "artificial" node we created
         if (((xmlNodePtr)node)->type == XML_DTD_NODE) {// the only circumstance under which this actually makes sense
             xmlNotationPtr notation = ((_cfxmlNotation*)child)->notation;
             xmlDtdPtr dtd = (xmlDtdPtr)node;
