@@ -412,6 +412,12 @@ CFStringRef _CFXMLNodeCopyURI(_CFXMLNodePtr node) {
     xmlNodePtr nodePtr = (xmlNodePtr)node;
     switch (nodePtr->type) {
         case XML_ATTRIBUTE_NODE:
+            if (nodePtr->ns && nodePtr->ns->href) {
+                return __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, (const char*)nodePtr->ns->href, kCFStringEncodingUTF8);
+            } else {
+                return NULL;
+            }
+
         case XML_ELEMENT_NODE:
             if (nodePtr->ns && nodePtr->ns->href) {
                 return __CFSwiftXMLParserBridgeCF.CFStringCreateWithCString(NULL, (const char*)nodePtr->ns->href, kCFStringEncodingUTF8);
@@ -436,6 +442,17 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
     xmlNodePtr nodePtr = (xmlNodePtr)node;
     switch (nodePtr->type) {
         case XML_ATTRIBUTE_NODE:
+            if (URI) {
+                xmlNsPtr ns = xmlSearchNsByHref(nodePtr->doc, nodePtr->parent, URI);
+                if (!ns && nodePtr->parent) {
+                    ns = xmlNewNs(nodePtr->parent, URI, NULL);
+                }
+                xmlSetNs(nodePtr, ns);
+            } else {
+                xmlSetNs(nodePtr, NULL);
+            }
+            break;
+
         case XML_ELEMENT_NODE:
 
             if (!URI) {
