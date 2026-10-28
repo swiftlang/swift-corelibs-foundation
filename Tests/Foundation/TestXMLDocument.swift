@@ -516,6 +516,19 @@ class TestXMLDocument : LoopbackServerTest {
         }
     }
     
+    func test_dtdNotationAddChild() throws {
+        let dtd = XMLDTD()
+        dtd.name = "root"
+        let notation = try XCTUnwrap(XMLDTDNode(xmlString: "<!NOTATION foo SYSTEM 'bar'>"))
+        XCTAssertEqual(notation.kind, .notationDeclaration)
+
+        dtd.addChild(notation)
+
+        XCTAssertEqual(dtd.childCount, 0)
+        let registered = dtd.notationDeclaration(forName: "foo")
+        XCTAssertEqual(registered?.name, "foo")
+    }
+
     func test_dtd_attributes() throws {
         let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData", withExtension: "xml")!, options: [])
         let dtd = doc.dtd!
