@@ -10,6 +10,8 @@
 import Synchronization
 #if canImport(Android)
 @preconcurrency import Android
+#elseif os(Windows)
+import WinSDK
 #endif
 
 class TestProcess : XCTestCase {
@@ -494,6 +496,20 @@ class TestProcess : XCTestCase {
         task.waitUntilExit()
     }
 
+    func test_redirect_stdin_using_null_reads_eof() throws {
+        let task = Process()
+        task.executableURL = try xdgTestHelperURL()
+        task.arguments = ["--cat"]
+        task.standardInput = FileHandle.nullDevice
+        let stdout = Pipe()
+        task.standardOutput = stdout
+        try task.run()
+        task.waitUntilExit()
+        XCTAssertEqual(task.terminationStatus, 0)
+        let output = try stdout.fileHandleForReading.readToEnd()
+        XCTAssertNil(output, String(decoding: output ?? Data(), as: UTF8.self))
+    }
+
 
     func test_redirect_stdout_using_null() throws {
         let task = Process()
@@ -795,6 +811,101 @@ class TestProcess : XCTestCase {
             XCTFail("\(error)")
         }
     }
+
+    func test_pipeNotInheritedByUnrelatedProcess() throws {
+        let pipe = Pipe()
+
+        let unrelated = Process()
+        unrelated.executableURL = try xdgTestHelperURL()
+        unrelated.arguments = ["--cat"]
+        let unrelatedInput = Pipe()
+        unrelated.standardInput = unrelatedInput
+        unrelated.standardOutput = FileHandle.nullDevice
+        try unrelated.run()
+        defer {
+            unrelatedInput.fileHandleForWriting.closeFile()
+            unrelated.waitUntilExit()
+        }
+
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--getcwd"]
+        process.standardOutput = pipe
+        try process.run()
+        process.waitUntilExit()
+
+        let eof = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            _ = try? pipe.fileHandleForReading.readToEnd()
+            eof.signal()
+        }
+        XCTAssertEqual(eof.wait(timeout: .now() + 10), .success, "Pipe did not reach EOF while an unrelated process was running")
+    }
+
+    func test_pipeStdinNotInheritedByUnrelatedProcess() throws {
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--cat"]
+        let input = Pipe()
+        process.standardInput = input
+        process.standardOutput = FileHandle.nullDevice
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
+        try process.run()
+        defer { process.waitUntilExit() }
+
+        let unrelated = Process()
+        unrelated.executableURL = try xdgTestHelperURL()
+        unrelated.arguments = ["--cat"]
+        let unrelatedInput = Pipe()
+        unrelated.standardInput = unrelatedInput
+        unrelated.standardOutput = FileHandle.nullDevice
+        try unrelated.run()
+        defer {
+            unrelatedInput.fileHandleForWriting.closeFile()
+            unrelated.waitUntilExit()
+        }
+
+        input.fileHandleForWriting.closeFile()
+        XCTAssertEqual(exited.wait(timeout: .now() + 10), .success, "Process did not exit after its standard input was closed")
+    }
+
+#if os(Windows)
+    func test_inheritableHandleIsInheritedByChild() throws {
+        let pipe = Pipe()
+        XCTAssertTrue(SetHandleInformation(pipe.fileHandleForWriting._handle, DWORD(HANDLE_FLAG_INHERIT), DWORD(HANDLE_FLAG_INHERIT)))
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--write-handle", String(UInt(bitPattern: pipe.fileHandleForWriting._handle), radix: 16)]
+        try process.run()
+        process.waitUntilExit()
+        try pipe.fileHandleForWriting.close()
+        XCTAssertEqual(process.terminationStatus, 0)
+        let data = try pipe.fileHandleForReading.readToEnd()
+        XCTAssertEqual(String(decoding: data ?? Data(), as: UTF8.self), "Hello, World")
+    }
+
+    func test_nonInheritablePipeIsPassedToChild() throws {
+        let process = Process()
+        process.executableURL = try xdgTestHelperURL()
+        process.arguments = ["--cat"]
+        let input = Pipe()
+        process.standardInput = input
+        let output = Pipe()
+        process.standardOutput = output
+        for handle in [input.fileHandleForReading, output.fileHandleForWriting] {
+            XCTAssertTrue(SetHandleInformation(handle._handle, DWORD(HANDLE_FLAG_INHERIT), 0))
+        }
+        try process.run()
+
+        try input.fileHandleForWriting.write(contentsOf: Data("Hello, World".utf8))
+        try input.fileHandleForWriting.close()
+        let data = try output.fileHandleForReading.readToEnd()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(String(decoding: data ?? Data(), as: UTF8.self), "Hello, World")
+    }
+#endif
 
 #if !os(Windows)
     func test_processGroup() throws {
