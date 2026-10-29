@@ -154,6 +154,22 @@ class TestXMLParser : XCTestCase {
         XCTAssertNotNil(parser.parserError)
     }
 
+    func test_invalidUTF8InName() {
+        let documents = [
+            Data([0x3C, 0x61, 0xFF, 0x2F, 0x3E]),
+            Data([0x3C, 0x61, 0x20, 0x72, 0xFF, 0x3D, 0x22, 0x31, 0x22, 0x2F, 0x3E]),
+        ]
+
+        for document in documents {
+            let parser = XMLParser(data: document)
+            let delegate = XMLParserDelegateEventStream()
+            parser.delegate = delegate
+
+            XCTAssertFalse(parser.parse())
+            XCTAssertEqual((parser.parserError as? NSError)?.code, XMLParser.ErrorCode.invalidCharacterError.rawValue)
+        }
+    }
+
     func test_sr10157_swappedElementNames() {
         class ElementNameChecker: NSObject, XMLParserDelegate {
             let name: String
