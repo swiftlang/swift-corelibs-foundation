@@ -377,7 +377,11 @@ open class NSKeyedUnarchiver : NSCoder {
             
             _classes[classUid] = classToConstruct
         }
-        
+
+        if !_isClassAllowed(classToConstruct, allowedClasses: allowedClasses) {
+            throw _decodingError(.coderReadCorrupt, withDescription: "Value was of unexpected class \(String(describing: classToConstruct)). The data may be corrupt.")
+        }
+
         return classToConstruct
     }
     
@@ -486,23 +490,24 @@ open class NSKeyedUnarchiver : NSCoder {
         }
 
         if _isContainer(dereferencedObject) {
+            guard let dict = dereferencedObject as? Dictionary<String, Any> else {
+                throw _decodingError(.coderReadCorrupt,
+                                     withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
+            }
+
+            guard let classReference = dict["$class"] as? _NSKeyedArchiverUID else {
+                throw _decodingError(.coderReadCorrupt,
+                                     withDescription: "Invalid class reference \(String(describing: dict["$class"])). The data may be corrupt.")
+            }
+
+            // Validate the class before consulting the cache of decoded objects, since an object can be referenced again from a decode call that allows a different set of classes.
+            var classToConstruct : AnyClass? = try _validateAndMapClassReference(classReference,
+                                                                                 allowedClasses: self.allowedClasses)
+
             // check cached of decoded objects
             object = _cachedObjectForReference(objectRef)
             if object == nil {
-                guard let dict = dereferencedObject as? Dictionary<String, Any> else {
-                    throw _decodingError(.coderReadCorrupt,
-                                         withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
-                }
-
                 let innerDecodingContext = DecodingContext(dict)
-
-                guard let classReference = innerDecodingContext.dict["$class"] as? _NSKeyedArchiverUID else {
-                    throw _decodingError(.coderReadCorrupt,
-                                         withDescription: "Invalid class reference \(String(describing: innerDecodingContext.dict["$class"])). The data may be corrupt.")
-                }
-
-                var classToConstruct : AnyClass? = try _validateAndMapClassReference(classReference,
-                                                                                     allowedClasses: self.allowedClasses)
 
                 _pushDecodingContext(innerDecodingContext)
                 defer { _popDecodingContext() } // ensure an error does not invalidate the decoding context stack

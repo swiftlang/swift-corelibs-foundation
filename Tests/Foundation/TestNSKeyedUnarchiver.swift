@@ -122,4 +122,32 @@ class TestNSKeyedUnarchiver : XCTestCase {
         let uuid = NSUUID(uuidString: "0AD863BA-7584-40CF-8896-BD87B3280C34")
         try test_unarchive_from_file("NSKeyedUnarchiver-UUIDTest", uuid!)
     }
+
+    // Decodes "allowed" with NSDate allowed, then decodes "notAllowed" with only NSNumber allowed. The second call must be rejected even though the first call already decoded the same class (or object).
+    private func decodeDisallowedClassAfterAllowedDecode(sameObject: Bool) throws {
+        let date = NSDate(timeIntervalSinceReferenceDate: 1000)
+        let archiver = NSKeyedArchiver(requiringSecureCoding: true)
+        archiver.encode(date, forKey: "allowed")
+        archiver.encode(sameObject ? date : NSDate(timeIntervalSinceReferenceDate: 2000), forKey: "notAllowed")
+        archiver.finishEncoding()
+
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: archiver.encodedData)
+        unarchiver.requiresSecureCoding = true
+        unarchiver.decodingFailurePolicy = .setErrorAndReturn
+        // Decode "allowed" to populate the internal cache
+        guard unarchiver.decodeObject(of: [NSDate.self], forKey: "allowed") is NSDate else { return }
+        _ = unarchiver.decodeObject(of: [NSNumber.self], forKey: "notAllowed")
+    }
+
+    func test_unarchive_disallowedClassAfterAllowedDecodeOfSameClass() throws {
+        try assertCrashes {
+            try decodeDisallowedClassAfterAllowedDecode(sameObject: false)
+        }
+    }
+
+    func test_unarchive_disallowedClassAfterAllowedDecodeOfSameObject() throws {
+        try assertCrashes {
+            try decodeDisallowedClassAfterAllowedDecode(sameObject: true)
+        }
+    }
 }
