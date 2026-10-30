@@ -17,6 +17,30 @@
 
 @MainActor
 final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
+    func test_nativeRedirectIgnoresEarlierDecision() {
+        final class Delegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+            var previousDecision: (@Sendable (URLRequest?) -> Void)?
+            func urlSession(_ session: URLSession, task: URLSessionTask,
+                            willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
+                            completionHandler: @Sendable @escaping (URLRequest?) -> Void) {
+                // Native HTTP reuses its protocol instance across redirects. An old
+                // decision must not be mistaken for a decision about the next hop.
+                previousDecision?(nil)
+                previousDecision = completionHandler
+                completionHandler(request)
+            }
+        }
+        let session = URLSession(configuration: .ephemeral, delegate: Delegate(), delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+        let done = expectation(description: "native redirect ignores stale decision")
+        session.dataTask(with: URL(string: "http://127.0.0.1:\(Self.serverPort)/redirect/2")!) { _, response, error in
+            XCTAssertNil(error)
+            XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+            done.fulfill()
+        }.resume()
+        wait(for: [done], timeout: 10)
+    }
+
 
     let httpMethods = ["HEAD", "GET", "PUT", "POST", "DELETE"]
 
