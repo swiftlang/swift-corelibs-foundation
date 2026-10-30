@@ -1991,6 +1991,92 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         XCTAssertNil(session.delegate)
     }
 
+    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    func test_getAllTasksSnapshotsBeforeDelegateQueueRuns() async throws {
+        let delegateQueue = OperationQueue()
+        delegateQueue.maxConcurrentOperationCount = 1
+        let releaseDelegateQueue = DispatchSemaphore(value: 0)
+        let delegateQueueBlocked = expectation(description: "delegate queue is blocked")
+        delegateQueue.addOperation {
+            delegateQueueBlocked.fulfill()
+            releaseDelegateQueue.wait()
+        }
+        defer { releaseDelegateQueue.signal() }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PausedTaskProtocol.self]
+        let session = URLSession(configuration: configuration, delegate: nil, delegateQueue: delegateQueue)
+        let task = session.dataTask(with: try XCTUnwrap(URL(string: "paused-task://example")))
+        task.resume()
+        await fulfillment(of: [delegateQueueBlocked], timeout: 5)
+
+        let result = expectation(description: "task snapshot delivered")
+        session.getAllTasks { tasks in
+            XCTAssertEqual(tasks.map(\.taskIdentifier), [task.taskIdentifier])
+            result.fulfill()
+        }
+        session.workQueue.sync {} // Wait until the snapshot is made.
+        task.cancel()
+        task.workQueue.sync {} // The task has left the running state.
+        releaseDelegateQueue.signal()
+        await fulfillment(of: [result], timeout: 5)
+    }
+
+    func test_getTasksWithCompletionHandlerSnapshotsBeforeDelegateQueueRuns() async throws {
+        let delegateQueue = OperationQueue()
+        delegateQueue.maxConcurrentOperationCount = 1
+        let releaseDelegateQueue = DispatchSemaphore(value: 0)
+        let delegateQueueBlocked = expectation(description: "delegate queue is blocked")
+        delegateQueue.addOperation {
+            delegateQueueBlocked.fulfill()
+            releaseDelegateQueue.wait()
+        }
+        defer { releaseDelegateQueue.signal() }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PausedTaskProtocol.self]
+        let session = URLSession(configuration: configuration, delegate: nil, delegateQueue: delegateQueue)
+        let task = session.dataTask(with: try XCTUnwrap(URL(string: "paused-task://example")))
+        task.resume()
+        await fulfillment(of: [delegateQueueBlocked], timeout: 5)
+
+        let result = expectation(description: "categorized task snapshot delivered")
+        session.getTasksWithCompletionHandler { dataTasks, uploadTasks, downloadTasks in
+            XCTAssertEqual(dataTasks.map(\.taskIdentifier), [task.taskIdentifier])
+            XCTAssertTrue(uploadTasks.isEmpty)
+            XCTAssertTrue(downloadTasks.isEmpty)
+            result.fulfill()
+        }
+        session.workQueue.sync {} // Wait until the snapshot is made.
+        task.cancel()
+        task.workQueue.sync {} // The task has left the running state.
+        releaseDelegateQueue.signal()
+        await fulfillment(of: [result], timeout: 5)
+    }
+
+    func test_invalidateAndCancelCancelsAllRegisteredTasks() async throws {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PausedTaskProtocol.self]
+        let session = URLSession(configuration: configuration)
+        let url = try XCTUnwrap(URL(string: "paused-task://example"))
+        let completions = (0..<3).map { index in
+            expectation(description: "task \(index) cancelled")
+        }
+        let tasks = completions.map { completion in
+            session.dataTask(with: url) { _, _, error in
+                XCTAssertEqual((error as? URLError)?.code, .cancelled)
+                completion.fulfill()
+            }
+        }
+        tasks.forEach { $0.resume() }
+
+        session.invalidateAndCancel()
+        await fulfillment(of: completions, timeout: 5)
+        XCTAssertTrue(tasks.allSatisfy { $0.state == .completed })
+    }
+
+    #endif
+
     func test_sessionDelegateCalledIfTaskDelegateDoesNotImplement() async throws {
         let expectation = XCTestExpectation(description: "task finished")
         let delegate = SessionDelegate(with: expectation)
@@ -3011,6 +3097,23 @@ extension DownloadTask : URLSessionTaskDelegate {
             XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
         }
     }
+}
+
+private class PausedTaskProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool {
+        request.url?.scheme == "paused-task"
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override class func canInit(with task: URLSessionTask) -> Bool {
+        task.currentRequest?.url?.scheme == "paused-task"
+    }
+
+    override func startLoading() {}
+    override func stopLoading() {}
 }
 
 class FailFastProtocol: URLProtocol {
