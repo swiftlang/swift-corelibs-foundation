@@ -401,7 +401,6 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
 
         task.getBody { (body) in
             self.internalState = .transferReady(self.createTransferState(url: url, body: body, workQueue: task.workQueue))
-            let request = task.authRequest ?? request
             self.configureEasyHandle(for: request, body: body)
             if (task.suspendCount) < 1 {
                 self.resume()

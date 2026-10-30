@@ -34,6 +34,111 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         super.init(request: request, cachedResponse: cachedResponse, client: client)
     }
 
+    private var previousFailureCount = 0
+    private var lastCredential: (protectionSpace: URLProtectionSpace, credential: URLCredential)?
+    private var pendingChallenge: URLAuthenticationChallenge?
+
+    override func completeTask() {
+        guard case .transferCompleted(let response, _) = internalState else {
+            fatalError("Trying to complete an unfinished HTTP transfer.")
+        }
+        task?.response = response
+        // Authentication decisions may outlive the transfer's timeout.
+        easyHandle.timeoutTimer = nil
+        guard let response = response as? HTTPURLResponse, response.statusCode == 401,
+              let protectionSpace = URLProtectionSpace.create(with: response),
+              let task, let session = task.session as? URLSession else {
+            finishAuthentication()
+            return
+        }
+
+        // Serialize challenge creation and sender replies on the task's work queue.
+        nonisolated(unsafe) let owner = self
+        @Sendable func propose(_ credential: URLCredential?) {
+            task.workQueue.async {
+                guard task.state != .canceling && task.state != .completed else { return }
+                let proposed = owner.lastCredential?.credential == credential ? nil : credential
+                let challenge = URLAuthenticationChallenge(
+                    protectionSpace: protectionSpace, proposedCredential: proposed,
+                    previousFailureCount: owner.previousFailureCount, failureResponse: response,
+                    error: nil, sender: _HTTPAuthenticationChallengeSender(owner))
+                owner.previousFailureCount += 1
+                owner.pendingChallenge = challenge
+                owner.client?.urlProtocol(owner, didReceive: challenge)
+            }
+        }
+
+        if let storage = session.configuration.urlCredentialStorage {
+            storage.getCredentials(for: protectionSpace, task: task) { credentials in
+                if let credentials, let key = credentials.keys.sorted().first {
+                    propose(credentials[key])
+                } else {
+                    storage.getDefaultCredential(for: protectionSpace, task: task, completionHandler: propose)
+                }
+            }
+        } else {
+            propose(nil)
+        }
+    }
+
+    private func finishAuthentication() {
+        if let task, let session = task.session as? URLSession, let lastCredential {
+            session.configuration.urlCredentialStorage?.set(
+                lastCredential.credential, for: lastCredential.protectionSpace, task: task)
+        }
+        super.completeTask()
+    }
+
+    fileprivate func answer(_ challenge: URLAuthenticationChallenge,
+                            disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?) {
+        guard let task, task.state != .canceling && task.state != .completed,
+              pendingChallenge === challenge else { return }
+        pendingChallenge = nil
+        switch disposition {
+        case .useCredential:
+            guard let credential else {
+                finishAuthentication()
+                return
+            }
+            retry(with: credential, for: challenge.protectionSpace)
+        case .performDefaultHandling:
+            if let proposed = challenge.proposedCredential, proposed != lastCredential?.credential {
+                retry(with: proposed, for: challenge.protectionSpace)
+            } else {
+                finishAuthentication()
+            }
+        case .rejectProtectionSpace, .cancelAuthenticationChallenge:
+            // Only a single protection space per HTTP request is supported.
+            task.cancel()
+        }
+    }
+
+    private func retry(with credential: URLCredential, for protectionSpace: URLProtectionSpace) {
+        guard let task, var request = task.currentRequest else { fatalError("Missing HTTP request") }
+        switch protectionSpace.authenticationMethod {
+        case NSURLAuthenticationMethodHTTPBasic:
+            let userPassword = "\(credential.user ?? ""):\(credential.password ?? "")"
+            let encoded = Data(userPassword.utf8).base64EncodedString()
+            request.setValue("Basic \(encoded)", forHTTPHeaderField: "Authorization")
+        case NSURLAuthenticationMethodHTTPDigest:
+            fatalError("The URLSession swift-corelibs-foundation implementation doesn't currently handle digest authentication.")
+        default:
+            fatalError("\(protectionSpace.authenticationMethod) is not supported")
+        }
+        lastCredential = (protectionSpace, credential)
+        if case .transferCompleted(_, .toFile(_, let fileHandle?)) = internalState {
+            fileHandle.truncateFile(atOffset: 0)
+            fileHandle.closeFile()
+        } else if task is URLSessionDownloadTask {
+            // Delegate-based downloads write directly to this file rather than
+            // using a transfer body drain.
+            let fileHandle = try! FileHandle(forWritingTo: tempFileURL)
+            fileHandle.truncateFile(atOffset: 0)
+            fileHandle.closeFile()
+        }
+        startNewTransfer(with: request)
+    }
+
     override class func canInit(with request: URLRequest) -> Bool {
         guard request.url?.scheme == "http" || request.url?.scheme == "https" else { return false }
         return true
@@ -593,6 +698,22 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             }
         }
 
+        func effectivePort(_ url: URL) -> Int? {
+            if let port = url.port { return port }
+            switch url.scheme?.lowercased() {
+            case "http": return 80
+            case "https": return 443
+            default: return nil
+            }
+        }
+        // Preserve credentials within an origin, including redirects that
+        // add or omit its default port. Do not forward them to another origin.
+        let sameOrigin = fromURL.scheme?.lowercased() == targetURL.scheme?.lowercased()
+            && fromURL.host?.lowercased() == targetURL.host?.lowercased()
+            && effectivePort(fromURL) == effectivePort(targetURL)
+        if !sameOrigin {
+            request.setValue(nil, forHTTPHeaderField: "Authorization")
+        }
         request.url = targetURL
 
         return request
@@ -664,6 +785,40 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         }
         
         return ["Expect"]
+    }
+}
+
+// A sender can be called from any delegate queue. Its weak reference avoids a
+// cycle through the protocol's pending challenge; HTTP state is accessed only
+// after dispatching back to the task's work queue.
+private final class _HTTPAuthenticationChallengeSender: NSObject, URLAuthenticationChallengeSender, @unchecked Sendable {
+    private weak var owner: _HTTPURLProtocol?
+
+    init(_ owner: _HTTPURLProtocol) { self.owner = owner }
+
+    private func answer(_ challenge: URLAuthenticationChallenge,
+                        _ disposition: URLSession.AuthChallengeDisposition, _ credential: URLCredential? = nil) {
+        guard let owner, let task = owner.task else { return }
+        nonisolated(unsafe) let protocolOwner = owner
+        task.workQueue.async {
+            protocolOwner.answer(challenge, disposition: disposition, credential: credential)
+        }
+    }
+
+    func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {
+        answer(challenge, .useCredential, credential)
+    }
+    func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {
+        answer(challenge, .useCredential)
+    }
+    func performDefaultHandling(for challenge: URLAuthenticationChallenge) {
+        answer(challenge, .performDefaultHandling)
+    }
+    func rejectProtectionSpaceAndContinue(with challenge: URLAuthenticationChallenge) {
+        answer(challenge, .rejectProtectionSpace)
+    }
+    func cancel(_ challenge: URLAuthenticationChallenge) {
+        answer(challenge, .cancelAuthenticationChallenge)
     }
 }
 
