@@ -631,8 +631,14 @@ public func NSHomeDirectoryForUser(_ user: String?) -> String? {
 }
 
 public func NSUserName() -> String {
-    let userName = CFCopyUserName().takeRetainedValue()
-    return userName._swiftObject
+    ProcessInfo.processInfo.userName
+}
+
+// CFPreferences still calls CFCopyUserName(). `@c @implementation` cannot return the
+// imported Unmanaged result, so the C symbol is a thin wrapper around NSUserName().
+@_cdecl("CFCopyUserName")
+func _CFCopyUserName() -> Unmanaged<CFString> {
+    Unmanaged.passRetained(NSUserName()._cfObject)
 }
 
 public func NSFullUserName() -> String {

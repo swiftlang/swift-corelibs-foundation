@@ -168,6 +168,7 @@ CF_EXPORT CFStringRef _CFStringCreateWithBytesNoCopy(CFAllocatorRef alloc, const
 CF_EXPORT
 CFStringRef CFGetUserName(void);
 
+// Implemented in Swift (NSPathUtilities.swift) via ProcessInfo.processInfo.userName.
 CF_EXPORT
 CFStringRef CFCopyUserName(void);
 

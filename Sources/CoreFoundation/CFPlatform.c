@@ -464,42 +464,7 @@ CF_EXPORT CFStringRef CFGetUserName(void) CF_RETURNS_RETAINED {
     return CFCopyUserName();
 }
 
-CF_EXPORT CFStringRef CFCopyUserName(void) {
-    CFStringRef result = NULL;
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
-    uid_t euid;
-    __CFGetUGIDs(&euid, NULL);
-    struct passwd *upwd = getpwuid(euid ? euid : getuid());
-    if (upwd && upwd->pw_name) {
-        result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_name, kCFPlatformInterfaceStringEncoding);
-    } else {
-        const char *cuser = __CFgetenv("USER");
-        if (cuser) {
-            result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cuser, kCFPlatformInterfaceStringEncoding);
-        }
-    }
-#elif TARGET_OS_WIN32
-	wchar_t username[1040];
-	DWORD size = 1040;
-	username[0] = 0;
-	if (GetUserNameW(username, &size)) {
-	    // discount the extra NULL by decrementing the size
-	    result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)username, size - 1);
-	} else {
-	    const char *cname = __CFgetenv("USERNAME");
-	    if (cname) {
-                result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cname, kCFPlatformInterfaceStringEncoding);
-            }
-	}
-#elif TARGET_OS_WASI
-    // WASI does not have user concept
-#else
-#error "Please add an implementation for CFCopyUserName() that copies the account username"
-#endif
-    if (!result)
-        result = (CFStringRef)CFRetain(CFSTR(""));
-    return result;
-}
+// CFCopyUserName() is implemented in Swift (NSPathUtilities.swift) with ProcessInfo.processInfo.userName.
 
 #if TARGET_OS_ANDROID
 #define pw_gecos pw_name
