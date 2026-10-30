@@ -456,6 +456,14 @@ class _HTTPServer: CustomStringConvertible {
         let responseData: Data
         if let auth = request.getHeader(for: "authorization"),
             auth == "Basic dXNlcjpwYXNzd2Q=" {
+            if request.uri == "/auth/basic/redirect" || request.uri == "/auth/basic/redirect-same-origin" {
+                let host = request.headers.first { $0.lowercased().hasPrefix("host:") }!
+                let port = host.components(separatedBy: ":").last!.trimmingCharacters(in: .whitespaces)
+                let location = request.uri == "/auth/basic/redirect-same-origin"
+                    ? "/requestHeaders" : "http://localhost:\(port)/requestHeaders"
+                try tcpSocket.writeRawData(Data("HTTP/1.1 302 Found\r\nLocation: \(location)\r\nContent-Length: 0\r\n\r\n".utf8))
+                return
+            }
                 responseData = ("HTTP/1.1 200 OK \r\n" +
                 "Content-Length: 37\r\n" +
                 "Content-Type: application/json\r\n" +
@@ -467,15 +475,16 @@ class _HTTPServer: CustomStringConvertible {
                 "\r\n" +
                 "{\"authenticated\":true,\"user\":\"user\"}\n").data(using: .utf8)!
         } else {
+            let body = request.uri == "/auth/basic/body" ? String(repeating: "denied", count: 20) : ""
             responseData = ("HTTP/1.1 401 UNAUTHORIZED \r\n" +
-                        "Content-Length: 0\r\n" +
+                        "Content-Length: \(body.utf8.count)\r\n" +
                         "WWW-Authenticate: Basic realm=\"Fake Relam\"\r\n" +
                         "Access-Control-Allow-Origin: *\r\n" +
                         "Access-Control-Allow-Credentials: true\r\n" +
                         "Via: 1.1 vegur\r\n" +
                         "Cache-Control: proxy-revalidate\r\n" +
                         "Connection: keep-Alive\r\n" +
-                        "\r\n").data(using: .utf8)!
+                        "\r\n" + body).data(using: .utf8)!
         }
         try tcpSocket.writeRawData(responseData)
     }
