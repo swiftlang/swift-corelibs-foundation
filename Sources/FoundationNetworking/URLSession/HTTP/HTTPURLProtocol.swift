@@ -496,7 +496,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         } else {
             // Follow the redirect. Need to configure new request with cookies, etc.
             let configuredRequest = session._configuration.configure(request: request)
-            task?.knownBody = URLSessionTask._Body.none
+            updateBodySource(to: configuredRequest)
             startNewTransfer(with: configuredRequest)
         }
     }
@@ -701,6 +701,19 @@ fileprivate let userAgentString: String = {
 
 /// State Transfers
 extension _HTTPURLProtocol {
+    fileprivate func updateBodySource(to newRequest: URLRequest) {
+        guard let task = self.task else { return }
+
+        guard (task.currentRequest?.httpMethod ?? "GET") == (newRequest.httpMethod ?? "GET") else {
+            task.knownBody = URLSessionTask._Body.none
+            return
+        }
+
+        if case .stream? = task.knownBody {
+            task.knownBody = nil
+        }
+    }
+
     fileprivate func didCompleteRedirectCallback(_ request: URLRequest?) {
         guard case .waitingForRedirectCompletionHandler(response: let response, bodyDataDrain: let bodyDataDrain) = self.internalState else {
             fatalError("Received callback for HTTP redirection, but we're not waiting for it. Was it called multiple times?")
@@ -712,7 +725,7 @@ extension _HTTPURLProtocol {
             let session = task?.session as! URLSession
             let configuredRequest = session._configuration.configure(request: request)
             lastRedirectBody = nil
-            task?.knownBody = URLSessionTask._Body.none
+            updateBodySource(to: configuredRequest)
             startNewTransfer(with: configuredRequest)
         } else {
             // If the redirect is not followed, return the redirect itself as the response
