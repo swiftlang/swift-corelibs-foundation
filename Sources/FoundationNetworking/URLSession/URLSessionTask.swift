@@ -1494,7 +1494,22 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {}
 
     func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) {
-        fatalError("The URLSession swift-corelibs-foundation implementation doesn't currently handle redirects directly.")
+        guard let task = `protocol`.task else { return }
+        // The coordinator invokes completion on task.workQueue before we access this non-Sendable protocol.
+        nonisolated(unsafe) let redirectingProtocol = `protocol`
+        task._decideRedirect(from: `protocol`, request: request, response: redirectResponse) { result in
+            switch result {
+            case .success(let request?):
+                task._followRedirect(to: request, from: redirectingProtocol, client: self)
+            case .success(nil):
+                // The protocol remains responsible for delivering the declined response.
+                break
+            case .failure(let error):
+                redirectingProtocol.client = nil
+                redirectingProtocol.stopLoading()
+                self.urlProtocol(task: task, didFailWithError: error)
+            }
+        }
     }
 }
 extension URLSessionTask {
