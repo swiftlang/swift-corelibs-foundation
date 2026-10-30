@@ -304,6 +304,18 @@ class TestXMLDocument : LoopbackServerTest {
         }
     }
 
+    func test_attributeURIRoundTrips() throws {
+        let element = XMLElement(name: "root")
+        let attr = try XCTUnwrap(XMLNode.attribute(withName: "id", stringValue: "x") as? XMLNode)
+        element.addAttribute(attr)
+
+        attr.uri = "http://example.com/ns"
+        XCTAssertEqual(attr.uri, "http://example.com/ns")
+
+        attr.uri = nil
+        XCTAssertNil(attr.uri)
+    }
+
     func test_comments() {
         let element = XMLElement(name: "root")
         let comment = XMLNode.comment(withStringValue:"Here is a comment") as! XMLNode
