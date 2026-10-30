@@ -358,37 +358,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         // HTTP Options:
         easyHandle.set(followLocation: false)
 
-        // The httpAdditionalHeaders from session configuration has to be added to the request.
-        // The request.allHTTPHeaders can override the httpAdditionalHeaders elements. Add the
-        // httpAdditionalHeaders from session configuration first and then append/update the
-        // request.allHTTPHeaders so that request.allHTTPHeaders can override httpAdditionalHeaders.
-
         let httpSession = self.task?.session as! URLSession
-        var httpHeaders: [AnyHashable : Any]?
-
-        if let hh = httpSession.configuration.httpAdditionalHeaders {
-            httpHeaders = hh
-        }
-
-        if let hh = request.allHTTPHeaderFields {
-            if httpHeaders == nil {
-                httpHeaders = hh
-            } else {
-                hh.forEach {
-                    // When adding a header, remove any current entry with the same header name regardless of case
-                    let newKey = $0.lowercased()
-                    for key in httpHeaders!.keys {
-                        if newKey == (key as! String).lowercased() {
-                            httpHeaders?.removeValue(forKey: key)
-                            break
-                        }
-                    }
-                    httpHeaders![$0] = $1
-                }
-            }
-        }
         let customHeaders: [String]
-        let headersForRequest = curlHeaders(for: httpHeaders)
+        let headersForRequest = curlHeaders(for: request.allHTTPHeaderFields)
         var hasStream = (request.httpBodyStream != nil)
         if case _Body.stream(_) = body {
             hasStream = true
@@ -622,10 +594,10 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     /// expects.
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
-    func curlHeaders(for httpHeaders: [AnyHashable : Any]?) -> [String] {
+    func curlHeaders(for httpHeaders: [String : String]?) -> [String] {
         var result: [String] = []
         var names = Set<String>()
-	if let hh = httpHeaders as? [String : String] {
+	if let hh = httpHeaders {
             hh.forEach {
                 let name = $0.0.lowercased()
                 guard !names.contains(name) else { return }

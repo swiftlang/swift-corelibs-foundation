@@ -490,6 +490,44 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 12)
     }
 
+    func test_cancelTaskAfterRedirectUsesCurrentURL() async throws {
+        final class CancelOnResponseDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+            let expectation: XCTestExpectation
+            var error: Error?
+
+            init(with expectation: XCTestExpectation) {
+                self.expectation = expectation
+            }
+
+            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+                dataTask.cancel()
+                completionHandler(.allow)
+            }
+
+            func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+                self.error = error
+                expectation.fulfill()
+            }
+        }
+
+        let originalURL = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=/stall-response-body"))
+        let redirectedURL = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/stall-response-body"))
+        let delegate = CancelOnResponseDelegate(with: expectation(description: "Task cancelled after redirect"))
+        let session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let task = session.dataTask(with: originalURL)
+        task.resume()
+        await fulfillment(of: [delegate.expectation], timeout: 12)
+
+        XCTAssertEqual(task.originalRequest?.url, originalURL)
+        XCTAssertEqual(task.currentRequest?.url, redirectedURL)
+        let error = try XCTUnwrap(delegate.error as? URLError)
+        XCTAssertEqual(error.code, .cancelled)
+        XCTAssertEqual(error.userInfo[NSURLErrorFailingURLErrorKey] as? URL, redirectedURL)
+        XCTAssertEqual(error.userInfo[NSURLErrorFailingURLStringErrorKey] as? String, redirectedURL.absoluteString)
+    }
+
     func test_unhandledURLProtocol() async {
         let urlString = "foobar://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
@@ -633,6 +671,40 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 30)
     }
     
+    func test_httpAdditionalHeadersOnRedirects() async {
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/redirectToEchoHeaders")!
+
+        for delegateSuppliesRequest in [false, true] {
+            let config = URLSessionConfiguration.ephemeral
+            config.httpAdditionalHeaders = ["X-Session": "configured", "x-override": "configuration"]
+            let delegate = SessionDelegate()
+            if delegateSuppliesRequest {
+                delegate.redirectionHandler = { _, request, completionHandler in
+                    var replacement = URLRequest(url: request.url!)
+                    replacement.setValue("delegate", forHTTPHeaderField: "X-Override")
+                    completionHandler(replacement)
+                }
+            }
+            let session = URLSession(configuration: config, delegate: delegateSuppliesRequest ? delegate : nil, delegateQueue: nil)
+            let expect = expectation(description: "Redirect with delegate-supplied request: \(delegateSuppliesRequest)")
+            var request = URLRequest(url: url)
+            request.setValue("caller", forHTTPHeaderField: "X-Override")
+            let task = session.dataTask(with: request) { data, _, error in
+                defer { expect.fulfill() }
+                XCTAssertNil(error)
+                let headers = String(decoding: data ?? Data(), as: UTF8.self).lowercased()
+                XCTAssertTrue(headers.contains("x-session: configured"))
+                let expectedOverride = delegateSuppliesRequest ? "delegate" : "caller"
+                XCTAssertTrue(headers.contains("x-override: \(expectedOverride)"))
+                XCTAssertFalse(headers.contains("x-override: configuration"))
+                XCTAssertTrue(headers.contains("cookie: redirect=true"))
+            }
+            task.resume()
+            waitForExpectations(timeout: 5)
+            session.invalidateAndCancel()
+        }
+    }
+
     func test_taskTimeout() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
@@ -1102,6 +1174,29 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         task.resume()
         waitForExpectations(timeout: 12)
         #endif
+    }
+
+    func test_httpRedirectionFailureUsesCurrentURL() async throws {
+        let originalURL = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/303?location=/abrupt-close"))
+        let redirectedURL = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/abrupt-close"))
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+        let completed = expectation(description: "Transfer failed after redirect")
+
+        let task = session.dataTask(with: originalURL) { _, _, error in
+            defer { completed.fulfill() }
+            let error = error as? URLError
+            XCTAssertNotNil(error)
+            XCTAssertEqual(error?.userInfo[NSURLErrorFailingURLErrorKey] as? URL, redirectedURL)
+            XCTAssertEqual(error?.userInfo[NSURLErrorFailingURLStringErrorKey] as? String, redirectedURL.absoluteString)
+        }
+        task.resume()
+        await fulfillment(of: [completed], timeout: 12)
+
+        XCTAssertEqual(task.originalRequest?.url, originalURL)
+        XCTAssertEqual(task.currentRequest?.url, redirectedURL)
     }
 
     func test_httpRedirectionChainInheritsTimeoutInterval() async throws {

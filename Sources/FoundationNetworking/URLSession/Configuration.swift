@@ -107,10 +107,25 @@ internal extension URLSession._Configuration {
 // Configure NSURLRequests
 internal extension URLSession._Configuration {
     func configure(request: URLRequest) -> URLRequest {
-        return setCookies(on: request)
+        var request = setCookies(on: request)
+        if let httpAdditionalHeaders {
+            var headers = request.allHTTPHeaderFields ?? [:]
+            var existingNames = Set(headers.keys.map { $0.lowercased() })
+            var addedHeader = false
+            for (name, value) in httpAdditionalHeaders {
+                if existingNames.insert(name.lowercased()).inserted {
+                    headers[name] = value
+                    addedHeader = true
+                }
+            }
+            if addedHeader {
+                request.allHTTPHeaderFields = headers
+            }
+        }
+        return request
     }
 
-     func setCookies(on request: URLRequest) -> URLRequest {
+    func setCookies(on request: URLRequest) -> URLRequest {
         var request = request
         if httpShouldSetCookies {
             if let cookieStorage = self.httpCookieStorage, let url = request.url, let cookies = cookieStorage.cookies(for: url) {
