@@ -2270,6 +2270,56 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
     }
     
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    func test_redirectAuthorizationUsesEffectiveOrigin() throws {
+        let cases: [(String, String, Bool)] = [
+            ("http://example.com/start", "http://example.com:80/end", true),
+            ("http://example.com:80/start", "http://example.com/end", true),
+            ("https://example.com/start", "https://example.com:443/end", true),
+            ("https://example.com:443/start", "https://example.com/end", true),
+            ("http://EXAMPLE.com/start", "http://example.COM/end", true),
+            ("http://example.com:8080/start", "http://example.com:8080/end", true),
+            ("http://example.com/start", "/end", true),
+            ("https://example.com/start", "//example.com:443/end", true),
+            ("http://example.com/start", "http://other.example/end", false),
+            ("http://example.com/start", "https://example.com/end", false),
+            ("https://example.com/start", "http://example.com/end", false),
+            ("http://example.com:80/start", "https://example.com:80/end", false),
+            ("http://example.com/start", "http://example.com:8080/end", false),
+            ("http://example.com:8080/start", "http://example.com/end", false),
+            ("http://example.com:8080/start", "http://example.com:8081/end", false),
+            ("https://example.com/start", "//other.example/end", false),
+        ]
+        for (source, location, preservesAuthorization) in cases {
+            let url = try XCTUnwrap(URL(string: source))
+            var request = URLRequest(url: url)
+            request.setValue("Bearer redirect-test", forHTTPHeaderField: "Authorization")
+            request.setValue("retained", forHTTPHeaderField: "X-Redirect-Test")
+            let proto = _HTTPURLProtocol(request: request, cachedResponse: nil, client: nil)
+            let response = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1",
+                                                       headerFields: ["Location": location]))
+            let redirected = try XCTUnwrap(proto.redirectRequest(for: response, fromRequest: request))
+            XCTAssertEqual(redirected.value(forHTTPHeaderField: "Authorization"),
+                           preservesAuthorization ? "Bearer redirect-test" : nil, "\(source) → \(location)")
+            XCTAssertEqual(redirected.value(forHTTPHeaderField: "X-Redirect-Test"), "retained")
+        }
+    }
+
+    func test_redirectWithoutSourceURLRemovesAuthorization() throws {
+        let url = try XCTUnwrap(URL(string: "http://example.com/start"))
+        let destination = try XCTUnwrap(URL(string: "http://example.com/end"))
+        var request = URLRequest(url: url)
+        request.setValue("Bearer redirect-test", forHTTPHeaderField: "Authorization")
+        request.setValue("retained", forHTTPHeaderField: "X-Redirect-Test")
+        let proto = _HTTPURLProtocol(request: request, cachedResponse: nil, client: nil)
+        request.url = nil
+        let response = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 302, httpVersion: "HTTP/1.1",
+                                                   headerFields: ["Location": destination.absoluteString]))
+        let redirected = try XCTUnwrap(proto.redirectRequest(for: response, fromRequest: request))
+        XCTAssertEqual(redirected.url, destination)
+        XCTAssertNil(redirected.value(forHTTPHeaderField: "Authorization"))
+        XCTAssertEqual(redirected.value(forHTTPHeaderField: "X-Redirect-Test"), "retained")
+    }
+
     func test_webSocket() async throws {
         guard #available(macOS 12, iOS 13.0, watchOS 6.0, tvOS 13.0, *) else { return }
         guard URLSessionWebSocketTask.supportsWebSockets else {
