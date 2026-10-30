@@ -328,11 +328,12 @@ open class URLSession : NSObject, @unchecked Sendable {
          */
         guard self !== URLSession.shared else { return }
         
-        workQueue.sync {
+        let tasks = workQueue.sync {
             self.invalidated = true
+            return taskRegistry.allTasks
         }
         
-        for task in taskRegistry.allTasks {
+        for task in tasks {
             task.cancel()
         }
         
@@ -381,25 +382,27 @@ open class URLSession : NSObject, @unchecked Sendable {
     /* invokes completionHandler with outstanding data, upload and download tasks. */
     open func getTasksWithCompletionHandler(_ completionHandler: @Sendable @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  {
         workQueue.async {
-            self.delegateQueue.addOperation {
-                var dataTasks = [URLSessionDataTask]()
-                var uploadTasks = [URLSessionUploadTask]()
-                var downloadTasks = [URLSessionDownloadTask]()
+            var dataTasks = [URLSessionDataTask]()
+            var uploadTasks = [URLSessionUploadTask]()
+            var downloadTasks = [URLSessionDownloadTask]()
 
-                for task in self.taskRegistry.allTasks {
-                    guard task.state == .running || task.isSuspendedAfterResume else { continue }
+            for task in self.taskRegistry.allTasks {
+                guard task.state == .running || task.isSuspendedAfterResume else { continue }
 
-                    if let uploadTask = task as? URLSessionUploadTask {
-                        uploadTasks.append(uploadTask)
-                    } else if let dataTask = task as? URLSessionDataTask {
-                        dataTasks.append(dataTask)
-                    } else if let downloadTask = task as? URLSessionDownloadTask {
-                        downloadTasks.append(downloadTask)
-                    } else {
-                        // Above three are the only required tasks to be returned from this API, so we can ignore any other types of tasks.
-                    }
+                if let uploadTask = task as? URLSessionUploadTask {
+                    uploadTasks.append(uploadTask)
+                } else if let dataTask = task as? URLSessionDataTask {
+                    dataTasks.append(dataTask)
+                } else if let downloadTask = task as? URLSessionDownloadTask {
+                    downloadTasks.append(downloadTask)
                 }
-                completionHandler(dataTasks, uploadTasks, downloadTasks)
+            }
+
+            let dataTaskSnapshot = dataTasks
+            let uploadTaskSnapshot = uploadTasks
+            let downloadTaskSnapshot = downloadTasks
+            self.delegateQueue.addOperation {
+                completionHandler(dataTaskSnapshot, uploadTaskSnapshot, downloadTaskSnapshot)
             }
         }
     }
@@ -407,8 +410,9 @@ open class URLSession : NSObject, @unchecked Sendable {
     /* invokes completionHandler with all outstanding tasks. */
     open func getAllTasks(completionHandler: @Sendable @escaping ([URLSessionTask]) -> Void)  {
         workQueue.async {
+            let tasks = self.taskRegistry.allTasks.filter { $0.state == .running || $0.isSuspendedAfterResume }
             self.delegateQueue.addOperation {
-                completionHandler(self.taskRegistry.allTasks.filter { $0.state == .running || $0.isSuspendedAfterResume })
+                completionHandler(tasks)
             }
         }
     }
