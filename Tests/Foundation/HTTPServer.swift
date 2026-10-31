@@ -919,6 +919,16 @@ public class TestURLSessionServer: CustomStringConvertible {
             return try _HTTPResponse(response: .OK, body: body)
         }
 
+        // Reflect a Location header for tests that exercise relative
+        // URI-reference resolution. Requests without a location parameter
+        // are the redirect targets and are echoed so the test can finish.
+        if uri.hasPrefix("/redirect-relative-path/") {
+            if let location = request.parameters["location"] {
+                return try _HTTPResponse(response: .FOUND, headers: "Location: \(location)", body: "")
+            }
+            return try _HTTPResponse(response: .OK, body: uri)
+        }
+
         // Look for /xxx where xxx is a 3digit HTTP code
         if uri.hasPrefix("/") && uri.count == 4, let code = Int(String(uri.dropFirst())), code > 0 && code < 1000 {
             return try statusCodeResponse(forRequest: request, statusCode: code)
