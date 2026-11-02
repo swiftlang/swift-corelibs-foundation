@@ -1609,12 +1609,12 @@ static Boolean parseDataTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
         /* 'x' */ 49, 50, 51, -1, -1, -1, -1, -1
     };
 #pragma GCC diagnostic pop
-    int tmpbufpos = 0;
-    int tmpbuflen = 256;
+    CFIndex tmpbufpos = 0;
+    CFIndex tmpbuflen = 256;
     uint8_t *tmpbuf = pInfo->skip ? NULL : (uint8_t *)CFAllocatorAllocate(pInfo->allocator, tmpbuflen, 0);
     int numeq = 0;
     int acc = 0;
-    int cntr = 0;
+    CFIndex cntr = 0;
     
     for (; pInfo->curr < pInfo->end; pInfo->curr++) {
         unsigned char c = *(pInfo->curr);
@@ -3285,4 +3285,3 @@ CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPrope
     }
     return result;
 }
-
