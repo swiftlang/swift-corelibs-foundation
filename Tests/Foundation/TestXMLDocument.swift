@@ -449,6 +449,14 @@ class TestXMLDocument : LoopbackServerTest {
         #endif
     }
 
+    func test_elementDeclNameInjectionDoesNotReparseMarkup() throws {
+        // Verify we can't inject XML using `XMLDTDNode.name`
+        let decl = try XCTUnwrap(XMLDTDNode(xmlString: "<!ELEMENT foo EMPTY>"))
+        decl.name = "foo ANY> <!ELEMENT bar"
+        decl.stringValue = "(a)"   // trigger reparse
+        XCTAssertNotEqual(decl.dtdKind, .anyDeclaration, "injected markup")
+    }
+
     func test_dtd() throws {
         let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
         XCTAssert(node.name == "foo")
