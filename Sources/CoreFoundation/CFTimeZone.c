@@ -61,14 +61,15 @@
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
 struct tzhead {
-    char	tzh_magic[4];		/* TZ_MAGIC */
-    char	tzh_reserved[16];	/* reserved for future use */
-    char	tzh_ttisgmtcnt[4];	/* coded number of trans. time flags */
-    char	tzh_ttisstdcnt[4];	/* coded number of trans. time flags */
-    char	tzh_leapcnt[4];		/* coded number of leap seconds */
-    char	tzh_timecnt[4];		/* coded number of transition times */
-    char	tzh_typecnt[4];		/* coded number of local time types */
-    char	tzh_charcnt[4];		/* coded number of abbr. chars */
+    char    tzh_magic[4];          /* TZ_MAGIC */
+    char    version[1];            /* version */
+    char    tzh_reserved[15];      /* reserved for future use */
+    char    tzh_ttisgmtcnt[4];     /* coded number of trans. time flags */
+    char    tzh_ttisstdcnt[4];     /* coded number of trans. time flags */
+    char    tzh_leapcnt[4];        /* coded number of leap seconds */
+    char    tzh_timecnt[4];        /* coded number of transition times */
+    char    tzh_typecnt[4];        /* coded number of local time types */
+    char    tzh_charcnt[4];        /* coded number of abbr. chars */
 };
 #endif
 
@@ -297,15 +298,17 @@ static void __CFAndroidTimeZoneParse(FILE *fp, __CFAndroidTimeZoneListEnumerateC
 static void __CFAndroidTimeZoneListEnumerate(__CFAndroidTimeZoneListEnumerateCallback callback, void *context1, void *context2) {
     // The best reference should be Android Bionic's libc/tzcode/bionic.cpp
     static const char *tzDataFiles[] = {
-        "/data/misc/zoneinfo/current/tzdata",
-        "/system/usr/share/zoneinfo/tzdata"
+        "/apex/com.android.tzdata/etc/tz/tzdata"    /* Android 10 + Mainline module */
+        "/data/misc/zoneinfo/current/tzdata",       /* Andorid 8-9 APK time-zone update */
+        "/system/usr/share/zoneinfo/tzdata",        /* System fallback – always exists */
     };
 
     for (int idx = 0; idx < COUNT_OF(tzDataFiles); idx++) {
         FILE *fp = fopen(tzDataFiles[idx], "rb");
-        __CFAndroidTimeZoneParse(fp, callback, context1, context2);
         if (fp) {
+            __CFAndroidTimeZoneParse(fp, callback, context1, context2);
             fclose(fp);
+            return;
         }
     }
 }
@@ -491,6 +494,20 @@ CF_INLINE int32_t __CFDetzcode(const unsigned char *bufp) {
     return (int32_t)result;
 }
 
+CF_INLINE int64_t __CFDetzcode64(const unsigned char *bufp) {
+    // `result` is uint64_t to avoid undefined behaviour of shifting left negative values
+    uint64_t result = (bufp[0] & 0x80) ? ~0L : 0L;
+    result = (result << 8) | (bufp[0] & 0xff);
+    result = (result << 8) | (bufp[1] & 0xff);
+    result = (result << 8) | (bufp[2] & 0xff);
+    result = (result << 8) | (bufp[3] & 0xff);
+    result = (result << 8) | (bufp[4] & 0xff);
+    result = (result << 8) | (bufp[5] & 0xff);
+    result = (result << 8) | (bufp[6] & 0xff);
+    result = (result << 8) | (bufp[7] & 0xff);
+    return (int64_t)result;
+}
+
 CF_INLINE void __CFEntzcode(int32_t value, unsigned char *bufp) {
     bufp[0] = (value >> 24) & 0xff;
     bufp[1] = (value >> 16) & 0xff;
@@ -499,10 +516,11 @@ CF_INLINE void __CFEntzcode(int32_t value, unsigned char *bufp) {
 }
 
 static Boolean __CFParseTimeZoneData(CFAllocatorRef allocator, CFDataRef data, CFTZPeriod **tzpp, CFIndex *cntp) {
-    int32_t len, timecnt, typecnt, charcnt, idx, cnt;
+    int32_t len, timecnt, typecnt, charcnt, leapcnt, ttisgmtcnt, ttisstdcnt, idx, cnt, version;
     const uint8_t *p, *timep, *typep, *ttisp, *charp;
     CFStringRef *abbrs;
     Boolean result = true;
+    int32_t trans_size = 4;
 
     p = CFDataGetBytePtr(data);
     len = CFDataGetLength(data);
@@ -510,9 +528,22 @@ static Boolean __CFParseTimeZoneData(CFAllocatorRef allocator, CFDataRef data, C
 	return false;
     }
     
+    /* read version 1 header */
     if (!(p[0] == 'T' && p[1] == 'Z' && p[2] == 'i' && p[3] == 'f')) return false;  /* Don't parse without TZif at head of file */
    
-    p += 20 + 4 + 4 + 4;	/* skip reserved, ttisgmtcnt, ttisstdcnt, leapcnt */
+    p += 4;
+    version = __CFDetzcode(p);
+    if (version > 1) {
+        trans_size = 8;
+    }
+    p += 1;
+    p += 15;    /* skip reserved */
+    ttisgmtcnt = __CFDetzcode(p);
+    p += 4;
+    ttisstdcnt = __CFDetzcode(p);
+    p += 4;
+    leapcnt = __CFDetzcode(p);
+    p += 4;
     timecnt = __CFDetzcode(p);
     p += 4;
     typecnt = __CFDetzcode(p);
@@ -530,8 +561,46 @@ static Boolean __CFParseTimeZoneData(CFAllocatorRef allocator, CFDataRef data, C
     if (len - (int32_t)sizeof(struct tzhead) < (4 + 1) * timecnt + (4 + 1 + 1) * typecnt + charcnt) {
 	return false;
     }
+
+    if (trans_size == 8) {
+        int32_t skip = timecnt * 5 + typecnt * 6 + charcnt + leapcnt * 8 + ttisstdcnt + ttisgmtcnt;
+        p += skip;  /* skip version 1 data block */
+
+        /* read version 2+ header */
+        if (!(p[0] == 'T' && p[1] == 'Z' && p[2] == 'i' && p[3] == 'f')) return false;  /* Don't parse without TZif at head of file */
+        p += 4;
+        version = __CFDetzcode(p);
+        p += 1;
+
+        p += 15;    /* skip reserved */
+        ttisgmtcnt = __CFDetzcode(p);
+        p += 4;
+        ttisstdcnt = __CFDetzcode(p);
+        p += 4;
+        leapcnt = __CFDetzcode(p);
+        p += 4;
+        timecnt = __CFDetzcode(p);
+        p += 4;
+        typecnt = __CFDetzcode(p);
+        p += 4;
+        charcnt = __CFDetzcode(p);
+        p += 4;
+
+        if (typecnt <= 0 || timecnt < 0 || charcnt < 0) {
+            return false;
+        }
+        if (1024 < timecnt || 32 < typecnt || 128 < charcnt) {
+            // reject excessive timezones to avoid arithmetic overflows for
+            // security reasons and to reject potentially corrupt files
+            return false;
+        }
+        if (len - (((int32_t)sizeof(struct tzhead)) * 2) - skip < (trans_size + 1) * timecnt + (4 + 1 + 1) * typecnt + charcnt) {
+            return false;
+        }
+    }
+
     timep = p;
-    typep = timep + 4 * timecnt;
+    typep = timep + trans_size * timecnt;
     ttisp = typep + timecnt;
     charp = ttisp + (4 + 1 + 1) * typecnt;
     cnt = (0 < timecnt) ? timecnt : 1;
@@ -548,12 +617,16 @@ static Boolean __CFParseTimeZoneData(CFAllocatorRef allocator, CFDataRef data, C
 	int32_t itime, offset;
 	uint8_t type, dst, abbridx;
 
+    if (trans_size == 8) {
+    at = (CFAbsoluteTime)(__CFDetzcode64(timep) + 0.0) - kCFAbsoluteTimeIntervalSince1970;
+    } else {
 	at = (CFAbsoluteTime)(__CFDetzcode(timep) + 0.0) - kCFAbsoluteTimeIntervalSince1970;
+    }
 	if (0 == timecnt) itime = INT_MIN;
 	else if (at < (CFAbsoluteTime)INT_MIN) itime = INT_MIN;
 	else if ((CFAbsoluteTime)INT_MAX < at) itime = INT_MAX;
 	else itime = (int32_t)at;
-	timep += 4;	/* harmless if 0 == timecnt */
+	timep += trans_size;	/* harmless if 0 == timecnt */
 	type = (0 < timecnt) ? (uint8_t)*typep++ : 0;
 	if (typecnt <= type) {
 	    result = false;
