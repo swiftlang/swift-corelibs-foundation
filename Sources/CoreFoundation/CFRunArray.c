@@ -291,7 +291,7 @@ void CFRunArrayReplace(CFRunArrayRef array, CFRange range, CFTypeRef newObject, 
     CFRange blockRange;
     CFIndex block, toBeDeleted, firstEmptyBlock, lastEmptyBlock;
 
-    // ??? if (range.location + range.length > guts->length) BoundsError;
+    if (range.location < 0 || range.length < 0 || range.location > guts->length - range.length) return;
     if (range.length == 0) return;
 
     if (newLength == 0) newObject = NULL;
@@ -370,6 +370,3 @@ void CFRunArrayReplace(CFRunArrayRef array, CFRange range, CFTypeRef newObject, 
         CFRunArrayInsert(array, CFRangeMake(range.location, newLength), newObject);
     }
 }
-
-
-
