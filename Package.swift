@@ -46,7 +46,7 @@ if let environmentPath = Context.environment["CURL_INCLUDE_PATH"] {
 
 var curlLinkFlags: [LinkerSetting] = [
     .linkedLibrary("libcurl.lib", .when(platforms: [.windows])),
-    .linkedLibrary("zlibstatic.lib", .when(platforms: [.windows])),
+    .linkedLibrary("zs.lib", .when(platforms: [.windows])),
     .linkedLibrary("brotlicommon.lib", .when(platforms: [.windows])),
     .linkedLibrary("brotlidec.lib", .when(platforms: [.windows]))
 ]
