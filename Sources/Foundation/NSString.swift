@@ -1583,7 +1583,8 @@ open class NSMutableString : NSString {
     
     internal func _cfAppendCString(_ characters: UnsafePointer<Int8>, length: Int) {
         if type(of: self) == NSMutableString.self {
-            _storage.append(String(cString: characters))
+            // The bytes are not necessarily NUL-terminated, so only read `length` of them.
+            _storage.append(String(decoding: UnsafeRawBufferPointer(start: characters, count: length), as: UTF8.self))
         }
     }
 }
