@@ -72,7 +72,6 @@ add_library(CoreFoundation STATIC
     CFSocket.c
     CFSocketStream.c
     CFSortFunctions.c
-    CFStorage.c
     CFStream.c
     CFString.c
     CFStringEncodingConverter.c
