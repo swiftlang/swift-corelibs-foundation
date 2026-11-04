@@ -11,13 +11,9 @@
 #define __COREFOUNDATION_CFDATEFORMATTER_PRIVATE__ 1
 
 #include "CFDateFormatter.h"
-#include "CFAttributedString.h"
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
-
-CF_EXPORT
-CFAttributedStringRef _CFDateFormatterCreateAttributedStringAndFieldsWithAbsoluteTime(CFAllocatorRef allocator, CFDateFormatterRef formatter, CFAbsoluteTime at) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT const CFStringRef kCFDateFormatterPatternCharacterKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
 CF_EXPORT const CFStringRef kCFDateFormatterPatternLiteralKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));

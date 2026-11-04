@@ -207,7 +207,6 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
     [_kCFRuntimeIDCFBinaryHeap] = &__CFBinaryHeapClass,
     [_kCFRuntimeIDCFBitVector] = &__CFBitVectorClass,
     [_kCFRuntimeIDCFUUID] = &__CFUUIDClass,
-    [_kCFRuntimeIDCFStorage] = &__CFStorageClass,
     [_kCFRuntimeIDCFTree] = &__CFTreeClass,
     [_kCFRuntimeIDCFError] = &__CFErrorClass,
     [_kCFRuntimeIDCFLocale] = &__CFLocaleClass,
@@ -246,8 +245,6 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
 #endif
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
-    [_kCFRuntimeIDCFAttributedString] = &__CFAttributedStringClass,
-    [_kCFRuntimeIDCFRunArray] = &__CFRunArrayClass,
     [_kCFRuntimeIDCFCharacterSet] = &__CFCharacterSetClass,
     
     
@@ -1014,7 +1011,6 @@ extern CFTypeID CFBitVectorGetTypeID(void);
 extern CFTypeID CFTreeGetTypeID(void);
 extern CFTypeID CFPlugInInstanceGetTypeID(void);
 extern CFTypeID CFStringTokenizerGetTypeID(void);
-extern CFTypeID CFStorageGetTypeID(void);
 #if TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC)
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
