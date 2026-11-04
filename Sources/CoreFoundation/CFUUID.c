@@ -370,19 +370,3 @@ CF_EXPORT CFUUIDRef CFUUIDCreateFromUUIDBytes(CFAllocatorRef alloc, CFUUIDBytes 
 }
 
 #undef READ_A_BYTE
-
-#if DEPLOYMENT_RUNTIME_SWIFT
-
-void _cf_uuid_clear(_cf_uuid_t uu) { uuid_clear(uu); }
-int _cf_uuid_compare(const _cf_uuid_t uu1, const _cf_uuid_t uu2) { return uuid_compare(uu1, uu2); }
-void _cf_uuid_copy(_cf_uuid_t dst, const _cf_uuid_t src) { uuid_copy(dst, src); }
-void _cf_uuid_generate(_cf_uuid_t out) { uuid_generate(out); }
-void _cf_uuid_generate_random(_cf_uuid_t out) { uuid_generate_random(out); }
-void _cf_uuid_generate_time(_cf_uuid_t out) { uuid_generate_time(out); }
-int _cf_uuid_is_null(const _cf_uuid_t uu) { return uuid_is_null(uu); }
-int _cf_uuid_parse(const _cf_uuid_string_t in, _cf_uuid_t uu) { return uuid_parse(in, uu); }
-void _cf_uuid_unparse(const _cf_uuid_t uu, _cf_uuid_string_t out) { uuid_unparse(uu, out); }
-void _cf_uuid_unparse_lower(const _cf_uuid_t uu, _cf_uuid_string_t out) { uuid_unparse_lower(uu, out); }
-void _cf_uuid_unparse_upper(const _cf_uuid_t uu, _cf_uuid_string_t out) { uuid_unparse_upper(uu, out); }
-
-#endif
