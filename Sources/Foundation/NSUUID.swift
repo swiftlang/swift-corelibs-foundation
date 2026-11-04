@@ -7,9 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-@_implementationOnly import CoreFoundation
-
 open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Sendable {
     internal var uuid: UUID
 
@@ -94,9 +91,9 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding, @unchecked Se
 }
 
 extension NSUUID : _StructTypeBridgeable {
-    public typealias _StructType = FoundationEssentials.UUID
+    public typealias _StructType = UUID
     
-    public func _bridgeToSwift() -> FoundationEssentials.UUID {
+    public func _bridgeToSwift() -> UUID {
         return self.uuid
     }
 }
