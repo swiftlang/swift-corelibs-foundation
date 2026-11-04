@@ -185,25 +185,3 @@ open class URLAuthenticationChallenge : NSObject, @unchecked Sendable {
         }
     }
 }
-
-class URLSessionAuthenticationChallengeSender : NSObject, URLAuthenticationChallengeSender, @unchecked Sendable {
-    func cancel(_ challenge: URLAuthenticationChallenge) {
-        fatalError("swift-corelibs-foundation only supports URLSession; for challenges coming from URLSession, please implement the appropriate URLSessionTaskDelegate methods rather than using the sender argument.")
-    }
-
-    func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {
-        fatalError("swift-corelibs-foundation only supports URLSession; for challenges coming from URLSession, please implement the appropriate URLSessionTaskDelegate methods rather than using the sender argument.")
-    }
-
-    func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {
-        fatalError("swift-corelibs-foundation only supports URLSession; for challenges coming from URLSession, please implement the appropriate URLSessionTaskDelegate methods rather than using the sender argument.")
-    }
-
-    func performDefaultHandling(for challenge: URLAuthenticationChallenge) {
-        fatalError("swift-corelibs-foundation only supports URLSession; for challenges coming from URLSession, please implement the appropriate URLSessionTaskDelegate methods rather than using the sender argument.")
-    }
-
-    func rejectProtectionSpaceAndContinue(with challenge: URLAuthenticationChallenge) {
-        fatalError("swift-corelibs-foundation only supports URLSession; for challenges coming from URLSession, please implement the appropriate URLSessionTaskDelegate methods rather than using the sender argument.")
-    }
-}
