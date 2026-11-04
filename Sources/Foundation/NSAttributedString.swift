@@ -7,7 +7,15 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+extension Range<AttributedString.Index> {
+    init(_ nsRange: NSRange, in attrStr: AttributedString) {
+        guard let start = attrStr.utf16.index(attrStr.utf16.startIndex, offsetBy: nsRange.location, limitedBy: attrStr.utf16.endIndex),
+              let end = attrStr.utf16.index(start, offsetBy: nsRange.length, limitedBy: attrStr.utf16.endIndex) else {
+            preconditionFailure("Range {\(nsRange.location), \(nsRange.length)} is out of bounds {0, \(attrStr.utf16.count)")
+        }
+        self = start ..< end
+    }
+}
 
 extension NSAttributedString {
     public struct Key: RawRepresentable, Equatable, Hashable, Sendable {
@@ -49,21 +57,51 @@ public typealias NSAttributedStringKey = NSAttributedString.Key
 @available(*, unavailable)
 extension NSAttributedString : @unchecked Sendable { }
 
+extension AttributeScopes {
+    fileprivate struct CorelibsFoundationAttributes : AttributeScope {
+        let nsAttributes: NSAttributesAttributedStringKey
+
+        enum NSAttributesAttributedStringKey: AttributedStringKey {
+            static let name = "NSAttributes"
+            typealias Value = [NSAttributedString.Key : _AttributeValue]
+        }
+    }
+}
+
+// Unsafely wrap an NSObject in an @unchecked Sendable box. This is safe because it will only be used in a non-sendable NSAttributedString. The wrapped AttributedString (which is Sendable) can never escape that non-sendable box
+private struct _AttributeValue: @unchecked Sendable, Hashable {
+    let object: NSObject
+
+    init(value: Any) {
+        object = __SwiftValue.store(value)
+    }
+
+    var value: Any {
+        __SwiftValue.fetch(nonOptional: object)
+    }
+}
+
+extension AttributeDynamicLookup {
+    fileprivate subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.CorelibsFoundationAttributes, T>) -> T {
+        return self[T.self]
+    }
+}
+
 open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
-    private let _cfinfo = _CFInfo(typeID: CFAttributedStringGetTypeID())
-    fileprivate var _string: NSString
-    fileprivate var _attributeArray: OpaquePointer
-    
+    var contents: AttributedString
+
+    private init(contents: AttributedString) {
+        self.contents = contents
+    }
+
     public required init?(coder aDecoder: NSCoder) {
         let mutableAttributedString = NSMutableAttributedString(string: "")
         guard _NSReadMutableAttributedStringWithCoder(aDecoder, mutableAttributedString: mutableAttributedString) else {
             return nil
         }
         
-        // use the resulting _string and _attributeArray to initialize a new instance, just like init
-        _string = mutableAttributedString._string
-        _attributeArray = mutableAttributedString._attributeArray
+        contents = mutableAttributedString.contents
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -129,7 +167,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// The character contents of the receiver as an NSString object.
     open var string: String {
-        return _string._swiftObject
+        return String(contents.characters)
     }
 
     /// Returns the attributes for the character at a given index.
@@ -143,7 +181,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// The length of the receiver’s string object.
     open var length: Int {
-        return CFAttributedStringGetLength(_cfObject)
+        return contents.utf16.count
     }
 
     /// Returns the value for an attribute with a given name of the character at a given index, and by reference the range over which the attribute applies.
@@ -157,8 +195,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Returns an NSAttributedString object consisting of the characters and attributes within a given range in the receiver.
     open func attributedSubstring(from range: NSRange) -> NSAttributedString {
-        let attributedSubstring = CFAttributedStringCreateWithSubstring(kCFAllocatorDefault, _cfObject, CFRange(range))
-        return unsafeBitCast(attributedSubstring, to: NSAttributedString.self)
+        let range = Range(range, in: contents)
+        let newContents = AttributedString(contents[range])
+        return NSAttributedString(contents: newContents)
     }
 
     /// Returns the attributes for the character at a given index, and by reference the range over which the attributes apply.
@@ -186,44 +225,30 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     
     /// Returns a Boolean value that indicates whether the receiver is equal to another given attributed string.
     open func isEqual(to other: NSAttributedString) -> Bool {
-        guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFAttributedStringGetTypeID()) else {
-            fatalError("Could not obtain CFRuntimeClass of CFAttributedString")
-        }
-        
-        guard let equalFunction = runtimeClass.pointee.equal else {
-            fatalError("Could not obtain equal function from CFRuntimeClass of CFAttributedString")
-        }
-        
-        return equalFunction(_cfObject, other._cfObject) == true
+        return self.contents == other.contents
     }
 
     /// Returns an NSAttributedString object initialized with the characters of a given string and no attribute information.
     public init(string: String) {
-        _string = string._nsObject
-        _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
-        
+        contents = AttributedString(string)
         super.init()
-        addAttributesToAttributeArray(attrs: nil)
     }
 
     /// Returns an NSAttributedString object initialized with a given string and attributes.
     public init(string: String, attributes attrs: [NSAttributedString.Key: Any]? = nil) {
-        _string = string._nsObject
-        _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
-
+        if let attrs {
+            contents = AttributedString(string, attributes: AttributeContainer.nsAttributes(attrs.mapValues({
+                _AttributeValue(value: $0)
+            })))
+        } else {
+            contents = AttributedString(string)
+        }
         super.init()
-        addAttributesToAttributeArray(attrs: attrs)
     }
 
     /// Returns an NSAttributedString object initialized with the characters and attributes of another given attributed string.
     public init(attributedString: NSAttributedString) {
-        // create an empty mutable attr string then immediately replace all of its contents
-        let mutableAttributedString = NSMutableAttributedString(string: "")
-        mutableAttributedString.setAttributedString(attributedString)
-        
-        // use the resulting _string and _attributeArray to initialize a new instance
-        _string = mutableAttributedString._string
-        _attributeArray = mutableAttributedString._attributeArray
+        self.contents = attributedString.contents
     }
 
     /// Executes the block for each attribute in the range.
@@ -277,15 +302,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             }
             attrs += "}"
             
-            guard let stringRange = Range(NSRange(location: range.lowerBound, length: range.upperBound - range.lowerBound), in: string) else {
-                stop.pointee = true
-                return
-            }
-            
-            let upperBound = stringRange.upperBound
-            description += string[lastUpperBound ..< upperBound]
-            
-            lastUpperBound = upperBound
+            let stringRange = Range(NSRange(location: range.lowerBound, length: range.upperBound - range.lowerBound), in: contents)
+            description += String(contents[stringRange].characters)
+
             description += attrs
         }
         
@@ -346,49 +365,47 @@ private extension NSAttributedString {
     }
     
     func _attributes(at location: Int, rangeInfo: RangeInfo) -> [NSAttributedString.Key: Any] {
-        var cfRange = CFRange()
-        return withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> [NSAttributedString.Key: Any] in
-            // Get attributes value using CoreFoundation function
-            let value: CFDictionary
-            if rangeInfo.shouldFetchLongestEffectiveRange, let searchRange = rangeInfo.longestEffectiveRangeSearchRange {
-                value = CFAttributedStringGetAttributesAndLongestEffectiveRange(_cfObject, location, CFRange(searchRange), cfRangePointer)
-            } else {
-                value = CFAttributedStringGetAttributes(_cfObject, location, cfRangePointer)
-            }
-            
-            // Convert the value to [String : AnyObject]
-            let dictionary = unsafeBitCast(value, to: NSDictionary.self)
-            var results = [NSAttributedString.Key: Any]()
-            for (key, value) in dictionary {
-                guard let stringKey = (key as? NSString)?._swiftObject else {
-                    continue
-                }
-                results[NSAttributedString.Key(stringKey)] = value
-            }
-            
-            // Update effective range and return the results
-            rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
-            rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
-            return results
+        guard let idx = contents.utf16.index(contents.utf16.startIndex, offsetBy: location, limitedBy: contents.utf16.endIndex) else {
+            preconditionFailure("Index \(location) is out of bounds")
         }
+        let run = contents.runs[idx]
+        if let ptr = rangeInfo.rangePointer {
+            ptr.pointee.location = contents.utf16.distance(from: contents.utf16.startIndex, to: run.range.lowerBound)
+            ptr.pointee.length = contents.utf16.distance(from: run.range.lowerBound, to: run.range.upperBound)
+
+            if let rangeLimit = rangeInfo.longestEffectiveRangeSearchRange {
+                ptr.pointee = ptr.pointee.intersection(rangeLimit)!
+            }
+        }
+        guard let attrs = run.nsAttributes else { return [:] }
+        return attrs.mapValues(\.value)
     }
     
     func _attribute(_ attrName: NSAttributedString.Key, atIndex location: Int, rangeInfo: RangeInfo) -> Any? {
-        var cfRange = CFRange()
-        return withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
-            // Get attribute value using CoreFoundation function
-            let attribute: AnyObject?
-            if rangeInfo.shouldFetchLongestEffectiveRange, let searchRange = rangeInfo.longestEffectiveRangeSearchRange {
-                attribute = CFAttributedStringGetAttributeAndLongestEffectiveRange(_cfObject, location, attrName.rawValue._cfObject, CFRange(searchRange), cfRangePointer)
-            } else {
-                attribute = CFAttributedStringGetAttribute(_cfObject, location, attrName.rawValue._cfObject, cfRangePointer)
-            }
-            
-            // Update effective range and return the result
-            rangeInfo.rangePointer?.pointee.location = cfRangePointer.pointee.location
-            rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
-            return attribute
+        guard let idx = contents.utf16.index(contents.utf16.startIndex, offsetBy: location, limitedBy: contents.utf16.endIndex) else {
+            preconditionFailure("Index \(location) is out of bounds")
         }
+        let run = contents.runs[idx]
+        let value = run.nsAttributes?[attrName]
+        if let ptr = rangeInfo.rangePointer {
+            if rangeInfo.shouldFetchLongestEffectiveRange {
+                let searchRange = Range(rangeInfo.longestEffectiveRangeSearchRange!, in: contents)
+                let startIdx = contents[searchRange.lowerBound ..< run.range.lowerBound].runs.last(where: {
+                    $0.nsAttributes?[attrName] != value
+                })?.range.upperBound ?? searchRange.lowerBound
+                let endIdx = contents[run.range.upperBound ..< searchRange.upperBound].runs.first(where: {
+                    $0.nsAttributes?[attrName] != value
+                })?.range.lowerBound ?? searchRange.upperBound
+                let clippedStart = Swift.max(searchRange.lowerBound, startIdx)
+                let clippedEnd = Swift.min(searchRange.upperBound, endIdx)
+                ptr.pointee.location = contents.utf16.distance(from: contents.utf16.startIndex, to: clippedStart)
+                ptr.pointee.length = contents.utf16.distance(from: clippedStart, to: clippedEnd)
+            } else {
+                ptr.pointee.location = contents.utf16.distance(from: contents.utf16.startIndex, to: run.range.lowerBound)
+                ptr.pointee.length = contents.utf16.distance(from: run.range.lowerBound, to: run.range.upperBound)
+            }
+        }
+        return value?.value
     }
     
     func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, NSRange, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
@@ -403,23 +420,6 @@ private extension NSAttributedString {
             }
         }
     }
-    
-    func addAttributesToAttributeArray(attrs: [NSAttributedString.Key: Any]?) {
-        guard _string.length > 0 else {
-            return
-        }
-        
-        let range = CFRange(location: 0, length: _string.length)
-        var attributes: [String : Any] = [:]
-        if let attrs = attrs {
-            attrs.forEach { attributes[$0.rawValue] = $1 }
-        }
-        CFRunArrayInsert(_attributeArray, range, attributes._cfObject)
-    }
-}
-
-extension NSAttributedString {
-    internal var _cfObject: CFAttributedString { return unsafeBitCast(self, to: CFAttributedString.self) }
 }
 
 extension NSAttributedString {
@@ -438,64 +438,78 @@ extension NSAttributedString {
 open class NSMutableAttributedString : NSAttributedString {
     
     open func replaceCharacters(in range: NSRange, with str: String) {
-        CFAttributedStringReplaceString(_cfMutableObject, CFRange(range), str._cfObject)
+        contents.characters.replaceSubrange(Range(range, in: contents), with: str)
     }
     
     open func setAttributes(_ attrs: [NSAttributedString.Key: Any]?, range: NSRange) {
-        guard let attrs = attrs else {
-            CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), nil, true)
-            return
+        let range = Range(range, in: contents)
+        if let attrs, !attrs.isEmpty {
+            contents[range].nsAttributes = attrs.mapValues { _AttributeValue(value: $0) }
+        } else {
+            contents[range].nsAttributes = nil
         }
-        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attributesCFDictionary(from: attrs), true)
     }
     
     open var mutableString: NSMutableString {
-        return _string as! NSMutableString
+        // Note: this does not provide a reference to the underlying storage that can be mutated in-place like on Darwin
+        // This has historically not worked on non-Darwin, instead we make a copy
+        return (String(contents.characters) as NSString).mutableCopy() as! NSMutableString
     }
 
     open func addAttribute(_ name: NSAttributedString.Key, value: Any, range: NSRange) {
-        CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, __SwiftValue.store(value))
+        for run in contents[Range(range, in: contents)].runs {
+            var container = run.nsAttributes ?? [:]
+            container[name] = _AttributeValue(value: value)
+            contents[run.range].nsAttributes = container
+        }
     }
 
     open func addAttributes(_ attrs: [NSAttributedString.Key: Any], range: NSRange) {
-        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attributesCFDictionary(from: attrs), false)
+        for run in contents[Range(range, in: contents)].runs {
+            var container = run.nsAttributes ?? [:]
+            for (key, value) in attrs {
+                container[key] = _AttributeValue(value: value)
+            }
+            contents[run.range].nsAttributes = container
+        }
     }
     
     open func removeAttribute(_ name: NSAttributedString.Key, range: NSRange) {
-        CFAttributedStringRemoveAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject)
+        for run in contents[Range(range, in: contents)].runs {
+            guard var container = run.nsAttributes else { continue }
+            if container.removeValue(forKey: name) != nil {
+                contents[run.range].nsAttributes = container.isEmpty ? nil : container
+            }
+        }
     }
     
     open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) {
-        CFAttributedStringReplaceAttributedString(_cfMutableObject, CFRange(range), attrString._cfObject)
+        contents.replaceSubrange(Range(range, in: contents), with: attrString.contents)
     }
     
     open func insert(_ attrString: NSAttributedString, at loc: Int) {
-        let insertRange = NSRange(location: loc, length: 0)
-        replaceCharacters(in: insertRange, with: attrString)
+        let offset = contents.utf16.index(contents.utf16.startIndex, offsetBy: loc)
+        contents.insert(attrString.contents, at: offset)
     }
     
     open func append(_ attrString: NSAttributedString) {
-        let appendRange = NSRange(location: length, length: 0)
-        replaceCharacters(in: appendRange, with: attrString)
+        contents.append(attrString.contents)
     }
     
     open func deleteCharacters(in range: NSRange) {
-        // To delete a range of the attributed string, call CFAttributedStringReplaceString() with empty string and specified range
-        let emptyString = ""._cfObject
-        CFAttributedStringReplaceString(_cfMutableObject, CFRange(range), emptyString)
+        contents.characters.removeSubrange(Range(range, in: contents))
     }
     
     open func setAttributedString(_ attrString: NSAttributedString) {
-        let fullStringRange = NSRange(location: 0, length: length)
-        replaceCharacters(in: fullStringRange, with: attrString)
+        contents = attrString.contents
     }
     
     open func beginEditing() {
-        CFAttributedStringBeginEditing(_cfMutableObject)
+
     }
     
     open func endEditing() {
-        CFAttributedStringEndEditing(_cfMutableObject)
+
     }
     
     open override func copy(with zone: NSZone? = nil) -> Any {
@@ -504,17 +518,14 @@ open class NSMutableAttributedString : NSAttributedString {
     
     public override init(string: String) {
         super.init(string: string)
-        _string = NSMutableString(string: string)
     }
     
     public override init(string: String, attributes attrs: [NSAttributedString.Key: Any]? = nil) {
         super.init(string: string, attributes: attrs)
-        _string = NSMutableString(string: string)
     }
     
     public override init(attributedString: NSAttributedString) {
         super.init(attributedString: attributedString)
-        _string = NSMutableString(string: attributedString.string)
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -524,24 +535,8 @@ open class NSMutableAttributedString : NSAttributedString {
         }
         
         super.init(attributedString: mutableAttributedString)
-        _string = NSMutableString(string: mutableAttributedString.string)
     }
     
-}
-
-extension NSMutableAttributedString {
-    internal var _cfMutableObject: CFMutableAttributedString { return unsafeBitCast(self, to: CFMutableAttributedString.self) }
-}
-
-private extension NSMutableAttributedString {
-    
-    func attributesCFDictionary(from attrs: [NSAttributedString.Key: Any]) -> CFDictionary {
-        var attributesDictionary = [String : Any]()
-        for (key, value) in attrs {
-            attributesDictionary[key.rawValue] = value
-        }
-        return attributesDictionary._cfObject
-    }
 }
 
 // MARK: Coding

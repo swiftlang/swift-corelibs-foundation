@@ -75,6 +75,10 @@ func signalTest() {
     sigaddset(&signalSet, SIGCONT)
     sigaddset(&signalSet, SIGINT)
     sigaddset(&signalSet, SIGALRM)
+#if os(FreeBSD)
+    // siganl(3): FreeBSD discards SIGCONT by default
+    signal(SIGCONT, { _ in })
+#endif
     guard sigprocmask(SIG_BLOCK, &signalSet, nil) == 0 else {
         fatalError("Can't block signals")
     }

@@ -426,7 +426,7 @@ extension _EasyHandle {
                 var offset = 0
                 repeat {
                     var amountWritten = 0
-                    try CFURLSessionEasyHandleWebSocketsSend(rawHandle, bytesPtr.advanced(by: offset), data.count, &amountWritten, 0, cfurlSessionFlags).asError()
+                    try CFURLSessionEasyHandleWebSocketsSend(rawHandle, bytesPtr.advanced(by: offset), data.count - offset, &amountWritten, 0, cfurlSessionFlags).asError()
                     offset += amountWritten
                 } while offset < data.count
             }

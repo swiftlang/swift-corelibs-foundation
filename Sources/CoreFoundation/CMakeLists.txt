@@ -15,7 +15,6 @@
 add_library(CoreFoundation STATIC
     CFApplicationPreferences.c
     CFArray.c
-    CFAttributedString.c
     CFBag.c
     CFBase.c
     CFBasicHash.c
@@ -67,14 +66,12 @@ add_library(CoreFoundation STATIC
     CFPropertyList.c
     CFRegularExpression.c
     CFRelativeDateTimeFormatter.c
-    CFRunArray.c
     CFRunLoop.c
     CFRuntime.c
     CFSet.c
     CFSocket.c
     CFSocketStream.c
     CFSortFunctions.c
-    CFStorage.c
     CFStream.c
     CFString.c
     CFStringEncodingConverter.c
@@ -119,6 +116,16 @@ target_link_libraries(CoreFoundation
     PRIVATE
         _FoundationICU
         dispatch)
+
+if(WIN32)
+    # SHGetKnownFolderPath requires shell32; CoTaskMemFree requires ole32.
+    target_link_libraries(CoreFoundation PRIVATE shell32 ole32)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    # CFLog calls __android_log_print, which lives in liblog.
+    target_link_libraries(CoreFoundation PRIVATE log)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
     # On WASI, we use vendored BlocksRuntime instead of the one from libdispatch

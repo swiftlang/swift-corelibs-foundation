@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
+import FoundationEssentials
 
 extension ISO8601DateFormatter {
 
@@ -52,21 +52,16 @@ extension ISO8601DateFormatter {
 extension ISO8601DateFormatter : @unchecked Sendable { }
 
 open class ISO8601DateFormatter : Formatter, NSSecureCoding {
-    
-    typealias CFType = CFDateFormatter
-    private final var __cfObject: CFType?
-    private final var _cfObject: CFType {
-        guard let obj = __cfObject else {
-            let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
-            let obj = CFDateFormatterCreateISO8601Formatter(kCFAllocatorSystemDefault, format)!
-            CFDateFormatterSetProperty(obj, kCFDateFormatterTimeZone, timeZone._cfObject)
-            __cfObject = obj
-            return obj
+
+    private final var __style: Date.ISO8601FormatStyle?
+    private final var _style: Date.ISO8601FormatStyle {
+        guard let style = __style else {
+            let style = ISO8601DateFormatter._style(for: formatOptions, timeZone: timeZone)
+            __style = style
+            return style
         }
-        return obj
+        return style
     }
-    
-    /* Please note that there can be a significant performance cost when resetting these properties. Resetting each property can result in regenerating the entire CFDateFormatterRef, which can be very expensive. */
     
     open var timeZone: TimeZone! { willSet { _reset() } }
     
@@ -126,31 +121,49 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     public static var supportsSecureCoding: Bool { return true }
     
     open func string(from date: Date) -> String {
-        return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, _cfObject, date._cfObject)._swiftObject
+        return _style.format(date)
     }
     
     open func date(from string: String) -> Date? {
-        
-        var range = CFRange(location: 0, length: string.length)
-        let date = withUnsafeMutablePointer(to: &range) { (rangep: UnsafeMutablePointer<CFRange>) -> Date? in
-            guard let res = CFDateFormatterCreateDateFromString(kCFAllocatorSystemDefault, _cfObject, string._cfObject, rangep) else {
-                return nil
-            }
-            return res._swiftObject
-        }
-        return date
-        
+        return try? _style.parse(string)
     }
     
     open class func string(from date: Date, timeZone: TimeZone, formatOptions: ISO8601DateFormatter.Options = []) -> String {
-        let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
-        let obj = CFDateFormatterCreateISO8601Formatter(kCFAllocatorSystemDefault, format)
-        CFDateFormatterSetProperty(obj, kCFDateFormatterTimeZone, timeZone._cfObject)
-        return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, obj, date._cfObject)._swiftObject
+        return _style(for: formatOptions, timeZone: timeZone).format(date)
     }
-    
+
+    private static func _style(for formatOptions: ISO8601DateFormatter.Options, timeZone: TimeZone) -> Date.ISO8601FormatStyle {
+        var style = Date.ISO8601FormatStyle(
+            dateSeparator: formatOptions.contains(.withDashSeparatorInDate) ? .dash : .omitted,
+            dateTimeSeparator: formatOptions.contains(.withSpaceBetweenDateAndTime) ? .space : .standard,
+            timeSeparator: formatOptions.contains(.withColonSeparatorInTime) ? .colon : .omitted,
+            timeZoneSeparator: formatOptions.contains(.withColonSeparatorInTimeZone) ? .colon : .omitted,
+            timeZone: timeZone)
+
+        if formatOptions.contains(.withYear) {
+            style = style.year()
+        }
+        if formatOptions.contains(.withMonth) {
+            style = style.month()
+        }
+        if formatOptions.contains(.withWeekOfYear) {
+            style = style.weekOfYear()
+        }
+        if formatOptions.contains(.withDay) {
+            style = style.day()
+        }
+        if formatOptions.contains(.withTime) {
+            style = style.time(includingFractionalSeconds: formatOptions.contains(.withFractionalSeconds))
+        }
+        if formatOptions.contains(.withTimeZone) {
+            style = style.timeZone(separator: formatOptions.contains(.withColonSeparatorInTimeZone) ? .colon : .omitted)
+        }
+
+        return style
+    }
+
     private func _reset() {
-        __cfObject = nil
+        __style = nil
     }
     
 }

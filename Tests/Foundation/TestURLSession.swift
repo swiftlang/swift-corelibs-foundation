@@ -308,6 +308,27 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
     }
+
+    func test_downloadTaskWithIPv6URLRequest() async {
+        let urlString = "http://[::1]:\(TestURLSession.serverPort)/country.txt"
+        let urlRequest = URLRequest(url: URL(string: urlString)!, timeoutInterval: 2)
+        let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
+        // Check that literal IPv6 addresses pass without throwing a .badURL error
+        // which happened on Linux/Windows (see GitHub issue #5496).
+        d.run(requestTimeout: 2) { (session) -> DownloadTask.Configuration in
+            return DownloadTask.Configuration(
+                task: session.downloadTask(with: urlRequest),
+                errorExpectation:
+                { (error) in
+                    XCTAssert(error is URLError)
+                    if let urlError = error as? URLError {
+                        let code = URLError.Code(rawValue: urlError.errorCode)
+                        XCTAssertNotEqual(code, .badURL)
+                    }
+            })
+        }
+        waitForExpectations(timeout: 5)
+    }
     
     func test_downloadTaskWithRequestAndHandler() async {
         //shared session
@@ -1059,6 +1080,49 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         }
     }
 
+    func test_httpRedirectionResolvesRelativeLocation() throws {
+        let base = "http://127.0.0.1:\(TestURLSession.serverPort)"
+        let prefix = "\(base)/redirect-relative-path"
+        let cases: [(basePath: String, location: String, fragment: String?, expectedURL: String)] = [
+            ("/redirect-relative-path/deep/base/page", "a/", nil, "\(prefix)/deep/base/a/"),
+            ("/redirect-relative-path/deep/base/page", "a", nil, "\(prefix)/deep/base/a"),
+            ("/redirect-relative-path/deep/base/page", "./a/", nil, "\(prefix)/deep/base/a/"),
+            ("/redirect-relative-path/deep/base/page", "../a/", nil, "\(prefix)/deep/a/"),
+            ("/redirect-relative-path/deep/base/page", "../../a/", nil, "\(prefix)/a/"),
+            ("/redirect-relative-path/deep/base/page", "/redirect-relative-path/abs/a/", nil, "\(prefix)/abs/a/"),
+            ("/redirect-relative-path/deep/base/page", "?q=1", nil, "\(prefix)/deep/base/page?q=1"),
+            ("/redirect-relative-path/page", "a/", nil, "\(prefix)/a/"),
+            ("/redirect-relative-path/deep/base/page", "a%2Fb/", nil, "\(prefix)/deep/base/a%2Fb/"),
+            ("/redirect-relative-path/deep/base/page", "//127.0.0.1:\(TestURLSession.serverPort)/redirect-relative-path/net/a/", nil, "\(prefix)/net/a/"),
+            ("/redirect-relative-path/deep/base/page", "\(base)/redirect-relative-path/abs/x/", nil, "\(prefix)/abs/x/"),
+            ("/redirect-relative-path/deep/base/page", "a/", "original", "\(prefix)/deep/base/a/#original"),
+            ("/redirect-relative-path/deep/base/page", "?q=1", "original", "\(prefix)/deep/base/page?q=1#original"),
+            ("/redirect-relative-path/deep/base/page", "/redirect-relative-path/abs/a/", "original", "\(prefix)/abs/a/#original"),
+            ("/redirect-relative-path/deep/base/page", "a/#new", "original", "\(prefix)/deep/base/a/#new"),
+        ]
+
+        for testCase in cases {
+            var components = URLComponents()
+            components.scheme = "http"
+            components.host = "127.0.0.1"
+            components.port = TestURLSession.serverPort
+            components.path = testCase.basePath
+            components.queryItems = [URLQueryItem(name: "location", value: testCase.location)]
+            components.fragment = testCase.fragment
+
+            let url = try XCTUnwrap(components.url, "Invalid URL for \(testCase.basePath) + \(testCase.location)")
+            let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(url.absoluteString): with HTTP redirection"))
+            d.run(with: URLRequest(url: url))
+            waitForExpectations(timeout: 12)
+
+            XCTAssertNil(d.error, "Unexpected error for \(url.absoluteString): \(String(describing: d.error))")
+            XCTAssertEqual(d.redirectionResponse?.statusCode, 302, "Missing redirect response for \(url.absoluteString)")
+            XCTAssertEqual(d.redirectionRequest?.url?.absoluteString, testCase.expectedURL, "Unexpected redirected request for \(url.absoluteString)")
+            XCTAssertEqual(d.response?.url?.absoluteString, testCase.expectedURL, "Unexpected final URL for \(url.absoluteString)")
+            XCTAssertEqual((d.response as? HTTPURLResponse)?.statusCode, 200, "Unexpected final status for \(url.absoluteString)")
+        }
+    }
+
     func test_httpRedirectionTimeout() async throws {
         #if os(Windows)
         throw XCTSkip("temporarily disabled (https://bugs.swift.org/browse/SR-5751)")
@@ -1576,6 +1640,63 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 30)
         let cookies = HTTPCookieStorage.shared.cookies
         XCTAssertEqual(cookies?.count, 1)
+    }
+
+    func test_cookiesWithNonCanonicalSetCookieHeaderCasing() async throws {
+        let routes = [
+            ("/requestCookiesWithLowercaseHeader", "lowercase"),
+            ("/requestCookiesWithMixedCaseHeader", "mixedcase"),
+            ("/requestCookiesWithUppercaseHeader", "uppercase"),
+        ]
+
+        for (route, name) in routes {
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = 5
+            let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+            defer { session.invalidateAndCancel() }
+
+            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)\(route)"))
+            _ = try await session.data(from: url)
+
+            let cookies = config.httpCookieStorage?.cookies ?? []
+            XCTAssertTrue(
+                cookies.contains { $0.name == name && $0.value == "1" },
+                "The cookie set by \(route) was not stored; cookies = \(cookies.map { "\($0.name)=\($0.value)" })"
+            )
+        }
+    }
+
+    func test_cookiesWithMixedSetCookieHeaderCasingsInOneResponse() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookiesWithMixedCasings"))
+        _ = try await session.data(from: url)
+
+        let cookies = config.httpCookieStorage?.cookies ?? []
+        XCTAssertEqual(
+            Set(cookies.map { $0.name }), ["canonical", "lowercase", "mixedcase"],
+            "Not all mixed-cased Set-Cookie headers were stored; cookies = \(cookies.map { "\($0.name)=\($0.value)" })"
+        )
+    }
+
+    func test_nonCanonicalSetCookieHeaderCasingIsReplayedInLaterRequests() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let baseURL = "http://127.0.0.1:\(TestURLSession.serverPort)"
+        _ = try await session.data(from: try XCTUnwrap(URL(string: baseURL + "/requestCookiesWithLowercaseHeader")))
+        let (data, _) = try await session.data(from: try XCTUnwrap(URL(string: baseURL + "/echoHeaders")))
+
+        let headers = String(decoding: data, as: UTF8.self)
+        XCTAssertTrue(
+            headers.contains("Cookie: lowercase=1"),
+            "The cookie set by a lowercase set-cookie header was not sent in a later request; headers = \(headers)"
+        )
     }
 
     func test_redirectionWithSetCookies() async {
@@ -2879,9 +3000,9 @@ class DownloadTask : NSObject, @unchecked Sendable {
         var errorExpectation: ((Error) -> Void)?
     }
     
-    func run(configuration: (URLSession) -> Configuration) {
+    func run(requestTimeout: TimeInterval = 8, configuration: (URLSession) -> Configuration) {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
+        config.timeoutIntervalForRequest = requestTimeout
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
         let taskConfiguration = configuration(session)
         
@@ -2972,6 +3093,7 @@ class HTTPRedirectionDataTask: NSObject, @unchecked Sendable {
     private(set) var error: Error?
     private(set) var response: URLResponse?
     private(set) var redirectionResponse: HTTPURLResponse?
+    private(set) var redirectionRequest: URLRequest?
     private var callbacks: [String] = []
 
     init(with expectation: XCTestExpectation) {
@@ -3037,6 +3159,7 @@ extension HTTPRedirectionDataTask: URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         callbacks.append(#function)
         redirectionResponse = response
+        redirectionRequest = request
 
         if let url = response.url, url.path.hasSuffix("/redirect-with-default-port") {
             XCTAssertEqual(request.url?.absoluteString, "http://127.0.0.1/redirected-with-default-port")

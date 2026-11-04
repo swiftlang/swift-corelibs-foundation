@@ -446,7 +446,9 @@ open class HTTPCookie : NSObject, @unchecked Sendable {
         // names and values. This implementation takes care of multiple cookies in the same field, however it doesn't   
         // support commas and semicolons in names and values(except for dates)
 
-        guard let cookies: String = headerFields["Set-Cookie"]  else { return [] }
+        guard let cookies: String = headerFields["Set-Cookie"]
+            ?? headerFields.first(where: { $0.key.caseInsensitiveCompare("Set-Cookie") == .orderedSame })?.value
+        else { return [] }
 
         var httpCookies: [HTTPCookie] = []
 

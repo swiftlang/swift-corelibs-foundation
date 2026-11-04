@@ -742,15 +742,27 @@ bool CFURLSessionCurlHostIsEqual(const char *_Nonnull url, const char *_Nonnull 
 #if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 62)
     bool isEqual = false;
     CURLU *h = curl_url();
+    if (h == NULL) {
+        return false;
+    }
     if (0 == curl_url_set(h, CURLUPART_URL, url, 0)) {
         char *curlHost = NULL;
         if (0 == curl_url_get(h, CURLUPART_HOST, &curlHost, 0)) {
-            isEqual = (strlen(curlHost) == strlen(expectedHost) &&
-                       strncmp(curlHost, expectedHost, strlen(curlHost)) == 0);
+            // libcurl leaves IPv6 literal hostnames in brackets (e.g. "[::1]"), but
+            // URL.host strips them — so we strip brackets from hostname returned by libcurl
+            // if needed before comparing.
+            const char *host = curlHost;
+            size_t hostLen = strlen(curlHost);
+            if (hostLen >= 2 && host[0] == '[' && host[hostLen - 1] == ']') {
+                host += 1;
+                hostLen -= 2;
+            }
+            isEqual = (hostLen == strlen(expectedHost) &&
+                       strncmp(host, expectedHost, hostLen) == 0);
             curl_free(curlHost);
         }
-        curl_free(h);
     }
+    curl_url_cleanup(h);
     return isEqual;
 #else
     return true;

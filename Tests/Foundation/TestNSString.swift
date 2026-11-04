@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 #if os(macOS) || os(iOS)
 internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
 internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
@@ -1266,6 +1268,24 @@ class TestNSString: LoopbackServerTest {
     func test_mutableStringConstructor() {
         let mutableString = NSMutableString(string: "Test")
         XCTAssertEqual(mutableString, "Test")
+    }
+
+    func test_CFStringAppendBytes_usesLength() {
+        let mutableString = NSMutableString(string: "foo")
+        let cfString = unsafeBitCast(mutableString, to: CFMutableString.self)
+        // Only `length` bytes are appended, even if the buffer continues past them.
+        __CFStringAppendBytes(cfString, "barbaz", 3, CFStringBuiltInEncodings.ASCII.rawValue)
+        XCTAssertEqual(mutableString, "foobar")
+        // The bytes don't need to be NUL-terminated, and embedded NULs are kept.
+        let bytes: [CChar] = [0x71, 0x00, 0x78]
+        bytes.withUnsafeBufferPointer {
+            __CFStringAppendBytes(cfString, $0.baseAddress!, $0.count, CFStringBuiltInEncodings.ASCII.rawValue)
+        }
+        XCTAssertEqual(mutableString, "foobarq\0x")
+        // UTF-8 bytes are decoded into a temporary buffer before being appended.
+        __CFStringAppendBytes(cfString, "yz", 2, CFStringBuiltInEncodings.UTF8.rawValue)
+        XCTAssertEqual(mutableString, "foobarq\0xyz")
+        XCTAssertEqual(mutableString.length, 11)
     }
 
     func test_getLineStart() {

@@ -286,6 +286,18 @@ class TestUnitConverter: XCTestCase {
         XCTAssertEqual(testIdentity(UnitVolume.metricCups), 1, accuracy: delta)
     }
 
+    func test_fuelEfficiencyConversions() {
+        let delta = 1e-9
+        let liters = Measurement(value: 8, unit: UnitFuelEfficiency.litersPer100Kilometers)
+        XCTAssertEqual(liters.converted(to: .milesPerGallon).value, 235.215 / 8, accuracy: delta)
+        XCTAssertEqual(liters.converted(to: .milesPerImperialGallon).value, 282.481 / 8, accuracy: delta)
+        XCTAssertEqual(liters.converted(to: .milesPerGallon).converted(to: .litersPer100Kilometers).value, 8, accuracy: delta)
+
+        let converter = UnitFuelEfficiency.litersPer100Kilometers.converter
+        XCTAssertEqual(converter.baseUnitValue(fromValue: 8), 8)
+        XCTAssertEqual(converter.value(fromBaseUnitValue: 8), 8)
+    }
+
     func test_equality() {
         let u1 = UnitConverterLinear(coefficient: 1, constant: 2)
         let u2 = UnitConverterLinear(coefficient: 1, constant: 2)

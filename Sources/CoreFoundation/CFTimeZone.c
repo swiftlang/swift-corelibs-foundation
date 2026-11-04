@@ -926,7 +926,7 @@ static const char *__CFTimeZoneAbbreviationDefaults =
 "    <key>HST</key>  <string>Pacific/Honolulu</string>"
 "    <key>ICT</key>  <string>Asia/Bangkok</string>"
 "    <key>IRST</key> <string>Asia/Tehran</string>"
-"    <key>IST</key>  <string>Asia/Calcutta</string>"
+"    <key>IST</key>  <string>Asia/Kolkata</string>"
 "    <key>JST</key>  <string>Asia/Tokyo</string>"
 "    <key>KST</key>  <string>Asia/Seoul</string>"
 "    <key>MDT</key>  <string>America/Denver</string>"

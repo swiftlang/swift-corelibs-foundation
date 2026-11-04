@@ -1359,14 +1359,25 @@ class TestFileManager : XCTestCase {
             let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, emptyFileNameError ?? .fileNoSuchFile)
         }
+        #if os(FreeBSD)
+        // FreeBSD allows symlinks with an empty target
+        XCTAssertNoThrow(try fm.createSymbolicLink(atPath: "/tmp/t", withDestinationPath: ""))
+        try? fm.removeItem(atPath: "/tmp/t")
+        #else
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "/tmp/t", withDestinationPath: "")) {
             let code = ($0 as? CocoaError)?.code
             XCTAssertEqual(code, .fileNoSuchFile)
         }
+        #endif
 
         XCTAssertThrowsError(try fm.destinationOfSymbolicLink(atPath: "")) {
             let code = ($0 as? CocoaError)?.code
+            #if os(FreeBSD)
+            // FreeBSD's readlink("") fails with EINVAL rather than ENOENT
+            XCTAssertEqual(code, .fileReadUnknown)
+            #else
             XCTAssertEqual(code, emptyFileNameError ?? .fileReadNoSuchFile)
+            #endif
         }
         XCTAssertFalse(fm.fileExists(atPath: ""))
         XCTAssertFalse(fm.fileExists(atPath: "", isDirectory: nil))

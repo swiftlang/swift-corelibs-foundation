@@ -496,6 +496,8 @@ class TestBundle : XCTestCase {
             
             let path = bundle.path(forResource: _main, ofType: _type, inDirectory: _subDirectory)
             XCTAssertNotNil(path)
+            XCTAssertEqual(path.map { URL(fileURLWithPath: $0).lastPathComponent }, "\(_main).\(_type)")
+            XCTAssertTrue(path.map { FileManager.default.fileExists(atPath: $0) } ?? false)
         }
     }
     

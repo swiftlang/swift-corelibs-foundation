@@ -44,6 +44,16 @@ open class NSNull : NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
 }
 
 public func ===(lhs: NSNull?, rhs: NSNull?) -> Bool {
-    guard let _ = lhs, let _ = rhs else { return false }
-    return true
+    switch (lhs, rhs) {
+    case (nil, nil):
+        return true
+    case (nil, _), (_, nil):
+        return false
+    default:
+        return true
+    }
+}
+
+public func !==(lhs: NSNull?, rhs: NSNull?) -> Bool {
+    return !(lhs === rhs)
 }

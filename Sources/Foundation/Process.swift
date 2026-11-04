@@ -83,10 +83,14 @@ private func findMaximumOpenFromProcSelfFD() -> CInt? {
     var highestFDSoFar = CInt(0)
 
     while let dirEntPtr = readdir(dirPtr) {
-        var entryName = dirEntPtr.pointee.d_name
-        let thisFD = withUnsafeBytes(of: &entryName) { entryNamePtr -> CInt? in
-            CInt(String(decoding: entryNamePtr.prefix(while: { $0 != 0 }), as: Unicode.UTF8.self))
-        }
+        // Don't bulk-copy `pointee.d_name`: `readdir(3)` returns dirent
+        // records sized to `d_reclen`, not the declared 256 bytes, so
+        // a struct copy can read past the end of glibc's readdir
+        // buffer and SIGSEGV on the next page.
+        let length = Int(_direntNameLength(dirEntPtr))
+        let namePtr = UnsafeRawPointer(_direntName(dirEntPtr)).assumingMemoryBound(to: UInt8.self)
+        let nameBuffer = UnsafeBufferPointer(start: namePtr, count: length)
+        let thisFD = CInt(String(decoding: nameBuffer, as: Unicode.UTF8.self))
         highestFDSoFar = max(thisFD ?? -1, highestFDSoFar)
     }
 
@@ -474,7 +478,7 @@ open class Process: NSObject, @unchecked Sendable {
       }
 
       for socket in [first, second] {
-        SetHandleInformation(HANDLE(bitPattern: UInt(socket)), DWORD(HANDLE_FLAG_INHERIT), 0)
+        SetHandleInformation(HANDLE(bitPattern: UInt(socket)), HANDLE_FLAG_INHERIT, 0)
       }
 
       return (first: first, second: second)
@@ -518,7 +522,7 @@ open class Process: NSObject, @unchecked Sendable {
 
         var siStartupInfo: STARTUPINFOW = STARTUPINFOW()
         siStartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOW>.size)
-        siStartupInfo.dwFlags = DWORD(STARTF_USESTDHANDLES)
+        siStartupInfo.dwFlags = STARTF_USESTDHANDLES
 
         var _devNull: FileHandle?
         func devNullFd() throws -> HANDLE {
@@ -621,7 +625,7 @@ open class Process: NSObject, @unchecked Sendable {
               }
               var hDuplicate: HANDLE?
               guard DuplicateHandle(GetCurrentProcess(), handle, GetCurrentProcess(), &hDuplicate,
-                                    /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DWORD(DUPLICATE_SAME_ACCESS)),
+                                    /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DUPLICATE_SAME_ACCESS),
                     let hDuplicate else {
                   throw _NSErrorWithWindowsError(GetLastError(), reading: false)
               }
@@ -652,15 +656,15 @@ open class Process: NSObject, @unchecked Sendable {
 
           // The child's exit closes its copy of this socket, which notifies the manager thread.
           let hSocket = HANDLE(bitPattern: UInt(sockets.second))!
-          SetHandleInformation(hSocket, DWORD(HANDLE_FLAG_INHERIT), DWORD(HANDLE_FLAG_INHERIT))
-          defer { SetHandleInformation(hSocket, DWORD(HANDLE_FLAG_INHERIT), 0) }
+          SetHandleInformation(hSocket, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)
+          defer { SetHandleInformation(hSocket, HANDLE_FLAG_INHERIT, 0) }
 
           try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
             try FileManager.default._fileSystemRepresentation(withPath: workingDirectory) { wszCurrentDirectory in
               try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
                 if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
                                    nil, nil, true,
-                                   DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
+                                   CREATE_UNICODE_ENVIRONMENT, UnsafeMutableRawPointer(mutating: wszEnvironment),
                                    wszCurrentDirectory,
                                    &siStartupInfo, &piProcessInfo) {
                   let error = GetLastError()
@@ -669,7 +673,7 @@ open class Process: NSObject, @unchecked Sendable {
                   // ENOENT, we intercept the error to match the POSIX
                   // behaviour
                   if error == ERROR_DIRECTORY {
-                      throw _NSErrorWithWindowsError(DWORD(ERROR_FILE_NOT_FOUND), reading: true)
+                      throw _NSErrorWithWindowsError(ERROR_FILE_NOT_FOUND, reading: true)
                   }
                   throw _NSErrorWithWindowsError(GetLastError(), reading: true)
                 }

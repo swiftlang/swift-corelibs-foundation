@@ -354,7 +354,7 @@ CFAbsoluteTime CFGregorianDateGetAbsoluteTime(CFGregorianDate gdate, CFTimeZoneR
     CFAbsoluteTime at;
     at = 86400.0 * __CFAbsoluteFromYMD(gdate.year - 2001, gdate.month, gdate.day);
     at += 3600.0 * gdate.hour + 60.0 * gdate.minute + gdate.second;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
     if (NULL != tz) {
 	__CFGenericValidateType(tz, CFTimeZoneGetTypeID());
     }
@@ -373,7 +373,7 @@ CFGregorianDate CFAbsoluteTimeGetGregorianDate(CFAbsoluteTime at, CFTimeZoneRef 
     int64_t absolute, year;
     int8_t month, day;
     CFAbsoluteTime fixedat;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
     if (NULL != tz) {
 	__CFGenericValidateType(tz, CFTimeZoneGetTypeID());
     }
@@ -401,7 +401,7 @@ CFAbsoluteTime CFAbsoluteTimeAddGregorianUnits(CFAbsoluteTime at, CFTimeZoneRef 
     CFAbsoluteTime candidate_at0, candidate_at1;
     uint8_t monthdays;
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
     if (NULL != tz) {
 	__CFGenericValidateType(tz, CFTimeZoneGetTypeID());
     }
@@ -520,7 +520,7 @@ CFGregorianUnits CFAbsoluteTimeGetDifferenceAsGregorianUnits(CFAbsoluteTime at1,
 SInt32 CFAbsoluteTimeGetDayOfWeek(CFAbsoluteTime at, CFTimeZoneRef tz) {
     int64_t absolute;
     CFAbsoluteTime fixedat;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
     if (NULL != tz) {
 	__CFGenericValidateType(tz, CFTimeZoneGetTypeID());
     }
@@ -536,7 +536,7 @@ SInt32 CFAbsoluteTimeGetDayOfYear(CFAbsoluteTime at, CFTimeZoneRef tz) {
     CFAbsoluteTime fixedat;
     int64_t absolute, year;
     int8_t month, day;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
     if (NULL != tz) {
 	__CFGenericValidateType(tz, CFTimeZoneGetTypeID());
     }
@@ -555,7 +555,7 @@ SInt32 CFAbsoluteTimeGetWeekOfYear(CFAbsoluteTime at, CFTimeZoneRef tz) {
     int64_t absolute, year;
     int8_t month, day;
     CFAbsoluteTime fixedat;
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
     if (NULL != tz) {
 	__CFGenericValidateType(tz, CFTimeZoneGetTypeID());
     }

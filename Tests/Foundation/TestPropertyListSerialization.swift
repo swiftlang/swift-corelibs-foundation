@@ -111,4 +111,25 @@ class TestPropertyListSerialization : XCTestCase {
             }
         }
     }
+
+    func test_decodeLargeXMLDataValue() throws {
+        // Decode a <data> element whose body is large enough to push the parser past the 16 MB mark.
+        let byteCount = 20 * 1024 * 1024 + 7
+        var raw = Data(count: byteCount)
+        raw.withUnsafeMutableBytes { (buf: UnsafeMutableRawBufferPointer) in
+            let p = buf.bindMemory(to: UInt8.self)
+            var x: UInt32 = 0x12345678
+            for i in 0 ..< byteCount {
+                x = x &* 1664525 &+ 1013904223
+                p[i] = UInt8(truncatingIfNeeded: x >> 24)
+            }
+        }
+        let base64 = raw.base64EncodedString(options: [.lineLength64Characters, .endLineWithLineFeed])
+        let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plist version=\"1.0\">\n<data>\n\(base64)\n</data>\n</plist>\n"
+        let data = xml.data(using: .utf8)!
+        let decoded = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+        let outData = try XCTUnwrap(decoded as? Data)
+        XCTAssertEqual(outData.count, byteCount)
+        XCTAssertEqual(outData, raw)
+    }
 }

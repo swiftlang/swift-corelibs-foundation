@@ -33,6 +33,12 @@ typealias SOCKET = Int32
 let INADDR_LOOPBACK = 0x7f000001
 #endif
 
+#if os(FreeBSD)
+// on FreeBSD 15, SHUT_RDWR is a enum, but on FreeBSD 14, it was a macro.
+// Defining this so the source is compatible with both version
+let SHUT_RDWR: CInt = 2
+#endif
+
 private let serverDebug = (ProcessInfo.processInfo.environment["SCLF_HTTP_SERVER_DEBUG"] == "YES")
 
 private func debugLog(_ msg: String) {
@@ -106,7 +112,7 @@ class _TCPSocket: CustomStringConvertible {
         self.port = 0
 
 #if os(Windows)
-        _socket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, DWORD(WSA_FLAG_OVERLAPPED)))
+        _socket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, WSA_FLAG_OVERLAPPED))
 
         var value: Int8 = 1
         _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
@@ -797,6 +803,28 @@ public class TestURLSessionServer: CustomStringConvertible {
             return try _HTTPResponse(response: .OK, headers: "Set-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: "")
         }
 
+        if uri == "/requestCookiesWithLowercaseHeader" {
+            return try _HTTPResponse(response: .OK, headers: "set-cookie: lowercase=1; Max-Age=7776000; path=/\r\n", body: "")
+        }
+
+        if uri == "/requestCookiesWithMixedCaseHeader" {
+            return try _HTTPResponse(response: .OK, headers: "SeT-coOkIE: mixedcase=1; Max-Age=7776000; path=/\r\n", body: "")
+        }
+
+        if uri == "/requestCookiesWithUppercaseHeader" {
+            return try _HTTPResponse(response: .OK, headers: "SET-COOKIE: uppercase=1; Max-Age=7776000; path=/\r\n", body: "")
+        }
+
+        if uri == "/requestCookiesWithMixedCasings" {
+            return try _HTTPResponse(
+                response: .OK,
+                headers: "Set-Cookie: canonical=1; Max-Age=7776000; path=/\r\n"
+                    + "set-cookie: lowercase=1; Max-Age=7776000; path=/\r\n"
+                    + "SeT-coOkIE: mixedcase=1; Max-Age=7776000; path=/\r\n",
+                body: ""
+            )
+        }
+
         if uri == "/echoHeaders" {
             let text = request.getCommaSeparatedHeaders()
             return try _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
@@ -889,6 +917,16 @@ public class TestURLSessionServer: CustomStringConvertible {
         if uri == "/echo-query" {
             let body = request.parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
             return try _HTTPResponse(response: .OK, body: body)
+        }
+
+        // Reflect a Location header for tests that exercise relative
+        // URI-reference resolution. Requests without a location parameter
+        // are the redirect targets and are echoed so the test can finish.
+        if uri.hasPrefix("/redirect-relative-path/") {
+            if let location = request.parameters["location"] {
+                return try _HTTPResponse(response: .FOUND, headers: "Location: \(location)", body: "")
+            }
+            return try _HTTPResponse(response: .OK, body: uri)
         }
 
         // Look for /xxx where xxx is a 3digit HTTP code

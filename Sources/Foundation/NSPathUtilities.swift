@@ -631,8 +631,14 @@ public func NSHomeDirectoryForUser(_ user: String?) -> String? {
 }
 
 public func NSUserName() -> String {
-    let userName = CFCopyUserName().takeRetainedValue()
-    return userName._swiftObject
+    ProcessInfo.processInfo.userName
+}
+
+// CFPreferences still calls CFCopyUserName(). `@c @implementation` cannot return the
+// imported Unmanaged result, so the C symbol is a thin wrapper around NSUserName().
+@_cdecl("CFCopyUserName")
+func _CFCopyUserName() -> Unmanaged<CFString> {
+    Unmanaged.passRetained(NSUserName()._cfObject)
 }
 
 public func NSFullUserName() -> String {
@@ -644,7 +650,7 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 #if os(Windows)
     let maxLength: Int = Int(MAX_PATH + 1)
     var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
-    let length = GetTempPathW(DWORD(MAX_PATH), &buf)
+    let length = GetTempPathW(MAX_PATH, &buf)
     precondition(length <= MAX_PATH - 14, "temp path too long")
     guard "SCF".withCString(encodedAs: UTF16.self, {
       return GetTempFileNameW(buf, $0, 0, &buf) != 0

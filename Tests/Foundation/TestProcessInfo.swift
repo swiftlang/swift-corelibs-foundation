@@ -15,6 +15,23 @@
     #endif
 #endif
 
+private final class _NSUserNameMismatchCollector: @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [String] = []
+
+    func add(_ value: String) {
+        lock.lock()
+        values.append(value)
+        lock.unlock()
+    }
+
+    var snapshot: [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        return values
+    }
+}
+
 class TestProcessInfo : XCTestCase {
     
     func test_operatingSystemVersion() {
@@ -128,5 +145,54 @@ class TestProcessInfo : XCTestCase {
         XCTAssertEqual(env["var3"], "=x")
         XCTAssertEqual(env["var4"], "x=")
         XCTAssertEqual(env["var5"], "=x=")
+    }
+
+    func test_NSUserName_isThreadSafe() {
+        let expected = NSUserName()
+        XCTAssertEqual(expected, ProcessInfo.processInfo.userName)
+        XCTAssertFalse(expected.isEmpty, "NSUserName() should resolve a non-empty account name")
+
+        let threadCount = 8
+        let iterationsPerThread = 50_000
+        let collector = _NSUserNameMismatchCollector()
+
+        DispatchQueue.concurrentPerform(iterations: threadCount) { _ in
+            for _ in 0..<iterationsPerThread {
+                let name = NSUserName()
+                if name != expected {
+                    collector.add(name)
+                }
+            }
+        }
+
+        let mismatches = collector.snapshot
+        XCTAssertTrue(
+            mismatches.isEmpty,
+            "NSUserName() returned values other than \(expected.debugDescription) under concurrency: \(Array(Set(mismatches)).prefix(5))"
+        )
+    }
+
+    func test_userDefaults_concurrentWriteIsVisible() {
+        let threadCount = 4
+        let iterationsPerThread = 40
+        let misses = _NSUserNameMismatchCollector()
+
+        DispatchQueue.concurrentPerform(iterations: threadCount) { thread in
+            for round in 0..<iterationsPerThread {
+                let suiteName = "org.swift.TestProcessInfo.\(thread).\(round).\(UUID().uuidString)"
+                let defaults = UserDefaults(suiteName: suiteName)!
+                defaults.set("hello", forKey: "string")
+                if defaults.object(forKey: "string") == nil {
+                    misses.add(suiteName)
+                }
+                defaults.removePersistentDomain(forName: suiteName)
+            }
+        }
+
+        let missed = misses.snapshot
+        XCTAssertTrue(
+            missed.isEmpty,
+            "UserDefaults.object(forKey:) was nil immediately after set(_:forKey:) on \(missed.count) suite(s)"
+        )
     }
 }

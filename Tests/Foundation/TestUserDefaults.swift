@@ -9,6 +9,40 @@
 
 class TestUserDefaults : XCTestCase {
 
+#if os(Windows)
+    func test_currentUserPreferencesUseLocalAppData() throws {
+        let directory = try XCTUnwrap(FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first)
+        let suite = "org.swift.TestUserDefaults.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            XCTAssertTrue(defaults.synchronize())
+        }
+        defaults.set("persisted", forKey: "value")
+        XCTAssertTrue(defaults.synchronize())
+        let data = try Data(contentsOf: directory.appendingPathComponent("\(suite).plist"))
+        let contents = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String]
+        XCTAssertEqual(contents?["value"], "persisted")
+    }
+
+    func test_unicodePreferencesCanBeSavedAndDeleted() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("preferences-É漢-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = directory.appendingPathComponent("preferences").path.replacingOccurrences(of: "/", with: "\\")
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defaults.set("persisted", forKey: "value")
+        XCTAssertTrue(defaults.synchronize())
+        let url = directory.appendingPathComponent("preferences.plist")
+        let data = try Data(contentsOf: url)
+        let contents = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String]
+        XCTAssertEqual(contents?["value"], "persisted")
+        defaults.removeObject(forKey: "value")
+        XCTAssertTrue(defaults.synchronize())
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+#endif
+
 	func test_createUserDefaults() {
 		let defaults = UserDefaults.standard
 		

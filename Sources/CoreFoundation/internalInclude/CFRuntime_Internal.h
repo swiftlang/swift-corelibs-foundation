@@ -31,7 +31,6 @@ enum {
     _kCFRuntimeIDCFBinaryHeap = 23,
     _kCFRuntimeIDCFBitVector = 24,
     _kCFRuntimeIDCFCharacterSet = 25,
-    _kCFRuntimeIDCFStorage = 26,
     _kCFRuntimeIDCFError = 27,
     _kCFRuntimeIDCFTree = 28,
     _kCFRuntimeIDCFURL = 29,
@@ -74,8 +73,6 @@ enum {
 #endif
     _kCFRuntimeIDCFFileDescriptor = 60,
     _kCFRuntimeIDCFSocket = 61,
-    _kCFRuntimeIDCFAttributedString = 62,
-    _kCFRuntimeIDCFRunArray = 63,
     _kCFRuntimeIDCFDateComponents = 66,
     _kCFRuntimeIDCFRelativeDateTimeFormatter = 67,
     _kCFRuntimeIDCFListFormatter = 68,
@@ -131,7 +128,6 @@ CF_PRIVATE const CFRuntimeClass __CFNumberClass;
 CF_PRIVATE const CFRuntimeClass __CFBinaryHeapClass;
 CF_PRIVATE const CFRuntimeClass __CFBitVectorClass;
 CF_PRIVATE const CFRuntimeClass __CFCharacterSetClass;
-CF_PRIVATE const CFRuntimeClass __CFStorageClass;
 CF_PRIVATE const CFRuntimeClass __CFErrorClass;
 CF_PRIVATE const CFRuntimeClass __CFTreeClass;
 CF_PRIVATE const CFRuntimeClass __CFURLClass;
@@ -168,8 +164,6 @@ CF_PRIVATE const CFRuntimeClass __CFRunLoopTimerClass;
 CF_PRIVATE const CFRuntimeClass __CFSocketClass;
 CF_PRIVATE const CFRuntimeClass __CFReadStreamClass;
 CF_PRIVATE const CFRuntimeClass __CFWriteStreamClass;
-CF_PRIVATE const CFRuntimeClass __CFAttributedStringClass;
-CF_PRIVATE const CFRuntimeClass __CFRunArrayClass;
 #if TARGET_OS_WIN32
 CF_PRIVATE const CFRuntimeClass __CFWindowsNamedPipeClass;
 #endif

@@ -142,8 +142,7 @@ add_library(Foundation
     URLQueryItem.swift
     URLResourceKey.swift
     UserDefaults.swift
-    UUID.swift
-    WinSDK+Extensions.swift)
+    UUID.swift)
 
 target_compile_options(Foundation PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:Swift>:${_Foundation_swift_build_flags}>")

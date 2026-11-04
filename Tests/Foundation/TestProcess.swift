@@ -873,7 +873,7 @@ class TestProcess : XCTestCase {
 #if os(Windows)
     func test_inheritableHandleIsInheritedByChild() throws {
         let pipe = Pipe()
-        XCTAssertTrue(SetHandleInformation(pipe.fileHandleForWriting._handle, DWORD(HANDLE_FLAG_INHERIT), DWORD(HANDLE_FLAG_INHERIT)))
+        XCTAssertTrue(SetHandleInformation(pipe.fileHandleForWriting._handle, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT))
         let process = Process()
         process.executableURL = try xdgTestHelperURL()
         process.arguments = ["--write-handle", String(UInt(bitPattern: pipe.fileHandleForWriting._handle), radix: 16)]
@@ -894,7 +894,7 @@ class TestProcess : XCTestCase {
         let output = Pipe()
         process.standardOutput = output
         for handle in [input.fileHandleForReading, output.fileHandleForWriting] {
-            XCTAssertTrue(SetHandleInformation(handle._handle, DWORD(HANDLE_FLAG_INHERIT), 0))
+            XCTAssertTrue(SetHandleInformation(handle._handle, HANDLE_FLAG_INHERIT, 0))
         }
         try process.run()
 

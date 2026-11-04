@@ -1609,12 +1609,12 @@ static Boolean parseDataTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
         /* 'x' */ 49, 50, 51, -1, -1, -1, -1, -1
     };
 #pragma GCC diagnostic pop
-    int tmpbufpos = 0;
-    int tmpbuflen = 256;
+    CFIndex tmpbufpos = 0;
+    CFIndex tmpbuflen = 256;
     uint8_t *tmpbuf = pInfo->skip ? NULL : (uint8_t *)CFAllocatorAllocate(pInfo->allocator, tmpbuflen, 0);
     int numeq = 0;
     int acc = 0;
-    int cntr = 0;
+    CFIndex cntr = 0;
     
     for (; pInfo->curr < pInfo->end; pInfo->curr++) {
         unsigned char c = *(pInfo->curr);
@@ -2325,7 +2325,7 @@ static CFStringEncoding encodingForXMLData(CFDataRef data, CFErrorRef *error, CF
         if (len == 5 && (*base == 'u' || *base == 'U') && (base[1] == 't' || base[1] == 'T') && (base[2] == 'f' || base[2] == 'F') && (base[3] == '-') && (base[4] == '8'))
             return kCFStringEncodingUTF8;
         encodingName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, base, len, kCFStringEncodingISOLatin1, false);
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
         CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(encodingName);
         if (enc != kCFStringEncodingInvalidId) {
             if (encodingName) {CFRelease(encodingName); }
@@ -3285,4 +3285,3 @@ CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPrope
     }
     return result;
 }
-
