@@ -15,7 +15,6 @@
 add_library(CoreFoundation STATIC
     CFApplicationPreferences.c
     CFArray.c
-    CFAttributedString.c
     CFBag.c
     CFBase.c
     CFBasicHash.c
@@ -67,7 +66,6 @@ add_library(CoreFoundation STATIC
     CFPropertyList.c
     CFRegularExpression.c
     CFRelativeDateTimeFormatter.c
-    CFRunArray.c
     CFRunLoop.c
     CFRuntime.c
     CFSet.c

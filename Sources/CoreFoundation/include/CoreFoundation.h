@@ -86,7 +86,6 @@
 #include "CFMachPort.h"
 #  endif
 
-#include "CFAttributedString.h"
 #include "CFNotificationCenter.h"
 
 #endif

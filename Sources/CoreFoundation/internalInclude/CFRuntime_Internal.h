@@ -74,8 +74,6 @@ enum {
 #endif
     _kCFRuntimeIDCFFileDescriptor = 60,
     _kCFRuntimeIDCFSocket = 61,
-    _kCFRuntimeIDCFAttributedString = 62,
-    _kCFRuntimeIDCFRunArray = 63,
     _kCFRuntimeIDCFDateComponents = 66,
     _kCFRuntimeIDCFRelativeDateTimeFormatter = 67,
     _kCFRuntimeIDCFListFormatter = 68,
@@ -168,8 +166,6 @@ CF_PRIVATE const CFRuntimeClass __CFRunLoopTimerClass;
 CF_PRIVATE const CFRuntimeClass __CFSocketClass;
 CF_PRIVATE const CFRuntimeClass __CFReadStreamClass;
 CF_PRIVATE const CFRuntimeClass __CFWriteStreamClass;
-CF_PRIVATE const CFRuntimeClass __CFAttributedStringClass;
-CF_PRIVATE const CFRuntimeClass __CFRunArrayClass;
 #if TARGET_OS_WIN32
 CF_PRIVATE const CFRuntimeClass __CFWindowsNamedPipeClass;
 #endif

@@ -28,7 +28,6 @@
 #include "CFCharacterSetPriv.h"
 #include "CFURLPriv.h"
 #include "CFURLComponents.h"
-#include "CFRunArray.h"
 #include "CFDateComponents.h"
 
 #if TARGET_OS_WIN32

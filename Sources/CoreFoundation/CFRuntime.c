@@ -246,8 +246,6 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
 #endif
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
-    [_kCFRuntimeIDCFAttributedString] = &__CFAttributedStringClass,
-    [_kCFRuntimeIDCFRunArray] = &__CFRunArrayClass,
     [_kCFRuntimeIDCFCharacterSet] = &__CFCharacterSetClass,
     
     

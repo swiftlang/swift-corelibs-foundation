@@ -1201,67 +1201,6 @@ CFStringRef CFDateFormatterCreateStringWithAbsoluteTime(CFAllocatorRef allocator
     return string;
 }
 
-#if U_ICU_VERSION_MAJOR_NUM > 55
-static const char * const _ICUPatternMap = "GyMdkHmsSEDFwWahKzYeugAZvcLQqVUOXxr:";
-
-CFAttributedStringRef _CFDateFormatterCreateAttributedStringAndFieldsWithAbsoluteTime(CFAllocatorRef allocator, CFDateFormatterRef formatter, CFAbsoluteTime at) {
-    if (allocator == NULL) allocator = __CFGetDefaultAllocator();
-    __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
-    __CFGenericValidateType(formatter, CFDateFormatterGetTypeID());
-    UChar *ustr = NULL, ubuffer[BUFFER_SIZE + 1];
-    UErrorCode status = U_ZERO_ERROR;
-    CFIndex used, cnt = BUFFER_SIZE;
-    UDate ud = (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0 + 0.5;
-    UFieldPositionIterator *fpositer = ufieldpositer_open(&status);
-    used = __cficu_udat_formatForFields(formatter->_df, ud, ubuffer + 1, cnt, fpositer, &status);
-    if (status == U_BUFFER_OVERFLOW_ERROR || cnt < used) {
-        cnt = used + 1 + 1; // leave room for RTL marker if needed
-        ustr = (UChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(UChar) * cnt, 0);
-        status = U_ZERO_ERROR;
-        ufieldpositer_close(fpositer);
-        fpositer = ufieldpositer_open(&status);
-        used = __cficu_udat_formatForFields(formatter->_df, ud, ustr + 1, cnt, fpositer, &status);
-    }
-    CFStringRef string = NULL;
-    CFMutableAttributedStringRef attributed = NULL;
-    if (U_SUCCESS(status)) {
-        UniChar *bufferToUse = ustr ? (UniChar *)ustr : (UniChar *)ubuffer;
-        if (formatter->_property._UsesCharacterDirection == kCFBooleanTrue && CFLocaleGetLanguageCharacterDirection(CFLocaleGetIdentifier(formatter->_locale)) == kCFLocaleLanguageDirectionRightToLeft) {
-            // Insert Unicode RTL marker
-            bufferToUse[0] = 0x200F;
-            used++;
-        } else {
-            // Move past direction marker
-            bufferToUse++;
-        }
-        string = CFStringCreateWithCharacters(allocator, bufferToUse, used);
-        
-    }
-    if (ustr) CFAllocatorDeallocate(kCFAllocatorSystemDefault, ustr);
-    if (string) {
-        attributed = CFAttributedStringCreateMutable(allocator, CFStringGetLength(string));
-        CFAttributedStringReplaceString(attributed, CFRangeMake(0, 0), string);
-        CFRelease(string);
-        int32_t field;
-        int32_t beginIndex;
-        int32_t endIndex;
-        size_t limit = strlen(_ICUPatternMap);
-        while ((field = ufieldpositer_next(fpositer, &beginIndex, &endIndex)) >= 0) {
-            if (field >= limit) {
-                continue;
-            }
-            CFStringRef pattern = CFStringCreateWithBytes(allocator, (UInt8 *)_ICUPatternMap+field, 1, kCFStringEncodingASCII, false);
-            CFAttributedStringSetAttribute(attributed, CFRangeMake(beginIndex, endIndex-beginIndex), kCFDateFormatterPatternCharacterKey, pattern);
-            CFRelease(pattern);
-        }
-    }
-    if (fpositer != NULL) {
-        ufieldpositer_close(fpositer);
-    }
-    return attributed;
-}
-#endif
-
 static UDate __CFDateFormatterCorrectTimeWithTarget(UCalendar *calendar, UDate at, int32_t target, Boolean isEra, UErrorCode *status) {
     __cficu_ucal_setMillis(calendar, at, status);
     UCalendarDateFields field = isEra ? UCAL_ERA : UCAL_YEAR;
