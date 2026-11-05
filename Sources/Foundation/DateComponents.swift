@@ -10,8 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CoreFoundation
-
 extension DateComponents : ReferenceConvertible {
     public typealias ReferenceType = NSDateComponents
     
@@ -57,10 +55,4 @@ extension DateComponents : _ObjectiveCBridgeable {
 extension DateComponents : _NSBridgeable {
     typealias NSType = NSDateComponents
     var _nsObject: NSType { return _bridgeToObjectiveC() }
-}
-
-extension DateComponents {
-    func _createCFDateComponents() -> CFDateComponents {
-        return _nsObject._createCFDateComponents()
-    }
 }
