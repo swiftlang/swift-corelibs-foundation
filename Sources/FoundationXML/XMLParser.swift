@@ -773,7 +773,10 @@ public extension XMLParserDelegate {
     
     func parser(_ parser: XMLParser, foundComment comment: String) { }
     
-    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) { }
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+        // Unconditional cdataBlock registration prevents libxml2's character fallback.
+        self.parser(parser, foundCharacters: String(decoding: CDATABlock, as: UTF8.self))
+    }
     
     func parser(_ parser: XMLParser, resolveExternalEntityName name: String, systemID: String?) -> Data? { return nil }
     
