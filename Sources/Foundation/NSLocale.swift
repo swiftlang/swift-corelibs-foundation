@@ -27,9 +27,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
         case .countryCode: return self.countryCode
         case .scriptCode: return self.scriptCode
         case .variantCode: return self.variantCode
-#if FOUNDATION_FRAMEWORK
         case .exemplarCharacterSet: return self.exemplarCharacterSet
-#endif
         case .calendarIdentifier: return self.calendarIdentifier
         case .calendar: return _locale.calendar
         case .collationIdentifier: return self.collationIdentifier
@@ -65,9 +63,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
         case .countryCode: return self.localizedString(forCountryCode: value)
         case .scriptCode: return self.localizedString(forScriptCode: value)
         case .variantCode: return self.localizedString(forVariantCode: value)
-#if FOUNDATION_FRAMEWORK
         case .exemplarCharacterSet: return nil
-#endif
         case .calendarIdentifier, .calendar: return self.localizedString(forCalendarIdentifier: value)
         case .collationIdentifier: return self.localizedString(forCollationIdentifier: value)
         case .usesMetricSystem: return nil
@@ -160,11 +156,9 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding, @unchecked Sendable {
         _locale.alternateQuotationEndDelimiter ?? ""
     }
 
-#if FOUNDATION_FRAMEWORK
     var exemplarCharacterSet: CharacterSet {
         _locale.exemplarCharacterSet ?? CharacterSet()
     }
-#endif
 
     var usesMetricSystem: Bool {
         _locale.usesMetricSystem

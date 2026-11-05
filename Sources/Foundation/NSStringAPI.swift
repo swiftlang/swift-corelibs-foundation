@@ -1106,36 +1106,6 @@ extension StringProtocol {
     // @property BOOL absolutePath;
     // - (BOOL)isEqualToString:(NSString *)aString
 
-    // - (NSRange)rangeOfCharacterFromSet:(NSCharacterSet *)aSet
-    //
-    // - (NSRange)
-    //     rangeOfCharacterFromSet:(NSCharacterSet *)aSet
-    //     options:(StringCompareOptions)mask
-    //
-    // - (NSRange)
-    //     rangeOfCharacterFromSet:(NSCharacterSet *)aSet
-    //     options:(StringCompareOptions)mask
-    //     range:(NSRange)aRange
-
-    /// Finds and returns the range in the `String` of the first
-    /// character from a given character set found in a given range with
-    /// given options.
-    public func rangeOfCharacter(
-        from aSet: CharacterSet,
-        options mask: String.CompareOptions = [],
-        range aRange: Range<Index>? = nil
-        ) -> Range<Index>? {
-        return _optionalRange(
-            _ns.rangeOfCharacter(
-                from: aSet,
-                options: mask,
-                range: _toRelativeNSRange(
-                    aRange ?? startIndex..<endIndex
-                )
-            )
-        )
-    }
-
     // - (NSRange)rangeOfComposedCharacterSequenceAtIndex:(NSUInteger)anIndex
 
     /// Returns the range in the `String` of the composed

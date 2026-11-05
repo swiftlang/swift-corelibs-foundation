@@ -558,54 +558,15 @@ extension NSString {
         
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Bounds Range {\(searchRange.location), \(searchRange.length)} out of bounds; string length \(len)")
         
-        guard searchRange.length > 0 else {
+        // The range can start or end inside a grapheme cluster (the legacy Scanner methods do this), so convert it using the UTF-16 view and not Range(_:in:).
+        let string = _swiftObject
+        let utf16 = string.utf16
+        let lower = utf16.index(utf16.startIndex, offsetBy: searchRange.location)
+        let upper = utf16.index(lower, offsetBy: searchRange.length)
+        guard let found = string.rangeOfCharacter(from: searchSet, options: mask, range: lower..<upper) else {
             return NSRange(location: NSNotFound, length: 0)
         }
-
-        var units = [unichar](repeating: 0, count: searchRange.length)
-        units.withUnsafeMutableBufferPointer { getCharacters($0.baseAddress!, range: searchRange) }
-
-        let backwards = mask.contains(.backwards)
-        let anchored = mask.contains(.anchored)
-        let isHigh = { (unit: unichar) in (0xD800...0xDBFF).contains(unit) }
-        let isLow = { (unit: unichar) in (0xDC00...0xDFFF).contains(unit) }
-
-        // Walk the string one scalar at a time, in the requested direction. A surrogate pair is one scalar of length 2.
-        // A surrogate that is not part of a pair is not a scalar, so it is never in a set.
-        var index = backwards ? units.count : 0
-        while backwards ? index > 0 : index < units.count {
-            var length = 1
-            var value: UInt32
-            if backwards {
-                let unit = units[index - 1]
-                if isLow(unit) && index > 1 && isHigh(units[index - 2]) {
-                    length = 2
-                    value = 0x10000 + ((UInt32(units[index - 2]) - 0xD800) << 10) + (UInt32(unit) - 0xDC00)
-                } else {
-                    value = UInt32(unit)
-                }
-                index -= length
-            } else {
-                let unit = units[index]
-                if isHigh(unit) && index + 1 < units.count && isLow(units[index + 1]) {
-                    length = 2
-                    value = 0x10000 + ((UInt32(unit) - 0xD800) << 10) + (UInt32(units[index + 1]) - 0xDC00)
-                } else {
-                    value = UInt32(unit)
-                }
-            }
-
-            if let scalar = Unicode.Scalar(value), searchSet.contains(scalar) {
-                return NSRange(location: searchRange.location + index, length: length)
-            }
-            if anchored {
-                break
-            }
-            if !backwards {
-                index += length
-            }
-        }
-        return NSRange(location: NSNotFound, length: 0)
+        return NSRange(location: utf16.distance(from: utf16.startIndex, to: found.lowerBound), length: utf16.distance(from: found.lowerBound, to: found.upperBound))
     }
 
     public func rangeOfComposedCharacterSequence(at index: Int) -> NSRange {

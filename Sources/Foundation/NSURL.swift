@@ -769,23 +769,12 @@ extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
     public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
-        let hexDigits = Array("0123456789ABCDEF".utf8)
-        var encoded = [UInt8]()
-        for byte in _swiftObject.utf8 {
-            if byte < 0x80, allowedCharacters.contains(Unicode.Scalar(byte)) {
-                encoded.append(byte)
-            } else {
-                encoded.append(UInt8(ascii: "%"))
-                encoded.append(hexDigits[Int(byte >> 4)])
-                encoded.append(hexDigits[Int(byte & 0xF)])
-            }
-        }
-        return String(decoding: encoded, as: UTF8.self)
+        return _swiftObject.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
     }
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
     public var removingPercentEncoding: String? {
-        return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
+        return _swiftObject.removingPercentEncoding
     }
 }
 
