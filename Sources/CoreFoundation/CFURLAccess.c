@@ -16,6 +16,7 @@ CFData read/write routines
 #pragma GCC diagnostic ignored "-Wdeprecated"
 
 #include "CFInternal.h"
+#include "CFUniChar.h"
 #include "CFBase.h"
 #include "CFURL.h"
 #include "CFDictionary.h"
@@ -331,7 +332,6 @@ static CFStringRef createMimeTypeFromContentTypeComponent(CFStringRef component)
     CFStringInlineBuffer buf;
     CFIndex idx;
     CFIndex firstChar = -1, lastChar = -1;
-    CFCharacterSetRef whitespaceSet = CFCharacterSetGetPredefined(kCFCharacterSetWhitespace);
     CFStringInitInlineBuffer(component, &buf, CFRangeMake(0, compLen));
     
     for (idx = 0; idx < compLen; idx ++) {
@@ -340,10 +340,10 @@ static CFStringRef createMimeTypeFromContentTypeComponent(CFStringRef component)
 			// Delimits the charset
 			break;
 		} else if (firstChar == -1) {
-			if (!CFCharacterSetIsCharacterMember(whitespaceSet, ch)) {
+			if (!CFUniCharIsMemberOf(ch, kCFUniCharWhitespaceCharacterSet)) {
 				firstChar = idx;
 			}
-		} else if (!CFCharacterSetIsCharacterMember(whitespaceSet, ch)) {
+		} else if (!CFUniCharIsMemberOf(ch, kCFUniCharWhitespaceCharacterSet)) {
 			lastChar = idx;
 		}
     }
@@ -367,25 +367,23 @@ static CFStringRef createCharsetFromContentTypeHeader(CFStringRef contentType) {
     CFRange range;
     CFIndex compLen = CFStringGetLength(contentType);
     CFIndex start, end, idx;
-    CFCharacterSetRef whitespaceSet;
     CFMutableStringRef result;
     
 	CFStringRef kCFURLResponseCharsetPrefix = CFSTR("charset=");
 	
     if (!CFStringFindWithOptions(contentType, kCFURLResponseCharsetPrefix, CFRangeMake(0, compLen), kCFCompareCaseInsensitive, &range) || range.length == 0) return NULL;
 	
-    whitespaceSet = CFCharacterSetGetPredefined(kCFCharacterSetWhitespace);
     start = -1; 
     end = -1;
     for (idx = range.location + range.length; idx < compLen; idx ++) {
 		UniChar ch = CFStringGetCharacterAtIndex(contentType, idx);
 		if (ch == ';' || ch == ',') break;
 		if (start == -1) {
-			if (!CFCharacterSetIsCharacterMember(whitespaceSet, ch)) {
+			if (!CFUniCharIsMemberOf(ch, kCFUniCharWhitespaceCharacterSet)) {
 				start = idx;
 				end = idx;
 			} 
-		} else if (!CFCharacterSetIsCharacterMember(whitespaceSet,ch)) {
+		} else if (!CFUniCharIsMemberOf(ch, kCFUniCharWhitespaceCharacterSet)) {
 			end = idx;
 		}
     }

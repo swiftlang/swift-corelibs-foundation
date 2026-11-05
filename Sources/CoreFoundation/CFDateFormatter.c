@@ -11,6 +11,7 @@
 #define U_SHOW_INTERNAL_API 1
 
 #include "CFDateFormatter.h"
+#include "CFUniChar.h"
 #include "CFDateFormatter_Private.h"
 #include "CFDate.h"
 #include "CFTimeZone.h"
@@ -100,17 +101,16 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
 static void _CFDateFormatterStripAMPMIndicators(UniChar **bpat, int32_t *bpatlen, CFIndex bufferSize) {
 
     //scan
-    CFCharacterSetRef whitespaceChars = CFCharacterSetGetPredefined(kCFCharacterSetWhitespace);
     for (CFIndex idx = 0; idx < *bpatlen; idx++) {
         UniChar c = (*bpat)[idx];
         if (c == 'a' || c == 'b' || c == 'B' || c == 'C') {
             //back up
-            while (CFCharacterSetIsCharacterMember(whitespaceChars, (*bpat)[idx - 1])) {
+            while (CFUniCharIsMemberOf((*bpat)[idx - 1], kCFUniCharWhitespaceCharacterSet)) {
                 idx--;
             }
 
             //shift
-            for (c = (*bpat)[idx]; c == 'a' || c == 'b' || c == 'B' || c == 'C' || CFCharacterSetIsCharacterMember(whitespaceChars, c); idx++, c = (*bpat)[idx]) {
+            for (c = (*bpat)[idx]; c == 'a' || c == 'b' || c == 'B' || c == 'C' || CFUniCharIsMemberOf(c, kCFUniCharWhitespaceCharacterSet); idx++, c = (*bpat)[idx]) {
                 for (CFIndex shiftIdx = idx; shiftIdx < *bpatlen && shiftIdx + 1 < bufferSize; shiftIdx++) {
                     (*bpat)[shiftIdx] = (*bpat)[shiftIdx + 1];
                 }
@@ -1058,14 +1058,16 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
 #endif
     if (options == UDATPG_MATCH_NO_OPTIONS) return (CFStringRef)CFRetain(inString);
     
-    static CFCharacterSetRef hourCharacters;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        hourCharacters = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("hHkK"));
-    });
-    
-    CFRange hourRange = CFRangeMake(kCFNotFound, 0);
-    if (!CFStringFindCharacterFromSet(inString, hourCharacters, CFRangeMake(0, CFStringGetLength(inString)), 0, &hourRange) || hourRange.location == kCFNotFound) {
+    // Only patterns that contain an hour field need to be remapped.
+    Boolean hasHourField = false;
+    for (CFIndex idx = 0, len = CFStringGetLength(inString); idx < len; idx++) {
+        UniChar ch = CFStringGetCharacterAtIndex(inString, idx);
+        if (ch == 'h' || ch == 'H' || ch == 'k' || ch == 'K') {
+            hasHourField = true;
+            break;
+        }
+    }
+    if (!hasHourField) {
         return (CFStringRef)CFRetain(inString);
     }
     __block CFStringRef result = NULL;

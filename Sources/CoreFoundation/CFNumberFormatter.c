@@ -9,6 +9,7 @@
 */
 
 #include "CFBase.h"
+#include "CFUniChar.h"
 #include "CFNumberFormatter.h"
 #include "ForFoundationOnly.h"
 #include "CFBigNumber.h"
@@ -246,7 +247,7 @@ static void __substituteFormatStringFromPrefsNF(CFNumberFormatterRef formatter) 
 }
 
 static UniChar __CFNumberFormatterNormalizeCharacter(UniChar c) {
-    if (CFCharacterSetIsCharacterMember(CFCharacterSetGetPredefined(kCFCharacterSetWhitespace), c)) {
+    if (CFUniCharIsMemberOf(c, kCFUniCharWhitespaceCharacterSet)) {
 	return ' ';
     } else {
 	return c;
@@ -263,15 +264,13 @@ static CFStringRef __CFNumberFormatterCreateCompressedString(CFStringRef inStrin
 	range.length = CFStringGetLength(inString);
     }
     CFMutableStringRef outString = CFStringCreateMutable(kCFAllocatorSystemDefault, 0);
-    CFCharacterSetRef letters = CFCharacterSetGetPredefined(kCFCharacterSetLetter);
-    CFCharacterSetRef numbers = CFCharacterSetGetPredefined(kCFCharacterSetDecimalDigit);
     UniChar prevCh = 0, nextCh = 0;
     Boolean inQuote = false;
     for (CFIndex in_idx = range.location; in_idx < range.location + range.length; in_idx++) {
         UniChar ch = __CFNumberFormatterNormalizeCharacter(CFStringGetCharacterAtIndex(inString, in_idx));
 	nextCh = (in_idx+1 < range.length) ? CFStringGetCharacterAtIndex(inString, in_idx+1) : 0;
 	if (isFormat && ch == '\'') inQuote = !inQuote;
-	if (inQuote || ch != ' ' || (CFCharacterSetIsCharacterMember(letters, prevCh) && CFCharacterSetIsCharacterMember(letters, nextCh)) || (CFCharacterSetIsCharacterMember(numbers, prevCh) && CFCharacterSetIsCharacterMember(numbers, nextCh))) {
+	if (inQuote || ch != ' ' || (CFUniCharIsMemberOf(prevCh, kCFUniCharLetterCharacterSet) && CFUniCharIsMemberOf(nextCh, kCFUniCharLetterCharacterSet)) || (CFUniCharIsMemberOf(prevCh, kCFUniCharDecimalDigitCharacterSet) && CFUniCharIsMemberOf(nextCh, kCFUniCharDecimalDigitCharacterSet))) {
 	    CFStringAppendCharacters(outString, &ch, 1);
 	    prevCh = ch;
 	}
@@ -625,8 +624,7 @@ Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFSt
             range.length = CFStringGetLength(stringToParse);
         }
         // __cficu_unum_parse chokes on leading whitespace
-        CFCharacterSetRef whitespace = CFCharacterSetGetPredefined(kCFCharacterSetWhitespace);
-        while(range.length > 0 && CFCharacterSetIsCharacterMember(whitespace, CFStringGetCharacterAtIndex(stringToParse, range.location))) {
+        while(range.length > 0 && CFUniCharIsMemberOf(CFStringGetCharacterAtIndex(stringToParse, range.location), kCFUniCharWhitespaceCharacterSet)) {
             range.location++;
             range.length--;
         }

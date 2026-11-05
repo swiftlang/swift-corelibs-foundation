@@ -16,7 +16,6 @@
 #include "CFArray.h"
 #include "CFData.h"
 #include "CFDictionary.h"
-#include "CFCharacterSet.h"
 #include "CFLocale.h"
 #include <stdarg.h>
 
@@ -493,37 +492,6 @@ Boolean CFStringHasSuffix(CFStringRef theString, CFStringRef suffix);
 	@result The range of the composed character sequence.
 */
 CF_EXPORT CFRange CFStringGetRangeOfComposedCharactersAtIndex(CFStringRef theString, CFIndex theIndex);
-
-/*!
-	@function CFStringFindCharacterFromSet
-	Query the range of the first character contained in the specified character set.
-	@param theString The CFString which is to be searched.  If this
-                		parameter is not a valid CFString, the behavior is
-              		undefined.
-	@param theSet The CFCharacterSet against which the membership
-			of characters is checked.  If this parameter is not a valid
-			CFCharacterSet, the behavior is undefined.
-	@param rangeToSearch The range of characters within the string to search. If
-			the range location or end point (defined by the location
-			plus length minus 1) are outside the index space of the
-			string (0 to N-1 inclusive, where N is the length of the
-			string), the behavior is undefined. If the range length is
-			negative, the behavior is undefined. The range may be empty
-			(length 0), in which case no search is performed.
-	@param searchOptions The bitwise-or'ed option flags to control
-			the search behavior.  The supported options are
-			kCFCompareBackwards andkCFCompareAnchored.
-			If other option flags are specified, the behavior
-                        is undefined.
-	@param result The pointer to a CFRange supplied by the caller in
-			which the search result is stored.  Note that the length
-			of this range can be more than 1, if for instance the 
-			result is a composed character. If a pointer to an invalid
-			memory is specified, the behavior is undefined.
-	@result true, if at least a character which is a member of the character
-			set is found and result is filled, otherwise, false.
-*/
-CF_EXPORT Boolean CFStringFindCharacterFromSet(CFStringRef theString, CFCharacterSetRef theSet, CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result);
 
 /* Find range of bounds of the line(s) that span the indicated range (startIndex, numChars),
    taking into account various possible line separator sequences (CR, CRLF, LF, and Unicode NextLine, LineSeparator, ParagraphSeparator).

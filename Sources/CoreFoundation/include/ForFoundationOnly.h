@@ -716,10 +716,6 @@ CF_EXPORT CFArrayRef _CFLocaleCopyPreferredLanguagesForCurrentUser(void);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, _Nullable CFDataRef data);
 
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, CFRange theRange);
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset, CFStringRef theString);
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitMutable(CFMutableCharacterSetRef cset);
-CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithBitmapRepresentation(CFMutableCharacterSetRef cset, CFDataRef theData);
 
 CF_EXPORT void * _Nullable __CFTSANTagMutableArray;
 CF_EXPORT void * _Nullable __CFTSANTagMutableDictionary;

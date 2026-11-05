@@ -2666,25 +2666,13 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
     return filledLength;
 }
 
-static bool __CFStringFillCharacterSetInlineBuffer(CFCharacterSetInlineBuffer *buffer, CFStringCompareFlags compareOptions) {
-    if (0 != (compareOptions & kCFCompareIgnoreNonAlphanumeric)) {
-	static CFCharacterSetRef nonAlnumChars = NULL;
+/* kCFCompareIgnoreNonAlphanumeric skips every character that is not a letter, mark or number. */
+static bool __CFStringShouldIgnoreNonAlphanumeric(CFStringCompareFlags compareOptions) {
+    return (0 != (compareOptions & kCFCompareIgnoreNonAlphanumeric));
+}
 
-	if (NULL == nonAlnumChars) {
-	    CFMutableCharacterSetRef cset = CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetAlphaNumeric));
-	    CFCharacterSetInvert(cset);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-	    if (!OSAtomicCompareAndSwapPtrBarrier(NULL, cset, (void **)&nonAlnumChars)) CFRelease(cset);
-#pragma GCC diagnostic pop
-	}
-
-	CFCharacterSetInitInlineBuffer(nonAlnumChars, buffer);
-
-	return true;
-    }
-
-    return false;
+CF_INLINE bool __CFStringIsIgnoredCharacter(UTF32Char character) {
+    return !CFUniCharIsMemberOf(character, kCFUniCharAlphaNumericCharacterSet);
 }
 
 #define kCFStringStackBufferLength (__kCFStringInlineBufferLength)
@@ -2740,8 +2728,7 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
     CFComparisonResult compareResult = kCFCompareEqualTo;
     UTF16Char otherChar;
     Boolean freeLocale = false;
-    CFCharacterSetInlineBuffer *ignoredChars = NULL;
-    CFCharacterSetInlineBuffer csetBuffer;
+    bool ignoreNonAlphanumeric = false;
     bool numericEquivalence = false;
 
     if ((compareOptions & kCFCompareLocalized) && (NULL == locale)) {
@@ -2751,12 +2738,12 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
 
     langCode = ((NULL == locale) ? NULL : (const uint8_t *)_CFStrGetSpecialCaseHandlingLanguageIdentifierForLocale(locale, true));
 
-    if (__CFStringFillCharacterSetInlineBuffer(&csetBuffer, compareOptions)) {
-	ignoredChars = &csetBuffer;
+    if (__CFStringShouldIgnoreNonAlphanumeric(compareOptions)) {
+	ignoreNonAlphanumeric = true;
 	equalityOptions = true;
     }
 
-    if ((NULL == locale) && (NULL == ignoredChars) && !numerically) { // could do binary comp (be careful when adding new flags)
+    if ((NULL == locale) && !ignoreNonAlphanumeric && !numerically) { // could do binary comp (be careful when adding new flags)
         CFStringEncoding eightBitEncoding = __CFStringGetEightBitStringEncoding();
         const uint8_t *str1Bytes = (const uint8_t *)_CFStringGetCStringPtrInternal(string, eightBitEncoding, false, true);
         const uint8_t *str2Bytes = (const uint8_t *)_CFStringGetCStringPtrInternal(string2, eightBitEncoding, false, true);
@@ -2922,7 +2909,7 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
 		forcedIndex2 = str2LocalizedIndex;
 	    }
 
-            if ((str1Char < 0x80) && (str2Char < 0x80) && (NULL == ignoredChars)) {
+            if ((str1Char < 0x80) && (str2Char < 0x80) && !ignoreNonAlphanumeric) {
                 if (NULL != locale) {
 		    compareResult = _CFCompareStringsWithLocale(&inlineBuf1, CFRangeMake(str1Index, rangeToCompare.length - str1Index), &inlineBuf2, CFRangeMake(str2Index, str2Len - str2Index), compareOptions, locale);
 		    if (freeLocale && locale) {
@@ -2947,14 +2934,14 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                 str2UsedLen = 2;
             }
             
-	    if (NULL != ignoredChars) {
-		if (CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str1Char)) {
+	    if (ignoreNonAlphanumeric) {
+		if (__CFStringIsIgnoredCharacter(str1Char)) {
 		    if ((strBuf1Len > 0) && (strBuf1Index == strBuf1Len)) strBuf1Len = 0;
 		    if (strBuf1Len == 0) str1Index += str1UsedLen;
 		    if (strBuf2Len > 0) --strBuf2Index;
 		    continue;
 		}
-		if (CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str2Char)) {
+		if (__CFStringIsIgnoredCharacter(str2Char)) {
 		    if ((strBuf2Len > 0) && (strBuf2Index == strBuf2Len)) strBuf2Len = 0;
 		    if (strBuf2Len == 0) str2Index += str2UsedLen;
 		    if (strBuf1Len > 0) -- strBuf1Index;
@@ -3054,25 +3041,25 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
 	}
     }
 
-    if (diacriticsInsensitive || (NULL != ignoredChars)) {
+    if (diacriticsInsensitive || ignoreNonAlphanumeric) {
         while (str1Index < rangeToCompare.length) {
             str1Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index);
-            if ((str1Char < 0x80) && (NULL == ignoredChars)) break; // found ASCII
+            if ((str1Char < 0x80) && !ignoreNonAlphanumeric) break; // found ASCII
 
             if (CFUniCharIsSurrogateHighCharacter(str1Char) && CFUniCharIsSurrogateLowCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index + 1)))) str1Char = CFUniCharGetLongCharacterForSurrogatePair(str1Char, otherChar);
 
-            if ((!diacriticsInsensitive || !CFUniCharIsMemberOfBitmap(str1Char, ((str1Char < 0x10000) ? graphemeBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharGraphemeExtendCharacterSet, (str1Char >> 16))))) && ((NULL == ignoredChars) || !CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str1Char))) break;
+            if ((!diacriticsInsensitive || !CFUniCharIsMemberOfBitmap(str1Char, ((str1Char < 0x10000) ? graphemeBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharGraphemeExtendCharacterSet, (str1Char >> 16))))) && (!ignoreNonAlphanumeric || !__CFStringIsIgnoredCharacter(str1Char))) break;
 
             str1Index += ((str1Char < 0x10000) ? 1 : 2);
         }
 
         while (str2Index < str2Len) {
             str2Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf2, str2Index);
-            if ((str2Char < 0x80) && (NULL == ignoredChars)) break; // found ASCII
+            if ((str2Char < 0x80) && !ignoreNonAlphanumeric) break; // found ASCII
                 
             if (CFUniCharIsSurrogateHighCharacter(str2Char) && CFUniCharIsSurrogateLowCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(&inlineBuf2, str2Index + 1)))) str2Char = CFUniCharGetLongCharacterForSurrogatePair(str2Char, otherChar);
 
-            if ((!diacriticsInsensitive || !CFUniCharIsMemberOfBitmap(str2Char, ((str2Char < 0x10000) ? graphemeBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharGraphemeExtendCharacterSet, (str2Char >> 16))))) && ((NULL == ignoredChars) || !CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str2Char))) break;
+            if ((!diacriticsInsensitive || !CFUniCharIsMemberOfBitmap(str2Char, ((str2Char < 0x10000) ? graphemeBMP : CFUniCharGetBitmapPtrForPlane(kCFUniCharGraphemeExtendCharacterSet, (str2Char >> 16))))) && (!ignoreNonAlphanumeric || !__CFStringIsIgnoredCharacter(str2Char))) break;
 
             str2Index += ((str2Char < 0x10000) ? 1 : 2);
         }
@@ -3099,11 +3086,10 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
     CFIndex findStrLen = CFStringGetLength(stringToFind);
     Boolean didFind = false;
     bool lengthVariants = ((compareOptions & (kCFCompareCaseInsensitive|kCFCompareNonliteral|kCFCompareDiacriticInsensitive)) ? true : false);
-    CFCharacterSetInlineBuffer *ignoredChars = NULL;
-    CFCharacterSetInlineBuffer csetBuffer;
+    bool ignoreNonAlphanumeric = false;
 
-    if (__CFStringFillCharacterSetInlineBuffer(&csetBuffer, compareOptions)) {
-	ignoredChars = &csetBuffer;
+    if (__CFStringShouldIgnoreNonAlphanumeric(compareOptions)) {
+	ignoreNonAlphanumeric = true;
 	lengthVariants = true;
     }
 
@@ -3178,7 +3164,7 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                                 }
                             }
 
-			    if ((NULL != ignoredChars) && (forwardAnchor || (str1Index != fromLoc)) && CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, ((str1Byte < 0x80) ? str1Byte : str1Char))) {
+			    if (ignoreNonAlphanumeric && (forwardAnchor || (str1Index != fromLoc)) && __CFStringIsIgnoredCharacter(((str1Byte < 0x80) ? str1Byte : str1Char))) {
 				++str1Index;
 				continue;
 			    }
@@ -3196,7 +3182,7 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                                 }
                             }
 
-			    if ((NULL != ignoredChars) && CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, ((str2Byte < 0x80) ? str2Byte : str2Char))) {
+			    if (ignoreNonAlphanumeric && __CFStringIsIgnoredCharacter(((str2Byte < 0x80) ? str2Byte : str2Char))) {
 				++str2Index;
 				continue;
 			    }
@@ -3246,21 +3232,21 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                     ++str1Index; ++str2Index;
                 }
 
-		if ((NULL != ignoredChars) && (str1Index == maxStr1Index) && (str2Index < findStrLen)) { // Process the stringToFind tail
+		if (ignoreNonAlphanumeric && (str1Index == maxStr1Index) && (str2Index < findStrLen)) { // Process the stringToFind tail
 		    while (str2Index < findStrLen) {
 			str2Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf2, str2Index);
 
-			if (!CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str2Char)) break;
+			if (!__CFStringIsIgnoredCharacter(str2Char)) break;
 			++str2Index;
 		    }
 		}
 
                 if (str2Index == findStrLen) {
-		    if ((NULL != ignoredChars) && backwardAnchor && (str1Index < maxStr1Index)) { // Process the anchor tail
+		    if (ignoreNonAlphanumeric && backwardAnchor && (str1Index < maxStr1Index)) { // Process the anchor tail
 			while (str1Index < maxStr1Index) {
 			    str1Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index);
 			    
-			    if (!CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str1Char)) break;
+			    if (!__CFStringIsIgnoredCharacter(str1Char)) break;
 			    ++str1Index;
 			}
 		    }
@@ -3306,7 +3292,7 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                     }
 
                     if (str1Char != str2Char) {
-                        if ((str1Char < 0x80) && (str2Char < 0x80) && (NULL == ignoredChars) && ((NULL == langCode) || !caseInsensitive)) break;
+                        if ((str1Char < 0x80) && (str2Char < 0x80) && !ignoreNonAlphanumeric && ((NULL == langCode) || !caseInsensitive)) break;
 
                         if (CFUniCharIsSurrogateHighCharacter(str1Char) && CFUniCharIsSurrogateLowCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index + 1)))) {
                             str1Char = CFUniCharGetLongCharacterForSurrogatePair(str1Char, otherChar);
@@ -3318,14 +3304,14 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                             str2UsedLen = 2;
                         }
 
-			if (NULL != ignoredChars) {
-			    if ((forwardAnchor || (str1Index != fromLoc)) && (str1Index < maxStr1Index) && CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str1Char)) {
+			if (ignoreNonAlphanumeric) {
+			    if ((forwardAnchor || (str1Index != fromLoc)) && (str1Index < maxStr1Index) && __CFStringIsIgnoredCharacter(str1Char)) {
 				if ((strBuf1Len > 0) && (strBuf1Index == strBuf1Len)) strBuf1Len = 0;
 				if (strBuf1Len == 0) str1Index += str1UsedLen;
 				if (strBuf2Len > 0) --strBuf2Index;
 				continue;
 			    }
-			    if (CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str2Char)) {
+			    if (__CFStringIsIgnoredCharacter(str2Char)) {
 				if ((strBuf2Len > 0) && (strBuf2Index == strBuf2Len)) strBuf2Len = 0;
 				if (strBuf2Len == 0) str2Index += str2UsedLen;
 				if (strBuf1Len > 0) -- strBuf1Index;
@@ -3432,13 +3418,13 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                     if (strBuf2Len == 0) str2Index += str2UsedLen;
                 }
 
-		if ((NULL != ignoredChars) && (str1Index == maxStr1Index) && (str2Index < findStrLen)) { // Process the stringToFind tail
+		if (ignoreNonAlphanumeric && (str1Index == maxStr1Index) && (str2Index < findStrLen)) { // Process the stringToFind tail
 		    while (str2Index < findStrLen) {
 			str2Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf2, str2Index);
                         if (CFUniCharIsSurrogateHighCharacter(str2Char) && CFUniCharIsSurrogateLowCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(&inlineBuf2, str2Index + 1)))) {
                             str2Char = CFUniCharGetLongCharacterForSurrogatePair(str2Char, otherChar);
                         }
-			if (!CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str2Char)) break;
+			if (!__CFStringIsIgnoredCharacter(str2Char)) break;
 			str2Index += ((str2Char < 0x10000) ? 1 : 2);
 		    }
 		}
@@ -3503,13 +3489,13 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
                     }
 
                     if (match) {
-			if ((NULL != ignoredChars) && backwardAnchor && (str1Index < maxStr1Index)) { // Process the anchor tail
+			if (ignoreNonAlphanumeric && backwardAnchor && (str1Index < maxStr1Index)) { // Process the anchor tail
 			    while (str1Index < maxStr1Index) {
 				str1Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index);
 				if (CFUniCharIsSurrogateHighCharacter(str1Char) && CFUniCharIsSurrogateLowCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index + 1)))) {
 				    str1Char = CFUniCharGetLongCharacterForSurrogatePair(str1Char, otherChar);
 				}
-				if (!CFCharacterSetInlineBufferIsLongCharacterMember(ignoredChars, str1Char)) break;
+				if (!__CFStringIsIgnoredCharacter(str1Char)) break;
 				str1Index += ((str1Char < 0x10000) ? 1 : 2);
 			    }
 			}
@@ -4569,105 +4555,6 @@ CFRange CFStringGetRangeOfCharacterClusterAtIndex(CFStringRef string, CFIndex ch
 
 CFRange CFStringGetRangeOfComposedCharactersAtIndex(CFStringRef theString, CFIndex theIndex) {
     return CFStringGetRangeOfCharacterClusterAtIndex(theString, theIndex, kCFStringComposedCharacterCluster);
-}
-
-/*!
-	@function CFStringFindCharacterFromSet
-	Query the range of characters contained in the specified character set.
-	@param theString The CFString which is to be searched.  If this
-                		parameter is not a valid CFString, the behavior is
-              		undefined.
-	@param theSet The CFCharacterSet against which the membership
-			of characters is checked.  If this parameter is not a valid
-			CFCharacterSet, the behavior is undefined.
-	@param range The range of characters within the string to search. If
-			the range location or end point (defined by the location
-			plus length minus 1) are outside the index space of the
-			string (0 to N-1 inclusive, where N is the length of the
-			string), the behavior is undefined. If the range length is
-			negative, the behavior is undefined. The range may be empty
-			(length 0), in which case no search is performed.
-	@param searchOptions The bitwise-or'ed option flags to control
-			the search behavior.  The supported options are
-			kCFCompareBackwards and kCFCompareAnchored.
-			If other option flags are specified, the behavior is undefined.
-	@param result The pointer to a CFRange supplied by the caller in
-			which the search result is stored.  If a pointer to an invalid
-			memory is specified, the behavior is undefined.
-	@result true, if at least a character which is a member of the character
-			set is found and result is filled, otherwise, false.
-*/
-#define SURROGATE_START 0xD800
-#define SURROGATE_END 0xDFFF
-
-CF_EXPORT Boolean CFStringFindCharacterFromSet(CFStringRef theString, CFCharacterSetRef theSet, CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result) {
-    CFStringInlineBuffer stringBuffer;
-    CFCharacterSetInlineBuffer csetBuffer;
-    UniChar ch;
-    CFIndex step;
-    CFIndex fromLoc, toLoc, cnt;	// fromLoc and toLoc are inclusive
-    Boolean found = false;
-    Boolean done = false;
-
-//#warning FIX ME !! Should support kCFCompareNonliteral
-
-    if ((rangeToSearch.location + rangeToSearch.length > CFStringGetLength(theString)) || (rangeToSearch.length == 0)) return false;
-
-    if (searchOptions & kCFCompareBackwards) {
-        fromLoc = rangeToSearch.location + rangeToSearch.length - 1;
-        toLoc = rangeToSearch.location;
-    } else {       
-        fromLoc = rangeToSearch.location;
-        toLoc = rangeToSearch.location + rangeToSearch.length - 1;
-    }
-    if (searchOptions & kCFCompareAnchored) {
-	toLoc = fromLoc;
-    }
-
-    step = (fromLoc <= toLoc) ? 1 : -1;
-    cnt = fromLoc;
-    
-    _CFStringInitInlineBufferInternal(theString, &stringBuffer, rangeToSearch, true);
-    CFCharacterSetInitInlineBuffer(theSet, &csetBuffer);
-
-    do {
-	ch = CFStringGetCharacterFromInlineBuffer(&stringBuffer, cnt - rangeToSearch.location);
-        if ((ch >= SURROGATE_START) && (ch <= SURROGATE_END)) {
-            int otherCharIndex = cnt + step;
-
-            if (((step < 0) && (otherCharIndex < toLoc)) || ((step > 0) && (otherCharIndex > toLoc))) {
-                done = true;
-            } else {
-                UniChar highChar;
-                UniChar lowChar = CFStringGetCharacterFromInlineBuffer(&stringBuffer, otherCharIndex - rangeToSearch.location);
-
-                if (cnt < otherCharIndex) {
-                    highChar = ch;
-                } else {
-                    highChar = lowChar;
-                    lowChar = ch;
-                }
-
-                if (CFUniCharIsSurrogateHighCharacter(highChar) && CFUniCharIsSurrogateLowCharacter(lowChar) && CFCharacterSetInlineBufferIsLongCharacterMember(&csetBuffer, CFUniCharGetLongCharacterForSurrogatePair(highChar, lowChar))) {
-                    if (result) *result = CFRangeMake((cnt < otherCharIndex ? cnt : otherCharIndex), 2);
-                    return true;
-                } else if (otherCharIndex == toLoc) {
-                    done = true;
-                } else {
-                    cnt = otherCharIndex + step;
-                }
-            }
-        } else if (CFCharacterSetInlineBufferIsLongCharacterMember(&csetBuffer, ch)) {
-	    done = found = true;
-        } else if (cnt == toLoc) {
-            done = true;
-        } else {
-            cnt += step;
-        }
-    } while (!done);
-
-    if (found && result) *result = CFRangeMake(cnt, 1);
-    return found;
 }
 
 /* Line range code */

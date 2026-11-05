@@ -13,16 +13,6 @@
 #define bzero(dst, size)    ZeroMemory(dst, size)
 #endif
 
-typedef CF_ENUM(CFIndex, URLPredefinedCharacterSet) {
-    kURLUserAllowedCharacterSet     = 0,
-    kURLPasswordAllowedCharacterSet = 1,
-    kURLHostAllowedCharacterSet     = 2,
-    kURLPathAllowedCharacterSet     = 3,
-    kURLQueryAllowedCharacterSet    = 4,
-    kURLFragmentAllowedCharacterSet = 5,
-    kURLAllowedCharacterSetIllegal  = 6
-};
-
 // IMPORTANT: the kURLxxxxAllowedCharacters definitions MUST match sURLAllowedCharacters (except for the '[', ':' and ']' characters in kURLHostAllowedCharacters are not kURLHostAllowed, and ';' is not in kURLPathAllowedCharacters, but is special cased in kURLPathAllowed)
 #define kURLUserAllowedCharacters       "!$&'()*+,-.0123456789;=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
 #define kURLPasswordAllowedCharacters   "!$&'()*+,-.0123456789;=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
@@ -163,101 +153,12 @@ static const unsigned short sURLAllowedCharacters[128] = {
     /* del */ 0,
 };
 
-// an array of CFCharacterSetRef for each of the predefined allowed character sets
-static CFCharacterSetRef *sURLAllowedCharacterSets = NULL;
-
-/* Create the sURLAllowedCharacterSets array.
- */
-static void InitializeURLAllowedCharacterSets(void)
-{
-    static dispatch_once_t static_init = 0;
-    dispatch_once(&static_init, ^{
-        sURLAllowedCharacterSets = (CFCharacterSetRef *)CFAllocatorAllocate(kCFAllocatorDefault, sizeof(CFCharacterSetRef) * kURLAllowedCharacterSetIllegal, 0);
-        sURLAllowedCharacterSets[kURLUserAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLUserAllowedCharacters));
-        sURLAllowedCharacterSets[kURLPasswordAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLPasswordAllowedCharacters));
-        sURLAllowedCharacterSets[kURLHostAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLHostAllowedCharacters));
-        sURLAllowedCharacterSets[kURLPathAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLPathAllowedCharacters));
-        sURLAllowedCharacterSets[kURLQueryAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLQueryAllowedCharacters));
-        sURLAllowedCharacterSets[kURLFragmentAllowedCharacterSet] = CFCharacterSetCreateWithCharactersInString(kCFAllocatorDefault, CFSTR(kURLFragmentAllowedCharacters));
-    });
-}
-
-/* Returns the set from sURLAllowedCharacterSets for the given URLPredefinedCharacterSet.
- */
-static CFCharacterSetRef GetURLAllowedCharacterSet(URLPredefinedCharacterSet allowedSet)
-{
-    CFCharacterSetRef result;
-    
-    // make sure sURLAllowedCharacterSets is initialized
-    InitializeURLAllowedCharacterSets();
-    // return the URLPredefinedCharacterSet requested
-    if ( (allowedSet >= 0) && (allowedSet < kURLAllowedCharacterSetIllegal) ) {
-        result = sURLAllowedCharacterSets[allowedSet];
-    }
-    else {
-        result = nil;
-    }
-    return ( result );
-}
-
-/* Returns the URLPredefinedCharacterSet that matches the set, or kURLAllowedCharacterSetIllegal if there is no match.
- */
-static URLPredefinedCharacterSet GetURLPredefinedCharacterSet(CFCharacterSetRef characterSet)
-{
-    URLPredefinedCharacterSet result;
-    
-    // make sure sURLAllowedCharacterSets is initialized
-    InitializeURLAllowedCharacterSets();
-    // see if characterSet is one of the URLPredefinedCharacterSets
-    if ( characterSet ) {
-        for ( result = 0; result < kURLAllowedCharacterSetIllegal; ++result ) {
-            // yes, I really want a pointer comparison because some of the sURLAllowedCharacterSets have the same bitmaps
-            if ( characterSet == sURLAllowedCharacterSets[result] ) {
-                break;
-            }
-        }
-    }
-    else {
-        result = kURLAllowedCharacterSetIllegal;
-    }
-    
-    return ( result );
-}
-
-
-//******************************************************************************
-
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet() {
-    return ( GetURLAllowedCharacterSet(kURLUserAllowedCharacterSet) );
-}
-
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPasswordAllowedCharacterSet() {
-    return ( GetURLAllowedCharacterSet(kURLPasswordAllowedCharacterSet) );
-}
-
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLHostAllowedCharacterSet() {
-    return ( GetURLAllowedCharacterSet(kURLHostAllowedCharacterSet) );
-}
-
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPathAllowedCharacterSet() {
-    return ( GetURLAllowedCharacterSet(kURLPathAllowedCharacterSet) );
-}
-
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet() {
-    return ( GetURLAllowedCharacterSet(kURLQueryAllowedCharacterSet) );
-}
-
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet() {
-    return ( GetURLAllowedCharacterSet(kURLFragmentAllowedCharacterSet) );
-}
-
-
 #if 0
 #pragma mark -
 #pragma mark CFString extensions
 #endif
 
-CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(CFAllocatorRef alloc, CFStringRef string, CFCharacterSetRef allowedCharacters) {
+CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingForURLComponent(CFAllocatorRef alloc, CFStringRef string, URLPredefinedCharacterSet allowedSet) {
     CFStringRef result = NULL;
     CFIndex inLength = CFStringGetLength((CFStringRef)string);
     
@@ -305,9 +206,8 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                     
                     // there are two very similar loops below -- they aren't combined because I didn't want an extra comparison per character to determine which code was going to set the allowed variable.
                     
-                    URLPredefinedCharacterSet allowedSet = GetURLPredefinedCharacterSet(allowedCharacters);
-                    if ( allowedSet != kURLAllowedCharacterSetIllegal ) {
-                        // fastest -- allowedCharacters is one of the predefined sets so use sURLAllowedCharacters to determine what characters are allowed
+                    {
+                        // use sURLAllowedCharacters to determine what characters are allowed
                         unsigned char allowedMask;
                         Boolean isIPLiteral = false;
                         
@@ -339,8 +239,10 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                             case kURLFragmentAllowedCharacterSet:
                                 allowedMask = kURLFragmentAllowed;
                                 break;
+                            case kURLQueryNameValueAllowedCharacterSet:
+                                allowedMask = kURLQueryAllowed;
+                                break;
                             default:
-                                // GetURLPredefinedCharacterSet will return one of the above or kURLAllowedCharacterSetIllegal so this will never be hit
                                 allowedMask = 0;
                                 break;
                         }
@@ -396,9 +298,10 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                             }
                         }
                         else {
+                            Boolean excludeQueryDelimiters = (allowedSet == kURLQueryNameValueAllowedCharacterSet);
                             for ( idx = 0; idx < inLen; ++idx ) {
                                 UInt8 ch = *inBytePtr++;
-                                Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                                Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0) && !(excludeQueryDelimiters && (ch == '&' || ch == '='));
                                 if ( allowed ) {
                                     *outBytePtr++ = ch;
                                 }
@@ -410,24 +313,7 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                             }
                         }
                     }
-                    else {
-                        // use the allowedCharacters NSCharacterSet to determine what characters are allowed
-                        // non-ASCII characters are ignored
-                        for ( idx = 0; idx < inLen; ++idx ) {
-                            UInt8 ch = *inBytePtr++;
-                            // CFCharacterSet
-                            Boolean allowed = (ch <= 127) && CFCharacterSetIsCharacterMember((CFCharacterSetRef)allowedCharacters, ch);
-                            if ( allowed ) {
-                                *outBytePtr++ = ch;
-                            }
-                            else {
-                                *outBytePtr++ = '%';
-                                *outBytePtr++ = hexchars[ch >> 4];
-                                *outBytePtr++ = hexchars[ch & 0x0f];
-                            }
-                        }
-                    }
-                    
+
                     result = CFStringCreateWithBytes(kCFAllocatorDefault, outBuf, outBytePtr - outBuf, kCFStringEncodingUTF8, false);
                 }
                 

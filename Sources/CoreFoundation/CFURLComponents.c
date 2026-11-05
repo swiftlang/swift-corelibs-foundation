@@ -730,7 +730,7 @@ CF_EXPORT Boolean _CFURLComponentsSetScheme(CFURLComponentsRef components, CFStr
 CF_EXPORT Boolean _CFURLComponentsSetUser(CFURLComponentsRef components, CFStringRef user) {
     __CFLock(&components->_lock);
     if (components->_userComponent) CFRelease(components->_userComponent);
-    components->_userComponent = user ? _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, user, _CFURLComponentsGetURLUserAllowedCharacterSet()) : NULL;
+    components->_userComponent = user ? _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, user, kURLUserAllowedCharacterSet) : NULL;
     components->_userComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
@@ -739,7 +739,7 @@ CF_EXPORT Boolean _CFURLComponentsSetUser(CFURLComponentsRef components, CFStrin
 CF_EXPORT Boolean _CFURLComponentsSetPassword(CFURLComponentsRef components, CFStringRef password) {
     __CFLock(&components->_lock);
     if (components->_passwordComponent) CFRelease(components->_passwordComponent);
-    components->_passwordComponent = password ? _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, password, _CFURLComponentsGetURLPasswordAllowedCharacterSet()) : NULL;
+    components->_passwordComponent = password ? _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, password, kURLPasswordAllowedCharacterSet) : NULL;
     components->_passwordComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
@@ -748,7 +748,7 @@ CF_EXPORT Boolean _CFURLComponentsSetPassword(CFURLComponentsRef components, CFS
 CF_EXPORT Boolean _CFURLComponentsSetHost(CFURLComponentsRef components, CFStringRef host) {
     __CFLock(&components->_lock);
     if (components->_hostComponent) CFRelease(components->_hostComponent);
-    components->_hostComponent = host ? _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, host, _CFURLComponentsGetURLHostAllowedCharacterSet()) : NULL;
+    components->_hostComponent = host ? _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, host, kURLHostAllowedCharacterSet) : NULL;
     components->_hostComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
@@ -778,7 +778,7 @@ CF_EXPORT Boolean _CFURLComponentsSetPort(CFURLComponentsRef components, CFNumbe
 CF_EXPORT Boolean _CFURLComponentsSetPath(CFURLComponentsRef components, CFStringRef path) {
     __CFLock(&components->_lock);
     if (components->_pathComponent) CFRelease(components->_pathComponent);
-    components->_pathComponent = path ? _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, path, _CFURLComponentsGetURLPathAllowedCharacterSet()) : NULL;
+    components->_pathComponent = path ? _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, path, kURLPathAllowedCharacterSet) : NULL;
     components->_pathComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
@@ -787,7 +787,7 @@ CF_EXPORT Boolean _CFURLComponentsSetPath(CFURLComponentsRef components, CFStrin
 CF_EXPORT Boolean _CFURLComponentsSetQuery(CFURLComponentsRef components, CFStringRef query) {
     __CFLock(&components->_lock);
     if (components->_queryComponent) CFRelease(components->_queryComponent);
-    components->_queryComponent = query ? _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, query, _CFURLComponentsGetURLQueryAllowedCharacterSet()) : NULL;
+    components->_queryComponent = query ? _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, query, kURLQueryAllowedCharacterSet) : NULL;
     components->_queryComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
@@ -796,7 +796,7 @@ CF_EXPORT Boolean _CFURLComponentsSetQuery(CFURLComponentsRef components, CFStri
 CF_EXPORT Boolean _CFURLComponentsSetFragment(CFURLComponentsRef components, CFStringRef fragment) {
     __CFLock(&components->_lock);
     if (components->_fragmentComponent) CFRelease(components->_fragmentComponent);
-    components->_fragmentComponent = fragment ? _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, fragment, _CFURLComponentsGetURLFragmentAllowedCharacterSet()) : NULL;
+    components->_fragmentComponent = fragment ? _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, fragment, kURLFragmentAllowedCharacterSet) : NULL;
     components->_fragmentComponentValid = true;
     __CFUnlock(&components->_lock);
     return true;
@@ -1386,12 +1386,6 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
             CFStringAppendBuffer buf;
             CFStringInitAppendBuffer(kCFAllocatorDefault, &buf);
             UniChar chars[1];
-            static CFMutableCharacterSetRef queryNameValueAllowed = NULL;
-            static dispatch_once_t onceToken;
-            dispatch_once(&onceToken, ^{
-                queryNameValueAllowed = CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _CFURLComponentsGetURLQueryAllowedCharacterSet());
-                CFCharacterSetRemoveCharactersInString(queryNameValueAllowed, CFSTR("&="));
-            });
             CFIndex namesLength = CFArrayGetCount(names);
             Boolean first = true;
             for (CFIndex i = 0; i < namesLength; i++) {
@@ -1406,7 +1400,7 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
                 CFTypeRef value = CFArrayGetValueAtIndex(values, i);
                 if ( name && name != kCFNull ) {
                     if ( addPercentEncoding ) {
-                        CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, name, queryNameValueAllowed);
+                        CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, name, kURLQueryNameValueAllowedCharacterSet);
                         if ( !stringWithPercentEncoding ) {
                             stringWithPercentEncoding = (CFStringRef)CFRetain(CFSTR(""));
                         }
@@ -1426,7 +1420,7 @@ static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef componen
                     chars[0] = '=';
                     CFStringAppendCharactersToAppendBuffer(&buf, chars, 1);
                     if ( addPercentEncoding ) {
-                        CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, value, queryNameValueAllowed);
+                        CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingForURLComponent(kCFAllocatorSystemDefault, value, kURLQueryNameValueAllowedCharacterSet);
                         if ( !stringWithPercentEncoding ) {
                             stringWithPercentEncoding = (CFStringRef)CFRetain(CFSTR(""));
                         }

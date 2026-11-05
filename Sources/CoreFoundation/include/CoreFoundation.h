@@ -49,7 +49,6 @@
 #include "CFBitVector.h"
 #include "CFByteOrder.h"
 #include "CFCalendar.h"
-#include "CFCharacterSet.h"
 #include "CFData.h"
 #include "CFDate.h"
 #include "CFDateFormatter.h"

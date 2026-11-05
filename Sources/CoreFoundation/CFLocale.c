@@ -1296,78 +1296,8 @@ static bool __CFLocaleCopyCodes(CFLocaleRef locale, bool user, CFTypeRef *cf, CF
     }
 }
 
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
-CFCharacterSetRef _CFCreateCharacterSetFromUSet(USet *set) {
-    UErrorCode icuErr = U_ZERO_ERROR;
-    CFMutableCharacterSetRef working = CFCharacterSetCreateMutable(NULL);
-    UChar   buffer[2048];   // Suitable for most small sets
-    int32_t stringLen;
-
-    if (working == NULL)
-        return NULL;
-
-    int32_t itemCount = uset_getItemCount(set);
-    int32_t i;
-    for (i = 0; i < itemCount; ++i)
-    {
-        UChar32   start, end;
-        UChar * string;
-
-        string = buffer;
-        stringLen = uset_getItem(set, i, &start, &end, buffer, sizeof(buffer)/sizeof(UChar), &icuErr);
-        if (icuErr == U_BUFFER_OVERFLOW_ERROR)
-        {
-            string = (UChar *) malloc(sizeof(UChar)*(stringLen+1));
-            if (!string)
-            {
-                CFRelease(working);
-                return NULL;
-            }
-            icuErr = U_ZERO_ERROR;
-            (void) uset_getItem(set, i, &start, &end, string, stringLen+1, &icuErr);
-        }
-        if (U_FAILURE(icuErr))
-        {
-            if (string != buffer)
-                free(string);
-            CFRelease(working);
-            return NULL;
-        }
-        if (stringLen <= 0)
-            CFCharacterSetAddCharactersInRange(working, CFRangeMake(start, end-start+1));
-        else
-        {
-            CFStringRef cfString = CFStringCreateWithCharactersNoCopy(kCFAllocatorSystemDefault, (UniChar *)string, stringLen, kCFAllocatorNull);
-            CFCharacterSetAddCharactersInString(working, cfString);
-            CFRelease(cfString);
-        }
-        if (string != buffer)
-            free(string);
-    }
-    
-    CFCharacterSetRef   result = CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, working);
-    CFRelease(working);
-    return result;
-}
-#endif
-
+/* The exemplar character set is provided by Locale.exemplarCharacterSet in Swift, so CFLocale has no value for this key. */
 static bool __CFLocaleCopyExemplarCharSet(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
-#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
-    char localeID[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
-    if (CFStringGetCString(locale->_identifier, localeID, sizeof(localeID)/sizeof(char), kCFStringEncodingASCII)) {
-        UErrorCode icuStatus = U_ZERO_ERROR;
-	ULocaleData* uld = ulocdata_open(localeID, &icuStatus);
-        USet *set = ulocdata_getExemplarSet(uld, NULL, USET_ADD_CASE_MAPPINGS, ULOCDATA_ES_STANDARD, &icuStatus);
-	ulocdata_close(uld);
-        if (U_FAILURE(icuStatus))
-            return false;
-        if (icuStatus == U_USING_DEFAULT_WARNING)   // If default locale used, force to empty set
-            uset_clear(set);
-        *cf = (CFTypeRef) _CFCreateCharacterSetFromUSet(set);
-        uset_close(set);
-        return (*cf != NULL);
-    }
-#endif
     return false;
 }
 

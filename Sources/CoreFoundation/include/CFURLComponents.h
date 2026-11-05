@@ -95,16 +95,19 @@ CF_EXPORT CFRange _CFURLComponentsGetRangeOfPath(CFURLComponentsRef components) 
 CF_EXPORT CFRange _CFURLComponentsGetRangeOfQuery(CFURLComponentsRef components) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 CF_EXPORT CFRange _CFURLComponentsGetRangeOfFragment(CFURLComponentsRef components) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
-CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(CFAllocatorRef alloc, CFStringRef string, CFCharacterSetRef allowedCharacters) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT CFStringRef _Nullable _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef alloc, CFStringRef string) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+/* The set of characters that may appear unencoded in each URL component. Only ASCII characters are ever left unencoded. */
+typedef CF_ENUM(CFIndex, URLPredefinedCharacterSet) {
+    kURLUserAllowedCharacterSet     = 0,
+    kURLPasswordAllowedCharacterSet = 1,
+    kURLHostAllowedCharacterSet     = 2,
+    kURLPathAllowedCharacterSet     = 3,
+    kURLQueryAllowedCharacterSet    = 4,
+    kURLFragmentAllowedCharacterSet = 5,
+    kURLQueryNameValueAllowedCharacterSet = 6 // The query set without '&' and '=', for query item names and values
+};
 
-// These return singletons
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet(void) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPasswordAllowedCharacterSet(void) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLHostAllowedCharacterSet(void) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPathAllowedCharacterSet(void) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet(void) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet(void) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingForURLComponent(CFAllocatorRef alloc, CFStringRef string, URLPredefinedCharacterSet allowedCharacters) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT CFStringRef _Nullable _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef alloc, CFStringRef string) _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
 // keys for dictionaries returned by _CFURLComponentsCopyQueryItems
 CF_EXPORT const CFStringRef _kCFURLComponentsNameKey _CF_URL_COMPONENTS_API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));

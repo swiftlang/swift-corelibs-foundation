@@ -25,7 +25,6 @@
 #include "CFLogUtilities.h"
 #include "CFDateIntervalFormatter.h"
 #include "ForFoundationOnly.h"
-#include "CFCharacterSetPriv.h"
 #include "CFURLPriv.h"
 #include "CFURLComponents.h"
 #include "CFDateComponents.h"
@@ -220,27 +219,6 @@ struct _NSRunLoop {
 };
 #endif
 
-struct _NSCharacterSetBridge {
-    _Nullable CFCharacterSetRef (*_Nonnull _expandedCFCharacterSet)(CFTypeRef cset);
-    _Nonnull CFDataRef (*_Nonnull _retainedBitmapRepresentation)(CFTypeRef cset);
-    
-    bool (*_Nonnull characterIsMember)(CFTypeRef cset, UniChar ch);
-    _Nonnull CFMutableCharacterSetRef (*_Nonnull mutableCopy)(CFTypeRef cset);
-    bool (*_Nonnull longCharacterIsMember)(CFTypeRef cset, UTF32Char ch);
-    bool (*_Nonnull hasMemberInPlane)(CFTypeRef cset, uint8_t thePlane);
-    _Nonnull CFCharacterSetRef (*_Nonnull invertedSet)(CFTypeRef cset);
-};
-
-struct _NSMutableCharacterSetBridge {
-    void (*_Nonnull addCharactersInRange)(CFTypeRef cset, CFRange range);
-    void (*_Nonnull removeCharactersInRange)(CFTypeRef cset, CFRange range);
-    void (*_Nonnull addCharactersInString)(CFTypeRef cset, CFStringRef string);
-    void (*_Nonnull removeCharactersInString)(CFTypeRef cset, CFStringRef string);
-    void (*_Nonnull formUnionWithCharacterSet)(CFTypeRef cset, CFTypeRef other);
-    void (*_Nonnull formIntersectionWithCharacterSet)(CFTypeRef cset, CFTypeRef other);
-    void (*_Nonnull invert)(CFTypeRef cset);
-};
-
 struct _NSNumberBridge {
     CFNumberType (*_Nonnull _cfNumberGetType)(CFTypeRef number);
     bool (*_Nonnull boolValue)(CFTypeRef number);
@@ -283,8 +261,6 @@ struct _CFSwiftBridge {
 #if !TARGET_OS_WASI
     struct _NSRunLoop NSRunLoop;
 #endif
-    struct _NSCharacterSetBridge NSCharacterSet;
-    struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
     struct _NSDataBridge NSData;
     struct _NSURLBridge NSURL;
@@ -414,11 +390,6 @@ CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_N
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name);
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
-
-CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
-CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
-CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
-CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses);
 
 CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspecified stream);
 

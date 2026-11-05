@@ -30,7 +30,6 @@ enum {
     _kCFRuntimeIDCFNumber = 22, // Note: value copied into NSKeyedArchiver
     _kCFRuntimeIDCFBinaryHeap = 23,
     _kCFRuntimeIDCFBitVector = 24,
-    _kCFRuntimeIDCFCharacterSet = 25,
     _kCFRuntimeIDCFError = 27,
     _kCFRuntimeIDCFTree = 28,
     _kCFRuntimeIDCFURL = 29,
@@ -127,7 +126,6 @@ CF_PRIVATE const CFRuntimeClass __CFBooleanClass;
 CF_PRIVATE const CFRuntimeClass __CFNumberClass;
 CF_PRIVATE const CFRuntimeClass __CFBinaryHeapClass;
 CF_PRIVATE const CFRuntimeClass __CFBitVectorClass;
-CF_PRIVATE const CFRuntimeClass __CFCharacterSetClass;
 CF_PRIVATE const CFRuntimeClass __CFErrorClass;
 CF_PRIVATE const CFRuntimeClass __CFTreeClass;
 CF_PRIVATE const CFRuntimeClass __CFURLClass;
@@ -177,7 +175,6 @@ CF_PRIVATE const CFRuntimeClass __CFDateIntervalFormatterClass;
 #pragma mark - Private initializers to run at process start time
 
 CF_PRIVATE void __CFDateInitialize(void);
-CF_PRIVATE void __CFCharacterSetInitialize(void);
 
 #if TARGET_OS_WIN32
 CF_PRIVATE void __CFTSDWindowsInitialize(void);

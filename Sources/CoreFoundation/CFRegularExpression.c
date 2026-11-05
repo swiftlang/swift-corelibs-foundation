@@ -12,6 +12,7 @@
  */
 
 #include "CFRegularExpression.h"
+#include "CFUniChar.h"
 #include "CFInternal.h"
 #define U_SHOW_DRAFT_API 1
 #define U_SHOW_INTERNAL_API 1
@@ -63,17 +64,26 @@ static struct ___CFRegularExpression *__CFRegularExpressionCreate(CFAllocatorRef
     return (struct ___CFRegularExpression *)_CFRuntimeCreateInstance(allocator, _CFRegularExpressionGetTypeID(), size, NULL);
 }
 
+/* Finds the first character in searchRange that has a special meaning in a regular expression. */
+static Boolean __CFRegularExpressionFindMetacharacter(CFStringRef string, CFRange searchRange, CFRange *result) {
+    for (CFIndex idx = searchRange.location; idx < searchRange.location + searchRange.length; idx++) {
+        switch (CFStringGetCharacterAtIndex(string, idx)) {
+            case '*': case '?': case '+': case '[': case '(': case ')': case '{': case '}':
+            case '^': case '$': case '|': case '\\': case '.': case '/':
+                *result = CFRangeMake(idx, 1);
+                return true;
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
 CFStringRef _CFRegularExpressionCreateEscapedPattern(CFStringRef pattern) {
-    static CFCharacterSetRef characterSet = NULL;
-    static dispatch_once_t once = 0L;
-    dispatch_once(&once, ^{
-        characterSet = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, CFSTR("*?+[(){}^$|\\./"));
-    });
-    
     CFRange range = CFRangeMake(0, CFStringGetLength(pattern));
     CFIndex length;
 
-    if (CFStringFindCharacterFromSet(pattern, characterSet, range, 0, &range)) {
+    if (__CFRegularExpressionFindMetacharacter(pattern, range, &range)) {
         CFMutableStringRef mutableString = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, pattern);
         while (range.length > 0) {
             CFStringInsert(mutableString, range.location, CFSTR("\\"));
@@ -81,7 +91,7 @@ CFStringRef _CFRegularExpressionCreateEscapedPattern(CFStringRef pattern) {
             if (range.location + range.length + 1 >= length) {
                 break;
             }
-            if (!CFStringFindCharacterFromSet(mutableString, characterSet, CFRangeMake(range.location + range.length + 1, length - (range.location + range.length) - 1), 0, &range)) {
+            if (!__CFRegularExpressionFindMetacharacter(mutableString, CFRangeMake(range.location + range.length + 1, length - (range.location + range.length) - 1), &range)) {
                 break;
             }
         }

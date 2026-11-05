@@ -39,7 +39,6 @@ add_library(CoreFoundation STATIC
     CFBurstTrie.c
     CFCalendar_Enumerate.c
     CFCalendar.c
-    CFCharacterSet.c
     CFConcreteStreams.c
     CFData.c
     CFDate.c
