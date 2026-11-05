@@ -57,6 +57,7 @@ add_library(Foundation
     NSAttributedString.swift
     NSCache.swift
     NSCalendar.swift
+    NSCFCalendarBridging.swift
     NSCFArray.swift
     NSCFBoolean.swift
     NSCFCharacterSet.swift
