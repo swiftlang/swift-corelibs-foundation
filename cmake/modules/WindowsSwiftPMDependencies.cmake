@@ -27,8 +27,8 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
 
   ExternalProject_Add(zlib
     GIT_REPOSITORY    https://github.com/madler/zlib.git
-    GIT_TAG           v1.3.1
-    CMAKE_ARGS		   
+    GIT_TAG           v1.3.2
+    CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/zlib
       -DCMAKE_C_COMPILER=cl
       -DBUILD_SHARED_LIBS=NO
@@ -52,7 +52,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
   ExternalProject_Add(libxml
     GIT_REPOSITORY    https://github.com/gnome/libxml2.git
     GIT_TAG           v2.11.5
-    CMAKE_ARGS		    
+    CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/libxml
       -DCMAKE_C_COMPILER=cl
       -DBUILD_SHARED_LIBS=NO
@@ -87,7 +87,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
   ExternalProject_Add(curl
     GIT_REPOSITORY    https://github.com/curl/curl.git
     GIT_TAG           curl-8_9_1
-    CMAKE_ARGS		    
+    CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/curl
       -DCMAKE_C_COMPILER=cl
       -DBUILD_SHARED_LIBS=NO
