@@ -974,10 +974,18 @@ extension NSString {
     }
     
     public func getCString(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
+        // maxBufferCount is the size of the whole buffer, so it must have room for the NUL terminator
+        guard maxBufferCount > 0 else {
+            return false
+        }
         var used = 0
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
-                used = min(self.length, maxBufferCount - 1)
+                guard self.length < maxBufferCount else {
+                    buffer.initialize(to: 0)
+                    return false
+                }
+                used = self.length
                 
                 // This is mutable, but since we just checked the contiguous behavior, should not copy
                 var copy = _storage
@@ -991,10 +999,12 @@ extension NSString {
                 return true
             }
         }
-        if getBytes(UnsafeMutableRawPointer(buffer), maxLength: maxBufferCount, usedLength: &used, encoding: encoding, options: [], range: NSRange(location: 0, length: self.length), remaining: nil) {
+        // Only succeed if the whole string and the NUL terminator fit in the buffer, otherwise leave an empty C string like Darwin does
+        if getBytes(UnsafeMutableRawPointer(buffer), maxLength: maxBufferCount - 1, usedLength: &used, encoding: encoding, options: [.failOnPartialEncodingConversion], range: NSRange(location: 0, length: self.length), remaining: nil), used < maxBufferCount {
             buffer.advanced(by: used).initialize(to: 0)
             return true
         }
+        buffer.initialize(to: 0)
         return false
     }
     
