@@ -27,7 +27,7 @@ function(_foundation_setup_windows_swiftpm_dependencies_target)
 
   ExternalProject_Add(zlib
     GIT_REPOSITORY    https://github.com/madler/zlib.git
-    GIT_TAG           v1.3.2
+    GIT_TAG           v1.4
     CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${DEST_DIR}/zlib
       -DCMAKE_C_COMPILER=cl
