@@ -10,7 +10,7 @@
 
 #include "CFURL.h"
 #include "CFPriv.h"
-#include "CFCharacterSetPriv.h"
+#include "CFUniChar.h"
 #include "CFNumber.h"
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
@@ -1428,7 +1428,7 @@ CF_EXPORT CFStringRef CFURLCreateStringByAddingPercentEscapes(CFAllocatorRef all
             }
             else {
                 // FIXME: once CFString supports finding glyph boundaries walk by glyph boundaries instead of by unichars
-                if ( encoding == kCFStringEncodingUTF8 && CFCharacterSetIsSurrogateHighCharacter(ch) && idx + 1 < length && CFCharacterSetIsSurrogateLowCharacter(__CFStringGetCharacterFromInlineBufferQuick(&buf, idx+1)) ) {
+                if ( encoding == kCFStringEncodingUTF8 && CFUniCharIsSurrogateHighCharacter(ch) && idx + 1 < length && CFUniCharIsSurrogateLowCharacter(__CFStringGetCharacterFromInlineBufferQuick(&buf, idx+1)) ) {
                     UniChar surrogate[2];
                     uint8_t *currByte;
                     

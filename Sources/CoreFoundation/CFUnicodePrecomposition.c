@@ -10,7 +10,6 @@
 
 #include <string.h>
 #include "CFBase.h"
-#include "CFCharacterSet.h"
 #include "CFUniChar.h"
 #include "CFUnicodePrecomposition.h"
 #include "CFInternal.h"

@@ -736,32 +736,32 @@ extension NSCharacterSet {
     
     // Returns a character set containing the characters allowed in an URL's user subcomponent.
     public class var urlUserAllowed: CharacterSet {
-        return _CFURLComponentsGetURLUserAllowedCharacterSet()._swiftObject
+        return CharacterSet.urlUserAllowed
     }
     
     // Returns a character set containing the characters allowed in an URL's password subcomponent.
     public class var urlPasswordAllowed: CharacterSet {
-        return _CFURLComponentsGetURLPasswordAllowedCharacterSet()._swiftObject
+        return CharacterSet.urlPasswordAllowed
     }
     
     // Returns a character set containing the characters allowed in an URL's host subcomponent.
     public class var urlHostAllowed: CharacterSet {
-        return _CFURLComponentsGetURLHostAllowedCharacterSet()._swiftObject
+        return CharacterSet.urlHostAllowed
     }
     
     // Returns a character set containing the characters allowed in an URL's path component. ';' is a legal path character, but it is recommended that it be percent-encoded for best compatibility with NSURL (-stringByAddingPercentEncodingWithAllowedCharacters: will percent-encode any ';' characters if you pass the URLPathAllowedCharacterSet).
     public class var urlPathAllowed: CharacterSet {
-        return _CFURLComponentsGetURLPathAllowedCharacterSet()._swiftObject
+        return CharacterSet.urlPathAllowed
     }
     
     // Returns a character set containing the characters allowed in an URL's query component.
     public class var urlQueryAllowed: CharacterSet {
-        return _CFURLComponentsGetURLQueryAllowedCharacterSet()._swiftObject
+        return CharacterSet.urlQueryAllowed
     }
     
     // Returns a character set containing the characters allowed in an URL's fragment component.
     public class var urlFragmentAllowed: CharacterSet {
-        return _CFURLComponentsGetURLFragmentAllowedCharacterSet()._swiftObject
+        return CharacterSet.urlFragmentAllowed
     }
 }
 
@@ -769,12 +769,12 @@ extension NSString {
     
     // Returns a new string made from the receiver by replacing all characters not in the allowedCharacters set with percent encoded characters. UTF-8 encoding is used to determine the correct percent encoded characters. Entire URL strings cannot be percent-encoded. This method is intended to percent-encode an URL component or subcomponent string, NOT the entire URL string. Any characters in allowedCharacters outside of the 7-bit ASCII range are ignored.
     public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
-        return _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, self._cfObject, allowedCharacters._cfObject)._swiftObject
+        return _swiftObject.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
     }
     
     // Returns a new string made from the receiver by replacing all percent encoded sequences with the matching UTF-8 characters.
     public var removingPercentEncoding: String? {
-        return _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, self._cfObject)?._swiftObject
+        return _swiftObject.removingPercentEncoding
     }
 }
 

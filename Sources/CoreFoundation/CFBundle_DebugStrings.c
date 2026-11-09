@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include "CFBundle_Internal.h"
+#include "CFUniChar.h"
 
 // Directionality formatting codepoints
 #define UTF16_RIGHT_TO_LEFT_OVERRIDE 0x202e
@@ -32,6 +33,16 @@ CF_EXPORT CFStringRef _CFDoubledStringCreate(CFStringRef theString) {
     return (CFStringRef)doubledString;
 }
 
+// Characters that are skipped over during the accentuation loop
+static bool __CFBundleDebugStringsShouldSkipCharacter(UniChar c) {
+    return CFUniCharIsMemberOf(c, kCFUniCharControlCharacterSet) ||
+           CFUniCharIsMemberOf(c, kCFUniCharWhitespaceAndNewlineCharacterSet) ||
+           CFUniCharIsMemberOf(c, kCFUniCharPunctuationCharacterSet) ||
+           CFUniCharIsMemberOf(c, kCFUniCharSymbolAndOperatorCharacterSet) ||
+           CFUniCharIsMemberOf(c, kCFUniCharDecimalDigitCharacterSet) ||
+           CFUniCharIsMemberOf(c, kCFUniCharNonBaseCharacterSet);
+}
+
 static CFStringRef __CFAccentuatedStringCreateWithAcceptableAccentChars(CFStringRef inString, UniChar const *acceptableAccentChars, CFIndex acceptableCharLength) {
     // Copy the incoming string
     CFMutableStringRef _Nonnull workingString = CFStringCreateMutableCopy(kCFAllocatorDefault, CFStringGetLength(inString), inString);
@@ -46,21 +57,6 @@ static CFStringRef __CFAccentuatedStringCreateWithAcceptableAccentChars(CFString
     UniChar *_Nonnull const accentedStringBuffer = malloc((workingStringLength * 2 + 1) * sizeof(UniChar)); // +1 for null char
     CFIndex accentedStringCursor = 0;
 
-    // Create CFCharacterSets that contain characters we wish to skip over during the accentuation loop
-    static CFCharacterSetRef _Nullable charsToSkip = NULL;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        CFMutableCharacterSetRef _Nonnull charsToSkipMutable = CFCharacterSetCreateMutable(kCFAllocatorDefault);
-        CFCharacterSetUnion(charsToSkipMutable, CFCharacterSetGetPredefined(kCFCharacterSetControl));
-        CFCharacterSetUnion(charsToSkipMutable, CFCharacterSetGetPredefined(kCFCharacterSetWhitespaceAndNewline));
-        CFCharacterSetUnion(charsToSkipMutable, CFCharacterSetGetPredefined(kCFCharacterSetPunctuation));
-        CFCharacterSetUnion(charsToSkipMutable, CFCharacterSetGetPredefined(kCFCharacterSetSymbol));
-        CFCharacterSetUnion(charsToSkipMutable, CFCharacterSetGetPredefined(kCFCharacterSetDecimalDigit));
-        CFCharacterSetUnion(charsToSkipMutable, CFCharacterSetGetPredefined(kCFCharacterSetNonBase));
-        charsToSkip = CFCharacterSetCreateCopy(kCFAllocatorDefault, charsToSkipMutable);
-        CFRelease(charsToSkipMutable);
-    });
-
     // For each non-skipped character, add a combining accent after the codepoint
     for (CFIndex i = 0; i < workingStringLength;) { // inner loop increments i
         CFRange const composedCharRange = CFStringGetRangeOfComposedCharactersAtIndex(workingString, i); // range length will always be >=1
@@ -74,7 +70,7 @@ static CFStringRef __CFAccentuatedStringCreateWithAcceptableAccentChars(CFString
         }
         // Don't sprinkle accents onto composed char sequences and characters belonging to certain ranges
         // The goal here is to _never_ ever accentuate composed char sequences (like emoji)
-        if ((composedCharRange.length == 1) && !CFCharacterSetIsCharacterMember(charsToSkip, c)) {
+        if ((composedCharRange.length == 1) && !__CFBundleDebugStringsShouldSkipCharacter(c)) {
             // Deterministically pair a combining accent
             CFIndex const combiningAccentIndex = c % acceptableCharLength;
             UniChar const accentChar = acceptableAccentChars[combiningAccentIndex];

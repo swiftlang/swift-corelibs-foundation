@@ -338,7 +338,7 @@
                 *mark = idx + 1;
             }
             // if that failed, the encoding is UTF8 and this is a surrogate pair, then percent-encode the surrogate pair
-            else if ( (encoding == kCFStringEncodingUTF8) && ((idx + 1) < end) && CFCharacterSetIsSurrogateHighCharacter(ch) && CFCharacterSetIsSurrogateLowCharacter(characterArray[idx + 1]) ) {
+            else if ( (encoding == kCFStringEncodingUTF8) && ((idx + 1) < end) && CFUniCharIsSurrogateHighCharacter(ch) && CFUniCharIsSurrogateLowCharacter(characterArray[idx + 1]) ) {
                 // percent-encode the surrogate pair
                 UniChar surrogatePair[2];
                 surrogatePair[0] = ch;

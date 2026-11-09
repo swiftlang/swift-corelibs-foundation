@@ -795,29 +795,6 @@ extension StringProtocol {
         return String.Encoding(rawValue: _ns.smallestEncoding)
     }
 
-    // - (NSString *)
-    //     stringByAddingPercentEncodingWithAllowedCharacters:
-    //       (NSCharacterSet *)allowedCharacters
-
-    /// Returns a new string created by replacing all characters in the string
-    /// not in the specified set with percent encoded characters.
-    public func addingPercentEncoding(
-        withAllowedCharacters allowedCharacters: CharacterSet
-        ) -> String? {
-        // FIXME: the documentation states that this method can return nil if the
-        // transformation is not possible, without going into further details.  The
-        // implementation can only return nil if malloc() returns nil, so in
-        // practice this is not possible.  Still, to be consistent with
-        // documentation, we declare the method as returning an optional String.
-        //
-        // <rdar://problem/17901698> Docs for -[NSString
-        // stringByAddingPercentEncodingWithAllowedCharacters] don't precisely
-        // describe when return value is nil
-        return _ns.addingPercentEncoding(withAllowedCharacters:
-            allowedCharacters
-        )
-    }
-
     // - (NSString *)stringByAppendingFormat:(NSString *)format, ...
 
     /// Returns a string created by appending a string constructed from a given
@@ -867,14 +844,6 @@ extension StringProtocol {
             toLength: newLength,
             withPad: padString._ephemeralString,
             startingAt: padIndex)
-    }
-
-    // @property NSString* stringByRemovingPercentEncoding;
-
-    /// A new string made from the string by replacing all percent encoded
-    /// sequences with the matching UTF-8 characters.
-    public var removingPercentEncoding: String? {
-        return _ns.removingPercentEncoding
     }
 
     // - (NSString *)
@@ -1136,36 +1105,6 @@ extension StringProtocol {
     //===--- Omitted by apparent agreement during API review 5/20/2014 ------===//
     // @property BOOL absolutePath;
     // - (BOOL)isEqualToString:(NSString *)aString
-
-    // - (NSRange)rangeOfCharacterFromSet:(NSCharacterSet *)aSet
-    //
-    // - (NSRange)
-    //     rangeOfCharacterFromSet:(NSCharacterSet *)aSet
-    //     options:(StringCompareOptions)mask
-    //
-    // - (NSRange)
-    //     rangeOfCharacterFromSet:(NSCharacterSet *)aSet
-    //     options:(StringCompareOptions)mask
-    //     range:(NSRange)aRange
-
-    /// Finds and returns the range in the `String` of the first
-    /// character from a given character set found in a given range with
-    /// given options.
-    public func rangeOfCharacter(
-        from aSet: CharacterSet,
-        options mask: String.CompareOptions = [],
-        range aRange: Range<Index>? = nil
-        ) -> Range<Index>? {
-        return _optionalRange(
-            _ns.rangeOfCharacter(
-                from: aSet,
-                options: mask,
-                range: _toRelativeNSRange(
-                    aRange ?? startIndex..<endIndex
-                )
-            )
-        )
-    }
 
     // - (NSRange)rangeOfComposedCharacterSequenceAtIndex:(NSUInteger)anIndex
 

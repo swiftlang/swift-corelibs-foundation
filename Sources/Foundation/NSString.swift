@@ -558,17 +558,17 @@ extension NSString {
         
         precondition(searchRange.length <= len && searchRange.location <= len - searchRange.length, "Bounds Range {\(searchRange.location), \(searchRange.length)} out of bounds; string length \(len)")
         
-        var result = CFRange()
-        let res = withUnsafeMutablePointer(to: &result) { (rangep: UnsafeMutablePointer<CFRange>) -> Bool in
-            return CFStringFindCharacterFromSet(_cfObject, searchSet._cfObject, CFRange(searchRange), mask._cfValue(), rangep)
-        }
-        if res {
-            return NSRange(location: result.location, length: result.length)
-        } else {
+        // The range can start or end inside a grapheme cluster (the legacy Scanner methods do this), so convert it using the UTF-16 view and not Range(_:in:).
+        let string = _swiftObject
+        let utf16 = string.utf16
+        let lower = utf16.index(utf16.startIndex, offsetBy: searchRange.location)
+        let upper = utf16.index(lower, offsetBy: searchRange.length)
+        guard let found = string.rangeOfCharacter(from: searchSet, options: mask, range: lower..<upper) else {
             return NSRange(location: NSNotFound, length: 0)
         }
+        return NSRange(location: utf16.distance(from: utf16.startIndex, to: found.lowerBound), length: utf16.distance(from: found.lowerBound, to: found.upperBound))
     }
-    
+
     public func rangeOfComposedCharacterSequence(at index: Int) -> NSRange {
         let range = CFStringGetRangeOfCharacterClusterAtIndex(_cfObject, index, kCFStringComposedCharacterCluster)
         return NSRange(location: range.location, length: range.length)

@@ -302,7 +302,7 @@ enum {
 /* kCFCompare flags planned to be publicized (Aki 10/20/2008 Does not work with kCFCompareForceOrdering/CFStringFold). see <rdar://problem/6305147>)
  */
 enum {
-    kCFCompareIgnoreNonAlphanumeric = (1UL << 16), // Ignores characters NOT in kCFCharacterSetAlphaNumeric
+    kCFCompareIgnoreNonAlphanumeric = (1UL << 16), // Ignores characters that are not letters, marks or numbers
 };
 
 
@@ -462,83 +462,6 @@ CF_INLINE CFMutableStringRef CFStringCreateMutableWithAppendBuffer(CFStringAppen
 }
 
 #endif /* CF_INLINE */
-
-/*
- CFCharacterSetInlineBuffer related declarations
- */
-/*!
-@typedef CFCharacterSetInlineBuffer
- @field cset The character set this inline buffer is initialized with.
- The object is not retained by the structure.
- @field flags The field is a bit mask that carries various settings.
- @field rangeStart The beginning of the character range that contains all members.
- It is guaranteed that there is no member below this value.
- @field rangeLimit The end of the character range that contains all members.
- It is guaranteed that there is no member above and equal to this value.
- @field bitmap The bitmap data representing the membership of the Basic Multilingual Plane characters.
- If NULL, all BMP characters inside the range are members of the character set.
- */
-typedef struct {
-    CFCharacterSetRef cset;
-    uint32_t flags;
-    uint32_t rangeStart;
-    uint32_t rangeLimit;
-    const uint8_t *bitmap;
-} CFCharacterSetInlineBuffer;
-
-// Bits for flags field
-enum {
-    kCFCharacterSetIsCompactBitmap = (1UL << 0),
-    kCFCharacterSetNoBitmapAvailable = (1UL << 1),
-    kCFCharacterSetIsInverted = (1UL << 2)
-};
-
-/*!
-@function CFCharacterSetInitInlineBuffer
- Initializes buffer with cset.
- @param cset The character set used to initialized the buffer.
- If this parameter is not a valid CFCharacterSet, the behavior is undefined.
- @param buffer The reference to the inline buffer to be initialized.
- */
-CF_EXPORT
-void CFCharacterSetInitInlineBuffer(CFCharacterSetRef cset, CFCharacterSetInlineBuffer *buffer);
-
-/*!
-@function CFCharacterSetInlineBufferIsLongCharacterMember
- Reports whether or not the UTF-32 character is in the character set.
-	@param buffer The reference to the inline buffer to be searched.
-	@param character The UTF-32 character for which to test against the
- character set.
- @result true, if the value is in the character set, otherwise false.
- */
-#if defined(CF_INLINE)
-CF_INLINE bool CFCharacterSetInlineBufferIsLongCharacterMember(const CFCharacterSetInlineBuffer *buffer, UTF32Char character) {
-    bool isInverted = ((0 == (buffer->flags & kCFCharacterSetIsInverted)) ? false : true);
-
-    if ((character >= buffer->rangeStart) && (character < buffer->rangeLimit)) {
-        if ((character > 0xFFFF) || (0 != (buffer->flags & kCFCharacterSetNoBitmapAvailable))) return (CFCharacterSetIsLongCharacterMember(buffer->cset, character) != 0);
-        if (NULL == buffer->bitmap) {
-            if (0 == (buffer->flags & kCFCharacterSetIsCompactBitmap)) isInverted = !isInverted;
-        } else if (0 == (buffer->flags & kCFCharacterSetIsCompactBitmap)) {
-            if (buffer->bitmap[character >> 3] & (1UL << (character & 7))) isInverted = !isInverted;
-        } else {
-            uint8_t value = buffer->bitmap[character >> 8];
-            
-            if (value == 0xFF) {
-                isInverted = !isInverted;
-            } else if (value > 0) {
-                const uint8_t *segment = buffer->bitmap + (256 + (32 * (value - 1)));
-                character &= 0xFF;
-                if (segment[character >> 3] & (1UL << (character % 8))) isInverted = !isInverted;
-            }
-        }
-    }
-    return isInverted;
-}
-#else /* CF_INLINE */
-#define CFCharacterSetInlineBufferIsLongCharacterMember(buffer, character) (CFCharacterSetIsLongCharacterMember(buffer->cset, character))
-#endif /* CF_INLINE */
-
 
 #if TARGET_OS_WIN32
 CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef alloc, int nFolder);

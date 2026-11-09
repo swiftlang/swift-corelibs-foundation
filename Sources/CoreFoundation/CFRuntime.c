@@ -245,7 +245,6 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
 #endif
     [_kCFRuntimeIDCFReadStream] = &__CFReadStreamClass,
     [_kCFRuntimeIDCFWriteStream] = &__CFWriteStreamClass,
-    [_kCFRuntimeIDCFCharacterSet] = &__CFCharacterSetClass,
     
     
     [_kCFRuntimeIDCFURL] = &__CFURLClass,
@@ -1089,7 +1088,6 @@ static struct {
     {"CFNETWORK_LIBRARY_PATH", NULL},
     {"CFUUIDVersionNumber", NULL},
     {"CFBundleDisableStringsSharing", NULL},
-    {"CFCharacterSetCheckForExpandedSet", NULL},
     {"CF_CHARSET_PATH", NULL},
     {"__CF_USER_TEXT_ENCODING", NULL},
     {"APPLE_FRAMEWORKS_ROOT", NULL},
@@ -1260,7 +1258,6 @@ void __CFInitialize(void) {
 
         CFNumberGetTypeID();		// NB: This does other work
 
-        __CFCharacterSetInitialize();
         __CFDateInitialize();
         
 #if DEPLOYMENT_RUNTIME_SWIFT
