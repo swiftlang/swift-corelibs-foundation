@@ -242,6 +242,116 @@ class TestURLProtocol : LoopbackServerTest {
         }.resume()
         wait(for: [finished], timeout: 2)
     }
+
+    // A custom protocol delivers a download's body through didLoad:; the session writes it to a file.
+
+    func test_customProtocolDownloadWithCompletionHandler() {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [IncrementalDataProtocol.self]
+        configuration.urlCache = nil
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+
+        for path in ["empty", "single", "multiple"] {
+            let url = URL(string: "http://127.0.0.1:\(Self.serverPort)/\(path)")!
+            let expected = IncrementalDataProtocol.chunks(for: path).reduce(into: Data()) { $0.append($1) }
+            let finished = expectation(description: "Download completion for \(path)")
+            session.downloadTask(with: url) { location, response, error in
+                XCTAssertNil(error)
+                XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 203)
+                if let location {
+                    XCTAssertEqual(try? Data(contentsOf: location), expected)
+                    try? FileManager.default.removeItem(at: location)
+                } else {
+                    XCTFail("A successful download must have a file location")
+                }
+                finished.fulfill()
+            }.resume()
+            wait(for: [finished], timeout: 2)
+        }
+    }
+
+    func test_customProtocolDownloadWithAsyncConveniences() async throws {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [IncrementalDataProtocol.self]
+        configuration.urlCache = nil
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+
+        let url = URL(string: "http://127.0.0.1:\(Self.serverPort)/multiple")!
+        let expected = Data([0x00, 0x66, 0xff, 0x41])
+
+        let (fromLocation, fromResponse) = try await session.download(from: url)
+        XCTAssertEqual(try Data(contentsOf: fromLocation), expected)
+        XCTAssertEqual((fromResponse as? HTTPURLResponse)?.statusCode, 203)
+        try? FileManager.default.removeItem(at: fromLocation)
+
+        let (requestLocation, requestResponse) = try await session.download(for: URLRequest(url: url))
+        XCTAssertEqual(try Data(contentsOf: requestLocation), expected)
+        XCTAssertEqual((requestResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "X-D02"), "chunks")
+        try? FileManager.default.removeItem(at: requestLocation)
+    }
+
+    func test_customProtocolDownloadWithDelegate() {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [IncrementalDataProtocol.self]
+        configuration.urlCache = nil
+        let finished = expectation(description: "Download delegate completion")
+        let delegate = IncrementalDownloadDelegate(finished: finished)
+        let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        let url = URL(string: "http://127.0.0.1:\(Self.serverPort)/multiple")!
+        session.downloadTask(with: url).resume()
+        wait(for: [finished], timeout: 2)
+        XCTAssertNil(delegate.error)
+        XCTAssertEqual(delegate.downloadedData, Data([0x00, 0x66, 0xff, 0x41]))
+    }
+
+    func test_customProtocolDownloadFailure() {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [IncrementalDataProtocol.self]
+        configuration.urlCache = nil
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+
+        let url = URL(string: "http://127.0.0.1:\(Self.serverPort)/failure")!
+        let finished = expectation(description: "Failed download completion")
+        session.downloadTask(with: url) { location, response, error in
+            XCTAssertNil(location)
+            XCTAssertNil(response)
+            XCTAssertEqual((error as? URLError)?.code, .networkConnectionLost)
+            finished.fulfill()
+        }.resume()
+        wait(for: [finished], timeout: 2)
+    }
+}
+
+/// Also a data delegate, so a download must not be reported as received data.
+private final class IncrementalDownloadDelegate: NSObject, URLSessionDownloadDelegate, URLSessionDataDelegate, @unchecked Sendable {
+    let finished: XCTestExpectation
+    private let lock = NSLock()
+    private var fileData: Data?
+    private var completionError: Error?
+
+    init(finished: XCTestExpectation) {
+        self.finished = finished
+    }
+
+    var downloadedData: Data? { lock.withLock { fileData } }
+    var error: Error? { lock.withLock { completionError } }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        // The file is only guaranteed to exist during this call.
+        let data = try? Data(contentsOf: location)
+        lock.withLock { fileData = data }
+        try? FileManager.default.removeItem(at: location)
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        lock.withLock { completionError = error }
+        finished.fulfill()
+    }
 }
 
 private final class IncrementalDataProtocol: URLProtocol {

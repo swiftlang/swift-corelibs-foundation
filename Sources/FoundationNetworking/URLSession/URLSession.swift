@@ -845,8 +845,10 @@ extension URLSession {
                 let completionHandler: URLSession._TaskRegistry.DownloadTaskCompletion = { location, response, error in
                     if let error = error {
                         continuation.resume(throwing: error)
+                    } else if let location, let response {
+                        continuation.resume(returning: (location, response))
                     } else {
-                        continuation.resume(returning: (location!, response!))
+                        continuation.resume(throwing: URLError(location == nil ? .cannotCreateFile : .badServerResponse))
                     }
                 }
                 let task = downloadTask(with: _Request(request), behavior: .downloadCompletionHandlerWithTaskDelegate(completionHandler, delegate))
@@ -871,8 +873,10 @@ extension URLSession {
                 let completionHandler: URLSession._TaskRegistry.DownloadTaskCompletion = { location, response, error in
                     if let error = error {
                         continuation.resume(throwing: error)
+                    } else if let location, let response {
+                        continuation.resume(returning: (location, response))
                     } else {
-                        continuation.resume(returning: (location!, response!))
+                        continuation.resume(throwing: URLError(location == nil ? .cannotCreateFile : .badServerResponse))
                     }
                 }
                 let task = downloadTask(with: _Request(url), behavior: .downloadCompletionHandlerWithTaskDelegate(completionHandler, delegate))
