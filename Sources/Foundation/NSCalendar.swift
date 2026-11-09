@@ -7,27 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_implementationOnly import CoreFoundation
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
-
-internal let kCFCalendarUnitEra = CFCalendarUnit.era
-internal let kCFCalendarUnitYear = CFCalendarUnit.year
-internal let kCFCalendarUnitMonth = CFCalendarUnit.month
-internal let kCFCalendarUnitDay = CFCalendarUnit.day
-internal let kCFCalendarUnitHour = CFCalendarUnit.hour
-internal let kCFCalendarUnitMinute = CFCalendarUnit.minute
-internal let kCFCalendarUnitSecond = CFCalendarUnit.second
-internal let kCFCalendarUnitWeekday = CFCalendarUnit.weekday
-internal let kCFCalendarUnitWeekdayOrdinal = CFCalendarUnit.weekdayOrdinal
-internal let kCFCalendarUnitQuarter = CFCalendarUnit.quarter
-internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit.weekOfMonth
-internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit.weekOfYear
-internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit.yearForWeekOfYear
-internal let kCFCalendarUnitNanosecond = CFCalendarUnit(rawValue: CFOptionFlags(CoreFoundation.kCFCalendarUnitNanosecond))
-
-internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
-    return unit.rawValue
-}
 
 extension NSCalendar {
     // This is not the same as Calendar.Identifier due to a spelling difference in ISO8601
@@ -134,28 +114,24 @@ extension NSCalendar {
             self.rawValue = rawValue
         }
 
-        public static let era = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitEra))
-        public static let year = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitYear))
-        public static let month = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitMonth))
-        public static let day = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitDay))
-        public static let hour = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitHour))
-        public static let minute = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitMinute))
-        public static let second = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitSecond))
-        public static let weekday = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekday))
-        public static let weekdayOrdinal = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekdayOrdinal))
-        public static let quarter = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitQuarter))
-        public static let weekOfMonth = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekOfMonth))
-        public static let weekOfYear = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekOfYear))
-        public static let yearForWeekOfYear = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitYearForWeekOfYear))
+        public static let era = Unit(rawValue: UInt(1 << 1))
+        public static let year = Unit(rawValue: UInt(1 << 2))
+        public static let month = Unit(rawValue: UInt(1 << 3))
+        public static let day = Unit(rawValue: UInt(1 << 4))
+        public static let hour = Unit(rawValue: UInt(1 << 5))
+        public static let minute = Unit(rawValue: UInt(1 << 6))
+        public static let second = Unit(rawValue: UInt(1 << 7))
+        public static let weekday = Unit(rawValue: UInt(1 << 9))
+        public static let weekdayOrdinal = Unit(rawValue: UInt(1 << 10))
+        public static let quarter = Unit(rawValue: UInt(1 << 11))
+        public static let weekOfMonth = Unit(rawValue: UInt(1 << 12))
+        public static let weekOfYear = Unit(rawValue: UInt(1 << 13))
+        public static let yearForWeekOfYear = Unit(rawValue: UInt(1 << 14))
 
         public static let nanosecond = Unit(rawValue: UInt(1 << 15))
         public static let calendar = Unit(rawValue: UInt(1 << 20))
         public static let timeZone = Unit(rawValue: UInt(1 << 21))
 
-        internal var _cfValue: CFCalendarUnit {
-            return CFCalendarUnit(rawValue: self.rawValue)
-        }
-        
         internal var _calendarComponent: Calendar.Component {
             switch self {
             case .era: .era
@@ -380,11 +356,10 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     internal var gregorianStartDate: Date? {
         get {
-            return CFCalendarCopyGregorianStartDate(_cfObject)?._swiftObject
+            _calendar._gregorianStartDate
         }
         set {
-            let date = newValue as NSDate?
-            CFCalendarSetGregorianStartDate(_cfObject, date?._cfObject)
+            _calendar = Calendar(_identifier: _calendar.identifier, locale: _calendar.locale, timeZone: _calendar.timeZone, firstWeekday: _calendar.firstWeekday, minimumDaysInFirstWeek: _calendar.minimumDaysInFirstWeek, gregorianStartDate: newValue)
         }
     }
     
@@ -930,34 +905,6 @@ private func _fromNSCalendarOptions(_ options: NSCalendar.Options) -> (matchingP
 
 // MARK: - Bridging
 
-extension CFCalendar : _NSBridgeable, _SwiftBridgeable {
-    typealias NSType = NSCalendar
-    internal var _nsObject: NSType {
-        let id = CFCalendarGetIdentifier(self)!._swiftObject
-        let ns = NSCalendar(identifier: .init(string: id)!)!
-        ns.timeZone = CFCalendarCopyTimeZone(self)._swiftObject
-        ns.firstWeekday = CFCalendarGetFirstWeekday(self)
-        ns.minimumDaysInFirstWeek = CFCalendarGetMinimumDaysInFirstWeek(self)
-        return ns
-    }
-    internal var _swiftObject: Calendar {
-        return _nsObject._swiftObject
-    }
-}
-
-extension NSCalendar {
-    internal var _cfObject: CFCalendar {
-        let cf = CFCalendarCreateWithIdentifier(nil, calendarIdentifier._calendarIdentifier!._cfCalendarIdentifier._cfObject)!
-        CFCalendarSetTimeZone(cf, timeZone._cfObject)
-        if let l = locale {
-            CFCalendarSetLocale(cf, l._cfObject)
-        }
-        CFCalendarSetFirstWeekday(cf, firstWeekday)
-        CFCalendarSetMinimumDaysInFirstWeek(cf, minimumDaysInFirstWeek)
-        return cf
-    }
-}
-
 extension NSCalendar: _SwiftBridgeable {
     typealias SwiftType = Calendar
     var _swiftObject: SwiftType { _calendar }
@@ -969,13 +916,6 @@ extension NSCalendar : _StructTypeBridgeable {
     public func _bridgeToSwift() -> Calendar {
         return Calendar._unconditionallyBridgeFromObjectiveC(self)
     }
-}
-
-extension Calendar: _NSBridgeable {
-    typealias NSType = NSCalendar
-    typealias CFType = CFCalendar
-    var _nsObject: NSCalendar { return _bridgeToObjectiveC() }
-    var _cfObject: CFCalendar { return _nsObject._cfObject }
 }
 
 

@@ -8,7 +8,6 @@
 //
 
 @_exported import FoundationEssentials
-@_implementationOnly import CoreFoundation
 
 
 // This is a just used as an extensible struct, basically;
@@ -343,26 +342,5 @@ extension NSDateComponents: _StructTypeBridgeable {
 
     public func _bridgeToSwift() -> DateComponents {
         return DateComponents._unconditionallyBridgeFromObjectiveC(self)
-    }
-}
-
-extension NSDateComponents {
-    func _createCFDateComponents() -> CFDateComponents {
-        let components = CFDateComponentsCreate(kCFAllocatorSystemDefault)!
-        CFDateComponentsSetValue(components, kCFCalendarUnitEra, era)
-        CFDateComponentsSetValue(components, kCFCalendarUnitYear, year)
-        CFDateComponentsSetValue(components, kCFCalendarUnitMonth, month)
-        CFDateComponentsSetValue(components, kCFCalendarUnitDay, day)
-        CFDateComponentsSetValue(components, kCFCalendarUnitHour, hour)
-        CFDateComponentsSetValue(components, kCFCalendarUnitMinute, minute)
-        CFDateComponentsSetValue(components, kCFCalendarUnitSecond, second)
-        CFDateComponentsSetValue(components, kCFCalendarUnitWeekday, weekday)
-        CFDateComponentsSetValue(components, kCFCalendarUnitWeekdayOrdinal, weekdayOrdinal)
-        CFDateComponentsSetValue(components, kCFCalendarUnitQuarter, quarter)
-        CFDateComponentsSetValue(components, kCFCalendarUnitWeekOfMonth, weekOfMonth)
-        CFDateComponentsSetValue(components, kCFCalendarUnitWeekOfYear, weekOfYear)
-        CFDateComponentsSetValue(components, kCFCalendarUnitYearForWeekOfYear, yearForWeekOfYear)
-        CFDateComponentsSetValue(components, kCFCalendarUnitNanosecond, nanosecond)
-        return components
     }
 }
