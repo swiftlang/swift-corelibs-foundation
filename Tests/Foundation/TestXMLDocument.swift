@@ -527,6 +527,25 @@ class TestXMLDocument : LoopbackServerTest {
             XCTFail("\(error)")
         }
     }
+
+    func test_validateHonorsNodeLoadExternalEntitiesNever() throws {
+        try withTemporaryDirectory { directoryURL, _ in
+            let dtdURL = directoryURL.appendingPathComponent("root.dtd")
+            try "<!ELEMENT root EMPTY>\n".write(to: dtdURL, atomically: true, encoding: .utf8)
+            let xmlString = "<?xml version=\"1.0\"?><!DOCTYPE root SYSTEM \"\(dtdURL.absoluteString)\"><root/>"
+
+            let doc = try XMLDocument(xmlString: xmlString, options: [])
+            XCTAssertNoThrow(try doc.validate(), "the external DTD should be loaded by default")
+            XCTAssertNoThrow(try (doc.copy() as! XMLDocument).validate(), "the external DTD should be loaded by default")
+
+            let neverDoc = try XMLDocument(xmlString: xmlString, options: [.nodeLoadExternalEntitiesNever])
+            XCTAssertThrowsError(try neverDoc.validate(), "the external DTD should not be loaded")
+            XCTAssertThrowsError(try (neverDoc.copy() as! XMLDocument).validate(), "the external DTD should not be loaded")
+            XCTAssertThrowsError(try XMLDocument(xmlString: xmlString, options: [.nodeLoadExternalEntitiesNever, .documentValidate]), "the external DTD should not be loaded")
+
+            XCTAssertNoThrow(try doc.validate(), "the external DTD should still be loaded by default")
+        }
+    }
     
     func test_dtdNotationAddChild() throws {
         let dtd = XMLDTD()
