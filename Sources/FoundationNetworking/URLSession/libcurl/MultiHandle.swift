@@ -39,7 +39,7 @@ extension URLSession {
     /// `DispatchQueue` -- thus keeping is simple.
     ///
     /// - SeeAlso: _EasyHandle
-    internal final class _MultiHandle {
+    internal final class _MultiHandleImpl {
         let rawHandle = CFURLSessionMultiHandleInit()
         let queue: DispatchQueue
         let group = DispatchGroup()
@@ -53,21 +53,10 @@ extension URLSession {
             setupCallbacks()
             configure(with: configuration)
         }
-        deinit {
-            // C.f.: <https://curl.haxx.se/libcurl/c/curl_multi_cleanup.html>
-            easyHandles.forEach {
-                try! CFURLSessionMultiHandleRemoveHandle(rawHandle, $0.rawHandle).asError()
-            }
-
-            lockingForSSLLibraryIfNeeded {
-                // curl_multi_cleanup affects OpenSSL internal state.
-                try! CFURLSessionMultiHandleDeinit(rawHandle).asError()
-            }
-        }
     }
 }
 
-extension URLSession._MultiHandle {
+extension URLSession._MultiHandleImpl {
     func configure(with configuration: URLSession._Configuration) {
         if maxHostConnectionsSupported() {
             try! CFURLSession_multi_setopt_l(rawHandle, CFURLSessionMultiOptionMAX_HOST_CONNECTIONS, numericCast(configuration.httpMaximumConnectionsPerHost)).asError()
@@ -80,20 +69,20 @@ extension URLSession._MultiHandle {
     }
 }
 
-fileprivate extension URLSession._MultiHandle {
-    static func from(callbackUserData userdata: UnsafeMutableRawPointer?) -> URLSession._MultiHandle? {
+fileprivate extension URLSession._MultiHandleImpl {
+    static func from(callbackUserData userdata: UnsafeMutableRawPointer?) -> URLSession._MultiHandleImpl? {
         guard let userdata = userdata else { return nil }
-        return Unmanaged<URLSession._MultiHandle>.fromOpaque(userdata).takeUnretainedValue()
+        return Unmanaged<URLSession._MultiHandleImpl>.fromOpaque(userdata).takeUnretainedValue()
     }
 }
 
-fileprivate extension URLSession._MultiHandle {
+fileprivate extension URLSession._MultiHandleImpl {
     /// Forward the libcurl callbacks into Swift methods
     func setupCallbacks() {
         // Socket
         try! CFURLSession_multi_setopt_ptr(rawHandle, CFURLSessionMultiOptionSOCKETDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_multi_setopt_sf(rawHandle, CFURLSessionMultiOptionSOCKETFUNCTION) { (easyHandle: CFURLSessionEasyHandle, socket: CFURLSession_socket_t, what: Int32, userdata: UnsafeMutableRawPointer?, socketptr: UnsafeMutableRawPointer?) -> Int32 in
-            guard let handle = URLSession._MultiHandle.from(callbackUserData: userdata) else { fatalError() }
+            guard let handle = URLSession._MultiHandleImpl.from(callbackUserData: userdata) else { fatalError() }
             return handle.register(socket: socket, for: easyHandle, what: what, socketSourcePtr: socketptr)
             }.asError()
         // Timeout:
@@ -104,7 +93,7 @@ fileprivate extension URLSession._MultiHandle {
         typealias CFURLSessionMultiOption = Int
 #endif
         try! CFURLSession_multi_setopt_tf(rawHandle, CFURLSessionMultiOptionTIMERFUNCTION) { (_, timeout: CFURLSessionMultiOption, userdata: UnsafeMutableRawPointer?) -> Int32 in
-            guard let handle = URLSession._MultiHandle.from(callbackUserData: userdata) else { fatalError() }
+            guard let handle = URLSession._MultiHandleImpl.from(callbackUserData: userdata) else { fatalError() }
             handle.updateTimeoutTimer(to: numericCast(timeout))
             return 0
             }.asError()
@@ -166,7 +155,7 @@ extension Collection where Element == _EasyHandle {
   }
 }
 
-private extension URLSession._MultiHandle {
+private extension URLSession._MultiHandleImpl {
     class _SocketReference {
         let socket: CFURLSession_socket_t
         var shouldClose: Bool
@@ -250,16 +239,16 @@ private extension URLSession._MultiHandle {
 
 }
 
-internal extension URLSession._MultiHandle {
+internal extension URLSession._MultiHandleImpl {
     /// Add an easy handle -- start its transfer.
     func add(_ handle: _EasyHandle) {
         // Set CLOSESOCKETFUNCTION. Note that while the option belongs to easy_handle,
         // the connection cache is managed by CURL multi_handle, and sockets can actually
         // outlive easy_handle (even after curl_easy_cleanup call). That's why
-        // socket management lives in _MultiHandle.
+        // socket management lives in _MultiHandleImpl.
         try! CFURLSession_easy_setopt_ptr(handle.rawHandle, CFURLSessionOptionCLOSESOCKETDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_scl(handle.rawHandle, CFURLSessionOptionCLOSESOCKETFUNCTION) {  (clientp: UnsafeMutableRawPointer?, item: CFURLSession_socket_t) in
-            guard let handle = URLSession._MultiHandle.from(callbackUserData: clientp) else { fatalError() }
+            guard let handle = URLSession._MultiHandleImpl.from(callbackUserData: clientp) else { fatalError() }
             handle.scheduleClose(for: item)
             return 0
         }.asError()
@@ -287,7 +276,7 @@ internal extension URLSession._MultiHandle {
     }
 }
 
-fileprivate extension URLSession._MultiHandle {
+fileprivate extension URLSession._MultiHandleImpl {
     /// This gets called when we should ask curl to perform action on a socket.
     func performAction(for socket: CFURLSession_socket_t) {
         try! readAndWriteAvailableData(on: socket)
@@ -401,7 +390,7 @@ internal func ~=(lhs: CFURLSessionPoll, rhs: CFURLSessionPoll) -> Bool {
     return lhs == rhs
 }
 
-fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
+fileprivate extension URLSession._MultiHandleImpl._SocketRegisterAction {
     init(rawValue: CFURLSessionPoll) {
         switch rawValue {
         case CFURLSessionPollNone:
@@ -420,7 +409,7 @@ fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
     }
 }
 
-fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
+fileprivate extension URLSession._MultiHandleImpl._SocketRegisterAction {
     /// Should a libdispatch source be registered for **read** readiness?
     var needsReadSource: Bool {
         switch self {
@@ -474,7 +463,7 @@ class _TimeoutSource {
     }
 }
 
-fileprivate extension URLSession._MultiHandle {
+fileprivate extension URLSession._MultiHandleImpl {
 
     /// <https://curl.haxx.se/libcurl/c/CURLMOPT_TIMERFUNCTION.html>
     func updateTimeoutTimer(to value: Int) {
@@ -506,7 +495,7 @@ fileprivate extension URLSession._MultiHandle {
     }
 }
 
-fileprivate extension URLSession._MultiHandle._Timeout {
+fileprivate extension URLSession._MultiHandleImpl._Timeout {
     init(timeout: Int) {
         switch timeout {
         case -1:
@@ -555,7 +544,7 @@ fileprivate class _SocketSources {
         s.resume()
     }
 
-    func tearDown(handle: URLSession._MultiHandle, socket: CFURLSession_socket_t, queue: DispatchQueue) {
+    func tearDown(handle: URLSession._MultiHandleImpl, socket: CFURLSession_socket_t, queue: DispatchQueue) {
         handle.cancelWorkItem(for: socket) // There could be pending register action which needs to be cancelled
         
         guard readSource != nil || writeSource != nil else {
@@ -585,12 +574,12 @@ fileprivate class _SocketSources {
 }
 extension _SocketSources {
     /// Create a read and/or write source as specified by the action.
-    func createSources(with action: URLSession._MultiHandle._SocketRegisterAction, handle: URLSession._MultiHandle, socket: CFURLSession_socket_t, queue: DispatchQueue, handler: DispatchWorkItem) {
+    func createSources(with action: URLSession._MultiHandleImpl._SocketRegisterAction, handle: URLSession._MultiHandleImpl, socket: CFURLSession_socket_t, queue: DispatchQueue, handler: DispatchWorkItem) {
         // CURL casually requests to unregister and register handlers for same 
         // socket in a row. There is (pretty low) chance of overlapping tear-down operation
         // with "register" request. Bad things could happen if we create 
         // a new Dispatch Source while other is being cancelled for the same socket.
-        // We're using `_MultiHandle.schedule(_:for:)` here to postpone sources creation until
+        // We're using `_MultiHandleImpl.schedule(_:for:)` here to postpone sources creation until
         // pending operation is finished (if there is none, submitted work item is performed
         // immediately).
         // Also, CURL may request unregister even before we perform any postponed work,
@@ -632,5 +621,39 @@ extension CFURLSessionMultiCode {
     internal func asError() throws {
         if self == CFURLSessionMultiCodeOK { return }
         throw NSError(domain: "libcurl.multi", code: Int(self.value))
+    }
+}
+
+extension URLSession {
+    internal final class _MultiHandle {
+        let impl: _MultiHandleImpl
+
+        init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
+            self.impl = _MultiHandleImpl(configuration: configuration, workQueue: workQueue)
+        }
+
+        deinit {
+            // `curl_multi_cleanup` invokes C callbacks that form a strong reference to the
+            // `userdata` object. To prevent an illegal ARC retain during deallocation, this
+            // wrapper isolates `_MultiHandleImpl` so it remains alive during the asynchronous teardown.
+            nonisolated(unsafe) let implToTeardown = impl
+            implToTeardown.queue.async {
+                // C.f.: <https://curl.haxx.se/libcurl/c/curl_multi_cleanup.html>
+                implToTeardown.easyHandles.forEach {
+                    try! CFURLSessionMultiHandleRemoveHandle(implToTeardown.rawHandle, $0.rawHandle).asError()
+                }
+                lockingForSSLLibraryIfNeeded {
+                    try! CFURLSessionMultiHandleDeinit(implToTeardown.rawHandle).asError()
+                }
+            }
+        }
+
+        func add(_ handle: _EasyHandle) {
+            impl.add(handle)
+        }
+
+        func remove(_ handle: _EasyHandle) {
+            impl.remove(handle)
+        }
     }
 }
