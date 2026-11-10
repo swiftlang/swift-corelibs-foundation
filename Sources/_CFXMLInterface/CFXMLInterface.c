@@ -176,6 +176,7 @@ _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     saxHandler->hasExternalSubset = (hasExternalSubsetSAXFunc)__CFSwiftXMLParserBridge.hasExternalSubset;
     
     saxHandler->getEntity = (getEntitySAXFunc)__CFSwiftXMLParserBridge.getEntity;
+    saxHandler->entityDecl = (entityDeclSAXFunc)__CFSwiftXMLParserBridge.entityDecl;
     
     saxHandler->notationDecl = (notationDeclSAXFunc)__CFSwiftXMLParserBridge.notationDecl;
     saxHandler->attributeDecl = (attributeDeclSAXFunc)__CFSwiftXMLParserBridge.attributeDecl;
