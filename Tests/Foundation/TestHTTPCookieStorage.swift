@@ -326,7 +326,7 @@ class TestHTTPCookieStorage: XCTestCase {
             destPath = String(utf8String: xdg_data_home)! + bundleName + "/.cookies.shared"
         } else {
             // The storage uses $HOME, which can differ from NSHomeDirectory()
-            let home = ProcessInfo.processInfo.environment["HOME"] ?? ""
+            let home = ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory()
             destPath = home + "/.local/share" + bundleName + "/.cookies.shared"
         }
         let fm = FileManager.default
