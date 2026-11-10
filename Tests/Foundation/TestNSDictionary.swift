@@ -255,4 +255,34 @@ class TestNSDictionary : XCTestCase {
         dictionary[3 as NSNumber] = "k"
         XCTAssertEqual(dictionary[3 as NSNumber] as? String, "k")
     }
+
+    // A crafted keyed archive whose NS.keys and NS.objects arrays differ in
+    // length must be rejected cleanly instead of reading out of bounds while
+    // decoding. See rdar://185659014.
+    func test_decodingMismatchedKeyObjectCountsThrows() throws {
+        let count = 64
+        let dict = NSMutableDictionary()
+        for i in 0..<count {
+            dict.setObject(NSString(string: "value-\(i)"), forKey: NSString(string: "key-\(i)"))
+        }
+        let archive = NSKeyedArchiver.archivedData(withRootObject: dict)
+
+        // Rewrite the archive so NS.objects is empty while NS.keys keeps all entries.
+        var plist = try PropertyListSerialization.propertyList(from: archive, options: [], format: nil) as! [String: Any]
+        var objects = plist["$objects"] as! [Any]
+        var patched = false
+        for (idx, obj) in objects.enumerated() {
+            if var container = obj as? [String: Any], container["NS.keys"] != nil {
+                container["NS.objects"] = [Any]()
+                objects[idx] = container
+                patched = true
+            }
+        }
+        XCTAssertTrue(patched, "could not locate the NS.keys container in the archive")
+        plist["$objects"] = objects
+        let crafted = try PropertyListSerialization.data(fromPropertyList: plist, format: .binary, options: 0)
+
+        // The decode must fail with a recoverable error rather than crash.
+        XCTAssertThrowsError(try NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSDictionary.self, NSString.self], from: crafted))
+    }
 }

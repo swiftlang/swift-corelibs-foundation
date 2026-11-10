@@ -115,6 +115,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     public convenience init(objects: [Any], forKeys keys: [NSObject]) {
+        precondition(objects.count == keys.count,
+                     "The number of objects (\(objects.count)) must equal the number of keys (\(keys.count))")
         let keyBuffer = UnsafeMutablePointer<NSObject>.allocate(capacity: keys.count)
         keyBuffer.initialize(from: keys, count: keys.count)
 
@@ -160,6 +162,10 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+            guard keys.count == objects.count else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCoderReadCorruptError, userInfo: [NSLocalizedDescriptionKey: "Number of decoded keys (\(keys.count)) does not match number of decoded objects (\(objects.count))."]))
+                return nil
+            }
             self.init(objects: objects as! [NSObject], forKeys: keys)
         } else {
             var objects = [AnyObject]()
