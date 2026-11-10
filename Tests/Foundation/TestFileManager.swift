@@ -1074,7 +1074,12 @@ class TestFileManager : XCTestCase {
         // A file cannot be unreadable on Windows
         XCTAssertTrue(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
 #else
-        XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+        if geteuid() == 0 {
+            // root can read a file without read permission, and both files are empty
+            XCTAssertTrue(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+        } else {
+            XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+        }
 #endif
 
         XCTAssertTrue(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile1URL.path))
