@@ -689,7 +689,13 @@ public class TestURLSessionServer: CustomStringConvertible {
             }
         }
 
-        if req.uri.hasPrefix("/LandOfTheLostCities/") {
+        if req.uri == "/abrupt-close" {
+            try httpServer.stop()
+        } else if req.uri == "/stall-response-body" {
+            try httpServer.tcpSocket.writeRawData(Data("HTTP/1.1 200 OK\r\nContent-Length: 1\r\n\r\n".utf8))
+            // Keep the response incomplete until the client cancels and closes the connection.
+            _ = try httpServer.tcpSocket.readData()
+        } else if req.uri.hasPrefix("/LandOfTheLostCities/") {
             /* these are all misbehaving servers */
             try httpServer.respondWithBrokenResponses(uri: req.uri)
         } else if req.uri == "/NSString-ISO-8859-1-data.txt" {
