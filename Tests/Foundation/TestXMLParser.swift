@@ -138,6 +138,46 @@ class TestXMLParser : XCTestCase {
         XCTAssertTrue(res)
     }
 
+    // A delegate without foundCDATA receives CDATA content through foundCharacters (#5280).
+    func test_CDATAFallbackToFoundCharacters() {
+        class Delegate: NSObject, XMLParserDelegate {
+            var characters = ""
+
+            func parser(_ parser: XMLParser, foundCharacters string: String) {
+                characters += string
+            }
+        }
+
+        let parser = XMLParser(data: Data("<a>x<![CDATA[yé漢😀]]>z</a>".utf8))
+        let delegate = Delegate()
+        parser.delegate = delegate
+        XCTAssertTrue(parser.parse())
+        XCTAssertEqual(delegate.characters, "xyé漢😀z")
+    }
+
+    // A delegate with foundCDATA receives all CDATA bytes and no duplicate characters.
+    func test_CDATAWithExplicitHandler() {
+        class Delegate: NSObject, XMLParserDelegate {
+            var characters = ""
+            var cdata = Data()
+
+            func parser(_ parser: XMLParser, foundCharacters string: String) {
+                characters += string
+            }
+
+            func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+                cdata.append(CDATABlock)
+            }
+        }
+
+        let parser = XMLParser(data: Data("<a>x<![CDATA[yé漢😀]]>z</a>".utf8))
+        let delegate = Delegate()
+        parser.delegate = delegate
+        XCTAssertTrue(parser.parse())
+        XCTAssertEqual(delegate.cdata, Data("yé漢😀".utf8))
+        XCTAssertEqual(delegate.characters, "xz")
+    }
+
     func test_sr9758_abortParsing() {
         class Delegate: NSObject, XMLParserDelegate {
             func parserDidStartDocument(_ parser: XMLParser) { parser.abortParsing() }
