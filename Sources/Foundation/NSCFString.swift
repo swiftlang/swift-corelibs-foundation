@@ -220,7 +220,8 @@ internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniC
 }
 
 internal func _CFSwiftStringGetCString(_ str: AnyObject, buffer: UnsafeMutablePointer<Int8>, maxLength: Int, encoding: CFStringEncoding) -> Bool {
-    return (str as! NSString).getCString(buffer, maxLength: maxLength,
+    // CFStringGetCString passes the buffer size excluding the NUL terminator, but getCString(_:maxLength:encoding:) expects the whole buffer size
+    return (str as! NSString).getCString(buffer, maxLength: maxLength + 1,
                                          encoding: numericCast(CFStringConvertEncodingToNSStringEncoding(encoding)))
 }
 
