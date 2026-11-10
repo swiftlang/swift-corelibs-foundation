@@ -47,6 +47,17 @@ private func UTF8STRING(_ bytes: UnsafePointer<UInt8>?) -> String? {
     return nil
 }
 
+private func requiredUTF8String(_ bytes: UnsafePointer<UInt8>?, parser: XMLParser) -> String? {
+    guard let string = UTF8STRING(bytes) else {
+        let error = NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.invalidCharacterError.rawValue)
+        parser._parserError = error
+        _CFXMLInterfaceStopParser(parser._parserContext)
+        parser.delegate?.parser(parser, parseErrorOccurred: error)
+        return nil
+    }
+    return string
+}
+
 internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {
     if let parser = XMLParser.currentParser() {
         return parser.interface
@@ -154,7 +165,7 @@ internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<
     }
     if entity == nil {
         if let delegate = parser.delegate {
-            let entityName = UTF8STRING(name)!
+            guard let entityName = requiredUTF8String(name, parser: parser) else { return nil }
             // if the systemID was valid, we would already have the correct entity (since we're loading external dtds) so this callback is a bit of a misnomer
             let result = delegate.parser(parser, resolveExternalEntityName: entityName, systemID: nil)
             if _CFXMLInterfaceHasDocument(context) != 0 {
@@ -175,7 +186,7 @@ internal func _NSXMLParserGetEntity(_ ctx: _CFXMLInterface, name: UnsafePointer<
 internal func _NSXMLParserNotationDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, publicId: UnsafePointer<UInt8>, systemId: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        let notationName = UTF8STRING(name)!
+        guard let notationName = requiredUTF8String(name, parser: parser) else { return }
         let publicIDString = UTF8STRING(publicId)
         let systemIDString = UTF8STRING(systemId)
         delegate.parser(parser, foundNotationDeclarationWithName: notationName, publicID: publicIDString, systemID: systemIDString)
@@ -184,21 +195,21 @@ internal func _NSXMLParserNotationDecl(_ ctx: _CFXMLInterface, name: UnsafePoint
 
 internal func _NSXMLParserAttributeDecl(_ ctx: _CFXMLInterface, elem: UnsafePointer<UInt8>, fullname: UnsafePointer<UInt8>, type: Int32, def: Int32, defaultValue: UnsafePointer<UInt8>, tree: _CFXMLInterfaceEnumeration) -> Void {
     let parser = ctx.parser
+    // In a regular SAX implementation tree is added to an attribute, which takes ownership of it; in our case we need to make sure to release it.
+    defer { _CFXMLInterfaceFreeEnumeration(tree) }
     if let delegate = parser.delegate {
-        let elementString = UTF8STRING(elem)!
-        let nameString = UTF8STRING(fullname)!
+        guard let elementString = requiredUTF8String(elem, parser: parser),
+              let nameString = requiredUTF8String(fullname, parser: parser) else { return }
         let typeString = "" // FIXME!
         let defaultValueString = UTF8STRING(defaultValue)
         delegate.parser(parser, foundAttributeDeclarationWithName: nameString, forElement: elementString, type: typeString, defaultValue: defaultValueString)
     }
-    // in a regular sax implementation tree is added to an attribute, which takes ownership of it; in our case we need to make sure to release it
-    _CFXMLInterfaceFreeEnumeration(tree)
 }
 
 internal func _NSXMLParserElementDecl(_ ctx: _CFXMLInterface, name: UnsafePointer<UInt8>, type: Int32, content: _CFXMLInterfaceElementContent) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        let nameString = UTF8STRING(name)!
+        guard let nameString = requiredUTF8String(name, parser: parser) else { return }
         let modelString = "" // FIXME!
         delegate.parser(parser, foundElementDeclarationWithName: nameString, model: modelString)
     }
@@ -211,7 +222,7 @@ internal func _NSXMLParserUnparsedEntityDecl(_ ctx: _CFXMLInterface, name: Unsaf
     // Add entities to the libxml2 doc so they'll resolve properly
     _CFXMLInterfaceSAX2UnparsedEntityDecl(context, name, publicId, systemId, notationName)
     if let delegate = parser.delegate {
-        let declName = UTF8STRING(name)!
+        guard let declName = requiredUTF8String(name, parser: parser) else { return }
         let publicIDString = UTF8STRING(publicId)
         let systemIDString = UTF8STRING(systemId)
         let notationNameString = UTF8STRING(notationName)
@@ -245,8 +256,9 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
             var namespaceNameString: String?
             var asAttrNamespaceNameString: String?
             if let ns = namespaces[idx] {
-                namespaceNameString = UTF8STRING(ns)
-                asAttrNamespaceNameString = "xmlns:" + namespaceNameString!
+                guard let name = requiredUTF8String(ns, parser: parser) else { return }
+                namespaceNameString = name
+                asAttrNamespaceNameString = "xmlns:" + name
             } else {
                 namespaceNameString = ""
                 asAttrNamespaceNameString = "xmlns"
@@ -276,7 +288,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         }
         var attributeQName: String
         let attrLocalName = attributes[idx]!
-        let attrLocalNameString = UTF8STRING(attrLocalName)!
+        guard let attrLocalNameString = requiredUTF8String(attrLocalName, parser: parser) else { return }
         let attrPrefix = attributes[idx + 1]
         if let attrPrefixString = UTF8STRING(attrPrefix), !attrPrefixString.isEmpty {
             attributeQName = attrPrefixString + ":" + attrLocalNameString
@@ -298,7 +310,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         }
     }
 
-    var elementName: String = UTF8STRING(localname)!
+    guard var elementName = requiredUTF8String(localname, parser: parser) else { return }
     var namespaceURI: String? = nil
     var qualifiedName: String? = nil
     if parser.shouldProcessNamespaces {
@@ -319,7 +331,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
 internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>?) -> Void {
     let parser = ctx.parser
 
-    var elementName: String = UTF8STRING(localname)!
+    guard var elementName = requiredUTF8String(localname, parser: parser) else { return }
     var namespaceURI: String? = nil
     var qualifiedName: String? = nil
     if parser.shouldProcessNamespaces {
@@ -358,7 +370,7 @@ internal func _NSXMLParserCharacters(_ ctx: _CFXMLInterface, ch: UnsafePointer<U
 internal func _NSXMLParserProcessingInstruction(_ ctx: _CFXMLInterface, target: UnsafePointer<UInt8>, data: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        let targetString = UTF8STRING(target)!
+        guard let targetString = requiredUTF8String(target, parser: parser) else { return }
         let dataString = UTF8STRING(data)
         delegate.parser(parser, foundProcessingInstructionWithTarget: targetString, data: dataString)
     }
@@ -374,7 +386,7 @@ internal func _NSXMLParserCdataBlock(_ ctx: _CFXMLInterface, value: UnsafePointe
 internal func _NSXMLParserComment(_ ctx: _CFXMLInterface, value: UnsafePointer<UInt8>) -> Void {
     let parser = ctx.parser
     if let delegate = parser.delegate {
-        let comment = UTF8STRING(value)!
+        guard let comment = requiredUTF8String(value, parser: parser) else { return }
         delegate.parser(parser, foundComment: comment)
     }
 }
