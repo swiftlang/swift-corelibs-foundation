@@ -17,6 +17,9 @@ import Foundation
 import Dispatch
 
 internal class _WebSocketURLProtocol: _HTTPURLProtocol {
+
+    private var messageData = Data()
+
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         super.init(task: task, cachedResponse: nil, client: client)
     }
@@ -118,14 +121,14 @@ internal class _WebSocketURLProtocol: _HTTPURLProtocol {
             lastRedirectBody = redirectBody
         }
 
-        let flags = easyHandle.getWebSocketFlags()
+        let (offset, bytesLeft, flags) = easyHandle.getWebSocketMeta()
         
-        notifyTask(aboutReceivedData: data, flags: flags)
+        notifyTask(aboutReceivedData: data, offset: offset, bytesLeft: bytesLeft, flags: flags)
         internalState = .transferInProgress(ts)
         return .proceed
     }
 
-    fileprivate func notifyTask(aboutReceivedData data: Data, flags: _EasyHandle.WebSocketFlags) {
+    fileprivate func notifyTask(aboutReceivedData data: Data, offset: Int64, bytesLeft: Int64, flags: _EasyHandle.WebSocketFlags) {
         guard let t = self.task else {
             fatalError("Cannot notify")
         }
@@ -159,10 +162,21 @@ internal class _WebSocketURLProtocol: _HTTPURLProtocol {
         } else if flags.contains(.pong) {
             task.noteReceivedPong()
         } else if flags.contains(.binary) {
-            let message = URLSessionWebSocketTask.Message.data(data)
+            if bytesLeft > 0 || flags.contains(.cont) {
+                messageData.append(data)
+                return
+            }
+            messageData.append(data)
+            let message = URLSessionWebSocketTask.Message.data(messageData)
             task.appendReceivedMessage(message)
+            messageData = Data() // Reset for the next message
         } else if flags.contains(.text) {
-            guard let utf8 = String(data: data, encoding: .utf8) else {
+            if bytesLeft > 0 || flags.contains(.cont) {
+                messageData.append(data)
+                return
+            }
+            messageData.append(data)
+            guard let utf8 = String(data: messageData, encoding: .utf8) else {
                 NSLog("Invalid utf8 message received from server \(data)")
                 let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadServerResponse,
                                     userInfo: [
@@ -175,6 +189,7 @@ internal class _WebSocketURLProtocol: _HTTPURLProtocol {
             }
             let message = URLSessionWebSocketTask.Message.string(utf8)
             task.appendReceivedMessage(message)
+            messageData = Data() // Reset for the next message
         } else {
             NSLog("Unexpected message received from server \(data) \(flags)")
             let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadServerResponse,
