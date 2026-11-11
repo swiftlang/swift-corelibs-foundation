@@ -33,7 +33,6 @@ enum {
     _kCFRuntimeIDCFError = 27,
     _kCFRuntimeIDCFTree = 28,
     _kCFRuntimeIDCFURL = 29,
-    _kCFRuntimeIDCFURLComponents = 30,
     _kCFRuntimeIDCFBundle = 31,
     _kCFRuntimeIDCFPFactory = 32,
     _kCFRuntimeIDCFPlugInInstance = 33,
@@ -129,7 +128,6 @@ CF_PRIVATE const CFRuntimeClass __CFBitVectorClass;
 CF_PRIVATE const CFRuntimeClass __CFErrorClass;
 CF_PRIVATE const CFRuntimeClass __CFTreeClass;
 CF_PRIVATE const CFRuntimeClass __CFURLClass;
-CF_PRIVATE const CFRuntimeClass __CFURLComponentsClass;
 CF_PRIVATE const CFRuntimeClass __CFBundleClass;
 CF_PRIVATE const CFRuntimeClass __CFPlugInInstanceClass;
 

@@ -5309,66 +5309,6 @@ CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef alloc, CFURLRef url, CFError
 
 CONST_STRING_DECL(kCFURLKeysOfUnsetValuesKey, "NSURLKeysOfUnsetValuesKey");
 
-CF_CROSS_PLATFORM_EXPORT void *_CFURLCopyResourceInfo(CFURLRef url) {
-    void *value = _getResourceInfo(url);
-    if (value) {
-        _CFSwiftRetain(value);
-    }
-    return value;
-}
-
-CF_CROSS_PLATFORM_EXPORT void *_CFURLCopyResourceInfoInitializingAtomicallyIfNeeded(CFURLRef url, CFTypeRef initialValue) {
-    _CFSwiftRetain((CFSwiftRef)initialValue);
-    void *expected = NULL;
-    if (!atomic_compare_exchange_strong(&((struct __CFURL *)url)->_resourceInfo, &expected, (void *)initialValue)) {
-        _CFSwiftRelease((CFSwiftRef)initialValue);
-        // 'expected' contains the actual value of _resourceInfo.
-        _CFSwiftRetain(expected);
-        return expected;
-    } else {
-        _CFSwiftRetain((CFSwiftRef)initialValue); // To satisfy the copy semantics of the function.
-        return (CFSwiftRef)initialValue;
-    }
-}
-
-CF_CROSS_PLATFORM_EXPORT void _CFURLSetResourceInfo(CFURLRef url, CFTypeRef resourceInfo) {
-    _CFSwiftRetain((CFSwiftRef)resourceInfo);
-    CFSwiftRef previousValue = (CFSwiftRef)atomic_exchange(&(((struct __CFURL *)url)->_resourceInfo), (CFSwiftRef)resourceInfo);
-    if (previousValue && previousValue != (CFSwiftRef)resourceInfo) {
-        _CFSwiftRelease(previousValue);
-    }
-}
-
-// The base implementation of these functions exclusively exists in Swift only.
-
-Boolean CFURLCopyResourcePropertyForKey(CFURLRef url, CFStringRef key, void *propertyValueTypeRefPtr, CFErrorRef *error) {
-    return __CFSwiftBridge.NSURL.copyResourcePropertyForKey(url, key, propertyValueTypeRefPtr, error);
-}
-
-CFDictionaryRef CFURLCopyResourcePropertiesForKeys(CFURLRef url, CFArrayRef keys, CFErrorRef *error) {
-    return __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys(url, keys, error);
-}
-
-Boolean CFURLSetResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue, CFErrorRef *error) {
-    return __CFSwiftBridge.NSURL.setResourcePropertyForKey(url, key, propertyValue, error);
-}
-
-Boolean CFURLSetResourcePropertiesForKeys(CFURLRef url, CFDictionaryRef keyedPropertyValues, CFErrorRef *error) {
-    return __CFSwiftBridge.NSURL.setResourcePropertiesForKeys(url, keyedPropertyValues, error);
-}
-
-void CFURLClearResourcePropertyCacheForKey(CFURLRef url, CFStringRef key) {
-    __CFSwiftBridge.NSURL.clearResourcePropertyCacheForKey(url, key);
-}
-
-void CFURLClearResourcePropertyCache(CFURLRef url) {
-    __CFSwiftBridge.NSURL.clearResourcePropertyCache(url);
-}
-
-void CFURLSetTemporaryResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue) {
-    __CFSwiftBridge.NSURL.setTemporaryResourceValueForKey(url, key, propertyValue);
-}
-
 CONST_STRING_DECL(kCFURLNameKey, "NSURLNameKey");
 CONST_STRING_DECL(kCFURLLocalizedNameKey, "NSURLLocalizedNameKey");
 CONST_STRING_DECL(kCFURLIsRegularFileKey, "NSURLIsRegularFileKey");

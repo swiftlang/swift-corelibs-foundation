@@ -88,8 +88,6 @@ add_library(CoreFoundation STATIC
     CFUnicodePrecomposition.c
     CFURL.c
     CFURLAccess.c
-    CFURLComponents_URIParser.c
-    CFURLComponents.c
     CFUtilities.c
     CFUUID.c
     CFWindowsUtilities.c
