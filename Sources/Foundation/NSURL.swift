@@ -8,13 +8,13 @@
 //
 
 
-@_implementationOnly import CoreFoundation
 #if os(Windows)
 import WinSDK
 #endif
 
-internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
-internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
+@_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
+
+internal import Synchronization
 
 #if canImport(Darwin)
 import Darwin
@@ -26,145 +26,59 @@ import Darwin
 @preconcurrency import Bionic
 #endif
 
-// NOTE: this represents PLATFORM_PATH_STYLE
-#if os(Windows)
-internal let kCFURLPlatformPathStyle = kCFURLWindowsPathStyle
-#else
-internal let kCFURLPlatformPathStyle = kCFURLPOSIXPathStyle
-#endif
-
-private func _standardizedPath(_ path: String) -> String {
-    if !path.isAbsolutePath {
-        return path._nsObject.standardizingPath
-    }
-#if os(Windows)
-    return path.unixPath
-#else
-    return path
-#endif
-}
-
-internal func _pathComponents(_ path: String?) -> [String]? {
-    guard let p = path else {
-        return nil
-    }
-
-    var result = [String]()
-    if p.length == 0 {
-        return result
-    } else {
-        let characterView = p
-        var curPos = characterView.startIndex
-        let endPos = characterView.endIndex
-        if characterView[curPos] == "/" {
-            result.append("/")
-        }
-
-        while curPos < endPos {
-            while curPos < endPos && characterView[curPos] == "/" {
-                curPos = characterView.index(after: curPos)
-            }
-            if curPos == endPos {
-                break
-            }
-            var curEnd = curPos
-            while curEnd < endPos && characterView[curEnd] != "/" {
-                curEnd = characterView.index(after: curEnd)
-            }
-            result.append(String(characterView[curPos ..< curEnd]))
-            curPos = curEnd
-        }
-    }
-    if p.length > 1 && p.hasSuffix("/") {
-        result.append("/")
-    }
-    return result
-}
-
 open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
-    typealias CFType = CFURL
-    internal var _base = _CFInfo(typeID: CFURLGetTypeID())
-    internal var _flags : UInt32 = 0
-    internal var _encoding : UInt32 = 0 // CFStringEncoding
-    internal var _string : UnsafeMutablePointer<AnyObject>? = nil // CFString
-    internal var _baseURL : UnsafeMutablePointer<AnyObject>? = nil // CFURL
-    internal var _extra : OpaquePointer? = nil
-    internal var _resourceInfo : OpaquePointer? = nil
-    internal var _range1 = NSRange(location: 0, length: 0)
-    internal var _range2 = NSRange(location: 0, length: 0)
-    internal var _range3 = NSRange(location: 0, length: 0)
-    internal var _range4 = NSRange(location: 0, length: 0)
-    internal var _range5 = NSRange(location: 0, length: 0)
-    internal var _range6 = NSRange(location: 0, length: 0)
-    internal var _range7 = NSRange(location: 0, length: 0)
-    internal var _range8 = NSRange(location: 0, length: 0)
-    internal var _range9 = NSRange(location: 0, length: 0)
-    
-    internal final var _cfObject : CFType {
-        if type(of: self) === NSURL.self {
-            return unsafeBitCast(self, to: CFType.self)
-        } else {
-            return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)
-        }
+    internal let _url: URL
+
+    private let _resourceStorageValue = Mutex<URLResourceValuesStorage?>(nil)
+
+    internal init(_url url: URL) {
+        _url = url
+        super.init()
     }
-    
+
     var _resourceStorage: URLResourceValuesStorage? {
         guard isFileURL else { return nil }
-        
-        if let storage = _resourceStorageIfPresent {
+
+        return _resourceStorageValue.withLock { value in
+            if let storage = value {
+                return storage
+            }
+            let storage = URLResourceValuesStorage()
+            value = storage
             return storage
-        } else {
-            let me = unsafeBitCast(self, to: CFURL.self)
-            let initial = URLResourceValuesStorage()
-            let result = _CFURLCopyResourceInfoInitializingAtomicallyIfNeeded(me, initial)
-            return Unmanaged<URLResourceValuesStorage>.fromOpaque(result).takeRetainedValue()
-        }
-    }
-    
-    var _resourceStorageIfPresent: URLResourceValuesStorage? {
-        guard isFileURL else { return nil }
-        
-        let me = unsafeBitCast(self, to: CFURL.self)
-        if let storage = _CFURLCopyResourceInfo(me) {
-            return Unmanaged<URLResourceValuesStorage>.fromOpaque(storage).takeRetainedValue()
-        } else {
-            return nil
-        }
-    }
-    
-    open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
-    }
-    
-    open override func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? NSURL else { return false }
-        return CFEqual(_cfObject, other._cfObject)
-    }
-    
-    open override var description: String {
-        if self.relativeString != self.absoluteString {
-            return "\(self.relativeString) -- \(self.baseURL!)"
-        } else {
-            return self.absoluteString
         }
     }
 
-    deinit {
-        _CFDeinit(self)
+    var _resourceStorageIfPresent: URLResourceValuesStorage? {
+        guard isFileURL else { return nil }
+
+        return _resourceStorageValue.withLock { $0 }
     }
-    
+
+    open override var hash: Int {
+        _url.hashValue
+    }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSURL else { return false }
+        return _url == other._url
+    }
+
+    open override var description: String {
+        _url.description
+    }
+
     open override func copy() -> Any {
         return copy(with: nil)
     }
-    
+
     open func copy(with zone: NSZone? = nil) -> Any {
         if isFileURL {
-            let newURL = CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)!
+            let newURL = NSURL(_url: _url)
             if let storage = _resourceStorageIfPresent {
-                let newStorage = URLResourceValuesStorage(copying: storage)
-                _CFURLSetResourceInfo(newURL, newStorage)
+                newURL._resourceStorageValue.withLock { $0 = URLResourceValuesStorage(copying: storage) }
             }
-            return newURL._nsObject
+            return newURL
         } else {
             return self
         }
@@ -195,37 +109,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
     
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
+        _url = URL(fileURLWithPath: path, isDirectory: isDir, relativeTo: baseURL)
         super.init()
-        
-        let thePath = _standardizedPath(path)
-        if thePath.length > 0 {
-            
-            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPlatformPathStyle, isDir, baseURL?._cfObject)
-        } else if let baseURL = baseURL {
-            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, baseURL.path._cfObject, kCFURLPlatformPathStyle, baseURL.hasDirectoryPath, nil)
-        }
     }
-    
-    public convenience init(fileURLWithPath path: String, relativeTo baseURL: URL?) {
-        let thePath = _standardizedPath(path)
-        
-        var isDir: ObjCBool = false
-        if validPathSeps.contains(where: { thePath.hasSuffix(String($0)) }) {
-            isDir = true
-        } else {
-#if !os(WASI)
-            let absolutePath: String
-            if let absPath = baseURL?.appendingPathComponent(path).path {
-                absolutePath = absPath
-            } else {
-                absolutePath = path
-            }
-            
-            let _ = FileManager.default.fileExists(atPath: absolutePath, isDirectory: &isDir)
-#endif
-        }
 
-        self.init(fileURLWithPath: thePath, isDirectory: isDir.boolValue, relativeTo: baseURL)
+    public init(fileURLWithPath path: String, relativeTo baseURL: URL?) {
+        _url = URL(fileURLWithPath: path, relativeTo: baseURL)
+        super.init()
     }
 
     public convenience init(fileURLWithPath path: String, isDirectory isDir: Bool) {
@@ -233,20 +123,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
 
     public init(fileURLWithPath path: String) {
-        let thePath: String = _standardizedPath(path)
-
-        var isDir: ObjCBool = false
-        if validPathSeps.contains(where: { thePath.hasSuffix(String($0)) }) {
-            isDir = true
-        } else {
-#if !os(WASI)
-            if !FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
-                isDir = false
-            }
-#endif
-        }
+        _url = URL(fileURLWithPath: path)
         super.init()
-        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPlatformPathStyle, isDir.boolValue, nil)
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
@@ -260,225 +138,155 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
     
     public init?(string URLString: String, relativeTo baseURL: URL?) {
-        super.init()
-        if !_CFURLInitWithURLString(_cfObject, URLString._cfObject, true, baseURL?._cfObject) {
-            return nil
+        guard let url = URL(string: URLString, relativeTo: baseURL) else {
+            _url = URL(_stringOrEmpty: "")!
+            super.init()
+            return
         }
+        _url = url
+        super.init()
     }
-    
+
+    /// Interprets the bytes as UTF-8, or as ISO Latin 1 if they are not valid UTF-8.
+    private static func _string(fromURLData data: Data) -> String {
+        if let string = String(data: data, encoding: .utf8) {
+            return string
+        }
+        return String(String.UnicodeScalarView(data.map { Unicode.Scalar($0) }))
+    }
+
     public init(dataRepresentation data: Data, relativeTo baseURL: URL?) {
-        super.init()
-        
-        // _CFURLInitWithURLString does not fail if checkForLegalCharacters == false
-        data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Void in
-            let ptr = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
-            if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), false) {
-                _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
-            } else if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingISOLatin1), false) {
-                _CFURLInitWithURLString(_cfObject, str, false, baseURL?._cfObject)
-            } else {
-                fatalError()
-            }
+        let string = NSURL._string(fromURLData: data)
+        // Unlike init(string:relativeTo:), this must not fail, so invalid characters are encoded.
+        guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true) else {
+            // Last fallback
+            _url = URL(_stringOrEmpty: "")!
+            super.init()
+            return
         }
+        _url = url
+        super.init()
     }
-    
+
     public init(absoluteURLWithDataRepresentation data: Data, relativeTo baseURL: URL?) {
-        super.init()
-        
-        data.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> Void in
-            let ptr = rawBuffer.baseAddress!.assumingMemoryBound(to: UInt8.self)
-            if _CFURLInitAbsoluteURLWithBytes(_cfObject, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), baseURL?._cfObject) {
-                return
-            }
-            if _CFURLInitAbsoluteURLWithBytes(_cfObject, ptr, data.count, CFStringEncoding(kCFStringEncodingISOLatin1), baseURL?._cfObject) {
-                return
-            }
-            fatalError()
+        let string = NSURL._string(fromURLData: data)
+        guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true) else {
+            // Last fallback
+            _url = URL(dataRepresentation: Data(), relativeTo: baseURL, isAbsolute: true) ?? URL(_stringOrEmpty: "")!
+            super.init()
+            return
         }
+        _url = url
+        super.init()
     }
     
     /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeTo:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
     */
     open var dataRepresentation: Data {
-        let bytesNeeded = CFURLGetBytes(_cfObject, nil, 0)
-        assert(bytesNeeded > 0)
-        
-        let buffer = malloc(bytesNeeded)!.bindMemory(to: UInt8.self, capacity: bytesNeeded)
-        let bytesFilled = CFURLGetBytes(_cfObject, buffer, bytesNeeded)
-        if bytesFilled == bytesNeeded {
-            return Data(bytesNoCopy: buffer, count: bytesNeeded, deallocator: .free)
-        } else {
-            fatalError()
-        }
+        _url.dataRepresentation
     }
-    
-    open var absoluteString: String {
-        if let absURL = CFURLCopyAbsoluteURL(_cfObject) {
-            return CFURLGetString(absURL)._swiftObject
-        }
 
-        return CFURLGetString(_cfObject)._swiftObject
+    open var absoluteString: String {
+        _url.absoluteString
     }
-    
+
     // The relative portion of a URL.  If baseURL is nil, or if the receiver is itself absolute, this is the same as absoluteString
     open var relativeString: String {
-        return CFURLGetString(_cfObject)._swiftObject
+        _url.relativeString
     }
-    
+
     open var baseURL: URL? {
-        return CFURLGetBaseURL(_cfObject)?._swiftObject
+        _url.baseURL
     }
-    
+
     // if the receiver is itself absolute, this will return self.
     open var absoluteURL: URL? {
-        return CFURLCopyAbsoluteURL(_cfObject)?._swiftObject
+        _url.absoluteURL
     }
-    
+
     /* Any URL is composed of these two basic pieces.  The full URL would be the concatenation of [myURL scheme], ':', [myURL resourceSpecifier]
     */
     open var scheme: String? {
-        return CFURLCopyScheme(_cfObject)?._swiftObject
+        _url.scheme
     }
-    
+
     internal var _isAbsolute : Bool {
-        return self.baseURL == nil && self.scheme != nil
+        self.baseURL == nil && self.scheme != nil
     }
     
     open var resourceSpecifier: String? {
         // Note that this does NOT have the same meaning as CFURL's resource specifier, which, for decomposeable URLs is merely that portion of the URL which comes after the path.  NSURL means everything after the scheme.
-        if !_isAbsolute {
+        guard _isAbsolute, let scheme = scheme else {
             return self.relativeString
-        } else {
-            let cf = _cfObject
-            guard CFURLCanBeDecomposed(cf) else {
-                return CFURLCopyResourceSpecifier(cf)?._swiftObject
-            }
-            guard baseURL == nil else {
-                return CFURLGetString(cf)?._swiftObject
-            }
-            
-            let netLoc = CFURLCopyNetLocation(cf)?._swiftObject
-            let path = CFURLCopyPath(cf)?._swiftObject
-            let theRest = CFURLCopyResourceSpecifier(cf)?._swiftObject
-            
-            if let netLoc = netLoc {
-                let p = path ?? ""
-                let rest = theRest ?? ""
-                return "//\(netLoc)\(p)\(rest)"
-            } else if let path = path {
-                let rest = theRest ?? ""
-                return "\(path)\(rest)"
-            } else {
-                return theRest
-            }
         }
+        return String(absoluteString.dropFirst(scheme.count + 1))
     }
-    
+
     /* If the URL conforms to rfc 1808 (the most common form of URL), the following accessors will return the various components; otherwise they return nil.  The litmus test for conformance is as recommended in RFC 1808 - whether the first two characters of resourceSpecifier is @"//".  In all cases, they return the component's value after resolving the receiver against its base URL.
     */
     open var host: String? {
-        return CFURLCopyHostName(_cfObject)?._swiftObject
+        _url.host(percentEncoded: false)
     }
-    
-    open var port: NSNumber? {
-        let port = CFURLGetPortNumber(_cfObject)
-        if port == -1 {
-            return nil
-        } else {
-            return NSNumber(value: port)
-        }
-    }
-    
-    open var user: String? {
-        return CFURLCopyUserName(_cfObject)?._swiftObject
-    }
-    
-    open var password: String? {
-        let absoluteURL = CFURLCopyAbsoluteURL(_cfObject)
-        let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, .password, nil)
-        guard passwordRange.location != kCFNotFound else {
-            return nil
-        }
-        
-        // For historical reasons, the password string should _not_ have its percent escapes removed.
-        let bufSize = CFURLGetBytes(absoluteURL, nil, 0)
-        let buf = [UInt8](unsafeUninitializedCapacity: bufSize) { buffer, initializedCount in
-            initializedCount = CFURLGetBytes(absoluteURL, buffer.baseAddress, buffer.count)
-            precondition(initializedCount == bufSize, "Inconsistency in CFURLGetBytes")
-        }
 
-        let passwordBuf = buf[passwordRange.location ..< passwordRange.location+passwordRange.length]
-        return passwordBuf.withUnsafeBufferPointer { ptr in
-            NSString(bytes: ptr.baseAddress!, length: passwordBuf.count, encoding: String.Encoding.utf8.rawValue)?._swiftObject
-        }
-    }
-    
-    open var path: String? {
-        let absURL = CFURLCopyAbsoluteURL(_cfObject)
-        guard var url = CFURLCopyFileSystemPath(absURL, kCFURLPOSIXPathStyle)?._swiftObject else {
+    open var port: NSNumber? {
+        guard let port = _url.port else {
             return nil
         }
-#if os(Windows)
-        // Per RFC 8089:E.2, if we have an absolute Windows/DOS path we can
-        // begin the URL with a drive letter rather than a `/`
-        let scalars = Array(url.unicodeScalars)
-        if isFileURL, url.isAbsolutePath,
-           scalars.count >= 3, scalars[0] == "/", scalars[2] == ":" {
-            url.removeFirst()
-        }
-#endif
-        return url
+        return NSNumber(value: port)
     }
-    
+
+    open var user: String? {
+        _url.user(percentEncoded: false)
+    }
+
+    open var password: String? {
+        // For historical reasons, the password string should _not_ have its percent escapes removed.
+        _url.password(percentEncoded: true)
+    }
+
+    open var path: String? {
+        _url.path
+    }
+
     open var fragment: String? {
-        return CFURLCopyFragment(_cfObject, nil)?._swiftObject
+        _url.fragment(percentEncoded: true)
     }
-    
+
     @available(swift, deprecated: 5.3, message: "The parameterString property is deprecated. When executing on Swift 5.3 or later, parameterString will always return nil, and the path method will return the complete path including the semicolon separator and params component if the URL string contains them.")
     open var parameterString: String? {
-        return CFURLCopyParameterString(_cfObject, nil)?._swiftObject
+        nil
     }
     
     open var query: String? {
-        return CFURLCopyQueryString(_cfObject, nil)?._swiftObject
+        _url.query(percentEncoded: true)
     }
     
     // The same as path if baseURL is nil
     open var relativePath: String? {
-        guard var url = CFURLCopyFileSystemPath(_cfObject, kCFURLPOSIXPathStyle)?._swiftObject else {
-            return nil
-        }
-#if os(Windows)
-        // Per RFC 8089:E.2, if we have an absolute Windows/DOS path we can
-        // begin the URL with a drive letter rather than a `/`
-        let scalars = Array(url.unicodeScalars)
-        if isFileURL, url.isAbsolutePath,
-           scalars.count >= 3, scalars[0] == "/", scalars[2] == ":" {
-            url.removeFirst()
-        }
-#endif
-        return url
+        _url.relativePath
     }
     
     /* Determines if a given URL string's path represents a directory (i.e. the path component in the URL string ends with a '/' character). This does not check the resource the URL refers to.
     */
     open var hasDirectoryPath: Bool {
-        return CFURLHasDirectoryPath(_cfObject)
+        _url.hasDirectoryPath
     }
-    
+
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding.
     */
     open func getFileSystemRepresentation(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferLength: Int) -> Bool {
-        return buffer.withMemoryRebound(to: UInt8.self, capacity: maxBufferLength) {
-            CFURLGetFileSystemRepresentation(_cfObject, true, $0, maxBufferLength)
+        return _url.withUnsafeFileSystemRepresentation { representation in
+            guard let representation = representation else {
+                return false
+            }
+            let size = strlen(representation) + 1
+            guard size <= maxBufferLength else {
+                return false
+            }
+            buffer.update(from: representation, count: size)
+            return true
         }
     }
-
-#if os(Windows)
-    internal func _getWideFileSystemRepresentation(_ buffer: UnsafeMutablePointer<UInt16>, maxLength: Int) -> Bool {
-      _CFURLGetWideFileSystemRepresentation(_cfObject, true, buffer, maxLength)
-    }
-#endif
 
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding. The returned C string will be automatically freed just as a returned object would be released; your code should copy the representation or use getFileSystemRepresentation:maxLength: if it needs to store the representation outside of the autorelease context in which the representation is created.
     */
@@ -486,8 +294,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     // Memory leak. See https://github.com/apple/swift-corelibs-foundation/blob/master/Docs/Issues.md
     open var fileSystemRepresentation: UnsafePointer<Int8> {
 #if os(Windows)
-        if let resolved = CFURLCopyAbsoluteURL(_cfObject),
-                let representation = CFURLCopyFileSystemPath(resolved, kCFURLWindowsPathStyle)?._swiftObject {
+        if let representation = path?.replacingOccurrences(of: "/", with: "\\") {
             let buffer = representation.withCString {
                 let len = strlen($0)
                 let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: len + 1)
@@ -513,47 +320,31 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
                    "use getFileSystemRepresentation to handle this case")
     }
 
-#if os(Windows)
-    internal var _wideFileSystemRepresentation: UnsafePointer<UInt16> {
-      let capacity: Int = Int(MAX_PATH) + 1
-      let buffer: UnsafeMutablePointer<UInt16> =
-          UnsafeMutablePointer<UInt16>.allocate(capacity: capacity)
-      buffer.initialize(repeating: 0, count: capacity)
-
-      if _getWideFileSystemRepresentation(buffer, maxLength: capacity) {
-        return UnsafePointer(buffer)
-      }
-
-      fatalError("URL cannot be expressed in the filesystem representation; use getFileSystemRepresentation to handle this case")
-    }
-#endif
-
     // Whether the scheme is file:; if myURL.isFileURL is true, then myURL.path is suitable for input into FileManager or NSPathUtilities.
     open var isFileURL: Bool {
-        return _CFURLIsFileURL(_cfObject)
+        _url.isFileURL
     }
-    
+
     /* A string constant for the "file" URL scheme. If you are using this to compare to a URL's scheme to see if it is a file URL, you should instead use the NSURL fileURL property -- the fileURL property is much faster. */
     open var standardized: URL? {
-        guard path != nil else {
-            return nil
+        let standardized = _url.standardized
+        guard isFileURL else {
+            return standardized
         }
 
-        guard let components = NSURLComponents(string: relativeString), let componentPath = components.path else {
-            return nil
-        }
-
-        if componentPath.contains("..") || componentPath.contains(".") {
-            components.path = _pathByRemovingDots(pathComponents!)
-        }
-
-        if let filePath = components.path, isFileURL {
-            return URL(fileURLWithPath: filePath, isDirectory: hasDirectoryPath, relativeTo: baseURL)
-        }
-
-        return components.url(relativeTo: baseURL)
+        // Resolving "." and ".." can change whether the last component looks like a directory, but the result keeps the directory flag of the receiver.
+        let path = baseURL == nil ? standardized.path : standardized.relativePath
+        return URL(fileURLWithPath: NSURL._removingTrailingSlash(path), isDirectory: hasDirectoryPath, relativeTo: baseURL)
     }
-    
+
+    /// A path never ends in a "/", unless the path is only a "/".
+    private static func _removingTrailingSlash(_ path: String) -> String {
+        guard path.count > 1, path.hasSuffix("/") else {
+            return path
+        }
+        return String(path.dropLast())
+    }
+
     /* Returns whether the URL's resource exists and is reachable. This method synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. If this method returns NO, the optional error is populated. This method is currently applicable only to URLs for file system resources. For other URL types, NO is returned. Symbol is present in iOS 4, but performs no operation.
     */
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
@@ -587,10 +378,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
 
         return URL(string: absoluteString)
     }
-    
-    internal override var _cfTypeID: CFTypeID {
-        return CFURLGetTypeID()
-    }
 
     open func removeAllCachedResourceValues() {
         _resourceStorage?.removeAllCachedResourceValues()
@@ -620,112 +407,88 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
 }
 
-internal class URLResourceValuesStorage: NSObject {
-    let valuesCacheLock = NSLock()
-    var valuesCache: [URLResourceKey: Any] = [:]
-    
+internal final class URLResourceValuesStorage: NSObject, Sendable {
+    // Resource values are arbitrary client values (`Any`), so we cannot check that they are `Sendable`. They are only read and written while holding the lock.
+    private struct Cache: @unchecked Sendable {
+        var values: [URLResourceKey: Any] = [:]
+    }
+
+    private let cache: Mutex<Cache>
+
     func removeAllCachedResourceValues() {
-        valuesCacheLock.lock()
-        defer { valuesCacheLock.unlock() }
-        
-        valuesCache = [:]
+        cache.withLock { $0.values = [:] }
     }
-    
+
     func removeCachedResourceValue(forKey key: URLResourceKey) {
-        valuesCacheLock.lock()
-        defer { valuesCacheLock.unlock() }
-        
-        valuesCache.removeValue(forKey: key)
+        cache.withLock { $0.values[key] = nil }
     }
-    
+
     func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) {
-        valuesCacheLock.lock()
-        defer { valuesCacheLock.unlock() }
-        
-        if let value = value {
-            valuesCache[key] = value
-        } else {
-            valuesCache.removeValue(forKey: key)
-        }
+        cache.withLock { $0.values[key] = value }
     }
-    
+
     func getResourceValue(_ value: inout AnyObject?,
                           forKey key: URLResourceKey, url: NSURL) throws {
-        let cached = valuesCacheLock.synchronized {
-            return valuesCache[key]
-        }
-        
+        var cached: Any?
+        cache.withLock { cached = $0.values[key] }
+
         if let cached = cached {
             value = __SwiftValue.store(cached)
             return
         }
-        
+
         let fetchedValues = try read([key], for: url)
         if let fetched = fetchedValues[key] {
-            valuesCacheLock.synchronized {
-                valuesCache[key] = fetched
-            }
+            cache.withLock { $0.values[key] = fetched }
             value = __SwiftValue.store(fetched)
         } else {
             value = nil
         }
     }
-    
+
     func resourceValues(forKeys keys: [URLResourceKey], url: NSURL) throws -> [URLResourceKey : Any] {
-        
         var result: [URLResourceKey : Any] = [:]
-        
         var keysToFetch: [URLResourceKey] = []
-        valuesCacheLock.synchronized {
+        cache.withLock { cache in
             for key in keys {
-                if let value = valuesCache[key] {
+                if let value = cache.values[key] {
                     result[key] = value
                 } else {
                     keysToFetch.append(key)
                 }
             }
         }
-        
+
         if keysToFetch.count > 0 {
             let found = try read(keysToFetch, for: url).compactMapValues { $0 }
-            
-            valuesCacheLock.synchronized {
-                valuesCache.merge(found, uniquingKeysWith: { $1 })
-            }
-            
+
+            cache.withLock { $0.values.merge(found, uniquingKeysWith: { $1 }) }
+
             result.merge(found, uniquingKeysWith: { $1 })
         }
-        
+
         return result
     }
-    
+
     func setResourceValue(_ value: Any?, forKey key: URLResourceKey, url: NSURL) throws {
         try write([key: value], to: url)
-        
-        valuesCacheLock.lock()
-        defer { valuesCacheLock.unlock() }
-        
-        valuesCache[key] = value
+
+        cache.withLock { $0.values[key] = value }
     }
-    
+
     func setResourceValues(_ keyedValues: [URLResourceKey : Any], url: NSURL) throws {
         try write(keyedValues, to: url)
-        
-        valuesCacheLock.lock()
-        defer { valuesCacheLock.unlock() }
-        
-        valuesCache.merge(keyedValues, uniquingKeysWith: { $1 })
+
+        cache.withLock { $0.values.merge(keyedValues, uniquingKeysWith: { $1 }) }
     }
-    
+
     internal override init() {
+        cache = Mutex(Cache())
         super.init()
     }
-    
+
     internal init(copying storage: URLResourceValuesStorage) {
-        storage.valuesCacheLock.lock()
-        defer { storage.valuesCacheLock.unlock() }
-        
-        valuesCache = storage.valuesCache
+        cache = Mutex(storage.cache.withLock { $0 })
         super.init()
     }
 }
@@ -791,385 +554,74 @@ extension NSURL {
         }
     }
     
-    internal func _pathByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String? {
-        guard let p = path else {
-            return nil
-        }
-
-        if p == "/" {
-            return p
-        }
-
-        var result = p
-        if compress {
-            let startPos = result.startIndex
-            var endPos = result.endIndex
-            var curPos = startPos
-
-            while curPos < endPos {
-                if result[curPos] == "/" {
-                    var afterLastSlashPos = curPos
-                    while afterLastSlashPos < endPos && result[afterLastSlashPos] == "/" {
-                        afterLastSlashPos = result.index(after: afterLastSlashPos)
-                    }
-                    if afterLastSlashPos != result.index(after: curPos) {
-                        result.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
-                        endPos = result.endIndex
-                    }
-                    curPos = afterLastSlashPos
-                } else {
-                    curPos = result.index(after: curPos)
-                }
-            }
-        }
-        if stripTrailing && result.hasSuffix("/") {
-            result.remove(at: result.index(before: result.endIndex))
-        }
-        return result
-    }
-
     public var pathComponents: [String]? {
-        return _pathComponents(path)
+        _url.pathComponents
     }
     
     public var lastPathComponent: String? {
-        guard let fixedSelf = _pathByFixingSlashes() else {
-            return nil
-        }
-        if fixedSelf.length <= 1 {
-            return fixedSelf
-        }
-        
-        return String(fixedSelf.suffix(from: fixedSelf._startOfLastPathComponent))
+        _url.lastPathComponent
     }
     
     public var pathExtension: String? {
-        guard let fixedSelf = _pathByFixingSlashes() else {
-            return nil
-        }
-        if fixedSelf.length <= 1 {
-            return ""
-        }
-        
-        if let extensionPos = fixedSelf._startOfPathExtension {
-            return String(fixedSelf.suffix(from: extensionPos))
-        } else {
-            return ""
-        }
+        _url.pathExtension
     }
     
     public func appendingPathComponent(_ pathComponent: String) -> URL? {
-        var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
-
-        // File URLs can't be handled on WASI without file system access
-#if !os(WASI)
-        // Since we are appending to a URL, path separators should
-        // always be '/', even if we're on Windows
-        if !pathComponent.hasSuffix("/") && isFileURL {
-            if let urlWithoutDirectory = result {
-                var isDir: ObjCBool = false
-                if FileManager.default.fileExists(atPath: urlWithoutDirectory.path, isDirectory: &isDir) && isDir.boolValue {
-                    result = self.appendingPathComponent(pathComponent, isDirectory: true)
-                }
-            }
-    
-        }
-#endif
-        return result
+        _url.appendingPathComponent(pathComponent)
     }
     
     public func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL? {
-        return CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, _cfObject, pathComponent._cfObject, isDirectory)?._swiftObject
+        return _url.appendingPathComponent(pathComponent, isDirectory: isDirectory)
     }
     
     public var deletingLastPathComponent: URL? {
-        return CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
+        return _url.deletingLastPathComponent()
     }
     
     public func appendingPathExtension(_ pathExtension: String) -> URL? {
-        return CFURLCreateCopyAppendingPathExtension(kCFAllocatorSystemDefault, _cfObject, pathExtension._cfObject)?._swiftObject
+        return _url.appendingPathExtension(pathExtension)
     }
     
     public var deletingPathExtension: URL? {
-        return CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, _cfObject)?._swiftObject
+        return _url.deletingPathExtension()
     }
     
     /* The following methods work only on `file:` scheme URLs; for non-`file:` scheme URLs, these methods return the URL unchanged.
     */
     public var standardizingPath: URL? {
-        // Documentation says it should expand initial tilde, but it doesn't do this on OS X.
-        // In remaining cases it works just like URLByResolvingSymlinksInPath.
-        return _resolveSymlinksInPath(excludeSystemDirs: true, preserveDirectoryFlag: true)
+        guard isFileURL else {
+            return _url
+        }
+
+        // As with standardized, the result keeps the directory flag of the receiver.
+        return URL(fileURLWithPath: NSURL._removingTrailingSlash(_url.standardizedFileURL.path), isDirectory: hasDirectoryPath)
     }
     
     public var resolvingSymlinksInPath: URL? {
-        return _resolveSymlinksInPath(excludeSystemDirs: true)
-    }
-    
-    internal func _resolveSymlinksInPath(excludeSystemDirs: Bool, preserveDirectoryFlag: Bool = false) -> URL? {
         guard isFileURL else {
-            return URL(string: absoluteString)
+            return _url
         }
 
-        guard let selfPath = path else {
-            return URL(string: absoluteString)
-        }
-
-        let absolutePath: String
-        if selfPath.isAbsolutePath {
-            absolutePath = selfPath
-        } else {
-            let workingDir = FileManager.default.currentDirectoryPath
-            absolutePath = workingDir._bridgeToObjectiveC().appendingPathComponent(selfPath)
-        }
-
-#if os(Windows)
-        let hFile: HANDLE = absolutePath.withCString(encodedAs: UTF16.self) {
-          CreateFileW($0, GENERIC_READ,
-                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                      nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nil)
-        }
-        guard hFile == INVALID_HANDLE_VALUE else {
-          defer { CloseHandle(hFile) }
-
-          let dwLength = GetFinalPathNameByHandleW(hFile, nil, 0, 0)
-          return withUnsafeTemporaryAllocation(of: WCHAR.self, capacity: Int(dwLength)) {
-            let dwLength =
-                GetFinalPathNameByHandleW(hFile, $0.baseAddress, DWORD($0.count), 0)
-            assert(dwLength < $0.count)
-
-            var resolved = String(decodingCString: $0.baseAddress!, as: UTF16.self)
-            if preserveDirectoryFlag {
-              var isExistingDirectory: ObjCBool = false
-              let _ = FileManager.default.fileExists(atPath: resolved, isDirectory: &isExistingDirectory)
-              if isExistingDirectory.boolValue && !resolved.hasSuffix("/") {
-                resolved += "/"
-              }
-            }
-            return URL(fileURLWithPath: resolved)
-          }
-        }
-#endif
-
-        var components = URL(fileURLWithPath: absolutePath).pathComponents
-        guard !components.isEmpty else {
-            return URL(string: absoluteString)
-        }
-
-        var resolvedPath = components.removeFirst()
-        for component in components {
-            switch component {
-
-            case "", ".":
-                break
-
-            case "..":
-                resolvedPath = resolvedPath._bridgeToObjectiveC().deletingLastPathComponent
-
-            default:
-                resolvedPath = resolvedPath._bridgeToObjectiveC().appendingPathComponent(component)
-                if let destination = FileManager.default._tryToResolveTrailingSymlinkInPath(resolvedPath) {
-                    resolvedPath = destination
-                }
-            }
-        }
-
-        // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
-        var isExistingDirectory: ObjCBool = false
-
-        let _ = FileManager.default.fileExists(atPath: resolvedPath, isDirectory: &isExistingDirectory)
-
-        if excludeSystemDirs {
-            resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath
-        }
-
-        if isExistingDirectory.boolValue && !resolvedPath.hasSuffix("/") {
-            resolvedPath += "/"
-        }
-
-        if preserveDirectoryFlag {
-            return URL(fileURLWithPath: resolvedPath, isDirectory: self.hasDirectoryPath)
-        } else {
-            return URL(fileURLWithPath: resolvedPath)
-        }
-    }
-
-    fileprivate func _pathByRemovingDots(_ comps: [String]) -> String {
-        var components = comps
-        
-        if(components.last == "/") {
-            components.removeLast()
-        }
-
-        guard !components.isEmpty else {
-            return self.path!
-        }
-
-        let isAbsolutePath = components.first == "/"
-        var result : String = components.removeFirst()
-
-        for component in components {
-            switch component {
-                case ".":
-                    break
-                case ".." where isAbsolutePath:
-                    result = result._bridgeToObjectiveC().deletingLastPathComponent
-                default:
-                    result = result._bridgeToObjectiveC().appendingPathComponent(component)
-            }
-        }
-
-        if(self.path!.hasSuffix("/")) {
-            result += "/"
-        }
-
-        return result
+        // The directory flag comes from the file system, so a path that does not exist is not a directory.
+        return URL(fileURLWithPath: NSURL._removingTrailingSlash(_url.resolvingSymlinksInPath().path))
     }
 }
 
 extension NSURL: _SwiftBridgeable {
     typealias SwiftType = URL
-    internal var _swiftObject: SwiftType { return self as URL }
-}
-
-extension CFURL : _NSBridgeable, _SwiftBridgeable {
-    typealias NSType = NSURL
-    typealias SwiftType = URL
-    internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
-    internal var _swiftObject: SwiftType { return _nsObject._swiftObject }
+    internal var _swiftObject: SwiftType { return _url }
 }
 
 extension URL : _NSBridgeable {
     typealias NSType = NSURL
-    typealias CFType = CFURL
-    internal var _nsObject: NSType { return self as NSURL }
-    internal var _cfObject: CFType { return _nsObject._cfObject }
+    internal var _nsObject: NSType { return NSURL(_url: self) }
 }
 
 extension NSURL : _StructTypeBridgeable {
     public typealias _StructType = URL
-    
+
     public func _bridgeToSwift() -> _StructType {
-        return _StructType._unconditionallyBridgeFromObjectiveC(self)
-    }
-}
-
-// -----
-
-internal func _CFSwiftURLCopyResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ valuePointer: UnsafeMutablePointer<Unmanaged<CFTypeRef>?>?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
-    do {
-        let key = URLResourceKey(rawValue: key._swiftObject)
-        let values = try unsafeDowncast(url, to: NSURL.self).resourceValues(forKeys: [ key ])
-        let value = values[key]
-        
-        if let value = value {
-            let result = __SwiftValue.store(value)
-            valuePointer?.pointee = .passRetained(unsafeBitCast(result, to: CFTypeRef.self))
-        } else {
-            valuePointer?.pointee = nil
-        }
-        
-        return true
-    } catch {
-        if let errorPointer = errorPointer {
-            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
-            let cfError = Unmanaged.passRetained(nsError._cfObject)
-            errorPointer.pointee = cfError
-        }
-        return false
-    }
-}
-
-internal func _CFSwiftURLCopyResourcePropertiesForKeys(_ url: CFTypeRef, _ keys: CFArray, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> Unmanaged<CFDictionary>? {
-    do {
-        var swiftKeys: [URLResourceKey] = []
-        for nsKey in keys._swiftObject {
-            if let stringKey = nsKey as? String {
-                swiftKeys.append(URLResourceKey(rawValue: stringKey))
-            }
-        }
-        
-        let result = try unsafeDowncast(url, to: NSURL.self).resourceValues(forKeys: swiftKeys)
-        
-        let finalDictionary = NSMutableDictionary()
-        for entry in result {
-            finalDictionary[entry.key.rawValue._nsObject] = entry.value
-        }
-        
-        return .passRetained(finalDictionary._cfObject)
-    } catch {
-        if let errorPointer = errorPointer {
-            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
-            let cfError = Unmanaged.passRetained(nsError._cfObject)
-            errorPointer.pointee = cfError
-        }
-        return nil
-    }
-}
-
-internal func _CFSwiftURLSetResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ value: CFTypeRef?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
-    do {
-        let key = URLResourceKey(rawValue: key._swiftObject)
-        try unsafeDowncast(url, to: NSURL.self).setResourceValue(__SwiftValue.fetch(value), forKey: key)
-        
-        return true
-    } catch {
-        if let errorPointer = errorPointer {
-            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
-            let cfError = Unmanaged.passRetained(nsError._cfObject)
-            errorPointer.pointee = cfError
-        }
-        
-        return false
-    }
-}
-
-internal func _CFSwiftURLSetResourcePropertiesForKeys(_ url: CFTypeRef, _ properties: CFDictionary, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
-    do {
-        var swiftValues: [URLResourceKey: Any] = [:]
-        let swiftProperties = properties._swiftObject
-        for entry in swiftProperties {
-            if let stringKey = entry.key as? String {
-                swiftValues[URLResourceKey(rawValue: stringKey)] = entry.value
-            }
-        }
-        
-        try unsafeDowncast(url, to: NSURL.self).setResourceValues(swiftValues)
-        return true
-    } catch {
-        if let errorPointer = errorPointer {
-            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
-            let cfError = Unmanaged.passRetained(nsError._cfObject)
-            errorPointer.pointee = cfError
-        }
-        return false
-    }
-}
-
-internal func _CFSwiftURLClearResourcePropertyCacheForKey(_ url: CFTypeRef, _ key: CFString) {
-    let swiftKey = URLResourceKey(rawValue: key._swiftObject)
-    unsafeDowncast(url, to: NSURL.self).removeCachedResourceValue(forKey: swiftKey)
-}
-
-internal func _CFSwiftURLClearResourcePropertyCache(_ url: CFTypeRef) {
-    unsafeDowncast(url, to: NSURL.self).removeAllCachedResourceValues()
-}
-
-internal func _CFSwiftSetTemporaryResourceValueForKey(_ url: CFTypeRef, _ key: CFString, _ value: CFTypeRef) {
-    unsafeDowncast(url, to: NSURL.self).setTemporaryResourceValue(__SwiftValue.fetch(value), forKey: URLResourceKey(rawValue: key._swiftObject))
-}
-
-internal func _CFSwiftURLResourceIsReachable(_ url: CFTypeRef, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
-    do {
-        let reachable = try unsafeDowncast(url, to: NSURL.self).checkResourceIsReachable()
-        return reachable ? true : false
-    } catch {
-        if let errorPointer = errorPointer {
-            let nsError = NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
-            let cfError = Unmanaged.passRetained(nsError._cfObject)
-            errorPointer.pointee = cfError
-        }
-        return false
+        return _url
     }
 }
 
@@ -1600,7 +1052,7 @@ internal extension Date {
     #endif
     
     init(timeIntervalSince1970: TimeInterval, nanoseconds: Double = 0) {
-        self.init(timeIntervalSinceReferenceDate: (timeIntervalSince1970 - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * nanoseconds))
+        self.init(timeIntervalSinceReferenceDate: (timeIntervalSince1970 - 978307200.0) /* seconds from 1970 to the reference date, 2001 */ + (1.0e-9 * nanoseconds))
     }
 }
 

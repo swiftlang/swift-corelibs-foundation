@@ -13,12 +13,12 @@ extension URLComponents : ReferenceConvertible {
 
 extension NSURLComponents : _SwiftBridgeable {
     typealias SwiftType = URLComponents
-    internal var _swiftObject: SwiftType { return URLComponents(string: self.string!)! }
+    internal var _swiftObject: SwiftType { return _components }
 }
 
 extension URLComponents : _NSBridgeable {
     typealias NSType = NSURLComponents
-    internal var _nsObject: NSType { return NSURLComponents(string: self.string!)! }
+    internal var _nsObject: NSType { return NSURLComponents(_components: self) }
 }
 
 extension URLComponents : _ObjectiveCBridgeable {

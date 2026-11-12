@@ -26,7 +26,6 @@
 #include "CFDateIntervalFormatter.h"
 #include "ForFoundationOnly.h"
 #include "CFURLPriv.h"
-#include "CFURLComponents.h"
 #include "CFDateComponents.h"
 
 #if TARGET_OS_WIN32
@@ -237,17 +236,6 @@ struct _NSDataBridge {
     void (*_Nonnull replaceBytes)(CFTypeRef obj, CFRange range, const void *_Nullable newBytes, CFIndex newLength);
 };
 
-struct _NSURLBridge {
-    Boolean (*_Nonnull copyResourcePropertyForKey)(CFTypeRef url, CFStringRef key, CFTypeRef _Nullable *_Nullable propertyValueTypeRefPtr, CFErrorRef *error);
-    CFDictionaryRef _Nullable (*_Nonnull copyResourcePropertiesForKeys)(CFTypeRef url, CFArrayRef keys, CFErrorRef *error);
-    Boolean (*_Nonnull setResourcePropertyForKey)(CFTypeRef url, CFStringRef key, CFTypeRef _Nullable propertyValue, CFErrorRef *error);
-    Boolean (*_Nonnull setResourcePropertiesForKeys)(CFTypeRef url, CFDictionaryRef keyedPropertyValues, CFErrorRef *error);
-    void (*_Nonnull clearResourcePropertyCacheForKey)(CFTypeRef url, CFStringRef key);
-    void (*_Nonnull clearResourcePropertyCache)(CFTypeRef url);
-    void (*_Nonnull setTemporaryResourceValueForKey)(CFTypeRef url, CFStringRef key, CFTypeRef propertyValue);
-    Boolean (*_Nonnull resourceIsReachable)(CFTypeRef url, CFErrorRef *error);
-};
-
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -263,7 +251,6 @@ struct _CFSwiftBridge {
 #endif
     struct _NSNumberBridge NSNumber;
     struct _NSDataBridge NSData;
-    struct _NSURLBridge NSURL;
 };
 
 struct _NSCFXMLBridgeStrong {
@@ -402,9 +389,6 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyLoadedImagePathForAd
 
 CF_CROSS_PLATFORM_EXPORT CFStringRef __CFTimeZoneCopyDataVersionString(void);
 
-CF_CROSS_PLATFORM_EXPORT void *_Nullable _CFURLCopyResourceInfo(CFURLRef url);
-CF_CROSS_PLATFORM_EXPORT void *_CFURLCopyResourceInfoInitializingAtomicallyIfNeeded(CFURLRef url, CFTypeRef initialValue);
-CF_CROSS_PLATFORM_EXPORT void _CFURLSetResourceInfo(CFURLRef url, CFTypeRef resourceInfo);
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8
@@ -429,7 +413,6 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
 /// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
 
-CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFTypeRef cf);
 
 typedef struct {
     void *_Nonnull memory;
