@@ -21,7 +21,7 @@ extension URL {
         // and normalised before being passed in.  This allows us access to the
         // complete path limit as imposed by the NT kernel rather than the 260
         // character limit as imposed by Win32.
-        #"\\?\\#(CFURLCopyFileSystemPath(CFURLCopyAbsoluteURL(_cfObject), kCFURLWindowsPathStyle)!._swiftObject)"#
+        #"\\?\\#(CFURLCopyFileSystemPath(CFURLCopyAbsoluteURL(_cfObject), CFURLPathStyle.cfurlWindowsPathStyle)!._swiftObject)"#
     }
 
     internal func withUnsafeNTPath<Result>(_ body: (UnsafePointer<WCHAR>) throws -> Result) rethrows -> Result {

@@ -12,6 +12,8 @@
 import WinSDK
 #endif
 
+@_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
+
 internal import Synchronization
 
 #if canImport(Darwin)
@@ -54,7 +56,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
 
     open override var hash: Int {
-        return _url.hashValue
+        _url.hashValue
     }
 
     open override func isEqual(_ object: Any?) -> Bool {
@@ -137,7 +139,9 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     
     public init?(string URLString: String, relativeTo baseURL: URL?) {
         guard let url = URL(string: URLString, relativeTo: baseURL) else {
-            return nil
+            _url = URL(_stringOrEmpty: "")!
+            super.init()
+            return
         }
         _url = url
         super.init()
@@ -154,8 +158,11 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     public init(dataRepresentation data: Data, relativeTo baseURL: URL?) {
         let string = NSURL._string(fromURLData: data)
         // Unlike init(string:relativeTo:), this must not fail, so invalid characters are encoded.
-        guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true)  else {
-            fatalError()
+        guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true) else {
+            // Last fallback
+            _url = URL(_stringOrEmpty: "")!
+            super.init()
+            return
         }
         _url = url
         super.init()
@@ -164,7 +171,10 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     public init(absoluteURLWithDataRepresentation data: Data, relativeTo baseURL: URL?) {
         let string = NSURL._string(fromURLData: data)
         guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true) else {
-            fatalError()
+            // Last fallback
+            _url = URL(dataRepresentation: Data(), relativeTo: baseURL, isAbsolute: true) ?? URL(_stringOrEmpty: "")!
+            super.init()
+            return
         }
         _url = url
         super.init()
@@ -173,35 +183,35 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     /* Returns the data representation of the URL's relativeString. If the URL was initialized with -initWithData:relativeTo:, the data representation returned are the same bytes as those used at initialization; otherwise, the data representation returned are the bytes of the relativeString encoded with NSUTF8StringEncoding.
     */
     open var dataRepresentation: Data {
-        return Data(relativeString.utf8)
+        _url.dataRepresentation
     }
 
     open var absoluteString: String {
-        return _url.absoluteString
+        _url.absoluteString
     }
 
     // The relative portion of a URL.  If baseURL is nil, or if the receiver is itself absolute, this is the same as absoluteString
     open var relativeString: String {
-        return _url.relativeString
+        _url.relativeString
     }
 
     open var baseURL: URL? {
-        return _url.baseURL
+        _url.baseURL
     }
 
     // if the receiver is itself absolute, this will return self.
     open var absoluteURL: URL? {
-        return _url.absoluteURL
+        _url.absoluteURL
     }
 
     /* Any URL is composed of these two basic pieces.  The full URL would be the concatenation of [myURL scheme], ':', [myURL resourceSpecifier]
     */
     open var scheme: String? {
-        return _url.scheme
+        _url.scheme
     }
 
     internal var _isAbsolute : Bool {
-        return self.baseURL == nil && self.scheme != nil
+        self.baseURL == nil && self.scheme != nil
     }
     
     open var resourceSpecifier: String? {
@@ -215,7 +225,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     /* If the URL conforms to rfc 1808 (the most common form of URL), the following accessors will return the various components; otherwise they return nil.  The litmus test for conformance is as recommended in RFC 1808 - whether the first two characters of resourceSpecifier is @"//".  In all cases, they return the component's value after resolving the receiver against its base URL.
     */
     open var host: String? {
-        return _url.host(percentEncoded: false)
+        _url.host(percentEncoded: false)
     }
 
     open var port: NSNumber? {
@@ -226,40 +236,40 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
 
     open var user: String? {
-        return _url.user(percentEncoded: false)
+        _url.user(percentEncoded: false)
     }
 
     open var password: String? {
         // For historical reasons, the password string should _not_ have its percent escapes removed.
-        return _url.password(percentEncoded: true)
+        _url.password(percentEncoded: true)
     }
 
     open var path: String? {
-        return _url.path
+        _url.path
     }
 
     open var fragment: String? {
-        return _url.fragment(percentEncoded: true)
+        _url.fragment(percentEncoded: true)
     }
 
     @available(swift, deprecated: 5.3, message: "The parameterString property is deprecated. When executing on Swift 5.3 or later, parameterString will always return nil, and the path method will return the complete path including the semicolon separator and params component if the URL string contains them.")
     open var parameterString: String? {
-        return nil
+        nil
     }
     
     open var query: String? {
-        return _url.query(percentEncoded: true)
+        _url.query(percentEncoded: true)
     }
     
     // The same as path if baseURL is nil
     open var relativePath: String? {
-        return _url.relativePath
+        _url.relativePath
     }
     
     /* Determines if a given URL string's path represents a directory (i.e. the path component in the URL string ends with a '/' character). This does not check the resource the URL refers to.
     */
     open var hasDirectoryPath: Bool {
-        return _url.hasDirectoryPath
+        _url.hasDirectoryPath
     }
 
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding.
@@ -312,7 +322,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
 
     // Whether the scheme is file:; if myURL.isFileURL is true, then myURL.path is suitable for input into FileManager or NSPathUtilities.
     open var isFileURL: Bool {
-        return _url.isFileURL
+        _url.isFileURL
     }
 
     /* A string constant for the "file" URL scheme. If you are using this to compare to a URL's scheme to see if it is a file URL, you should instead use the NSURL fileURL property -- the fileURL property is much faster. */

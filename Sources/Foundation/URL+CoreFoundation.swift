@@ -23,7 +23,7 @@ extension CFURL {
     internal var _swiftObject: URL {
         let string = CFURLGetString(self)._swiftObject
         let base = CFURLGetBaseURL(self)?._swiftObject
-        return URL(string: string, relativeTo: base) ?? URL(string: string, encodingInvalidCharacters: true)!
+        return URL(string: string, relativeTo: base)!
     }
 
     internal var _nsObject: NSURL {
