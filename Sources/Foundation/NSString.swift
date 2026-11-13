@@ -1129,53 +1129,11 @@ extension NSString {
     }
     
     public func components(separatedBy separator: CharacterSet) -> [String] {
-        let len = length
-        var range = rangeOfCharacter(from: separator, options: [], range: NSRange(location: 0, length: len))
-        if range.length == 0 {
-            return [_swiftObject]
-        } else {
-            var array = [String]()
-            var srange = NSRange(location: 0, length: len)
-            while true {
-                let trange = NSRange(location: srange.location, length: range.location - srange.location)
-                array.append(substring(with: trange))
-                srange.location = range.location + range.length
-                srange.length = len - srange.location
-                range = rangeOfCharacter(from: separator, options: [], range: srange)
-                if range.length == 0 {
-                    break
-                }
-            }
-            array.append(substring(with: srange))
-            return array
-        }
+        _swiftObject.components(separatedBy: separator)
     }
     
     public func trimmingCharacters(in set: CharacterSet) -> String {
-        let len = length
-        var buf = _NSStringBuffer(string: self, start: 0, end: len)
-        while !buf.isAtEnd,
-            let character = UnicodeScalar(buf.currentCharacter),
-            set.contains(character) {
-                buf.advance()
-        }
-        
-        let startOfNonTrimmedRange = buf.location // This points at the first char not in the set
-        
-        if startOfNonTrimmedRange == len { // Note that this also covers the len == 0 case, which is important to do here before the len-1 in the next line.
-            return ""
-        } else if startOfNonTrimmedRange < len - 1 {
-            buf.location = len - 1
-            while let character = UnicodeScalar(buf.currentCharacter),
-                set.contains(character),
-                buf.location >= startOfNonTrimmedRange {
-                    buf.rewind()
-            }
-            let endOfNonTrimmedRange = buf.location
-            return substring(with: NSRange(location: startOfNonTrimmedRange, length: endOfNonTrimmedRange + 1 - startOfNonTrimmedRange))
-        } else {
-            return substring(with: NSRange(location: startOfNonTrimmedRange, length: 1))
-        }
+        _swiftObject.trimmingCharacters(in: set)
     }
     
     public func padding(toLength newLength: Int, withPad padString: String, startingAt padIndex: Int) -> String {
