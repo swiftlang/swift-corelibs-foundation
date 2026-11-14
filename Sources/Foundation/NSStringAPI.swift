@@ -619,15 +619,6 @@ extension StringProtocol {
         return res
     }
 
-    // - (NSArray *)
-    //     componentsSeparatedByCharactersInSet:(NSCharacterSet *)separator
-
-    /// Returns an array containing substrings from the string
-    /// that have been divided by characters in the given set.
-    public func components(separatedBy separator: CharacterSet) -> [String] {
-        return _ns.components(separatedBy: separator)
-    }
-
     // - (const char *)cStringUsingEncoding:(NSStringEncoding)encoding
 
     /// Returns a representation of the string as a C string
@@ -894,14 +885,6 @@ extension StringProtocol {
                 )
                 )
             : _ns.replacingOccurrences(of: target, with: replacement)
-    }
-
-    // - (NSString *)stringByTrimmingCharactersInSet:(NSCharacterSet *)set
-
-    /// Returns a new string made by removing from both ends of
-    /// the `String` characters contained in a given character set.
-    public func trimmingCharacters(in set: CharacterSet) -> String {
-        return _ns.trimmingCharacters(in: set)
     }
 
     //===--- Omitted due to redundancy with "utf8" property -----------------===//
