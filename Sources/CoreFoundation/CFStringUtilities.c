@@ -543,7 +543,11 @@ static inline CFIndex __extendLocationBackward(CFIndex location, CFStringInlineB
         if (CFUniCharIsSurrogateLowCharacter(ch) && CFUniCharIsSurrogateHighCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(str, location - 1)))) {
             ch = CFUniCharGetLongCharacterForSurrogatePair(ch, otherChar);
             uint8_t planeNo = (ch >> 16);
-            if ((planeNo > 1) || (!CFUniCharIsMemberOfBitmap(ch, CFUniCharGetBitmapPtrForPlane(kCFUniCharNonBaseCharacterSet, planeNo)) && !CFUniCharIsMemberOfBitmap(ch, CFUniCharGetBitmapPtrForPlane(kCFUniCharPunctuationCharacterSet, planeNo)))) break;
+            if ((planeNo > 1) || (!CFUniCharIsMemberOfBitmap(ch, CFUniCharGetBitmapPtrForPlane(kCFUniCharNonBaseCharacterSet, planeNo)) && !CFUniCharIsMemberOfBitmap(ch, CFUniCharGetBitmapPtrForPlane(kCFUniCharPunctuationCharacterSet, planeNo)))) {
+                // Start at the high surrogate, or ICU sees a lone low surrogate
+                --location;
+                break;
+            }
             location -= 2;
         } else {
             if ((!CFUniCharIsMemberOfBitmap(ch, nonBaseBMP) && !CFUniCharIsMemberOfBitmap(ch, punctBMP)) || ((ch >= 0x2E80) && (ch < 0xAC00))) break;

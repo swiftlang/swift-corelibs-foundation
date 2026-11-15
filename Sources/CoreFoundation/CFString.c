@@ -2924,6 +2924,26 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                 }
             }
 
+            /* A case pair such as U+10400 and U+10428 shares the high surrogate, so the first mismatch is at the low surrogate; back up so the pair is folded below.
+            If the forced-ordering indexes point at this mismatch, they were set just above, so move them back too.
+            */
+            if ((0 == strBuf1Len) && (0 == strBuf2Len) && (str1Index > 0) && (str2Index > 0) && (CFUniCharIsSurrogateLowCharacter(str1Char) || CFUniCharIsSurrogateLowCharacter(str2Char))) {
+                UniChar previous1 = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index - 1);
+                UniChar previous2 = CFStringGetCharacterFromInlineBuffer(&inlineBuf2, str2Index - 1);
+                if (CFUniCharIsSurrogateHighCharacter(previous1) && (previous1 == previous2)) {
+                    if ((forcedIndex1 == str1Index) && (forcedIndex2 == str2Index)) {
+                        --forcedIndex1;
+                        --forcedIndex2;
+                    }
+                    --str1Index;
+                    --str2Index;
+                    str1LocalizedIndex = str1Index;
+                    str2LocalizedIndex = str2Index;
+                    str1Char = previous1;
+                    str2Char = previous2;
+                }
+            }
+
             if (CFUniCharIsSurrogateHighCharacter(str1Char) && CFUniCharIsSurrogateLowCharacter((otherChar = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index + 1)))) {
                 str1Char = CFUniCharGetLongCharacterForSurrogatePair(str1Char, otherChar);
                 str1UsedLen = 2;
