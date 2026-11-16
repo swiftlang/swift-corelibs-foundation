@@ -754,7 +754,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
 
 #if !TARGET_OS_ANDROID && !TARGET_OS_WASI
     if (!__tzZoneInfo) __InitTZStrings();
-    ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
+    ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf) - 1);
     // The link can be relative, we treat this the same as if there was no link
     if (__tzZoneInfo && (0 < ret) && (linkbuf[0] != '.')) {
         linkbuf[ret] = '\0';
