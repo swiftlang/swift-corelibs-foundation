@@ -850,13 +850,6 @@ class TestNSString: LoopbackServerTest {
             let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(identifier: "de_DE") as AnyObject, arguments: pointer)
             XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
         }
-        
-        withVaList(argument) {
-            pointer in
-            let loc: NSDictionary = ["NSDecimalSeparator" as NSString : "&" as NSString]
-            let string = NSString(format: "NSDictionary value is %d (%.1f)", locale: loc, arguments: pointer)
-            XCTAssertEqual(string, "NSDictionary value is 1000 (42&0)")
-        }
     }
 
     func test_initializeWithFormat4() {

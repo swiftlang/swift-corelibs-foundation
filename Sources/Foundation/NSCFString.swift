@@ -256,3 +256,20 @@ internal func _CFSwiftStringAppendCString(_ str: AnyObject, chars: UnsafePointer
     (str as! NSMutableString)._cfAppendCString(chars, length: length)
 }
 
+@c @implementation
+func CFStringCreateWithFormatAndArguments(_ alloc: CFAllocator?, _ formatOptions: CFDictionary?, _ formatString: CFString!, _ args: CVaListPointer) -> CFString! {
+    var _locale: Locale?
+    if let formatOptions, let actualLocale = formatOptions as? Locale {
+        _locale = actualLocale
+    }
+    return String(format: formatString._swiftObject, locale: _locale, argumentPointer: args, cfDescription: true)._cfObject
+}
+
+@c @implementation
+func CFStringAppendFormatAndArguments(_ outputString: CFMutableString!, _ formatOptions: CFDictionary?, _ formatString: CFString!, _ args: CVaListPointer) {
+    var _locale: Locale?
+    if let formatOptions, let actualLocale = formatOptions as? Locale {
+        _locale = actualLocale
+    }
+    unsafeBitCast(outputString, to: NSMutableString.self).append(String(format: formatString._swiftObject, locale: _locale, argumentPointer: args, cfDescription: true))
+}

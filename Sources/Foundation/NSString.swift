@@ -1273,20 +1273,19 @@ extension NSString {
     }
     
     public convenience init(format: String, arguments argList: CVaListPointer) {
-        let str = _NSCreateStringWithFormatAndArguments(format._cfObject, nil, argList)
-        self.init(str._swiftObject)
+        self.init(String(format: format, locale: nil, argumentPointer: argList))
     }
     
     public convenience init(format: String, locale: AnyObject?, arguments argList: CVaListPointer) {
-        let str = _NSCreateStringWithFormatAndArguments(format._cfObject, locale, argList)
-        self.init(str._swiftObject)
+        var _locale: Locale?
+        if let locale, let actualLocale = locale as? Locale {
+            _locale = actualLocale
+        }
+        self.init(String(format: format, locale: _locale, argumentPointer: argList))
     }
 
     public convenience init(format: NSString, _ args: CVarArg...) {
-        let str = withVaList(args) { (vaPtr) -> CFString? in
-            _NSCreateStringWithFormatAndArguments(format._cfObject, nil, vaPtr)
-        }!
-        self.init(str._swiftObject)
+        self.init(String(format: format._storage, arguments: args))
     }
     
     public convenience init?(data: Data, encoding: UInt) {
@@ -1422,43 +1421,7 @@ extension NSString {
     }
 }
 
-private func _NSCreateStringWithFormatAndArguments(_ format: CFString, _ locale: AnyObject?, _ arguments: CVaListPointer) -> CFString {
-    let formatOptions: CFDictionary?
-    if let loc = locale {
-        if type(of: loc) === NSLocale.self {
-            let cf = (loc as! NSLocale)._cfObject
-            formatOptions = unsafeBitCast(cf, to: CFDictionary.self)
-        } else if type(of: loc) === NSDictionary.self {
-            formatOptions = (loc as! NSDictionary)._cfObject
-        } else {
-            fatalError("locale parameter must be a NSLocale or a NSDictionary")
-        }
-    } else {
-        formatOptions = nil
-    }
-
-    return _CFStringCreateWithFormatAndArgumentsAux(kCFAllocatorSystemDefault, _NSCopyFormattingDescription, formatOptions, format, arguments)
-}
-
-private func _NSCopyFormattingDescription(_ object: UnsafeMutableRawPointer, _ formatOptions: UnsafeRawPointer) -> Unmanaged<CFString> {
-    let nsObject = Unmanaged<NSObject>.fromOpaque(UnsafeRawPointer(object)).takeUnretainedValue()
-    return Unmanaged.passRetained(_NSFormattingDescription(nsObject, locale: _NSFormattingLocale(formatOptions))._cfObject)
-}
-
-private func _NSFormattingLocale(_ formatOptions: UnsafeRawPointer) -> Locale? {
-    guard Int(bitPattern: formatOptions) != 0 else {
-        return nil
-    }
-
-    let cfObject = unsafeBitCast(formatOptions, to: CFTypeRef.self)
-    guard CFGetTypeID(cfObject) == CFLocaleGetTypeID() else {
-        return nil
-    }
-
-    return unsafeBitCast(cfObject, to: CFLocale.self)._swiftObject
-}
-
-private func _NSFormattingDescription(_ object: NSObject, locale: Locale?) -> String {
+func _NSFormattingDescription(_ object: NSObject, locale: Locale?) -> String {
     switch object {
     case let array as NSArray:
         return array.description(withLocale: locale)

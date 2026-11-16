@@ -14,6 +14,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_spi(SwiftCorelibsFoundation) import FoundationEssentials
+@_implementationOnly import CoreFoundation
+
 // Open Issues
 // ===========
 //
@@ -413,10 +416,20 @@ extension String {
     /// values are substituted according to given locale information.
     public init(format: __shared String, locale: __shared Locale?, arguments: __shared [CVarArg]) {
         self = withVaList(arguments) {
-            String._unconditionallyBridgeFromObjectiveC(
-                NSString(format: format, locale: locale?._bridgeToObjectiveC(), arguments: $0)
-            )
+            String(format: format, locale: locale, argumentPointer: $0)
         }
+    }
+
+    init(format: __shared String, locale: __shared Locale?, argumentPointer: CVaListPointer, cfDescription: Bool = false) {
+        self.init(_format: format, locale: locale, args: argumentPointer, descriptionFunc: { anyObject, locale in
+            guard let nsObject = anyObject as? NSObject else {
+                if cfDescription, let cfType = anyObject as? CFTypeRef, let cfDesc = CFCopyDescription(cfType)?._swiftObject {
+                    return cfDesc
+                }
+                return "*nil description*"
+            }
+            return _NSFormattingDescription(nsObject, locale: locale)
+        })
     }
 
     public init(_ cocoaString: NSString) {
