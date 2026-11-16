@@ -65,6 +65,19 @@ open class XMLDocument : XMLNode {
     private var _xmlDoc: _CFXMLDocPtr {
         return _CFXMLDocPtr(_xmlNode)
     }
+
+    // Whether the document was created with .nodeLoadExternalEntitiesNever, so that validate() keeps honoring it.
+    private var _neverLoadsExternalEntities = false
+
+    // libxml2 resolves external entities, including the external DTD subset it loads while validating, through the loader installed by setupXMLParsing(), which applies the policy of the current XMLParser. When `disabled` is true, run `body` with a current parser whose policy loads nothing.
+    private static func _withExternalEntityLoading<R>(disabled: Bool, _ body: () -> R) -> R {
+        guard disabled else {
+            return body()
+        }
+        let parser = XMLParser(data: Data())
+        parser.externalEntityResolvingPolicy = .never
+        return XMLParser.withCurrentParser(parser, body)
+    }
     
     public convenience init() {
         self.init(rootElement: nil)
@@ -101,7 +114,11 @@ open class XMLDocument : XMLNode {
     */
     public init(data: Data, options mask: XMLNode.Options = []) throws {
         setupXMLParsing()
-        let docPtr = _CFXMLDocPtrFromDataWithOptions(unsafeBitCast(data._bridgeToObjectiveC(), to: CFData.self), UInt32(mask.rawValue))
+        let neverLoadsExternalEntities = mask.contains(.nodeLoadExternalEntitiesNever)
+        let docPtr = XMLDocument._withExternalEntityLoading(disabled: neverLoadsExternalEntities) {
+            _CFXMLDocPtrFromDataWithOptions(unsafeBitCast(data._bridgeToObjectiveC(), to: CFData.self), UInt32(mask.rawValue))
+        }
+        _neverLoadsExternalEntities = neverLoadsExternalEntities
         super.init(ptr: _CFXMLNodePtr(docPtr))
 
         if mask.contains(.documentValidate) {
@@ -365,12 +382,22 @@ open class XMLDocument : XMLNode {
 
     open func validate() throws {
         var unmanagedError: Unmanaged<CFError>? = nil
-        let result = _CFXMLDocValidate(_xmlDoc, &unmanagedError)
+        let result = XMLDocument._withExternalEntityLoading(disabled: _neverLoadsExternalEntities) {
+            _CFXMLDocValidate(_xmlDoc, &unmanagedError)
+        }
         if !result,
             let unmanagedError = unmanagedError {
             let error = unmanagedError.takeRetainedValue()
             throw _CFErrorSPIForFoundationXMLUseOnly(unsafelyAssumingIsCFError: error)._nsObject
         }
+    }
+
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        let copy = super.copy(with: zone)
+        if let document = copy as? XMLDocument {
+            document._neverLoadsExternalEntities = _neverLoadsExternalEntities
+        }
+        return copy
     }
 
     internal override class func _objectNodeForNode(_ node: _CFXMLNodePtr) -> XMLDocument {
