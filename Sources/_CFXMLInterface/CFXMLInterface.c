@@ -607,6 +607,10 @@ void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  co
                 return;
             }
 
+            if (element->name == NULL || xmlValidateName((const xmlChar*)element->name, 0) != 0) {
+                return;
+            }
+
             // rather than writing custom code to parse the new content into the correct
             // xmlElementContent structures, let's leverage what we've already got.
             CFMutableStringRef xmlString = __CFSwiftXMLParserBridgeCF.CFStringCreateMutable(NULL, 0);
