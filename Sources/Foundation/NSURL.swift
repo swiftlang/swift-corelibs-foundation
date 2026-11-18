@@ -128,7 +128,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
-
         let pathString = String(cString: path)
         self.init(fileURLWithPath: pathString, isDirectory: isDir, relativeTo: baseURL)
     }
@@ -138,45 +137,20 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
     }
     
     public init?(string URLString: String, relativeTo baseURL: URL?) {
-        guard let url = URL(string: URLString, relativeTo: baseURL) else {
-            _url = URL(_stringOrEmpty: "")!
-            super.init()
-            return
+        guard let url = URL(_stringOrEmpty: URLString, relativeTo: baseURL) else {
+            return nil
         }
         _url = url
         super.init()
     }
 
-    /// Interprets the bytes as UTF-8, or as ISO Latin 1 if they are not valid UTF-8.
-    private static func _string(fromURLData data: Data) -> String {
-        if let string = String(data: data, encoding: .utf8) {
-            return string
-        }
-        return String(String.UnicodeScalarView(data.map { Unicode.Scalar($0) }))
-    }
-
     public init(dataRepresentation data: Data, relativeTo baseURL: URL?) {
-        let string = NSURL._string(fromURLData: data)
-        // Unlike init(string:relativeTo:), this must not fail, so invalid characters are encoded.
-        guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true) else {
-            // Last fallback
-            _url = URL(_stringOrEmpty: "")!
-            super.init()
-            return
-        }
-        _url = url
+        _url = URL(dataRepresentation: data, relativeTo: baseURL) ?? URL(_stringOrEmpty: "", relativeTo: baseURL)!
         super.init()
     }
 
     public init(absoluteURLWithDataRepresentation data: Data, relativeTo baseURL: URL?) {
-        let string = NSURL._string(fromURLData: data)
-        guard let url = URL(string: string, relativeTo: baseURL) ?? URL(string: string, encodingInvalidCharacters: true) else {
-            // Last fallback
-            _url = URL(dataRepresentation: Data(), relativeTo: baseURL, isAbsolute: true) ?? URL(_stringOrEmpty: "")!
-            super.init()
-            return
-        }
-        _url = url
+        _url = URL(dataRepresentation: data, relativeTo: baseURL, isAbsolute: true) ?? URL(_stringOrEmpty: "", relativeTo: baseURL)!.absoluteURL
         super.init()
     }
     
