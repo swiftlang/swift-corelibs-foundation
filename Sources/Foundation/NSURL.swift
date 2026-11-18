@@ -304,7 +304,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
             return UnsafePointer(buffer)
         }
 #else
-        let bufSize = Int(PATH_MAX + 1)
+        let maxPathSize = 4096
+        let bufSize = Int(maxPathSize + 1)
 
         let _fsrBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: bufSize)
         _fsrBuffer.initialize(repeating: 0, count: bufSize)
