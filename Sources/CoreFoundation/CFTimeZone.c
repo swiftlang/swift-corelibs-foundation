@@ -705,11 +705,44 @@ static void __InitTZStrings(void) {
 #elif TARGET_OS_ANDROID || TARGET_OS_WINDOWS
 // Nothing
 #elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
-static void __InitTZStrings(void) {
-    __tzZoneInfo = CFSTR(TZDIR);
-    __tzDir = TZDIR "zone.tab";
+static Boolean __CFZoneInfoDirectoryExists(const char *dir) {
+    struct stat st;
+    return (0 == stat(dir, &st) && S_ISDIR(st.st_mode));
 }
 
+// Storage for the "zone.tab" path when TZDIR is used. __tzDir has to outlive the __InitTZStrings function.
+static char __tzZoneTabBuffer[CFMaxPathSize];
+
+static void __InitTZStrings(void) {
+    const char *tzdir = __CFgetenv("TZDIR");
+    if (NULL != tzdir && '\0' != tzdir[0]) {
+        char dirBuffer[CFMaxPathSize];
+        // The trailing slash is required
+        int len = snprintf(dirBuffer, sizeof(dirBuffer), "%s%s",
+                           tzdir, ('/' == tzdir[strlen(tzdir) - 1]) ? "" : "/");
+        if (0 < len && (size_t)len < sizeof(dirBuffer) && __CFZoneInfoDirectoryExists(dirBuffer)) {
+            int tabLen = snprintf(__tzZoneTabBuffer, sizeof(__tzZoneTabBuffer), "%szone.tab", dirBuffer);
+            CFStringRef zoneInfo = CFStringCreateWithCString(kCFAllocatorSystemDefault, dirBuffer, kCFStringEncodingASCII);
+            if (NULL != zoneInfo && 0 < tabLen && (size_t)tabLen < sizeof(__tzZoneTabBuffer)) {
+                __tzZoneInfo = zoneInfo;
+                __tzDir = __tzZoneTabBuffer;
+                return;
+            }
+            if (NULL != zoneInfo) CFRelease(zoneInfo);
+        }
+    }
+    if (__CFZoneInfoDirectoryExists(TZDIR)) {
+        __tzZoneInfo = CFSTR(TZDIR);
+        __tzDir = TZDIR "zone.tab";
+    } else if (__CFZoneInfoDirectoryExists("/etc/zoneinfo/")) {
+        __tzZoneInfo = CFSTR("/etc/zoneinfo/");
+        __tzDir = "/etc/zoneinfo/zone.tab";
+    } else {
+        // Not sure what to do here.
+        __tzZoneInfo = CFSTR(TZDIR);
+        __tzDir = TZDIR "zone.tab";
+    }
+}
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -758,9 +791,15 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     // The link can be relative, we treat this the same as if there was no link
     if (__tzZoneInfo && (0 < ret) && (linkbuf[0] != '.')) {
         linkbuf[ret] = '\0';
+        // __tzZoneInfo is not a constant string when TZDIR is used, and
+        // CFStringGetCStringPtr only returns a pointer for constant strings.
+        char tzDirBuffer[CFMaxPathSize];
         const char *tzZoneInfo = CFStringGetCStringPtr(__tzZoneInfo, kCFStringEncodingASCII);
+        if (NULL == tzZoneInfo) {
+            tzZoneInfo = CFStringGetCString(__tzZoneInfo, tzDirBuffer, sizeof(tzDirBuffer), kCFStringEncodingASCII) ? tzDirBuffer : NULL;
+        }
         size_t zoneInfoDirLen = CFStringGetLength(__tzZoneInfo);
-        if (strncmp(linkbuf, tzZoneInfo, zoneInfoDirLen) == 0) {
+        if (NULL != tzZoneInfo && strncmp(linkbuf, tzZoneInfo, zoneInfoDirLen) == 0) {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + zoneInfoDirLen,
                                            strlen(linkbuf) - zoneInfoDirLen, kCFStringEncodingUTF8, false);
         } else {
