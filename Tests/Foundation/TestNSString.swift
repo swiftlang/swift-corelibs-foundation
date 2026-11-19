@@ -1377,6 +1377,80 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(stringCopy, "foo")
     }
 
+    func test_caseInsensitiveCompare_lowSurrogateCaseMismatch() {
+        func compare(_ lhs: String, _ rhs: String, options: NSString.CompareOptions = .caseInsensitive, locale: NSLocale?) -> ComparisonResult {
+            let string = NSString(string: lhs)
+            return string.compare(rhs, options: options, range: NSRange(location: 0, length: string.length), locale: locale)
+        }
+
+        // Each case pair shares the high surrogate: Deseret U+10400/U+10428 (D801 DC00/D801 DC28), Osage U+104B0/U+104D8 (D801 DCB0/D801 DCD8).
+        for locale in [NSLocale(localeIdentifier: "en_US"), nil] {
+            XCTAssertEqual(compare("\u{10400}", "\u{10428}", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("\u{10428}", "\u{10400}", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("\u{10400}a", "\u{10428}a", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("a\u{10400}b", "A\u{10428}B", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("\u{104B0}", "\u{104D8}", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("\u{10400}xa", "\u{10428}xb", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("\u{10428}xb", "\u{10400}xa", locale: locale), .orderedDescending)
+            XCTAssertEqual(compare("\u{10400}xb", "\u{10428}xa", locale: locale), .orderedDescending)
+            XCTAssertEqual(compare("\u{10428}xa", "\u{10400}xb", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("\u{10400}", "\u{10428}a", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("\u{10428}a", "\u{10400}", locale: locale), .orderedDescending)
+
+            let forced: NSString.CompareOptions = [.caseInsensitive, .forcedOrdering]
+            let upperFirst = compare("\u{10400}", "\u{10428}", options: forced, locale: locale)
+            XCTAssertNotEqual(upperFirst, .orderedSame)
+            XCTAssertEqual(compare("\u{10428}", "\u{10400}", options: forced, locale: locale).rawValue, -upperFirst.rawValue)
+            XCTAssertEqual(compare("a\u{10400}", "A\u{10428}", options: forced, locale: locale), compare("a\u{10428}", "A\u{10428}", options: forced, locale: locale))
+            XCTAssertEqual(compare("A\u{10400}", "a\u{10428}", options: forced, locale: locale), compare("A\u{10428}", "a\u{10428}", options: forced, locale: locale))
+        }
+
+        // An uppercase first letter must compare like its lowercase form, whatever follows it.
+        let suffixPairs: [(String, String)] = [
+            ("", ""), ("a", "a"), ("xa", "xb"), ("\u{00E9}", "f"), ("f", "\u{00E9}"), ("\u{00E9}", "e"),
+            ("a\u{0301}b", "ab"), ("ab", "a\u{0301}c"), (", a", "a"), ("-b", "a"), ("2", "02"), ("02x", "2y"),
+        ]
+        let optionSets: [NSString.CompareOptions] = [
+            .caseInsensitive,
+            [.caseInsensitive, .diacriticInsensitive],
+            [.caseInsensitive, .numeric],
+            [.caseInsensitive, .widthInsensitive],
+            [.caseInsensitive, NSString.CompareOptions(rawValue: UInt(kCFCompareIgnoreNonAlphanumeric))],
+        ]
+        for (locale, localeName) in [(NSLocale(localeIdentifier: "en_US"), "en_US"), (nil, "none")] {
+            for options in optionSets {
+                for (prefix1, prefix2) in [("", ""), ("02", "2"), ("x", "X")] {
+                    for (suffix1, suffix2) in suffixPairs {
+                        let expected = compare(prefix1 + "\u{10428}" + suffix1, prefix2 + "\u{10428}" + suffix2, options: options, locale: locale)
+                        let actual = compare(prefix1 + "\u{10400}" + suffix1, prefix2 + "\u{10428}" + suffix2, options: options, locale: locale)
+                        XCTAssertEqual(actual, expected, "\(prefix1)\u{10400}\(suffix1) vs \(prefix2)\u{10428}\(suffix2), options: \(options.rawValue), locale: \(localeName)")
+                    }
+                }
+            }
+        }
+
+        let paired = NSString(string: "x\u{10400}a")
+        XCTAssertEqual(paired.compare("\u{10428}A", options: .caseInsensitive, range: NSRange(location: 1, length: 3), locale: nil), .orderedSame)
+
+        // A Swift String would replace the unpaired high surrogate with U+FFFD, so both sides stay raw CFStrings.
+        func rawString(_ characters: [unichar]) -> CFString {
+            return CFStringCreateWithCharacters(kCFAllocatorSystemDefault, characters, characters.count)
+        }
+        func rawCompare(_ lhs: [unichar], _ rhs: [unichar], locale: CFLocale?) -> CFComparisonResult {
+            return CFStringCompareWithOptionsAndLocale(rawString(lhs), rawString(rhs), CFRangeMake(0, lhs.count), [.compareCaseInsensitive, .compareNonliteral], locale)
+        }
+
+        let pair: [unichar] = [0xD801, 0xDC00]
+        let loneHigh: [unichar] = [0xD801, 0x0062]
+        let english: CFLocale = CFLocaleCreate(kCFAllocatorSystemDefault, rawString(Array("en_US".utf16)))
+        for locale in [english, nil] {
+            let forward = rawCompare(pair, loneHigh, locale: locale)
+            let backward = rawCompare(loneHigh, pair, locale: locale)
+            XCTAssertNotEqual(forward, .compareEqualTo)
+            XCTAssertEqual(backward.rawValue, -forward.rawValue)
+        }
+    }
+
     func test_commonPrefix() {
         XCTAssertEqual("".commonPrefix(with: ""), "")
         XCTAssertEqual("1234567890".commonPrefix(with: ""), "")
