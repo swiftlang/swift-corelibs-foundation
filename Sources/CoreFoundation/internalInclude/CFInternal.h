@@ -1038,6 +1038,7 @@ extern void *__CFLookupCoreServicesInternalFunction(const char *name);
 #endif
 
 CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *str1, CFRange str1Range, CFStringInlineBuffer *str2, CFRange str2Range, CFOptionFlags options, const void *compareLocale);
+CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocaleAfter(CFStringInlineBuffer *str1, CFRange str1Range, CFStringInlineBuffer *str2, CFRange str2Range, CFOptionFlags options, const void *compareLocale, CFIndex str1Start, CFIndex str2Start);
 
 
 CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages(void);

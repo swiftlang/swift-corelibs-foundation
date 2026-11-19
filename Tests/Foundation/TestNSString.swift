@@ -1377,6 +1377,101 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(stringCopy, "foo")
     }
 
+    func test_caseInsensitiveCompareAfterExpandingCaseFold() {
+        let locale = NSLocale(localeIdentifier: "en_US")
+        func compare(_ lhs: String, _ rhs: String, options: NSString.CompareOptions = .caseInsensitive, locale: NSLocale?) -> ComparisonResult {
+            let string = NSString(string: lhs)
+            return string.compare(rhs, options: options, range: NSRange(location: 0, length: string.length), locale: locale)
+        }
+
+        XCTAssertEqual(compare("Weiße", "Weisse", locale: locale), .orderedSame)
+        XCTAssertEqual(compare("Weisse", "Weissr", locale: locale), .orderedAscending)
+        XCTAssertEqual(compare("Weiße", "Weissr", locale: locale), .orderedAscending)
+        XCTAssertEqual(compare("Weissr", "Weiße", locale: locale), .orderedDescending)
+        XCTAssertEqual(compare("x\u{FB00}a", "xffb", locale: locale), .orderedAscending)
+        XCTAssertEqual(compare("xffb", "x\u{FB00}a", locale: locale), .orderedDescending)
+
+        for locale in [locale, nil] {
+            XCTAssertEqual(compare("Weiees\u{FB00}", "Weieeß", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("Weieeß", "Weiees\u{FB00}", locale: locale), .orderedDescending)
+            XCTAssertEqual(compare("ßß", "ssss", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("ßßa", "ssssb", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("ssssb", "ßßa", locale: locale), .orderedDescending)
+            XCTAssertEqual(compare("ßxa", "ssxa", locale: locale), .orderedSame)
+            XCTAssertEqual(compare("ssxa", "ssxá", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("ßxa", "ssxá", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("ssxá", "ßxa", locale: locale), .orderedDescending)
+            XCTAssertEqual(compare("ßa", "ssá", locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("ssá", "ßa", locale: locale), .orderedDescending)
+            XCTAssertEqual(compare("ß01a", "ss1á", options: [.caseInsensitive, .numeric], locale: locale), .orderedAscending)
+            XCTAssertEqual(compare("ss1á", "ß01a", options: [.caseInsensitive, .numeric], locale: locale), .orderedDescending)
+        }
+
+        let foldDiacritics: NSString.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
+        let czech = NSLocale(localeIdentifier: "cs_CZ")
+        XCTAssertEqual(compare("čh", "ch", options: foldDiacritics, locale: czech), .orderedSame)
+        XCTAssertEqual(compare("ch", "ci", options: foldDiacritics, locale: czech), .orderedDescending)
+        XCTAssertEqual(compare("čh", "ci", options: foldDiacritics, locale: czech), .orderedDescending)
+        let danish = NSLocale(localeIdentifier: "da_DK")
+        XCTAssertEqual(compare("Åa", "aa", options: foldDiacritics, locale: danish), .orderedSame)
+        XCTAssertEqual(compare("aa", "ab", options: foldDiacritics, locale: danish), .orderedDescending)
+        XCTAssertEqual(compare("Åa", "ab", options: foldDiacritics, locale: danish), .orderedDescending)
+        let english = NSLocale(localeIdentifier: "en_US")
+        XCTAssertEqual(compare("ß\u{0301}a", "ss\u{0301}a", options: foldDiacritics, locale: english), .orderedSame)
+        XCTAssertEqual(compare("ss\u{0301}a", "ssb", options: foldDiacritics, locale: english), .orderedAscending)
+        XCTAssertEqual(compare("ß\u{0301}a", "ssb", options: foldDiacritics, locale: english), .orderedAscending)
+    }
+
+    func test_caseInsensitiveCompareIsConsistentAroundExpandingCaseFolds() {
+        func strings(from alphabet: [String], maxLength: Int) -> [String] {
+            var strings = [""]
+            var previous = [""]
+            for _ in 1...maxLength {
+                previous = previous.flatMap { prefix in alphabet.map { prefix + $0 } }
+                strings += previous
+            }
+            return strings
+        }
+
+        let alphabet = ["s", "S", "ß", "\u{1E9E}", "f", "\u{FB00}", "x", "a", "á"]
+        let checks: [(strings: [String], options: NSString.CompareOptions)] = [
+            (strings(from: alphabet, maxLength: 3), .caseInsensitive),
+            (strings(from: alphabet, maxLength: 2), [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering]),
+        ]
+        for (strings, options) in checks {
+            for (locale, localeName) in [(NSLocale(localeIdentifier: "en_US"), "en_US"), (nil, "none")] {
+                func compare(_ lhs: String, _ rhs: String) -> ComparisonResult {
+                    let string = NSString(string: lhs)
+                    return string.compare(rhs, options: options, range: NSRange(location: 0, length: string.length), locale: locale)
+                }
+
+                var failures = 0
+                for lhs in strings where failures < 10 {
+                    for rhs in strings {
+                        let forward = compare(lhs, rhs)
+                        let backward = compare(rhs, lhs)
+                        let reversed: ComparisonResult = (forward == .orderedAscending) ? .orderedDescending : ((forward == .orderedDescending) ? .orderedAscending : .orderedSame)
+                        if backward != reversed {
+                            XCTFail("\(lhs) vs \(rhs) is \(forward.rawValue) but \(rhs) vs \(lhs) is \(backward.rawValue) (options: \(options.rawValue), locale: \(localeName))")
+                            failures += 1
+                            if failures == 10 { break }
+                        }
+                    }
+                }
+
+                let sorted = strings.sorted { compare($0, $1) == .orderedAscending }
+                failures = 0
+                outer: for i in sorted.indices {
+                    for j in sorted.index(after: i)..<sorted.endIndex where compare(sorted[i], sorted[j]) == .orderedDescending {
+                        XCTFail("\(sorted[i]) sorts before \(sorted[j]) but compares greater (options: \(options.rawValue), locale: \(localeName))")
+                        failures += 1
+                        if failures == 10 { break outer }
+                    }
+                }
+            }
+        }
+    }
+
     func test_commonPrefix() {
         XCTAssertEqual("".commonPrefix(with: ""), "")
         XCTAssertEqual("1234567890".commonPrefix(with: ""), "")
