@@ -595,6 +595,15 @@ extension _SocketSources {
         // immediately).
         // Also, CURL may request unregister even before we perform any postponed work,
         // so we have to cancel such work in such case. See 
+
+        // CURL can also stop asking for a source without an unregister, for example
+        // when it moves from sending the request to waiting for the response.
+        // That source keeps firing (a connected socket is almost always writable)
+        // and runs `handler` in a loop, so we tear down the sources and create
+        // only the ones in `action`.
+        if (readSource != nil && !action.needsReadSource) || (writeSource != nil && !action.needsWriteSource) {
+            tearDown(handle: handle, socket: socket, queue: queue)
+        }
         let createSources = DispatchWorkItem {
             if action.needsReadSource {
                 self.createReadSource(socket: socket, queue: queue, handler: handler)
