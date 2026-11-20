@@ -592,13 +592,23 @@ open class XMLParser : NSObject {
         return result
     }
 
+    internal func parseFrom(_ data: Data) -> Bool {
+        var chunkStart = data.startIndex
+        repeat {
+            let chunkEnd = min(chunkStart + _chunkSize, data.endIndex)
+            guard parseData(data[chunkStart..<chunkEnd], lastChunkOfData: chunkEnd == data.endIndex) else { return false }
+            chunkStart = chunkEnd
+        } while chunkStart < data.endIndex
+        return true
+    }
+
     // called to start the event-driven parse. Returns YES in the event of a successful parse, and NO in case of error.
     open func parse() -> Bool {
         return Self.withCurrentParser(self) {
             if _stream != nil {
                 return parseFrom(_stream!)
             } else if _data != nil {
-                return parseData(_data!, lastChunkOfData: true)
+                return parseFrom(_data!)
             }
             return false
         }
