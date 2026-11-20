@@ -1055,13 +1055,13 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
 }
 
 
-static void _CFLogvEx2Predicate(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, _cf_logging_style loggingStyle) {
+static void _CFLogvEx2Predicate(CFLogFunc logit, CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, _cf_logging_style loggingStyle) {
 #if TARGET_OS_MAC
     uintptr_t val = (uintptr_t)_CFGetTSD(__CFTSDKeyIsInCFLog);
     if (3 < val) return; // allow up to 4 nested invocations
     _CFSetTSD(__CFTSDKeyIsInCFLog, (void *)(val + 1), NULL);
 #endif
-    CFStringRef str = format ? _CFStringCreateWithFormatAndArgumentsAux2(kCFAllocatorSystemDefault, copyDescFunc, contextDescFunc, formatOptions, (CFStringRef)format, args) : 0;
+    CFStringRef str = format ? CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, formatOptions, (CFStringRef)format, args) : 0;
     CFIndex blen = str ? CFStringGetMaximumSizeForEncoding(CFStringGetLength(str), kCFStringEncodingUTF8) + 1 : 0;
     char *buf = str ? (char *)malloc(blen) : 0;
     if (str && buf) {
@@ -1087,17 +1087,17 @@ static void _CFLogvEx2Predicate(CFLogFunc logit, CFStringRef (*copyDescFunc)(voi
 #endif
 }
     
-CF_EXPORT void _CFLogvEx2(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
-    _CFLogvEx2Predicate(logit, copyDescFunc, contextDescFunc, formatOptions, lev, format, args, _cf_logging_style_legacy);
+CF_EXPORT void _CFLogvEx2(CFLogFunc logit, CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
+    _CFLogvEx2Predicate(logit, formatOptions, lev, format, args, _cf_logging_style_legacy);
 }
     
-CF_EXPORT void _CFLogvEx3(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, void *addr) {
-    _CFLogvEx2Predicate(logit, copyDescFunc, contextDescFunc, formatOptions, lev, format, args, _cf_logging_style_legacy);
-    
+CF_EXPORT void _CFLogvEx3(CFLogFunc logit, CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, void *addr) {
+    _CFLogvEx2Predicate(logit, formatOptions, lev, format, args, _cf_logging_style_legacy);
+
 }
 
-CF_EXPORT void _CFLogvEx(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
-    _CFLogvEx2(logit, copyDescFunc, NULL, formatOptions, lev, format, args);
+CF_EXPORT void _CFLogvEx(CFLogFunc logit, CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
+    _CFLogvEx2(logit, formatOptions, lev, format, args);
 }
 
 // This CF-only log function uses no CF functionality, so it may be called anywhere within CF - including thread teardown or prior to full CF setup
@@ -1117,9 +1117,9 @@ void CFLog(int32_t lev, CFStringRef format, ...) {
     va_start(args, format); 
     
     #if !TARGET_OS_WASI
-    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
+    _CFLogvEx3(NULL, NULL, lev, format, args, __builtin_return_address(0));
     #else
-    _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, NULL);
+    _CFLogvEx3(NULL, NULL, lev, format, args, NULL);
     #endif
     va_end(args);
 }

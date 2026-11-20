@@ -375,26 +375,6 @@ CF_INLINE UniChar __CFStringGetCharacterFromInlineBufferQuick(CFStringInlineBuff
  */
 const char * _CFNonObjCStringGetCStringPtr(CFStringRef str, CFStringEncoding encoding, Boolean requiresNullTermination);
 
-/* These two allow specifying an alternate description function (instead of CFCopyDescription); used by NSString
-*/
-CF_EXPORT void _CFStringAppendFormatAndArgumentsAux(CFMutableStringRef outputString, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFDictionaryRef _Nullable formatOptions, CFStringRef formatString, va_list args);
-CF_EXPORT CFStringRef  _CFStringCreateWithFormatAndArgumentsAux(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFDictionaryRef _Nullable formatOptions, CFStringRef format, va_list arguments);
-
-CF_EXPORT void _CFStringAppendFormatAndArgumentsAux2(CFMutableStringRef outputString, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFStringRef formatString, va_list args);
-CF_EXPORT CFStringRef _Nullable _CFStringCreateWithFormatAndArgumentsAux2(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFStringRef format, va_list arguments);
-CF_EXPORT CFStringRef _Nullable CFStringCreateStringWithValidatedFormat(CFAllocatorRef alloc, CFDictionaryRef formatOptions, CFStringRef validFormatSpecifiers, CFStringRef format, va_list arguments, CFErrorRef _Nullable *_Nullable errorPtr) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
-
-CF_EXPORT CFDictionaryRef _Nullable _CFStringGetFormatSpecifierConfiguration(CFStringRef aFormatString);
-
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataReplacementIndexKey;
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataSpecifierRangeLocationInFormatStringKey;
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataSpecifierRangeLengthInFormatStringKey;
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataReplacementRangeLocationKey;
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataReplacementRangeLengthKey;
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataArgumentObjectKey;
-CF_EXPORT CFStringRef const _kCFStringFormatMetadataArgumentNumberKey;
-CF_EXPORT CFStringRef _Nullable _CFStringCreateWithFormatAndArgumentsReturningMetadata(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFDictionaryRef _Nullable formatConfiguration, CFStringRef format, CFArrayRef _Nullable *_Nullable outMetadata, va_list arguments);
-
 /* For NSString (and NSAttributedString) usage, mutate with isMutable check
 */
 enum {_CFStringErrNone = 0, _CFStringErrNotMutable = 1, _CFStringErrNilArg = 2, _CFStringErrBounds = 3};
