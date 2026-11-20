@@ -185,7 +185,6 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(_CFKeyedArchiverUIDGetTypeID(), unsafeBitCast(_NSKeyedArchiverUID.self, to: UnsafeRawPointer.self))
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafeRawPointer.self))
@@ -285,16 +284,6 @@ internal func __CFInitializeSwift() {
         
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
     
-#if !os(WASI)
-    __CFSwiftBridge.NSURL.copyResourcePropertyForKey = _CFSwiftURLCopyResourcePropertyForKey
-    __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys = _CFSwiftURLCopyResourcePropertiesForKeys
-    __CFSwiftBridge.NSURL.setResourcePropertyForKey = _CFSwiftURLSetResourcePropertyForKey
-    __CFSwiftBridge.NSURL.setResourcePropertiesForKeys = _CFSwiftURLSetResourcePropertiesForKeys
-    __CFSwiftBridge.NSURL.clearResourcePropertyCacheForKey = _CFSwiftURLClearResourcePropertyCacheForKey
-    __CFSwiftBridge.NSURL.clearResourcePropertyCache = _CFSwiftURLClearResourcePropertyCache
-    __CFSwiftBridge.NSURL.setTemporaryResourceValueForKey = _CFSwiftSetTemporaryResourceValueForKey
-    __CFSwiftBridge.NSURL.resourceIsReachable = _CFSwiftURLResourceIsReachable
-#endif
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {

@@ -173,8 +173,45 @@ extension NSString {
         return result
     }
     
+    private static func _pathComponents(_ path: String?) -> [String]? {
+        guard let p = path else {
+            return nil
+        }
+
+        var result = [String]()
+        if p.length == 0 {
+            return result
+        } else {
+            let characterView = p
+            var curPos = characterView.startIndex
+            let endPos = characterView.endIndex
+            if characterView[curPos] == "/" {
+                result.append("/")
+            }
+
+            while curPos < endPos {
+                while curPos < endPos && characterView[curPos] == "/" {
+                    curPos = characterView.index(after: curPos)
+                }
+                if curPos == endPos {
+                    break
+                }
+                var curEnd = curPos
+                while curEnd < endPos && characterView[curEnd] != "/" {
+                    curEnd = characterView.index(after: curEnd)
+                }
+                result.append(String(characterView[curPos ..< curEnd]))
+                curPos = curEnd
+            }
+        }
+        if p.length > 1 && p.hasSuffix("/") {
+            result.append("/")
+        }
+        return result
+    }
+
     public var pathComponents : [String] {
-        return _pathComponents(self._swiftObject)!
+        return Self._pathComponents(self._swiftObject)!
     }
     
     public var lastPathComponent : String {

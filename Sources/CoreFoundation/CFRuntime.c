@@ -21,7 +21,6 @@
 #include <assert.h>
 #include "CFUUID.h"
 #include "CFCalendar.h"
-#include "CFURLComponents.h"
 #if TARGET_OS_MAC
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -250,7 +249,6 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
     [_kCFRuntimeIDCFURL] = &__CFURLClass,
 
     
-    [_kCFRuntimeIDCFURLComponents] = &__CFURLComponentsClass,
     [_kCFRuntimeIDCFDateComponents] = &__CFDateComponentsClass,
     [_kCFRuntimeIDCFRelativeDateTimeFormatter] = &__CFRelativeDateTimeFormatterClass,
     [_kCFRuntimeIDCFListFormatter] = &__CFListFormatterClass,

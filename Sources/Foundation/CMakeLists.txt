@@ -137,6 +137,7 @@ add_library(Foundation
     Timer.swift
     Unit.swift
     URL.swift
+    URL+CoreFoundation.swift
     URLComponents.swift
     URLQueryItem.swift
     URLResourceKey.swift
