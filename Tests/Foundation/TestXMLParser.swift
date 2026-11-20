@@ -13,6 +13,10 @@ enum XMLParserDelegateEvent {
     case didStartElement(String, String?, String?, [String: String])
     case didEndElement(String, String?, String?)
     case foundCharacters(String)
+    case foundAttributeDeclaration(String, String, String?)
+    case foundNotationDeclaration(String, String?, String?)
+    case foundUnparsedEntityDeclaration(String, String?, String?, String?)
+    case foundProcessingInstruction(String, String?)
 }
 
 extension XMLParserDelegateEvent: Equatable {
@@ -31,6 +35,18 @@ extension XMLParserDelegateEvent: Equatable {
             return lhsElement == rhsElement && lhsNamespace == rhsNamespace && lhsQname == rhsQname
         case let (.foundCharacters(lhsChar), .foundCharacters(rhsChar)):
             return lhsChar == rhsChar
+        case let (.foundAttributeDeclaration(lhsName, lhsElement, lhsDefaultValue),
+                  .foundAttributeDeclaration(rhsName, rhsElement, rhsDefaultValue)):
+            return lhsName == rhsName && lhsElement == rhsElement && lhsDefaultValue == rhsDefaultValue
+        case let (.foundNotationDeclaration(lhsName, lhsPublicID, lhsSystemID),
+                  .foundNotationDeclaration(rhsName, rhsPublicID, rhsSystemID)):
+            return lhsName == rhsName && lhsPublicID == rhsPublicID && lhsSystemID == rhsSystemID
+        case let (.foundUnparsedEntityDeclaration(lhsName, lhsPublicID, lhsSystemID, lhsNotationName),
+                  .foundUnparsedEntityDeclaration(rhsName, rhsPublicID, rhsSystemID, rhsNotationName)):
+            return lhsName == rhsName && lhsPublicID == rhsPublicID && lhsSystemID == rhsSystemID && lhsNotationName == rhsNotationName
+        case let (.foundProcessingInstruction(lhsTarget, lhsData),
+                  .foundProcessingInstruction(rhsTarget, rhsData)):
+            return lhsTarget == rhsTarget && lhsData == rhsData
         default:
             return false
         }
@@ -239,5 +255,76 @@ class TestXMLParser : XCTestCase {
                 .endDocument,
             ])
         }
+    }
+
+    // Regression tests for https://github.com/swiftlang/swift-corelibs-foundation/issues/5573:
+    // XMLParser segfaults on Linux in optimized builds when libxml2 passes NULL
+    // for an absent DTD or processing-instruction value.
+    private final class DTDDelegate: NSObject, XMLParserDelegate {
+        var events: [XMLParserDelegateEvent] = []
+        func parser(_ parser: XMLParser, foundAttributeDeclarationWithName name: String, forElement element: String, type: String?, defaultValue: String?) {
+            events.append(.foundAttributeDeclaration(name, element, defaultValue))
+        }
+        func parser(_ parser: XMLParser, foundNotationDeclarationWithName name: String, publicID: String?, systemID: String?) {
+            events.append(.foundNotationDeclaration(name, publicID, systemID))
+        }
+        func parser(_ parser: XMLParser, foundUnparsedEntityDeclarationWithName name: String, publicID: String?, systemID: String?, notationName: String?) {
+            events.append(.foundUnparsedEntityDeclaration(name, publicID, systemID, notationName))
+        }
+        func parser(_ parser: XMLParser, foundProcessingInstructionWithTarget target: String, data: String?) {
+            events.append(.foundProcessingInstruction(target, data))
+        }
+    }
+
+    func test_dataWithRequiredAndImpliedAttributeDeclarations() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE HealthData [
+        <!ELEMENT HealthData (Rec*)>
+        <!ELEMENT Rec EMPTY>
+        <!ATTLIST Rec
+          type CDATA #REQUIRED
+          value CDATA #IMPLIED
+        >
+        ]>
+        <HealthData>
+        <Rec type="HKQuantityTypeIdentifierHeartRate" value="150"/>
+        <Rec type="HKQuantityTypeIdentifierHeartRate" value="151"/>
+        </HealthData>
+
+        """
+        let delegate = DTDDelegate()
+        let parser = XMLParser(data: Data(xml.utf8))
+        parser.delegate = delegate
+        XCTAssertTrue(parser.parse())
+        XCTAssertEqual(delegate.events, [
+            .foundAttributeDeclaration("type", "Rec", nil),
+            .foundAttributeDeclaration("value", "Rec", nil),
+        ])
+    }
+
+    func test_dtdCallbacksWithNullableArguments() {
+        let xml = """
+        <!DOCTYPE Rec [
+        <!ELEMENT Rec EMPTY>
+        <!NOTATION s SYSTEM "x">
+        <!NOTATION p PUBLIC "y">
+        <!ENTITY a SYSTEM "x" NDATA s>
+        <!ATTLIST Rec a (x|y) #IMPLIED b (x|y) "x">
+        ]>
+        <Rec><?empty?></Rec>
+        """
+        let delegate = DTDDelegate()
+        let parser = XMLParser(data: Data(xml.utf8))
+        parser.delegate = delegate
+        XCTAssertTrue(parser.parse())
+        XCTAssertEqual(delegate.events, [
+            .foundNotationDeclaration("s", nil, "x"),
+            .foundNotationDeclaration("p", "y", nil),
+            .foundUnparsedEntityDeclaration("a", nil, "x", "s"),
+            .foundAttributeDeclaration("a", "Rec", nil),
+            .foundAttributeDeclaration("b", "Rec", "x"),
+            .foundProcessingInstruction("empty", nil),
+        ])
     }
 }
