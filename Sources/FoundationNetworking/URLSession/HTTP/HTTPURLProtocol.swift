@@ -24,7 +24,6 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     // and the 3xx response is returned to the client and the data is sent via the delegate notify
     // mechanism. `lastRedirectBody` holds the body of the redirect currently being processed.
     var lastRedirectBody: Data? = nil
-    private var redirectCount = 0
 
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         super.init(task: task, cachedResponse: cachedResponse, client: client)
@@ -455,49 +454,20 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             fatalError("Trying to redirect, but the transfer is not complete.")
         }
 
-        // Avoid a never ending redirect chain by having a hard limit on the number of redirects.
-        // This value mirrors Darwin.
-        redirectCount += 1
-        if redirectCount > 20 {
-            self.internalState = .transferFailed
-            let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorHTTPTooManyRedirects,
-                                userInfo: [NSLocalizedDescriptionKey: "too many HTTP redirects"])
-            guard let request = task?.currentRequest else {
-                fatalError("In a redirect chain but no current task/request")
+        guard let task else { return }
+        internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
+        // The coordinator invokes completion on task.workQueue, which protects this protocol's state.
+        nonisolated(unsafe) let protocolInstance = self
+        task._decideRedirect(from: self, request: request, response: response) { result in
+            // A timeout may have completed the transfer while the delegate was deciding.
+            guard case .waitingForRedirectCompletionHandler = protocolInstance.internalState else { return }
+            switch result {
+            case .success(let request):
+                protocolInstance.didCompleteRedirectCallback(request)
+            case .failure(let error):
+                protocolInstance.internalState = .transferFailed
+                protocolInstance.failWith(error: error as NSError, request: task.currentRequest ?? request)
             }
-            failWith(error: error, request: request)
-            return
-        }
-
-        guard let session = task?.session as? URLSession else { fatalError() }
-
-        if let delegate = task?.delegate {
-            // At this point we need to change the internal state to note
-            // that we're waiting for the delegate to call the completion
-            // handler. Then we'll call the delegate callback
-            // (willPerformHTTPRedirection). The task will then switch out of
-            // its internal state once the delegate calls the completion
-            // handler.
-
-            //TODO: Should the `public response: URLResponse` property be updated
-            // before we call delegate API
-            self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
-            // We need this ugly cast in order to be able to support `URLSessionTask.init()`
-            let task = self.task!
-            // Self state is protected by the dispatch queue
-            nonisolated(unsafe) let nonisolatedSelf = self
-            session.delegateQueue.addOperation {
-                delegate.urlSession(session, task: task, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { (request: URLRequest?) in
-                    task.workQueue.async {
-                        nonisolatedSelf.didCompleteRedirectCallback(request)
-                    }
-                }
-            }
-        } else {
-            // Follow the redirect. Need to configure new request with cookies, etc.
-            let configuredRequest = session._configuration.configure(request: request)
-            task?.knownBody = URLSessionTask._Body.none
-            startNewTransfer(with: configuredRequest)
         }
     }
 
