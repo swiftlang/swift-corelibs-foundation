@@ -652,8 +652,8 @@ fileprivate extension URLResourceValuesStorage {
         
         // Memoized access to lstat:
         
-        var urlStatStorage: stat?
-        func urlStat() throws -> stat {
+        var urlStatStorage: _FileStat?
+        func urlStat() throws -> _FileStat {
             if let storage = urlStatStorage {
                 return storage
             } else {
@@ -1031,7 +1031,7 @@ internal extension Date {
     }
 }
 
-extension stat {
+extension _FileStat {
     var lastModificationDate: Date {
         #if canImport(Darwin)
         return Date(timespec: st_mtimespec)

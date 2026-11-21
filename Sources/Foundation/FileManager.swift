@@ -28,9 +28,11 @@ import WASILibc
 #if os(Windows)
 internal typealias NativeFSRCharType = WCHAR
 internal let NativeFSREncoding = String.Encoding.utf16LittleEndian.rawValue
+internal typealias _FileStat = _stat64
 #else
 internal typealias NativeFSRCharType = CChar
 internal let NativeFSREncoding = String.Encoding.utf8.rawValue
+internal typealias _FileStat = stat
 #endif
 
 
