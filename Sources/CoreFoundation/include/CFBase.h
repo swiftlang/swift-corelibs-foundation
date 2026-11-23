@@ -126,7 +126,8 @@
         #define _CF_EXTERN extern
     #endif
 
-    #if defined(_WINDLL)
+    // In swift-corelibs-foundation CF is private to the library it is linked into, so it is never exported or imported.
+    #if defined(_WINDLL) && !defined(DEPLOYMENT_RUNTIME_SWIFT)
         #if defined(CoreFoundation_EXPORTS) || defined(CF_BUILDING_CF)
             #define CF_EXPORT _CF_EXTERN __declspec(dllexport)
         #else

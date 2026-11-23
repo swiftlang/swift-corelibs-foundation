@@ -79,6 +79,7 @@ let coreFoundationBuildSettings: [CSetting] = [
     .headerSearchPath("internalInclude"),
     .define("DEBUG", .when(configuration: .debug)),
     .define("CF_BUILDING_CF"),
+    .unsafeFlags(["-fvisibility=hidden"], .when(platforms: [.linux, .android, .custom("freebsd")])),
     .define("CF_WINDOWS_EXECUTABLE_INITIALIZER", .when(platforms: [.windows])), // Ensure __CFInitialize is run even when statically linked into an executable
     .define("DEPLOYMENT_RUNTIME_SWIFT"),
     .define("HAVE_STRUCT_TIMESPEC"),

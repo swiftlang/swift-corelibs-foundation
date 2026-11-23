@@ -107,6 +107,12 @@ target_compile_options(CoreFoundation INTERFACE
 target_compile_options(CoreFoundation PRIVATE
     "SHELL:$<$<COMPILE_LANGUAGE:C>:${_Foundation_common_build_flags}>")
 
+# CoreFoundation is an implementation detail and shouldn't be exported (Windows already doesn't: CF_EXPORT is not dllexport there)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_compile_options(CoreFoundation PRIVATE
+        "$<$<COMPILE_LANGUAGE:C>:-fvisibility=hidden>")
+endif()
+
 target_precompile_headers(CoreFoundation PRIVATE internalInclude/CoreFoundation_Prefix.h)
 
 target_link_libraries(CoreFoundation
@@ -138,17 +144,6 @@ file(COPY
         include/
     DESTINATION
         ${CMAKE_BINARY_DIR}/_CModulesForClients/CoreFoundation)
-
-if(NOT BUILD_SHARED_LIBS)
-    set(swift swift_static)
-else()
-    set(swift swift)
-endif()
-
-install(DIRECTORY
-            include/
-        DESTINATION
-            lib/${swift}/CoreFoundation)
 
 if(NOT BUILD_SHARED_LIBS)
     install(TARGETS CoreFoundation
