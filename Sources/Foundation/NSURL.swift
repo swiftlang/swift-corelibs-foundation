@@ -22,8 +22,8 @@ import Darwin
 @preconcurrency import Glibc
 #elseif canImport(Musl)
 @preconcurrency import Musl
-#elseif canImport(Bionic)
-@preconcurrency import Bionic
+#elseif canImport(Android)
+@preconcurrency import Android
 #endif
 
 open class NSURL : NSObject, NSSecureCoding, NSCopying, @unchecked Sendable {
