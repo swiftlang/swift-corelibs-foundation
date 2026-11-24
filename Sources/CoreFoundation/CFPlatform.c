@@ -2184,11 +2184,8 @@ static int _CFPosixSpawnImplPre28(pid_t *_CF_RESTRICT pid, const char *_CF_RESTR
                     if (dup2(fd, new_fd) == -1) _exit(127);
                 }
             } else if (actions->actions[idx].type == _CFPosixSpawnFileActionClosePre28) {
-                if (close(action->closeAction.filedes) == -1) {
-                    if (errno == EBADF) {
-                        _exit(127);
-                    }
-                }
+                // MATCHING BIONIC: failure to close is ignored.
+                close(action->closeAction.filedes);
             }
         }
     }
