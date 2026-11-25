@@ -9,6 +9,8 @@
 
 #if canImport(Android)
 @preconcurrency import Android
+#elseif os(Windows)
+import WinSDK
 #endif
 
 let kURLTestParsingTestsKey = "ParsingTests"
@@ -729,6 +731,41 @@ class TestURL : XCTestCase {
     }
 
     // MARK: Resource values.
+
+#if os(Windows)
+    func test_URLResourceValues_largeFile() throws {
+        try FileManager.default.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
+        let sizes: [Int64] = [Int64(Int32.max), 1 << 31, (1 << 31) + 1, 1 << 32, (1 << 32) + 1]
+        for size in sizes {
+            let url = writableTestDirectoryURL.appendingPathComponent("large-\(size)")
+            let handle = url.path.withCString(encodedAs: UTF16.self) {
+                CreateFileW($0, DWORD(GENERIC_WRITE), DWORD(FILE_SHARE_READ), nil, DWORD(CREATE_ALWAYS), DWORD(FILE_ATTRIBUTE_NORMAL), nil)
+            }
+            XCTAssertNotEqual(handle, INVALID_HANDLE_VALUE)
+            guard handle != INVALID_HANDLE_VALUE else { return }
+            do {
+                defer { CloseHandle(handle) }
+                // FSCTL_SET_SPARSE is a CTL_CODE macro that Swift cannot import.
+                let setSparse: DWORD = (DWORD(FILE_DEVICE_FILE_SYSTEM) << 16) | (49 << 2)
+                var bytesReturned: DWORD = 0
+                guard DeviceIoControl(handle, setSparse, nil, 0, nil, 0, &bytesReturned, nil) else {
+                    throw XCTSkip("Sparse files are unavailable: \(GetLastError())")
+                }
+                var offset = LARGE_INTEGER()
+                offset.QuadPart = size
+                XCTAssertTrue(SetFilePointerEx(handle, offset, nil, DWORD(FILE_BEGIN)))
+                XCTAssertTrue(SetEndOfFile(handle))
+            }
+
+            let values = try url.resourceValues(forKeys: [.creationDateKey, .fileSizeKey, .totalFileSizeKey, .linkCountKey])
+            XCTAssertEqual(values.fileSize, Int(size))
+            XCTAssertEqual(values.totalFileSize, Int(size))
+            XCTAssertNotNil(values.creationDate)
+            XCTAssertEqual(values.linkCount, 1)
+            try FileManager.default.removeItem(at: url)
+        }
+    }
+#endif
 
     func test_URLResourceValues() throws {
         do {

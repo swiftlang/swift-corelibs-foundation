@@ -208,13 +208,13 @@ extension FileManager {
         return String(decodingCString: &szPath, as: UTF16.self)
     }
 
-    internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> stat {
+    internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> _FileStat {
         let (stbuf, _) = try _statxFile(atPath: path, withFileSystemRepresentation: fsRep)
         return stbuf
     }
 
     // FIXME(compnerd) the UInt64 should be UInt128 to uniquely identify the file across volumes
-    internal func _statxFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> (stat, UInt64) {
+    internal func _statxFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<NativeFSRCharType>? = nil) throws -> (_FileStat, UInt64) {
         let _fsRep: UnsafePointer<NativeFSRCharType>
         if fsRep == nil {
             _fsRep = try __fileSystemRepresentation(withPath: path)
@@ -226,7 +226,7 @@ extension FileManager {
             if fsRep == nil { _fsRep.deallocate() }
         }
 
-        var statInfo = stat()
+        var statInfo = _FileStat()
         let handle =
             CreateFileW(_fsRep, 0, FILE_SHARE_READ, nil, OPEN_EXISTING,
                         FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
@@ -263,10 +263,11 @@ extension FileManager {
 
         statInfo.st_mtime = info.ftLastWriteTime.time_t
         statInfo.st_nlink = Int16(info.nNumberOfLinks)
-        guard info.nFileSizeHigh == 0 else {
+        let size = (UInt64(info.nFileSizeHigh) << 32) | UInt64(info.nFileSizeLow)
+        guard let fileSize = Int64(exactly: size) else {
             throw _NSErrorWithErrno(EOVERFLOW, reading: true, path: path)
         }
-        statInfo.st_size = _off_t(info.nFileSizeLow)
+        statInfo.st_size = fileSize
         // Uid is always 0 on Windows systems
         statInfo.st_uid = 0
 
