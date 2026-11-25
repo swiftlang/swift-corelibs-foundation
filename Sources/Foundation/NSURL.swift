@@ -1053,13 +1053,13 @@ extension stat {
         #endif
     }
     
-    var creationDate: Date {
-        #if canImport(Darwin)
-        return Date(timespec: st_birthtimespec)
-        #elseif os(Windows)
-        return Date(timeIntervalSince1970: TimeInterval(st_ctime))
-        #else
-        return Date(timespec: st_ctim)
-        #endif
-    }
+    // Note: we had a creationDate property that exposed
+    // st_ctime on Windows, st_birthtimespec on Darwin and
+    // st_ctim on POSIX.
+    // It was seemingly not used, and it wasn't a good
+    // idea anyway as these all have somewhat different behaviour.
+    // For example on POSIX it's the last metadata Changed time
+    // not the file Creation time.
+    // There are already properties elsewhere that give you what
+    // you need here.
 }
