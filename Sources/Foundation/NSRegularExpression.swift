@@ -194,8 +194,10 @@ extension NSRegularExpression {
     public func firstMatch(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange) -> NSTextCheckingResult? {
         var first: NSTextCheckingResult?
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
-            first = result
-            stop.pointee = true
+            if let match = result {
+                first = match
+                stop.pointee = true
+            }
         }
         return first
     }
@@ -205,10 +207,8 @@ extension NSRegularExpression {
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
                 firstRange = match.range
-            } else {
-                firstRange = NSRange(location: 0, length: 0)
+                stop.pointee = true
             }
-            stop.pointee = true
         }
         return firstRange
     }

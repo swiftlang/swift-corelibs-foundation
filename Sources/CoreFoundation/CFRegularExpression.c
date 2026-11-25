@@ -377,7 +377,7 @@ void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexO
     UniChar stackBuffer[STACK_BUFFER_SIZE];
     void *bufferToFree = NULL, *utextToFree = NULL;
     struct regexCallBackContext context;
-    CFIndex offset;
+    CFIndex offset = 0;
     _CFRegularExpressionMatchingFlags flags;
     Boolean checkedOutRegex = true;
     Boolean stop = false;
@@ -392,11 +392,15 @@ void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexO
 
     context.context = matchContext;
     context.match = match;
-    context.anchorIndex = anchored ? range.location : kCFNotFound;
     context.stoppedByClient = NO;
     context.hitAnchorLimit = NO;
-    
+
     regex = prepareRegularExpression(regexObj->regex, (int32_t *)&regexObj->_checkout, string, range, stackBuffer, (const void *)&context, reportProgress, anchored, transparentBounds, nonAnchoringBounds, &offset, &bufferToFree, &utextToFree, &checkedOutRegex);
+    /* uregex reports match start and find-progress indices relative to the
+       searched buffer. That buffer begins at enclosingRange.location rather
+       than at 0 when the string does not provide a contiguous UniChar
+       buffer, so the anchor must be expressed in the same coordinate space. */
+    context.anchorIndex = anchored ? range.location - offset : kCFNotFound;
     CFIndex numberOfCaptureGroups = _CFRegularExpressionGetNumberOfCaptureGroups(regexObj);
     if (regex) {
         while (uregex_findNext(regex, &errorCode) && U_SUCCESS(errorCode) && !stop && !context.stoppedByClient && !context.hitAnchorLimit) {

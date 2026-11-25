@@ -77,6 +77,40 @@ class TestNSRegularExpression : XCTestCase {
         }
     }
     
+    // https://github.com/swiftlang/swift-corelibs-foundation/issues/5467
+    // An anchored search that does not match at the anchor must report no
+    // match. It previously returned {0, 0} from rangeOfFirstMatch (and
+    // spurious nil-result callbacks to clients) for strings whose contents
+    // are not stored in a contiguous UniChar buffer.
+    func test_anchoredSearchWithNoMatch() {
+        do {
+            let source = "abcdefg"
+            let searchRange = NSRange(location: 3, length: 2) // "de"
+            let regex = try NSRegularExpression(pattern: "-?[0-9]+")
+
+            XCTAssertEqual(regex.rangeOfFirstMatch(in: source, options: .anchored, range: searchRange), NSRange(location: NSNotFound, length: 0))
+            XCTAssertNil(regex.firstMatch(in: source, options: .anchored, range: searchRange))
+            XCTAssertTrue(regex.matches(in: source, options: .anchored, range: searchRange).isEmpty)
+            XCTAssertEqual(regex.numberOfMatches(in: source, options: .anchored, range: searchRange), 0)
+
+            var enumerationCount = 0
+            regex.enumerateMatches(in: source, options: .anchored, range: searchRange) { (result, flags, stop) in
+                enumerationCount += 1
+            }
+            XCTAssertEqual(enumerationCount, 0, "anchored search with no match must not invoke the enumeration block")
+
+            let nsRange = NSString(string: source).range(of: "-?[0-9]+", options: [.regularExpression, .anchored], range: searchRange)
+            XCTAssertEqual(nsRange.location, NSNotFound)
+
+            // An anchored search that does match at the anchor still works.
+            let matchingRegex = try NSRegularExpression(pattern: "de")
+            XCTAssertTrue(NSEqualRanges(matchingRegex.rangeOfFirstMatch(in: source, options: .anchored, range: searchRange), searchRange))
+            XCTAssertEqual(matchingRegex.numberOfMatches(in: source, options: .anchored, range: searchRange), 1)
+        } catch {
+            XCTFail("Unable to build regular expression: \(error)")
+        }
+    }
+
     func test_simpleRegularExpressions() {
         simpleRegularExpressionTestWithPattern("st(abc)ring", target:"stabcring thing", looking:true, match:false)
         simpleRegularExpressionTestWithPattern("st(abc)ring", target:"stabcring", looking:true, match:true)
