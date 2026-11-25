@@ -1052,14 +1052,4 @@ extension stat {
         return Date(timespec: st_atim)
         #endif
     }
-    
-    var creationDate: Date {
-        #if canImport(Darwin)
-        return Date(timespec: st_birthtimespec)
-        #elseif os(Windows)
-        return Date(timeIntervalSince1970: TimeInterval(st_ctime))
-        #else
-        return Date(timespec: st_ctim)
-        #endif
-    }
 }
