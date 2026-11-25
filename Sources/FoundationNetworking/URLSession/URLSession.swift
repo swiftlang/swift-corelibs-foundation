@@ -535,9 +535,9 @@ fileprivate extension URLSession {
         case request(URLRequest)
         case url(URL)
     }
-    func createConfiguredRequest(from request: URLSession._Request) -> URLRequest {
-        let r = request.createMutableURLRequest()
-        return _configuration.configure(request: r)
+    func createRequests(from request: URLSession._Request) -> (original: URLRequest, current: URLRequest) {
+        let original = request.createMutableURLRequest()
+        return (original, _configuration.configure(request: original))
     }
 }
 extension URLSession._Request {
@@ -573,9 +573,9 @@ fileprivate extension URLSession {
     /// All public methods funnel into this one.
     func dataTask(with request: _Request, behaviour: _TaskRegistry._Behaviour) -> URLSessionDataTask {
         guard !self.invalidated else { fatalError("Session invalidated") }
-        let r = createConfiguredRequest(from: request)
+        let requests = createRequests(from: request)
         let i = createNextTaskIdentifier()
-        let task = URLSessionDataTask(session: self, request: r, taskIdentifier: i)
+        let task = URLSessionDataTask(session: self, originalRequest: requests.original, currentRequest: requests.current, taskIdentifier: i)
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behaviour)
         }
@@ -587,9 +587,9 @@ fileprivate extension URLSession {
     /// All public methods funnel into this one.
     func uploadTask(with request: _Request, body: URLSessionTask._Body?, behaviour: _TaskRegistry._Behaviour) -> URLSessionUploadTask {
         guard !self.invalidated else { fatalError("Session invalidated") }
-        let r = createConfiguredRequest(from: request)
+        let requests = createRequests(from: request)
         let i = createNextTaskIdentifier()
-        let task = URLSessionUploadTask(session: self, request: r, taskIdentifier: i, body: body)
+        let task = URLSessionUploadTask(session: self, originalRequest: requests.original, currentRequest: requests.current, taskIdentifier: i, body: body)
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behaviour)
         }
@@ -599,9 +599,9 @@ fileprivate extension URLSession {
     /// Create a download task
     func downloadTask(with request: _Request, behavior: _TaskRegistry._Behaviour) -> URLSessionDownloadTask {
         guard !self.invalidated else { fatalError("Session invalidated") }
-        let r = createConfiguredRequest(from: request)
+        let requests = createRequests(from: request)
         let i = createNextTaskIdentifier()
-        let task = URLSessionDownloadTask(session: self, request: r, taskIdentifier: i)
+        let task = URLSessionDownloadTask(session: self, originalRequest: requests.original, currentRequest: requests.current, taskIdentifier: i)
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behavior)
         }
@@ -611,9 +611,9 @@ fileprivate extension URLSession {
     /// Create a web socket task
     func webSocketTask(with request: _Request, behavior: _TaskRegistry._Behaviour) -> URLSessionWebSocketTask {
         guard !self.invalidated else { fatalError("Session invalidated") }
-        let r = createConfiguredRequest(from: request)
+        let requests = createRequests(from: request)
         let i = createNextTaskIdentifier()
-        let task = URLSessionWebSocketTask(session: self, request: r, taskIdentifier: i, body: URLSessionTask._Body.none)
+        let task = URLSessionWebSocketTask(session: self, originalRequest: requests.original, currentRequest: requests.current, taskIdentifier: i, body: URLSessionTask._Body.none)
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behavior)
         }
