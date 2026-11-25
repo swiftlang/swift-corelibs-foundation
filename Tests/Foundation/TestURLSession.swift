@@ -649,6 +649,37 @@ final class TestURLSession: LoopbackServerTest, @unchecked Sendable {
         waitForExpectations(timeout: 30)
     }
     
+#if os(Linux) || os(Android)
+    func test_waitingForSlowResponseDoesNotKeepAThreadBusy() throws {
+        // CPU time of every thread except the main one. The main thread runs the test,
+        // and on Android its wait for the expectation keeps a CPU busy by itself.
+        func backgroundCPUTime() throws -> Double {
+            var nanoseconds = 0
+            for thread in try FileManager.default.contentsOfDirectory(atPath: "/proc/self/task") where thread != "\(ProcessInfo.processInfo.processIdentifier)" {
+                // A thread can end while we read the list.
+                guard let schedstat = try? String(contentsOfFile: "/proc/self/task/\(thread)/schedstat", encoding: .utf8) else { continue }
+                nanoseconds += try XCTUnwrap(Int(schedstat.prefix { $0 != " " }))
+            }
+            return Double(nanoseconds) / 1_000_000_000
+        }
+
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
+        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+        var request = URLRequest(url: try XCTUnwrap(URL(string: urlString)))
+        request.setValue("2", forHTTPHeaderField: "x-pause")
+        let expect = expectation(description: "GET \(urlString): slow response")
+        let cpuTimeBefore = try backgroundCPUTime()
+        let task = session.dataTask(with: request) { _, _, error in
+            XCTAssertNil(error)
+            expect.fulfill()
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+        // The server waits 2 seconds before it answers.
+        XCTAssertLessThan(try backgroundCPUTime() - cpuTimeBefore, 0.5)
+    }
+#endif
+
     func test_httpTimeout() async {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
