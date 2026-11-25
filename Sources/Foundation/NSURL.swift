@@ -10,6 +10,7 @@
 
 #if os(Windows)
 import WinSDK
+import CRT
 #endif
 
 @_spi(SwiftCorelibsFoundation) @_exported import FoundationEssentials
