@@ -2397,7 +2397,8 @@ CF_INLINE bool _CFCanUseLocale(CFLocaleRef locale) {
 
 
 // Returns the length of characters filled into outCharacters. If no change, returns 0. maxBufLen should be at least 8
-static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStringInlineBuffer *buffer, CFIndex index, CFOptionFlags flags, const uint8_t *langCode, UTF32Char *outCharacters, CFIndex maxBufferLength, CFIndex *consumedLength, bool *insufficientBufferSpace) {
+// caseFoldExpanded, when not NULL, is set to true if the case folding produced more than one character, as ß to ss does
+static CFIndex __CFStringFoldCharacterClusterAtIndexReportingExpansion(UTF32Char character, CFStringInlineBuffer *buffer, CFIndex index, CFOptionFlags flags, const uint8_t *langCode, UTF32Char *outCharacters, CFIndex maxBufferLength, CFIndex *consumedLength, bool *insufficientBufferSpace, bool *caseFoldExpanded) {
     CFIndex filledLength = 0, currentIndex = index;
 
     if (0 != character) {
@@ -2503,8 +2504,10 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
                     }
 
                     // fill
+                    CFIndex caseFoldScalars = 0;
                     while (bufferP < bufferLimit) {
                         character = *(bufferP++);
+                        ++caseFoldScalars;
                         if (CFUniCharIsSurrogateHighCharacter(character) && (bufferP < bufferLimit) && CFUniCharIsSurrogateLowCharacter(*bufferP)) {
                             character = CFUniCharGetLongCharacterForSurrogatePair(character, *(bufferP++));
                             nonBaseBitmap = CFUniCharGetBitmapPtrForPlane(kCFUniCharGraphemeExtendCharacterSet, (character >> 16));
@@ -2517,6 +2520,7 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
                             ++filledLength;
                         }
                     }
+                    if ((caseFoldScalars > 1) && (NULL != caseFoldExpanded)) *caseFoldExpanded = true;
                 }
             }
         }
@@ -2618,6 +2622,10 @@ static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStri
     return filledLength;
 }
 
+static CFIndex __CFStringFoldCharacterClusterAtIndex(UTF32Char character, CFStringInlineBuffer *buffer, CFIndex index, CFOptionFlags flags, const uint8_t *langCode, UTF32Char *outCharacters, CFIndex maxBufferLength, CFIndex *consumedLength, bool *insufficientBufferSpace) {
+    return __CFStringFoldCharacterClusterAtIndexReportingExpansion(character, buffer, index, flags, langCode, outCharacters, maxBufferLength, consumedLength, insufficientBufferSpace, NULL);
+}
+
 /* kCFCompareIgnoreNonAlphanumeric skips every character that is not a letter, mark or number. */
 static bool __CFStringShouldIgnoreNonAlphanumeric(CFStringCompareFlags compareOptions) {
     return (0 != (compareOptions & kCFCompareIgnoreNonAlphanumeric));
@@ -2669,6 +2677,9 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
     CFIndex str1UsedLen, str2UsedLen;
     CFIndex str1Index = 0, str2Index = 0, strBuf1Index = 0, strBuf2Index = 0, strBuf1Len = 0, strBuf2Len = 0;
     CFIndex str1LocalizedIndex = 0, str2LocalizedIndex = 0;
+    // Where the last expanding case fold ended; ICU must not see text before it, since a fold such as ß to ss is equal here but not to ICU
+    CFIndex str1FoldEndIndex = 0, str2FoldEndIndex = 0;
+    bool expandingFold = false;
     CFIndex forcedIndex1 = 0, forcedIndex2 = 0;
     CFIndex str2Len = CFStringGetLength(string2);
     bool caseInsensitive = ((compareOptions & kCFCompareCaseInsensitive) ? true : false);
@@ -2863,7 +2874,10 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
 
             if ((str1Char < 0x80) && (str2Char < 0x80) && !ignoreNonAlphanumeric) {
                 if (NULL != locale) {
-		    compareResult = _CFCompareStringsWithLocale(&inlineBuf1, CFRangeMake(str1Index, rangeToCompare.length - str1Index), &inlineBuf2, CFRangeMake(str2Index, str2Len - str2Index), compareOptions, locale);
+                    // While a fold buffer is pending, str1Index and str2Index do not point at corresponding characters
+                    CFIndex str1StartIndex = (((strBuf1Len > 0) || (strBuf2Len > 0)) ? str1LocalizedIndex : str1Index);
+                    CFIndex str2StartIndex = (((strBuf1Len > 0) || (strBuf2Len > 0)) ? str2LocalizedIndex : str2Index);
+		    compareResult = _CFCompareStringsWithLocaleAfter(&inlineBuf1, CFRangeMake(str1StartIndex, rangeToCompare.length - str1StartIndex), &inlineBuf2, CFRangeMake(str2StartIndex, str2Len - str2StartIndex), compareOptions, locale, str1FoldEndIndex, str2FoldEndIndex);
 		    if (freeLocale && locale) {
 			CFRelease(locale);
 		    }
@@ -2924,7 +2938,7 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                 if (0 == strBuf1Len && (preventStr1FoldingUntil == 0 || preventStr1FoldingUntil == str1Index)) {
                     preventStr1FoldingUntil = 0;
                     bool insufficientBuffer = false;
-                    strBuf1Len = __CFStringFoldCharacterClusterAtIndex(str1Char, &inlineBuf1, str1Index, compareOptions, langCode, strBuf1, kCFStringStackBufferLength, &str1UsedLen, &insufficientBuffer);
+                    strBuf1Len = __CFStringFoldCharacterClusterAtIndexReportingExpansion(str1Char, &inlineBuf1, str1Index, compareOptions, langCode, strBuf1, kCFStringStackBufferLength, &str1UsedLen, &insufficientBuffer, &expandingFold);
                     if (strBuf1Len > 0) {
                         str1Char = *strBuf1;
                         strBuf1Index = 1;
@@ -2937,7 +2951,7 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                 }
                 
                 if ((0 == strBuf1Len) && (0 < strBuf2Len)) {
-		    compareResult =  ((NULL == locale) ? ((str1Char < str2Char) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocale(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale));
+		    compareResult =  ((NULL == locale) ? ((str1Char < str2Char) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocaleAfter(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale, str1FoldEndIndex, str2FoldEndIndex));
 		    if (freeLocale && locale) {
 			CFRelease(locale);
 		    }
@@ -2947,13 +2961,13 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                 if ((0 == strBuf2Len) && ((0 == strBuf1Len) || (str1Char != str2Char)) && (preventStr2FoldingUntil == 0 || preventStr2FoldingUntil == str2Index)) {
                     preventStr2FoldingUntil = 0;
                     bool insufficientBuffer = false;
-                    strBuf2Len = __CFStringFoldCharacterClusterAtIndex(str2Char, &inlineBuf2, str2Index, compareOptions, langCode, strBuf2, kCFStringStackBufferLength, &str2UsedLen, &insufficientBuffer);
+                    strBuf2Len = __CFStringFoldCharacterClusterAtIndexReportingExpansion(str2Char, &inlineBuf2, str2Index, compareOptions, langCode, strBuf2, kCFStringStackBufferLength, &str2UsedLen, &insufficientBuffer, &expandingFold);
                     if (strBuf2Len > 0) {
                         str2Char = *strBuf2;
                         strBuf2Index = 1;
                     }
                     if ((0 == strBuf2Len) || (str1Char != str2Char)) {
-			compareResult = ((NULL == locale) ? ((str1Char < str2Char) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocale(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale));
+			compareResult = ((NULL == locale) ? ((str1Char < str2Char) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocaleAfter(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale, str1FoldEndIndex, str2FoldEndIndex));
 			if (freeLocale && locale) {
 			    CFRelease(locale);
 			}
@@ -2965,6 +2979,15 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                         preventStr2FoldingUntil = currentCluster.location + currentCluster.length;
                     }
                 }
+
+                // Side 1 was folded while side 2 still drains an earlier fold, so side 2 was not folded above and this mismatch was not yet returned
+                if ((0 < strBuf1Len) && (0 < strBuf2Len) && (str1Char != str2Char)) {
+		    compareResult = ((NULL == locale) ? ((str1Char < str2Char) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocaleAfter(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale, str1FoldEndIndex, str2FoldEndIndex));
+		    if (freeLocale && locale) {
+			CFRelease(locale);
+		    }
+		    return compareResult;
+		}
             }
             
             if ((strBuf1Len > 0) && (strBuf2Len > 0)) {
@@ -2973,7 +2996,7 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
                     ++strBuf1Index; ++strBuf2Index;
                 }
                 if ((strBuf1Index < strBuf1Len) && (strBuf2Index < strBuf2Len)) {
-		    CFComparisonResult res = ((NULL == locale) ? ((strBuf1[strBuf1Index] < strBuf2[strBuf2Index]) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocale(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale));
+		    CFComparisonResult res = ((NULL == locale) ? ((strBuf1[strBuf1Index] < strBuf2[strBuf2Index]) ? kCFCompareLessThan : kCFCompareGreaterThan) : _CFCompareStringsWithLocaleAfter(&inlineBuf1, CFRangeMake(str1LocalizedIndex, rangeToCompare.length - str1LocalizedIndex), &inlineBuf2, CFRangeMake(str2LocalizedIndex, str2Len - str2LocalizedIndex), compareOptions, locale, str1FoldEndIndex, str2FoldEndIndex));
 		    if (freeLocale && locale) {
 			CFRelease(locale);
 		    }
@@ -2990,6 +3013,11 @@ CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef string, CFStr
 	if ((strBuf1Len == 0) && (strBuf2Len == 0)) {
 	    str1LocalizedIndex = str1Index;
 	    str2LocalizedIndex = str2Index;
+	    if (expandingFold) {
+		str1FoldEndIndex = str1Index;
+		str2FoldEndIndex = str2Index;
+		expandingFold = false;
+	    }
 	}
     }
 

@@ -572,6 +572,11 @@ static inline CFIndex __extendLocationForward(CFIndex location, CFStringInlineBu
 }
 
 CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *str1, CFRange str1Range, CFStringInlineBuffer *str2, CFRange str2Range, CFOptionFlags options, const void *compareLocale) {
+    return _CFCompareStringsWithLocaleAfter(str1, str1Range, str2, str2Range, options, compareLocale, 0, 0);
+}
+
+// The backward extension below stops at str1Start and str2Start: if either side would cross its start, neither side is extended
+CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocaleAfter(CFStringInlineBuffer *str1, CFRange str1Range, CFStringInlineBuffer *str2, CFRange str2Range, CFOptionFlags options, const void *compareLocale, CFIndex str1Start, CFIndex str2Start) {
     const UniChar *characters1;
     const UniChar *characters2;
     CFComparisonResult compResult = kCFCompareEqualTo;
@@ -603,12 +608,20 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
     
     // go backward
     // The characters upto the current index are already determined to be equal by the CFString's standard character folding algorithm. Extend as long as truly contextual (all letters and punctuations).
-    if (range1.location > 0) {
-	range1.location = __extendLocationBackward(range1.location - 1, str1, nonBaseBMP, punctBMP);
+    CFIndex extendedLocation1 = range1.location;
+    CFIndex extendedLocation2 = range2.location;
+
+    if (extendedLocation1 > 0) {
+	extendedLocation1 = __extendLocationBackward(extendedLocation1 - 1, str1, nonBaseBMP, punctBMP);
     }
     
-    if (range2.location > 0) {
-	range2.location = __extendLocationBackward(range2.location - 1, str2, nonBaseBMP, punctBMP);
+    if (extendedLocation2 > 0) {
+	extendedLocation2 = __extendLocationBackward(extendedLocation2 - 1, str2, nonBaseBMP, punctBMP);
+    }
+
+    if ((extendedLocation1 >= str1Start) && (extendedLocation2 >= str2Start)) {
+	range1.location = extendedLocation1;
+	range2.location = extendedLocation2;
     }
 
 #if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_WASI || TARGET_OS_BSD
