@@ -223,6 +223,9 @@ open class Thread : NSObject {
 
     internal var _main: () -> Void = {}
     private var _thread: _swift_CFThreadRef? = nil
+#if os(Windows)
+    private var _ownsThreadHandle = false
+#endif
 
 #if os(Windows) && !CYGWIN
     private class NonexportedAttrStorage {
@@ -291,7 +294,18 @@ open class Thread : NSObject {
             return _CFThreadCreate(self._attr, NSThreadStart, $0)
         }
 #endif
+#if os(Windows)
+        _ownsThreadHandle = _thread != nil
+#endif
     }
+
+#if os(Windows)
+    deinit {
+        if _ownsThreadHandle, let thread = _thread {
+            CloseHandle(thread)
+        }
+    }
+#endif
 
     open func main() {
         _main()
