@@ -1122,11 +1122,11 @@ CF_EXPORT CFTypeRef _Nullable _CFBundleCopyFindResources(CFBundleRef _Nullable b
 
     if (
         subPath) {
-        int depthLevel = 0;
+        CFIndex depthLevel = 0;
         CFArrayRef subPathComponents = CFStringCreateArrayBySeparatingStrings(kCFAllocatorSystemDefault, subPath, CFSTR("/"));
         CFIndex subPathComponentsCount = CFArrayGetCount(subPathComponents);
 
-        for (int i = 0; i < subPathComponentsCount; i++) {
+        for (CFIndex i = 0; i < subPathComponentsCount; i++) {
             CFStringRef comp = CFArrayGetValueAtIndex(subPathComponents, i);
 
             if (i == 0 && (CFStringCompare(comp, CFSTR(""), 0) == kCFCompareEqualTo)) {
