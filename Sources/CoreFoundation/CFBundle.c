@@ -234,7 +234,7 @@ CF_PRIVATE CFURLRef _CFURLCreateResolvedDirectoryWithString(CFAllocatorRef alloc
     CFRelease(absolutePath);
     if (success) {
         int fd = open(absolutePathCString, O_RDONLY);
-        if (fd > 0) {
+        if (fd >= 0) {
             char resolvedPathCString[PATH_MAX];
             if (_CFGetPathFromFileDescriptor(fd, resolvedPathCString)) {
                 os_log_error(_CFBundleResourceLogger(), "Unable to resolve directory (%d)", errno);
@@ -735,7 +735,7 @@ static Boolean _CFBundlesHaveEquivalentURL(CFBundleRef b1, CFBundleRef b2) {
         int fd1 = open(path1CString, O_RDONLY);
         int fd2 = open(path2CString, O_RDONLY);
 
-        if (fd1 > 0 && fd2 > 0) {
+        if (fd1 >= 0 && fd2 >= 0) {
             struct stat statbuf1;
             struct stat statbuf2;
             
@@ -748,8 +748,8 @@ static Boolean _CFBundlesHaveEquivalentURL(CFBundleRef b1, CFBundleRef b2) {
             }
         }
         
-        if (fd1 > 0) close(fd1);
-        if (fd2 > 0) close(fd2);
+        if (fd1 >= 0) close(fd1);
+        if (fd2 >= 0) close(fd2);
     }
     
     return result;
