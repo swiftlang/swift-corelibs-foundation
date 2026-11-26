@@ -67,7 +67,7 @@ void _CFBigNumInitWithInt8(_CFBigNum *r, int8_t inNum) {
     uint8_t unsignInNum = inNum;
     if (inNum < 0) {
         r->sign = -1;
-        unsignInNum = -1 * inNum;
+        unsignInNum = -1 * unsignInNum;
     }
     r->digits[0] = unsignInNum;
 }
@@ -77,7 +77,7 @@ void _CFBigNumInitWithInt16(_CFBigNum *r, int16_t inNum) {
     uint16_t unsignInNum = inNum;
     if (inNum < 0) {
         r->sign = -1;
-        unsignInNum = -1 * inNum;
+        unsignInNum = -1 * unsignInNum;
     }
     r->digits[0] = unsignInNum;
 }
@@ -87,7 +87,7 @@ void _CFBigNumInitWithInt32(_CFBigNum *r, int32_t inNum) {
     uint32_t unsignInNum = inNum;
     if (inNum < 0) {
         r->sign = -1;
-        unsignInNum = -1 * inNum;
+        unsignInNum = -1 * unsignInNum;
     }
     uint32_t dig0 = GET_SECOND_DIGIT(unsignInNum);
     r->digits[0] = GET_REMAINDER_SECOND_DIGIT(unsignInNum, dig0);
@@ -99,7 +99,7 @@ void _CFBigNumInitWithInt64(_CFBigNum *r, int64_t inNum) {
     uint64_t unsignInNum = inNum;
     if (inNum < 0) {
         r->sign = -1;
-        unsignInNum = -1 * inNum;
+        unsignInNum = -1 * unsignInNum;
     }
     uint32_t dig2 = GET_THIRD_DIGIT(unsignInNum);
     unsignInNum = GET_REMAINDER_THIRD_DIGIT(unsignInNum, (uint64_t)dig2);
@@ -115,7 +115,7 @@ void _CFBigNumInitWithInt128(_CFBigNum *r, __int128_t inNum) {
     __uint128_t unsignInNum = inNum;
     if (inNum < 0) {
         r->sign = -1;
-        unsignInNum = -1 * inNum;
+        unsignInNum = -1 * unsignInNum;
     }
     uint32_t dig4 = GET_FIFTH_DIGIT(unsignInNum);
     unsignInNum = GET_REMAINDER_FIFTH_DIGIT(unsignInNum, (__uint128_t)dig4);
