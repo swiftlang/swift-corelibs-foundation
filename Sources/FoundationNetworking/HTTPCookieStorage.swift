@@ -67,11 +67,21 @@ open class HTTPCookieStorage: NSObject, @unchecked Sendable {
     private let syncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.syncQ")
 
     private let isEphemeral: Bool
+    private let isStorageDisabled: Bool
+    
+    public override init() {
+        _allCookies = [:]
+        cookieAcceptPolicy = .always
+        isEphemeral = true
+        isStorageDisabled = true
+        super.init()
+    }
 
     private init(cookieStorageName: String, isEphemeral: Bool = false) {
         _allCookies = [:]
         cookieAcceptPolicy = .always
         self.isEphemeral = isEphemeral
+        isStorageDisabled = false
         super.init()
         if !isEphemeral {
             let bundlePath = Bundle.main.bundlePath
@@ -169,6 +179,8 @@ open class HTTPCookieStorage: NSObject, @unchecked Sendable {
         same name, domain and path, if any.
     */
     open func setCookie(_ cookie: HTTPCookie) {
+        guard !isStorageDisabled else { return }
+
         self.syncQ.sync {
             guard cookieAcceptPolicy != .never else { return }
 
@@ -302,6 +314,8 @@ open class HTTPCookieStorage: NSObject, @unchecked Sendable {
         in accordance with policy settings.
     */
     open func setCookies(_ cookies: [HTTPCookie], for url: URL?, mainDocumentURL: URL?) {
+        guard !isStorageDisabled else { return }
+
         //if the cookieAcceptPolicy is `never` we don't have anything to do
         guard cookieAcceptPolicy != .never else { return }
 
