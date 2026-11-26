@@ -1080,6 +1080,7 @@ static struct {
 #endif
     {"TZFILE", NULL},
     {"TZ", NULL},
+    {"TZDIR", NULL},
     {"NEXT_ROOT", NULL},
     {"DYLD_IMAGE_SUFFIX", NULL},
     {"CFProcessPath", NULL},
