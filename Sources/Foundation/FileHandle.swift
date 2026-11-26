@@ -1005,7 +1005,6 @@ extension FileHandle {
         NSUnsupported()
 #else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
-            var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])
             let userInfo: [AnyHashable : Any]
             
             let acceptedFD = accept(handle.fileDescriptor, nil, nil)
@@ -1014,14 +1013,14 @@ extension FileHandle {
             } else {
                 userInfo = ["NSFileHandleError": NSNumber(value: errno)]
             }
-            notification.userInfo = userInfo
+            let notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: userInfo)
             
             DispatchQueue.main.async {
                 handle.privateAsyncVariablesLock.lock()
                 handle.currentBackgroundActivityOwner = nil
                 handle.privateAsyncVariablesLock.unlock()
                 
-                NotificationQueue.default.enqueue(Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:]), postingStyle: .asap, coalesceMask: .none, forModes: modes)
+                NotificationQueue.default.enqueue(notification, postingStyle: .asap, coalesceMask: .none, forModes: modes)
             }
         }
         
