@@ -1147,6 +1147,13 @@ extension _ProtocolClient : URLProtocolClient {
         completeTask(urlProtocol: urlProtocol, task: task, session: session)
     }
 
+    /// Writes a download's body to a new file in the temporary directory, like the native protocol's.
+    private static func writeDownloadedBody(_ data: Data) throws -> URL {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory() + NSUUID().uuidString + ".tmp")
+        try data.write(to: url)
+        return url
+    }
+
     private func completeTask(urlProtocol: URLProtocol, task: URLSessionTask, session: URLSession) {
         let data = takeBodyData()
         if let storage = session.configuration.urlCredentialStorage,
@@ -1172,11 +1179,25 @@ extension _ProtocolClient : URLProtocolClient {
                 }
             }
         }
-        
+
+        // The native protocol writes a download to a file and reports it in `temporaryFileURL`.
+        // Any other protocol delivers the body through urlProtocol(_:didLoad:), so write it to a
+        // temporary file here, as Darwin does; without one, a download task cannot complete.
+        var downloadLocation = urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL
+        if downloadLocation == nil, task is URLSessionDownloadTask {
+            do {
+                downloadLocation = try _ProtocolClient.writeDownloadedBody(data)
+            } catch {
+                self.urlProtocol(task: task, didFailWithError: URLError(.cannotCreateFile))
+                return
+            }
+        }
+
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
-            if let downloadDelegate = delegate as? URLSessionDownloadDelegate, let downloadTask = task as? URLSessionDownloadTask {
-                let temporaryFileURL = urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as! URL
+            if let downloadDelegate = delegate as? URLSessionDownloadDelegate,
+               let downloadTask = task as? URLSessionDownloadTask,
+               let temporaryFileURL = downloadLocation {
                 session.delegateQueue.addOperation {
                     downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: temporaryFileURL)
                 }
@@ -1219,10 +1240,10 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .downloadCompletionHandler(let completion),
              .downloadCompletionHandlerWithTaskDelegate(let completion, _):
-            nonisolated(unsafe) let nonisolatedURLProtocol = urlProtocol
+            let location = downloadLocation
             let downloadCompletion : @Sendable () -> () = {
                 guard task.state != .completed else { return }
-                completion(nonisolatedURLProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
+                completion(location, task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -1324,16 +1345,19 @@ extension _ProtocolClient : URLProtocolClient {
         default:
             returnsData = false
         }
-        if !data.isEmpty && (returnsData || cacheableResponse != nil) {
+        // A download from a protocol other than the native one is written to a file when it completes.
+        let collectsDownload = task is URLSessionDownloadTask && !(`protocol` is _NativeProtocol)
+        if !data.isEmpty && (returnsData || collectsDownload || cacheableResponse != nil) {
             bodyChunks.append(data)
         }
 
         switch behaviour {
         case .taskDelegate(let delegate):
-            let dataDelegate = delegate as? URLSessionDataDelegate
-            let dataTask = task as? URLSessionDataTask
+            // Only data tasks report received data; a download task's body goes to its file.
+            guard let dataDelegate = delegate as? URLSessionDataDelegate,
+                  let dataTask = task as? URLSessionDataTask else { return }
             session.delegateQueue.addOperation {
-                dataDelegate?.urlSession(session, dataTask: dataTask!, didReceive: data)
+                dataDelegate.urlSession(session, dataTask: dataTask, didReceive: data)
             }
         default: return
         }
