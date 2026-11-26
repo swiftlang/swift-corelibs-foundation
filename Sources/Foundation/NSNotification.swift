@@ -13,17 +13,7 @@
 extension NSNotification : @unchecked Sendable { }
 
 open class NSNotification: NSObject, NSCopying, NSCoding {
-    public struct Name : RawRepresentable, Equatable, Hashable, Sendable {
-        public private(set) var rawValue: String
-
-        public init(_ rawValue: String) {
-            self.rawValue = rawValue
-        }
-
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
-    }
+    public typealias Name = Notification.Name
 
     private(set) open var name: Name
     
@@ -90,32 +80,6 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
 #if canImport(Dispatch)
 
 extension NotificationCenter {
-    public func post(_ notification: Notification) {
-        _post(notification.name.rawValue, subject: notification.object, message: notification)
-    }
-
-    public func post(name aName: NSNotification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
-        post(Notification(name: aName, object: anObject, userInfo: aUserInfo))
-    }
-
-    public func removeObserver(_ observer: Any) {
-        removeObserver(observer, name: nil, object: nil)
-    }
-
-    public func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
-        let objectId = object != nil ? object.map { ObjectIdentifier($0 as AnyObject) } : nil
-        
-        guard let observer = observer as? _NSNotificationObserverToken,
-            // These 2 parameters would only be useful for removing notifications added by `addObserver:selector:name:object:`
-              aName == nil || observer.token.name == aName?.rawValue,
-              objectId == nil || observer.token.objectId == objectId
-        else {
-            return
-        }
-        
-        _removeObserver(observer.token)
-    }
-
     @available(*, unavailable, renamed: "addObserver(forName:object:queue:using:)")
     public func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         fatalError()
@@ -123,7 +87,7 @@ extension NotificationCenter {
 
     public func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @Sendable @escaping (Notification) -> Void) -> NSObjectProtocol {
         if let queue = queue {
-            return _NSNotificationObserverToken(token: _addObserver(name?.rawValue, object: obj) { [weak queue] (notification: Notification) in
+            return _NSNotificationObserverToken(observer: _addBlockObserver(name?.rawValue, object: Self._observedObject(obj)) { [weak queue] (notification: Notification) in
                 if let queue = queue {
                     if queue != OperationQueue.current {
                         // Not entirely safe, but maintained for compatibility
@@ -136,18 +100,39 @@ extension NotificationCenter {
                 }
             })
         } else {
-            return _NSNotificationObserverToken(token: _addObserver(name?.rawValue, object: obj, using: block))
+            return _NSNotificationObserverToken(observer: _addBlockObserver(name?.rawValue, object: Self._observedObject(obj), using: block))
         }
+    }
+    
+    public func removeObserver(_ observer: Any) {
+        removeObserver(observer, name: nil, object: nil)
+    }
+    
+    public func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
+        guard let observer = observer as? _NSNotificationObserverToken else { return }
+        _removeObserver(observer.observer, name: aName?.rawValue, object: Self._observedObject(object))
+    }
+    
+    public func post(_ notification: Notification) {
+        _post(notification)
+    }
+    
+    public func post(name aName: NSNotification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
+        post(Notification(name: aName, object: anObject, userInfo: aUserInfo))
+    }
+    
+    fileprivate static func _observedObject(_ object: Any?) -> AnyObject? {
+        object.map { $0 as AnyObject }
     }
 }
 
 extension NotificationCenter {
     // Provides NSObjectProtocol conformance for addObserver()
     final class _NSNotificationObserverToken: NSObject {
-        internal let token: NotificationCenter._NotificationObserverToken
+        internal let observer: AnyObject
         
-        init(token: NotificationCenter._NotificationObserverToken) {
-            self.token = token
+        init(observer: AnyObject) {
+            self.observer = observer
         }
     }
 }
